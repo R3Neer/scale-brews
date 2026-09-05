@@ -13,7 +13,9 @@ Walking and sprint balance (sprint multiplies the current walking speed):
 | Shrinking walking | 0.92x | 0.84x | 0.76x |
 | Shrinking sprint | 1.50x | 1.90x | 2.50x |
 
-Normal sprint is 1.30x. Neither effect alone beats the sprint speed of Speed at the same level; Speed stacks multiplicatively with both. Vertical jump strength stays vanilla. Physical exhaustion from movement, jumping and attacks changes by +10/+20/+30% with Growth and -5/-10/-15% with Shrinking. Regeneration, Hunger, received damage and food nutrition are untouched.
+Normal sprint is 1.30x. Neither effect alone beats the sprint speed of Speed at the same level; Speed stacks multiplicatively with both. Shrinking increases jump strength by 2.5/5/7.5%; Growth does not change jump strength. Physical exhaustion from movement, jumping and attacks changes by +10/+20/+30% with Growth and -5/-10/-15% with Shrinking. Regeneration, Hunger, received damage and food nutrition are untouched.
+
+When small in first person, the camera's near clipping plane and view-bobbing amplitude shrink with the actual size. This reduces close-corner clipping without changing collision, speed or FOV. Normal size, Growth and third person retain vanilla camera behavior.
 
 Growth landings above three blocks push nearby entities with gust and ground particles. Only level III above six blocks adds damage, capped at two hearts before defenses and decreasing with distance. Growth also resists soul sand and sweet berry bush slowdown.
 

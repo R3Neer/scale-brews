@@ -33,6 +33,9 @@ The package's exclusions apply to its new mechanics; the previously approved bea
 
 ## Decisions and follow-up
 
+- [x] Small-player first-person camera: scale near clipping and culling together, reduce bobbing with actual size, validate in the client without changing movement or collision.
+- [x] Shrinking JUMP_STRENGTH: +2.5/+5/+7.5%, compose with external modifiers and restore on removal.
+
 - Special head scaling is cancelled; head proportions remain vanilla.
 - Preserve the current attribute balance, including growth scale +0.96 per level.
 - Levels III remain potion-only for beacons.

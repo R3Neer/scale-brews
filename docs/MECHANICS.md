@@ -6,7 +6,7 @@
 
 `ScaleTransition` replaces only this mod's direct SCALE modifiers with one transient, server-owned multiplier. Smoothstep interpolation takes 20 simulation ticks. A changed target starts from the current value; duration refreshes do not restart the animation. Removing an effect interpolates back. Other mods' scale modifiers multiply normally. Existing saved modifiers from the tutorial are migrated. On a fresh load, the transient transition starts again; it is not persisted as a separate animation state. Native SCALE synchronization updates client size, collision box and camera; other attributes such as reach change immediately. Head proportions are unchanged.
 
-`ScaleEffects` adds a separate ADD_MULTIPLIED_TOTAL movement modifier of +8% per Growth level and -8% per Shrinking level. `ScaleSprintHandler` replaces only the sprint modifier amount: Growth 1.20/1.12/1.05 or Shrinking 1.50/1.90/2.50, relative to that modified walking speed (not multiplied again by vanilla 1.30). Speed's separate attribute modifier stacks multiplicatively. Jump strength is untouched. Growth wins for sprint if both effects coexist; their walking modifiers both apply. Tick reconciliation catches hidden-effect downgrades; event hooks handle additions/removals. No sprint state is cancelled. Mods replacing sprint itself may require compatibility; unrelated attribute modifiers are retained.
+`ScaleEffects` adds a separate ADD_MULTIPLIED_TOTAL movement modifier of +8% per Growth level and -8% per Shrinking level. `ScaleSprintHandler` replaces only the sprint modifier amount: Growth 1.20/1.12/1.05 or Shrinking 1.50/1.90/2.50, relative to that modified walking speed (not multiplied again by vanilla 1.30). Speed's separate attribute modifier stacks multiplicatively. Shrinking also adds +2.5% JUMP_STRENGTH per level through its own ADD_MULTIPLIED_TOTAL modifier; other jump modifiers are retained on removal. This changes jump strength, not height by the same percentage. Growth wins for sprint if both effects coexist; their walking modifiers both apply. Tick reconciliation catches hidden-effect downgrades; event hooks handle additions/removals. No sprint state is cancelled. Mods replacing sprint itself may require compatibility; unrelated attribute modifiers are retained.
 
 | Effect | I total sprint | II total sprint | III total sprint |
 | --- | ---: | ---: | ---: |
@@ -23,6 +23,14 @@ Totals are relative to unmodified walking, on ordinary ground while sprinting, w
 `ScaleBeacon` extends the third-tier effect list and validation/persistence set after registries initialize. The vanilla GUI reads the same list, so its existing layout, packets, payment and level-II upgrade work without a custom screen. Existing effects are retained.
 
 ## Player physics
+
+### Small-player camera
+
+Client-only `ScaleCamera` / `ScaleCameraMixin` use `clamp(actualScale, .05, 1)` for a player viewed in first person. This follows both Shrinking and its removal blend, and composes with external scale attributes. Detached third-person and panoramic cameras return factor 1. Normal-size and larger players remain unchanged.
+
+Both `Camera.update`'s world projection and `createProjectionMatrixForCulling`'s geometry culling use the same near-plane factor. Vanilla .05 becomes .038/.026/.014 blocks at Shrinking I/II/III, bounded to .0025 at extreme scales. `getNearPlane` already reads the projection, so its sampling follows the change. The separate held-item projection is not altered.
+
+The interpolated bob amplitude is scaled as the camera render snapshot is extracted, keeping world and held-item animation consistent. This reduces translational and angular bob amplitude, not frequency. The bobbing preference, FOV, hurt tilt, entity position, eye height and collision remain untouched. These are clipping/bobbing mitigations, not a new collision solver for the camera; arbitrary extreme FOVs or camera/shader mods can need further integration.
 
 | Mechanic | Integration | Behavior |
 | --- | --- | --- |
