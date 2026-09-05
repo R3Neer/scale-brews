@@ -1,0 +1,4 @@
+{
+  "replace": false,
+  "values": ["minecraft:step", "minecraft:hit_ground", "minecraft:swim"]
+}

@@ -5,7 +5,16 @@
 	"mixins": [
 		"LivingEntityMixin",
 		"BeaconEffectsAccessor",
-		"ScaleHealthMixin"
+		"ScaleHealthMixin",
+		"ScaleTerrainMixin",
+		"ScalePressurePlateMixin",
+		"ScaleFarmlandMixin",
+		"ScaleTurtleEggMixin",
+		"ScaleVibrationMixin",
+		"ScaleFallDamageMixin",
+		"GrowthImpactMixin",
+		"ScaleMovementExhaustionMixin",
+		"ScaleAttackExhaustionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

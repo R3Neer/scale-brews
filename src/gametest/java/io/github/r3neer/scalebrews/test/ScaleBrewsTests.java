@@ -6,6 +6,7 @@ import io.github.r3neer.scalebrews.scale.ScaleTransition;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.resources.Identifier;
@@ -21,19 +22,29 @@ public class ScaleBrewsTests {
     public void sprintAndWalking(GameTestHelper h) {
         var p = h.makeMockPlayer(GameType.SURVIVAL);
         double walking = p.getAttributeValue(Attributes.MOVEMENT_SPEED);
-        double[] growth = {1.2, 1.1, 1.0};
-        double[] shrinking = {1.6, 1.9, 2.2};
+        double[] growth = {1.20, 1.12, 1.05};
+        double[] shrinking = {1.50, 1.90, 2.50};
         for (int i = 0; i < 3; i++) {
             p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, i));
             p.setSprinting(false);
-            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking, "Growth walking");
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * (1 + .08 * (i+1)), "Growth walking");
             p.setSprinting(true);
-            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * growth[i], "Growth sprint");
+            double growthSprint = walking * (1 + .08 * (i+1)) * growth[i];
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), growthSprint, "Growth sprint");
+            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i));
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), growthSprint * (1 + .2 * (i+1)), "Growth stacks with Speed");
+            p.removeEffect(MobEffects.SPEED);
             p.removeEffect(ScaleEffects.GROWTH);
             p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, i));
-            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * shrinking[i], "Shrinking while already sprinting");
+            double shrinkSprint = walking * (1 - .08 * (i+1)) * shrinking[i];
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), shrinkSprint, "Shrinking while already sprinting");
+            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i));
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), shrinkSprint * (1 + .2 * (i+1)), "Shrinking stacks with Speed");
+            p.removeEffect(MobEffects.SPEED);
+            double speedSprint = walking * 1.3 * (1 + .2 * (i+1));
+            h.assertTrue(growthSprint < speedSprint && shrinkSprint < speedSprint, "Neither beats equivalent Speed sprint");
             p.setSprinting(false);
-            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking, "Shrinking walking");
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * (1 - .08 * (i+1)), "Shrinking walking");
             p.removeEffect(ScaleEffects.SHRINKING);
         }
         p.setSprinting(true);

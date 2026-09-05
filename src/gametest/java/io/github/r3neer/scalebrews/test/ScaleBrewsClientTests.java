@@ -28,10 +28,11 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
                     }
                 }
                 var menu = new BeaconMenu(0, client.player.getInventory());
+                var screen = new BeaconScreen(menu, client.player.getInventory(), Component.literal("Scale Brews"));
                 menu.setData(0, 4);
                 menu.setData(1, BeaconMenu.encodeEffect(ScaleEffects.GROWTH));
                 menu.getSlot(0).set(new ItemStack(Items.EMERALD));
-                return new BeaconScreen(menu, client.player.getInventory(), Component.literal("Scale Brews"));
+                return screen;
             });
             context.waitTicks(10);
             context.takeScreenshot("scale-brews-beacon");

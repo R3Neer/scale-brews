@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "name": "Scale Brews Tests",
   "environment": "*",
+  "mixins": ["scalebrews-test.mixins.json"],
   "entrypoints": {
-    "fabric-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsTests"],
+    "fabric-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsTests", "io.github.r3neer.scalebrews.test.ScalePhysicsTests"],
     "fabric-client-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"]
   }
 }
