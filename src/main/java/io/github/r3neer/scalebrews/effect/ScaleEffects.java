@@ -66,6 +66,8 @@ public final class ScaleEffects {
     public static final Holder<MobEffect> SHRINKING = register(
             "shrinking",
         new ScaleMobEffect(MobEffectCategory.NEUTRAL, 0x7657C8, ScaleTransition.SHRINKING_PER_LEVEL)
+            .addAttributeModifier(Attributes.JUMP_STRENGTH, ScaleBrews.id("effect.shrinking.jump_strength"),
+                0.025, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
             .addAttributeModifier(Attributes.MOVEMENT_SPEED, ScaleBrews.id("effect.shrinking.movement_speed"),
                 -0.08, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
             .addAttributeModifier(

@@ -14,6 +14,24 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 
 public class ScaleBrewsTests {
+    @GameTest
+    public void shrinkingJumpStrength(GameTestHelper h) {
+        var p = h.makeMockPlayer(GameType.SURVIVAL);
+        var attribute = p.getAttribute(Attributes.JUMP_STRENGTH);
+        double original = attribute.getValue();
+        var external = Identifier.fromNamespaceAndPath("test", "external_jump");
+        attribute.addTransientModifier(new AttributeModifier(external, .2, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        for (int level = 1; level <= 3; level++) {
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1));
+            near(h, attribute.getValue(), original * 1.2 * (1 + .025 * level), "Shrinking jump strength tier " + level);
+            p.removeEffect(ScaleEffects.SHRINKING);
+            near(h, attribute.getValue(), original * 1.2, "Removing Shrinking retains external jump modifier");
+        }
+        attribute.removeModifier(external);
+        near(h, attribute.getValue(), original, "Vanilla jump restored");
+        h.succeed();
+    }
+
     private static void near(GameTestHelper h, double actual, double expected, String message) {
         h.assertTrue(Math.abs(actual - expected) < 0.00001, message + ": " + actual + " expected " + expected);
     }
