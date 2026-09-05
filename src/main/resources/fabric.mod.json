@@ -1,0 +1,42 @@
+{
+	"schemaVersion": 1,
+	"id": "scalebrews",
+	"version": "${version}",
+	"name": "Scale Brews",
+	"description": "Adds Growth and Shrinking potions to Minecraft.",
+	"authors": [
+		"R3Neer"
+	],
+	"contact": {
+		"homepage": "https://github.com/R3Neer/scale-brews",
+		"sources": "https://github.com/R3Neer/scale-brews",
+		"issues": "https://github.com/R3Neer/scale-brews/issues"
+	},
+	"license": "GPL-3.0-or-later",
+	"icon": "assets/scalebrews/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.r3neer.scalebrews.ScaleBrews"
+		],
+		"client": [
+			"io.github.r3neer.scalebrews.client.ScaleBrewsClient"
+		],
+		"fabric-datagen": [
+			"io.github.r3neer.scalebrews.client.ScaleBrewsDataGenerator"
+		]
+	},
+	"mixins": [
+		"scalebrews.mixins.json",
+		{
+			"config": "scalebrews.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
