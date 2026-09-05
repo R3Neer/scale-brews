@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MountedBeeHiveMixin {
     @Inject(method = "wantsToEnterHive", at = @At("HEAD"), cancellable = true)
     private void scalebrews$occupied(CallbackInfoReturnable<Boolean> cir) {
-        if (((Bee)(Object)this).isVehicle()) cir.setReturnValue(false);
+        var bee = (Bee)(Object)this;
+        if (bee.isVehicle() && io.github.r3neer.scalebrews.mount.TinyMounts.definition(bee) != null)
+            cir.setReturnValue(false);
     }
 }

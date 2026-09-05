@@ -25,7 +25,7 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 }
 ```
 
-- `tiny_mounts: false` disables Scale Brews' additional mounting interactions and manual control. `mounts` disables particular entity IDs. Both must allow a mount, and its definition must also have `enabled: true` (the default).
+- `tiny_mounts: false` disables Scale Brews' additional mounting interactions, manual control, saddle layer, bee-hive overrides and Flower on a Stick crafting. The item stays registered for existing inventories. `mounts` disables particular entity IDs. Both must allow a mount, and its definition must also have `enabled: true` (the default).
 - Growth's prohibition on riding living entities is **independent** of Tiny Mounts. Boats and minecarts remain allowed.
 - `villager_fear` controls the local Growth II/III threat sensor, not vanilla hostile mobs or reputation.
 - `growth_landing_impact` disables the entire landing shockwave, including particles/sound. Its two subordinate options independently disable radial push and radial damage; disabling both leaves cosmetic impact feedback. They do not change the player's received fall damage or melee knockback.

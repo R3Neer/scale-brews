@@ -46,6 +46,6 @@ The client tests exposed and fixed a passenger-packet race: mounting restriction
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.
 - Combatify, Alex's Mobs Continued, mounts, elytra, tight spaces, dedicated multiplayer latency, wall/ally/PvP impact edge cases and every Swift Sneak/Soul Speed equipment combination still need broader playtesting. The relevant vanilla call paths were inspected, but that is not equivalent to testing every external mod.
-- The 26.2 mock connected-player helper used by two tests is deprecated; it remains functional. Damage tests use a plain survival mock to avoid the connected mock's client-loading immunity.
+- The 26.2 mock connected-player helper used by several tests is deprecated; it remains functional. Damage tests use a plain survival mock to avoid the connected mock's client-loading immunity.
 - OneDrive can lock generated output. The optional local build-directory property avoids most build-output contention while leaving the repository in its intended location. Test-run directory auto-deletion is disabled; no user worlds or source directories are removed.
 - There are no public release/tag claims. A successful build is not a claim that every gameplay interaction is release-ready.

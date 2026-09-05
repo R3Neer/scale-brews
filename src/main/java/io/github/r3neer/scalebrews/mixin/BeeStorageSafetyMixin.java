@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class BeeStorageSafetyMixin {
     @Inject(method = "addOccupant", at = @At("HEAD"))
     private void scalebrews$dismountBeforeStorage(Bee bee, CallbackInfo ci) {
+        if (io.github.r3neer.scalebrews.mount.TinyMounts.definition(bee) == null) return;
         if (((BeehiveBlockEntity)(Object)this).isFull()) return;
         for (var passenger : java.util.List.copyOf(bee.getPassengers())) {
             if (passenger instanceof Player player) {

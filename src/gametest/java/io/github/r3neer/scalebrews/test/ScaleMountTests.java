@@ -41,6 +41,11 @@ public class ScaleMountTests {
             if (small) h.assertTrue(ItemStack.isSameItemSameComponents(recipe.assemble(input), new ItemStack(ScaleItems.FLOWER_ON_A_STICK)),
                     "Every flower produces the same item without flower metadata");
         }
+        try (var ignored = new RuleTestScope("{\"tiny_mounts\":false}")) {
+            var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 1,
+                    java.util.List.of(new ItemStack(Items.FISHING_ROD), new ItemStack(Items.POPPY)));
+            h.assertFalse(recipe.matches(input, h.getLevel()), "Tiny Mounts master switch disables steering-item crafting");
+        }
         h.succeed();
     }
     @GameTest public void disabledMechanicsRestoreVanilla(GameTestHelper h) {
