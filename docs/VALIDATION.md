@@ -28,6 +28,20 @@ Validated on Windows with Microsoft OpenJDK 25.0.3, Minecraft 26.2, Fabric Loade
 
 GitHub Actions runs the build/server suite on Ubuntu with Java 25. The client visual check is local, not part of headless CI. Packaging checks ensure production JARs include sprites/languages/tags/mixins but exclude GameTest classes and test-only mixins. `git diff --check` checks patch whitespace.
 
+## Tiny mounts and configurable mechanics (2026-09-06)
+
+The expanded suite has 21 mod tests plus Fabric's default test. The 22-test server run and the real client/integrated-server run passed during implementation. Added coverage includes:
+
+- Synced registry JSONs: exactly chicken and bee initially, enabled defaults and independently decoded module/individual switches.
+- Disabled rules exercise the real hooks using a test-only, scoped server-thread rule override (not packaged in the mod). This is not a live `/reload` or a separate-server configuration-switch test.
+- Wrong-size saddle rejection without consumption, one saddle consumed on success, controller selection, vanilla-packet WASD input, ordinary jump suppression, Shrinking removal and Growth dismount/forced-mount denial; minecarts preserved and native pigs excluded.
+- Bee mounting without a steering item, bounded yaw/pitch flight vector, item removal retaining rider, hive-entry suppression and external hive storage dismount/reset.
+- Jump Boost comparison and stacking; final direct-attack knockback at several input strengths; actual arrow/trident hits at normal size and all effect tiers without damage scaling.
+- Recipe lookup and crafting with small flowers; two-block flowers rejected; identical item components regardless of flower.
+- Client-side JSON/equipment synchronization, saddle texture availability, screenshots before/after saddle removal, actual keyboard-driven chicken movement, held-Space slow fall versus faster fall after release, look-driven bee ascent/forward flight, and relinquishing control when the flower is removed.
+
+The client tests exposed and fixed a passenger-packet race: mounting restrictions must be server-authoritative, because the client can receive passenger state before equipment/effect updates. Original camera/beacon/scale-sync checks remain in the same run. The saddle and held-item screenshots were visually inspected.
+
 ## Limits and follow-up
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.

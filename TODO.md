@@ -31,6 +31,22 @@ New requirements are appended here; they do not replace unfinished work.
 
 The package's exclusions apply to its new mechanics; the previously approved beacon and scale blend were retained. The latest explicit walking/sprint rework supersedes the earlier speed requirements.
 
+## Tiny mounts and social physics package
+
+- [x] Extend jump tests for Jump Boost synergy and equivalent-level balance; retain existing jump values.
+- [x] Scale direct-player attack knockback by Growth 1.10/1.20/1.30 and Shrinking .90/.80/.70, retaining existing sprint/enchantment contributions. Projectiles, thorns and the landing wave are excluded.
+- [x] Preserve vanilla projectile damage independently of the shooter's Growth/Shrinking damage modifiers; runtime arrow/trident regression tests at normal size and levels I-III. No global inverse damage correction.
+- [x] Block all Growth levels from riding living entities and safely dismount existing riders, leaving boats/minecarts alone.
+- [x] Synced data-driven tiny mount definitions; generic control/movement types; preserve native mount implementations.
+- [x] Chicken: Shrinking II+, vanilla saddle, direct control, one rider, held-Space glide without ordinary jump or extra HUD.
+- [x] Bee: Shrinking II+, vanilla saddle, Flower on a Stick, bounded look-directed 3D flight; restore AI without steering item.
+- [x] Original hand-painted saddle textures and separate animated equipment geometry; JSON selects texture/anchor. Client screenshots reviewed with equipment added/removed; vanilla base skins retained.
+- [x] Prevent mounted bees entering hives; external storage uses native dismount placement and clears accumulated rider fall distance.
+- [x] Flower on a Stick: one item, hand-authored vanilla-based model, small-flower-tag recipe, EN/ES feedback and names.
+- [x] Growth II/III villager fear through local vanilla panic, without gossip, reputation or global hostility changes.
+- [x] JSON master/individual tiny-mount switches, independent villager fear, landing push/damage and environmental switches, enabled by default and server-synchronized. Growth mounting restriction stays independent.
+- [x] Server/client integration tests, documentation, scoped commits and push.
+
 ## Decisions and follow-up
 
 - [x] Small-player first-person camera: scale near clipping and culling together, reduce bobbing with actual size, validate in the client without changing movement or collision.

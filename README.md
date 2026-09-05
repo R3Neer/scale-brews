@@ -23,6 +23,12 @@ Shrinking reduces fall damage, shortens the detection range of movement vibratio
 
 Both powers appear in a beacon's third tier. A full beacon can upgrade either to level II; level III remains potion-only. English and Spanish translations and original effect icons are included. Bottle models and potion tinting use Minecraft's normal resource system.
 
+## Tiny mounts and configuration
+
+Shrinking II/III can saddle and ride adult chickens (WASD, hold Space while falling to glide) and bees (look-directed flight with a Flower on a Stick). Craft the steering item from a fishing rod and any vanilla small flower. Both mounts have separate, hand-authored saddle layers. Growth prevents riding living creatures but not boats/minecarts; Growth II/III also scares nearby villagers through vanilla panic, without reputation penalties or automatic golem hostility.
+
+Tiny Mounts, individual mounts, villager fear, landing-wave damage/push and environmental interactions can be enabled or disabled using server-owned JSON. Everything defaults to enabled. See [configuration and mount definitions](docs/CONFIGURATION.md) and the ready-to-edit `examples/world-config` datapack.
+
 ## Brewing
 
 1. Awkward potion + slime ball -> Growth. If `alexsmobs:elastic_tendon` is registered, that item replaces the slime ball.
