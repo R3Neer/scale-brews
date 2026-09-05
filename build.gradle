@@ -3,6 +3,11 @@ plugins {
 	id 'maven-publish'
 }
 
+// Optional local output directory for checkouts in sync folders such as OneDrive.
+if (providers.gradleProperty("scalebrewsBuildDir").isPresent()) {
+	layout.buildDirectory = file(providers.gradleProperty("scalebrewsBuildDir").get())
+}
+
 repositories {
 	exclusiveContent {
 		forRepository {
@@ -32,6 +37,14 @@ loom {
 }
 
 fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "scalebrews-test"
+		enableGameTests = true
+		enableClientGameTests = true
+		clearRunDirectory = false
+		eula = true
+	}
 	configureDataGeneration {
 		client = true
 	}

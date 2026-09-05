@@ -1,0 +1,99 @@
+package io.github.r3neer.scalebrews.test;
+
+import io.github.r3neer.scalebrews.effect.ScaleEffects;
+import io.github.r3neer.scalebrews.mixin.BeaconEffectsAccessor;
+import io.github.r3neer.scalebrews.scale.ScaleTransition;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+
+public class ScaleBrewsTests {
+    private static void near(GameTestHelper h, double actual, double expected, String message) {
+        h.assertTrue(Math.abs(actual - expected) < 0.00001, message + ": " + actual + " expected " + expected);
+    }
+
+    @GameTest
+    public void sprintAndWalking(GameTestHelper h) {
+        var p = h.makeMockPlayer(GameType.SURVIVAL);
+        double walking = p.getAttributeValue(Attributes.MOVEMENT_SPEED);
+        double[] growth = {1.2, 1.1, 1.0};
+        double[] shrinking = {1.6, 1.9, 2.2};
+        for (int i = 0; i < 3; i++) {
+            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, i));
+            p.setSprinting(false);
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking, "Growth walking");
+            p.setSprinting(true);
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * growth[i], "Growth sprint");
+            p.removeEffect(ScaleEffects.GROWTH);
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, i));
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * shrinking[i], "Shrinking while already sprinting");
+            p.setSprinting(false);
+            near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking, "Shrinking walking");
+            p.removeEffect(ScaleEffects.SHRINKING);
+        }
+        p.setSprinting(true);
+        near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * 1.3, "Restored vanilla sprint");
+        h.succeed();
+    }
+
+    @GameTest
+    public void beaconRules(GameTestHelper h) {
+        for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
+            h.assertTrue(BeaconBlockEntity.BEACON_EFFECTS.get(2).contains(effect), "Third tier UI list");
+            h.assertTrue(BeaconEffectsAccessor.scalebrews$validEffects().contains(effect), "Persistence allowlist");
+            h.assertFalse(BeaconBlockEntity.validateEffects(effect, null, 2), "Two tiers cannot select it");
+            h.assertTrue(BeaconBlockEntity.validateEffects(effect, null, 3), "Three tiers allow level I");
+            h.assertTrue(BeaconBlockEntity.validateEffects(effect, effect, 4), "Four tiers allow level II");
+            h.assertFalse(BeaconBlockEntity.validateEffects(effect, effect, 3), "No secondary at tier three");
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void scaleTransitionAndExternalModifier(GameTestHelper h) {
+        var p = h.makeMockPlayer(GameType.SURVIVAL);
+        var scale = p.getAttribute(Attributes.SCALE);
+        var external = Identifier.fromNamespaceAndPath("test", "external_scale");
+        scale.addTransientModifier(new AttributeModifier(external, 0.5, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        var transition = new ScaleTransition();
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0));
+        near(h, p.getScale(), 1.5, "No instant scale change");
+        double last = p.getScale();
+        for (int i = 1; i <= 20; i++) {
+            transition.tick(p);
+            h.assertTrue(p.getScale() >= last, "Monotonic growth");
+            if (i == 10) near(h, p.getScale(), 1.5 * 1.48, "Halfway scale");
+            last = p.getScale();
+        }
+        near(h, p.getScale(), 1.5 * 1.96, "Final scale composes with other mods");
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 400, 0));
+        transition.tick(p);
+        near(h, p.getScale(), last, "Beacon renewal does not restart transition");
+        p.removeEffect(ScaleEffects.GROWTH);
+        for (int i = 0; i < 20; i++) transition.tick(p);
+        near(h, p.getScale(), 1.5, "Removal restores other mod scale");
+        h.assertTrue(scale.getModifier(ScaleTransition.MODIFIER) == null, "Transition modifier cleaned up");
+        h.assertTrue(scale.getModifier(external) != null, "Other mod modifier preserved");
+        h.succeed();
+    }
+
+    @GameTest
+    public void healthAndHiddenEffect(GameTestHelper h) {
+        var p = h.makeMockPlayer(GameType.SURVIVAL);
+        p.setHealth(15);
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0));
+        near(h, p.getHealth() / p.getMaxHealth(), 0.75, "Health on growth");
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 2, 2));
+        near(h, p.getHealth() / p.getMaxHealth(), 0.75, "Health on upgrade");
+        for (int i = 0; i < 3; i++) p.tick();
+        near(h, p.getHealth() / p.getMaxHealth(), 0.75, "Health on hidden-effect downgrade");
+        p.removeEffect(ScaleEffects.GROWTH);
+        near(h, p.getHealth(), 15, "No healing or damage after cycle");
+        h.succeed();
+    }
+}

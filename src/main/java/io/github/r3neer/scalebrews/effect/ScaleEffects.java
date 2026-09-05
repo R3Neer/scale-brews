@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.effect;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.scale.ScaleTransition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,13 +16,7 @@ public final class ScaleEffects {
 
     public static final Holder<MobEffect> GROWTH = register(
         "growth",
-        new ScaleMobEffect(MobEffectCategory.NEUTRAL, 0xD98C3F)
-            .addAttributeModifier(
-                Attributes.SCALE,
-                ScaleBrews.id("effect.growth.scale"),
-                0.96,
-                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            )
+        new ScaleMobEffect(MobEffectCategory.NEUTRAL, 0xD98C3F, ScaleTransition.GROWTH_PER_LEVEL)
             .addAttributeModifier(
                 Attributes.BLOCK_INTERACTION_RANGE,
                 ScaleBrews.id("effect.growth.block_interaction_range"),
@@ -68,13 +63,7 @@ public final class ScaleEffects {
 
     public static final Holder<MobEffect> SHRINKING = register(
             "shrinking",
-        new ScaleMobEffect(MobEffectCategory.NEUTRAL, 0x7657C8)
-            .addAttributeModifier(
-                Attributes.SCALE,
-                ScaleBrews.id("effect.shrinking.scale"),
-                -0.24,
-                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            )
+        new ScaleMobEffect(MobEffectCategory.NEUTRAL, 0x7657C8, ScaleTransition.SHRINKING_PER_LEVEL)
             .addAttributeModifier(
                 Attributes.BLOCK_INTERACTION_RANGE,
                 ScaleBrews.id("effect.shrinking.block_interaction_range"),

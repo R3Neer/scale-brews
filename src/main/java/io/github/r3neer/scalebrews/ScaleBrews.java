@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import io.github.r3neer.scalebrews.effect.ScaleEffects;
 import io.github.r3neer.scalebrews.potion.ScalePotions;
 import io.github.r3neer.scalebrews.brewing.ScaleBrewing;
-import io.github.r3neer.scalebrews.scale.ScaleHealthHandler;
 import io.github.r3neer.scalebrews.scale.ScaleSprintHandler;
+import io.github.r3neer.scalebrews.beacon.ScaleBeacon;
 
 public class ScaleBrews implements ModInitializer {
 	public static final String MOD_ID = "scalebrews";
@@ -29,8 +29,8 @@ public class ScaleBrews implements ModInitializer {
 		ScaleEffects.initialize();
 		ScalePotions.initialize();
 		ScaleBrewing.initialize();
-		ScaleHealthHandler.initialize();
 		ScaleSprintHandler.initialize();
+		ScaleBeacon.initialize();
 	}
 
 	public static Identifier id(String path) {

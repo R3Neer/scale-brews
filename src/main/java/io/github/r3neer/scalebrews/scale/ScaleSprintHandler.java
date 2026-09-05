@@ -9,12 +9,10 @@ import net.minecraft.world.entity.player.Player;
 
 public final class ScaleSprintHandler {
 
-    private static final double[] GROWTH_SPRINT_BONUSES = {
-        0.27, 0.216
-    };
+    private static final double[] GROWTH_SPRINT_BONUSES = {0.20, 0.10, 0.0};
 
     private static final double[] SHRINKING_SPRINT_BONUSES = {
-        0.354, 0.414, 0.51
+        0.60, 0.90, 1.20
     };
 
     private ScaleSprintHandler() {}
@@ -33,9 +31,13 @@ public final class ScaleSprintHandler {
         });
     }
 
-    public static boolean blocksSprinting(LivingEntity entity) {
-        MobEffectInstance growth = entity.getEffect(ScaleEffects.GROWTH);
-        return entity instanceof Player && growth != null && growth.getAmplifier() >= 2;
+    public static int level(MobEffectInstance effect) {
+        return effect == null ? 0 : Math.min(3, effect.getAmplifier() + 1);
+    }
+
+    public static int state(LivingEntity entity) {
+        int growth = level(entity.getEffect(ScaleEffects.GROWTH));
+        return growth > 0 ? growth : -level(entity.getEffect(ScaleEffects.SHRINKING));
     }
 
     public static AttributeModifier sprintModifierFor (

@@ -4,6 +4,9 @@ import io.github.r3neer.scalebrews.scale.ScaleSprintHandler;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import io.github.r3neer.scalebrews.scale.ScaleTransition;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -12,20 +15,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Inject(
-            method = "setSprinting",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void scalebrews$blockGrowthThreeSprint(
-            boolean isSprinting,
-            CallbackInfo ci
-    ) {
-        LivingEntity entity = (LivingEntity) (Object) this;
+    @Unique private int scalebrews$sprintState;
+    @Unique private ScaleTransition scalebrews$transition;
 
-        if (isSprinting && ScaleSprintHandler.blocksSprinting(entity)) {
-            entity.setSprinting(false);
-            ci.cancel();
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void scalebrews$tick(CallbackInfo ci) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity instanceof Player) {
+            int state = ScaleSprintHandler.state(entity);
+            if (state != scalebrews$sprintState) {
+                scalebrews$sprintState = state;
+                entity.setSprinting(entity.isSprinting());
+            }
+        }
+        if (!entity.level().isClientSide()) {
+            if (scalebrews$transition == null) scalebrews$transition = new ScaleTransition();
+            scalebrews$transition.tick(entity);
         }
     }
 
