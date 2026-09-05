@@ -36,16 +36,64 @@ The package's exclusions apply to its new mechanics; the previously approved bea
 - [x] Extend jump tests for Jump Boost synergy and equivalent-level balance; retain existing jump values.
 - [x] Scale direct-player attack knockback by Growth 1.10/1.20/1.30 and Shrinking .90/.80/.70, retaining existing sprint/enchantment contributions. Projectiles, thorns and the landing wave are excluded.
 - [x] Preserve vanilla projectile damage independently of the shooter's Growth/Shrinking damage modifiers; runtime arrow/trident regression tests at normal size and levels I-III. No global inverse damage correction.
-- [x] Block all Growth levels from riding living entities and safely dismount existing riders, leaving boats/minecarts alone.
+- [x] Block all Growth levels from riding living entities and safely dismount existing riders, leaving boats/minecarts alone. Historical baseline: superseded by the pending effective-scale ratio policy below.
 - [x] Synced data-driven tiny mount definitions; generic control/movement types; preserve native mount implementations.
-- [x] Chicken: Shrinking II+, vanilla saddle, direct control, one rider, held-Space glide without ordinary jump or extra HUD.
-- [x] Bee: Shrinking II+, vanilla saddle, Flower on a Stick, bounded look-directed 3D flight; restore AI without steering item.
+- [x] Chicken: Shrinking II+, vanilla saddle, direct control, one rider, held-Space glide without ordinary jump or extra HUD. Level-based size eligibility is superseded below; other behavior is retained.
+- [x] Bee: Shrinking II+, vanilla saddle, Flower on a Stick, bounded look-directed 3D flight; restore AI without steering item. Level-based size eligibility is superseded below; other behavior is retained.
 - [x] Original hand-painted saddle textures and separate animated equipment geometry; JSON selects texture/anchor. Client screenshots reviewed with equipment added/removed; vanilla base skins retained.
 - [x] Prevent mounted bees entering hives; external storage uses native dismount placement and clears accumulated rider fall distance.
 - [x] Flower on a Stick: one item, hand-authored vanilla-based model, small-flower-tag recipe, EN/ES feedback and names.
 - [x] Growth II/III villager fear through local vanilla panic, without gossip, reputation or global hostility changes.
 - [x] JSON master/individual tiny-mount switches, independent villager fear, landing push/damage and environmental switches, enabled by default and server-synchronized. Growth mounting restriction stays independent.
 - [x] Server/client integration tests, documentation, scoped commits and push.
+
+## Effective-scale mounts, creeper explosions and living-entity landings (pending)
+
+Added from the latest specification; these unchecked requirements are not implemented yet. Earlier completed items remain historical records. Only the explicitly replaced mount-size eligibility rules change; retain the other mechanics, saddle artwork/configuration and unfinished follow-up work.
+
+### Living-mount size policy
+
+- [ ] Replace direct Growth/Shrinking-level mount-size gates, including existing-rider enforcement, with `riderScale / mountScale <= maxRiderScaleRatio`. Read both entities' real effective SCALE, including other mods' modifiers and gradual transitions; no blanket Growth ban or minimum-Shrinking-level size gate.
+- [ ] Preserve vanilla mount restrictions: age, state, taming, passenger capacity and other native eligibility rules. Boats and minecarts are exempt from this size check.
+- [ ] Add data-driven general living-mount ratio definitions/overrides, not scattered Java constants. Establish and document a conservative fallback for unconfigured species during implementation; the specification does not prescribe one.
+- [ ] Add explicit `"max_rider_scale_ratio": 0.53` to chicken/bee tiny-mount JSON and migrate the old level-based configuration without losing texture/anchor, control, movement or enable/disable settings. General living-mount size policy remains independent of the tiny-mount master switch.
+
+Initial configurable limits:
+
+| Mount | Maximum rider/mount SCALE ratio |
+| --- | --- |
+| Horse, donkey, mule, skeleton horse, zombie horse | 1.00 |
+| Pig | 1.00 |
+| Strider | 1.00 |
+| Llama, trader llama | 1.00 |
+| Camel | 1.10 |
+| Happy ghast | 2.00 |
+| Chicken tiny mount, bee tiny mount | 0.53 |
+
+- [ ] Test Growth II rider on Growth II/III horse (allowed), Growth II rider on Growth I horse (denied), and Growth I rider on normal horse (denied).
+- [ ] Test the intentional tiny-mount matrix: Shrinking II rider + normal mount allowed; II + Shrinking I mount denied; III + Shrinking I mount allowed; III + Shrinking II mount denied. Preserve the exact 0.53 limit.
+- [ ] Test external SCALE modifiers, both rider/mount transitions, safe enforcement for existing riders, vanilla restrictions, boat/minecart exemptions and data overrides/server-client consistency.
+
+### Creeper explosion power
+
+- [ ] Multiply the creeper's actual final vanilla explosion power: Shrinking I/II/III x0.90/x0.80/x0.65; normal x1.00; Growth I/II/III x1.15/x1.30/x1.50. Preserve this explicit level table rather than silently replacing it with a different scale formula.
+- [ ] Apply after the normal/charged power is determined; no additional charged-creeper cap. Vanilla base 3/6 must yield Growth III 4.5/9.0 and Shrinking III 1.95/3.9. Extremely strong charged Growth explosions are intentional.
+- [ ] Modify the existing vanilla explosion, not a separate simulated blast. Radius, damage and block destruction must naturally follow its real power, preserving vanilla explosion rules.
+- [ ] Test normal/charged creepers and every level, including direct, splash, lingering and other normal effect application paths; verify actual explosion behavior, not only the multiplier helper.
+
+### Growth landing impact for compatible LivingEntity
+
+- [ ] Generalize the existing player landing wave to compatible LivingEntity with Growth, including vanilla/modded mobs. Keep unrelated player-only mechanics scoped as before.
+- [ ] Retain existing balance: valid falls above 3 blocks, Growth I small radial knockback/no damage, II stronger knockback/no damage, III stronger knockback and incidental damage only above 6 blocks, capped at 4 HP. Strength/radius still depend on level and real fall distance.
+- [ ] Require accumulated real fall distance and a real landing; ordinary jumps and flying mobs briefly touching ground must not trigger a wave without a qualifying fall.
+- [ ] Retain gust/Wind Burst and terrain particles for mobs, existing landing feedback and configuration switches; no explosion or block destruction and no mace-like damage escalation.
+- [ ] Preserve the entity's own vanilla fall damage and normal landing vibrations/game events. Avoid species lists: use LivingEntity + Growth + valid fall + landing, with narrow explicit exceptions only for technically incompatible physics.
+- [ ] Add runtime coverage for player/vanilla-mob landings, generic compatible-mob behavior, flight/no-fall negatives, all levels, bounded damage, particles, self fall damage, landing events and independent configuration switches.
+
+### Compatibility and completion
+
+- [ ] Use real effective scale wherever sensible without overriding the explicitly specified creeper multipliers or landing balance. Do not add special Ender Dragon support; preserve vanilla behavior for incompatible multipart entities, bosses or special physics instead of risky hacks.
+- [ ] Update mechanics/configuration documentation and examples, validate server/client regressions, and commit/push validated milestones. Retain all earlier unfinished QA below.
 
 ## Decisions and follow-up
 
