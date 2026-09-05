@@ -15,6 +15,6 @@ public abstract class ScaleFarmlandMixin {
     @WrapWithCondition(method = "fallOn", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/level/block/FarmlandBlock;turnToDirt(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V"))
     private boolean scalebrews$canTrample(Entity entity, BlockState state, Level level, BlockPos pos) {
-        return !ScalePhysics.weightless(entity);
+        return !io.github.r3neer.scalebrews.config.ScaleRules.get(level).protectsFarmland() || !ScalePhysics.weightless(entity);
     }
 }

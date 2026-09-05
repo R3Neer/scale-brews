@@ -30,12 +30,16 @@ public final class GrowthImpact {
     }
 
     public static void land(Player player, double fallDistance, BlockState ground) {
+        var rules = io.github.r3neer.scalebrews.config.ScaleRules.get(player.level());
+        if (!rules.growthImpact()) return;
         int tier = ScalePhysics.growth(player);
         if (tier == 0 || fallDistance <= 3 || !Double.isFinite(fallDistance) || ground.isAir()
                 || player.isSpectator() || player.getAbilities().flying || player.isPassenger() || player.isInWater()
                 || !(player.level() instanceof ServerLevel level)) return;
         double radius = radius(tier, fallDistance);
         double power = strength(tier, fallDistance);
+        var source = new net.minecraft.world.damagesource.DamageSource(
+                level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(ScaleCombat.LANDING), player);
         Vec3 origin = player.position().add(0, 0.2, 0);
         AABB area = new AABB(origin.x - radius, origin.y - 1, origin.z - radius,
                 origin.x + radius, origin.y + 2, origin.z + radius);
@@ -50,12 +54,14 @@ public final class GrowthImpact {
             Vec3 destination = target.position().add(0, 0.2, 0);
             if (level.clip(new ClipContext(origin, destination, ClipContext.Block.COLLIDER,
                     ClipContext.Fluid.NONE, player)).getType() != HitResult.Type.MISS) continue;
-            float damage = damage(tier, fallDistance, distance / radius);
-            if (damage > 0) target.hurtServer(level, level.damageSources().playerAttack(player), damage);
+            float damage = rules.growthImpactDamage() ? damage(tier, fallDistance, distance / radius) : 0;
+            if (damage > 0) target.hurtServer(level, source, damage);
             if (distance < 0.0001) { dx = 1; dz = 0; }
-            target.knockback(power * (1 - distance / radius), -dx, -dz,
-                    level.damageSources().playerAttack(player), damage, true);
-            target.hurtMarked = true;
+            if (rules.growthImpactKnockback()) {
+                target.knockback(power * (1 - distance / radius), -dx, -dz,
+                        source, damage, true);
+                target.hurtMarked = true;
+            }
         }
         var gust = switch (tier) {
             case 1 -> ParticleTypes.SMALL_GUST;

@@ -27,10 +27,13 @@ public class ScaleBrews implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		ScaleEffects.initialize();
+		io.github.r3neer.scalebrews.config.ScaleRules.initialize();
 		ScalePotions.initialize();
 		ScaleBrewing.initialize();
 		ScaleSprintHandler.initialize();
 		ScaleBeacon.initialize();
+		io.github.r3neer.scalebrews.item.ScaleItems.initialize();
+		io.github.r3neer.scalebrews.mount.TinyMounts.initialize();
 	}
 
 	public static Identifier id(String path) {

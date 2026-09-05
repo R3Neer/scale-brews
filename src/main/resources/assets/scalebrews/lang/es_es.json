@@ -1,4 +1,6 @@
 {
+  "item.scalebrews.flower_on_a_stick": "Flor en una caña",
+  "message.scalebrews.too_large_to_ride": "Eres demasiado grande para montar esta criatura.",
   "effect.scalebrews.growth": "Crecimiento",
   "effect.scalebrews.shrinking": "Encogimiento",
   "item.minecraft.potion.effect.scalebrews.growth": "Poción de crecimiento",

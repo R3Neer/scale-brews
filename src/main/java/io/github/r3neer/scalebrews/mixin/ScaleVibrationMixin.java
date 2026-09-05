@@ -18,6 +18,7 @@ public abstract class ScaleVibrationMixin {
     private void scalebrews$quietMovement(ServerLevel level, Holder<GameEvent> event,
             GameEvent.Context context, Vec3 origin, CallbackInfoReturnable<Boolean> cir) {
         Entity source = context.sourceEntity();
+        if (!io.github.r3neer.scalebrews.config.ScaleRules.get(level).quietensMovement()) return;
         int shrinking = ScalePhysics.shrinking(source);
         if (shrinking == 0 || source.isSteppingCarefully() || !event.is(ScalePhysics.QUIET_MOVEMENT)) return;
         var listener = (VibrationSystem.Listener) (Object) this;

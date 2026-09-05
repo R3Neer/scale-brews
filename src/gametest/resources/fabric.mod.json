@@ -6,7 +6,7 @@
   "environment": "*",
   "mixins": ["scalebrews-test.mixins.json"],
   "entrypoints": {
-    "fabric-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsTests", "io.github.r3neer.scalebrews.test.ScalePhysicsTests"],
+    "fabric-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsTests", "io.github.r3neer.scalebrews.test.ScalePhysicsTests", "io.github.r3neer.scalebrews.test.ScaleMountTests"],
     "fabric-client-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"]
   }
 }

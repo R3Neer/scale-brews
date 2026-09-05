@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [ "minecraft:fishing_rod", "#minecraft:small_flowers" ],
+  "result": { "id": "scalebrews:flower_on_a_stick", "count": 1 }
+}

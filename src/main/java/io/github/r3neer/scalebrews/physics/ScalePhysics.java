@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.physics;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.config.ScaleRules;
 import io.github.r3neer.scalebrews.effect.ScaleEffects;
 import io.github.r3neer.scalebrews.scale.ScaleSprintHandler;
 import net.minecraft.core.registries.Registries;
@@ -31,6 +32,7 @@ public final class ScalePhysics {
     public static boolean weightless(Entity entity) { return shrinking(entity) == 3; }
 
     public static boolean triggersPlate(Entity entity, BlockState plate) {
+        if (!ScaleRules.get(entity.level()).bypassesPlates()) return true;
         int level = shrinking(entity);
         return level < 3 && (level != 2 || !plate.is(INSENSITIVE_PLATES));
     }
@@ -44,6 +46,7 @@ public final class ScalePhysics {
     }
 
     public static float blockSpeed(Entity entity, BlockState block, float vanillaFactor) {
+        if (!ScaleRules.get(entity.level()).resistsTerrain()) return vanillaFactor;
         int level = growth(entity);
         if (level == 0 || !block.is(RESISTED_SLOWDOWN) || vanillaFactor >= 1) return vanillaFactor;
         double penalty = switch (level) { case 1 -> 0.60; case 2 -> 0.25; default -> 0; };
@@ -51,6 +54,7 @@ public final class ScalePhysics {
     }
 
     public static Vec3 stuckSpeed(Entity entity, BlockState block, Vec3 vanilla) {
+        if (!ScaleRules.get(entity.level()).resistsTerrain()) return vanilla;
         int level = growth(entity);
         if (level == 0 || !block.is(RESISTED_SLOWDOWN)) return vanilla;
         double remaining = 1 - level / 3.0;

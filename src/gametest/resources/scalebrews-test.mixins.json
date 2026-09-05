@@ -2,7 +2,7 @@
   "required": true,
   "package": "io.github.r3neer.scalebrews.test.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": ["TestEntityAccess", "TestPlateAccess", "TestEggAccess", "TestFoodAccess"],
+  "mixins": ["TestEntityAccess", "TestPlateAccess", "TestEggAccess", "TestFoodAccess", "TestMountAccess", "TestBeeAccess", "TestVillagerSensorAccess", "TestRulesMixin", "TestArrowAccess"],
   "client": ["TestCameraAccess"],
   "injectors": {"defaultRequire": 1}
 }

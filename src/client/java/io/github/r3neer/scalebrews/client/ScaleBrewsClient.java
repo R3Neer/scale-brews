@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 public class ScaleBrewsClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+		io.github.r3neer.scalebrews.mount.TinyMounts.clientInput = player ->
+			player instanceof net.minecraft.client.player.LocalPlayer local ? local.input.keyPresses : net.minecraft.world.entity.player.Input.EMPTY;
 	}
 }

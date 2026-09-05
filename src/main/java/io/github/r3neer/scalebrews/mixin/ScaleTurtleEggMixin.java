@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ScaleTurtleEggMixin {
     @Inject(method = "canDestroyEgg", at = @At("HEAD"), cancellable = true)
     private void scalebrews$canCrush(ServerLevel level, Entity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (ScalePhysics.weightless(entity)) cir.setReturnValue(false);
+        if (io.github.r3neer.scalebrews.config.ScaleRules.get(level).protectsEggs()
+                && ScalePhysics.weightless(entity)) cir.setReturnValue(false);
     }
 }

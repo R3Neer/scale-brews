@@ -22,6 +22,7 @@ public abstract class LivingEntityMixin {
     private void scalebrews$tick(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity instanceof Player) {
+            io.github.r3neer.scalebrews.mount.TinyMounts.enforceRider((Player) entity);
             io.github.r3neer.scalebrews.physics.ScaleSneaking.tick((Player) entity);
             int state = ScaleSprintHandler.state(entity);
             if (state != scalebrews$sprintState) {

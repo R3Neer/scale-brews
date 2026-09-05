@@ -61,8 +61,52 @@ public class GenerateArt {
         ImageIO.write(image, "png", path.toFile());
     }
 
+    static BufferedImage saddle(boolean bee) {
+        var image = new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB);
+        var g = image.createGraphics();
+        // Hand-painted UV islands: warm leather, dark binding, sparse cream stitches,
+        // iron buckles. No copied Minecraft pixels, filters, or generated-image models.
+        Color leather = new Color(0x995D35), light = new Color(0xC38A50), dark = new Color(0x583724);
+        rect(g, dark, 0, 0, 20, 7);
+        rect(g, leather, 1, 1, 18, 5);
+        rect(g, light, 5, 0, 5, 5);
+        rect(g, new Color(0xAD7040), 6, 1, 3, 3);
+        rect(g, new Color(0xD9AF70), 5, 0, 5, 1);
+        rect(g, dark, 0, 8, 24, 8);
+        rect(g, new Color(bee ? 0xAA783C : 0x825339), 1, 9, 22, 6);
+        for (int x = 2; x < 23; x += 3) rect(g, new Color(0xD1AF7A), x, 9, 1, 1);
+        rect(g, dark, 32, 0, 4, 9);
+        rect(g, leather, 33, 1, 2, 7);
+        rect(g, new Color(0xD2B686), 33, 2, 1, 1);
+        rect(g, dark, 40, 0, 6, 5);
+        rect(g, new Color(0xB7B8AC), 40, 0, 6, 1);
+        rect(g, new Color(0xE2E0CD), 41, 1, 1, 3);
+        rect(g, new Color(0x85877D), 44, 1, 1, 3);
+        rect(g, new Color(0xB7B8AC), 40, 4, 6, 1);
+        g.dispose();
+        return image;
+    }
+
+    static BufferedImage flower() {
+        var image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        var g = image.createGraphics();
+        rect(g, new Color(0x335D27), 11, 8, 1, 6);
+        rect(g, new Color(0x65853C), 10, 11, 1, 2);
+        rect(g, new Color(0x91AA53), 12, 10, 2, 1);
+        rect(g, new Color(0x713244), 9, 6, 5, 3);
+        rect(g, new Color(0xB85262), 10, 5, 3, 5);
+        rect(g, new Color(0xE28A89), 9, 6, 2, 2);
+        rect(g, new Color(0xD57479), 12, 6, 2, 2);
+        rect(g, new Color(0xF2C663), 11, 7, 1, 1);
+        g.dispose();
+        return image;
+    }
+
     public static void main(String[] args) throws Exception {
         Path assets = Path.of("src/main/resources/assets/scalebrews");
+        save(saddle(false), assets.resolve("textures/entity/saddle/chicken.png"));
+        save(saddle(true), assets.resolve("textures/entity/saddle/bee.png"));
+        save(flower(), assets.resolve("textures/item/flower_on_a_stick_overlay.png"));
         var growth = effect(true);
         var shrinking = effect(false);
         save(growth, assets.resolve("textures/gui/sprites/mob_effect/growth.png"));

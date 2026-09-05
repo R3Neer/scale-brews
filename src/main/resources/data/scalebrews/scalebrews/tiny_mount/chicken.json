@@ -1,0 +1,10 @@
+{
+  "entity": "minecraft:chicken",
+  "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/chicken.png", "anchor": "body" },
+  "minimum_shrinking": 2,
+  "saddle": true,
+  "control": "direct",
+  "movement": "ground",
+  "speed": 0.18,
+  "ability": "chicken_glide"
+}
