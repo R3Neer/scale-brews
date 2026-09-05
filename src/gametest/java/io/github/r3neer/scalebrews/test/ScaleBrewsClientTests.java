@@ -15,6 +15,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         try (var world = context.worldBuilder().create()) {
             world.getConnection().waitForChunksRender();
+            context.runOnClient(ScaleCameraChecks::run);
             context.setScreen(() -> {
                 var client = net.minecraft.client.Minecraft.getInstance();
                 for (String name : new String[]{"growth", "shrinking"}) {
@@ -45,6 +46,26 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
                 }
             });
             context.takeScreenshot("scale-brews-shrinking");
+            // A tight inside corner: a .28-scale player's half-width is .084 blocks.
+            // Build only in this disposable test world, never in a user's save.
+            world.getServer().runCommand("fill 3 -61 3 8 -61 8 minecraft:stone");
+            world.getServer().runCommand("fill 5 -60 3 5 -57 7 minecraft:stone");
+            world.getServer().runCommand("fill 3 -60 5 7 -57 5 minecraft:stone");
+            world.getServer().runCommand("tp @a 4.915 -60 4.915 -45 0");
+            context.waitTicks(20);
+            world.getConnection().waitForChunksRender();
+            context.runOnClient(client -> {
+                client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+                client.options.bobView().set(true);
+                client.options.fov().set(90);
+                if (!client.level.getBlockState(new net.minecraft.core.BlockPos(5, -60, 4))
+                        .is(net.minecraft.world.level.block.Blocks.STONE)) {
+                    throw new AssertionError("Corner fixture missing");
+                }
+                client.player.setSprinting(true);
+                client.player.avatarState().updateBob(.1F);
+            });
+            context.takeScreenshot("scale-brews-small-corner");
         }
     }
 }
