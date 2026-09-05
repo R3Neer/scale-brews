@@ -76,7 +76,7 @@ public final class ScalePotions {
         );
 
         Potion potion = new Potion(
-            name,
+            ScaleBrews.MOD_ID + "." + name,
             new MobEffectInstance(effect, durationTicks, amplifier)
         );
 

@@ -1,4 +1,12 @@
 {
   "effect.scalebrews.growth": "Crecimiento",
-  "effect.scalebrews.shrinking": "Encogimiento"
+  "effect.scalebrews.shrinking": "Encogimiento",
+  "item.minecraft.potion.effect.scalebrews.growth": "Poción de crecimiento",
+  "item.minecraft.splash_potion.effect.scalebrews.growth": "Poción arrojadiza de crecimiento",
+  "item.minecraft.lingering_potion.effect.scalebrews.growth": "Poción persistente de crecimiento",
+  "item.minecraft.tipped_arrow.effect.scalebrews.growth": "Flecha de crecimiento",
+  "item.minecraft.potion.effect.scalebrews.shrinking": "Poción de encogimiento",
+  "item.minecraft.splash_potion.effect.scalebrews.shrinking": "Poción arrojadiza de encogimiento",
+  "item.minecraft.lingering_potion.effect.scalebrews.shrinking": "Poción persistente de encogimiento",
+  "item.minecraft.tipped_arrow.effect.scalebrews.shrinking": "Flecha de encogimiento"
 }

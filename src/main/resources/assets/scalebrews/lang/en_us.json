@@ -1,4 +1,12 @@
 {
   "effect.scalebrews.growth": "Growth",
-  "effect.scalebrews.shrinking": "Shrinking"
+  "effect.scalebrews.shrinking": "Shrinking",
+  "item.minecraft.potion.effect.scalebrews.growth": "Potion of Growth",
+  "item.minecraft.splash_potion.effect.scalebrews.growth": "Splash Potion of Growth",
+  "item.minecraft.lingering_potion.effect.scalebrews.growth": "Lingering Potion of Growth",
+  "item.minecraft.tipped_arrow.effect.scalebrews.growth": "Arrow of Growth",
+  "item.minecraft.potion.effect.scalebrews.shrinking": "Potion of Shrinking",
+  "item.minecraft.splash_potion.effect.scalebrews.shrinking": "Splash Potion of Shrinking",
+  "item.minecraft.lingering_potion.effect.scalebrews.shrinking": "Lingering Potion of Shrinking",
+  "item.minecraft.tipped_arrow.effect.scalebrews.shrinking": "Arrow of Shrinking"
 }
