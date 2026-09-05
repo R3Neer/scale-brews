@@ -1,1 +1,41 @@
-# scale-brews
+# Scale Brews
+
+Growth and Shrinking potions for Minecraft **26.2 / Fabric / Java 25**. Install Fabric API and this mod on the client and server. Licensed under GPL-3.0-or-later.
+
+Both effects have three potion levels. They change physical size, health, damage, reach and knockback; Growth also increases step height. Size transitions take one second. Health changes preserve the percentage of remaining health.
+
+Walking and sprint balance (sprint multiplies the current walking speed):
+
+| Effect | I | II | III |
+| --- | ---: | ---: | ---: |
+| Growth walking | 1.08x | 1.16x | 1.24x |
+| Growth sprint | 1.20x | 1.12x | 1.05x |
+| Shrinking walking | 0.92x | 0.84x | 0.76x |
+| Shrinking sprint | 1.50x | 1.90x | 2.50x |
+
+Normal sprint is 1.30x. Neither effect alone beats the sprint speed of Speed at the same level; Speed stacks multiplicatively with both. Vertical jump strength stays vanilla. Physical exhaustion from movement, jumping and attacks changes by +10/+20/+30% with Growth and -5/-10/-15% with Shrinking. Regeneration, Hunger, received damage and food nutrition are untouched.
+
+Growth landings above three blocks push nearby entities with gust and ground particles. Only level III above six blocks adds damage, capped at two hearts before defenses and decreasing with distance. Growth also resists soul sand and sweet berry bush slowdown.
+
+Shrinking reduces fall damage, shortens the detection range of movement vibrations and enhances Swift Sneak at levels II/III. Level II stops activating stone/iron pressure plates; III stops activating all pressure plates and cannot trample farmland or turtle eggs. These additional physical mechanics affect players.
+
+Both powers appear in a beacon's third tier. A full beacon can upgrade either to level II; level III remains potion-only. English and Spanish translations and original effect icons are included. Bottle models and potion tinting use Minecraft's normal resource system.
+
+## Brewing
+
+1. Awkward potion + slime ball -> Growth. If `alexsmobs:elastic_tendon` is registered, that item replaces the slime ball.
+2. Glowstone upgrades either family I -> II -> III.
+3. Fermented spider eye converts Growth to Shrinking, retaining potency.
+4. Vanilla gunpowder and dragon breath conversions provide splash and lingering forms.
+
+Durations are 3 minutes, 90 seconds and 45 seconds respectively. Redstone extended variants are not implemented yet. Alex's Mobs is optional; its item lookup is checked at runtime.
+
+## Development
+
+Run `./gradlew build` (Windows: `.\gradlew.bat build`) for the JAR and server GameTests. Run `./gradlew runClientGameTest` for the automated beacon/resources/client synchronization check. The tests use disposable development worlds, separate from `run/saves`.
+
+For OneDrive checkouts, generated output can be redirected with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test run directories remain under `build/run`; automatic test-directory deletion is disabled to avoid OneDrive locking issues. The source checkout remains in place.
+
+Recreate the original silhouette-and-arrow pixel-art PNGs with `java tools/GenerateArt.java`. The generated assets share the repository license and contain no third-party artwork. Vanilla bottle art, particles and sounds are reused by reference, not redistributed. See [art direction](docs/ART.md).
+
+See [mechanics and integration details](docs/MECHANICS.md), [Git policy](CONTRIBUTING.md), [validation](docs/VALIDATION.md) and [remaining work](TODO.md). This is a development mod; full modpack/mount/collision playtesting and a public release are still pending.
