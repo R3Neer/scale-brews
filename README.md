@@ -2,17 +2,17 @@
 
 Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens and bees, and bring size-based mechanics to the world around you.
 
-Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. This is a development mod; the tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
+Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. The first public beta is being validated; tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
 
 ## Installation
 
-Requires **Java 25**, **Fabric Loader 0.19.5 or newer**, and **Fabric API** for Minecraft 26.2.
+Requires **Java 25**, **Fabric Loader 0.19.5 or newer**, and **Fabric API 0.159.0+26.2 or newer** for Minecraft 26.2.
 
 1. Build the mod using the [development instructions](#development), or obtain the JAR from a successful [GitHub Actions build](https://github.com/R3Neer/scale-brews/actions/workflows/build.yml).
 2. Put the mod JAR and Fabric API in your instance's `mods` directory. Use the regular JAR, not the `-sources.jar`.
 3. For multiplayer, install the mod and Fabric API on **both the server and every client**.
 
-Combatify and Alex's Mobs Continued are optional, not required dependencies. No public release is required to build and try the current source.
+Combatify and Alex's Mobs Continued are optional, not required dependencies. Their tested versions and the exact limits of that compatibility coverage are recorded in [Validation](docs/VALIDATION.md).
 
 ## Brew your first potions
 
@@ -125,7 +125,7 @@ On Linux/macOS, use `./gradlew` instead. JARs are written to `build/libs` by def
 
 For a checkout in OneDrive, redirect generated output with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test directories remain under `build/run`; tests use development worlds rather than your normal saves. Optional compatibility JARs can be supplied with `-PscalebrewsCompatMods=C:/path/to/test-mods`; they are not bundled in the production mod.
 
-See [Contributing and Git policy](CONTRIBUTING.md), [Mechanics](docs/MECHANICS.md) and [Work tracking](TODO.md).
+See [Changelog](CHANGELOG.md), [Contributing and Git policy](CONTRIBUTING.md), [Mechanics](docs/MECHANICS.md) and [Work tracking](TODO.md).
 
 ## License and artwork
 

@@ -80,6 +80,14 @@ The base Fabric `build runClientGameTest --offline` passed with **39 required se
 
 The earlier fixed-body validation above is historical and is superseded by this animated-rider implementation. Broader visual/modpack and multiplayer-latency QA remain subject to the limits below.
 
+## First public beta candidate and VP26 packaging (2026-09-06)
+
+The versioned `0.1.0-beta.1` candidate pins Loom 1.17.20 and requires Fabric API 0.159.0+26.2 or newer. Its clean local `build runClientGameTest --offline` completed successfully: all **39 required server tests** and the real client/integrated-server suite passed. The inspected production JAR reports the beta version and dependency constraint and contains no GameTest classes.
+
+That exact JAR was added as a local, both-sides `gameplay` mod to VanillaPlus 26.2. Packwiz/ModpackTools generated a 93-mod MRPack successfully (29 client-only, one host-only, 63 both, zero unknown) and a fresh comparison reported no differences. All four previously unclassified mods were assigned after checking their actual project IDs: Better Archeology and its Dungeons & Taverns compatibility mod to world generation; Resourceful Config and StrawberryLib to libraries. Scale Brews was assigned to gameplay.
+
+The real Modrinth test instance was synchronized with all 92 client-applicable artifacts declared by the pack. Filename and provider SHA-512/local SHA-256 comparison reported zero missing, extra or mismatched JARs. This establishes packaging and installed-artifact consistency; the owner's interactive gameplay session and a dedicated-server/client session remain pending and are intentionally not claimed here.
+
 ## Limits and follow-up
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.

@@ -115,3 +115,10 @@ Initial configurable limits:
 - [x] Restore the bee's complete body animation and move/tilt the rendered rider with its saddle in each frame, including scale and yaw changes. Keep physics and first-person camera stable; supersedes the fixed bee body above.
 - [x] Verify vanilla pig/strider attraction, then let enabled `item_steered` tiny mounts follow their JSON `steering_item` in either hand even without a saddle, Shrinking or a rider. Preserve native foods, AI priorities and configuration switches; support definitions for additional mobs.
 - [x] Validate animated rider alignment, dismount/reset and actual unmounted following; update documentation, package and push.
+
+## First public beta
+
+- [x] Use the explicit `0.1.0-beta.1` prerelease version, pin Loom 1.17.20 and require the tested Fabric API baseline.
+- [x] Add a user-facing changelog and replace stale development-only wording.
+- [ ] Validate the exact packaged JAR in the full VP26 client and a dedicated-server/client session.
+- [ ] After manual approval, publish the same verified artifact as a GitHub prerelease and Modrinth beta; verify tag target, metadata, downloads and digest.
