@@ -19,6 +19,11 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             context.setScreen(() -> {
                 var client = net.minecraft.client.Minecraft.getInstance();
                 for (String name : new String[]{"growth", "shrinking"}) {
+                    var extended = net.minecraft.core.registries.BuiltInRegistries.POTION
+                            .getOptional(ScaleBrews.id("long_" + name)).orElseThrow();
+                    if (extended.getEffects().getFirst().getDuration() != 9600
+                            || !extended.name().equals("scalebrews." + name))
+                        throw new AssertionError("Extended potion missing duration or shared translation name");
                     if (client.getResourceManager().getResource(ScaleBrews.id(
                             "textures/gui/sprites/mob_effect/" + name + ".png")).isEmpty()) {
                         throw new AssertionError("Missing effect icon " + name);
@@ -95,6 +100,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
                 if (saddles != 2) throw new AssertionError("Expected two synchronized saddles, got " + saddles);
             });
             context.takeScreenshot("scale-brews-tiny-saddles");
+            context.runOnClient(client -> ScaleBeeAnimationChecks.run(client, false));
             world.getServer().runCommand("item replace entity @e[tag=saddle_chicken,limit=1] saddle with minecraft:air");
             world.getServer().runCommand("item replace entity @e[tag=saddle_bee,limit=1] saddle with minecraft:air");
             context.waitTicks(10);
@@ -145,14 +151,23 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
                     throw new AssertionError("Look-directed bee flight failed: " + delta);
             });
             context.takeScreenshot("scale-brews-riding-bee");
+            context.runOnClient(client -> {
+                ScaleBeeAnimationChecks.run(client, true);
+                client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
+            });
+            context.waitTicks(10);
+            context.takeScreenshot("scale-brews-bee-stable-seat");
             world.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");
             context.waitTicks(5);
             context.runOnClient(client -> {
                 if (!(client.player.getVehicle() instanceof net.minecraft.world.entity.animal.bee.Bee bee)
                         || io.github.r3neer.scalebrews.mount.TinyMounts.controller(bee) != null)
                     throw new AssertionError("Removing steering item should retain rider and release manual control");
+                ScaleBeeAnimationChecks.run(client, true);
             });
             world.getServer().runCommand("ride @a[limit=1] dismount");
+            context.waitTicks(5);
+            context.runOnClient(client -> ScaleBeeAnimationChecks.run(client, false));
         }
     }
 }

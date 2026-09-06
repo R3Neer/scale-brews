@@ -28,6 +28,8 @@ public abstract class TinySaddleRendererMixin<S extends LivingEntityRenderState,
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("RETURN"))
     private void scalebrews$extract(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         var definition = TinyMounts.definition(entity);
+        // Snapshot occupancy separately from equipment and steering: an idle rider still needs a stable seat.
+        ((SaddleState)state).scalebrews$occupied(definition != null && entity.isVehicle());
         ((SaddleState)state).scalebrews$saddle(definition != null && entity.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)
             ? definition.saddleVisual().orElse(null) : null);
     }

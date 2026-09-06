@@ -3,6 +3,7 @@
 	"package": "io.github.r3neer.scalebrews.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"MountedBeeModelMixin",
 		"TinySaddleStateMixin",
 		"TinySaddleRendererMixin",
 		"ExampleClientMixin",
