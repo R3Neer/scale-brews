@@ -87,19 +87,74 @@ public class MountPlaytestTests {
         var wolf = h.spawn(EntityTypes.WOLF, 2, 2, 2); wolf.setNoAi(true);
         var player = h.makeMockPlayer(GameType.SURVIVAL);
         player.getAttribute(Attributes.SCALE).setBaseValue(.52); player.setShiftKeyDown(true);
-        for (int attempt = 0; attempt < 3; attempt++) {
+        for (int attempt = 0; attempt < 4; attempt++) {
             ((io.github.r3neer.scalebrews.test.mixin.TestEntityAccess)player).test$setBoardingCooldown(0);
             wolf.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
             h.assertTrue(player.getVehicle() == wolf && TinyMounts.controller(wolf) == null, "Wild riding never grants control");
+            wolf.getRandom().setSeed(seedForRoll(100, attempt < 3 ? 99 : 0));
             for (int tick = 0; tick < 60; tick++) WolfTaming.tick(wolf);
-            if (attempt < 2) h.assertTrue(!player.isPassenger() && wolf.getTarget() == player && !wolf.isTame(), "Wild wolf ejects and targets rider");
+            if (attempt < 3) {
+                h.assertTrue(!player.isPassenger() && wolf.getTarget() == player && !wolf.isTame(), "Unlucky ride ejects, including the third ride");
+                h.assertTrue(WolfTaming.trust(wolf)==5*(attempt+1),"Failed rides raise trust by five");
+            }
         }
-        h.assertTrue(wolf.isOwnedBy(player) && player.getVehicle() == wolf && wolf.getTarget() == null, "Third sustained attempt tames without saddle");
+        h.assertTrue(wolf.isOwnedBy(player) && player.getVehicle() == wolf && wolf.getTarget() == null, "Favorable roll tames without saddle");
         player.stopRiding(); h.assertTrue(wolf.getTarget() == null, "Tamed dismount is peaceful");
         var wild = h.spawn(EntityTypes.WOLF, 4, 2, 2);
         player.startRiding(wild,true,true); player.stopRiding();
         h.assertTrue(wild.getTarget() == player, "Voluntary early dismount also provokes wild wolf");
         h.succeed();
+    }
+    private static long seedForRoll(int bound, int roll) {
+        for(long seed=0;seed<100000;seed++)
+            if(net.minecraft.util.RandomSource.create(seed).nextInt(bound)==roll) return seed;
+        throw new AssertionError("No deterministic random seed");
+    }
+    @GameTest public void bonesImprovePersistentRideTrust(GameTestHelper h) {
+        var wolf=h.spawn(EntityTypes.WOLF,2,2,2);wolf.setNoAi(true);
+        var feeder=h.makeMockPlayer(GameType.SURVIVAL);
+        feeder.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.BONE,3));
+        wolf.getRandom().setSeed(seedForRoll(3,1));
+        wolf.interact(feeder,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertTrue(!wolf.isTame() && WolfTaming.trust(wolf)==10 && feeder.getMainHandItem().getCount()==2,
+            "An accepted unsuccessful vanilla bone adds ten trust and consumes once");
+        var saved=net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING,h.getLevel().registryAccess());
+        wolf.saveWithoutId(saved);
+        var tag=saved.buildResult();tag.remove("UUID");
+        var loaded=h.spawn(EntityTypes.WOLF,4,2,2);
+        loaded.load(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING,h.getLevel().registryAccess(),tag));
+        h.assertTrue(WolfTaming.trust(loaded)==10,"Trust survives real entity save/load");
+        var rider=h.makeMockPlayer(GameType.SURVIVAL);rider.getAttribute(Attributes.SCALE).setBaseValue(.52);
+        h.assertTrue(rider.startRiding(loaded,true,false),"Different player rides restored wolf");
+        loaded.getRandom().setSeed(seedForRoll(100,5));
+        for(int tick=0;tick<60;tick++) WolfTaming.tick(loaded);
+        h.assertTrue(loaded.isOwnedBy(rider),"Earlier player's bone enables a first-ride success for a different rider");
+        rider.stopRiding();
+        wolf.getRandom().setSeed(seedForRoll(3,0));
+        wolf.interact(feeder,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertTrue(wolf.isOwnedBy(feeder) && WolfTaming.trust(wolf)==0 && feeder.getMainHandItem().getCount()==1,
+            "Vanilla successful bone still tames directly and clears alternative progress");
+        h.succeed();
+    }
+    @GameTest public void partialRidesAndRejectedBonesDoNotBuildTrust(GameTestHelper h) {
+        var wolf=h.spawn(EntityTypes.WOLF,2,2,2);wolf.setNoAi(true);
+        var rider=h.makeMockPlayer(GameType.SURVIVAL);rider.getAttribute(Attributes.SCALE).setBaseValue(.52);
+        rider.startRiding(wolf,true,false);
+        for(int tick=0;tick<59;tick++) WolfTaming.tick(wolf);
+        rider.stopRiding();
+        h.assertTrue(WolfTaming.trust(wolf)==0,"Incomplete ride adds no trust");
+        rider.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.BONE,2));
+        h.assertTrue(wolf.isAngry(),"Early dismount retains wild anger");
+        wolf.interact(rider,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertTrue(WolfTaming.trust(wolf)==0 && rider.getMainHandItem().getCount()==2,"Rejected angry-wolf bone adds no trust");
+        rider.startRiding(wolf,true,false);
+        WolfTaming.tick(wolf);
+        h.assertTrue(rider.isPassenger() && WolfTaming.trust(wolf)==0,"New ride does not reuse 59 elapsed ticks");
+        WolfTaming.setTrust(wolf,1000);
+        h.assertTrue(WolfTaming.trust(wolf)==100,"Trust capped at one hundred");
+        for(int tick=1;tick<60;tick++) WolfTaming.tick(wolf);
+        h.assertTrue(wolf.isOwnedBy(rider),"Maximum trust guarantees next complete ride");
+        rider.stopRiding();h.succeed();
     }
     @GameTest public void unsaddledChickenAndBeeRetainOwnControl(GameTestHelper h) {
         for (var type : java.util.List.of(EntityTypes.CHICKEN, EntityTypes.BEE)) {

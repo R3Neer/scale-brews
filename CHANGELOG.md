@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - probabilistic wolf taming
+
+- Replace the fixed third-ride tame with horse-style random rolls against persistent wolf trust. Failed full rides add 5 trust and failed accepted bones add 10; preserve vanilla direct bone taming and wild dismount hostility. Document the exact behavior in README.
+
 ## Unreleased - wolf attack animation
 
 - Commanded wolf bites emit native swing progress and a transient combat pose for resource packs, including missed taps and pounce hits. Advance the wolf swing clock on server and client without creating anger or AI targets.

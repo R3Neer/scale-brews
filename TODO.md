@@ -1,5 +1,9 @@
 # Scale Brews — active work
 
+## Probabilistic wolf taming
+
+- [x] Supersede fixed three-ride taming with persistent per-wolf trust, random ride success and bone contributions. Preserve direct vanilla bone taming; validate persistence, different riders, unfavorable third attempt and partial rides. Update README and wolf documentation.
+
 ## Wolf attack animation
 
 - [x] Connect commanded bites to native swing progress and combat pose; verify misses, cleanup after dismount, preservation of existing aggression, real Space input, and installed Fresh Animations with EMF/ETF. See docs/VALIDATION.md for pack limitations.

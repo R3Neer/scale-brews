@@ -85,6 +85,10 @@ Bees keep their natural bobbing and rolling while ridden: the rendered rider fol
 
 A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
 
+Wild adult wolves can be tamed by riding, with **random success based on accumulated trust**, similar to horse temper; there is no fixed three-ride guarantee. Each complete three-second ride rolls against the wolf's trust (0–100). Failure adds 5 trust and ejects you; an accepted bone that does not tame it adds 10 trust. Bones retain their vanilla 1-in-3 chance to tame directly.
+
+Trust belongs to the wolf and survives changing riders, unloading and restarting the world. Partial rides add nothing. With no prior trust the first ride fails; at 100 trust the next complete ride succeeds. Wild dismounts still provoke the wolf, and angry wolves reject bones. Unsaddled riding grants neither steering nor pounce, even after taming.
+
 An unmounted bee also follows a Flower on a Stick in either hand, without needing a saddle or Shrinking. This mirrors native pig/strider steering-item attraction. The same behavior applies to enabled JSON `item_steered` tiny mounts using their configured `steering_item`; native foods and breeding are unchanged.
 
 Riding eligibility uses the rider's **effective SCALE divided by the mount's**, including gradual transitions and other attribute modifiers. Chicken and bee default to a maximum ratio of **0.53**: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small.
