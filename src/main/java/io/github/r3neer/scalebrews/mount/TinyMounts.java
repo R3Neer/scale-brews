@@ -1,7 +1,6 @@
 package io.github.r3neer.scalebrews.mount;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
-import io.github.r3neer.scalebrews.physics.ScalePhysics;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.entity.event.v1.effect.ServerMobEffectEvents;
 import net.minecraft.core.Registry;
@@ -34,6 +33,7 @@ public final class TinyMounts {
     private TinyMounts() {}
 
     public static void initialize() {
+        MountSizePolicy.initialize();
         DynamicRegistries.registerSynced(REGISTRY, TinyMountDefinition.CODEC);
         ServerMobEffectEvents.AFTER_ADD.register((effect, entity, context) -> { if (entity instanceof Player p) enforceRider(p); });
         ServerMobEffectEvents.AFTER_REMOVE.register((effect, entity, context) -> { if (entity instanceof Player p) enforceRider(p); });
@@ -45,7 +45,7 @@ public final class TinyMounts {
                 && io.github.r3neer.scalebrews.config.ScaleRules.get(entity.level()).mountEnabled(definition.entity()) ? definition : null;
     }
 
-    private static TinyMountDefinition configuredDefinition(Entity entity) {
+    static TinyMountDefinition configuredDefinition(Entity entity) {
         if (!(entity instanceof Mob) || !GENERIC_MOB.get(entity.getClass())) return null;
         var registry = entity.registryAccess().lookup(REGISTRY);
         if (registry.isEmpty()) return null;
@@ -54,9 +54,8 @@ public final class TinyMounts {
                 .filter(d -> d.entity().equals(id)).findFirst().orElse(null);
     }
 
-    public static boolean eligible(Player player, TinyMountDefinition definition) {
-        return !player.isSpectator() && ScalePhysics.growth(player) == 0
-                && ScalePhysics.shrinking(player) >= definition.minimumShrinking();
+    public static boolean eligible(Player player, Entity mount) {
+        return !player.isSpectator() && MountSizePolicy.permits(player, mount);
     }
 
     public static Player rider(Entity entity) {
@@ -66,7 +65,7 @@ public final class TinyMounts {
     public static Player controller(Mob mob) {
         var definition = definition(mob);
         var player = rider(mob);
-        if (definition == null || player == null || !eligible(player, definition) || !mob.isAlive()
+        if (definition == null || player == null || !eligible(player, mob) || !mob.isAlive()
                 || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return null;
         if (definition.control() == TinyMountDefinition.Control.ITEM_STEERED) {
             if (definition.steeringItem().isEmpty()) return null;
@@ -88,7 +87,7 @@ public final class TinyMounts {
         boolean mounting = held.isEmpty() || definition.steeringItem()
                 .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
         if (!saddling && !mounting) return InteractionResult.PASS; // Preserve feeding, breeding, naming, leads, etc.
-        if (!eligible(player, definition)) {
+        if (!eligible(player, mob)) {
             if (!mob.level().isClientSide()) {
                 if (player instanceof ServerPlayer serverPlayer)
                     serverPlayer.sendSystemMessage(Component.translatable("message.scalebrews.too_large_to_ride"), true);
@@ -114,19 +113,19 @@ public final class TinyMounts {
     }
 
     public static boolean mayMount(Player player, Entity vehicle) {
-        if (vehicle instanceof LivingEntity && ScalePhysics.growth(player) > 0) return false;
+        if (!MountSizePolicy.permits(player, vehicle)) return false;
         var definition = definition(vehicle);
-        return definition == null || (eligible(player, definition) && !vehicle.isVehicle()
+        return definition == null || (eligible(player, vehicle) && !vehicle.isVehicle()
                 && (!(vehicle instanceof Mob mob) || !mob.isBaby())
                 && (!definition.saddle() || ((LivingEntity) vehicle).getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)));
     }
 
-    public static void enforceRider(Player player) {
+    public static void enforceRider(LivingEntity player) {
         if (player.level().isClientSide() || player.getVehicle() == null) return;
         var vehicle = player.getVehicle();
         var definition = definition(vehicle);
-        if ((vehicle instanceof LivingEntity && ScalePhysics.growth(player) > 0)
-                || (definition != null && (!eligible(player, definition)
+        if (!MountSizePolicy.permits(player, vehicle)
+                || (player instanceof Player p && definition != null && (!eligible(p, vehicle)
                 || (definition.saddle() && !((LivingEntity) vehicle).getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))))) {
             player.stopRiding(); // Native LivingEntity dismount placement, not raw passenger removal.
             player.resetFallDistance();

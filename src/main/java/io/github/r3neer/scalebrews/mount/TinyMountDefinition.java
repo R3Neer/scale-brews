@@ -6,13 +6,14 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import java.util.Optional;
 
-public record TinyMountDefinition(Identifier entity, int minimumShrinking, boolean saddle,
+public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio, boolean saddle,
         Control control, Movement movement, Optional<Identifier> steeringItem,
         float speed, float maxPitch, float maxVerticalSpeed, Ability ability, boolean enabled,
         Optional<SaddleVisual> saddleVisual) {
     public static final Codec<TinyMountDefinition> CODEC = RecordCodecBuilder.<TinyMountDefinition>create(i -> i.group(
         Identifier.CODEC.fieldOf("entity").forGetter(TinyMountDefinition::entity),
-        Codec.intRange(2, 3).fieldOf("minimum_shrinking").forGetter(TinyMountDefinition::minimumShrinking),
+        // Legacy files without a ratio adopt the new tiny-mount policy; the old level field is ignored.
+        MountSizePolicy.RATIO.optionalFieldOf("max_rider_scale_ratio", 0.53).forGetter(TinyMountDefinition::maxRiderScaleRatio),
         Codec.BOOL.optionalFieldOf("saddle", true).forGetter(TinyMountDefinition::saddle),
         StringRepresentable.fromEnum(Control::values).fieldOf("control").forGetter(TinyMountDefinition::control),
         StringRepresentable.fromEnum(Movement::values).fieldOf("movement").forGetter(TinyMountDefinition::movement),

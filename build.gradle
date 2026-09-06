@@ -57,6 +57,11 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Optional isolated compatibility matrix; never package third-party mods in our JAR.
+	if (providers.gradleProperty("scalebrewsCompatMods").isPresent()) {
+		gametestRuntimeOnly fileTree(dir: providers.gradleProperty("scalebrewsCompatMods").get(), include: ['*.jar'])
+	}
 }
 
 processResources {

@@ -77,6 +77,9 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             context.runOnClient(client -> {
                 if (client.level.registryAccess().lookupOrThrow(io.github.r3neer.scalebrews.mount.TinyMounts.REGISTRY).size() != 2)
                     throw new AssertionError("Mount definitions were not synchronized");
+                var policy = io.github.r3neer.scalebrews.mount.MountSizePolicy.get(client.level);
+                if (policy.ratios().get(net.minecraft.resources.Identifier.withDefaultNamespace("happy_ghast")) != 2.0)
+                    throw new AssertionError("Living-mount size policy was not synchronized");
                 if (!io.github.r3neer.scalebrews.config.ScaleRules.get(client.level).tinyMounts())
                     throw new AssertionError("Default world rules not synchronized");
                 int saddles = 0;
@@ -97,6 +100,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             context.waitTicks(10);
             context.takeScreenshot("scale-brews-tiny-unsaddled");
             world.getServer().runCommand("effect give @a scalebrews:shrinking 120 1 true");
+            context.waitTicks(25); // Riding follows actual SCALE, not immediate effect presence.
             world.getServer().runCommand("item replace entity @e[tag=saddle_chicken,limit=1] saddle with minecraft:saddle");
             world.getServer().runCommand("data merge entity @e[tag=saddle_chicken,limit=1] {NoAI:0b}");
             world.getServer().runCommand("ride @a[limit=1] mount @e[tag=saddle_chicken,limit=1]");

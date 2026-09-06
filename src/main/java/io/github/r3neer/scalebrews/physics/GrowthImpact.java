@@ -4,7 +4,6 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
@@ -29,39 +28,39 @@ public final class GrowthImpact {
         return (float) (Math.min(4, (distance - 6) * 0.4) * Math.clamp(1 - radialFraction, 0, 1));
     }
 
-    public static void land(Player player, double fallDistance, BlockState ground) {
-        var rules = io.github.r3neer.scalebrews.config.ScaleRules.get(player.level());
+    public static void land(LivingEntity entity, double fallDistance, BlockState ground) {
+        var rules = io.github.r3neer.scalebrews.config.ScaleRules.get(entity.level());
         if (!rules.growthImpact()) return;
-        int tier = ScalePhysics.growth(player);
+        int tier = io.github.r3neer.scalebrews.scale.ScaleSprintHandler.level(
+                entity.getEffect(io.github.r3neer.scalebrews.effect.ScaleEffects.GROWTH));
         if (tier == 0 || fallDistance <= 3 || !Double.isFinite(fallDistance) || ground.isAir()
-                || player.isSpectator() || player.getAbilities().flying || player.isPassenger() || player.isInWater()
-                || !(player.level() instanceof ServerLevel level)) return;
+                || entity.isSpectator() || (entity instanceof Player p && p.getAbilities().flying)
+                || entity.isPassenger() || entity.isInWater()
+                || !(entity.level() instanceof ServerLevel level)) return;
         double radius = radius(tier, fallDistance);
         double power = strength(tier, fallDistance);
         var source = new net.minecraft.world.damagesource.DamageSource(
-                level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(ScaleCombat.LANDING), player);
-        Vec3 origin = player.position().add(0, 0.2, 0);
+                level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(ScaleCombat.LANDING), entity);
+        Vec3 origin = entity.position().add(0, 0.2, 0);
         AABB area = new AABB(origin.x - radius, origin.y - 1, origin.z - radius,
                 origin.x + radius, origin.y + 2, origin.z + radius);
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, area,
-                e -> e != player && e.isAlive() && !e.isSpectator() && !player.isAlliedTo(e))) {
-            if (target instanceof Player other && !player.canHarmPlayer(other)) continue;
-            if (target instanceof Player && !level.isPvpAllowed()) continue;
-            double dx = target.getX() - player.getX();
-            double dz = target.getZ() - player.getZ();
+                e -> e != entity && e.isAlive() && !e.isSpectator() && !entity.isAlliedTo(e))) {
+            if (entity instanceof Player p && target instanceof Player other
+                    && (!p.canHarmPlayer(other) || !level.isPvpAllowed())) continue;
+            double dx = target.getX() - entity.getX();
+            double dz = target.getZ() - entity.getZ();
             double distance = Math.sqrt(dx * dx + dz * dz);
             if (distance >= radius) continue;
             Vec3 destination = target.position().add(0, 0.2, 0);
             if (level.clip(new ClipContext(origin, destination, ClipContext.Block.COLLIDER,
-                    ClipContext.Fluid.NONE, player)).getType() != HitResult.Type.MISS) continue;
-            float damage = rules.growthImpactDamage() ? damage(tier, fallDistance, distance / radius) : 0;
+                    ClipContext.Fluid.NONE, entity)).getType() != HitResult.Type.MISS) continue;
+            float damage = damage(tier, fallDistance, distance / radius);
             if (damage > 0) target.hurtServer(level, source, damage);
             if (distance < 0.0001) { dx = 1; dz = 0; }
-            if (rules.growthImpactKnockback()) {
-                target.knockback(power * (1 - distance / radius), -dx, -dz,
-                        source, damage, true);
-                target.hurtMarked = true;
-            }
+            target.knockback(power * (1 - distance / radius), -dx, -dz,
+                    source, damage, true);
+            target.hurtMarked = true;
         }
         var gust = switch (tier) {
             case 1 -> ParticleTypes.SMALL_GUST;
@@ -75,7 +74,7 @@ public final class GrowthImpact {
                     origin.x + Math.cos(angle) * radius * 0.6, origin.y, origin.z + Math.sin(angle) * radius * 0.6,
                     2, 0.12, 0.1, 0.12, 0.03);
         }
-        level.playSound(null, player.blockPosition(), SoundEvents.IRON_GOLEM_STEP, SoundSource.PLAYERS,
+        level.playSound(null, entity.blockPosition(), SoundEvents.IRON_GOLEM_STEP, entity.getSoundSource(),
                 0.7F + 0.25F * tier, 0.9F - 0.1F * tier);
     }
 }

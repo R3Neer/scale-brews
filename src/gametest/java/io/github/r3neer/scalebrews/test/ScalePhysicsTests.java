@@ -74,9 +74,12 @@ public class ScalePhysicsTests {
                 net.minecraft.world.effect.MobEffects.HUNGER.value().applyEffectTick(h.getLevel(), hurtPlayer, 1);
                 near(h, hurtFood.test$exhaustion(), .01, "Hunger exhaustion unchanged");
                 var target = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 2, 1);
-                food.test$exhaustion(0);
-                p.attack(target);
-                near(h, food.test$exhaustion(), .1 * multiplier, "Attack exhaustion");
+                // A fresh attacker avoids mock connection/cooldown state from preceding scenarios.
+                var attacker = h.makeMockPlayer(GameType.SURVIVAL);
+                attacker.setPos(target.position().add(0, 0, -1));
+                attacker.addEffect(new MobEffectInstance(effect, 200, level - 1));
+                attacker.attack(target);
+                near(h, ((TestFoodAccess)attacker.getFoodData()).test$exhaustion(), .1 * multiplier, "Attack exhaustion");
                 target.discard();
                 p.removeEffect(effect);
             }
@@ -87,8 +90,25 @@ public class ScalePhysicsTests {
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(6);
         food.test$exhaustion(0);
-        for (int i = 0; i < 10; i++) p.getFoodData().tick(p);
-        near(h, food.test$exhaustion(), 6, "Natural regeneration exhaustion unchanged");
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("combatify")) {
+            var baseline = h.makeMockServerPlayerInLevel();
+            baseline.setGameMode(GameType.SURVIVAL);
+            baseline.getAttribute(Attributes.MAX_HEALTH).setBaseValue(p.getMaxHealth());
+            baseline.setHealth(p.getHealth());
+            baseline.getFoodData().setFoodLevel(20);
+            baseline.getFoodData().setSaturation(6);
+            var baselineFood = (TestFoodAccess)baseline.getFoodData();
+            baselineFood.test$exhaustion(0);
+            float before = p.getHealth();
+            for (int i = 0; i < 100; i++) { p.getFoodData().tick(p); baseline.getFoodData().tick(baseline); }
+            h.assertTrue(p.getHealth() > before, "Combatify regeneration really ran");
+            near(h, food.test$exhaustion(), baselineFood.test$exhaustion(), "Combatify regeneration exhaustion unchanged by our effect");
+            near(h, p.getFoodData().getFoodLevel(), baseline.getFoodData().getFoodLevel(), "Combatify regeneration food usage preserved");
+            baseline.discard();
+        } else {
+            for (int i = 0; i < 10; i++) p.getFoodData().tick(p);
+            near(h, food.test$exhaustion(), 6, "Natural regeneration exhaustion unchanged");
+        }
         p.discard();
         h.succeed();
     }
