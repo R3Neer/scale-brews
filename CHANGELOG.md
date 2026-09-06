@@ -2,6 +2,14 @@
 
 Notable user-facing changes to Scale Brews are documented here.
 
+## [0.1.0-beta.2] - Unreleased
+
+- Living-platform subsystem: physical bodies can stand on larger living supports without becoming passengers; mob pathfinding is unchanged.
+- Synced platform policies and anatomical surface profiles, support transport, vehicle/item/falling-block integration and client animation/camera corrections.
+- Sixteen adult support profiles, extensible datapack policy/geometry, client visual and physical adapters, and player/vehicle movement references for delayed connections.
+- Existing Tiny Mounts, effects, brewing, translations and Happy Ghast behavior are retained. No new artwork or translation keys are required.
+- Dedicated-server/client coverage includes flight-disabled latency tests and prolonged player transport. Full VP26 acceptance is not claimed; external integration failures remain documented.
+
 ## [0.1.0-beta.1] - Unreleased
 
 First public beta candidate for Minecraft 26.2 on Fabric.

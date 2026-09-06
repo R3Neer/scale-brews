@@ -88,7 +88,27 @@ That exact JAR was added as a local, both-sides `gameplay` mod to VanillaPlus 26
 
 The real Modrinth test instance was synchronized with all 92 client-applicable artifacts declared by the pack. Filename and provider SHA-512/local SHA-256 comparison reported zero missing, extra or mismatched JARs. This establishes packaging and installed-artifact consistency; the owner's interactive gameplay session and a dedicated-server/client session remain pending and are intentionally not claimed here.
 
-## Limits and follow-up
+## Living platforms (2026-09-06, beta.2)
+
+The expanded base server suite passed all **54 required tests**. The platform tests cover oriented rectangles (including rejection of enclosing-AABB corners), actual-width boundaries and external scale, decoded policy switches, ascending contact, walls, jumping, sneak/knockback separation, yaw/translation, transient lifecycle, mixed support chains, stationary items, off-rail cart release, passive descent, and occupied boats on a giant player's head (including crouching). Sand remains an entity after 700 ticks; an anvil damages its support once per landing. Global `noCollision` remains unchanged.
+
+The real-client dedicated-server proof passed the short 0/100/200 ms additional-RTT matrix with `allow-flight=false` for both a player and an occupied boat. The player completed a separate **12,000-tick soak** (4,000 at each RTT), ten minutes of simulated transport in total, without disconnection or support loss. The machine logged scheduling lag near the end; this is not a server-performance benchmark. Later short tests also count player correction packets to reject repeated corrections. All sixteen built-in model-part paths resolve and produce finite translations in the client fixture. Third-party resource-pack/model animation combinations still need human QA.
+
+The VP26 integration run used the installed JAR set in an isolated development runtime. It did **not** produce a clean full-pack result:
+
+- With the full installed set, e4mc 6.2.1 calls absent `CommandSourceStack.hasPermission(int)` while sending commands to connecting players. This blocks a full dedicated-connection acceptance claim.
+- Excluding e4mc **only in the diagnostic copy**, and copying the installed pack configuration, gave **88/89 passing server tests** (including additional mods' tests). Every platform test passed. The remaining existing exhaustion regression compares regeneration food usage against a matched baseline and observed 20 versus 19. No production hunger behavior or external mod was changed to suppress that result.
+- The full client-mod diagnostic copy (minus e4mc) stopped during development bootstrap with unreferenced `wilderwild:*` biome holders. It did not reach the client platform test. This result is specific to that development launch; it is not proof of the same failure in the production launcher.
+
+The final base `build runClientGameTest` passed after the last movement-reference authorization change. Client checks include independent occupied-boat controls, shared same-frame visual sampling, actual bee bobbing without modifying physics, and the existing Tiny Mounts/camera/beacon/scale tests. The third-person occupied-boat-on-ghast screenshot was visually inspected. The implementation commit `721dcc0` also passed GitHub's Linux build/server CI.
+
+The beta.2 production JAR contains 33 parseable JSON files, all 16 platform profiles, and no test classes/resources. Its SHA-256 is `6127d50caab8476093a4333141b90b145f0c98518a516f23036511abbc5b81cd`. That exact artifact was installed in the VP26 source pack and the `VanillaPlus-26.2 (1)` Modrinth instance. Both previous beta JARs were moved into a separate backup directory, not deleted. The local gameplay category was retained.
+
+`VanillaPlus-26.2-20260906-152523.mrpack` exported successfully with 93 mods; its embedded Scale Brews JAR has the same hash and no beta.1 duplicate. A fresh ModpackTools comparison reports no differences. Metadata verification remained incomplete (125 requirements not verified), so the export is a packaging result, not a compatibility certificate.
+
+Other original VP26 mods and configurations were retained. These failures, broad visual QA, water/rail/lead combinations and late-join observer permutations remain explicitly open in TODO. Neither a successful archive export nor passing base Fabric tests establishes full modpack compatibility.
+
+### Remaining general limits
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.
 - Beyond the bounded tests above, full modpack playthroughs, dedicated multiplayer latency, unusual wall/ally/PvP impact edge cases and every Swift Sneak/Soul Speed equipment combination still need broader playtesting. Passing the tested versions/configuration is not equivalent to testing every external mod or future version.

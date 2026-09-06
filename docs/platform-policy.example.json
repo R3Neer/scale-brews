@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "max_width_ratio": 0.6,
+  "bodies": {
+    "players": true,
+    "mobs": true,
+    "boats": true,
+    "minecarts": true,
+    "items": true,
+    "falling_blocks": true
+  },
+  "supports": {
+    "minecraft:bee": false
+  }
+}

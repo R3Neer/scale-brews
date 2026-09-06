@@ -1,5 +1,16 @@
 # Scale Brews — active work
 
+## Living platforms
+
+- [x] Prove moving support and authoritative synchronization with players, mobs and occupied boats; 0/100/200 ms flight-disabled dedicated connections and a 12,000-tick player soak.
+- [x] Synced platform policies/profiles, oriented top surfaces, physical transport without pathfinding changes.
+- [x] Vehicle/item/falling-block adapters, lifecycle, chains, edge protection and passive-motion accounting; scoped anvil impact without repeated damage.
+- [x] Sixteen anatomical profiles, shared model sampling, adapter hooks and bounded first-person camera correction.
+- [x] Final build and 54 server tests, real-client suite, scoped implementation commit/push and successful GitHub CI; installed artifact hashes match VP26, Modrinth and the exported MRPack. Previous beta JARs retained outside the mods folders.
+- [ ] Full VP26 acceptance: installed e4mc 6.2.1 calls absent `CommandSourceStack.hasPermission(int)` on player connection. With e4mc excluded only in an isolated diagnostic copy and actual pack configs, 88/89 server tests pass; the remaining regeneration-food comparison needs investigation. The development client also stops on unreferenced Wilder Wild biome holders before the window opens. Do not silently remove/change production mods to turn this green.
+- [ ] Human QA: all species' animated contact, wall/camera corner cases, lead-dragged boat on a giant with passengers, water transitions, minecart rail transitions, falling blocks hardening/placing after release, crowded mixed chains and late-joining observers. Automated cases do not cover every permutation.
+- Existing beta QA and publication tasks below remain pending.
+
 New requirements are appended here; they do not replace unfinished work.
 
 - [x] Save and push the compiling tutorial prototype.

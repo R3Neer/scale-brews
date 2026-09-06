@@ -1,0 +1,16 @@
+{
+  "entity": "example:pack_animal",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "back",
+      "x": 0,
+      "y": 1.25,
+      "z": 0,
+      "width": 0.75,
+      "depth": 1.1,
+      "visual": { "part": "body", "x": 0, "y": -0.4, "z": 0 }
+    }
+  ]
+}
