@@ -21,6 +21,10 @@ public final class ScaleBrewing {
 
     public static void initialize() {
         FabricPotionBrewingBuilder.BUILD.register(builder -> {
+            builder.addMix(ScalePotions.GROWTH, Items.REDSTONE, ScalePotions.LONG_GROWTH);
+            builder.addMix(ScalePotions.SHRINKING, Items.REDSTONE, ScalePotions.LONG_SHRINKING);
+            builder.addMix(ScalePotions.LONG_GROWTH, Items.FERMENTED_SPIDER_EYE, ScalePotions.LONG_SHRINKING);
+
             builder.addMix(
                 Potions.AWKWARD,
                 growthStarterIngredient(),

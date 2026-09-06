@@ -21,6 +21,10 @@ public final class ScalePotions {
         0
     );
 
+    public static final Holder<Potion> LONG_GROWTH = register(
+        "long_growth", "growth", ScaleEffects.GROWTH, 9600, 0
+    );
+
     public static final Holder<Potion> STRONG_GROWTH = register(
         "strong_growth",
         "growth",
@@ -43,6 +47,10 @@ public final class ScalePotions {
         ScaleEffects.SHRINKING,
         3600,
         0
+    );
+
+    public static final Holder<Potion> LONG_SHRINKING = register(
+        "long_shrinking", "shrinking", ScaleEffects.SHRINKING, 9600, 0
     );
 
     public static final Holder<Potion> STRONG_SHRINKING = register(
