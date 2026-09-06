@@ -160,3 +160,14 @@ Implemented on top of `e094257`, retaining the concurrent effective-size/platfor
 - JARs were inspected for metadata, 81 material JSON definitions and absence of test classes.
 
 Human two-player acceptance remains pending for borrowed-wolf combat, the full PvP/team/latency matrix and all gameplay cases in the original request. Automated real-client/server checks are not human playtesting. Production instances, pack exports, releases and tags were not updated by this change.
+
+## VP26 Enchancement registry correction — 2026-09-06
+
+The earlier `enchancement:empty` duplicate is resolved in the separate VanillaPlus-Enchancement-Compat project, version 1.0.1. Enchancement 26.2-r4 was replacing legitimate pending enchantment references with its missing-entry fallback during asynchronous registry loading. The narrow compatibility guard preserves ordinary pending-holder semantics while the enchantment registry is unfrozen; original fallback behavior resumes after freeze. Duplicate-key validation and all production mods/configuration remain intact.
+
+- Corrected minimal negative control fails without the guard; compat build and all 3 minimal server tests pass with it, including fallback preservation after freeze.
+- Full VP26 run used an isolated Scale Brews e19aed3 checkout to avoid concurrent build-output changes: 106 required server tests passed. Later platform-width changes in c39dd98 are not part of this run.
+- Real clients joined dedicated servers at 18:27:08 and 18:28:11 after registry synchronization. Platform checks passed at RTT 0/100/200 ms, 120 ticks per setting, followed by integrated-client checks through bee dismount. This is not the ten-minute soak.
+- The task was interrupted during final integrated-world teardown after 18:29:51. Thread dumps show the render thread waiting in IntegratedServer.halt/executeBlocking while the server and test threads await Fabric client-gametest phasers. The registry blocker is fixed, but a clean exit of the entire client suite is not claimed. Third-party resource warnings and broader manual QA remain outside this result.
+- Installed only `vanillaplus-enchancement-compat-1.0.1.jar` in VP26 and Modrinth, SHA-256 `3858f2ee42f5382a6bb49fd4ac3194fd9eaef91d8225e9a2556dceafe4dbab4a`. Both old 1.0.0 JARs were moved to recoverable task-output backups outside mods; gameplay category preserved. No Scale Brews artifact was replaced by this fix.
+- VP26 export `VanillaPlus-26.2-20260906-183420.mrpack` contains exactly one compat JAR with the same hash; `modpack diff --project vp26` reports no differences from that build. The existing 125 unverified dependency requirements remain packaging-metadata limitations, not new runtime failures. Compat source/tests/docs are committed locally as `4fb26f0`; that separate repository has no remote configured, so no compat push or release is claimed.
