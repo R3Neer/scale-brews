@@ -44,7 +44,7 @@ The client tests exposed and fixed a passenger-packet race: mounting restriction
 
 ## Effective-scale mounts, explosions and general landings (2026-09-06)
 
-The current suite contains 34 mod tests plus Fabric's default test. All 35 required server tests pass both with the base Fabric setup and with Combatify 1.4.0-26.2 / Alex's Mobs Continued 2.1.9. The real client/integrated-server GameTest also passes in both configurations, including mounting/input, synced data, camera and beacon checks. Added coverage includes:
+At this milestone the suite contained 34 mod tests plus Fabric's default test. All 35 required server tests passed both with the base Fabric setup and with Combatify 1.4.0-26.2 / Alex's Mobs Continued 2.1.9. The real client/integrated-server GameTest also passed in both configurations, including mounting/input, synced data, camera and beacon checks. Added coverage includes:
 
 - Effective rider/mount SCALE matrices, external modifiers, transition-time dismounts, exact inclusive JSON boundaries, configurable fallback/overrides and legacy tiny-definition migration. Native saddle/age/passenger restrictions and boat/minecart exemptions remain covered.
 - Actual normal/charged creeper explosions at every level: observed final vanilla radius, increasing/decreasing damage, distant blast reach and block destruction. Actual splash/lingering effect delivery also reaches the same explosion hook.
@@ -58,6 +58,14 @@ Use `-PscalebrewsCompatMods=<directory-with-jars>` with `runGameTest runClientGa
 Combatify's alternate knockback wrapper bypassed the original HEAD injection. The shared hook now wraps outside Combatify's priority-1400 method (priority 1500), passing the scaled input into its physics without replacing them. Runtime tests verify the resulting behavior, including the landing-source exclusion. Combatify's configured regeneration timing is compared against an unscaled control rather than imposing vanilla's tick schedule.
 
 The optional-mod run logs upstream/default-configuration warnings for Combatify optional weapon recipes/enchantment tags and an Alex's loot-table context. Successful Scale Brews tests do not certify those unrelated data files or the complete modpack.
+
+## Redstone and mounted-bee animation (2026-09-06)
+
+`build runClientGameTest --offline` passed with the base Fabric setup: **36 required server tests** and the real client/integrated-server suite. The optional-mod matrix recorded above was not repeated for this change.
+
+- Actual world brewing recipes extend both level-I families to 9,600 ticks, preserve the container, and convert extended Growth to extended Shrinking. Tests cover normal/splash/lingering inputs, both upgrade orders, gunpowder/dragon-breath conversion, unchanged II/III upgrades, rejected redstone on II/III and rejected glowstone/repeated redstone on extended variants. Native lingering quarter-duration is checked (2,400 ticks).
+- Client registry checks verify both extended entries and their shared translated names. No new language keys or art assets are required.
+- The real bee renderer extracts occupied/unoccupied snapshots from the synchronized test mount. Its injected model is sampled over seven animation times, calm/angry and rolling states, before mounting, while steering, after removing the steering item and after dismounting. Mounted body height/pitch remain stable; wings keep moving symmetrically; free bobbing returns; stinger visibility and entity position/bounds remain unchanged. The occupied saddle snapshot remains present. A third-person mounted screenshot was inspected.
 
 ## Limits and follow-up
 

@@ -2,6 +2,8 @@
 
 ## Core effects
 
+Brewing supports level-I extended variants `scalebrews:long_growth` and `scalebrews:long_shrinking` (9,600 ticks, amplifier 0). Redstone extends the base potions; fermented spider eye converts extended Growth to extended Shrinking. There are no redstone recipes for II/III or glowstone recipes for extended variants. Native container conversions preserve the registered potion, so brewing works before or after converting to splash/lingering. Lingering delivery retains its native 0.25 duration factor. Extended variants share the existing effect/translation names; no separate texture or localization key is needed.
+
 `effect/ScaleEffects` registers the attribute effects; `potion/ScalePotions` and `brewing/ScaleBrewing` own potion types and brewing. The pre-existing balance is preserved: Growth scale targets are 1.96/2.92/3.88, Shrinking 0.76/0.52/0.28. These reflect the owner's current code, not the earlier provisional specification.
 
 `ScaleTransition` replaces only this mod's direct SCALE modifiers with one transient, server-owned multiplier. Smoothstep interpolation takes 20 simulation ticks. A changed target starts from the current value; duration refreshes do not restart the animation. Removing an effect interpolates back. Other mods' scale modifiers multiply normally. Existing saved modifiers from the tutorial are migrated. On a fresh load, the transient transition starts again; it is not persisted as a separate animation state. Native SCALE synchronization updates client size, collision box and camera; other attributes such as reach change immediately. Head proportions are unchanged.
@@ -79,6 +81,10 @@ The native sneaking-speed attribute caps at 1.0. Bonuses coexist with vanilla eq
 Shrinking II ignores stone, polished blackstone and heavy weighted (iron) plates. Wooden and light weighted (gold) plates remain active. III ignores all plates using the shared base implementation. Farmland already has a vanilla volume threshold, so sufficiently small entities can naturally fail to trample at other levels; this mod adds an explicit guarantee only for III and does not override vanilla's threshold.
 
 Soul sand retains 60/25/0% of its base penalty, giving speed factors .64/.85/1.0 from vanilla .4. Soul Speed's movement bonus and MOVEMENT_EFFICIENCY processing remain outside this hook. Berry stuck multipliers retain 2/3, 1/3, 0 of their penalty. At III the stuck call is skipped entirely: a multiplier of 1 would still clear velocity in vanilla. Bush damage remains unchanged.
+
+## Mounted-bee rendering
+
+`TinySaddleRendererMixin` snapshots whether an enabled tiny mount carries a passenger, independently of the steering item and saddle visual. `MountedBeeModelMixin` restores only the bee body's vertical offset and pitch to its initial pose after vanilla animation while that snapshot is occupied. This prevents model-only bobbing/rolling from moving the bee and its attached saddle through the entity-positioned rider. Wings, legs, antennae, stinger state and entity physics keep their native behavior. The saddle layer copies the resulting stable body pose, including when rendering is deferred. Each new snapshot updates occupancy, so dismounting restores normal body animation without stale per-model state. The behavior follows the Tiny Mounts configuration and applies while riding with or without a steering item.
 
 ## Datapack extension points
 

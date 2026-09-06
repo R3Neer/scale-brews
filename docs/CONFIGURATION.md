@@ -77,6 +77,8 @@ A definition that requires a saddle must supply `saddle_visual`; `item_steered` 
 
 The reusable anchors currently supported are `body` (chicken-style quarter-turned torso) and `bone` (bee-style body animation group). Both use the supplied 64×32 UV layout. The base model must expose the selected root child. A new body shape may need an additional model adapter; changing an identifier alone cannot fit arbitrary anatomy. A missing anchor skips the saddle layer rather than crashing the renderer. Chicken variants and bee anger/nectar states keep their vanilla base textures.
 
+Enabled tiny-mount bees keep a steady body pose while carrying a passenger. The body-only bobbing and rolling resume after dismount; wings and other small animations continue while mounted. This prevents the saddle moving through the rider and does not require a new texture or JSON field. It remains active without the steering item, because releasing control does not dismount the player.
+
 `tools/GenerateArt.java` hand-paints the leather, binding, stitches, buckles and flower overlay. Run it to reproduce the committed PNGs. The Flower on a Stick model references vanilla fishing-rod art; its flower is original. Recipe: fishing rod + `#minecraft:small_flowers`; there is one output item and no retained flower metadata.
 
 ## Implementation boundaries

@@ -22,13 +22,15 @@ Start with an Awkward Potion in a brewing stand.
 | --- | --- | --- |
 | Awkward Potion | Slime Ball* | Growth I |
 | Growth I / II | Glowstone Dust | Growth II / III |
+| Growth I / Shrinking I | Redstone Dust | Extended level I (8 minutes) |
+| Extended Growth I | Fermented Spider Eye | Extended Shrinking I |
 | Growth, any level | Fermented Spider Eye | Shrinking at the same level |
 | Shrinking I / II | Glowstone Dust | Shrinking II / III |
 | Either family | Gunpowder, then Dragon's Breath | Splash, then lingering form |
 
 *If `alexsmobs:elastic_tendon` is registered, **Elastic Tendon replaces Slime Ball** as the starting ingredient.
 
-Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / III. Redstone-extended variants are not implemented.
+Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / III. Redstone extends level I to **8 minutes**. Extended potions cannot accept glowstone; levels II/III cannot accept redstone. Splash and lingering conversions retain the extended potion, with vanilla delivery rules (a lingering effect has one quarter of the base duration).
 
 ## Bigger or smaller?
 
@@ -72,6 +74,8 @@ Saddle an adult chicken or bee while small enough to ride it.
 
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Both mounts use vanilla saddles, one rider, and separate hand-authored saddle layers. Mounted bees stay out of hives.
 
+While ridden, a bee's body stays steady beneath the saddle and passenger while its wings continue beating. Normal body bobbing and rolling return after dismounting.
+
 Riding eligibility uses the rider's **effective SCALE divided by the mount's**, including gradual transitions and other attribute modifiers. Chicken and bee default to a maximum ratio of **0.53**: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small.
 
 Other living mounts have configurable limits: most default to 1.0, camels to 1.1 and happy ghasts to 2.0. Growth II can ride a Growth II/III horse. Native age, taming, saddle and passenger rules still apply; this policy never grants new riding permissions. Boats and minecarts are exempt.
@@ -94,7 +98,7 @@ See [Configuration](docs/CONFIGURATION.md) for paths, complete JSON examples, ex
 
 ## Compatibility and validation
 
-The current suite has **35 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization and tiny-mount input.
+The current suite has **36 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input and mounted-bee animation.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
 

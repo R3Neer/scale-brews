@@ -105,6 +105,7 @@ Initial configurable limits:
 - Special head scaling is cancelled; head proportions remain vanilla.
 - Preserve the current attribute balance, including growth scale +0.96 per level.
 - Levels III remain potion-only for beacons.
-- Existing brewing remains in scope; extended redstone variants are future work.
+- [x] Redstone extends Growth I / Shrinking I to 8 minutes; extended Growth converts to extended Shrinking. Preserve splash/lingering conversions; no glowstone on extended variants or redstone on II/III.
+- [x] Stabilize the bee's animated body while ridden so saddle and passenger stay aligned; retain wing animation and restore normal bobbing after dismount. Validate in the real client.
 - Bounded collision/mount/elytra and Combatify/Alex's Mobs integration tests are implemented. Broader manual modpack playtesting, latency and unusual equipment/physics combinations remain ongoing QA, not a claim of exhaustive compatibility.
 - The new walking penalty means Swift Sneak III + Shrinking III reaches Shrinking's walking speed, not unmodified player speed.
