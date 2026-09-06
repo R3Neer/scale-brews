@@ -67,12 +67,14 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             world.getServer().runCommand("effect give @a scalebrews:shrinking 30 2 true");
             context.waitTicks(30);
             context.runOnClient(client -> {
-                if (Math.abs(client.player.getScale() - 0.28) > 0.001) {
+                if (Math.abs(client.player.getScale() - 0.274) > 0.001) {
                     throw new AssertionError("Scale was not synchronized to the client: " + client.player.getScale());
                 }
+                if(client.player.getBbHeight() >= .5F)
+                    throw new AssertionError("Shrinking III client collision height must fit below half a block");
             });
             context.takeScreenshot("scale-brews-shrinking");
-            // A tight inside corner: a .28-scale player's half-width is .084 blocks.
+            // A tight inside corner: a .274-scale player's half-width is .0822 blocks.
             // Build only in this disposable test world, never in a user's save.
             world.getServer().runCommand("fill 3 -61 3 8 -61 8 minecraft:stone");
             world.getServer().runCommand("fill 5 -60 3 5 -57 7 minecraft:stone");

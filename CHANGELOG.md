@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - half-block Shrinking III clearance
+
+- Adjust Shrinking scale reduction from 24% to 24.2% per level: 0.758 / 0.516 / 0.274. Standing level-III players are approximately 0.4932 blocks tall and can move through a half-block gap. Preserve other pure-tier attribute values and mounting eligibility between levels.
+
 ## Unreleased - probabilistic wolf taming
 
 - Replace the fixed third-ride tame with horse-style random rolls against persistent wolf trust. Failed full rides add 5 trust and failed accepted bones add 10; preserve vanilla direct bone taming and wild dismount hostility. Document the exact behavior in README.

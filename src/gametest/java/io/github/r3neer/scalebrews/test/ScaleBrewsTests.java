@@ -14,6 +14,27 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 
 public class ScaleBrewsTests {
+    @GameTest public void shrinkingThreeFitsHalfBlockGap(GameTestHelper h) {
+        var p=h.makeMockPlayer(GameType.SURVIVAL);
+        var topSlab=net.minecraft.world.level.block.Blocks.STONE_SLAB.defaultBlockState()
+            .setValue(net.minecraft.world.level.block.SlabBlock.TYPE,net.minecraft.world.level.block.state.properties.SlabType.TOP);
+        for(int x=1;x<=3;x++) {
+            h.setBlock(x,1,2,net.minecraft.world.level.block.Blocks.STONE);
+            h.setBlock(x,2,2,topSlab);
+        }
+        var inside=h.absoluteVec(new net.minecraft.world.phys.Vec3(1.5,2,2.5));
+        p.setPos(inside);
+        h.assertFalse(h.getLevel().noCollision(p,p.getBoundingBox()),"Normal standing body cannot fit under top slab");
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING,200,2));TestScale.settle(p);
+        near(h,p.getScale(),.274,"Shrinking III scale");
+        near(h,p.getBbHeight(),.4932,"Standing collision height below half a block");
+        h.assertTrue(h.getLevel().noCollision(p,p.getBoundingBox()),"Shrinking III fits actual half-block gap");
+        p.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(.5,2,2.5)));
+        p.move(net.minecraft.world.entity.MoverType.SELF,new net.minecraft.world.phys.Vec3(1,0,0));
+        near(h,p.getX(),inside.x,"Actual horizontal movement enters gap");
+        near(h,p.getY(),inside.y,"No stepping or crouching needed");
+        h.succeed();
+    }
     @GameTest
     public void shrinkingJumpStrength(GameTestHelper h) {
         var p = h.makeMockPlayer(GameType.SURVIVAL);

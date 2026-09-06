@@ -20,8 +20,8 @@ public class ScaleSizeTests {
             p.removeAllEffects(); p.getAttribute(Attributes.SCALE).setBaseValue(1);
             p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH,1200,growth-1));
             p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING,1200,shrink-1)); TestScale.settle(p);
-            double size=(1+.96*growth)*(1-.24*shrink);
-            double g=Math.max(0,(size-1)/.96),s=Math.max(0,(1-size)/.24);
+            double size=(1+.96*growth)*(1-.242*shrink);
+            double g=Math.max(0,(size-1)/.96),s=Math.max(0,(1-size)/.242);
             near(h,p.getMaxHealth(),20+6*g-4*s,"Mixed health "+growth+"/"+shrink);
             near(h,p.getAttributeValue(Attributes.MOVEMENT_SPEED),walking*(1+.08*g-.08*s),"Mixed walk");
             p.getAttribute(Attributes.SCALE).setBaseValue(1/size); ScaleSize.tick(p);
@@ -48,7 +48,7 @@ public class ScaleSizeTests {
         p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH,1200,2));
         p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING,1200,2));
         TestScale.settle(p);
-        double size=3.88*.28;
+        double size=3.88*.274;
         double growth=(size-1)/.96;
         near(h,p.getAttributeValue(Attributes.SCALE),size,"Mixed actual scale");
         near(h,ScaleSize.growth(p),growth,"Only residual growth applies");

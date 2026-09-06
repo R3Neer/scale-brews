@@ -61,7 +61,7 @@ public class ScaleReachTests {
 
     private static void checkSize(GameTestHelper h, net.minecraft.world.entity.player.Player player) {
         double size = player.getAttributeValue(Attributes.SCALE);
-        double factor = size >= 1 ? 1 + .5 * (size - 1) / .96 : 1 - .12 * Math.min(3, (1 - size) / .24);
+        double factor = size >= 1 ? 1 + .5 * (size - 1) / .96 : 1 - .12 * Math.min(3, (1 - size) / .242);
         ScaleMountTests.near(h, player.entityInteractionRange(), 3 * factor, "Reach follows actual size, not potion presence");
     }
 }

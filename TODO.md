@@ -1,5 +1,9 @@
 # Scale Brews — active work
 
+## Shrinking III half-block clearance
+
+- [x] Minimally adjust the linear size modifier so standing Shrinking III players fit below half a block; verify actual slab-gap collision/movement, client dimensions, mixed effects and current mount policies. Update README and mechanics/configuration references.
+
 ## Probabilistic wolf taming
 
 - [x] Supersede fixed three-ride taming with persistent per-wolf trust, random ride success and bone contributions. Preserve direct vanilla bone taming; validate persistence, different riders, unfavorable third attempt and partial rides. Update README and wolf documentation.

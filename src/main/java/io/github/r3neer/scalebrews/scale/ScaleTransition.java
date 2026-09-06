@@ -12,7 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public final class ScaleTransition {
     public static final int DURATION = 20;
     public static final double GROWTH_PER_LEVEL = 0.96;
-    public static final double SHRINKING_PER_LEVEL = -0.24;
+    public static final double SHRINKING_PER_LEVEL = -0.242;
     public static final Identifier MODIFIER = ScaleBrews.id("scale_transition");
     private static final Identifier OLD_GROWTH = ScaleBrews.id("effect.growth.scale");
     private static final Identifier OLD_SHRINKING = ScaleBrews.id("effect.shrinking.scale");

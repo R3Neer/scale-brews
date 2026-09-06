@@ -45,13 +45,15 @@ Growth's entity reach increases by 50% / 100% / 150% at its pure-potion sizes: 4
 | Default effect | I | II | III |
 | --- | ---: | ---: | ---: |
 | Growth size | 1.96× | 2.92× | 3.88× |
-| Shrinking size | 0.76× | 0.52× | 0.28× |
+| Shrinking size | 0.758× | 0.516× | 0.274× |
 | Growth walking speed | 1.08× | 1.16× | 1.24× |
 | Growth sprint multiplier | 1.20× | 1.12× | 1.05× |
 | Shrinking walking speed | 0.92× | 0.84× | 0.76× |
 | Shrinking sprint multiplier | 1.50× | 1.90× | 2.50× |
 
 Size and walking values are relative to normal, without other modifiers. Sprint multiplies the **current walking speed**, replacing vanilla's 1.30× sprint factor. On ordinary ground, neither effect alone beats Speed of the same level while sprinting; Speed still stacks with both.
+
+Shrinking reduces scale by 24.2% per level. At level III, a standing player's collision height is approximately **0.4932 blocks**, fitting through a half-block-high gap once the size transition completes.
 
 Physical size blends over **20 ticks** when effects begin, change or end. All scale-derived attributes follow the current effective size, including mixed potions and external scale modifiers; health changes preserve your remaining-health percentage. The tables describe pure-potion endpoints. At normal size there are no giant or tiny bonuses, even with potion icons active. Vanilla arrow and trident damage is not scaled by the shooter's size.
 
