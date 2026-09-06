@@ -2,6 +2,8 @@
 
 ## [0.1.0-beta.4] - Unreleased
 
+- Rebalance Growth entity reach to +50% / +100% / +150%, following effective size so ordinary melee can reach small targets beside giant feet. Preserve block reach and Shrinking penalties; cover actual weapon range, mixed effects and external sizes with regression tests.
+
 - Automatic physical support for compatible living species without per-model profiles; optional anatomical profiles remain authoritative, especially the animated player-head contact. Add cat/iron golem refinements and correct villager head height.
 - Separate saddle equipment, riding and steering. Any player may saddle an adult tamed wolf; unsaddled Tiny Mounts permit passive riding. Accurate equipment/size/hostility messages in English and Spanish.
 - Shift + right-click mounts configured tameables, preserving ordinary sit/feed interactions and requiring Shift release before dismounting.

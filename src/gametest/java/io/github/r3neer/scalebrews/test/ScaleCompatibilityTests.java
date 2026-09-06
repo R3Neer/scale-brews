@@ -94,7 +94,7 @@ public class ScaleCompatibilityTests {
             for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
                 for (int tier = 1; tier <= 3; tier++) {
                     p.addEffect(new MobEffectInstance(effect, 1200, tier - 1)); TestScale.settle(p);
-                    double factor = effect == ScaleEffects.GROWTH ? 1 + .2 * tier : 1 - .12 * tier;
+                    double factor = effect == ScaleEffects.GROWTH ? 1 + .5 * tier : 1 - .12 * tier;
                     double actual = ((Number)reachMethod.invoke(null, p)).doubleValue();
                     ScaleMountTests.near(h, p.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE), attributeBaseline * factor, "Weapon attribute and scale modifier compose");
                     h.assertTrue(effect == ScaleEffects.GROWTH ? actual > baseline : actual < baseline, "Combatify actual reach responds to scale for " + item);

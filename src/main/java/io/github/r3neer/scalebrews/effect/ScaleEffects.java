@@ -28,7 +28,7 @@ public final class ScaleEffects {
             .addAttributeModifier(
                 Attributes.ENTITY_INTERACTION_RANGE,
                 ScaleBrews.id("effect.growth.entity_interaction_range"),
-                0.20,
+                0.50,
                 AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             )
             .addAttributeModifier(

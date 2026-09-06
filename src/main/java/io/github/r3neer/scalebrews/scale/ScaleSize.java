@@ -40,7 +40,15 @@ public final class ScaleSize {
             if (type.equals(Attributes.SCALE)) return;
             var attribute = entity.getAttribute(type);
             if (attribute == null) return;
-            double amount = template.amount() * magnitude / 3;
+            // Reach must continue following eye height even beyond the potion tiers.
+            // Other mechanics retain their established tier-III cap.
+            double effectiveMagnitude = magnitude;
+            if (type.equals(Attributes.ENTITY_INTERACTION_RANGE) && effect == ScaleEffects.GROWTH.value()) {
+                double scale = entity.getAttributeValue(Attributes.SCALE);
+                effectiveMagnitude = Double.isFinite(scale)
+                        ? Math.max(0, (scale - 1) / ScaleTransition.GROWTH_PER_LEVEL) : 0;
+            }
+            double amount = template.amount() * effectiveMagnitude / 3;
             var existing = attribute.getModifier(template.id());
             if (amount == 0) attribute.removeModifier(template.id());
             else if (existing == null || existing.amount() != amount)

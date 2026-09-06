@@ -13,6 +13,27 @@ import net.minecraft.world.item.Items;
 public class ScaleBrewsClientTests implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        try (var reachWorld = context.worldBuilder().create()) {
+            reachWorld.getConnection().waitForChunksRender();
+            reachWorld.getServer().runCommand("gamemode survival @a");
+            reachWorld.getServer().runCommand("fill -4 -61 -4 4 -61 4 minecraft:stone");
+            reachWorld.getServer().runCommand("tp @a 0 -60 0");
+            reachWorld.getServer().runCommand("summon minecraft:chicken 0 -60 2 {NoAI:1b,Tags:[reach_target]}");
+            reachWorld.getServer().runCommand("effect give @a scalebrews:growth 120 2 true");
+            context.waitTicks(35);
+            reachWorld.getServer().runCommand("execute as @a at @s anchored eyes run tp @s ~ ~ ~ facing entity @e[tag=reach_target,limit=1] eyes");
+            context.waitTicks(5);
+            context.runOnClient(client -> {
+                if (Math.abs(client.player.entityInteractionRange() - 7.5) > .001)
+                    throw new AssertionError("Growth III melee reach not synchronized");
+                var hit = client.player.getAttackRangeWith(ItemStack.EMPTY)
+                        .getClosesetHit(client.player, 1, e -> e instanceof net.minecraft.world.entity.animal.chicken.Chicken);
+                if (!(hit instanceof net.minecraft.world.phys.EntityHitResult))
+                    throw new AssertionError("Client eye ray cannot target small mob beside giant feet: " + hit.getType()
+                            + " at " + hit.getLocation() + " eyes " + client.player.getEyePosition()
+                            + " direction " + client.player.getHeadLookAngle());
+            });
+        }
         try (var world = context.worldBuilder().create()) {
             world.getConnection().waitForChunksRender();
             context.runOnClient(ScaleCameraChecks::run);

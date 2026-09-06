@@ -25,7 +25,7 @@ public abstract class LivingEntityMixin {
         if (!entity.level().isClientSide()) {
             if (scalebrews$transition == null) scalebrews$transition = new ScaleTransition();
             scalebrews$transition.tick(entity);
-            double size = io.github.r3neer.scalebrews.scale.ScaleSize.signedLevel(entity);
+            double size = entity.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.SCALE);
             if (Double.compare(size, scalebrews$attributeSize) != 0) {
                 io.github.r3neer.scalebrews.scale.ScaleSize.tick(entity);
                 scalebrews$attributeSize = size;

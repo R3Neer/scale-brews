@@ -1,5 +1,10 @@
 # Scale Brews — active work
 
+## Giant melee reach follow-up
+
+- [x] Rebalance entity reach to 4.5 / 6 / 7.5 blocks at Growth I/II/III survival baseline, following effective scale and preserving block reach and Shrinking balance.
+- [x] Validate foot-level melee regression, mixed/external sizes, build and client runtime: 80 base server tests and the real-client suite pass, including Growth III eye-ray targeting beside the feet.
+
 ## Living platforms
 
 - [x] Prove moving support and authoritative synchronization with players, mobs and occupied boats; 0/100/200 ms flight-disabled dedicated connections and a 12,000-tick player soak.
