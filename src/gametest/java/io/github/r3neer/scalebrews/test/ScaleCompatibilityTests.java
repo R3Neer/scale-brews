@@ -24,7 +24,7 @@ public class ScaleCompatibilityTests {
         var type = BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("alexsmobs", "grizzly_bear"));
         h.assertTrue(type != null, "Installed modded mob exists");
         var mob = (net.minecraft.world.entity.LivingEntity) h.spawn(type, 1, 2, 1);
-        mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2));
+        mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2)); TestScale.settle(mob);
         var target = h.spawnWithNoFreeWill(net.minecraft.world.entity.EntityTypes.PIG, 2.5F, 2, 1);
         float before = mob.getHealth();
         mob.fallDistance = 12;
@@ -43,7 +43,7 @@ public class ScaleCompatibilityTests {
             h.getLevel().setBlockAndUpdate(origin.offset(a, y, 3), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
         }
         for (int tier = 1; tier <= 3; tier++) {
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, tier - 1));
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, tier - 1)); TestScale.settle(p);
             ScaleMountTests.settle(p);
             p.setPos(origin.getX() + 2, origin.getY(), origin.getZ() + 2);
             p.setSprinting(true);
@@ -60,12 +60,12 @@ public class ScaleCompatibilityTests {
         p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, new ItemStack(Items.ELYTRA));
         for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
             for (int tier = 1; tier <= 3; tier++) {
-                p.addEffect(new MobEffectInstance(effect, 1200, tier - 1));
+                p.addEffect(new MobEffectInstance(effect, 1200, tier - 1)); TestScale.settle(p);
                 ScaleMountTests.settle(p);
                 p.setOnGround(false);
                 p.setDeltaMovement(0, -.1, 0);
                 h.assertTrue(p.tryToStartFallFlying(), "Scale does not disable vanilla elytra eligibility");
-                p.stopFallFlying(); p.removeEffect(effect);
+                p.stopFallFlying(); p.removeEffect(effect); TestScale.settle(p);
             }
         }
         h.succeed();
@@ -93,12 +93,12 @@ public class ScaleCompatibilityTests {
             double attributeBaseline = p.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
             for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
                 for (int tier = 1; tier <= 3; tier++) {
-                    p.addEffect(new MobEffectInstance(effect, 1200, tier - 1));
+                    p.addEffect(new MobEffectInstance(effect, 1200, tier - 1)); TestScale.settle(p);
                     double factor = effect == ScaleEffects.GROWTH ? 1 + .2 * tier : 1 - .12 * tier;
                     double actual = ((Number)reachMethod.invoke(null, p)).doubleValue();
                     ScaleMountTests.near(h, p.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE), attributeBaseline * factor, "Weapon attribute and scale modifier compose");
                     h.assertTrue(effect == ScaleEffects.GROWTH ? actual > baseline : actual < baseline, "Combatify actual reach responds to scale for " + item);
-                    p.removeEffect(effect);
+                    p.removeEffect(effect); TestScale.settle(p);
                     ScaleMountTests.near(h, ((Number)reachMethod.invoke(null, p)).doubleValue(), baseline, "Removing effect restores weapon-specific reach");
                 }
             }

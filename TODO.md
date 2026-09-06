@@ -7,7 +7,7 @@
 - [x] Vehicle/item/falling-block adapters, lifecycle, chains, edge protection and passive-motion accounting; scoped anvil impact without repeated damage.
 - [x] Sixteen anatomical profiles, shared model sampling, adapter hooks and bounded first-person camera correction.
 - [x] Final build and 54 server tests, real-client suite, scoped implementation commit/push and successful GitHub CI; installed artifact hashes match VP26, Modrinth and the exported MRPack. Previous beta JARs retained outside the mods folders.
-- [ ] Full VP26 acceptance: installed e4mc 6.2.1 calls absent `CommandSourceStack.hasPermission(int)` on player connection. With e4mc excluded only in an isolated diagnostic copy and actual pack configs, 88/89 server tests pass; the remaining regeneration-food comparison needs investigation. The development client also stops on unreferenced Wilder Wild biome holders before the window opens. Do not silently remove/change production mods to turn this green.
+- [ ] Full VP26 client acceptance: beta.3 passes all 98 server tests with e4mc restored; permission compatibility, Wilder Wild loaded-registry validation and the regeneration comparison are resolved. The client now reaches dedicated connection but fails network registry loading on duplicate `minecraft:enchantment / enchancement:empty`. This new integration issue remains open; do not suppress duplicate-key validation or remove production mods to turn the suite green.
 - [ ] Human QA: all species' animated contact, wall/camera corner cases, lead-dragged boat on a giant with passengers, water transitions, minecart rail transitions, falling blocks hardening/placing after release, crowded mixed chains and late-joining observers. Automated cases do not cover every permutation.
 - Existing beta QA and publication tasks below remain pending.
 
@@ -128,6 +128,16 @@ Initial configurable limits:
 - [x] Validate animated rider alignment, dismount/reset and actual unmounted following; update documentation, package and push.
 
 ## First public beta
+
+### Effective-size and placement follow-up (2026-09-06)
+
+- [x] Derive attributes and physical mechanics from actual SCALE, interpolating existing pure-potion anchors; mixed effects and external scale must compose. Landing waves require at least Growth I size; damage requires Growth III size.
+- [x] Place boats/rafts and spawn-egg entities on eligible living surfaces by right click, with fit, obstruction, permissions and inventory checks.
+- [x] Resolve e4mc command permission compatibility in the development pack.
+- [x] Resolve Wilder Wild development registry validation bootstrap using loaded world registries in the test harness, not by changing production world generation.
+- [x] Diagnose and validate the natural regeneration comparison with actual VP26 settings: match Combatify's random food-consumption draws between both subjects.
+- [x] Rebuild, rerun and document base/server/full-pack checks; install beta.3 with matching hashes in VP26 and Modrinth. Base build, 63 server tests and real-client suite pass; 98 VP26 server tests pass. The separate full-pack client acceptance blocker above remains open.
+- User reports successful singleplayer living-platform playtesting; this does not replace the remaining automated full-pack validation.
 
 - [x] Use the explicit `0.1.0-beta.1` prerelease version, pin Loom 1.17.20 and require the tested Fabric API baseline.
 - [x] Add a user-facing changelog and replace stale development-only wording.

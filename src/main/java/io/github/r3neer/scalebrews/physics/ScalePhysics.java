@@ -22,11 +22,11 @@ public final class ScalePhysics {
     private ScalePhysics() {}
 
     public static int growth(Entity entity) {
-        return entity instanceof Player p ? ScaleSprintHandler.level(p.getEffect(ScaleEffects.GROWTH)) : 0;
+        return entity instanceof Player p ? io.github.r3neer.scalebrews.scale.ScaleSize.tier(io.github.r3neer.scalebrews.scale.ScaleSize.growth(p)) : 0;
     }
 
     public static int shrinking(Entity entity) {
-        return entity instanceof Player p ? ScaleSprintHandler.level(p.getEffect(ScaleEffects.SHRINKING)) : 0;
+        return entity instanceof Player p ? io.github.r3neer.scalebrews.scale.ScaleSize.tier(io.github.r3neer.scalebrews.scale.ScaleSize.shrinking(p)) : 0;
     }
 
     public static boolean weightless(Entity entity) { return shrinking(entity) == 3; }
@@ -37,25 +37,25 @@ public final class ScalePhysics {
         return level < 3 && (level != 2 || !plate.is(INSENSITIVE_PLATES));
     }
 
-    public static double vibrationRange(int shrinking, boolean sprinting) {
-        return Math.clamp(1 - 0.25 * shrinking + (sprinting && shrinking > 0 ? 0.25 : 0), 0.25, 1);
+    public static double vibrationRange(double shrinking, boolean sprinting) {
+        return Math.clamp(1 - 0.25 * shrinking + (sprinting ? 0.25 * Math.min(1, shrinking) : 0), 0.25, 1);
     }
 
-    public static float fallDamage(float vanillaDamage, int shrinking) {
-        return vanillaDamage * (1 - 0.08F * Math.clamp(shrinking, 0, 3));
+    public static float fallDamage(float vanillaDamage, double shrinking) {
+        return (float)(vanillaDamage * (1 - 0.08 * Math.clamp(shrinking, 0, 3)));
     }
 
     public static float blockSpeed(Entity entity, BlockState block, float vanillaFactor) {
         if (!ScaleRules.get(entity.level()).resistsTerrain()) return vanillaFactor;
-        int level = growth(entity);
+        double level = entity instanceof Player p ? io.github.r3neer.scalebrews.scale.ScaleSize.growth(p) : 0;
         if (level == 0 || !block.is(RESISTED_SLOWDOWN) || vanillaFactor >= 1) return vanillaFactor;
-        double penalty = switch (level) { case 1 -> 0.60; case 2 -> 0.25; default -> 0; };
+        double penalty = io.github.r3neer.scalebrews.scale.ScaleSize.interpolate(level, 1, .60, .25, 0);
         return (float) (1 - (1 - vanillaFactor) * penalty);
     }
 
     public static Vec3 stuckSpeed(Entity entity, BlockState block, Vec3 vanilla) {
         if (!ScaleRules.get(entity.level()).resistsTerrain()) return vanilla;
-        int level = growth(entity);
+        double level = entity instanceof Player p ? io.github.r3neer.scalebrews.scale.ScaleSize.growth(p) : 0;
         if (level == 0 || !block.is(RESISTED_SLOWDOWN)) return vanilla;
         double remaining = 1 - level / 3.0;
         return new Vec3(relieve(vanilla.x, remaining), relieve(vanilla.y, remaining), relieve(vanilla.z, remaining));

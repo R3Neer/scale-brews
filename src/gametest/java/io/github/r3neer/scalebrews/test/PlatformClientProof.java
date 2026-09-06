@@ -68,6 +68,7 @@ public class PlatformClientProof implements FabricClientGameTest {
             context.takeScreenshot("platform-transport-proof");
             server.runOnServer(s->{
                 var player=s.getPlayerList().getPlayers().getFirst();
+                TestWorldgenValidation.assertCompleted();
                 if(!Platforms.supported(player)) throw new AssertionError("Dedicated server lost support");
             });
             server.runCommand("summon minecraft:oak_boat 0 30 0 {Tags:[\"platform_boat\"]}");

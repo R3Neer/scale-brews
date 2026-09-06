@@ -108,6 +108,35 @@ The beta.2 production JAR contains 33 parseable JSON files, all 16 platform prof
 
 Other original VP26 mods and configurations were retained. These failures, broad visual QA, water/rail/lead combinations and late-join observer permutations remain explicitly open in TODO. Neither a successful archive export nor passing base Fabric tests establishes full modpack compatibility.
 
+## Effective size and item placement — beta.3 (2026-09-06)
+
+Physical SCALE now drives derived attributes, sprint, exhaustion, recoil, environmental thresholds, villager fear, creeper power and landing waves. The server suite covers all nine Growth/Shrinking pairs, external cancellation to normal size, fractional transition attributes/health, and inclusive impact thresholds at 1.96 and 3.88. Pure-potion endpoints remain unchanged; external extremes clamp derived strength at tier III.
+
+Placement tests exercise a giant player's head, boats/chest boats/rafts and spawn eggs, immediate transport, footprint/obstruction rejection, permissions and creative/survival inventory behavior. Matching spawn eggs retain vanilla baby-spawning fallback where adult platform placement cannot fit.
+
+The full installed VP26 mod set is retained in the isolated development runtime, including e4mc. All **98 required server tests passed**, including the final baby-spawning fallback regression (63 base tests plus 35 from Additional Additions). The e4mc optional production shim replaces its obsolete dedicated-server permission call with the 26.2 permission API, preserving the integrated-server branch. A dedicated permission regression exercises both allowed and denied command sources.
+
+The regeneration discrepancy came from Combatify's random food-consumption choice, not increased regeneration exhaustion: the previous test compared different random draws. Both subjects now receive the same random sequence for 100 food ticks, with health, food, saturation and exhaustion compared after every tick. No production hunger/regen logic was changed.
+
+Development-only client harness adaptations are not packaged in the mod:
+
+- With Wilder Wild loaded, defer early vanilla command validation until a test server has loaded its real datapack registries; execute the same validation against those registries and assert that it completed. No biome registrations are removed or fabricated.
+- Defer animated-atlas uploads only while the vanilla Globals uniform buffer has not yet been initialized. Runtime render validation remains enabled.
+- Accept resource-pack requests from loopback test servers automatically, retaining vanilla download/hash validation. Non-local URLs still require normal confirmation.
+- Allow up to 120 seconds for the dedicated test server to bootstrap with Wilder Wild, instead of Fabric's hard-coded ten seconds. Movement assertions, latency simulations and collision/speed checks are unchanged.
+
+These adaptations address development bootstrapping and unattended test UI; they do not change the user's production configs or claim that all third-party log warnings are fixed. Wilder Wild's deferred validation completed against real registries at 17:27:49. The client accepted/downloaded the local Polymer pack and advanced to registry synchronization, but failed at 17:27:59 on duplicate `ResourceKey[minecraft:enchantment / enchancement:empty]`. The stack goes through `NetworkRegistryLoadTask` and `MappedRegistry.register`; duplicate-key validation was not weakened. This newly exposed full-pack connection failure remains open, and is not evidence of a Scale Brews platform failure. Its exact cross-mod cause still needs isolation.
+
+The development renderer also reports unregistered virtual entity renderers for `enchancement:frozen_player` and `universal_graves:xp`, triggering its strict resource self-test fallback. This is another reason not to call the full-pack client run clean. Neither affected external JAR was changed. Only the isolated test e4mc configs now disable public hosting (`hostEnabled=false`) for subsequent local diagnostic runs; production sharing settings remain untouched.
+
+### Final beta.3 base and artifact checks
+
+`build runClientGameTest --offline` completed successfully at 17:33:41 with the base Fabric setup: all **63 server tests** and both real-client entrypoints passed. The client run includes dedicated player/occupied-boat transport at 0/100/200 ms added RTT with flight disabled, model-part checks, and the existing integrated-server scale, camera, beacon and Tiny Mounts regressions. This turn did not repeat the earlier ten-minute soak or replace the owner's manual playtesting.
+
+The beta.3 JAR has 33 valid JSON files, all 16 platform profiles, and no test classes/resources. SHA-256: `36a19afff102aef2eccd8b46cd01a78b1397266c7ab01dacf1b773ece4a8eceb`. Matching copies are installed in the VP26 source pack and the `VanillaPlus-26.2 (1)` Modrinth instance. Both beta.2 JARs were moved to recoverable backups outside `mods`; the gameplay category was retained. These artifact checks do not imply that the blocked full-pack dedicated-client connection passed.
+
+The export `VanillaPlus-26.2-20260906-173602.mrpack` completed with 93 mods; its sole embedded Scale Brews JAR is beta.3 and matches the hash above. ModpackTools reports no differences from that build. Its dependency-metadata verification still lists 125 unverified requirements: packaging success is not a full compatibility certificate. The base occupied-boat proof screenshot was visually inspected; this does not validate the blocked VP26 client.
+
 ### Remaining general limits
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.

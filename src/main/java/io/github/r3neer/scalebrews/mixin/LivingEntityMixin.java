@@ -15,23 +15,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Unique private int scalebrews$sprintState;
+    @Unique private double scalebrews$sprintState;
     @Unique private ScaleTransition scalebrews$transition;
+    @Unique private double scalebrews$attributeSize = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void scalebrews$tick(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
+        if (!entity.level().isClientSide()) {
+            if (scalebrews$transition == null) scalebrews$transition = new ScaleTransition();
+            scalebrews$transition.tick(entity);
+            double size = io.github.r3neer.scalebrews.scale.ScaleSize.signedLevel(entity);
+            if (Double.compare(size, scalebrews$attributeSize) != 0) {
+                io.github.r3neer.scalebrews.scale.ScaleSize.tick(entity);
+                scalebrews$attributeSize = size;
+            }
+        }
         if (entity instanceof Player) {
             io.github.r3neer.scalebrews.physics.ScaleSneaking.tick((Player) entity);
-            int state = ScaleSprintHandler.state(entity);
+            double state = io.github.r3neer.scalebrews.scale.ScaleSize.signedLevel(entity);
             if (state != scalebrews$sprintState) {
                 scalebrews$sprintState = state;
                 entity.setSprinting(entity.isSprinting());
             }
         }
         if (!entity.level().isClientSide()) {
-            if (scalebrews$transition == null) scalebrews$transition = new ScaleTransition();
-            scalebrews$transition.tick(entity);
             io.github.r3neer.scalebrews.mount.TinyMounts.enforceRider(entity);
         }
     }

@@ -19,7 +19,8 @@ public abstract class ScaleVibrationMixin {
             GameEvent.Context context, Vec3 origin, CallbackInfoReturnable<Boolean> cir) {
         Entity source = context.sourceEntity();
         if (!io.github.r3neer.scalebrews.config.ScaleRules.get(level).quietensMovement()) return;
-        int shrinking = ScalePhysics.shrinking(source);
+        double shrinking = source instanceof net.minecraft.world.entity.player.Player p
+                ? io.github.r3neer.scalebrews.scale.ScaleSize.shrinking(p) : 0;
         if (shrinking == 0 || source.isSteppingCarefully() || !event.is(ScalePhysics.QUIET_MOVEMENT)) return;
         var listener = (VibrationSystem.Listener) (Object) this;
         double radius = listener.getListenerRadius() * ScalePhysics.vibrationRange(shrinking, source.isSprinting());

@@ -1,5 +1,7 @@
 # World configuration and tiny mounts
 
+Since beta.3, Growth/Shrinking levels in the rules below mean the equivalent **effective size**, not a required potion icon. Mixed effects and external SCALE modifiers can enable or disable the same rules. See [Mechanics](MECHANICS.md#effective-size-beta3) for interpolation and exact thresholds. Configuration switches still govern the same modules.
+
 Rules are JSON data owned by the world/server, not per-player client preferences. Fabric synchronizes both rules and mount definitions to connecting clients. All features default to enabled. Close and reopen the world (restart a dedicated server) after changing these dynamic registries; `/reload` alone is not supported for them.
 
 ## Installation

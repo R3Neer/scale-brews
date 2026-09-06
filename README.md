@@ -51,7 +51,7 @@ Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / I
 
 Size and walking values are relative to normal, without other modifiers. Sprint multiplies the **current walking speed**, replacing vanilla's 1.30× sprint factor. On ordinary ground, neither effect alone beats Speed of the same level while sprinting; Speed still stacks with both.
 
-Physical size blends over **20 ticks** when effects begin, change or end. Health changes preserve your remaining-health percentage. Other attribute changes are immediate. Vanilla arrow and trident damage is not scaled by the shooter's effect.
+Physical size blends over **20 ticks** when effects begin, change or end. All scale-derived attributes follow the current effective size, including mixed potions and external scale modifiers; health changes preserve your remaining-health percentage. The tables describe pure-potion endpoints. At normal size there are no giant or tiny bonuses, even with potion icons active. Vanilla arrow and trident damage is not scaled by the shooter's size.
 
 The small-player first-person camera uses size-aware near clipping and reduced view bobbing to mitigate seeing through close block corners. This does not replace collision physics or change your FOV.
 

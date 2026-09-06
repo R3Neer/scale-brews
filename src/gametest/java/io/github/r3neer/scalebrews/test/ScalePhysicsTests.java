@@ -39,7 +39,7 @@ public class ScalePhysicsTests {
         var food = (TestFoodAccess) p.getFoodData();
         for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
             for (int level = 1; level <= 3; level++) {
-                p.addEffect(new MobEffectInstance(effect, 200, level - 1));
+                p.addEffect(new MobEffectInstance(effect, 200, level - 1)); TestScale.settle(p);
                 double multiplier = effect == ScaleEffects.GROWTH ? 1 + .10 * level : 1 - .05 * level;
                 p.setSprinting(false);
                 food.test$exhaustion(0);
@@ -65,7 +65,7 @@ public class ScalePhysicsTests {
                 // Connected mocks haven't sent the client-loaded packet and are damage-immune.
                 // A plain survival Player exercises the same damage/food code without that guard.
                 var hurtPlayer = h.makeMockPlayer(GameType.SURVIVAL);
-                hurtPlayer.addEffect(new MobEffectInstance(effect, 200, level - 1));
+                hurtPlayer.addEffect(new MobEffectInstance(effect, 200, level - 1)); TestScale.settle(hurtPlayer);
                 var source = hurtPlayer.damageSources().generic();
                 h.assertTrue(hurtPlayer.hurtServer(h.getLevel(), source, 1), "Damage test really hurt player");
                 var hurtFood = (TestFoodAccess) hurtPlayer.getFoodData();
@@ -77,15 +77,15 @@ public class ScalePhysicsTests {
                 // A fresh attacker avoids mock connection/cooldown state from preceding scenarios.
                 var attacker = h.makeMockPlayer(GameType.SURVIVAL);
                 attacker.setPos(target.position().add(0, 0, -1));
-                attacker.addEffect(new MobEffectInstance(effect, 200, level - 1));
+                attacker.addEffect(new MobEffectInstance(effect, 200, level - 1)); TestScale.settle(attacker);
                 attacker.attack(target);
                 near(h, ((TestFoodAccess)attacker.getFoodData()).test$exhaustion(), .1 * multiplier, "Attack exhaustion");
                 target.discard();
-                p.removeEffect(effect);
+                p.removeEffect(effect); TestScale.settle(p);
             }
         }
         // Natural regeneration calls the unmodified global sink, even while Growth III is active.
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2)); TestScale.settle(p);
         p.setHealth(p.getMaxHealth() - 2);
         p.getFoodData().setFoodLevel(20);
         p.getFoodData().setSaturation(6);
@@ -100,7 +100,19 @@ public class ScalePhysicsTests {
             var baselineFood = (TestFoodAccess)baseline.getFoodData();
             baselineFood.test$exhaustion(0);
             float before = p.getHealth();
-            for (int i = 0; i < 100; i++) { p.getFoodData().tick(p); baseline.getFoodData().tick(baseline); }
+            // CTSFoodImpl.heal uses level.random.nextBoolean() to charge one food point.
+            // Paired identical seeds compare the same random outcomes, not two unrelated coin tosses.
+            for (int i = 0; i < 100; i++) {
+                long seed=0x5343414c45L+i*104729L;
+                h.getLevel().getRandom().setSeed(seed);
+                p.getFoodData().tick(p);
+                h.getLevel().getRandom().setSeed(seed);
+                baseline.getFoodData().tick(baseline);
+                near(h,p.getHealth(),baseline.getHealth(),"Paired regeneration health at tick "+i);
+                near(h,p.getFoodData().getFoodLevel(),baseline.getFoodData().getFoodLevel(),"Paired regeneration food at tick "+i);
+                near(h,p.getFoodData().getSaturationLevel(),baseline.getFoodData().getSaturationLevel(),"Paired regeneration saturation at tick "+i);
+                near(h,food.test$exhaustion(),baselineFood.test$exhaustion(),"Paired regeneration exhaustion at tick "+i);
+            }
             h.assertTrue(p.getHealth() > before, "Combatify regeneration really ran");
             near(h, food.test$exhaustion(), baselineFood.test$exhaustion(), "Combatify regeneration exhaustion unchanged by our effect");
             near(h, p.getFoodData().getFoodLevel(), baseline.getFoodData().getFoodLevel(), "Combatify regeneration food usage preserved");
@@ -123,7 +135,7 @@ public class ScalePhysicsTests {
             for (boolean feather : new boolean[]{false, true}) {
                 var p = h.makeMockPlayer(GameType.SURVIVAL);
                 p.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);
-                if (level > 0) p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1));
+                if (level > 0) p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1)); TestScale.settle(p);
                 if (feather) {
                     var boots = new ItemStack(Items.DIAMOND_BOOTS);
                     boots.enchant(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
@@ -148,8 +160,8 @@ public class ScalePhysicsTests {
         var plates = new net.minecraft.world.level.block.Block[]{Blocks.OAK_PRESSURE_PLATE,
                 Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE, Blocks.STONE_PRESSURE_PLATE, Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE};
         for (int level = 0; level <= 3; level++) {
-            p.removeEffect(ScaleEffects.SHRINKING);
-            if (level > 0) p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1));
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
+            if (level > 0) p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1)); TestScale.settle(p);
             for (int i = 0; i < plates.length; i++) {
                 h.getLevel().setBlockAndUpdate(pos, plates[i].defaultBlockState());
                 int signal = ((TestPlateAccess) plates[i]).test$signal(h.getLevel(), pos);
@@ -168,7 +180,7 @@ public class ScalePhysicsTests {
     @GameTest
     public void fragileBlocksAndFallDamage(GameTestHelper h) {
         var p = h.makeMockPlayer(GameType.SURVIVAL);
-        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2));
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2)); TestScale.settle(p);
         p.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);
         p.setHealth(p.getMaxHealth());
         BlockPos pos = h.absolutePos(new BlockPos(1, 1, 1));
@@ -178,7 +190,7 @@ public class ScalePhysicsTests {
         h.assertTrue(h.getLevel().getBlockState(pos).is(Blocks.FARMLAND), "Tiny player preserves farmland");
         h.assertTrue(p.getHealth() < before, "Farmland protection does not cancel fall damage");
         h.assertFalse(((TestEggAccess) Blocks.TURTLE_EGG).test$canCrush(h.getLevel(), p), "Tiny player cannot crush eggs");
-        p.removeEffect(ScaleEffects.SHRINKING);
+        p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
         h.assertTrue(((TestEggAccess) Blocks.TURTLE_EGG).test$canCrush(h.getLevel(), p), "Normal egg behavior restored");
         Blocks.FARMLAND.fallOn(h.getLevel(), Blocks.FARMLAND.defaultBlockState(), pos, p, 10);
         h.assertTrue(h.getLevel().getBlockState(pos).is(Blocks.DIRT), "Normal player tramples farmland");
@@ -194,8 +206,8 @@ public class ScalePhysicsTests {
         p.setPos(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
         double[] soul = {0.4, 0.64, 0.85, 1};
         for (int tier = 0; tier <= 3; tier++) {
-            p.removeEffect(ScaleEffects.GROWTH);
-            if (tier > 0) p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, tier - 1));
+            p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
+            if (tier > 0) p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, tier - 1)); TestScale.settle(p);
             near(h, access.test$blockSpeed(), soul[tier], "Soul sand progression");
             access.test$setStuckSpeed(Vec3.ZERO);
             p.makeStuckInBlock(Blocks.SWEET_BERRY_BUSH.defaultBlockState(), new Vec3(0.8, 0.75, 0.8));
@@ -211,7 +223,7 @@ public class ScalePhysicsTests {
     @GameTest
     public void swiftSneakRequiresEnchantment(GameTestHelper h) {
         var p = h.makeMockPlayer(GameType.SURVIVAL);
-        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2));
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2)); TestScale.settle(p);
         ScaleSneaking.tick(p);
         near(h, p.getAttributeValue(Attributes.SNEAKING_SPEED), 0.3, "No enchantment means no bonus");
         var leggings = new ItemStack(Items.DIAMOND_LEGGINGS);
@@ -220,7 +232,7 @@ public class ScalePhysicsTests {
         p.tick();
         p.tick();
         near(h, p.getAttributeValue(Attributes.SNEAKING_SPEED), 1, "Shrink III plus Swift Sneak III");
-        p.removeEffect(ScaleEffects.SHRINKING);
+        p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
         p.tick();
         near(h, p.getAttributeValue(Attributes.SNEAKING_SPEED), 0.75, "Vanilla enchantment restored");
         p.setItemSlot(EquipmentSlot.LEGS, ItemStack.EMPTY);
@@ -249,8 +261,8 @@ public class ScalePhysicsTests {
         BlockPos dest = h.absolutePos(new BlockPos(1, 3, 1));
         Vec3 center = Vec3.atCenterOf(dest);
         for (int tier = 1; tier <= 3; tier++) {
-            p.removeEffect(ScaleEffects.SHRINKING);
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, tier - 1));
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, tier - 1)); TestScale.settle(p);
             for (boolean sprint : new boolean[]{false, true}) {
                 p.setSprinting(sprint);
                 double radius = 16 * ScalePhysics.vibrationRange(tier, sprint);
@@ -272,13 +284,13 @@ public class ScalePhysicsTests {
         BlockPos origin = h.absolutePos(new BlockPos(1, 2, 1));
         p.setPos(Vec3.atBottomCenterOf(origin));
         var pig = h.spawnWithNoFreeWill(EntityTypes.PIG, 2.5F, 2, 1.5F);
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0)); TestScale.settle(p);
         GrowthImpact.land(p, 2, Blocks.STONE.defaultBlockState());
         near(h, pig.getDeltaMovement().length(), 0, "Normal jump has no wave");
         GrowthImpact.land(p, 5, Blocks.STONE.defaultBlockState());
         h.assertTrue(pig.getDeltaMovement().x > 0, "Wave pushes outwards");
         near(h, pig.getHealth(), pig.getMaxHealth(), "Growth I has no wave damage");
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2)); TestScale.settle(p);
         float ownHealth = p.getHealth();
         p.fallDistance = 10;
         ((TestEntityAccess) p).test$land(0, true, Blocks.STONE.defaultBlockState(), origin.below());

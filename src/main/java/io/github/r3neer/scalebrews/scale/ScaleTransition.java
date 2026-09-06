@@ -26,6 +26,8 @@ public final class ScaleTransition {
         AttributeInstance attribute = entity.getAttribute(Attributes.SCALE);
         if (attribute == null) return;
         if (!initialized) {
+            AttributeModifier running = attribute.getModifier(MODIFIER);
+            if (running != null) current = 1 + running.amount();
             // Migrate old saved permanent modifiers without an abrupt size change.
             AttributeModifier oldGrowth = attribute.getModifier(OLD_GROWTH);
             AttributeModifier oldShrinking = attribute.getModifier(OLD_SHRINKING);

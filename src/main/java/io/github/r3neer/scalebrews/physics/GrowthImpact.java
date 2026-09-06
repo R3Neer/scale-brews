@@ -15,11 +15,11 @@ import net.minecraft.world.phys.Vec3;
 public final class GrowthImpact {
     private GrowthImpact() {}
 
-    public static double radius(int level, double distance) {
+    public static double radius(double level, double distance) {
         return Math.min(6, 1.5 + level * 0.65 + Math.min(20, Math.max(0, distance - 3)) * 0.08);
     }
 
-    public static double strength(int level, double distance) {
+    public static double strength(double level, double distance) {
         return Math.min(2, (0.2 + level * 0.2) * (1 + Math.min(20, Math.max(0, distance - 3)) * 0.06));
     }
 
@@ -32,14 +32,15 @@ public final class GrowthImpact {
         if (io.github.r3neer.scalebrews.platform.Platforms.supported(entity)) return;
         var rules = io.github.r3neer.scalebrews.config.ScaleRules.get(entity.level());
         if (!rules.growthImpact()) return;
-        int tier = io.github.r3neer.scalebrews.scale.ScaleSprintHandler.level(
-                entity.getEffect(io.github.r3neer.scalebrews.effect.ScaleEffects.GROWTH));
+        int tier = io.github.r3neer.scalebrews.scale.ScaleSize.tier(
+                io.github.r3neer.scalebrews.scale.ScaleSize.growth(entity));
         if (tier == 0 || fallDistance <= 3 || !Double.isFinite(fallDistance) || ground.isAir()
                 || entity.isSpectator() || (entity instanceof Player p && p.getAbilities().flying)
                 || entity.isPassenger() || entity.isInWater()
                 || !(entity.level() instanceof ServerLevel level)) return;
-        double radius = radius(tier, fallDistance);
-        double power = strength(tier, fallDistance);
+        double magnitude = io.github.r3neer.scalebrews.scale.ScaleSize.growth(entity);
+        double radius = radius(magnitude, fallDistance);
+        double power = strength(magnitude, fallDistance);
         var source = new net.minecraft.world.damagesource.DamageSource(
                 level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(ScaleCombat.LANDING), entity);
         Vec3 origin = entity.position().add(0, 0.2, 0);

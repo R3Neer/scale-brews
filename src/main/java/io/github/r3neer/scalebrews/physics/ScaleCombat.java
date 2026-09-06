@@ -14,6 +14,6 @@ public final class ScaleCombat {
     public static double knockback(double original, DamageSource source) {
         if (source == null || source.is(LANDING) || source.is(DamageTypes.THORNS)
                 || source.getDirectEntity() != source.getEntity() || !(source.getEntity() instanceof Player p)) return original;
-        return original * (1 + .1 * ScalePhysics.growth(p)) * (1 - .1 * ScalePhysics.shrinking(p));
+        return original * (1 + .1 * io.github.r3neer.scalebrews.scale.ScaleSize.signedLevel(p));
     }
 }

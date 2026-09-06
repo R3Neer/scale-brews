@@ -21,19 +21,20 @@ public final class ScaleSprintHandler {
         return effect == null ? 0 : Math.min(3, effect.getAmplifier() + 1);
     }
 
-    /** Growth takes precedence when both effects are active. */
+    /** Discrete ability tier, based on physical size rather than effect presence. */
     public static int state(LivingEntity entity) {
-        int growth = level(entity.getEffect(ScaleEffects.GROWTH));
-        return growth > 0 ? growth : -level(entity.getEffect(ScaleEffects.SHRINKING));
+        double size = ScaleSize.signedLevel(entity);
+        return size >= 0 ? ScaleSize.tier(size) : -ScaleSize.tier(-size);
     }
 
     public static AttributeModifier sprintModifierFor(LivingEntity entity, AttributeModifier original) {
         if (!(entity instanceof Player)) return original;
-        int state = state(entity);
+        double state = ScaleSize.signedLevel(entity);
         if (state == 0) return original;
         // Sprint is a multiplier of the already modified walking speed, not a second
         // multiplication of vanilla's 1.3. Other movement modifiers (e.g. Speed) survive.
-        double multiplier = state > 0 ? GROWTH_SPRINT[state - 1] : SHRINKING_SPRINT[-state - 1];
+        double[] anchors = state > 0 ? GROWTH_SPRINT : SHRINKING_SPRINT;
+        double multiplier = ScaleSize.interpolate(Math.abs(state), 1 + original.amount(), anchors[0], anchors[1], anchors[2]);
         return new AttributeModifier(original.id(), multiplier - 1.0, original.operation());
     }
 

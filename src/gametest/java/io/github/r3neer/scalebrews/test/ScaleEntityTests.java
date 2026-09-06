@@ -47,6 +47,7 @@ public class ScaleEntityTests {
                 thrown.discard();
             }
             h.assertTrue(c.hasEffect(ScaleEffects.GROWTH), "Vanilla thrown potion applies Growth, lingering=" + lingering);
+            TestScale.settle(c);
             ((TestCreeperAccess)c).test$explode();
             ScaleMountTests.near(h, ExplosionObservation.radius, 4.5, "Thrown effect reaches real explosion");
             for (var cloud : h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.AreaEffectCloud.class, c.getBoundingBox().inflate(10))) cloud.discard();
@@ -58,7 +59,7 @@ public class ScaleEntityTests {
         for (String json : java.util.List.of("{}", "{\"growth_landing_impact\":false}",
                 "{\"growth_landing_knockback\":false}", "{\"growth_landing_damage\":false}")) {
             var mob = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 2, 1);
-            mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2));
+            mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2)); TestScale.settle(mob);
             var target = h.spawnWithNoFreeWill(EntityTypes.PIG, 2.5F, 2, 1);
             try (var ignored = new RuleTestScope(json)) {
                 target.setDeltaMovement(Vec3.ZERO);
@@ -95,7 +96,7 @@ public class ScaleEntityTests {
         var mob = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 36, 1);
         mob.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200);
         mob.setHealth(200);
-        mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2));
+        mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2)); TestScale.settle(mob);
         float health = mob.getHealth();
         var target = h.spawnWithNoFreeWill(EntityTypes.PIG, 3.5F, 21, 1);
         h.succeedWhen(() -> {
@@ -108,28 +109,28 @@ public class ScaleEntityTests {
     @GameTest public void relativeMountMatrix(GameTestHelper h) {
         var p = h.makeMockPlayer(GameType.SURVIVAL);
         var horse = h.spawnWithNoFreeWill(EntityTypes.HORSE, 1, 2, 1);
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 1));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 1)); TestScale.settle(p);
         ScaleMountTests.settle(p);
         for (int tier = 1; tier <= 3; tier++) {
-            horse.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, tier - 1));
+            horse.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, tier - 1)); TestScale.settle(horse);
             ScaleMountTests.settle(horse);
             h.assertTrue(p.startRiding(horse, true, true) == (tier >= 2), "Growth II / horse Growth " + tier);
             p.stopRiding();
         }
-        horse.removeEffect(ScaleEffects.GROWTH);
-        p.removeEffect(ScaleEffects.GROWTH);
+        horse.removeEffect(ScaleEffects.GROWTH); TestScale.settle(horse);
+        p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
         p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 0));
         ScaleMountTests.settle(horse); ScaleMountTests.settle(p);
         h.assertFalse(p.startRiding(horse, true, true), "Growth I cannot ride normal horse");
-        p.removeEffect(ScaleEffects.GROWTH);
+        p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
         for (var type : java.util.List.of(EntityTypes.BEE, EntityTypes.CHICKEN)) {
             var mount = h.spawn(type, 2, 2, 1);
             mount.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
             int[][] cases = {{2, 0, 1}, {2, 1, 0}, {3, 1, 1}, {3, 2, 0}};
             for (int[] row : cases) {
-                p.removeEffect(ScaleEffects.SHRINKING); mount.removeEffect(ScaleEffects.SHRINKING);
-                p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, row[0] - 1));
-                if (row[1] > 0) mount.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, row[1] - 1));
+                p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p); mount.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(mount);
+                p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, row[0] - 1)); TestScale.settle(p);
+                if (row[1] > 0) mount.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, row[1] - 1)); TestScale.settle(mount);
                 ScaleMountTests.settle(p); ScaleMountTests.settle(mount);
                 h.assertTrue(p.startRiding(mount, true, true) == (row[2] == 1), "Tiny ratio matrix " + java.util.Arrays.toString(row));
                 p.stopRiding();
@@ -152,7 +153,7 @@ public class ScaleEntityTests {
         h.assertFalse(p.isPassenger(), "Mount size change dismounts existing rider");
         p.getAttribute(Attributes.SCALE).removeModifier(external);
         h.assertTrue(p.startRiding(horse, true, true), "Equal baseline size");
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 0));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 0)); TestScale.settle(p);
         h.assertTrue(p.isPassenger(), "Adding effect before SCALE changes does not prematurely dismount");
         new io.github.r3neer.scalebrews.scale.ScaleTransition().tick(p);
         TinyMounts.enforceRider(p);
@@ -162,8 +163,8 @@ public class ScaleEntityTests {
         h.assertTrue(p.startRiding(cart, true, true), "Minecart exempt"); p.stopRiding();
         h.assertTrue(p.startRiding(boat, true, true), "Boat exempt"); p.stopRiding();
         var chicken = h.spawn(EntityTypes.CHICKEN, 2, 2, 2);
-        p.removeEffect(ScaleEffects.GROWTH);
-        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, 2));
+        p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, 2)); TestScale.settle(p);
         ScaleMountTests.settle(p);
         h.assertFalse(p.startRiding(chicken, true, true), "Ratio never bypasses saddle requirement");
         chicken.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE)); chicken.setBaby(true);
@@ -217,7 +218,7 @@ public class ScaleEntityTests {
                     // Above other fixtures: real blasts must not destroy neighbouring tests.
                     var c = h.spawn(EntityTypes.CREEPER, 1, 50, 1);
                     c.setNoAi(true); c.setNoGravity(true);
-                    if (tier > 0) c.addEffect(new MobEffectInstance(effect, 1200, tier - 1));
+                    if (tier > 0) c.addEffect(new MobEffectInstance(effect, 1200, tier - 1)); TestScale.settle(c);
                     if (charged) {
                         var lightning = h.spawn(EntityTypes.LIGHTNING_BOLT, 1, 50, 1);
                         c.thunderHit(h.getLevel(), lightning); lightning.discard();
@@ -250,7 +251,7 @@ public class ScaleEntityTests {
         for (int tier = 1; tier <= 3; tier++) {
             var mob = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 2, 1);
             mob.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200); mob.setHealth(200);
-            mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, tier - 1));
+            mob.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, tier - 1)); TestScale.settle(mob);
             float ownHealth = mob.getHealth();
             var target = h.spawnWithNoFreeWill(EntityTypes.PIG, 2.5F, 2, 1);
             target.setDeltaMovement(Vec3.ZERO);
@@ -272,7 +273,7 @@ public class ScaleEntityTests {
             mob.discard(); target.discard();
         }
         var bee = h.spawn(EntityTypes.BEE, 1, 2, 1);
-        bee.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2));
+        bee.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, 2)); TestScale.settle(bee);
         var target = h.spawnWithNoFreeWill(EntityTypes.PIG, 2.5F, 2, 1);
         bee.fallDistance = 0;
         ((TestEntityAccess)bee).test$land(0, true, Blocks.STONE.defaultBlockState(), origin.below());

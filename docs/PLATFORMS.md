@@ -4,6 +4,8 @@ Living platforms let smaller physical bodies stand on, move across and travel wi
 
 ## Rules
 
+- Right-click a profiled support with a boat/raft item (including chest variants) or spawn egg to place it on the nearest defined surface. Placement requires the full oriented footprint to fit, a valid width ratio, clear space and build permission. Failed placement consumes nothing; creative placement preserves the item. The new body immediately joins the ordinary support/transport system, without becoming a passenger.
+
 - The transported body's current bounding-box width must be at most 60% of the support's current width. Both dimensions include actual scale changes, including other mods.
 - Players, mobs, boats/rafts, off-rail minecarts, dropped items and falling blocks can be transported. Passengers follow their existing vehicle; they do not acquire independent support. Projectiles are excluded.
 - Mobs do not plan paths over living platforms. Falling, ordinary movement, pushing and leads can bring them onto a surface.
@@ -100,6 +102,6 @@ Support links are transient. They are not passengers and are not saved. Passenge
 
 The implementation has dedicated-server and real-client tests; acceptance is recorded in [VALIDATION](VALIDATION.md) and TODO rather than inferred from compilation. The moving-support proof passed with players, mobs and an occupied boat. Player and occupied-boat network tests passed with flight disabled at 0, 100 and 200 ms additional round-trip latency. A 12,000-tick player soak passed; this is ten minutes total, split across the three latencies, not ten minutes at each latency.
 
-The sixteen built-in profiles pass client model-path and finite-transform checks. These are not a substitute for human animation/contact review for every species and resource pack. Full VP26 acceptance is blocked by the integration failures recorded in VALIDATION. No general modpack-compatibility claim follows from the bounded tests.
+The sixteen built-in profiles pass client model-path and finite-transform checks. These are not a substitute for human animation/contact review for every species and resource pack. The owner reports successful singleplayer testing. Beta.3 passes all 98 VP26 server tests; full client acceptance still encounters an `enchancement:empty` network-registry conflict, recorded in VALIDATION. No general modpack-compatibility claim follows from the bounded tests.
 
 Run the short suite with `./gradlew runGameTest runClientGameTest`. Add `-PscalebrewsPlatformSoak=true` for the dedicated connection's ten-minute matrix (0, 100 and 200 ms additional round-trip latency).

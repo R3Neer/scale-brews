@@ -18,7 +18,8 @@ public final class ScaleBeacon {
             if (!thirdTier.contains(effect)) thirdTier.add(effect);
             BeaconEffectsAccessor.scalebrews$validEffects().add(effect);
         }
-        tiers.set(2, List.copyOf(thirdTier));
-        BeaconEffectsAccessor.scalebrews$setEffects(List.copyOf(tiers));
+        // FrozenLib and other beacon extensions append their powers after our initializer.
+        tiers.set(2, thirdTier);
+        BeaconEffectsAccessor.scalebrews$setEffects(tiers);
     }
 }

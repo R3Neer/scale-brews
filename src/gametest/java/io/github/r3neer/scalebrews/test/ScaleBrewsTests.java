@@ -22,9 +22,9 @@ public class ScaleBrewsTests {
         var external = Identifier.fromNamespaceAndPath("test", "external_jump");
         attribute.addTransientModifier(new AttributeModifier(external, .2, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
         for (int level = 1; level <= 3; level++) {
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1));
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, level - 1)); TestScale.settle(p);
             near(h, attribute.getValue(), original * 1.2 * (1 + .025 * level), "Shrinking jump strength tier " + level);
-            p.removeEffect(ScaleEffects.SHRINKING);
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
             near(h, attribute.getValue(), original * 1.2, "Removing Shrinking retains external jump modifier");
         }
         attribute.removeModifier(external);
@@ -43,27 +43,27 @@ public class ScaleBrewsTests {
         double[] growth = {1.20, 1.12, 1.05};
         double[] shrinking = {1.50, 1.90, 2.50};
         for (int i = 0; i < 3; i++) {
-            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, i));
+            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, i)); TestScale.settle(p);
             p.setSprinting(false);
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * (1 + .08 * (i+1)), "Growth walking");
             p.setSprinting(true);
             double growthSprint = walking * (1 + .08 * (i+1)) * growth[i];
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), growthSprint, "Growth sprint");
-            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i));
+            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i)); TestScale.settle(p);
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), growthSprint * (1 + .2 * (i+1)), "Growth stacks with Speed");
-            p.removeEffect(MobEffects.SPEED);
-            p.removeEffect(ScaleEffects.GROWTH);
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, i));
+            p.removeEffect(MobEffects.SPEED); TestScale.settle(p);
+            p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, i)); TestScale.settle(p);
             double shrinkSprint = walking * (1 - .08 * (i+1)) * shrinking[i];
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), shrinkSprint, "Shrinking while already sprinting");
-            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i));
+            p.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, i)); TestScale.settle(p);
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), shrinkSprint * (1 + .2 * (i+1)), "Shrinking stacks with Speed");
-            p.removeEffect(MobEffects.SPEED);
+            p.removeEffect(MobEffects.SPEED); TestScale.settle(p);
             double speedSprint = walking * 1.3 * (1 + .2 * (i+1));
             h.assertTrue(growthSprint < speedSprint && shrinkSprint < speedSprint, "Neither beats equivalent Speed sprint");
             p.setSprinting(false);
             near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * (1 - .08 * (i+1)), "Shrinking walking");
-            p.removeEffect(ScaleEffects.SHRINKING);
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
         }
         p.setSprinting(true);
         near(h, p.getAttributeValue(Attributes.MOVEMENT_SPEED), walking * 1.3, "Restored vanilla sprint");
@@ -122,6 +122,7 @@ public class ScaleBrewsTests {
         for (int i = 0; i < 3; i++) p.tick();
         near(h, p.getHealth() / p.getMaxHealth(), 0.75, "Health on hidden-effect downgrade");
         p.removeEffect(ScaleEffects.GROWTH);
+        TestScale.settle(p);
         near(h, p.getHealth(), 15, "No healing or damage after cycle");
         h.succeed();
     }

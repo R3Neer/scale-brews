@@ -7,6 +7,8 @@
   "mixins": ["scalebrews-test.mixins.json"],
   "entrypoints": {
     "fabric-gametest": [
+      "io.github.r3neer.scalebrews.test.ScaleSizeTests",
+      "io.github.r3neer.scalebrews.test.PlatformPlacementTests",
       "io.github.r3neer.scalebrews.test.PlatformTests",
       "io.github.r3neer.scalebrews.test.ScaleBrewsTests",
       "io.github.r3neer.scalebrews.test.ScalePhysicsTests",

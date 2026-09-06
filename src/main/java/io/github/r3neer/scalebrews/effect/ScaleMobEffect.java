@@ -18,6 +18,17 @@ public final class ScaleMobEffect extends MobEffect {
     }
 
     @Override
+    public void removeAttributeModifiers(net.minecraft.world.entity.ai.attributes.AttributeMap attributes) {
+        // Keep derived attributes until the physical blend actually changes size.
+    }
+
+    @Override
+    public void addAttributeModifiers(net.minecraft.world.entity.ai.attributes.AttributeMap attributes, int amplifier) {
+        // ScaleSize owns actual modifiers, including mixed effects and external scaling.
+        // Registered templates remain available for vanilla potion tooltips.
+    }
+
+    @Override
     public void createModifiers(int amplifier, BiConsumer<Holder<Attribute>, AttributeModifier> consumer) {
         super.createModifiers(amplifier, consumer);
         // Tooltip describes the final size; ScaleTransition owns the physical modifier.

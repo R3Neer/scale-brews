@@ -2,6 +2,15 @@
 
 Notable user-facing changes to Scale Brews are documented here.
 
+## [0.1.0-beta.3] - Unreleased
+
+- All scale-derived attributes and physical mechanics now use effective SCALE, including mixed Growth/Shrinking effects and external attribute scaling. Existing pure-potion values remain the balance anchors; continuous mechanics follow the physical blend.
+- Growth landing waves require actual scale >= 1.96; landing damage additionally requires scale >= 3.88. Having a Growth icon alone no longer grants giant abilities.
+- Right-click a profiled living support with a boat/raft item or spawn egg to place a supported entity when its entire footprint fits and space is clear. Inventory, creative mode and build permissions are respected.
+- Retain mutable beacon extension lists so FrozenLib/Wilder Wild can register their powers after Scale Brews.
+- Compatibility shim for e4mc 6.2.1's removed dedicated-server permission call; integrated-server sharing behavior is unchanged.
+- Control Combatify CTS regeneration randomness in regression tests and validate development commands against loaded VP26 datapack registries.
+
 ## [0.1.0-beta.2] - Unreleased
 
 - Living-platform subsystem: physical bodies can stand on larger living supports without becoming passengers; mob pathfinding is unchanged.

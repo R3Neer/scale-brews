@@ -61,13 +61,13 @@ public class ScaleMountTests {
         var stone = net.minecraft.world.level.block.Blocks.STONE_PRESSURE_PLATE.defaultBlockState();
         try (var ignored = new RuleTestScope("{\"tiny_mounts\":false,\"environment_interactions\":false,\"villager_fear\":false,\"growth_landing_impact\":false}")) {
             h.assertTrue(TinyMounts.definition(chicken) == null, "Disabled tiny mounts do not intercept vanilla interaction");
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2));
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 2)); TestScale.settle(p);
             settle(p);
             h.assertTrue(io.github.r3neer.scalebrews.physics.ScalePhysics.triggersPlate(p, stone), "Disabled bypass restores vanilla plate filtering");
             h.assertTrue(((io.github.r3neer.scalebrews.test.mixin.TestEggAccess)net.minecraft.world.level.block.Blocks.TURTLE_EGG).test$canCrush(h.getLevel(), p), "Disabled egg protection restores vanilla egg rule");
-            p.removeEffect(ScaleEffects.SHRINKING);
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
             settle(p);
-            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2));
+            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 2)); TestScale.settle(p);
             settle(p);
             h.assertFalse(p.startRiding(chicken, true, true), "Size restriction remains when Tiny Mounts disabled");
             h.assertFalse(((TestVillagerSensorAccess)new VillagerHostilesSensor()).test$matches(h.getLevel(), villager, p), "Disabled fear does not mark giant threat");
@@ -85,7 +85,7 @@ public class ScaleMountTests {
         var p = h.makeMockPlayer(GameType.SURVIVAL);
         for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
             for (int tier = 0; tier <= 3; tier++) {
-                if (tier > 0) p.addEffect(new MobEffectInstance(effect, 200, tier - 1));
+                if (tier > 0) p.addEffect(new MobEffectInstance(effect, 200, tier - 1)); TestScale.settle(p);
                 for (boolean trident : new boolean[]{false, true}) {
                     var target = h.spawn(EntityTypes.PIG, 1, 2, 1);
                     net.minecraft.world.entity.projectile.arrow.AbstractArrow projectile = trident
@@ -98,7 +98,7 @@ public class ScaleMountTests {
                     target.discard();
                     projectile.discard();
                 }
-                p.removeEffect(effect);
+                p.removeEffect(effect); TestScale.settle(p);
                 settle(p);
             }
         }
@@ -130,7 +130,7 @@ public class ScaleMountTests {
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE, 2));
         h.assertTrue(chicken.interact(p, InteractionHand.MAIN_HAND, Vec3.ZERO) == InteractionResult.FAIL, "Normal size saddle denied");
         h.assertTrue(p.getMainHandItem().getCount() == 2, "Failed interaction consumes nothing");
-        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1));
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1)); TestScale.settle(p);
         settle(p);
         chicken.interact(p, InteractionHand.MAIN_HAND, Vec3.ZERO);
         h.assertTrue(chicken.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE), "Vanilla saddle equipped");
@@ -144,7 +144,7 @@ public class ScaleMountTests {
         chicken.setDeltaMovement(Vec3.ZERO);
         ((TestMountAccess)chicken).test$jump();
         near(h, chicken.getDeltaMovement().y, 0, "Space never normal-jumps");
-        p.removeEffect(ScaleEffects.SHRINKING);
+        p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
         settle(p);
         h.assertFalse(p.isPassenger(), "Losing size safely dismounts");
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
@@ -154,7 +154,7 @@ public class ScaleMountTests {
         var pig = h.spawn(EntityTypes.PIG, 1, 2, 2);
         h.assertTrue(TinyMounts.definition(pig) == null, "Native pig controller not replaced");
         h.assertTrue(p.startRiding(pig, true, true), "Baseline living mount works");
-        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0));
+        p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0)); TestScale.settle(p);
         settle(p);
         h.assertFalse(p.isPassenger() || p.startRiding(pig, true, true), "Oversized rider dismounts and cannot force-mount a normal pig");
         var cart = h.spawn(EntityTypes.MINECART, 1, 2, 3);
@@ -165,7 +165,7 @@ public class ScaleMountTests {
     @GameTest public void beeSteeringAndHive(GameTestHelper h) {
         var p = h.makeMockServerPlayerInLevel();
         p.setGameMode(GameType.SURVIVAL);
-        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1));
+        p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1)); TestScale.settle(p);
         settle(p);
         var bee = h.spawn(EntityTypes.BEE, 1, 2, 1);
         bee.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
@@ -203,20 +203,20 @@ public class ScaleMountTests {
         var access = (TestMountAccess)p;
         float baseline = access.test$jumpPower();
         for (int tier = 1; tier <= 3; tier++) {
-            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, tier - 1));
+            p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, tier - 1)); TestScale.settle(p);
             settle(p);
             float smallJump = access.test$jumpPower();
             near(h, smallJump, baseline * (1 + .025 * tier), "Shrinking jump tier");
-            p.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 200, tier - 1));
+            p.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 200, tier - 1)); TestScale.settle(p);
             settle(p);
             float combined = access.test$jumpPower();
-            p.removeEffect(ScaleEffects.SHRINKING);
+            p.removeEffect(ScaleEffects.SHRINKING); TestScale.settle(p);
             settle(p);
             h.assertTrue(access.test$jumpPower() > smallJump && combined > access.test$jumpPower(), "Jump Boost stronger alone and synergistic combined");
-            p.removeEffect(MobEffects.JUMP_BOOST);
+            p.removeEffect(MobEffects.JUMP_BOOST); TestScale.settle(p);
             settle(p);
             for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
-                p.addEffect(new MobEffectInstance(effect, 200, tier - 1));
+                p.addEffect(new MobEffectInstance(effect, 200, tier - 1)); TestScale.settle(p);
                 settle(p);
                 double multiplier = effect == ScaleEffects.GROWTH ? 1 + .1 * tier : 1 - .1 * tier;
                 for (double power : new double[]{.4, 1, 2}) {
@@ -226,7 +226,7 @@ public class ScaleMountTests {
                 }
                 var arrow = h.spawn(EntityTypes.ARROW, 1, 2, 1);
                 near(h, ScaleCombat.knockback(1, p.damageSources().arrow(arrow, p)), 1, "Projectile knockback unchanged");
-                p.removeEffect(effect);
+                p.removeEffect(effect); TestScale.settle(p);
                 settle(p);
             }
         }
@@ -238,11 +238,11 @@ public class ScaleMountTests {
         p.setPos(villager.position().add(2, 0, 0));
         var sensor = (TestVillagerSensorAccess)new VillagerHostilesSensor();
         for (int tier = 1; tier <= 3; tier++) {
-            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, tier - 1));
+            p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, tier - 1)); TestScale.settle(p);
             settle(p);
             h.assertTrue(sensor.test$matches(h.getLevel(), villager, p) == (tier >= 2), "Only Growth II+ scares villagers");
             h.assertTrue(villager.getLastHurtByMob() == null, "Fear does not mark an attacker");
-            p.removeEffect(ScaleEffects.GROWTH);
+            p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
             settle(p);
         }
         h.succeed();
