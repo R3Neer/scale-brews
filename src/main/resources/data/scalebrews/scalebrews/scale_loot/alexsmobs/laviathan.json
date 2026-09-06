@@ -1,0 +1,8 @@
+{
+  "entity": "alexsmobs:laviathan",
+  "drops": [
+    "minecraft:blackstone",
+    "minecraft:magma_block",
+    "minecraft:obsidian"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "entity": "minecraft:sheep",
+  "drops": [
+    "minecraft:mutton",
+    "minecraft:cooked_mutton",
+    "#minecraft:wool"
+  ]
+}

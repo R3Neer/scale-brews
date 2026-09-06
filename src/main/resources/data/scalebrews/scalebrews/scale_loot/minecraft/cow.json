@@ -1,0 +1,8 @@
+{
+  "entity": "minecraft:cow",
+  "drops": [
+    "minecraft:beef",
+    "minecraft:cooked_beef",
+    "minecraft:leather"
+  ]
+}

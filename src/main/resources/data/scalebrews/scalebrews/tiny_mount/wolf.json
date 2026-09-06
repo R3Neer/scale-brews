@@ -1,0 +1,10 @@
+{
+  "entity": "minecraft:wolf",
+  "max_rider_scale_ratio": 0.76,
+  "saddle": true,
+  "control": "direct",
+  "movement": "ground",
+  "speed": 0.3,
+  "ability": "wolf_pounce",
+  "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/wolf.png", "anchor": "body" }
+}

@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:drowned",
+  "drops": [
+    "minecraft:rotten_flesh"
+  ]
+}

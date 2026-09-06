@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "name": "Scale Brews Tests",
   "environment": "*",
-  "mixins": ["scalebrews-test.mixins.json"],
+  "mixins": [
+    "scalebrews-test.mixins.json"
+  ],
   "entrypoints": {
     "fabric-gametest": [
       "io.github.r3neer.scalebrews.test.ScaleSizeTests",
@@ -16,8 +18,14 @@
       "io.github.r3neer.scalebrews.test.ScaleEntityTests",
       "io.github.r3neer.scalebrews.test.ScaleCompatibilityTests",
       "io.github.r3neer.scalebrews.test.ScaleBrewingTests",
-      "io.github.r3neer.scalebrews.test.ScaleTemptationTests"
+      "io.github.r3neer.scalebrews.test.ScaleTemptationTests",
+      "io.github.r3neer.scalebrews.test.ScaleLootTests",
+      "io.github.r3neer.scalebrews.test.WolfMountTests"
     ],
-    "fabric-client-gametest": ["io.github.r3neer.scalebrews.test.PlatformClientProof", "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"]
+    "fabric-client-gametest": [
+      "io.github.r3neer.scalebrews.test.WolfClientProof",
+      "io.github.r3neer.scalebrews.test.PlatformClientProof",
+      "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"
+    ]
   }
 }

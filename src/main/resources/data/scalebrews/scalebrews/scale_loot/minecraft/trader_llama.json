@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:trader_llama",
+  "drops": [
+    "minecraft:leather"
+  ]
+}

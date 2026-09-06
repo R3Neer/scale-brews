@@ -80,7 +80,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             world.getServer().runCommand("tp @a 11 -60 13 0 20");
             context.waitTicks(30);
             context.runOnClient(client -> {
-                if (client.level.registryAccess().lookupOrThrow(io.github.r3neer.scalebrews.mount.TinyMounts.REGISTRY).size() != 2)
+                if (client.level.registryAccess().lookupOrThrow(io.github.r3neer.scalebrews.mount.TinyMounts.REGISTRY).size() != 3)
                     throw new AssertionError("Mount definitions were not synchronized");
                 var policy = io.github.r3neer.scalebrews.mount.MountSizePolicy.get(client.level);
                 if (policy.ratios().get(net.minecraft.resources.Identifier.withDefaultNamespace("happy_ghast")) != 2.0)

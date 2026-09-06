@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:magma_cube",
+  "drops": [
+    "minecraft:magma_cream"
+  ]
+}

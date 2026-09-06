@@ -1,0 +1,7 @@
+{
+  "entity": "minecraft:ghast",
+  "drops": [
+    "minecraft:gunpowder",
+    "minecraft:ghast_tear"
+  ]
+}

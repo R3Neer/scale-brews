@@ -1,6 +1,6 @@
 # Scale Brews
 
-Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens and bees, and bring size-based mechanics to the world around you.
+Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens, bees and tamed wolves, and bring size-based mechanics to the world around you.
 
 Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. The first public beta is being validated; tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
 
@@ -67,16 +67,19 @@ See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and ste
 
 ## Tiny mounts
 
-Saddle an adult chicken or bee while small enough to ride it.
+Saddle an adult chicken, bee or tamed wolf while small enough to ride it.
 
 | Mount | Controls |
 | --- | --- |
+| Wolf | WASD movement; tap Space to bite, or hold and release for a pounce. Wolf Armor and saddle coexist. |
 | Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
 | Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
 
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Both mounts use vanilla saddles, one rider, and separate hand-authored saddle layers. Mounted bees stay out of hives.
 
 Bees keep their natural bobbing and rolling while ridden: the rendered rider follows the saddle, while first-person camera and collision physics stay stable.
+
+A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
 
 An unmounted bee also follows a Flower on a Stick in either hand, without needing a saddle or Shrinking. This mirrors native pig/strider steering-item attraction. The same behavior applies to enabled JSON `item_steered` tiny mounts using their configured `steering_item`; native foods and breeding are unchanged.
 
@@ -102,7 +105,7 @@ See [Configuration](docs/CONFIGURATION.md) for paths, complete JSON examples, ex
 
 ## Compatibility and validation
 
-The current suite has **39 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
+The current suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
 
@@ -134,3 +137,5 @@ See [Changelog](CHANGELOG.md), [Contributing and Git policy](CONTRIBUTING.md), [
 Licensed under [GPL-3.0-or-later](LICENSE).
 
 Effect icons, saddle textures and the flower overlay are hand-authored pixel art, reproducible with `java tools/GenerateArt.java`; no image-generation models are used. Generated assets share the repository license. Minecraft textures, particles and sounds are reused by reference rather than redistributed. See [Art direction](docs/ART.md).
+
+Developer references: [material loot datapacks](docs/SCALE_LOOT.md) and [wolf mount implementation](docs/WOLF_MOUNT.md).

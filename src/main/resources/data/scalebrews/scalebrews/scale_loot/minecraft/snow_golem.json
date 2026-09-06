@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:snow_golem",
+  "drops": [
+    "minecraft:snowball"
+  ]
+}

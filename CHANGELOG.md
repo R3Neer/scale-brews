@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — scale materials and wolf mounts
+
+- Entity-scoped reloadable material drops based on actual scale squared, including installed-mod compatibility and intentional farm production.
+- Shared tamed-wolf tiny mount with independent saddle/armor, direct controls and charged pounce.
+- Separate Animal Weights bridge for physical-volume space and crowding.
+
+
 Notable user-facing changes to Scale Brews are documented here.
 
 ## [0.1.0-beta.3] - Unreleased

@@ -3,6 +3,13 @@
 	"package": "io.github.r3neer.scalebrews.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"ScaleLootMixin",
+		"WolfMountMixin",
+		"WolfAuthorityMixin",
+		"WolfConnectionMixin",
+		"ScaleHarvestPlayerMixin",
+		"ScaleHarvestDropMixin",
+		"ScaleHarvestDispenserMixin",
 		"E4mcPermissionMixin",
 		"PlatformEntityMixin",
 		"PlatformBoatMixin",

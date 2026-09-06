@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:glow_squid",
+  "drops": [
+    "minecraft:glow_ink_sac"
+  ]
+}

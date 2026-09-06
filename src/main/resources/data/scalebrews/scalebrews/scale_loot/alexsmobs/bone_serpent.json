@@ -1,0 +1,7 @@
+{
+  "entity": "alexsmobs:bone_serpent",
+  "drops": [
+    "minecraft:bone",
+    "minecraft:bone_block"
+  ]
+}

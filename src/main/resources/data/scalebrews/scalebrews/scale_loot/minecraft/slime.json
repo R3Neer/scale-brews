@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:slime",
+  "drops": [
+    "minecraft:slime_ball"
+  ]
+}

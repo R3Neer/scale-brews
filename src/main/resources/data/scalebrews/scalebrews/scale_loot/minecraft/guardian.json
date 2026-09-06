@@ -1,0 +1,7 @@
+{
+  "entity": "minecraft:guardian",
+  "drops": [
+    "minecraft:prismarine_shard",
+    "minecraft:prismarine_crystals"
+  ]
+}

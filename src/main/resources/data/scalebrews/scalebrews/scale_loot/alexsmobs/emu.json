@@ -1,0 +1,7 @@
+{
+  "entity": "alexsmobs:emu",
+  "drops": [
+    "alexsmobs:emu_feather",
+    "minecraft:feather"
+  ]
+}

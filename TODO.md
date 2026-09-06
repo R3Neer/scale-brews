@@ -143,3 +143,13 @@ Initial configurable limits:
 - [x] Add a user-facing changelog and replace stale development-only wording.
 - [ ] Validate the exact packaged JAR in the full VP26 client and a dedicated-server/client session.
 - [ ] After manual approval, publish the same verified artifact as a GitHub prerelease and Modrinth beta; verify tag target, metadata, downloads and digest.
+
+## Scale loot, Animal Weights space and wolf mounts (2026-09-06)
+
+- [x] Audit actual installed entity/item IDs and loot tables; preserve existing effective-scale and tiny-mount architecture.
+- [x] Reloadable entity-scoped material loot, scale squared, stochastic rounding, Looting and extra-roll composition.
+- [x] Separate scale-aware Animal Weights space/crowding bridge.
+- [x] Generic wolf mount extension with independent saddle/armor, direct controls and charged pounce.
+- [x] Transient real-damage betrayal attribution without ownership/equipment changes.
+- [x] Complete final modded/server/client validation and integration with concurrent work.
+- [ ] Human two-player/latency acceptance of borrowed wolf combat and all requested gameplay cases.

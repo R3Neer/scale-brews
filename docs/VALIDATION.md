@@ -144,3 +144,19 @@ The export `VanillaPlus-26.2-20260906-173602.mrpack` completed with 93 mods; its
 - The 26.2 mock connected-player helper used by several tests is deprecated; it remains functional. Damage tests use a plain survival mock to avoid the connected mock's client-loading immunity.
 - OneDrive can lock generated output. The optional local build-directory property avoids most build-output contention while leaving the repository in its intended location. Test-run directory auto-deletion is disabled; no user worlds or source directories are removed.
 - There are no public release/tag claims. A successful build is not a claim that every gameplay interaction is release-ready.
+
+## Scale materials and wolf mounts � 2026-09-06
+
+Implemented on top of `e094257`, retaining the concurrent effective-size/platform changes.
+
+- Integrated Scale Brews build: 71 required server GameTests passed without optional mods.
+- Selected installed-mod suite: 71 required GameTests passed with Alex's Mobs 2.1.9, Animal Weights 1.1.0, Friends & Foes 4.0.27, Wilder Wild 4.2.11, Deeper Dark 4.4.1 and Stormie's Spiders 3.3.0 plus required libraries. This is a selected compatibility environment, not the entire VP26 pack.
+- Real Murmur loot and snapping-turtle player shearing were exercised. Elastic Tendon and Spiked Scute scale; Lobster Tail is excluded. Looting III and probabilistic shrinking/growth were checked.
+- The separate Animal Weights bridge passed its build and 4 required GameTests, including extra-roll production composition, scale-one occupancy, tiny neighbours and compact/giant enclosures.
+- Complete client suite passed, including wolf direct input/pounce on a dedicated server with `allow-flight=false`, existing platform latency checks and existing integrated-client checks.
+- Measured full forward pounce: 5.00000049 blocks. At pitch -30 degrees: 4.33012761 horizontal, 1.59467629 vertical apex.
+- Client screenshots reviewed for simultaneous saddle/Wolf Armor and the reused charge HUD. Saddle art comes from the existing Java generator; no generative image assets.
+- Test-only workaround registers Fabric's test phaser before publishing its worker thread; thread dumps showed a startup race in client-gametest 6.0.1. An integrated-server teardown also blocked once; final wolf proof uses a dedicated server. These changes are absent from production JARs.
+- JARs were inspected for metadata, 81 material JSON definitions and absence of test classes.
+
+Human two-player acceptance remains pending for borrowed-wolf combat, the full PvP/team/latency matrix and all gameplay cases in the original request. Automated real-client/server checks are not human playtesting. Production instances, pack exports, releases and tags were not updated by this change.

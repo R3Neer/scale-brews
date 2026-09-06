@@ -110,7 +110,7 @@ public class ScaleMountTests {
     @GameTest public void configurationAndDefaults(GameTestHelper h) {
         var level = h.getLevel();
         h.assertTrue(level.registryAccess().lookupOrThrow(ScaleRules.REGISTRY).size() == 1, "World rules JSON loaded");
-        h.assertTrue(level.registryAccess().lookupOrThrow(TinyMounts.REGISTRY).size() == 2, "Exactly two initial mount definitions");
+        h.assertTrue(level.registryAccess().lookupOrThrow(TinyMounts.REGISTRY).size() == 3, "Chicken, bee and wolf mount definitions");
         var bee = Identifier.withDefaultNamespace("bee");
         h.assertTrue(ScaleRules.get(level).mountEnabled(bee), "Default bee enabled");
         var off = ScaleRules.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString("{\"tiny_mounts\":false,\"environment_interactions\":false,\"villager_fear\":false,\"growth_landing_impact\":false}")).getOrThrow();

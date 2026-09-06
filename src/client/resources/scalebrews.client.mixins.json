@@ -1,26 +1,27 @@
 {
-	"required": true,
-	"package": "io.github.r3neer.scalebrews.client.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"client": [
-		"PlatformRenderStateMixin",
-		"PlatformOutgoingMoveMixin",
-		"PlatformVariantModels",
-		"PlatformRendererMixin",
-		"PlatformCameraMixin",
-		"PlatformClientTeleportMixin",
-		"AnimatedRiderRendererMixin",
-		"LivingRendererAccess",
-		"AgeableModelAccess",
-		"TinySaddleStateMixin",
-		"TinySaddleRendererMixin",
-		"ExampleClientMixin",
-		"ScaleCameraMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+  "required": true,
+  "package": "io.github.r3neer.scalebrews.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "PlatformRenderStateMixin",
+    "PlatformOutgoingMoveMixin",
+    "PlatformVariantModels",
+    "PlatformRendererMixin",
+    "PlatformCameraMixin",
+    "PlatformClientTeleportMixin",
+    "AnimatedRiderRendererMixin",
+    "LivingRendererAccess",
+    "AgeableModelAccess",
+    "TinySaddleStateMixin",
+    "TinySaddleRendererMixin",
+    "ExampleClientMixin",
+    "ScaleCameraMixin",
+    "WolfChargeBarMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
 }

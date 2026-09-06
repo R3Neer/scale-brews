@@ -1,0 +1,8 @@
+{
+  "entity": "alexsmobs:kangaroo",
+  "drops": [
+    "alexsmobs:cooked_kangaroo_meat",
+    "alexsmobs:kangaroo_hide",
+    "alexsmobs:kangaroo_meat"
+  ]
+}

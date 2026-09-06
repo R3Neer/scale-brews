@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:parrot",
+  "drops": [
+    "minecraft:feather"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:cave_spider",
+  "drops": [
+    "minecraft:string"
+  ]
+}

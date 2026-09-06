@@ -98,3 +98,7 @@ Mounted bees cannot enter a hive. The external `BeehiveBlockEntity.addOccupant` 
 Villagers detect Growth II/III players within eight blocks through their nearest-visible-threat sensor and use vanilla panic/flee/golem-summoning behavior. There are no gossip, reputation, attacker-memory or global hostility writes. Vanilla visibility/targetability filtering still applies.
 
 The final direct-player attack knockback is multiplied by Growth 1.10/1.20/1.30 or Shrinking 0.90/0.80/0.70. Sprint/enchantment contributions are preserved. Projectiles, thorns and the separate landing-wave damage source are excluded. Vanilla arrow/trident damage does not read the shooter's scale-modified attack attribute; custom projectiles that read it need a mod-specific audit.
+
+## Material loot datapacks
+
+See [Scale loot](SCALE_LOOT.md) for reloadable entity/item rules, item tags, overrides and optional compatibility. Wolf uses the existing tiny-mount JSON registry and `max_rider_scale_ratio: 0.76`.

@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:copper_golem",
+  "drops": [
+    "minecraft:copper_ingot"
+  ]
+}

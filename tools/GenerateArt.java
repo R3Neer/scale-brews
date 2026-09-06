@@ -106,6 +106,7 @@ public class GenerateArt {
         Path assets = Path.of("src/main/resources/assets/scalebrews");
         save(saddle(false), assets.resolve("textures/entity/saddle/chicken.png"));
         save(saddle(true), assets.resolve("textures/entity/saddle/bee.png"));
+        save(saddle(false), assets.resolve("textures/entity/saddle/wolf.png"));
         save(flower(), assets.resolve("textures/item/flower_on_a_stick_overlay.png"));
         var growth = effect(true);
         var shrinking = effect(false);

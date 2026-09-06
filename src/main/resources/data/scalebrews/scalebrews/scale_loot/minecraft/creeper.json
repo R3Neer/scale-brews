@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:creeper",
+  "drops": [
+    "minecraft:gunpowder"
+  ]
+}

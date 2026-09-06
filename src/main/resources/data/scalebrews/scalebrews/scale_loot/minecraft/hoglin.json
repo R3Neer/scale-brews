@@ -1,0 +1,8 @@
+{
+  "entity": "minecraft:hoglin",
+  "drops": [
+    "minecraft:porkchop",
+    "minecraft:cooked_porkchop",
+    "minecraft:leather"
+  ]
+}

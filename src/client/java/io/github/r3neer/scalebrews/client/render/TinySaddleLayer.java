@@ -15,15 +15,18 @@ import java.util.function.Supplier;
 public class TinySaddleLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends RenderLayer<S, M> {
     private final SaddleModel<S> bodyModel;
     private final SaddleModel<S> boneModel;
+    private final SaddleModel<S> wolfModel;
     public TinySaddleLayer(RenderLayerParent<S, M> parent) {
         super(parent);
-        bodyModel = new SaddleModel<>("body", this::getParentModel);
-        boneModel = new SaddleModel<>("bone", this::getParentModel);
+        bodyModel = new SaddleModel<>("body", this::getParentModel, false);
+        wolfModel = new SaddleModel<>("body", this::getParentModel, true);
+        boneModel = new SaddleModel<>("bone", this::getParentModel, false);
     }
     @Override public void submit(PoseStack poses, SubmitNodeCollector collector, int light, S state, float yaw, float pitch) {
         var visual = ((SaddleState)state).scalebrews$saddle();
         if (visual == null || state.isBaby || state.isInvisible) return;
-        var model = visual.anchor().equals("body") ? bodyModel : boneModel;
+        var model = state instanceof net.minecraft.client.renderer.entity.state.WolfRenderState ? wolfModel
+                : visual.anchor().equals("body") ? bodyModel : boneModel;
         if (!getParentModel().root().hasChild(visual.anchor())) return;
         renderColoredCutoutModel(model, visual.texture(), poses, collector, light, state, -1, 1);
     }
@@ -31,8 +34,8 @@ public class TinySaddleLayer<S extends LivingEntityRenderState, M extends Entity
     private static class SaddleModel<S extends LivingEntityRenderState> extends EntityModel<S> {
         private final String anchor;
         private final Supplier<? extends EntityModel<? super S>> parent;
-        SaddleModel(String anchor, Supplier<? extends EntityModel<? super S>> parent) {
-            super(mesh(anchor).bakeRoot());
+        SaddleModel(String anchor, Supplier<? extends EntityModel<? super S>> parent, boolean wolf) {
+            super(mesh(anchor, wolf).bakeRoot());
             this.anchor = anchor;
             this.parent = parent;
         }
@@ -48,13 +51,13 @@ public class TinySaddleLayer<S extends LivingEntityRenderState, M extends Entity
             target.yScale = source.yScale;
             target.zScale = source.zScale;
         }
-        private static LayerDefinition mesh(String anchor) {
+        private static LayerDefinition mesh(String anchor, boolean wolf) {
             var mesh = new MeshDefinition();
             var group = mesh.getRoot().addOrReplaceChild("saddle", CubeListBuilder.create(), PartPose.ZERO);
             // Body anchors (chicken) have a quarter-turn; orient the equipment back into the animal's frame.
             var pose = anchor.equals("body") ? PartPose.rotation(-(float)Math.PI / 2, 0, 0) : PartPose.ZERO;
             var equipment = group.addOrReplaceChild("equipment", CubeListBuilder.create(), pose);
-            float top = anchor.equals("body") ? -3.15F : -4.15F;
+            float top = wolf ? -3.7F : anchor.equals("body") ? -3.15F : -4.15F;
             equipment.addOrReplaceChild("pad", CubeListBuilder.create().texOffs(0, 8)
                 .addBox(-3, top - .5F, -1.5F, 6, .5F, 6), PartPose.ZERO);
             equipment.addOrReplaceChild("seat", CubeListBuilder.create().texOffs(0, 0)
@@ -63,7 +66,7 @@ public class TinySaddleLayer<S extends LivingEntityRenderState, M extends Entity
                 .addBox(-2.5F, top - 1.75F, -1, 5, .5F, 1), PartPose.ZERO);
             equipment.addOrReplaceChild("back", CubeListBuilder.create().texOffs(0, 0)
                 .addBox(-2.5F, top - 1.75F, 3, 5, .5F, 1), PartPose.ZERO);
-            float side = anchor.equals("body") ? 3.05F : 3.55F;
+            float side = wolf ? 3.35F : anchor.equals("body") ? 3.05F : 3.55F;
             for (int sign : new int[]{-1, 1}) {
                 equipment.addOrReplaceChild("strap" + sign, CubeListBuilder.create().texOffs(32, 0)
                     .addBox(sign * side - .3F, top, 2, .6F, 6, 1), PartPose.ZERO);

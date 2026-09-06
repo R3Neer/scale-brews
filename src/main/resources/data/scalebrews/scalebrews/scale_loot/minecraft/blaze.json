@@ -1,0 +1,6 @@
+{
+  "entity": "minecraft:blaze",
+  "drops": [
+    "minecraft:blaze_rod"
+  ]
+}

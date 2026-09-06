@@ -1,0 +1,8 @@
+{
+  "entity": "minecraft:rabbit",
+  "drops": [
+    "minecraft:rabbit",
+    "minecraft:cooked_rabbit",
+    "minecraft:rabbit_hide"
+  ]
+}

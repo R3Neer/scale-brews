@@ -34,6 +34,7 @@ public final class TinyMounts {
 
     public static void initialize() {
         MountSizePolicy.initialize();
+        WolfMount.initialize();
         DynamicRegistries.registerSynced(REGISTRY, TinyMountDefinition.CODEC);
         ServerMobEffectEvents.AFTER_ADD.register((effect, entity, context) -> { if (entity instanceof Player p) enforceRider(p); });
         ServerMobEffectEvents.AFTER_REMOVE.register((effect, entity, context) -> { if (entity instanceof Player p) enforceRider(p); });
@@ -55,7 +56,8 @@ public final class TinyMounts {
     }
 
     public static boolean eligible(Player player, Entity mount) {
-        return !player.isSpectator() && MountSizePolicy.permits(player, mount);
+        return !player.isSpectator() && MountSizePolicy.permits(player, mount)
+            && (!(mount instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) || WolfMount.permits(wolf, player));
     }
 
     public static Player rider(Entity entity) {
@@ -107,7 +109,12 @@ public final class TinyMounts {
             return InteractionResult.SUCCESS;
         }
         if (mob.isVehicle() || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return InteractionResult.PASS;
-        if (!mob.level().isClientSide() && !player.startRiding(mob)) return InteractionResult.FAIL;
+        if (!mob.level().isClientSide()) {
+            if (!player.startRiding(mob)) return InteractionResult.FAIL;
+            if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) {
+                wolf.setOrderedToSit(false); wolf.setInSittingPose(false);
+            }
+        }
         return InteractionResult.SUCCESS;
     }
 

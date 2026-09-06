@@ -51,7 +51,7 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio, 
         public String getSerializedName() { return name().toLowerCase(java.util.Locale.ROOT); }
     }
     public enum Ability implements StringRepresentable {
-        NONE, CHICKEN_GLIDE;
+        NONE, CHICKEN_GLIDE, WOLF_POUNCE;
         public String getSerializedName() { return name().toLowerCase(java.util.Locale.ROOT); }
     }
 }

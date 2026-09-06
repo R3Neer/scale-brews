@@ -1,0 +1,7 @@
+{
+  "entity": "alexsmobs:roadrunner",
+  "drops": [
+    "alexsmobs:roadrunner_feather",
+    "minecraft:feather"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "entity": "alexsmobs:gazelle",
+  "drops": [
+    "minecraft:cooked_mutton",
+    "minecraft:mutton"
+  ]
+}
