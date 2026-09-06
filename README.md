@@ -1,7 +1,5 @@
 # Scale Brews
 
-![Scale Brews: Growth and Shrinking](src/main/resources/assets/scalebrews/icon.png)
-
 Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens, bees and tamed wolves, and bring size-based mechanics to the world around you.
 
 Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. The first public beta is being validated; tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
