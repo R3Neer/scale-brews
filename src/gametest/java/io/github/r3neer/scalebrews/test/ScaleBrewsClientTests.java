@@ -105,6 +105,24 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
             world.getServer().runCommand("item replace entity @e[tag=saddle_bee,limit=1] saddle with minecraft:air");
             context.waitTicks(10);
             context.takeScreenshot("scale-brews-tiny-unsaddled");
+            world.getServer().runCommand("tp @a 12 -60 10 0 0");
+            world.getServer().runCommand("data merge entity @e[tag=saddle_bee,limit=1] {NoAI:0b}");
+            world.getServer().runCommand("item replace entity @a weapon.offhand with scalebrews:flower_on_a_stick");
+            context.waitTicks(65);
+            context.runOnClient(client -> {
+                for (var entity : client.level.entitiesForRendering()) {
+                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee bee) {
+                        if (bee.isVehicle() || !bee.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.SADDLE).isEmpty())
+                            throw new AssertionError("Attraction fixture must be unmounted and unsaddled");
+                        if (bee.position().subtract(client.player.position()).horizontalDistance() > 3.5)
+                            throw new AssertionError("Unsaddled bee did not approach offhand flower stick through real navigation");
+                    }
+                }
+            });
+            context.takeScreenshot("scale-brews-bee-follows-stick");
+            world.getServer().runCommand("item replace entity @a weapon.offhand with minecraft:air");
+            world.getServer().runCommand("data merge entity @e[tag=saddle_bee,limit=1] {NoAI:1b}");
+            world.getServer().runCommand("tp @e[tag=saddle_bee,limit=1] 12 -59.7 16 180 0");
             world.getServer().runCommand("effect give @a scalebrews:shrinking 120 1 true");
             context.waitTicks(25); // Riding follows actual SCALE, not immediate effect presence.
             world.getServer().runCommand("item replace entity @e[tag=saddle_chicken,limit=1] saddle with minecraft:saddle");
@@ -156,7 +174,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
                 client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
             });
             context.waitTicks(10);
-            context.takeScreenshot("scale-brews-bee-stable-seat");
+            context.takeScreenshot("scale-brews-bee-animated-rider");
             world.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");
             context.waitTicks(5);
             context.runOnClient(client -> {

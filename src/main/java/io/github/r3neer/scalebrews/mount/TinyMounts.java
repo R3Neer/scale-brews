@@ -68,9 +68,8 @@ public final class TinyMounts {
         if (definition == null || player == null || !eligible(player, mob) || !mob.isAlive()
                 || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return null;
         if (definition.control() == TinyMountDefinition.Control.ITEM_STEERED) {
-            if (definition.steeringItem().isEmpty()) return null;
-            var item = BuiltInRegistries.ITEM.getValue(definition.steeringItem().get());
-            if (item == null || !player.isHolding(item)) return null;
+            if (!TinyMountTemptation.matches(definition, player.getMainHandItem())
+                    && !TinyMountTemptation.matches(definition, player.getOffhandItem())) return null;
         }
         return player;
     }
