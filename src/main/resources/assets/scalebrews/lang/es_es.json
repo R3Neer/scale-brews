@@ -1,6 +1,10 @@
 {
   "item.scalebrews.flower_on_a_stick": "Flor en una caña",
   "message.scalebrews.too_large_to_ride": "Eres demasiado grande para montar esta criatura.",
+  "message.scalebrews.wolf_not_tamed": "Solo puedes poner una silla a un lobo domesticado.",
+  "message.scalebrews.mount_too_young": "Esta criatura todavía es demasiado joven.",
+  "message.scalebrews.mount_hostile": "Esta criatura está enfadada contigo.",
+  "message.scalebrews.mount_occupied": "Esta criatura ya lleva un jinete.",
   "effect.scalebrews.growth": "Crecimiento",
   "effect.scalebrews.shrinking": "Encogimiento",
   "item.minecraft.potion.effect.scalebrews.growth": "Poción de crecimiento",

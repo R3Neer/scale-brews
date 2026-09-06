@@ -1,5 +1,6 @@
 {
   "enabled": true,
+  "automatic_surfaces": true,
   "max_width_ratio": 0.85,
   "bodies": {
     "players": true,

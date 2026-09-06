@@ -1,9 +1,17 @@
 # Changelog
 
+## [0.1.0-beta.4] - Unreleased
+
+- Automatic physical support for compatible living species without per-model profiles; optional anatomical profiles remain authoritative, especially the animated player-head contact. Add cat/iron golem refinements and correct villager head height.
+- Separate saddle equipment, riding and steering. Any player may saddle an adult tamed wolf; unsaddled Tiny Mounts permit passive riding. Accurate equipment/size/hostility messages in English and Spanish.
+- Shift + right-click mounts configured tameables, preserving ordinary sit/feed interactions and requiring Shift release before dismounting.
+- Wild wolf riding provides an alternative taming route with ejection and dismount retaliation; bones and existing owners remain intact.
+- Material loot now uses actual scale raised to 1.6 instead of squared, retaining unbiased rounding, Looting and extra-roll composition.
+
 ## Unreleased � scale materials and wolf mounts
 
 - Living platforms now accept bodies up to 85% of their support width (previously 60%), allowing closer-sized entities to stand and walk on them.
-- Entity-scoped reloadable material drops based on actual scale squared, including installed-mod compatibility and intentional farm production.
+- Entity-scoped reloadable material drops based on actual scale (initially squared, superseded by beta.4's exponent 1.6), including installed-mod compatibility and intentional farm production.
 - Shared tamed-wolf tiny mount with independent saddle/armor, direct controls and charged pounce.
 - Separate Animal Weights bridge for physical-volume space and crowding.
 

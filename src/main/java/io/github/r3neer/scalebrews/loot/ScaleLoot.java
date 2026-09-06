@@ -86,7 +86,7 @@ public final class ScaleLoot {
         if (stack.isEmpty() || !eligible(entity, stack)) { output.accept(stack); return; }
         double scale = entity.getAttributeValue(Attributes.SCALE);
         if (!Double.isFinite(scale) || scale <= 0 || scale == 1) { output.accept(stack); return; }
-        double expected = stack.getCount() * scale * scale;
+        double expected = stack.getCount() * Math.pow(scale, 1.6);
         long count = (long)Math.floor(expected);
         if (entity.getRandom().nextDouble() < expected - count) count++;
         // Split only after scaling, preserving components and legal stack sizes.

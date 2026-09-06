@@ -1,0 +1,9 @@
+{
+  "entity": "minecraft:cat",
+  "surfaces": [
+    { "id": "back", "y": 0.5, "z": -0.05, "width": 0.2, "depth": 0.8,
+      "visual": { "part": "body", "x": 0, "y": 0.6875, "z": -0.125 } },
+    { "id": "head", "y": 0.55, "z": 0.475, "width": 0.25, "depth": 0.25,
+      "visual": { "part": "head", "x": 0, "y": -0.125, "z": -0.03125 } }
+  ]
+}

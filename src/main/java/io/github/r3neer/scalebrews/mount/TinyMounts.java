@@ -57,7 +57,7 @@ public final class TinyMounts {
 
     public static boolean eligible(Player player, Entity mount) {
         return !player.isSpectator() && MountSizePolicy.permits(player, mount)
-            && (!(mount instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) || WolfMount.permits(wolf, player));
+            && (!(mount instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) || !wolf.isTame() || WolfMount.permits(wolf, player));
     }
 
     public static Player rider(Entity entity) {
@@ -69,6 +69,7 @@ public final class TinyMounts {
         var player = rider(mob);
         if (definition == null || player == null || !eligible(player, mob) || !mob.isAlive()
                 || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return null;
+        if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf && !wolf.isTame()) return null;
         if (definition.control() == TinyMountDefinition.Control.ITEM_STEERED) {
             if (!TinyMountTemptation.matches(definition, player.getMainHandItem())
                     && !TinyMountTemptation.matches(definition, player.getOffhandItem())) return null;
@@ -88,17 +89,14 @@ public final class TinyMounts {
         boolean mounting = held.isEmpty() || definition.steeringItem()
                 .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
         if (!saddling && !mounting) return InteractionResult.PASS; // Preserve feeding, breeding, naming, leads, etc.
-        if (!eligible(player, mob)) {
-            if (!mob.level().isClientSide()) {
-                if (player instanceof ServerPlayer serverPlayer)
-                    serverPlayer.sendSystemMessage(Component.translatable("message.scalebrews.too_large_to_ride"), true);
-                mob.level().playSound(null, mob.blockPosition(), SoundEvents.VILLAGER_NO, net.minecraft.sounds.SoundSource.PLAYERS, .25F, 1.2F);
-            }
-            return InteractionResult.FAIL;
-        }
-        if (mob.isBaby() || player.isSecondaryUseActive()) return InteractionResult.PASS;
+        if (player.isSpectator()) return InteractionResult.PASS;
+        // Tameable normal clicks belong to vanilla (sit, stand, feed). Equipment is independent of rider size.
+        if (!saddling && player.isSecondaryUseActive() != (mob instanceof TamableAnimal)) return InteractionResult.PASS;
+        if (mob.isBaby()) return reject(mob, player, "mount_too_young");
         if (saddling) {
             if (!definition.saddle() || !mob.getItemBySlot(EquipmentSlot.SADDLE).isEmpty()) return InteractionResult.PASS;
+            if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf && !wolf.isTame())
+                return reject(mob, player, "wolf_not_tamed");
             if (!mob.level().isClientSide()) {
                 mob.setItemSlot(EquipmentSlot.SADDLE, held.copyWithCount(1));
                 mob.setGuaranteedDrop(EquipmentSlot.SADDLE);
@@ -108,11 +106,19 @@ public final class TinyMounts {
             }
             return InteractionResult.SUCCESS;
         }
-        if (mob.isVehicle() || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return InteractionResult.PASS;
+        if (!MountSizePolicy.permits(player, mob)) return reject(mob, player, "too_large_to_ride");
+        if (!eligible(player, mob)) return reject(mob, player, "mount_hostile");
+        if (mob.isVehicle()) return reject(mob, player, "mount_occupied");
         if (!mob.level().isClientSide()) {
-            if (!player.startRiding(mob)) return InteractionResult.FAIL;
+            // Ignore only the initiating sneak gesture, not vanilla capacity or boarding cooldown.
+            boolean shift = player.isShiftKeyDown();
+            boolean mounted;
+            try { player.setShiftKeyDown(false); mounted = player.startRiding(mob); }
+            finally { player.setShiftKeyDown(shift); }
+            if (!mounted) return InteractionResult.FAIL;
             if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) {
                 wolf.setOrderedToSit(false); wolf.setInSittingPose(false);
+                if (!wolf.isTame()) { wolf.stopBeingAngry(); wolf.setTarget(null); wolf.setLastHurtByMob(null); }
             }
         }
         return InteractionResult.SUCCESS;
@@ -122,8 +128,7 @@ public final class TinyMounts {
         if (!MountSizePolicy.permits(player, vehicle)) return false;
         var definition = definition(vehicle);
         return definition == null || (eligible(player, vehicle) && !vehicle.isVehicle()
-                && (!(vehicle instanceof Mob mob) || !mob.isBaby())
-                && (!definition.saddle() || ((LivingEntity) vehicle).getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)));
+                && (!(vehicle instanceof Mob mob) || !mob.isBaby()));
     }
 
     public static void enforceRider(LivingEntity player) {
@@ -131,8 +136,7 @@ public final class TinyMounts {
         var vehicle = player.getVehicle();
         var definition = definition(vehicle);
         if (!MountSizePolicy.permits(player, vehicle)
-                || (player instanceof Player p && definition != null && (!eligible(p, vehicle)
-                || (definition.saddle() && !((LivingEntity) vehicle).getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))))) {
+                || (player instanceof Player p && definition != null && !eligible(p, vehicle))) {
             player.stopRiding(); // Native LivingEntity dismount placement, not raw passenger removal.
             player.resetFallDistance();
         }
@@ -143,6 +147,12 @@ public final class TinyMounts {
         float sideways = (input.left() ? 1 : 0) - (input.right() ? 1 : 0);
         float forward = (input.forward() ? 1 : 0) - (input.backward() ? 1 : 0);
         return new Vec3(sideways * .5, 0, forward < 0 ? forward * .5 : forward);
+    }
+
+    private static InteractionResult reject(Mob mob, Player player, String reason) {
+        if (!mob.level().isClientSide() && player instanceof ServerPlayer serverPlayer)
+            serverPlayer.sendSystemMessage(Component.translatable("message.scalebrews." + reason), true);
+        return InteractionResult.FAIL;
     }
 
     public static Vec3 flightVelocity(Player player, TinyMountDefinition definition) {

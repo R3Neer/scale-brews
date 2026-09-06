@@ -29,7 +29,7 @@ public class ScaleLootTests {
                 if (drops.isEmpty()) zero[0] = true;
                 drops.forEach(stack -> { total[0] += stack.getCount(); h.assertTrue(stack.getCount() <= stack.getMaxStackSize(), "Legal stacks"); });
             }
-            h.assertTrue(Math.abs(total[0] / 10000.0 - 2 * scale * scale) < .035, "Unbiased scale squared: " + scale);
+            h.assertTrue(Math.abs(total[0] / 10000.0 - 2 * Math.pow(scale, 1.6)) < .035, "Unbiased scale^1.6: " + scale);
             if (scale == 1) h.assertTrue(total[0] == 20000, "Normal size exact identity");
             if (scale == .28) h.assertTrue(zero[0], "Shrinking can yield no items");
         }
@@ -43,12 +43,12 @@ public class ScaleLootTests {
             creeper.dropFromLootTable(h.getLevel(), creeper.damageSources().generic(), false,
                 creeper.getLootTable().orElseThrow(), stack -> {
                     if (stack.is(Items.GUNPOWDER)) {
-                        h.assertTrue(stack.getCount() % 4 == 0 && stack.getCount() <= 8, "Exactly one scale pass");
+                        h.assertTrue(stack.getCount() >= 3 && stack.getCount() <= 7, "Exactly one scale^1.6 pass");
                         total[0] += stack.getCount();
                     }
                 });
         }
-        h.assertTrue(total[0] > 3400 && total[0] < 4600, "Real vanilla loot generation remains probabilistic");
+        h.assertTrue(total[0] > 2600 && total[0] < 3500, "Real vanilla loot generation remains probabilistic");
         h.succeed();
     }
 
@@ -64,7 +64,7 @@ public class ScaleLootTests {
         long[] total={0};
         for(int i=0;i<1000;i++)creeper.dropFromLootTable(h.getLevel(),player.damageSources().playerAttack(player),true,
             creeper.getLootTable().orElseThrow(),stack->{if(stack.is(Items.GUNPOWDER))total[0]+=stack.getCount();});
-        h.assertTrue(total[0]>8500 && total[0]<11500,"Looting III final quantities scale with physical size");
+        h.assertTrue(total[0]>6400 && total[0]<8800,"Looting III final quantities scale with physical size");
         h.succeed();
     }
 
@@ -81,7 +81,7 @@ public class ScaleLootTests {
         long[] count={0};
         for(int n=0;n<1000;n++)murmur.dropFromLootTable(h.getLevel(),murmur.damageSources().generic(),false,
             murmur.getLootTable().orElseThrow(),stack->{if(stack.is(tendon))count[0]+=stack.getCount();});
-        h.assertTrue(count[0]>7600 && count[0]<9400,"Murmur real loot table scales tendons with scale squared");
+        h.assertTrue(count[0]>4900 && count[0]<6200,"Murmur real loot table scales tendons with scale^1.6");
         var pig=h.spawn(EntityTypes.PIG,6,2,2);
         h.assertFalse(ScaleLoot.eligible(pig,new ItemStack(Items.SOUL_SAND)),"Ordinary pig lacks Shockwave material rule");
         pig.entityTags().add("deeper_dark.shockwave");
@@ -99,14 +99,14 @@ public class ScaleLootTests {
                 shearer.interactOn(turtle,net.minecraft.world.InteractionHand.MAIN_HAND,net.minecraft.world.phys.Vec3.ZERO);
                 for(var item:h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,turtle.getBoundingBox().inflate(3))) {
                     if(item.getItem().is(scute)) {
-                        h.assertTrue(item.getItem().getCount()==4,"Sheared scute scales once");
+                        h.assertTrue(item.getItem().getCount()==3 || item.getItem().getCount()==4,"Sheared scute scales once");
                         harvested+=item.getItem().getCount();
                     }
                     item.discard();
                 }
             }
         } catch(ReflectiveOperationException error) { throw new RuntimeException(error); }
-        h.assertTrue(harvested>280 && harvested<520,"Real snapping-turtle shearing yields scaled scutes");
+        h.assertTrue(harvested>210 && harvested<410,"Real snapping-turtle shearing yields scaled scutes");
         h.succeed();
     }
 }

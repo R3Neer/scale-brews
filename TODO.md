@@ -158,3 +158,15 @@ Initial configurable limits:
 ## Closer-size living platforms (2026-09-06)
 
 - [x] Raise the default supported-body width limit from 60% to 85%; validate boundary and actual contact/transport, retaining configurable overrides. Build and 72 required server tests pass; the client suite passes on retry after an initial dedicated-server startup timeout.
+
+## Platform and mount playtest follow-up
+
+- [x] Audit normal-size landing on Growth III iron golems, cats and villagers; add missing anatomical profiles and regression coverage.
+- [x] Separate saddle equipment, riding and steering; any player can saddle an adult tamed wolf, with accurate refusal messages.
+- [x] Allow unsaddled Tiny Mounts passengers without granting steering; retain vanilla mount implementations.
+- [x] Shift + right-click mounts configured tameables; ordinary right-click retains sitting/feeding interactions.
+- [x] Wild wolves eject riders and become hostile on dismount; repeated sustained rides offer an alternative taming route, without replacing bones.
+- [x] Automatic dimension-based surfaces for compatible unprofiled living species; keep optional refinements and precise animated player-head contact. Supersedes the earlier requirement to disable unprofiled species.
+- [x] Replace loot's squared scale multiplier with scale^1.6; retain unbiased rounding and existing Looting/extra-roll composition.
+- [ ] Manual multi-player and modded-renderer acceptance, especially giant-player head animation with external player-model packs. Automatic physical support is not automatic mesh collision.
+- [x] Build, runtime tests, documentation and scoped commits/push; 78 base server tests, dedicated/integrated base client suite, 113 VP26 server tests and 4 Animal Weights bridge tests passed. Beta.4 installed; retain prior full-pack graphical/teardown QA limitations.

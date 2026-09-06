@@ -50,6 +50,7 @@ public final class WolfMount {
     }
     public static void tick(Wolf wolf) {
         if (wolf.level().isClientSide()) return;
+        WolfTaming.tick(wolf);
         Player rider = TinyMounts.controller(wolf);
         if (rider == null || !enabled(wolf)) { STATES.remove(wolf); return; }
         State state = STATES.computeIfAbsent(wolf, ignored -> new State());

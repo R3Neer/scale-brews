@@ -166,7 +166,9 @@ public class ScaleEntityTests {
         p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
         p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, 2)); TestScale.settle(p);
         ScaleMountTests.settle(p);
-        h.assertFalse(p.startRiding(chicken, true, true), "Ratio never bypasses saddle requirement");
+        h.assertTrue(p.startRiding(chicken, true, true), "Eligible unsaddled passenger permitted");
+        h.assertTrue(TinyMounts.controller(chicken)==null,"Unsaddled passenger cannot steer");
+        p.stopRiding();
         chicken.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE)); chicken.setBaby(true);
         h.assertFalse(p.startRiding(chicken, true, true), "Ratio never bypasses tiny baby restriction");
         chicken.setBaby(false);

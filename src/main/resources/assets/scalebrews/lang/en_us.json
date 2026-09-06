@@ -1,6 +1,10 @@
 {
   "item.scalebrews.flower_on_a_stick": "Flower on a Stick",
   "message.scalebrews.too_large_to_ride": "You are too large to ride this creature.",
+  "message.scalebrews.wolf_not_tamed": "Only tamed wolves can be saddled.",
+  "message.scalebrews.mount_too_young": "This creature is still too young.",
+  "message.scalebrews.mount_hostile": "This creature is angry with you.",
+  "message.scalebrews.mount_occupied": "This creature already has a rider.",
   "effect.scalebrews.growth": "Growth",
   "effect.scalebrews.shrinking": "Shrinking",
   "item.minecraft.potion.effect.scalebrews.growth": "Potion of Growth",

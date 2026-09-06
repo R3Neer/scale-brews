@@ -29,13 +29,21 @@ public class WolfClientProof implements FabricClientGameTest {
             server.runCommand("tp @a 2 -60 1 35 20");
             context.waitTicks(10);
             context.takeScreenshot("scale-brews-wolf-saddle-armor");
+            context.runOnClient(client->client.options.keyShift.setDown(true));
+            context.waitTicks(3);
             server.runOnServer(s->{
                 var player=s.getPlayerList().getPlayers().getFirst();
                 var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
                 player.getAttribute(Attributes.SCALE).setBaseValue(.76);
                 wolf.setOrderedToSit(false);wolf.setInSittingPose(false);
-                if(!player.startRiding(wolf))throw new AssertionError("Wolf mount rejected");
+                player.setShiftKeyDown(true);
+                wolf.interact(player,net.minecraft.world.InteractionHand.MAIN_HAND,Vec3.ZERO);
+                if(player.getVehicle()!=wolf)throw new AssertionError("Shift interaction mount rejected");
             });
+            context.waitTicks(8);
+            server.runOnServer(s->{if(s.getPlayerList().getPlayers().getFirst().getVehicle()==null)
+                throw new AssertionError("Mounting Shift immediately dismounted player");});
+            context.runOnClient(client->client.options.keyShift.setDown(false));
             context.waitTicks(25);
             context.runOnClient(client->{
                 if(!(client.player.getVehicle() instanceof Wolf wolf) || wolf.isClientAuthoritative())throw new AssertionError("Server-authoritative wolf not synchronized");
@@ -62,6 +70,23 @@ public class WolfClientProof implements FabricClientGameTest {
                 if(player.getVehicle()!=wolf)throw new AssertionError("Rider desynchronized");
             });
             context.takeScreenshot("scale-brews-wolf-pounce-landed");
+            server.runOnServer(s->{
+                var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
+                wolf.setItemSlot(EquipmentSlot.SADDLE,ItemStack.EMPTY);
+            });
+            context.waitTicks(5);
+            server.runOnServer(s->{
+                var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
+                if(s.getPlayerList().getPlayers().getFirst().getVehicle()!=wolf
+                    || io.github.r3neer.scalebrews.mount.TinyMounts.controller(wolf)!=null)
+                    throw new AssertionError("Unsaddled rider must remain without control");
+            });
+            context.runOnClient(client->client.options.keyShift.setDown(true));
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                client.options.keyShift.setDown(false);
+                if(client.player.isPassenger())throw new AssertionError("New Shift press did not dismount");
+            });
             context.runOnClient(client->client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON));
         }
     }

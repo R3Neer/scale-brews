@@ -20,7 +20,8 @@
       "io.github.r3neer.scalebrews.test.ScaleBrewingTests",
       "io.github.r3neer.scalebrews.test.ScaleTemptationTests",
       "io.github.r3neer.scalebrews.test.ScaleLootTests",
-      "io.github.r3neer.scalebrews.test.WolfMountTests"
+      "io.github.r3neer.scalebrews.test.WolfMountTests",
+      "io.github.r3neer.scalebrews.test.MountPlaytestTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.WolfClientProof",

@@ -1,6 +1,6 @@
 # Scale-dependent materials
 
-Scale Brews multiplies eligible final loot quantities by the entity's actual `minecraft:scale` squared. Looting runs normally first. Fractional quantities use unbiased probabilistic rounding and can yield zero. Large results split into legal stacks with the original components. Applying Growth immediately before harvesting or killing is intentional.
+Scale Brews multiplies eligible final loot quantities by `minecraft:scale ^ 1.6` (actual physical scale). Looting runs normally first. Fractional quantities use unbiased probabilistic rounding and can yield zero. Large results split into legal stacks with the original components. Applying Growth immediately before harvesting or killing is intentional.
 
 ## Datapacks
 

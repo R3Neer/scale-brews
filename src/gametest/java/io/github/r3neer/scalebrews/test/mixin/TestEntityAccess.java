@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Entity.class)
 public interface TestEntityAccess {
+    @Accessor("boardingCooldown") void test$setBoardingCooldown(int ticks);
     @Invoker("getBlockSpeedFactor") float test$blockSpeed();
     @Invoker("checkFallDamage") void test$land(double movementY, boolean onGround, BlockState ground, BlockPos pos);
     @Accessor("stuckSpeedMultiplier") Vec3 test$stuckSpeed();

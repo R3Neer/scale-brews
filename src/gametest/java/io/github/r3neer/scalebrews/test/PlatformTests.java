@@ -223,7 +223,7 @@ public class PlatformTests {
             h.assertTrue(PlatformDefinition.CODEC.parse(ops,com.google.gson.JsonParser.parseString(invalid)).error().isPresent(),
                 "Invalid geometry rejected");
         }
-        h.assertTrue(h.getLevel().registryAccess().lookupOrThrow(Platforms.DEFINITIONS).size()==16,"Complete initial profile set");
+        h.assertTrue(h.getLevel().registryAccess().lookupOrThrow(Platforms.DEFINITIONS).size()==18,"Complete profile set including cat and iron golem");
         h.succeed();
     }
     @GameTest public void movingSupportProof(GameTestHelper h) {

@@ -6,7 +6,7 @@ Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physi
 
 Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. The first public beta is being validated; tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
 
-Living platforms let smaller entities and vehicles use larger creatures as moving surfaces, without mounting them or adding mob navigation routes. This beta includes sixteen support profiles and datapack configuration. Extension points and current validation limits are described in [Living platforms](docs/PLATFORMS.md).
+Living platforms let smaller entities and vehicles use larger creatures as moving surfaces, without mounting them or adding mob navigation routes. Compatible living species have automatic physical support; eighteen optional anatomical profiles refine the contact, including the animated player head. Extension points, datapack configuration and current validation limits are described in [Living platforms](docs/PLATFORMS.md).
 
 ## Installation
 

@@ -17,7 +17,9 @@ Living platforms let smaller physical bodies stand on, move across and travel wi
 - Teleports/discontinuities greater than four blocks release support rather than dragging a body across the world.
 - Fall damage is retained; passive supported descent does not accumulate a fall. Landing on a living platform does not emit Growth's ground shockwave.
 
-Built-in profiles cover adult players, ghasts, bees, chickens, cows, sheep, pigs, villagers, horses (including undead variants), donkeys, mules, camels and both llamas. Unconfigured species, babies, sleeping/swimming/fall-flying supports, sitting camels and passengers cannot provide these surfaces. Happy Ghast's native platform and stationary behavior remain vanilla.
+Built-in anatomical profiles cover adult players, ghasts, bees, chickens, cows, sheep, pigs, villagers, iron golems, cats, horses (including undead variants), donkeys, mules, camels and both llamas. Other compatible living species automatically provide a top surface derived from their current physical dimensions, including external scale. No per-species JSON is required for basic support. Optional explicit profiles take priority, including disabled profiles; they refine anatomy and animated contact. Automatic surfaces do not infer rendered anatomy or animated bones, so custom/elongated models may not align exactly with the physical top. Player support keeps its precise head profile, crouching adjustment and animated contact instead of the generic fallback.
+
+Babies, sleeping/swimming/fall-flying supports, sitting camels, sitting/lying cats and passengers remain excluded. Multipart dragon physics are excluded. Happy Ghast's native platform and stationary behavior remain vanilla. Special movement still requires adapter validation, not a blanket compatibility guarantee.
 
 ## World-owned configuration
 
@@ -28,6 +30,7 @@ Override `data/scalebrews/scalebrews/platform_policy/default.json`:
 ```json
 {
   "enabled": true,
+  "automatic_surfaces": true,
   "max_width_ratio": 0.85,
   "bodies": {
     "players": true,
@@ -43,7 +46,7 @@ Override `data/scalebrews/scalebrews/platform_policy/default.json`:
 }
 ```
 
-Missing category/species switches default to enabled, but a support still needs a profile. Disabling this feature does not disable Tiny Mounts or the native Happy Ghast platform.
+Missing category/species switches default to enabled. `automatic_surfaces` defaults to true; set it false to require explicit profiles as before. Per-species `supports` switches apply equally to generated and explicit profiles. Disabling this feature does not disable Tiny Mounts or the native Happy Ghast platform.
 
 Add a profile at `data/<your_namespace>/scalebrews/entity_platform/<name>.json`:
 
@@ -102,6 +105,6 @@ Support links are transient. They are not passengers and are not saved. Passenge
 
 The implementation has dedicated-server and real-client tests; acceptance is recorded in [VALIDATION](VALIDATION.md) and TODO rather than inferred from compilation. The moving-support proof passed with players, mobs and an occupied boat. Player and occupied-boat network tests passed with flight disabled at 0, 100 and 200 ms additional round-trip latency. A 12,000-tick player soak passed; this is ten minutes total, split across the three latencies, not ten minutes at each latency.
 
-The sixteen built-in profiles pass client model-path and finite-transform checks. These are not a substitute for human animation/contact review for every species and resource pack. The owner reports successful singleplayer testing. Beta.3 passes all 98 VP26 server tests; full client acceptance still encounters an `enchancement:empty` network-registry conflict, recorded in VALIDATION. No general modpack-compatibility claim follows from the bounded tests.
+Built-in profiles undergo client model-path and finite-transform checks. These are not a substitute for human animation/contact review for every species and resource pack. The earlier `enchancement:empty` registry conflict was fixed in VanillaPlus-Enchancement-Compat 1.0.1; subsequent results and the separate full-pack test-harness teardown limitation are recorded in VALIDATION. No general modpack-compatibility claim follows from the bounded tests.
 
 Run the short suite with `./gradlew runGameTest runClientGameTest`. Add `-PscalebrewsPlatformSoak=true` for the dedicated connection's ten-minute matrix (0, 100 and 200 ms additional round-trip latency).

@@ -1,0 +1,9 @@
+{
+  "entity": "minecraft:iron_golem",
+  "surfaces": [
+    { "id": "head", "y": 2.6875, "z": 0.21875, "width": 0.5, "depth": 0.5,
+      "visual": { "part": "head", "x": 0, "y": -0.75, "z": -0.09375 } },
+    { "id": "shoulders", "y": 2.0625, "z": 0.03125, "width": 1.125, "depth": 0.6875,
+      "visual": { "part": "body", "x": 0, "y": -0.125, "z": -0.03125 } }
+  ]
+}

@@ -128,8 +128,8 @@ public class ScaleMountTests {
         var chicken = h.spawn(EntityTypes.CHICKEN, 1, 2, 1);
         chicken.setNoAi(true);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE, 2));
-        h.assertTrue(chicken.interact(p, InteractionHand.MAIN_HAND, Vec3.ZERO) == InteractionResult.FAIL, "Normal size saddle denied");
-        h.assertTrue(p.getMainHandItem().getCount() == 2, "Failed interaction consumes nothing");
+        h.assertTrue(chicken.interact(p, InteractionHand.MAIN_HAND, Vec3.ZERO) == InteractionResult.SUCCESS, "Equipment is independent of rider size");
+        h.assertTrue(p.getMainHandItem().getCount() == 1, "Saddle consumed exactly once");
         p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1)); TestScale.settle(p);
         settle(p);
         chicken.interact(p, InteractionHand.MAIN_HAND, Vec3.ZERO);

@@ -31,6 +31,7 @@ public final class Platforms {
     }
     private static final Map<Identifier, PhysicalAdapter> ADAPTERS = new HashMap<>();
     private static final Map<Level,Double> MARGINS=Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Entity,PlatformDefinition> AUTOMATIC=Collections.synchronizedMap(new WeakHashMap<>());
     public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { ADAPTERS.put(type, adapter); }
     private Platforms() {}
     public static void initialize() {
@@ -60,9 +61,28 @@ public final class Platforms {
         return level.registryAccess().lookup(POLICIES).flatMap(r -> r.get(DEFAULT)).map(h -> h.value()).orElse(PlatformPolicy.DEFAULT);
     }
     public static PlatformDefinition definition(Entity support) {
+        // Happy Ghast owns its vanilla platform/parking mechanics. Multipart dragon physics are not ordinary bodies.
+        if (!(support instanceof LivingEntity living) || support instanceof net.minecraft.world.entity.animal.happyghast.HappyGhast
+                || support instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
         var registry = support.registryAccess().lookup(DEFINITIONS).orElse(null);
         if (registry == null) return null;
-        return index(registry).get(BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()));
+        var id=BuiltInRegistries.ENTITY_TYPE.getKey(support.getType());
+        var explicit=index(registry).get(id);
+        if(explicit!=null) return explicit; // Including explicit disable: never replace it with a fallback.
+        if(!policy(support.level()).automaticSurfaces()) return null;
+        double scale=living.getScale();
+        var box=support.getBoundingBox();
+        double width=box.getXsize()/scale, depth=box.getZsize()/scale, height=(box.maxY-support.getY())/scale;
+        if(!Double.isFinite(width+depth+height) || width<=0 || depth<=0 || height<=0) return null;
+        var cached=AUTOMATIC.get(support);
+        if(cached!=null) {
+            var p=cached.surfaces().getFirst();
+            if(Math.abs(p.width()-width)<1e-6 && Math.abs(p.depth()-depth)<1e-6 && Math.abs(p.y()-height)<1e-6) return cached;
+        }
+        var generated=new PlatformDefinition(id,true,.6,Optional.empty(),List.of(
+            new PlatformDefinition.Surface("automatic_top",0,height,0,width,depth,Optional.empty())));
+        AUTOMATIC.put(support,generated);
+        return generated;
     }
     private static Map<Identifier,PlatformDefinition> index(Registry<PlatformDefinition> registry) {
         return INDEX.computeIfAbsent(registry, r -> {
@@ -96,6 +116,8 @@ public final class Platforms {
         if (e instanceof LivingEntity l && (l.isSleeping() || l.isFallFlying() || l.isSwimming() || l.isBaby())) return false;
         if (e instanceof Player p && p.getAbilities().flying) return false;
         if (e instanceof Camel c && c.isCamelSitting()) return false;
+        if (e instanceof net.minecraft.world.entity.animal.feline.Cat cat
+                && (cat.isInSittingPose() || cat.isLying())) return false;
         return true;
     }
     public static boolean eligible(Entity body, LivingEntity support) {
