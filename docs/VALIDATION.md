@@ -67,6 +67,19 @@ The optional-mod run logs upstream/default-configuration warnings for Combatify 
 - Client registry checks verify both extended entries and their shared translated names. No new language keys or art assets are required.
 - The real bee renderer extracts occupied/unoccupied snapshots from the synchronized test mount. Its injected model is sampled over seven animation times, calm/angry and rolling states, before mounting, while steering, after removing the steering item and after dismounting. Mounted body height/pitch remain stable; wings keep moving symmetrically; free bobbing returns; stinger visibility and entity position/bounds remain unchanged. The occupied saddle snapshot remains present. A third-person mounted screenshot was inspected.
 
+## Animated bee riders and steering-item attraction (2026-09-06)
+
+The base Fabric `build runClientGameTest --offline` passed with **39 required server tests**. A subsequent client run also passed after adding the real unmounted-following fixture. Optional Combatify/Alex's Mobs integration was not rerun for this change.
+
+- Vanilla pig and strider native temptation predicates accept their respective steering items in either hand, with no saddle or passenger. These tests use the live 26.2 goals and item tags, not hard-coded substitutes.
+- Bee native temptation accepts Flower on a Stick without Shrinking or a saddle, retains real flower attraction/breeding, and respects master/per-mob switches, NoAI and attack targets. The stick is not breeding food.
+- Decoded test-only JSON changes a chicken from direct to item-steered control, verifies the configured item, and rejects disabled/missing-item definitions and empty hands. A snow golem receives exactly one fallback goal through its actual server-AI hook, without requiring a native temptation attribute or goal. These are bounded generic-mob tests, not a claim about every modded brain/navigation implementation.
+- The real client places an unsaddled, unmounted bee about six blocks from an unshrunk player holding the flower stick in the offhand. After 65 ticks of normal AI/navigation it must approach within 3.5 horizontal blocks. No movement or teleport is injected during that interval.
+- Animated rider snapshots are checked before mounting, during flight, after removing the steering item and after dismounting. Across seven animation times, calm/angry rolling states, three mount scales and three yaws, transformed reference points must agree with the actual animated bee body frame. Passenger-relative pivots, native wing symmetry, bobbing, stinger state and unchanged entity position/bounds are also checked. Real third-person screenshots accompany the matrix checks; first-person rendering is exercised in the existing mounted-flight fixture.
+- Packaged JSON parses, English/Spanish keys match, and the production JAR contains neither test classes nor the superseded fixed-body mixin. No new translation keys or textures were needed.
+
+The earlier fixed-body validation above is historical and is superseded by this animated-rider implementation. Broader visual/modpack and multiplayer-latency QA remain subject to the limits below.
+
 ## Limits and follow-up
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.

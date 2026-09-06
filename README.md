@@ -74,7 +74,9 @@ Saddle an adult chicken or bee while small enough to ride it.
 
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Both mounts use vanilla saddles, one rider, and separate hand-authored saddle layers. Mounted bees stay out of hives.
 
-While ridden, a bee's body stays steady beneath the saddle and passenger while its wings continue beating. Normal body bobbing and rolling return after dismounting.
+Bees keep their natural bobbing and rolling while ridden: the rendered rider follows the saddle, while first-person camera and collision physics stay stable.
+
+An unmounted bee also follows a Flower on a Stick in either hand, without needing a saddle or Shrinking. This mirrors native pig/strider steering-item attraction. The same behavior applies to enabled JSON `item_steered` tiny mounts using their configured `steering_item`; native foods and breeding are unchanged.
 
 Riding eligibility uses the rider's **effective SCALE divided by the mount's**, including gradual transitions and other attribute modifiers. Chicken and bee default to a maximum ratio of **0.53**: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small.
 
@@ -98,7 +100,7 @@ See [Configuration](docs/CONFIGURATION.md) for paths, complete JSON examples, ex
 
 ## Compatibility and validation
 
-The current suite has **36 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input and mounted-bee animation.
+The current suite has **39 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
 

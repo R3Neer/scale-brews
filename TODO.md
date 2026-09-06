@@ -109,3 +109,9 @@ Initial configurable limits:
 - [x] Stabilize the bee's animated body while ridden so saddle and passenger stay aligned; retain wing animation and restore normal bobbing after dismount. Validate in the real client.
 - Bounded collision/mount/elytra and Combatify/Alex's Mobs integration tests are implemented. Broader manual modpack playtesting, latency and unusual equipment/physics combinations remain ongoing QA, not a claim of exhaustive compatibility.
 - The new walking penalty means Swift Sneak III + Shrinking III reaches Shrinking's walking speed, not unmodified player speed.
+
+## Animated riders and steering-item attraction
+
+- [x] Restore the bee's complete body animation and move/tilt the rendered rider with its saddle in each frame, including scale and yaw changes. Keep physics and first-person camera stable; supersedes the fixed bee body above.
+- [x] Verify vanilla pig/strider attraction, then let enabled `item_steered` tiny mounts follow their JSON `steering_item` in either hand even without a saddle, Shrinking or a rider. Preserve native foods, AI priorities and configuration switches; support definitions for additional mobs.
+- [x] Validate animated rider alignment, dismount/reset and actual unmounted following; update documentation, package and push.

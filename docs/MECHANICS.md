@@ -84,7 +84,11 @@ Soul sand retains 60/25/0% of its base penalty, giving speed factors .64/.85/1.0
 
 ## Mounted-bee rendering
 
-`TinySaddleRendererMixin` snapshots whether an enabled tiny mount carries a passenger, independently of the steering item and saddle visual. `MountedBeeModelMixin` restores only the bee body's vertical offset and pitch to its initial pose after vanilla animation while that snapshot is occupied. This prevents model-only bobbing/rolling from moving the bee and its attached saddle through the entity-positioned rider. Wings, legs, antennae, stinger state and entity physics keep their native behavior. The saddle layer copies the resulting stable body pose, including when rendering is deferred. Each new snapshot updates occupancy, so dismounting restores normal body animation without stale per-model state. The behavior follows the Tiny Mounts configuration and applies while riding with or without a steering item.
+`BeeRiderPose` samples the actual adult bee model at the same interpolated time as its rider. It computes the transform from the resting body frame to the animated `bone` frame, including mount scale, yaw and renderer rotations, then expresses it relative to the passenger. `AnimatedRiderRendererMixin` applies that immutable snapshot around the complete living-entity render submission, so rider, armor and held items follow the saddle's translation and tilt. It does not duplicate vanilla bobbing formulas or freeze the bee. Selecting the adult model explicitly avoids reusing a renderer's last submitted baby model. Snapshots clear on dismount; entity positions, collision boxes, camera and first-person hands remain untouched. The saddle layer still copies the animated body pose for deferred rendering.
+
+## Steering-item attraction
+
+26.2's `Pig.registerGoals` explicitly installs a `TemptGoal` for `CARROT_ON_A_STICK`; `Strider.registerGoals` uses `STRIDER_TEMPT_ITEMS`, which includes its fungus stick. `TemptGoal.shouldFollow` checks both hands. Scale Brews extends that predicate with the enabled definition's `steering_item`, preserving native foods and goal scheduling. `TinyMountGoalsMixin` lazily installs a fallback on the first server AI step only when the configured mob lacks a native temptation goal, after subclass goals and synced registries are available. `TinyMountTemptation` shares item matching with mounted steering and honors module/entity/definition switches. Native controllers (such as pigs and striders) remain owned by Minecraft.
 
 ## Datapack extension points
 

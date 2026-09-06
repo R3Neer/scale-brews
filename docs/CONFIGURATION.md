@@ -23,7 +23,7 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 }
 ```
 
-- `tiny_mounts: false` disables Scale Brews' additional mounting interactions, manual control, saddle layer, bee-hive overrides and Flower on a Stick crafting. The item stays registered for existing inventories. `mounts` disables particular entity IDs. Both must allow a mount, and its definition must also have `enabled: true` (the default).
+- `tiny_mounts: false` disables Scale Brews' additional mounting interactions, manual control, steering-item attraction, saddle layer, animated bee rider, bee-hive overrides and Flower on a Stick crafting. The item stays registered for existing inventories. `mounts` disables particular entity IDs. Both must allow a mount, and its definition must also have `enabled: true` (the default).
 - The living-mount size-ratio policy is **independent** of Tiny Mounts. Boats and minecarts are exempt. Growth is no longer an unconditional riding prohibition.
 - `villager_fear` controls the local Growth II/III threat sensor, not vanilla hostile mobs or reputation.
 - `growth_landing_impact` is the **single switch for the combined Growth landing effect**: radial knockback at I/II/III, the bounded additional damage at III, and its gust/terrain/sound feedback. Setting it to `false` disables the whole effect for players and compatible mobs. It does not change ordinary damage recoil, melee knockback, the falling entity's own fall damage or native landing events/particles. There are no separate push/damage switches.
@@ -77,7 +77,13 @@ A definition that requires a saddle must supply `saddle_visual`; `item_steered` 
 
 The reusable anchors currently supported are `body` (chicken-style quarter-turned torso) and `bone` (bee-style body animation group). Both use the supplied 64×32 UV layout. The base model must expose the selected root child. A new body shape may need an additional model adapter; changing an identifier alone cannot fit arbitrary anatomy. A missing anchor skips the saddle layer rather than crashing the renderer. Chicken variants and bee anger/nectar states keep their vanilla base textures.
 
-Enabled tiny-mount bees keep a steady body pose while carrying a passenger. The body-only bobbing and rolling resume after dismount; wings and other small animations continue while mounted. This prevents the saddle moving through the rider and does not require a new texture or JSON field. It remains active without the steering item, because releasing control does not dismount the player.
+Enabled tiny-mount bees retain natural body bobbing and rolling while carrying a player. The rendered rider follows the animated saddle, including its tilt, without moving the physical entity, collision box or first-person camera. This does not require a new texture or JSON field and remains active without the steering item. Custom renderers that replace the bee model need separate compatibility testing.
+
+### Steering-item attraction
+
+Every enabled `item_steered` definition also lets the unmounted mob follow a nearby player holding its `steering_item` in either hand. Neither a saddle nor Shrinking is required for attraction; the normal age/size/equipment checks still apply to mounting. `direct` definitions do not gain this behavior. Missing item IDs do not match an empty hand.
+
+Existing vanilla temptation goals retain their food predicates, speed, range and priority. A mob without one gets a MOVE/LOOK goal at priority 3, using navigation for pathfinding mobs and move control otherwise; its default range is 10 blocks when `TEMPT_RANGE` is absent. Modded brain-driven movement may need its own adapter. The added attraction stops while riding/carrying a passenger, with NoAI, or while targeting an enemy; it does not turn the item into food or change breeding. Configuration changes require restarting the world, as with the other synced definitions.
 
 `tools/GenerateArt.java` hand-paints the leather, binding, stitches, buckles and flower overlay. Run it to reproduce the committed PNGs. The Flower on a Stick model references vanilla fishing-rod art; its flower is original. Recipe: fishing rod + `#minecraft:small_flowers`; there is one output item and no retained flower metadata.
 
