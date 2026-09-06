@@ -1,5 +1,9 @@
 # Scale Brews — active work
 
+## Wolf attack animation
+
+- [x] Connect commanded bites to native swing progress and combat pose; verify misses, cleanup after dismount, preservation of existing aggression, real Space input, and installed Fresh Animations with EMF/ETF. See docs/VALIDATION.md for pack limitations.
+
 ## Giant melee reach follow-up
 
 - [x] Wolf crouch + use: distinguish equipping a saddle from riding an already-saddled wolf while holding a spare saddle; real client input, reassigned controls, inventory retention and release-before-dismount verified. Build, 80 server tests and full base client suite passed.

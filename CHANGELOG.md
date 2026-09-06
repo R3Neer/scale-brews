@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - wolf attack animation
+
+- Commanded wolf bites emit native swing progress and a transient combat pose for resource packs, including missed taps and pounce hits. Advance the wolf swing clock on server and client without creating anger or AI targets.
+
 ## Unreleased - mount gesture and terrain impact fixes
 
 - Crouch + Use mounts configured tameables with any held item, without feeding, equipping or consuming it; ordinary Use retains those actions.

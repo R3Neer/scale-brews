@@ -97,6 +97,7 @@ public class WolfMountTests {
         rider.setLastClientInput(jump);wolf.setOnGround(true);WolfMount.tick(wolf);
         rider.setLastClientInput(net.minecraft.world.entity.player.Input.EMPTY);WolfMount.tick(wolf);
         h.assertTrue(cow.getHealth()<100,"Tap invokes the real wolf attack");
+        h.assertTrue(wolf.swinging && wolf.isAggressive(),"Tap starts native swing and combat pose");
         float afterTap=cow.getHealth();
         for(int n=0;n<20;n++)WolfMount.tick(wolf);
         cow.invulnerableTime=0;
@@ -105,9 +106,35 @@ public class WolfMountTests {
         rider.setLastClientInput(net.minecraft.world.entity.player.Input.EMPTY);WolfMount.tick(wolf);
         wolf.setPos(wolf.position().add(0,0,.6));WolfMount.tick(wolf);
         h.assertTrue(cow.getHealth()<afterTap,"Pounce intersects and bites without second input");
+        h.assertTrue(wolf.swinging,"Pounce bite emits native attack animation");
         float afterImpact=cow.getHealth();cow.invulnerableTime=0;
         wolf.setPos(wolf.position().add(0,0,.1));WolfMount.tick(wolf);
         h.assertTrue(cow.getHealth()==afterImpact,"Only one impact bite per pounce");
         rider.stopRiding();h.succeed();
+    }
+
+    @GameTest(maxTicks=60) public void missedBiteAnimatesAndPoseExpires(GameTestHelper h) {
+        var rider=h.makeMockServerPlayerInLevel();rider.setGameMode(GameType.SURVIVAL);
+        rider.getAttribute(Attributes.SCALE).setBaseValue(.76);
+        var wolf=h.spawn(EntityTypes.WOLF,2,20,2);wolf.tame(rider);wolf.setNoAi(true);wolf.setNoGravity(true);
+        wolf.setItemSlot(EquipmentSlot.SADDLE,new ItemStack(Items.SADDLE));rider.startRiding(wolf);
+        rider.setLastClientInput(new net.minecraft.world.entity.player.Input(false,false,false,false,true,false,false));
+        wolf.setOnGround(true);WolfMount.tick(wolf);
+        rider.setLastClientInput(net.minecraft.world.entity.player.Input.EMPTY);WolfMount.tick(wolf);
+        h.assertTrue(wolf.swinging && wolf.isAggressive(),"Empty bite starts the native animation");
+        h.assertTrue(!wolf.isAngry() && wolf.getTarget()==null && wolf.isOwnedBy(rider),"Animation does not create anger or targets");
+        rider.stopRiding();
+        h.runAfterDelay(12,()->{
+            h.assertFalse(wolf.swinging || wolf.isAggressive(),"Command pose expires even after dismount");
+            var target=h.spawn(EntityTypes.COW,3,20,2);target.setNoAi(true);
+            // Bypass vanilla's 60-tick boarding cooldown to isolate pose ownership.
+            h.assertTrue(rider.startRiding(wolf,true,false),"Remount for independent pose check");
+            wolf.setAggressive(true);
+            h.assertTrue(WolfMount.attack(wolf,rider,target),"Second command executes a real attack");
+            h.runAfterDelay(12,()->{
+                h.assertTrue(wolf.isAggressive(),"Pre-existing native combat pose is preserved");
+                rider.stopRiding();h.succeed();
+            });
+        });
     }
 }

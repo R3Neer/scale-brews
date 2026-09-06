@@ -62,6 +62,25 @@ public class WolfClientProof implements FabricClientGameTest {
             });
             context.runOnClient(client->client.options.keyShift.setDown(false));
             context.waitTicks(25);
+            context.runOnClient(client->client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT));
+            context.getInput().holdKeyFor(options -> options.keyJump, 2);
+            boolean animated=false;
+            for(int tick=0;tick<15;tick++) {
+                context.waitTicks(1);
+                if(context.computeOnClient(client->{
+                    var wolf=(Wolf)client.player.getVehicle();
+                    System.out.println("WOLF_ATTACK_CLIENT swing="+wolf.swinging+" progress="+wolf.getAttackAnim(1)+" aggressive="+wolf.isAggressive());
+                    return wolf.swinging && wolf.getAttackAnim(1)>0 && wolf.isAggressive();
+                })) { animated=true;break; }
+            }
+            if(!animated) throw new AssertionError("Real Space bite did not synchronize native attack animation and pose");
+            context.takeScreenshot("scale-brews-wolf-commanded-attack");
+            context.waitTicks(25);
+            context.runOnClient(client->{
+                var wolf=(Wolf)client.player.getVehicle();
+                if(wolf.swinging || wolf.isAggressive() || wolf.isAngry())
+                    throw new AssertionError("Commanded attack left a stale animation or anger state");
+            });
             context.runOnClient(client->{
                 if(!(client.player.getVehicle() instanceof Wolf wolf) || wolf.isClientAuthoritative())throw new AssertionError("Server-authoritative wolf not synchronized");
                 client.player.setYRot(0);client.player.setXRot(0);

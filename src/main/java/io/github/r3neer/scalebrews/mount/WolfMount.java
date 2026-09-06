@@ -5,12 +5,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import java.util.*;
 
 /** Transient commanded actions; equipment, ownership and autonomous attacks remain vanilla. */
 public final class WolfMount {
     private static final Map<Wolf, State> STATES = new WeakHashMap<>();
+    private static final Set<Wolf> COMMAND_POSES = Collections.newSetFromMap(new WeakHashMap<>());
     private static final ThreadLocal<Command> COMMAND = new ThreadLocal<>();
     private record Command(Wolf wolf, Player rider) {}
     private static final class State {
@@ -50,6 +52,10 @@ public final class WolfMount {
     }
     public static void tick(Wolf wolf) {
         if (wolf.level().isClientSide()) return;
+        if (COMMAND_POSES.contains(wolf) && !wolf.swinging) {
+            COMMAND_POSES.remove(wolf);
+            if (wolf.getTarget() == null) wolf.setAggressive(false);
+        }
         WolfTaming.tick(wolf);
         Player rider = TinyMounts.controller(wolf);
         if (rider == null || !enabled(wolf)) { STATES.remove(wolf); return; }
@@ -76,6 +82,7 @@ public final class WolfMount {
                 var end = start.add(rider.getLookAngle().scale(1.4 * wolf.getScale()));
                 LivingEntity target = target(wolf, rider, start, end);
                 if (target != null) attack(wolf, rider, target);
+                else animateAttack(wolf); // A commanded bite can miss and still animate.
                 state.cooldown = 20; // Vanilla melee goal attack interval.
             } else {
                 double charge = Math.min(1, state.held * .1);
@@ -125,9 +132,19 @@ public final class WolfMount {
     }
     public static boolean attack(Wolf wolf, Player rider, LivingEntity target) {
         if (TinyMounts.controller(wolf) != rider || !(wolf.level() instanceof ServerLevel level)) return false;
+        animateAttack(wolf);
         Command previous = COMMAND.get();
         COMMAND.set(new Command(wolf, rider));
         try { return wolf.doHurtTarget(level, target); }
         finally { if (previous == null) COMMAND.remove(); else COMMAND.set(previous); }
+    }
+    private static void animateAttack(Wolf wolf) {
+        // Same tracked animation packet as MeleeAttackGoal; packs can consume swing_progress.
+        wolf.swing(InteractionHand.MAIN_HAND);
+        // Native melee AI also sets this synced pose flag. Do not create anger or an AI target.
+        if (!wolf.isAggressive()) {
+            wolf.setAggressive(true);
+            COMMAND_POSES.add(wolf);
+        }
     }
 }
