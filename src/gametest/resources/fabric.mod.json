@@ -7,6 +7,7 @@
   "mixins": ["scalebrews-test.mixins.json"],
   "entrypoints": {
     "fabric-gametest": [
+      "io.github.r3neer.scalebrews.test.PlatformTests",
       "io.github.r3neer.scalebrews.test.ScaleBrewsTests",
       "io.github.r3neer.scalebrews.test.ScalePhysicsTests",
       "io.github.r3neer.scalebrews.test.ScaleMountTests",
@@ -15,6 +16,6 @@
       "io.github.r3neer.scalebrews.test.ScaleBrewingTests",
       "io.github.r3neer.scalebrews.test.ScaleTemptationTests"
     ],
-    "fabric-client-gametest": ["io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"]
+    "fabric-client-gametest": ["io.github.r3neer.scalebrews.test.PlatformClientProof", "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"]
   }
 }

@@ -1,0 +1,20 @@
+{
+  "entity": "minecraft:player",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "head",
+      "y": 1.875,
+      "width": 0.46875,
+      "depth": 0.46875,
+      "z": 0,
+      "visual": {
+        "part": "head",
+        "x": 0,
+        "y": -0.5,
+        "z": 0
+      }
+    }
+  ]
+}

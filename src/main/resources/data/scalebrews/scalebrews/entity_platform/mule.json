@@ -1,0 +1,33 @@
+{
+  "entity": "minecraft:mule",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "back",
+      "y": 1.21,
+      "width": 0.58075,
+      "depth": 1.27075,
+      "z": 0.0575,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.503125,
+        "z": -0.375
+      }
+    },
+    {
+      "id": "head",
+      "y": 1.72,
+      "width": 0.345,
+      "depth": 0.506,
+      "z": 0.837,
+      "visual": {
+        "part": "head_parts/head",
+        "x": 0,
+        "y": -0.6875,
+        "z": 0.0625
+      }
+    }
+  ]
+}

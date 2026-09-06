@@ -1,0 +1,33 @@
+{
+  "entity": "minecraft:pig",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "back",
+      "y": 0.875,
+      "width": 0.625,
+      "depth": 1,
+      "z": 0,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.125,
+        "z": 0.0625
+      }
+    },
+    {
+      "id": "head",
+      "y": 1,
+      "width": 0.5,
+      "depth": 0.5,
+      "z": 0.625,
+      "visual": {
+        "part": "head",
+        "x": 0,
+        "y": -0.25,
+        "z": -0.25
+      }
+    }
+  ]
+}

@@ -3,6 +3,12 @@
 	"package": "io.github.r3neer.scalebrews.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"PlatformRenderStateMixin",
+		"PlatformOutgoingMoveMixin",
+		"PlatformVariantModels",
+		"PlatformRendererMixin",
+		"PlatformCameraMixin",
+		"PlatformClientTeleportMixin",
 		"AnimatedRiderRendererMixin",
 		"LivingRendererAccess",
 		"AgeableModelAccess",

@@ -1,0 +1,33 @@
+{
+  "entity": "minecraft:skeleton_horse",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "back",
+      "y": 1.3156,
+      "width": 0.63125,
+      "depth": 1.38125,
+      "z": 0.0625,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.503125,
+        "z": -0.375
+      }
+    },
+    {
+      "id": "head",
+      "y": 1.87,
+      "width": 0.375,
+      "depth": 0.55,
+      "z": 0.91,
+      "visual": {
+        "part": "head_parts/head",
+        "x": 0,
+        "y": -0.6875,
+        "z": 0.0625
+      }
+    }
+  ]
+}

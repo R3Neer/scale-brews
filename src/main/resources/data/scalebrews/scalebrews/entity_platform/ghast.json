@@ -1,0 +1,20 @@
+{
+  "entity": "minecraft:ghast",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "body",
+      "y": 4,
+      "width": 4.5,
+      "depth": 4.5,
+      "z": 0,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.5,
+        "z": 0
+      }
+    }
+  ]
+}

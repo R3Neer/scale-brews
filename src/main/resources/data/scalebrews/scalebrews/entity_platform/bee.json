@@ -1,0 +1,20 @@
+{
+  "entity": "minecraft:bee",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "body",
+      "y": 0.5625,
+      "width": 0.4375,
+      "depth": 0.625,
+      "z": 0,
+      "visual": {
+        "part": "bone/body",
+        "x": 0,
+        "y": -0.25,
+        "z": 0
+      }
+    }
+  ]
+}

@@ -29,6 +29,7 @@ public final class GrowthImpact {
     }
 
     public static void land(LivingEntity entity, double fallDistance, BlockState ground) {
+        if (io.github.r3neer.scalebrews.platform.Platforms.supported(entity)) return;
         var rules = io.github.r3neer.scalebrews.config.ScaleRules.get(entity.level());
         if (!rules.growthImpact()) return;
         int tier = io.github.r3neer.scalebrews.scale.ScaleSprintHandler.level(

@@ -1,0 +1,33 @@
+{
+  "entity": "minecraft:llama",
+  "enabled": true,
+  "friction": 0.6,
+  "surfaces": [
+    {
+      "id": "back",
+      "y": 1.375,
+      "width": 0.75,
+      "depth": 1.125,
+      "z": -0.0625,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.0625,
+        "z": 0.1875
+      }
+    },
+    {
+      "id": "head",
+      "y": 2.0625,
+      "width": 0.5,
+      "depth": 0.375,
+      "z": 0.5625,
+      "visual": {
+        "part": "head",
+        "x": 0,
+        "y": -1,
+        "z": -0.1875
+      }
+    }
+  ]
+}
