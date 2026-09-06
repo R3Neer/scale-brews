@@ -87,10 +87,11 @@ public final class TinyMounts {
         var held = player.getItemInHand(hand);
         boolean holdingSaddle = held.is(Items.SADDLE);
         boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
-        boolean saddling = holdingSaddle && !alreadySaddled;
-        boolean mounting = held.isEmpty() || (holdingSaddle && alreadySaddled) || definition.steeringItem()
+        boolean secondaryMount = mob instanceof TamableAnimal && player.isSecondaryUseActive();
+        boolean saddling = holdingSaddle && !alreadySaddled && !secondaryMount;
+        boolean mounting = secondaryMount || held.isEmpty() || (holdingSaddle && alreadySaddled) || definition.steeringItem()
                 .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
-        if (!saddling && !mounting) return InteractionResult.PASS; // Preserve feeding, breeding, naming, leads, etc.
+        if (!saddling && !mounting) return InteractionResult.PASS;
         if (player.isSpectator()) return InteractionResult.PASS;
         // Tameable normal clicks belong to vanilla (sit, stand, feed). Equipment is independent of rider size.
         if (!saddling && player.isSecondaryUseActive() != (mob instanceof TamableAnimal)) return InteractionResult.PASS;

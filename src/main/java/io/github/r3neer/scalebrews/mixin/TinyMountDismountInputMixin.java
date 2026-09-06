@@ -9,12 +9,20 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /** Release the mounting Shift gesture before treating a new press as dismount. */
 @Mixin(Player.class)
 public abstract class TinyMountDismountInputMixin {
     @Unique private Entity scalebrews$inputVehicle;
     @Unique private boolean scalebrews$awaitShiftRelease;
+    @Inject(method = "removeVehicle", at = @At("HEAD"))
+    private void scalebrews$resetDismountGesture(CallbackInfo ci) {
+        // wantsToStopRiding is not polled while walking. A new ride of the same
+        // animal must therefore reset through the actual dismount lifecycle.
+        scalebrews$inputVehicle = null;
+        scalebrews$awaitShiftRelease = false;
+    }
     @Inject(method = "wantsToStopRiding", at = @At("HEAD"), cancellable = true)
     private void scalebrews$dismount(CallbackInfoReturnable<Boolean> cir) {
         var player = (Player)(Object)this;

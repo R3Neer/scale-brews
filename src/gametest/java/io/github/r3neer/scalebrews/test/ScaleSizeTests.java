@@ -65,6 +65,7 @@ public class ScaleSizeTests {
     }
 
     @GameTest public void externalSizeAndImpactThresholds(GameTestHelper h) {
+        ImpactSurfaceTests.flatFloor(h,19);
         var p=h.makeMockPlayer(GameType.SURVIVAL);
         p.setPos(h.absoluteVec(new Vec3(1,20,1)));
         var target=h.spawnWithNoFreeWill(EntityTypes.PIG,2.5F,20,1);

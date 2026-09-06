@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - mount gesture and terrain impact fixes
+
+- Crouch + Use mounts configured tameables with any held item, without feeding, equipping or consuming it; ordinary Use retains those actions.
+- Reset mounting Crouch protection on dismount so the same animal can be ridden repeatedly.
+- Landing waves follow reachable collision surfaces with one-block ascent/descent, path-length range and falloff, and obstacle/gap checks.
+
+
 ## [0.1.0-beta.4] - Unreleased
 
 - Crouch + Use with a spare saddle now mounts an already-saddled tameable instead of falling through to its sit interaction. Respect configured controls, preserve equipment/inventory, and exercise real client input in the wolf regression test.

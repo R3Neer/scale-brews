@@ -20,6 +20,7 @@ import net.minecraft.world.level.GameType;
 
 public class ScaleCompatibilityTests {
     @GameTest public void moddedMobLanding(GameTestHelper h) {
+        ImpactSurfaceTests.flatFloor(h,1);
         if (!FabricLoader.getInstance().isModLoaded("alexsmobs")) { h.succeed(); return; }
         var type = BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath("alexsmobs", "grizzly_bear"));
         h.assertTrue(type != null, "Installed modded mob exists");

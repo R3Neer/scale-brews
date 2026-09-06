@@ -278,6 +278,7 @@ public class ScalePhysicsTests {
 
     @GameTest
     public void growthLandingWave(GameTestHelper h) {
+        ImpactSurfaceTests.flatFloor(h,1);
         var p = h.makeMockPlayer(GameType.SURVIVAL);
         p.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200);
         p.setHealth(p.getMaxHealth());

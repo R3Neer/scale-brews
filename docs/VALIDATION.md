@@ -195,3 +195,10 @@ Automatic surfaces are bounding-dimension support, not inferred mesh collision. 
 - All **80 required base server tests passed** after the production changes. New tests cover actual empty-hand/sword attack-range validation against a chicken beside the feet at each Growth tier, real melee damage, out-of-range rejection, all nine mixed potion pairs, external scales and return to normal.
 - The real-client suite passed cleanly at 20:24:17, including synchronized Growth III reach and vanilla eye-ray selection of a nearby chicken. Its first attempt exposed a test-fixture orientation error: teleport-facing defaults to the feet anchor. Using `anchored eyes` corrected the fixture without another gameplay change. Existing dedicated platform/vehicle checks and integrated camera/mount regressions also passed.
 - Validated in the isolated checkout with source-file hashes matching the working project. Candidate JAR SHA-256: `e04c9d39c4acb5a8ca55a7bf1afffc47d8417f863e253da46543d034c203ee0d`. This task does not replace the VP26/Modrinth installation, publish a release or certify all custom item attack-range components. Combatify's expected attribute multiplier was updated, but its optional-mod runtime matrix was not rerun.
+
+## Mount gestures and surface-following impacts (2026-09-06)
+
+- Isolated Java 25 build and all 86 required base server GameTests passed.
+- Complete base client suite passed, including actual Crouch + Use, dismount and same-wolf remount with stone, beef and saddle; held items and unsaddled equipment state remain unchanged.
+- Server cases cover saddle/no-saddle item matrices, configured cats, retained ordinary feeding, multi-level ascending/descending surfaces, path-budget detours, slabs, cliffs, gaps, airborne targets and a closed door.
+- Vanilla self fall damage, Growth damage thresholds and existing mounting/scale checks remain covered. Full-modpack human terrain and multiplayer acceptance have not been repeated for this change.

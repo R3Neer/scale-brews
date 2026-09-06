@@ -63,7 +63,7 @@ See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and ste
 
 ## Size changes the world
 
-- **Landing impacts:** Growth landings above three blocks push nearby entities, with gusts, ground particles and sound. Only Growth III falls above six blocks add radial damage, capped at two hearts before defenses and reduced with distance. Players and mobs with compatible fall physics can trigger the wave; their own fall damage remains intact. The wave does not destroy blocks.
+- **Landing impacts:** Growth landings above three blocks push nearby entities, with gusts, ground particles and sound. Only Growth III falls above six blocks add radial damage, capped at two hearts before defenses and reduced with distance. Players and mobs with compatible fall physics can trigger the wave; their own fall damage remains intact. The wave follows connected terrain surfaces, climbing or descending at most one block per step. Its range and falloff use the traveled path length, so stairs and short detours work while gaps and larger ledges block it. The wave does not destroy blocks.
 - **Creepers:** Growth multiplies actual explosion power by 1.15 / 1.30 / 1.50; Shrinking by 0.90 / 0.80 / 0.65. Vanilla blast radius, damage and block destruction follow that power. Charged creepers receive the same multipliers without an extra cap.
 - **Quiet footsteps and protected ground:** Shrinking II players bypass stone, polished-blackstone and iron pressure plates. III bypasses all standard pressure plates and cannot trample farmland or turtle eggs.
 - **Terrain and villagers:** Growth players resist soul sand and sweet berry bush slowdown without removing berry damage. Growth II/III scares nearby villagers through vanilla panic, without adding reputation penalties or automatic golem hostility.
@@ -73,7 +73,7 @@ See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and ste
 
 Equip an adult chicken, bee or tamed wolf with a saddle; equipping does not require being small. Riding does require the appropriate size ratio.
 
-For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with an empty hand. If the mount already has a saddle, you can also mount while holding a spare saddle; it is not consumed. Release Crouch before pressing it again to dismount. Other held items retain their normal interactions; use an empty hand when not equipping or riding with a saddle.
+For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with any item or an empty hand. This gesture mounts without using the held item, including food and saddles. Release Crouch before pressing it again to dismount; you can then mount the same animal again. Use without Crouch retains feeding, sitting and saddle equipment.
 
 | Mount | Controls |
 | --- | --- |

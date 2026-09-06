@@ -56,6 +56,7 @@ public class ScaleEntityTests {
     }
 
     @GameTest public void mobWaveConfiguration(GameTestHelper h) {
+        ImpactSurfaceTests.flatFloor(h,1);
         for (String json : java.util.List.of("{}", "{\"growth_landing_impact\":false}",
                 "{\"growth_landing_knockback\":false}", "{\"growth_landing_damage\":false}")) {
             var mob = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 2, 1);
@@ -249,6 +250,7 @@ public class ScaleEntityTests {
     }
 
     @GameTest public void mobLandingRetainsVanillaDamage(GameTestHelper h) {
+        ImpactSurfaceTests.flatFloor(h,1);
         var origin = h.absolutePos(new BlockPos(1, 2, 1));
         for (int tier = 1; tier <= 3; tier++) {
             var mob = h.spawnWithNoFreeWill(EntityTypes.PIG, 1, 2, 1);

@@ -177,3 +177,8 @@ Initial configurable limits:
 - [x] Replace loot's squared scale multiplier with scale^1.6; retain unbiased rounding and existing Looting/extra-roll composition.
 - [ ] Manual multi-player and modded-renderer acceptance, especially giant-player head animation with external player-model packs. Automatic physical support is not automatic mesh collision.
 - [x] Build, runtime tests, documentation and scoped commits/push; 78 base server tests, dedicated/integrated base client suite, 113 VP26 server tests and 4 Animal Weights bridge tests passed. Beta.4 installed; retain prior full-pack graphical/teardown QA limitations.
+
+## Mount gestures and terrain-following impacts
+
+- [x] Prioritize Crouch + Use with any held item for configured tameables; reset dismount gesture on every ride and verify repeated real client input.
+- [x] Propagate impacts along surface paths, with one-block maximum ascent/descent and path-length range; validate terrain and damage behavior. Build, 86 base server tests and complete base client suite passed.

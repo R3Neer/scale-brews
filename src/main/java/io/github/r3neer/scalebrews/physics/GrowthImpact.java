@@ -6,10 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public final class GrowthImpact {
@@ -44,19 +42,17 @@ public final class GrowthImpact {
         var source = new net.minecraft.world.damagesource.DamageSource(
                 level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DAMAGE_TYPE).getOrThrow(ScaleCombat.LANDING), entity);
         Vec3 origin = entity.position().add(0, 0.2, 0);
-        AABB area = new AABB(origin.x - radius, origin.y - 1, origin.z - radius,
-                origin.x + radius, origin.y + 2, origin.z + radius);
+        var surfaces = new ImpactSurfaces(level, entity.position(), radius);
+        AABB area = new AABB(origin.x - radius, entity.getY() - radius - .2, origin.z - radius,
+                origin.x + radius, entity.getY() + radius + .2, origin.z + radius);
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, area,
                 e -> e != entity && e.isAlive() && !e.isSpectator() && !entity.isAlliedTo(e))) {
             if (entity instanceof Player p && target instanceof Player other
                     && (!p.canHarmPlayer(other) || !level.isPvpAllowed())) continue;
             double dx = target.getX() - entity.getX();
             double dz = target.getZ() - entity.getZ();
-            double distance = Math.sqrt(dx * dx + dz * dz);
+            double distance = surfaces.distanceTo(target);
             if (distance >= radius) continue;
-            Vec3 destination = target.position().add(0, 0.2, 0);
-            if (level.clip(new ClipContext(origin, destination, ClipContext.Block.COLLIDER,
-                    ClipContext.Fluid.NONE, entity)).getType() != HitResult.Type.MISS) continue;
             float damage = damage(tier, fallDistance, distance / radius);
             if (damage > 0) target.hurtServer(level, source, damage);
             if (distance < 0.0001) { dx = 1; dz = 0; }
