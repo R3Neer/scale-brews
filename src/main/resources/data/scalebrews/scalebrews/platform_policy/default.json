@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "max_width_ratio": 0.6,
+  "max_width_ratio": 0.85,
   "bodies": {
     "players": true,
     "mobs": true,

@@ -37,7 +37,7 @@ public class PlatformTests {
                 com.google.gson.JsonParser.parseString(json)).getOrThrow();
             h.assertFalse(PlatformEligibility.allows(policy,profile,"boats",.3),"Decoded switch affects live eligibility predicate: "+json);
         }
-        h.assertTrue(PlatformEligibility.allows(PlatformPolicy.DEFAULT,profile,"boats",.6),"Defaults include equality at limit");
+        h.assertTrue(PlatformEligibility.allows(PlatformPolicy.DEFAULT,profile,"boats",.85),"Defaults include equality at limit");
         h.assertFalse(PlatformEligibility.allows(PlatformPolicy.DEFAULT,null,"boats",.3),"No profile means no support");
         var happy=h.spawn(EntityTypes.HAPPY_GHAST,2,30,2);
         h.assertTrue(Platforms.definition(happy)==null,"Happy Ghast remains outside custom platform registry");
@@ -88,11 +88,30 @@ public class PlatformTests {
         h.assertTrue(PlatformMovementReference.resolve(body,absolute).equals(absolute),"Large spoofed reference rejected");
         h.succeed();
     }
+    @GameTest public void closerSizeContactAndTransport(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.GHAST,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockPlayer(GameType.SURVIVAL);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.8*support.getBbWidth()/body.getBbWidth());
+        body.refreshDimensions();
+        body.setPos(support.position().add(0,5,0));
+        body.move(MoverType.SELF,new Vec3(0,-2,0));
+        h.assertTrue(Platforms.state(body).support==support,"80% width body lands on larger support");
+        body.move(MoverType.SELF,new Vec3(.1,0,0));
+        h.assertTrue(Platforms.supported(body),"Closer-size body can walk on surface");
+        var before=body.position();
+        support.setPos(support.position().add(.2,0,.1));PlatformPhysics.carry(body);
+        near(h,body.position().distanceTo(before.add(.2,0,.1)),0,"Closer-size body travels with support");
+        body.getAttribute(Attributes.SCALE).setBaseValue(body.getScale()/ .8);
+        body.refreshDimensions();
+        h.assertFalse(Platforms.eligible(body,support),"Equal-width bodies remain ineligible");
+        h.succeed();
+    }
     @GameTest public void widthBoundaryAndForeignScale(GameTestHelper h) {
         var support=h.spawn(EntityTypes.PIG,2,20,2); support.setNoAi(true);
         var body=h.makeMockPlayer(GameType.SURVIVAL);
         support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
-        double limit=.6*support.getBbWidth()/body.getBbWidth();
+        double limit=.85*support.getBbWidth()/body.getBbWidth();
         body.getAttribute(Attributes.SCALE).setBaseValue(limit*.9999);body.refreshDimensions();
         h.assertTrue(Platforms.eligible(body,support),"External scale just below ratio accepted");
         body.getAttribute(Attributes.SCALE).setBaseValue(limit*1.0001);body.refreshDimensions();

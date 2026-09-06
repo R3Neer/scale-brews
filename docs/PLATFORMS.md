@@ -6,7 +6,7 @@ Living platforms let smaller physical bodies stand on, move across and travel wi
 
 - Right-click a profiled support with a boat/raft item (including chest variants) or spawn egg to place it on the nearest defined surface. Placement requires the full oriented footprint to fit, a valid width ratio, clear space and build permission. Failed placement consumes nothing; creative placement preserves the item. The new body immediately joins the ordinary support/transport system, without becoming a passenger.
 
-- The transported body's current bounding-box width must be at most 60% of the support's current width. Both dimensions include actual scale changes, including other mods.
+- The transported body's current bounding-box width must be at most 85% of the support's current width. Both dimensions include actual scale changes, including other mods.
 - Players, mobs, boats/rafts, off-rail minecarts, dropped items and falling blocks can be transported. Passengers follow their existing vehicle; they do not acquire independent support. Projectiles are excluded.
 - Mobs do not plan paths over living platforms. Falling, ordinary movement, pushing and leads can bring them onto a surface.
 - Only top surfaces are added. Ordinary side collisions remain, except for the specific support/body pair when they would prevent contact with an anatomical surface.
@@ -28,7 +28,7 @@ Override `data/scalebrews/scalebrews/platform_policy/default.json`:
 ```json
 {
   "enabled": true,
-  "max_width_ratio": 0.6,
+  "max_width_ratio": 0.85,
   "bodies": {
     "players": true,
     "mobs": true,
@@ -52,7 +52,7 @@ Add a profile at `data/<your_namespace>/scalebrews/entity_platform/<name>.json`:
   "entity": "example:pack_animal",
   "enabled": true,
   "friction": 0.6,
-  "max_width_ratio": 0.6,
+  "max_width_ratio": 0.85,
   "surfaces": [
     {
       "id": "back",

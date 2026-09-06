@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased — scale materials and wolf mounts
+## Unreleased ï¿½ scale materials and wolf mounts
 
+- Living platforms now accept bodies up to 85% of their support width (previously 60%), allowing closer-sized entities to stand and walk on them.
 - Entity-scoped reloadable material drops based on actual scale squared, including installed-mod compatibility and intentional farm production.
 - Shared tamed-wolf tiny mount with independent saddle/armor, direct controls and charged pounce.
 - Separate Animal Weights bridge for physical-volume space and crowding.

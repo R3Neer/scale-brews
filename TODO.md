@@ -153,3 +153,7 @@ Initial configurable limits:
 - [x] Transient real-damage betrayal attribution without ownership/equipment changes.
 - [x] Complete final modded/server/client validation and integration with concurrent work.
 - [ ] Human two-player/latency acceptance of borrowed wolf combat and all requested gameplay cases.
+
+## Closer-size living platforms (2026-09-06)
+
+- [x] Raise the default supported-body width limit from 60% to 85%; validate boundary and actual contact/transport, retaining configurable overrides. Build and 72 required server tests pass; the client suite passes on retry after an initial dedicated-server startup timeout.
