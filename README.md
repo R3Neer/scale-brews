@@ -1,53 +1,128 @@
 # Scale Brews
 
-Growth and Shrinking potions for Minecraft **26.2 / Fabric / Java 25**. Install Fabric API and this mod on the client and server. Licensed under GPL-3.0-or-later.
+Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens and bees, and bring size-based mechanics to the world around you.
 
-Both effects have three potion levels. They change physical size, health, damage, reach and knockback; Growth also increases step height. Size transitions take one second. Health changes preserve the percentage of remaining health.
+Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. This is a development mod; the tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
 
-Walking and sprint balance (sprint multiplies the current walking speed):
+## Installation
 
-| Effect | I | II | III |
+Requires **Java 25**, **Fabric Loader 0.19.5 or newer**, and **Fabric API** for Minecraft 26.2.
+
+1. Build the mod using the [development instructions](#development), or obtain the JAR from a successful [GitHub Actions build](https://github.com/R3Neer/scale-brews/actions/workflows/build.yml).
+2. Put the mod JAR and Fabric API in your instance's `mods` directory. Use the regular JAR, not the `-sources.jar`.
+3. For multiplayer, install the mod and Fabric API on **both the server and every client**.
+
+Combatify and Alex's Mobs Continued are optional, not required dependencies. No public release is required to build and try the current source.
+
+## Brew your first potions
+
+Start with an Awkward Potion in a brewing stand.
+
+| Input | Ingredient | Result |
+| --- | --- | --- |
+| Awkward Potion | Slime Ball* | Growth I |
+| Growth I / II | Glowstone Dust | Growth II / III |
+| Growth, any level | Fermented Spider Eye | Shrinking at the same level |
+| Shrinking I / II | Glowstone Dust | Shrinking II / III |
+| Either family | Gunpowder, then Dragon's Breath | Splash, then lingering form |
+
+*If `alexsmobs:elastic_tendon` is registered, **Elastic Tendon replaces Slime Ball** as the starting ingredient.
+
+Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / III. Redstone-extended variants are not implemented.
+
+## Bigger or smaller?
+
+**Growth** makes you larger, tougher and stronger, with more health, interaction reach and step height. Walking feels like longer strides, while sprinting adds progressively less acceleration. Physical activity costs more exhaustion.
+
+**Shrinking** trades health, damage and reach for a smaller body, explosive sprinting, slightly stronger jumps and lower physical exhaustion. It also reduces fall damage and movement-vibration detection range, with Swift Sneak synergy at levels II and III.
+
+| Default effect | I | II | III |
 | --- | ---: | ---: | ---: |
-| Growth walking | 1.08x | 1.16x | 1.24x |
-| Growth sprint | 1.20x | 1.12x | 1.05x |
-| Shrinking walking | 0.92x | 0.84x | 0.76x |
-| Shrinking sprint | 1.50x | 1.90x | 2.50x |
+| Growth size | 1.96× | 2.92× | 3.88× |
+| Shrinking size | 0.76× | 0.52× | 0.28× |
+| Growth walking speed | 1.08× | 1.16× | 1.24× |
+| Growth sprint multiplier | 1.20× | 1.12× | 1.05× |
+| Shrinking walking speed | 0.92× | 0.84× | 0.76× |
+| Shrinking sprint multiplier | 1.50× | 1.90× | 2.50× |
 
-Normal sprint is 1.30x. Neither effect alone beats the sprint speed of Speed at the same level; Speed stacks multiplicatively with both. Shrinking increases jump strength by 2.5/5/7.5%; Growth does not change jump strength. Physical exhaustion from movement, jumping and attacks changes by +10/+20/+30% with Growth and -5/-10/-15% with Shrinking. Regeneration, Hunger, received damage and food nutrition are untouched.
+Size and walking values are relative to normal, without other modifiers. Sprint multiplies the **current walking speed**, replacing vanilla's 1.30× sprint factor. On ordinary ground, neither effect alone beats Speed of the same level while sprinting; Speed still stacks with both.
 
-When small in first person, the camera's near clipping plane and view-bobbing amplitude shrink with the actual size. This reduces close-corner clipping without changing collision, speed or FOV. Normal size, Growth and third person retain vanilla camera behavior.
+Physical size blends over **20 ticks** when effects begin, change or end. Health changes preserve your remaining-health percentage. Other attribute changes are immediate. Vanilla arrow and trident damage is not scaled by the shooter's effect.
 
-Growth landings above three blocks push nearby entities with gust and ground particles, for players and mobs with compatible fall physics. Only level III above six blocks adds damage, capped at two hearts before defenses and decreasing with distance. The falling entity still takes its normal fall damage. Growth also resists soul sand and sweet berry bush slowdown for players.
+The small-player first-person camera uses size-aware near clipping and reduced view bobbing to mitigate seeing through close block corners. This does not replace collision physics or change your FOV.
 
-Creeper explosion power scales with Growth (1.15/1.30/1.50x) and Shrinking (0.90/0.80/0.65x), affecting vanilla blast radius, damage and block destruction. Charged creepers use the same multipliers without an extra cap: Growth III reaches power 9.
+See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and stealth behavior.
 
-Shrinking reduces fall damage, shortens the detection range of movement vibrations and enhances Swift Sneak at levels II/III. Level II stops activating stone/iron pressure plates; III stops activating all pressure plates and cannot trample farmland or turtle eggs. These additional physical mechanics affect players.
+## Size changes the world
 
-Both powers appear in a beacon's third tier. A full beacon can upgrade either to level II; level III remains potion-only. English and Spanish translations and original effect icons are included. Bottle models and potion tinting use Minecraft's normal resource system.
+- **Landing impacts:** Growth landings above three blocks push nearby entities, with gusts, ground particles and sound. Only Growth III falls above six blocks add radial damage, capped at two hearts before defenses and reduced with distance. Players and mobs with compatible fall physics can trigger the wave; their own fall damage remains intact. The wave does not destroy blocks.
+- **Creepers:** Growth multiplies actual explosion power by 1.15 / 1.30 / 1.50; Shrinking by 0.90 / 0.80 / 0.65. Vanilla blast radius, damage and block destruction follow that power. Charged creepers receive the same multipliers without an extra cap.
+- **Quiet footsteps and protected ground:** Shrinking II players bypass stone, polished-blackstone and iron pressure plates. III bypasses all standard pressure plates and cannot trample farmland or turtle eggs.
+- **Terrain and villagers:** Growth players resist soul sand and sweet berry bush slowdown without removing berry damage. Growth II/III scares nearby villagers through vanilla panic, without adding reputation penalties or automatic golem hostility.
+- **Beacons:** Both effects become primary-power choices with a three-layer pyramid. A full pyramid can upgrade either to level II; III remains potion-only.
 
-## Tiny mounts and configuration
+## Tiny mounts
 
-Small enough riders can saddle and ride adult chickens (WASD, hold Space while falling to glide) and bees (look-directed flight with a Flower on a Stick). Their maximum rider/mount effective SCALE ratio is 0.53 by default: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small. Craft the steering item from a fishing rod and any vanilla small flower. Both mounts have separate, hand-authored saddle layers.
+Saddle an adult chicken or bee while small enough to ride it.
 
-Living mounts use configurable size ratios, including external scale modifiers and gradual transitions. Most default to 1.0, camels to 1.1, happy ghasts to 2.0; boats/minecarts are exempt. Growth II can ride a Growth II/III horse; Growth is no longer a blanket mounting ban. Native age, taming, saddle and passenger restrictions remain. Growth II/III also scares nearby villagers through vanilla panic, without reputation penalties or automatic golem hostility.
+| Mount | Controls |
+| --- | --- |
+| Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
+| Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
 
-Tiny Mounts, individual mounts, villager fear, the complete Growth landing effect (knockback plus level-III damage) and environmental interactions can be enabled or disabled using server-owned JSON. The landing effect has one combined switch, not separate push/damage controls; ordinary knockback and self fall damage remain untouched. Everything defaults to enabled. See [configuration and mount definitions](docs/CONFIGURATION.md) and the ready-to-edit `examples/world-config` datapack.
+Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Both mounts use vanilla saddles, one rider, and separate hand-authored saddle layers. Mounted bees stay out of hives.
 
-## Brewing
+Riding eligibility uses the rider's **effective SCALE divided by the mount's**, including gradual transitions and other attribute modifiers. Chicken and bee default to a maximum ratio of **0.53**: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small.
 
-1. Awkward potion + slime ball -> Growth. If `alexsmobs:elastic_tendon` is registered, that item replaces the slime ball.
-2. Glowstone upgrades either family I -> II -> III.
-3. Fermented spider eye converts Growth to Shrinking, retaining potency.
-4. Vanilla gunpowder and dragon breath conversions provide splash and lingering forms.
+Other living mounts have configurable limits: most default to 1.0, camels to 1.1 and happy ghasts to 2.0. Growth II can ride a Growth II/III horse. Native age, taming, saddle and passenger rules still apply; this policy never grants new riding permissions. Boats and minecarts are exempt.
 
-Durations are 3 minutes, 90 seconds and 45 seconds respectively. Redstone extended variants are not implemented yet. Alex's Mobs is optional; its item lookup is checked at runtime.
+## World configuration
+
+Copy the [example datapack](examples/world-config) into your world's `datapacks` directory and edit its JSON. Rules belong to the server/world and synchronize to clients. **Restart the server or reopen the world** after changing these registries; `/reload` alone is not supported.
+
+All optional mechanics default to enabled. Configure:
+
+- Tiny Mounts as a whole, individual mount types, controls and saddle visuals.
+- Living-mount size ratios, independently of the Tiny Mounts switch.
+- Villager fear.
+- The combined Growth landing impact.
+- Environmental interactions, with individual controls for farmland, pressure plates, turtle eggs, quiet movement and terrain resistance.
+
+**`growth_landing_impact: false` disables the entire landing wave:** radial knockback, additional level-III damage and its visual/sound feedback. It does not disable ordinary melee knockback, damage recoil or the falling entity's own fall damage.
+
+See [Configuration](docs/CONFIGURATION.md) for paths, complete JSON examples, extension points and migration from older settings.
+
+## Compatibility and validation
+
+The current suite has **35 required server GameTests**, plus a real client/integrated-server test covering camera, beacons, resources, synchronization and tiny-mount input.
+
+Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
+
+These are bounded integration tests, **not a guarantee for every modpack, configuration or future version**. Custom projectile, camera, movement or multipart-entity implementations may need additional integration. See [Validation](docs/VALIDATION.md) for coverage and known limitations.
 
 ## Development
 
-Run `./gradlew build` (Windows: `.\gradlew.bat build`) for the JAR and server GameTests. Run `./gradlew runClientGameTest` for the automated beacon/resources/client synchronization check. The tests use disposable development worlds, separate from `run/saves`.
+Use the included Gradle wrapper; a separate Gradle installation is not needed.
 
-For OneDrive checkouts, generated output can be redirected with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test run directories remain under `build/run`; automatic test-directory deletion is disabled to avoid OneDrive locking issues. The source checkout remains in place.
+```powershell
+# Build the JAR and run server GameTests
+.\gradlew.bat build
 
-Recreate the original silhouette-and-arrow pixel-art PNGs with `java tools/GenerateArt.java`. The generated assets share the repository license and contain no third-party artwork. Vanilla bottle art, particles and sounds are reused by reference, not redistributed. See [art direction](docs/ART.md).
+# Run the real client/integrated-server GameTest
+.\gradlew.bat runClientGameTest
 
-See [mechanics and integration details](docs/MECHANICS.md), [Git policy](CONTRIBUTING.md), [validation](docs/VALIDATION.md) and [remaining work](TODO.md). This is a development mod; full modpack/mount/collision playtesting and a public release are still pending.
+# Launch a development client
+.\gradlew.bat runClient
+```
+
+On Linux/macOS, use `./gradlew` instead. JARs are written to `build/libs` by default.
+
+For a checkout in OneDrive, redirect generated output with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test directories remain under `build/run`; tests use development worlds rather than your normal saves. Optional compatibility JARs can be supplied with `-PscalebrewsCompatMods=C:/path/to/test-mods`; they are not bundled in the production mod.
+
+See [Contributing and Git policy](CONTRIBUTING.md), [Mechanics](docs/MECHANICS.md) and [Work tracking](TODO.md).
+
+## License and artwork
+
+Licensed under [GPL-3.0-or-later](LICENSE).
+
+Effect icons, saddle textures and the flower overlay are hand-authored pixel art, reproducible with `java tools/GenerateArt.java`; no image-generation models are used. Generated assets share the repository license. Minecraft textures, particles and sounds are reused by reference rather than redistributed. See [Art direction](docs/ART.md).
