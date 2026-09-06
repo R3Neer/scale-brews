@@ -2,6 +2,8 @@
 
 ## [0.1.0-beta.4] - Unreleased
 
+- Crouch + Use with a spare saddle now mounts an already-saddled tameable instead of falling through to its sit interaction. Respect configured controls, preserve equipment/inventory, and exercise real client input in the wolf regression test.
+
 - Rebalance Growth entity reach to +50% / +100% / +150%, following effective size so ordinary melee can reach small targets beside giant feet. Preserve block reach and Shrinking penalties; cover actual weapon range, mixed effects and external sizes with regression tests.
 
 - Automatic physical support for compatible living species without per-model profiles; optional anatomical profiles remain authoritative, especially the animated player-head contact. Add cat/iron golem refinements and correct villager head height.

@@ -2,6 +2,8 @@
 
 ## Giant melee reach follow-up
 
+- [x] Wolf crouch + use: distinguish equipping a saddle from riding an already-saddled wolf while holding a spare saddle; real client input, reassigned controls, inventory retention and release-before-dismount verified. Build, 80 server tests and full base client suite passed.
+
 - [x] Rebalance entity reach to 4.5 / 6 / 7.5 blocks at Growth I/II/III survival baseline, following effective scale and preserving block reach and Shrinking balance.
 - [x] Validate foot-level melee regression, mixed/external sizes, build and client runtime: 80 base server tests and the real-client suite pass, including Growth III eye-ray targeting beside the feet.
 

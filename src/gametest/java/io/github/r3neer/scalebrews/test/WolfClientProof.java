@@ -11,6 +11,12 @@ public class WolfClientProof implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         var properties=new java.util.Properties();
         properties.setProperty("allow-flight","false");
+        var previousBindings=context.computeOnClient(client -> new String[]{client.options.keyShift.saveString(), client.options.keyUse.saveString()});
+        context.runOnClient(client -> {
+            client.options.keyShift.setKey(com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard.c"));
+            client.options.keyUse.setKey(com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard.r"));
+            net.minecraft.client.KeyMapping.resetMapping();
+        });
         try(var server=context.worldBuilder().createServer(properties); var connection=server.connect()) {
             server.runCommand("fill -10 -61 -10 20 -61 30 minecraft:stone");
             server.runCommand("summon minecraft:wolf 0 -60 4 {Tags:[\"wolf_proof\"],Silent:1b}");
@@ -29,20 +35,31 @@ public class WolfClientProof implements FabricClientGameTest {
             server.runCommand("tp @a 2 -60 1 35 20");
             context.waitTicks(10);
             context.takeScreenshot("scale-brews-wolf-saddle-armor");
+            server.runOnServer(s->{
+                var player=s.getPlayerList().getPlayers().getFirst();
+                player.getAttribute(Attributes.SCALE).setBaseValue(.76);
+                player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,new ItemStack(Items.SADDLE,2));
+            });
+            server.runCommand("tp @a 0 -60 2.5");
+            context.waitTicks(25);
             context.runOnClient(client->client.options.keyShift.setDown(true));
-            context.waitTicks(3);
+            context.waitTicks(5);
+            server.runCommand("execute as @a at @s anchored eyes run tp @s ~ ~ ~ facing entity @e[tag=wolf_proof,limit=1] eyes");
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                if (!(client.hitResult instanceof net.minecraft.world.phys.EntityHitResult hit) || hit.getEntity().getId()!=wolfId[0])
+                    throw new AssertionError("Actual use input is not pointing at the wolf");
+            });
+            context.getInput().holdKeyFor(options -> options.keyUse, 1);
+            context.waitTicks(8);
+            server.runOnServer(s->{if(s.getPlayerList().getPlayers().getFirst().getVehicle()==null)
+                throw new AssertionError("Actual crouch + use did not mount/stay mounted on sitting wolf");});
             server.runOnServer(s->{
                 var player=s.getPlayerList().getPlayers().getFirst();
                 var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
-                player.getAttribute(Attributes.SCALE).setBaseValue(.76);
-                wolf.setOrderedToSit(false);wolf.setInSittingPose(false);
-                player.setShiftKeyDown(true);
-                wolf.interact(player,net.minecraft.world.InteractionHand.MAIN_HAND,Vec3.ZERO);
-                if(player.getVehicle()!=wolf)throw new AssertionError("Shift interaction mount rejected");
+                if(player.getMainHandItem().getCount()!=2 || !wolf.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))
+                    throw new AssertionError("Riding with a spare saddle consumed/replaced equipment");
             });
-            context.waitTicks(8);
-            server.runOnServer(s->{if(s.getPlayerList().getPlayers().getFirst().getVehicle()==null)
-                throw new AssertionError("Mounting Shift immediately dismounted player");});
             context.runOnClient(client->client.options.keyShift.setDown(false));
             context.waitTicks(25);
             context.runOnClient(client->{
@@ -88,6 +105,14 @@ public class WolfClientProof implements FabricClientGameTest {
                 if(client.player.isPassenger())throw new AssertionError("New Shift press did not dismount");
             });
             context.runOnClient(client->client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON));
+        } finally {
+            context.runOnClient(client -> {
+                client.options.keyShift.setDown(false);
+                client.options.keyUse.setDown(false);
+                client.options.keyShift.setKey(com.mojang.blaze3d.platform.InputConstants.getKey(previousBindings[0]));
+                client.options.keyUse.setKey(com.mojang.blaze3d.platform.InputConstants.getKey(previousBindings[1]));
+                net.minecraft.client.KeyMapping.resetMapping();
+            });
         }
     }
 }

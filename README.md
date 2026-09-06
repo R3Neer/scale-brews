@@ -71,7 +71,9 @@ See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and ste
 
 ## Tiny mounts
 
-Saddle an adult chicken, bee or tamed wolf while small enough to ride it.
+Equip an adult chicken, bee or tamed wolf with a saddle; equipping does not require being small. Riding does require the appropriate size ratio.
+
+For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with an empty hand. If the mount already has a saddle, you can also mount while holding a spare saddle; it is not consumed. Release Crouch before pressing it again to dismount. Other held items retain their normal interactions; use an empty hand when not equipping or riding with a saddle.
 
 | Mount | Controls |
 | --- | --- |

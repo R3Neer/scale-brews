@@ -85,8 +85,10 @@ public final class TinyMounts {
         var definition = definition(mob);
         if (definition == null || !mob.isAlive()) return InteractionResult.PASS;
         var held = player.getItemInHand(hand);
-        boolean saddling = held.is(Items.SADDLE);
-        boolean mounting = held.isEmpty() || definition.steeringItem()
+        boolean holdingSaddle = held.is(Items.SADDLE);
+        boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
+        boolean saddling = holdingSaddle && !alreadySaddled;
+        boolean mounting = held.isEmpty() || (holdingSaddle && alreadySaddled) || definition.steeringItem()
                 .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
         if (!saddling && !mounting) return InteractionResult.PASS; // Preserve feeding, breeding, naming, leads, etc.
         if (player.isSpectator()) return InteractionResult.PASS;

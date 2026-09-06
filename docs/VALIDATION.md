@@ -185,6 +185,12 @@ Automatic surfaces are bounding-dimension support, not inferred mesh collision. 
 
 ## Giant melee reach (2026-09-06)
 
+### Wolf saddle-in-hand interaction follow-up
+
+- Holding a saddle on an already-saddled tameable now enters the riding branch when using the configured Crouch + Use gesture. Empty saddle slots still use the equipment path; ordinary tameable Use and unrelated held-item interactions are preserved.
+- Replaced the wolf client fixture's direct server-side `wolf.interact` call with actual client Use input and normal interaction packets against a sitting wolf. Empty-hand input passed before the production fix, narrowing the reported failure to the held-saddle path. The final test rebinds Crouch to C and Use to R, preserves two held saddles plus installed equipment, and verifies staying mounted until Crouch is released and pressed again. Bindings are restored afterward.
+- Final `build runClientGameTest --offline` passed: **80 required server tests**, dedicated wolf/platform tests and integrated client suite, clean exit at 20:38:47. An earlier diagnostic client run passed its wolf case but timed out starting the unrelated platform dedicated-server fixture; the final complete run passed. No VP26 installation or release/tag changes were made.
+
 - Growth entity reach now uses +50% per equivalent physical growth level: 4.5 / 6 / 7.5 blocks from the normal survival baseline. Block reach and Shrinking penalties are unchanged. Growth reach continues linearly beyond tier III for external sizes, within vanilla attribute limits; the size-change cache now tracks actual SCALE rather than its capped equivalent tier.
 - All **80 required base server tests passed** after the production changes. New tests cover actual empty-hand/sword attack-range validation against a chicken beside the feet at each Growth tier, real melee damage, out-of-range rejection, all nine mixed potion pairs, external scales and return to normal.
 - The real-client suite passed cleanly at 20:24:17, including synchronized Growth III reach and vanilla eye-ray selection of a nearby chicken. Its first attempt exposed a test-fixture orientation error: teleport-facing defaults to the feet anchor. Using `anchored eyes` corrected the fixture without another gameplay change. Existing dedicated platform/vehicle checks and integrated camera/mount regressions also passed.
