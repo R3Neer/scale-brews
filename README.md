@@ -17,7 +17,9 @@ Normal sprint is 1.30x. Neither effect alone beats the sprint speed of Speed at 
 
 When small in first person, the camera's near clipping plane and view-bobbing amplitude shrink with the actual size. This reduces close-corner clipping without changing collision, speed or FOV. Normal size, Growth and third person retain vanilla camera behavior.
 
-Growth landings above three blocks push nearby entities with gust and ground particles. Only level III above six blocks adds damage, capped at two hearts before defenses and decreasing with distance. Growth also resists soul sand and sweet berry bush slowdown.
+Growth landings above three blocks push nearby entities with gust and ground particles, for players and mobs with compatible fall physics. Only level III above six blocks adds damage, capped at two hearts before defenses and decreasing with distance. The falling entity still takes its normal fall damage. Growth also resists soul sand and sweet berry bush slowdown for players.
+
+Creeper explosion power scales with Growth (1.15/1.30/1.50x) and Shrinking (0.90/0.80/0.65x), affecting vanilla blast radius, damage and block destruction. Charged creepers use the same multipliers without an extra cap: Growth III reaches power 9.
 
 Shrinking reduces fall damage, shortens the detection range of movement vibrations and enhances Swift Sneak at levels II/III. Level II stops activating stone/iron pressure plates; III stops activating all pressure plates and cannot trample farmland or turtle eggs. These additional physical mechanics affect players.
 
@@ -25,9 +27,11 @@ Both powers appear in a beacon's third tier. A full beacon can upgrade either to
 
 ## Tiny mounts and configuration
 
-Shrinking II/III can saddle and ride adult chickens (WASD, hold Space while falling to glide) and bees (look-directed flight with a Flower on a Stick). Craft the steering item from a fishing rod and any vanilla small flower. Both mounts have separate, hand-authored saddle layers. Growth prevents riding living creatures but not boats/minecarts; Growth II/III also scares nearby villagers through vanilla panic, without reputation penalties or automatic golem hostility.
+Small enough riders can saddle and ride adult chickens (WASD, hold Space while falling to glide) and bees (look-directed flight with a Flower on a Stick). Their maximum rider/mount effective SCALE ratio is 0.53 by default: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small. Craft the steering item from a fishing rod and any vanilla small flower. Both mounts have separate, hand-authored saddle layers.
 
-Tiny Mounts, individual mounts, villager fear, landing-wave damage/push and environmental interactions can be enabled or disabled using server-owned JSON. Everything defaults to enabled. See [configuration and mount definitions](docs/CONFIGURATION.md) and the ready-to-edit `examples/world-config` datapack.
+Living mounts use configurable size ratios, including external scale modifiers and gradual transitions. Most default to 1.0, camels to 1.1, happy ghasts to 2.0; boats/minecarts are exempt. Growth II can ride a Growth II/III horse; Growth is no longer a blanket mounting ban. Native age, taming, saddle and passenger restrictions remain. Growth II/III also scares nearby villagers through vanilla panic, without reputation penalties or automatic golem hostility.
+
+Tiny Mounts, individual mounts, villager fear, the complete Growth landing effect (knockback plus level-III damage) and environmental interactions can be enabled or disabled using server-owned JSON. The landing effect has one combined switch, not separate push/damage controls; ordinary knockback and self fall damage remain untouched. Everything defaults to enabled. See [configuration and mount definitions](docs/CONFIGURATION.md) and the ready-to-edit `examples/world-config` datapack.
 
 ## Brewing
 

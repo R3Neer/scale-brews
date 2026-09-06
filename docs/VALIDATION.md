@@ -6,7 +6,7 @@ Validated on Windows with Microsoft OpenJDK 25.0.3, Minecraft 26.2, Fabric Loade
 
 2026-09-05: full build passed with all 14 required server tests; the client GameTest passed, including camera projection/bobbing checks. The close-corner screenshot was inspected: both stone faces remain opaque. English/Spanish key sets match and the production JAR excludes test classes.
 
-`./gradlew build --offline -PscalebrewsBuildDir=<local-output>` compiles/packages the mod and runs server GameTests. The suite contains 13 mod tests plus Fabric's default test. Tests cover:
+`./gradlew build --offline -PscalebrewsBuildDir=<local-output>` compiles/packages the mod and runs server GameTests. The initial suite contained 13 mod tests plus Fabric's default test (expanded below). Tests cover:
 
 - All walking/sprint levels, removal, changes while already sprinting, Speed stacking and relative balance.
 - Shrinking jump-strength bonuses at all tiers, removal and composition with another jump modifier.
@@ -42,10 +42,27 @@ The expanded suite has 21 mod tests plus Fabric's default test. The 22-test serv
 
 The client tests exposed and fixed a passenger-packet race: mounting restrictions must be server-authoritative, because the client can receive passenger state before equipment/effect updates. Original camera/beacon/scale-sync checks remain in the same run. The saddle and held-item screenshots were visually inspected.
 
+## Effective-scale mounts, explosions and general landings (2026-09-06)
+
+The current suite contains 34 mod tests plus Fabric's default test. All 35 required server tests pass both with the base Fabric setup and with Combatify 1.4.0-26.2 / Alex's Mobs Continued 2.1.9. The real client/integrated-server GameTest also passes in both configurations, including mounting/input, synced data, camera and beacon checks. Added coverage includes:
+
+- Effective rider/mount SCALE matrices, external modifiers, transition-time dismounts, exact inclusive JSON boundaries, configurable fallback/overrides and legacy tiny-definition migration. Native saddle/age/passenger restrictions and boat/minecart exemptions remain covered.
+- Actual normal/charged creeper explosions at every level: observed final vanilla radius, increasing/decreasing damage, distant blast reach and block destruction. Actual splash/lingering effect delivery also reaches the same explosion hook.
+- Player and mob landing hooks, a natural gravity-driven mob fall, all Growth tiers, bounded wave damage, particles, native landing game events and retained self fall damage. Flying/no-fall negatives do not trigger a wave.
+- The single combined landing switch disables both push and damage plus wave feedback. Legacy separate false switches migrate to combined-off; encoding omits old keys. Ordinary damage recoil and self fall damage remain active with the wave disabled.
+- Optional integration tests exercise Combatify weapon-dependent reach (hand, sword, axe, trident), scaled attack knockback, Alex's actual tendon brewing ingredient and a Growth grizzly-bear landing. These optional branches run only when their mods are present, not in ordinary CI.
+- Small sprinting player collision against perpendicular block walls and elytra eligibility at every Growth/Shrinking tier. These are bounded regression fixtures, not an exhaustive collision/flight simulation.
+
+Use `-PscalebrewsCompatMods=<directory-with-jars>` with `runGameTest runClientGameTest` to add optional mods to the test runtime only. The isolated check used Atlas Core 1.1.3-26.2, Defaulted 1.3.8, CodxLib 1.5.1 and Cloth Config 26.2.155 alongside the two mods. It does not edit the user's modpack or bundle these dependencies in the production JAR. Cloth Config is needed by Atlas Core's client UI.
+
+Combatify's alternate knockback wrapper bypassed the original HEAD injection. The shared hook now wraps outside Combatify's priority-1400 method (priority 1500), passing the scaled input into its physics without replacing them. Runtime tests verify the resulting behavior, including the landing-source exclusion. Combatify's configured regeneration timing is compared against an unscaled control rather than imposing vanilla's tick schedule.
+
+The optional-mod run logs upstream/default-configuration warnings for Combatify optional weapon recipes/enchantment tags and an Alex's loot-table context. Successful Scale Brews tests do not certify those unrelated data files or the complete modpack.
+
 ## Limits and follow-up
 
 - These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.
-- Combatify, Alex's Mobs Continued, mounts, elytra, tight spaces, dedicated multiplayer latency, wall/ally/PvP impact edge cases and every Swift Sneak/Soul Speed equipment combination still need broader playtesting. The relevant vanilla call paths were inspected, but that is not equivalent to testing every external mod.
+- Beyond the bounded tests above, full modpack playthroughs, dedicated multiplayer latency, unusual wall/ally/PvP impact edge cases and every Swift Sneak/Soul Speed equipment combination still need broader playtesting. Passing the tested versions/configuration is not equivalent to testing every external mod or future version.
 - The 26.2 mock connected-player helper used by several tests is deprecated; it remains functional. Damage tests use a plain survival mock to avoid the connected mock's client-loading immunity.
 - OneDrive can lock generated output. The optional local build-directory property avoids most build-output contention while leaving the repository in its intended location. Test-run directory auto-deletion is disabled; no user worlds or source directories are removed.
 - There are no public release/tag claims. A successful build is not a claim that every gameplay interaction is release-ready.

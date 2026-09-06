@@ -14,8 +14,6 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
   "mounts": { "minecraft:chicken": true, "minecraft:bee": true },
   "villager_fear": true,
   "growth_landing_impact": true,
-  "growth_landing_knockback": true,
-  "growth_landing_damage": true,
   "environment_interactions": true,
   "farmland_protection": true,
   "pressure_plate_bypass": true,
@@ -26,9 +24,10 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 ```
 
 - `tiny_mounts: false` disables Scale Brews' additional mounting interactions, manual control, saddle layer, bee-hive overrides and Flower on a Stick crafting. The item stays registered for existing inventories. `mounts` disables particular entity IDs. Both must allow a mount, and its definition must also have `enabled: true` (the default).
-- Growth's prohibition on riding living entities is **independent** of Tiny Mounts. Boats and minecarts remain allowed.
+- The living-mount size-ratio policy is **independent** of Tiny Mounts. Boats and minecarts are exempt. Growth is no longer an unconditional riding prohibition.
 - `villager_fear` controls the local Growth II/III threat sensor, not vanilla hostile mobs or reputation.
-- `growth_landing_impact` disables the entire landing shockwave, including particles/sound. Its two subordinate options independently disable radial push and radial damage; disabling both leaves cosmetic impact feedback. They do not change the player's received fall damage or melee knockback.
+- `growth_landing_impact` is the **single switch for the combined Growth landing effect**: radial knockback at I/II/III, the bounded additional damage at III, and its gust/terrain/sound feedback. Setting it to `false` disables the whole effect for players and compatible mobs. It does not change ordinary damage recoil, melee knockback, the falling entity's own fall damage or native landing events/particles. There are no separate push/damage switches.
+- Migration: obsolete `growth_landing_knockback` / `growth_landing_damage` keys are accepted only for old files; if either is false, the combined effect is disabled. Remove both old keys and use only `growth_landing_impact` to configure new worlds or re-enable the effect. Encoding/network synchronization emits only the combined switch.
 - `environment_interactions` is the master switch for the five following options. Disabling an option removes this mod's intervention; it does not force vanilla to trigger a plate or destroy a crop if vanilla itself would not do so.
 - Missing keys retain enabled defaults. Invalid field types or invalid mount definitions produce a data-loading error; fix the file rather than replacing the world. Use JSON booleans, not quoted strings.
 
@@ -40,7 +39,7 @@ Defaults live at `data/scalebrews/scalebrews/tiny_mount/chicken.json` and `bee.j
 {
   "entity": "minecraft:bee",
   "enabled": true,
-  "minimum_shrinking": 2,
+  "max_rider_scale_ratio": 0.53,
   "saddle": true,
   "control": "item_steered",
   "movement": "flying_look_direction",
@@ -56,7 +55,17 @@ Defaults live at `data/scalebrews/scalebrews/tiny_mount/chicken.json` and `bee.j
 }
 ```
 
-`minimum_shrinking` accepts 2 or 3. Control types are `direct` (WASD) and `item_steered` (requires the named item in either hand). Movement types are `ground` and `flying_look_direction`. Speed accepts 0.01–1; the default 0.18 is a vanilla-style movement speed for ground movement and blocks/tick for controlled flight. Maximum pitch accepts 0–75 degrees, maximum vertical speed 0.01–0.5 blocks/tick. Start conservatively when tuning flight.
+`max_rider_scale_ratio` compares the rider's effective SCALE divided by the mount's effective SCALE. Defaults to 0.53 if omitted. Legacy `minimum_shrinking` fields are ignored: old files adopt the new ratio without losing saddle visuals or controls. Replace that field explicitly when migrating; a former level-III-only configuration no longer imposes that level restriction. Control types are `direct` (WASD) and `item_steered` (requires the named item in either hand). Movement types are `ground` and `flying_look_direction`. Speed accepts 0.01–1; the default 0.18 is a vanilla-style movement speed for ground movement and blocks/tick for controlled flight. Maximum pitch accepts 0–75 degrees, maximum vertical speed 0.01–0.5 blocks/tick. Start conservatively when tuning flight.
+
+## Living-mount size policy
+
+Override `data/scalebrews/scalebrews/mount_size_policy/default.json` (included in the example configuration pack). `mounts` maps entity identifiers to maximum rider/mount SCALE ratios; `default_max_rider_scale_ratio` is the fallback for species without a rule. Ratios accept 0.0001–1024. This gate never grants permission to ride and never replaces native age, taming, saddle, state or passenger-capacity rules.
+
+Precedence: an explicit general `mounts` ratio, then a tiny-mount definition's ratio, then the configurable fallback (1.0). Size gates remain active even if tiny-mount controls are disabled. To change the default tiny ratio, edit its definition or explicitly override its entity in the general policy. These registries synchronize to clients and require a world/server restart after editing.
+
+Initial general values: horse/donkey/mule/skeleton horse/zombie horse/pig/strider/llama/trader llama 1.0; camel 1.1; happy ghast 2.0. Chicken and bee definitions supply 0.53. Boat/minecart vehicles bypass this policy entirely. SCALE is the attribute multiplier, not a comparison of base model dimensions or baby proportions; native age checks are still separate.
+
+Effective values include external modifiers and the current blend step. Existing riders are checked each server tick and safely dismounted if the ratio becomes too large. Adding/removing an effect alone does not dismount before the physical size changes. At settled default sizes, Growth II can ride a Growth II/III horse but not Growth I; Growth I cannot ride a normal horse. Shrinking II can ride a normal bee/chicken but not a Shrinking I mount. Shrinking III can ride a Shrinking I mount, but not a Shrinking II mount (0.28/0.52 exceeds 0.53).
 
 Abilities are `none` and `chicken_glide`. The latter uses the chicken's own fall damping while airborne Space is held; release removes that damping while ridden. It does not add ordinary jumps or change vanilla chicken fall-damage immunity. This ability's integration is specific to chickens; generic controls and movement can be reused by other entities without Java changes.
 
@@ -72,7 +81,7 @@ The reusable anchors currently supported are `body` (chicken-style quarter-turne
 
 ## Implementation boundaries
 
-`ScaleRules` and `TinyMountDefinition` are synced codecs/registries. `TinyMounts` owns eligibility, equipment interaction and input strategies. Small mixins connect entity mounting, mob interaction/controller, living-entity travel and chicken glide. Vanilla player-input and vehicle synchronization are reused. No permanent `NoAI` or gravity flag is set; removing the steering item releases manual control.
+`ScaleRules`, `MountSizePolicy` and `TinyMountDefinition` are synced codecs/registries. `MountSizePolicy` owns the shared size gate; `TinyMounts` owns optional tiny eligibility, equipment interaction and input strategies. Small mixins connect entity mounting, mob interaction/controller, living-entity travel and chicken glide. Vanilla player-input and vehicle synchronization are reused. No permanent `NoAI` or gravity flag is set; removing the steering item releases manual control.
 
 Mounted bees cannot enter a hive. The external `BeehiveBlockEntity.addOccupant` route dismounts players using native placement and clears accumulated fall distance before storage. Dismounting in midair does not teleport a player to the ground or grant permanent fall immunity.
 

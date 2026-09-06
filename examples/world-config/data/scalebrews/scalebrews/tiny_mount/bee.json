@@ -1,0 +1,13 @@
+{
+  "entity": "minecraft:bee",
+  "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/bee.png", "anchor": "bone" },
+  "max_rider_scale_ratio": 0.53,
+  "saddle": true,
+  "control": "item_steered",
+  "movement": "flying_look_direction",
+  "steering_item": "scalebrews:flower_on_a_stick",
+  "speed": 0.18,
+  "max_pitch": 60.0,
+  "max_vertical_speed": 0.15,
+  "ability": "none"
+}

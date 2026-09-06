@@ -1,0 +1,16 @@
+{
+  "default_max_rider_scale_ratio": 1.0,
+  "mounts": {
+    "minecraft:horse": 1.0,
+    "minecraft:donkey": 1.0,
+    "minecraft:mule": 1.0,
+    "minecraft:skeleton_horse": 1.0,
+    "minecraft:zombie_horse": 1.0,
+    "minecraft:pig": 1.0,
+    "minecraft:strider": 1.0,
+    "minecraft:llama": 1.0,
+    "minecraft:trader_llama": 1.0,
+    "minecraft:camel": 1.1,
+    "minecraft:happy_ghast": 2.0
+  }
+}

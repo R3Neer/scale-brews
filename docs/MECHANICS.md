@@ -22,6 +22,16 @@ Totals are relative to unmodified walking, on ordinary ground while sprinting, w
 
 `ScaleBeacon` extends the third-tier effect list and validation/persistence set after registries initialize. The vanilla GUI reads the same list, so its existing layout, packets, payment and level-II upgrade work without a custom screen. Existing effects are retained.
 
+## Creepers and living-entity landings
+
+`ScaleExplosions` / `ScaleCreeperExplosionMixin` multiply the actual vanilla creeper explosion power after the charged multiplier: Growth I/II/III x1.15/x1.30/x1.50; Shrinking x0.90/x0.80/x0.65. Normal/charged base power 3/6 therefore becomes 4.5/9 with Growth III and 1.95/3.9 with Shrinking III. There is no extra cap or second explosion. Vanilla radius, damage, block destruction, mob-griefing rules, lingering cloud and death processing remain in their normal pipeline. Custom vanilla explosion-radius data is multiplied rather than replaced.
+
+This balance explicitly follows the effect level, not an invented conversion from SCALE. Both effect factors multiply if they coexist; only physical size blends. Direct, splash and lingering application all feed the same active-effect lookup.
+
+`GrowthImpact` applies to compatible LivingEntity, not just players. `checkFallDamage` supplies actual accumulated fall distance plus the last downward movement before vanilla resets it. A qualifying landing above 3 blocks produces the existing level-dependent wave; only Growth III above 6 blocks deals damage, bounded at 4 HP before radial falloff. Ordinary jumps and flying mobs with no accumulated fall do not qualify. No explosions or block destruction are added; self fall damage and landing game events remain untouched. Gust/terrain particles and landing sound also apply to mobs. Ally checks remain; player-vs-player restrictions apply only when the wave source is a player, so disabling PvP does not immunize players from mob waves.
+
+The general hook supports modded living entities that retain vanilla-compatible fall processing; it does not add physics to flying/multipart/special entities that bypass it. There is no Ender Dragon adapter or species whitelist. Unrelated environmental and combat mechanics remain player-scoped. See CONFIGURATION.md for the combined landing-impact switch and the effective-SCALE mounting policy.
+
 ## Player physics
 
 ### Small-player camera

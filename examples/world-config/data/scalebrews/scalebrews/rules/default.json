@@ -3,8 +3,6 @@
   "mounts": { "minecraft:chicken": true, "minecraft:bee": true },
   "villager_fear": true,
   "growth_landing_impact": true,
-  "growth_landing_knockback": true,
-  "growth_landing_damage": true,
   "environment_interactions": true,
   "farmland_protection": true,
   "pressure_plate_bypass": true,
