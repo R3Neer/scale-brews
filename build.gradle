@@ -3,10 +3,16 @@ plugins {
 	id 'maven-publish'
 }
 
-// Optional local output directory for checkouts in sync folders such as OneDrive.
-if (providers.gradleProperty("scalebrewsBuildDir").isPresent()) {
-	layout.buildDirectory = file(providers.gradleProperty("scalebrewsBuildDir").get())
+// Machine-local settings also apply to ordinary IntelliJ Gradle actions.
+// Command-line/user Gradle properties take precedence; CI retains its default build/.
+def localBuildProperties = new Properties()
+def localBuildConfig = file("gradle-local.properties")
+if (localBuildConfig.exists()) {
+	localBuildConfig.withInputStream { localBuildProperties.load(it) }
 }
+def localBuildDir = providers.gradleProperty("scalebrewsBuildDir")
+	.orElse(localBuildProperties.getProperty("scalebrewsBuildDir", "build"))
+layout.buildDirectory = file(localBuildDir.get())
 
 repositories {
 	exclusiveContent {
