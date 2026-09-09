@@ -1,151 +1,56 @@
 # Scale Brews
 
-Growth and Shrinking potions for **Minecraft 26.2 on Fabric**. Change your physical size, trade strength for agility, ride chickens, bees and tamed wolves, and bring size-based mechanics to the world around you.
+Grow beyond the doorway. Shrink beneath it. See familiar Minecraft places from a different point of view.
 
-Three potion levels, gradual size transitions, beacon powers, English and Spanish translations, and server-owned JSON configuration are included. The first public beta is being validated; tested behavior and remaining playtesting limits are documented in [Validation](docs/VALIDATION.md).
+**Growth and Shrinking potions for Minecraft 26.2 on Fabric**, with gradual transformations, tiny mounts and a world that responds to your size.
 
-Living platforms let smaller entities and vehicles use larger creatures as moving surfaces, without mounting them or adding mob navigation routes. Compatible living species have automatic physical support; eighteen optional anatomical profiles refine the contact, including the animated player head. Extension points, datapack configuration and current validation limits are described in [Living platforms](docs/PLATFORMS.md).
+![Villagers at Shrinking III, normal size and Growth III, from left to right](docs/images/size-comparison.png)
 
-## Installation
+## A different way to explore
 
-Requires **Java 25**, **Fabric Loader 0.19.5 or newer**, and **Fabric API 0.159.0+26.2 or newer** for Minecraft 26.2.
+Try walking through a half-block gap, taking a bee for a flight, or standing on a much larger friend's head. Being small and being large each bring advantages—and trade-offs.
 
-1. Build the mod using the [development instructions](#development), or obtain the JAR from a successful [GitHub Actions build](https://github.com/R3Neer/scale-brews/actions/workflows/build.yml).
-2. Put the mod JAR and Fabric API in your instance's `mods` directory. Use the regular JAR, not the `-sources.jar`.
-3. For multiplayer, install the mod and Fabric API on **both the server and every client**.
+A few things to try:
 
-Combatify and Alex's Mobs Continued are optional, not required dependencies. Their tested versions and the exact limits of that compatibility coverage are recorded in [Validation](docs/VALIDATION.md).
+- Walk, then sprint, at different sizes. Smaller legs do not necessarily mean a slower escape.
+- Take a saddle on your next trip. Some familiar animals make surprisingly useful companions.
+- Bring a friend of a different size. Riding and standing on someone are not the same thing.
+- Revisit familiar creatures and everyday chores after a transformation. There is more to size than reach.
 
-## Brew your first potions
+![A bee, chicken and tamed wolf wearing saddles](docs/images/tiny-mounts.png)
 
-Start with an Awkward Potion in a brewing stand.
+*The three default tiny mounts. Saddles can be equipped at any size; riding depends on your size relative to theirs.*
 
-| Input | Ingredient | Result |
-| --- | --- | --- |
-| Awkward Potion | Slime Ball* | Growth I |
-| Growth I / II | Glowstone Dust | Growth II / III |
-| Growth I / Shrinking I | Redstone Dust | Extended level I (8 minutes) |
-| Extended Growth I | Fermented Spider Eye | Extended Shrinking I |
-| Growth, any level | Fermented Spider Eye | Shrinking at the same level |
-| Shrinking I / II | Glowstone Dust | Shrinking II / III |
-| Either family | Gunpowder, then Dragon's Breath | Splash, then lingering form |
+## Your first brew
 
-*If `alexsmobs:elastic_tendon` is registered, **Elastic Tendon replaces Slime Ball** as the starting ingredient.
+Brew an **Awkward Potion with a Slime Ball** to begin growing, then try a Fermented Spider Eye to reverse the idea. If Alex's Mobs Continued supplies Elastic Tendon, use that instead of the Slime Ball.
 
-Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / III. Redstone extends level I to **8 minutes**. Extended potions cannot accept glowstone; levels II/III cannot accept redstone. Splash and lingering conversions retain the extended potion, with vanilla delivery rules (a lingering effect has one quarter of the base duration).
+The brewing stand has more to offer. When you want the answers, the **[player guide](docs/GUIDE.md)** contains recipes, exact numbers, controls and all the less-obvious interactions. It is deliberately spoiler-rich.
 
-## Bigger or smaller?
+One control worth knowing: for wolves, use **Crouch + Use** to mount, leaving ordinary Use for feeding, sitting and equipping. These follow your configured bindings, not hardcoded keys.
 
-**Growth** makes you larger, tougher and stronger, with more health, interaction reach and step height. Walking feels like longer strides, while sprinting adds progressively less acceleration. Physical activity costs more exhaustion.
+## Install
 
-Growth's entity reach increases by 50% / 100% / 150% at its pure-potion sizes: 4.5 / 6 / 7.5 blocks from a survival baseline of 3. This keeps small targets beside a giant's feet reachable from eye height. Block reach retains +20% / +40% / +60%; Shrinking's reach penalties are unchanged. Entity reach follows effective size throughout blending and mixed effects, continuing the same linear growth curve beyond Growth III for external scales (subject to vanilla attribute limits). Other reach modifiers still compose multiplicatively; explicit item attack-range components may use their own ranges.
+Requires **Minecraft 26.2**, **Java 25**, **Fabric Loader 0.19.5+** and **Fabric API 0.159.0+26.2 or newer for 26.2**.
 
-**Shrinking** trades health, damage and reach for a smaller body, explosive sprinting, slightly stronger jumps and lower physical exhaustion. It also reduces fall damage and movement-vibration detection range, with Swift Sneak synergy at levels II and III.
+1. Download the regular JAR from [GitHub releases](https://github.com/R3Neer/scale-brews/releases), not the sources JAR.
+2. Put it and Fabric API in `mods`.
+3. For multiplayer, install both on the server and every client.
 
-| Default effect | I | II | III |
-| --- | ---: | ---: | ---: |
-| Growth size | 1.96× | 2.92× | 3.88× |
-| Shrinking size | 0.758× | 0.516× | 0.274× |
-| Growth walking speed | 1.08× | 1.16× | 1.24× |
-| Growth sprint multiplier | 1.20× | 1.12× | 1.05× |
-| Shrinking walking speed | 0.92× | 0.84× | 0.76× |
-| Shrinking sprint multiplier | 1.50× | 1.90× | 2.50× |
+No other mod is required. English and Spanish translations are included. World owners can tune or disable optional mechanics through [JSON configuration](docs/CONFIGURATION.md).
 
-Size and walking values are relative to normal, without other modifiers. Sprint multiplies the **current walking speed**, replacing vanilla's 1.30× sprint factor. On ordinary ground, neither effect alone beats Speed of the same level while sprinting; Speed still stacks with both.
+## Before you jump in
 
-Shrinking reduces scale by 24.2% per level. At level III, a standing player's collision height is approximately **0.4932 blocks**, fitting through a half-block-high gap once the size transition completes.
+This is a **beta**, not a promise of compatibility with every pack. Back up worlds before updating. See [tested behavior and remaining QA](docs/VALIDATION.md).
 
-Physical size blends over **20 ticks** when effects begin, change or end. All scale-derived attributes follow the current effective size, including mixed potions and external scale modifiers; health changes preserve your remaining-health percentage. The tables describe pure-potion endpoints. At normal size there are no giant or tiny bonuses, even with potion icons active. Vanilla arrow and trident damage is not scaled by the shooter's size.
+Living platforms currently provide upper support surfaces, **not full-body collisions**. The new all-direction anatomical system and shared Clinging Reoriented physics are **unfinished and disabled in normal gameplay**; their presence in the source is not a released feature. [Development status](docs/ANATOMY_IMPLEMENTATION.md).
 
-The small-player first-person camera uses size-aware near clipping and reduced view bobbing to mitigate seeing through close block corners. This does not replace collision physics or change your FOV.
+## Go further
 
-See [Mechanics](docs/MECHANICS.md) for exact attribute, exhaustion, fall and stealth behavior.
+- [Player guide / wiki](docs/GUIDE.md) — the full reference, with spoilers.
+- [World configuration](docs/CONFIGURATION.md) — make the rules fit your world.
+- [Build and contribute](docs/GUIDE.md#development) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/R3Neer/scale-brews/issues)
 
-## Size changes the world
+[GPL-3.0-or-later](LICENSE). Original pixel art is hand-authored, not AI-generated; the images above are real in-game captures. [Artwork and screenshot details](docs/GUIDE.md#license-and-artwork).
 
-- **Landing impacts:** Growth landings above three blocks push nearby entities, with gusts, ground particles and sound. Only Growth III falls above six blocks add radial damage, capped at two hearts before defenses and reduced with distance. Players and mobs with compatible fall physics can trigger the wave; their own fall damage remains intact. The wave follows connected terrain surfaces, climbing or descending at most one block per step. Its range and falloff use the traveled path length, so stairs and short detours work while gaps and larger ledges block it. The wave does not destroy blocks.
-- **Creepers:** Growth multiplies actual explosion power by 1.15 / 1.30 / 1.50; Shrinking by 0.90 / 0.80 / 0.65. Vanilla blast radius, damage and block destruction follow that power. Charged creepers receive the same multipliers without an extra cap.
-- **Quiet footsteps and protected ground:** Shrinking II players bypass stone, polished-blackstone and iron pressure plates. III bypasses all standard pressure plates and cannot trample farmland or turtle eggs.
-- **Terrain and villagers:** Growth players resist soul sand and sweet berry bush slowdown without removing berry damage. Villagers fear visible living entities at least two equivalent scale levels larger than themselves within eight blocks: Shrinking I → Growth I, normal → Growth II, or Shrinking II → normal. Effective SCALE determines the comparison, including transitions and external modifiers; equal scales do not trigger size fear. Vanilla hostile threats remain unchanged, without adding reputation penalties or automatic golem hostility.
-- **Beacons:** Both effects become primary-power choices with a three-layer pyramid. A full pyramid can upgrade either to level II; III remains potion-only.
-
-## Tiny mounts
-
-Equip an adult chicken, bee or tamed wolf with a saddle; equipping does not require being small. Riding does require the appropriate size ratio.
-
-For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with any item or an empty hand. This gesture mounts without using the held item, including food and saddles. Release Crouch before pressing it again to dismount; you can then mount the same animal again. Use without Crouch retains feeding, sitting and saddle equipment.
-
-| Mount | Controls |
-| --- | --- |
-| Wolf | WASD movement; tap Space to bite, or hold and release for a pounce. Wolf Armor and saddle coexist. |
-| Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
-| Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
-
-Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Both mounts use vanilla saddles, one rider, and separate hand-authored saddle layers. Mounted bees stay out of hives.
-
-Bees keep their natural bobbing and rolling while ridden: the rendered rider follows the saddle, while first-person camera and collision physics stay stable.
-
-A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
-
-Wild adult wolves can be tamed by riding, with **random success based on accumulated trust**, similar to horse temper; there is no fixed three-ride guarantee. Each complete three-second ride rolls against the wolf's trust (0–100). Failure adds 5 trust and ejects you; an accepted bone that does not tame it adds 10 trust. Bones retain their vanilla 1-in-3 chance to tame directly.
-
-Trust belongs to the wolf and survives changing riders, unloading and restarting the world. Partial rides add nothing. With no prior trust the first ride fails; at 100 trust the next complete ride succeeds. Wild dismounts still provoke the wolf, and angry wolves reject bones. Unsaddled riding grants neither steering nor pounce, even after taming.
-
-An unmounted bee also follows a Flower on a Stick in either hand, without needing a saddle or Shrinking. This mirrors native pig/strider steering-item attraction. The same behavior applies to enabled JSON `item_steered` tiny mounts using their configured `steering_item`; native foods and breeding are unchanged.
-
-Riding eligibility uses the rider's **effective SCALE divided by the mount's**, including gradual transitions and other attribute modifiers. Chicken and bee default to a maximum ratio of **0.53**: Shrinking II/III fits a normal mount, but shrinking the mount can make it too small.
-
-Other living mounts have configurable limits: most default to 1.0, camels to 1.1 and happy ghasts to 2.0. Growth II can ride a Growth II/III horse. Native age, taming, saddle and passenger rules still apply; this policy never grants new riding permissions. Boats and minecarts are exempt.
-
-## World configuration
-
-Copy the [example datapack](examples/world-config) into your world's `datapacks` directory and edit its JSON. Rules belong to the server/world and synchronize to clients. **Restart the server or reopen the world** after changing these registries; `/reload` alone is not supported.
-
-All optional mechanics default to enabled. Configure:
-
-- Tiny Mounts as a whole, individual mount types, controls and saddle visuals.
-- Living-mount size ratios, independently of the Tiny Mounts switch.
-- Villager fear.
-- The combined Growth landing impact.
-- Environmental interactions, with individual controls for farmland, pressure plates, turtle eggs, quiet movement and terrain resistance.
-
-**`growth_landing_impact: false` disables the entire landing wave:** radial knockback, additional level-III damage and its visual/sound feedback. It does not disable ordinary melee knockback, damage recoil or the falling entity's own fall damage.
-
-See [Configuration](docs/CONFIGURATION.md) for paths, complete JSON examples, extension points and migration from older settings.
-
-## Compatibility and validation
-
-The current suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
-
-Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
-
-These are bounded integration tests, **not a guarantee for every modpack, configuration or future version**. Custom projectile, camera, movement or multipart-entity implementations may need additional integration. See [Validation](docs/VALIDATION.md) for coverage and known limitations.
-
-## Development
-
-Use the included Gradle wrapper; a separate Gradle installation is not needed.
-
-```powershell
-# Build the JAR and run server GameTests
-.\gradlew.bat build
-
-# Run the real client/integrated-server GameTest
-.\gradlew.bat runClientGameTest
-
-# Launch a development client
-.\gradlew.bat runClient
-```
-
-On Linux/macOS, use `./gradlew` instead. JARs are written to `build/libs` by default.
-
-For a checkout in OneDrive, redirect generated output with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test directories remain under `build/run`; tests use development worlds rather than your normal saves. Optional compatibility JARs can be supplied with `-PscalebrewsCompatMods=C:/path/to/test-mods`; they are not bundled in the production mod.
-
-See [Changelog](CHANGELOG.md), [Contributing and Git policy](CONTRIBUTING.md), [Mechanics](docs/MECHANICS.md) and [Work tracking](TODO.md).
-
-## License and artwork
-
-Licensed under [GPL-3.0-or-later](LICENSE).
-
-Effect icons, saddle textures and the flower overlay are hand-authored pixel art, reproducible with `java tools/GenerateArt.java`; no image-generation models are used. Generated assets share the repository license. Minecraft textures, particles and sounds are reused by reference rather than redistributed. See [Art direction](docs/ART.md).
-
-Developer references: [material loot datapacks](docs/SCALE_LOOT.md) and [wolf mount implementation](docs/WOLF_MOUNT.md).
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.

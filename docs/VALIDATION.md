@@ -1,5 +1,23 @@
 # Validation record
 
+## 0.1.0-beta.5 candidate — 2026-09-09
+
+- Built a fresh isolated snapshot of the recovered canonical repository, including
+  all current gameplay changes and the gated anatomical prototype. Every source
+  file was compared by hash with the canonical checkout.
+- `build runClientGameTest --offline` passed: all **122 required server tests**,
+  the dedicated platform/wolf client fixtures and the complete integrated-client
+  suite; clean client exit at 17:49:26. Screenshot-only mode was off for this run.
+- Captured and visually reviewed two reproducible, HUD-free README images in a
+  disposable vanilla-background client world. Rejected the first framing/particle
+  attempt. These images illustrate size and saddle equipment, not full-pack QA.
+- Normal gameplay retains the existing upper-surface platform system. Anatomical
+  code ships dormant; full Clinging migration, animated six-direction acceptance,
+  dynamic-host/resource-pack proof and latency/soak validation remain unfinished.
+- This run does not repeat the entire optional-mod matrix or certify the exact
+  artifact in a human-played VP26/multiplayer session. Older compatibility evidence
+  below remains historical and version-bounded.
+
 ## Automated checks
 
 Validated on Windows with Microsoft OpenJDK 25.0.3, Minecraft 26.2, Fabric Loader 0.19.5 and Fabric API 0.159.0+26.2.

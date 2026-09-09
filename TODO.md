@@ -1,5 +1,16 @@
 # Scale Brews — active work
 
+## Discovery-first documentation and beta.5 delivery — 2026-09-09
+
+- [x] Audit current gameplay, plan/write/review iteratively, split concise README
+  from spoiler-rich player guide, and capture two real disposable-world images.
+- [x] Validate the exact current source snapshot: build, 122 server tests and the
+  complete client suite. Keep anatomical prototype disabled in normal gameplay.
+- [ ] Verify pushed commits, CI and beta.5 GitHub prerelease assets; install the
+  matching regular JAR in the existing Modrinth profile, backing up beta.4 outside mods.
+- [ ] Human acceptance of this exact JAR in the full pack/multiplayer remains open.
+  This delivery does not complete the anatomical migration or publish on Modrinth.
+
 ## Relative villager size fear
 
 - [x] Replace the player-only Growth II threshold with a two-level equivalent difference in effective scale between any visible living entity and the villager; retain local range, vanilla hostile fear and configuration. Verify tier pairs, fractional/external scales and real sensor memory.
@@ -15,6 +26,23 @@
 ## Wolf attack animation
 
 - [x] Connect commanded bites to native swing progress and combat pose; verify misses, cleanup after dismount, preservation of existing aggression, real Space input, and installed Fresh Animations with EMF/ETF. See docs/VALIDATION.md for pack limitations.
+
+## Anatomical collisions and Clinging integration (implementation in progress)
+
+- [ ] Gate 1: original-model extraction (player/cow/grizzly), server-safe poses, six-sided convex contact and dedicated-server proof. Do not replace installed gameplay before this gate passes.
+  - [x] Isolated export command, original vertex comparisons and 320 ordinary animated pose comparisons; dedicated server loads the four JSON models without Alex/client classes. See docs/ANATOMY_IMPLEMENTATION.md.
+  - [x] Prototype catalog and authoritative pose transfer over the actual play connection; revision/session validation, replay-safe interpolation and explicit received-frame geometry evaluation. This does not complete live transport synchronization.
+  - [ ] Wire and validate actual anatomical movement/transport, authoritative pose sampling, host/resource independence and conservative hierarchy motion bounds. Mathematical queries alone do not complete this gate.
+- [ ] Gate 2: shared geometry/contacts/transport, synced catalog, legacy-profile migration, categories and lifecycle regressions.
+  - [x] Register validated geometry codec and anatomical profile references; add common pose-provider registry, piece filters and atomic model/binding validation.
+  - [x] Preparation runtime automatically binds/ticks/publishes tracked cow poses; real-client unsupported-state removal and Alex 2.1.9 server pose guards pass.
+  - [x] Read the world resource catalog on reload; validate and transfer geometry/profiles as one protocol-v2 revision, with real-client policy replacement coverage.
+  - [x] Bind confirmed poses to client physical queries and prevent same-network-ID client/server instances from sharing core state; real-client unsupported-pose removal passes after identity-key correction.
+  - [ ] Validate live reload while carrying entities, rejected reload followed by recovery, reconnection and latency. Resource-reader and transfer tests alone do not complete this lifecycle gate.
+- [ ] Gate 3: remove Clinging's AABB collider/duplicate transport; consume shared gravity/contact API; export VP26 compatibility report.
+  - [x] Proof-only optional bridge with actual Gravity Changer, six-direction managed Clinging contact, anatomical clearance, no duplicate legacy carry and no inherited support impulse. Ordinary worlds remain on the old path; final protocol/catalog migration is still pending.
+- [ ] Client/dedicated latency and host-change validation, coordinated artifacts and installation with backups.
+- Preserve previous unfinished QA below. Anatomical support has no automatic bounding-box fallback; use original mod models, world catalog, configurable anatomy filters and optional JSON replacements.
 
 ## Giant melee reach follow-up
 

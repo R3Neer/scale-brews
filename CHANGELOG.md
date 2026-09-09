@@ -1,26 +1,43 @@
 # Changelog
 
-## Unreleased - relative villager size fear
+## [0.1.0-beta.5] - 2026-09-09
+
+This prerelease consolidates the previous local betas and the changes below.
+It requires Minecraft 26.2, Java 25 and Fabric. Full-pack visual and multiplayer
+latency acceptance remain pending; this is not a stable release.
+
+### Relative villager size fear
 
 - Villagers fear visible living entities two equivalent scale levels larger than themselves, including Shrinking I versus Growth I and normal versus Growth II. Use effective scale on both sides, preserve the eight-block range and vanilla hostile threats, and avoid reputation or attacker changes.
 
-## Unreleased - half-block Shrinking III clearance
+### Half-block Shrinking III clearance
 
 - Adjust Shrinking scale reduction from 24% to 24.2% per level: 0.758 / 0.516 / 0.274. Standing level-III players are approximately 0.4932 blocks tall and can move through a half-block gap. Preserve other pure-tier attribute values and mounting eligibility between levels.
 
-## Unreleased - probabilistic wolf taming
+### Probabilistic wolf taming
 
 - Replace the fixed third-ride tame with horse-style random rolls against persistent wolf trust. Failed full rides add 5 trust and failed accepted bones add 10; preserve vanilla direct bone taming and wild dismount hostility. Document the exact behavior in README.
 
-## Unreleased - wolf attack animation
+### Wolf attack animation
 
 - Commanded wolf bites emit native swing progress and a transient combat pose for resource packs, including missed taps and pounce hits. Advance the wolf swing clock on server and client without creating anger or AI targets.
 
-## Unreleased - mount gesture and terrain impact fixes
+### Development prototype - anatomical geometry (not active gameplay)
+
+- Add isolated original-model extraction and numerical pose/reference proofs for cow, wide/slim players and adult grizzly. Add common convex geometry, catalog validation, filtering reports and server-safe ordinary pose evaluators.
+- Add proof-level temporal movement, relative translation response, shared joint interpolation and bounded overlap recovery with pair-specific suspension. These remain gated experimental paths, not enabled in ordinary worlds.
+- Add geometry registry/profile codecs, piece-selection filters, server-owned pose publication and catalog protocol v2 with atomic geometry/profile validation. Runtime reload reads world resources; full live contact/reload acceptance remains pending.
+- The shared anatomical/Clinging migration remains unfinished. Prototype code is included but disabled in ordinary worlds; existing platform gameplay remains in use. See `docs/ANATOMY_IMPLEMENTATION.md` for evidence and remaining gates.
+
+### Mount gesture and terrain impact fixes
 
 - Crouch + Use mounts configured tameables with any held item, without feeding, equipping or consuming it; ordinary Use retains those actions.
 - Reset mounting Crouch protection on dismount so the same animal can be ridden repeatedly.
 - Landing waves follow reachable collision surfaces with one-block ascent/descent, path-length range and falloff, and obstacle/gap checks.
+
+### Documentation
+
+- Audit the README against current effective-size, material-loot, platform and wolf rules. Separate released gameplay from experimental anatomical physics, and add reproducible in-game screenshots.
 
 
 ## [0.1.0-beta.4] - Unreleased
