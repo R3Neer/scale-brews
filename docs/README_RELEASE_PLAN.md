@@ -124,3 +124,19 @@ guide, then the same approach for the other public mods if it works well.
 - Exact isolated source snapshot passed build, all 122 required server tests and
   the full real-client suite on 2026-09-09 (clean exit 17:49:26). Source hashes match
   the canonical checkout. Publication and local installation are still pending.
+
+## Delivery verification
+
+- Source snapshot and candidate commit 33b1f5c passed local validation and GitHub
+  Actions run 34373390000. Published v0.1.0-beta.5 as a prerelease targeting that
+  commit, with regular and sources JARs. Downloaded both assets and matched SHA-256.
+- Installed the downloaded regular JAR in VanillaPlus-26.2 (1), with exactly one
+  Scale Brews JAR. Moved beta.4 to codex-backups/scalebrews-beta5-20260909 outside
+  mods; no world or configuration changed. Installed SHA-256:
+  5cbee58b3da9628f53f267b35ab3a3d16d922c4d2af6dfbf5b31a4d126711fc7.
+- Public README/guide updates also verified in alchemical-leather (2398463),
+  lodestone-transit (46558ad) and UniversalGraves (9151fdb). Only documentation
+  was committed there, from clean public snapshots; local concurrent code remains
+  untouched. Each repository includes its own editorial plan and review.
+- Remaining human pack/multiplayer QA and the anatomical implementation plan stay
+  open. No Modrinth public release or other mod binary release was performed.

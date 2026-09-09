@@ -17,6 +17,12 @@
 - This run does not repeat the entire optional-mod matrix or certify the exact
   artifact in a human-played VP26/multiplayer session. Older compatibility evidence
   below remains historical and version-bounded.
+- GitHub Actions run 34373390000 passed for commit 33b1f5c. The beta.5 prerelease
+  targets that commit; regular and source asset downloads match local SHA-256.
+  The regular JAR was installed in the existing Modrinth VanillaPlus-26.2 (1)
+  profile, with beta.4 backed up outside mods. Installed regular SHA-256:
+  `5cbee58b3da9628f53f267b35ab3a3d16d922c4d2af6dfbf5b31a4d126711fc7`.
+  Installation/hash verification is not a fresh full-pack playtest.
 
 ## Automated checks
 

@@ -6,7 +6,7 @@
   from spoiler-rich player guide, and capture two real disposable-world images.
 - [x] Validate the exact current source snapshot: build, 122 server tests and the
   complete client suite. Keep anatomical prototype disabled in normal gameplay.
-- [ ] Verify pushed commits, CI and beta.5 GitHub prerelease assets; install the
+- [x] Verify pushed commits, CI and beta.5 GitHub prerelease assets; install the
   matching regular JAR in the existing Modrinth profile, backing up beta.4 outside mods.
 - [ ] Human acceptance of this exact JAR in the full pack/multiplayer remains open.
   This delivery does not complete the anatomical migration or publish on Modrinth.
