@@ -225,3 +225,10 @@ Automatic surfaces are bounding-dimension support, not inferred mesh collision. 
 - Build, **90 required server tests** and the complete base client suite passed. The new regression tests real collision and horizontal movement under top slabs with a half-block gap: an ordinary standing body fails the space check, a settled Shrinking III body fits and moves through without crouching or stepping. The real client asserts the synced 0.274 scale and bounding-box height below 0.5.
 - Updated mixed-effect and external-reach expectations to the new normalization; health/movement/other pure-tier attribute tests and existing mount-policy cases pass. README, mechanics formulas/thresholds and the configuration ratio example are updated. Arbitrary external-scale test values and unrelated movement/armor ratios are unchanged.
 - Validation used an isolated c4b8890 base plus this change, preserving the concurrent anatomical implementation outside this milestone.
+
+## Relative villager size fear — 2026-09-09
+
+- Compare effective SCALE on both living entities using continuous Shrinking/normal/Growth positions. A gap of at least two adds a visible threat within eight blocks; external positions are not capped at III. Vanilla hostile detection and panic memory remain authoritative.
+- The isolated 8384625 baseline plus this change passed build, all 92 server GameTests and the complete base client suite. New sensor regressions cover all 49 tier pairs with a cow, external/fractional thresholds, inclusive radius, the disabled rule, vanilla zombie fear, and actual nearest-hostile memory for a Shrinking I villager seeing a Growth I cow.
+- The recovered D:/Minecraft/Mods/scale-brews checkout, including concurrent anatomical work, also passed build and all 121 server GameTests. The client suite above tests the isolated gameplay baseline; it does not claim client validation of the anatomical prototype. No installed modpack artifact was replaced.
+

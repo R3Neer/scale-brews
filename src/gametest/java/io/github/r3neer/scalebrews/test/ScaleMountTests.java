@@ -240,11 +240,71 @@ public class ScaleMountTests {
         for (int tier = 1; tier <= 3; tier++) {
             p.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, tier - 1)); TestScale.settle(p);
             settle(p);
-            h.assertTrue(sensor.test$matches(h.getLevel(), villager, p) == (tier >= 2), "Only Growth II+ scares villagers");
+            h.assertTrue(sensor.test$matches(h.getLevel(), villager, p) == (tier >= 2), "Normal villagers fear players two scale levels larger");
             h.assertTrue(villager.getLastHurtByMob() == null, "Fear does not mark an attacker");
             p.removeEffect(ScaleEffects.GROWTH); TestScale.settle(p);
             settle(p);
         }
+        h.succeed();
+    }
+
+    @GameTest public void relativeVillagerFear(GameTestHelper h) {
+        var villager = h.spawn(EntityTypes.VILLAGER, 1, 2, 1);
+        var cow = h.spawn(EntityTypes.COW, 3, 2, 1);
+        var sensor = (TestVillagerSensorAccess)new VillagerHostilesSensor();
+        double[] scales = {.274, .516, .758, 1, 1.96, 2.92, 3.88};
+        for (int observer = 0; observer < scales.length; observer++) {
+            villager.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(scales[observer]);
+            for (int target = 0; target < scales.length; target++) {
+                cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(scales[target]);
+                h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow) == (target - observer >= 2),
+                        "Relative scale pair " + observer + ":" + target + " follows the two-level gap for mobs");
+            }
+        }
+        // External scales beyond potion endpoints must not both collapse to tier III.
+        villager.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(4.84);
+        cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(6.76);
+        h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "External two-level gap is inclusive");
+        cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(6.7599);
+        h.assertFalse(sensor.test$matches(h.getLevel(), villager, cow), "Just below the gap does not trigger fear");
+        villager.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.879);
+        cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(2.44);
+        h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "Fractional positions -0.5 to 1.5 qualify");
+        cow.setPos(villager.position().add(8, 0, 0));
+        h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "Eight-block range remains inclusive");
+        cow.setPos(villager.position().add(8.01, 0, 0));
+        h.assertFalse(sensor.test$matches(h.getLevel(), villager, cow), "Size does not extend fear range");
+        cow.setPos(villager.position().add(2, 0, 0));
+        try (var ignored = new RuleTestScope("{\"villager_fear\":false}")) {
+            h.assertFalse(sensor.test$matches(h.getLevel(), villager, cow), "Configuration disables additional fear");
+            var zombie = h.spawn(EntityTypes.ZOMBIE, 3, 2, 1);
+            h.assertTrue(sensor.test$matches(h.getLevel(), villager, zombie), "Vanilla hostile fear survives disabling scale fear");
+        }
+        h.assertTrue(villager.getLastHurtByMob() == null, "Scale fear never writes attacker memory");
+        h.succeed();
+    }
+
+    @GameTest public void shrinkingVillagerSeesGrowingMob(GameTestHelper h) {
+        var villager = h.spawn(EntityTypes.VILLAGER, 1, 2, 1);
+        var cow = h.spawn(EntityTypes.COW, 3, 2, 1);
+        villager.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 0));
+        cow.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 200, 0));
+        TestScale.settle(villager);
+        TestScale.settle(cow);
+        class Sensor extends VillagerHostilesSensor {
+            void update() { doTick(h.getLevel(), villager); }
+        }
+        var sensor = new Sensor();
+        var visible = net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES;
+        var hostile = net.minecraft.world.entity.ai.memory.MemoryModuleType.NEAREST_HOSTILE;
+        villager.getBrain().setMemory(visible, new net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities(
+                h.getLevel(), villager, java.util.List.of(cow)));
+        sensor.update();
+        h.assertTrue(villager.getBrain().getMemory(hostile).orElse(null) == cow,
+                "Shrink I villager records visible Growth I cow through vanilla fear memory");
+        villager.getBrain().setMemory(visible, net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities.empty());
+        sensor.update();
+        h.assertTrue(villager.getBrain().getMemory(hostile).isEmpty(), "Unseen threats clear normally");
         h.succeed();
     }
 }

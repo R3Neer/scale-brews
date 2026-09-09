@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - relative villager size fear
+
+- Villagers fear visible living entities two equivalent scale levels larger than themselves, including Shrinking I versus Growth I and normal versus Growth II. Use effective scale on both sides, preserve the eight-block range and vanilla hostile threats, and avoid reputation or attacker changes.
+
 ## Unreleased - half-block Shrinking III clearance
 
 - Adjust Shrinking scale reduction from 24% to 24.2% per level: 0.758 / 0.516 / 0.274. Standing level-III players are approximately 0.4932 blocks tall and can move through a half-block gap. Preserve other pure-tier attribute values and mounting eligibility between levels.

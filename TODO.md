@@ -1,5 +1,9 @@
 # Scale Brews — active work
 
+## Relative villager size fear
+
+- [x] Replace the player-only Growth II threshold with a two-level equivalent difference in effective scale between any visible living entity and the villager; retain local range, vanilla hostile fear and configuration. Verify tier pairs, fractional/external scales and real sensor memory.
+
 ## Shrinking III half-block clearance
 
 - [x] Minimally adjust the linear size modifier so standing Shrinking III players fit below half a block; verify actual slab-gap collision/movement, client dimensions, mixed effects and current mount policies. Update README and mechanics/configuration references.

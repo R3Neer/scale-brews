@@ -1,7 +1,7 @@
 package io.github.r3neer.scalebrews.mixin;
 
 import io.github.r3neer.scalebrews.config.ScaleRules;
-import io.github.r3neer.scalebrews.physics.ScalePhysics;
+import io.github.r3neer.scalebrews.physics.VillagerFear;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.sensing.VillagerHostilesSensor;
@@ -15,8 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class GiantVillagerFearMixin {
     @Inject(method = "isMatchingEntity", at = @At("HEAD"), cancellable = true)
     private void scalebrews$giant(ServerLevel level, LivingEntity villager, LivingEntity candidate, CallbackInfoReturnable<Boolean> cir) {
-        if (ScaleRules.get(level).villagerFear() && !candidate.isSpectator()
-                && ScalePhysics.growth(candidate) >= 2 && candidate.distanceToSqr(villager) <= 64)
+        if (ScaleRules.get(level).villagerFear() && VillagerFear.isSizeThreat(villager, candidate))
             cir.setReturnValue(true);
     }
 }
