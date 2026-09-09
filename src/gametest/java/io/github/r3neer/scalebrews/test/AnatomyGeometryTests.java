@@ -631,4 +631,24 @@ public class AnatomyGeometryTests {
         h.assertTrue(!shear.overlaps(new AABB(.01,.9,.2,.05,.95,.3)),"Shear does not fill envelope");
         h.succeed();
     }
+    @GameTest public void confirmedContactAndTeleportLifecycle(GameTestHelper h) {
+        var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var box=ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(support.position());
+        AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(7,java.util.Map.of("body",box))));
+        try {
+            var surface=new SurfaceContact(support.getUUID(),7,"body",3,new Vec3(.5,1,.5),new Vec3(0,1,0),h.getLevel().getGameTime());
+            body.setPos(support.position().add(10,0,0));
+            h.assertTrue(AnatomyMovement.confirm(body,support,surface) && AnatomyMovement.supported(body)==false,
+                "Network confirmation restores identity but does not invent physical proximity");
+            body.setPos(box.bounds().getCenter().x,box.bounds().maxY,box.bounds().getCenter().z);
+            h.assertTrue(AnatomyMovement.confirm(body,support,surface) && AnatomyMovement.supported(body),"Confirmed material face becomes grounded at its real location");
+            body.setPos(body.position().add(5,0,0));AnatomyMovement.carry(body);
+            h.assertTrue(AnatomyMovement.contact(body)==null,"External teleport over four blocks releases temporary support");
+            var epoch=java.util.UUID.randomUUID();
+            h.assertTrue(!AnatomyContactPayload.clear(epoch,7,body.getId(),body.getUUID(),2,h.getLevel().getGameTime()).present(),"Explicit contact clear has no surface payload");
+        } finally {AnatomyMovement.deactivate(h.getLevel());support.discard();body.discard();}
+        h.succeed();
+    }
 }

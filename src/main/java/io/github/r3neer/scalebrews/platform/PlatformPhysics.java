@@ -33,7 +33,8 @@ public final class PlatformPhysics {
         return best;
     }
     public static boolean suppressPair(Entity body, Entity other) {
-        if(MOVING.get()==body && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(body))
+        if(MOVING.get()==body && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(body)
+                && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.simulates(body))
             return io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.replacesPair(body,other);
         if (MOVING.get()!=body || !(other instanceof LivingEntity support)) return false;
         if (Platforms.state(body).carrying && Platforms.state(body).support==support) return true;
@@ -45,7 +46,8 @@ public final class PlatformPhysics {
         return false;
     }
     public static Vec3 collide(Entity e, Vec3 requested, Vec3 vanilla) {
-        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e))
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)
+                && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.simulates(e))
             return io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.collide(e,vanilla);
         if(!Platforms.simulates(e)) return vanilla;
         var state=Platforms.state(e);
@@ -70,7 +72,8 @@ public final class PlatformPhysics {
         return new Vec3(vanilla.x,c.y-e.getBoundingBox().minY,vanilla.z);
     }
     public static void afterMove(Entity e) {
-        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)
+                && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.simulates(e)) {
             io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.afterMove(e);return;
         }
         if(!Platforms.simulates(e)) return;
@@ -92,7 +95,8 @@ public final class PlatformPhysics {
             && PlatformGeometry.overlaps(PlatformGeometry.frame(s.support),s.surface,e.getBoundingBox());
     }
     public static void carry(Entity e) {
-        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)
+                && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.simulates(e)) {
             io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.carry(e);return;
         }
         if(!Platforms.simulates(e)) return;

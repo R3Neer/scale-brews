@@ -42,10 +42,13 @@ public final class AnatomyMovement {
             METRICS.put(level,new SweepMetrics(old.tick(),old.queries()+1,old.pieces()+pieces,old.evaluations()+evaluations,old.exhausted()+exhausted));
         }
     }
-    private record Anchor(Vec3 local,Vec3 previous,Vec3 supportOrigin,GravityFrame bodyGravity,GravityFrame supportGravity) {}
+    private record Anchor(Vec3 local,Vec3 previous,Vec3 supportOrigin,Vec3 bodyOrigin,GravityFrame bodyGravity,GravityFrame supportGravity) {}
     public record Contact(LivingEntity support,String piece,long revision,Vec3 normal) {}
     public static synchronized void activate(Level level){ACTIVE.add(level);}
+    public static synchronized boolean active(Level level){return ACTIVE.contains(level);}
     public static synchronized boolean active(Entity e){return ACTIVE.contains(e.level());}
+    /** Server simulates every body; a client predicts only entities it owns locally. */
+    public static boolean simulates(Entity body){return !body.level().isClientSide() || body.isLocalInstanceAuthoritative();}
     public static synchronized void register(LivingEntity support,GeometryProvider provider){PROVIDERS.put(support,provider);}
     public static synchronized void gravity(Entity body,GravityFrame gravity){GRAVITY.put(body,gravity);}
     public static synchronized GravityFrame gravity(Entity body){return GRAVITY.containsKey(body)?GRAVITY.get(body):GravityFrames.get(body);}
@@ -53,6 +56,20 @@ public final class AnatomyMovement {
     public static synchronized void clear(Entity body){CONTACTS.remove(body);ANCHORS.remove(body);SURFACES.remove(body);}
     public static synchronized SurfaceContact surface(Entity body){return SURFACES.get(body);}
     public static synchronized SupportTransport transport(Entity body){return TRANSPORT.get(body);}
+    public static synchronized boolean confirm(Entity body,LivingEntity support,SurfaceContact surface) {
+        if(!active(body) || surface==null || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
+        var provider=PROVIDERS.get(support);var snapshot=provider==null?null:provider.sample(support).orElse(null);
+        var piece=snapshot==null?null:snapshot.pieces().get(surface.piece());
+        if(piece==null || snapshot.revision()!=surface.revision() || surface.face()<0 || surface.face()>5)return false;
+        Vec3 point=piece.point(surface.localPoint()),normal=piece.faceNormal(surface.face());
+        // The authoritative normal belongs to the packet tick. Recompute it from the newest
+        // accepted pose instead of rejecting a valid contact while the support is animating.
+        if(!gravity(body).supports(normal))return false;
+        CONTACTS.put(body,new Contact(support,surface.piece(),surface.revision(),normal));
+        SURFACES.put(body,new SurfaceContact(surface.support(),surface.revision(),surface.piece(),surface.face(),surface.localPoint(),normal,surface.tick()));
+        ANCHORS.put(body,new Anchor(surface.localPoint(),point,support.position(),body.position(),gravity(body),gravity(support)));
+        return true;
+    }
     public static boolean supported(Entity body) {
         var c=contact(body);if(c==null || suspended(body,c.support()) || !Platforms.eligible(body,c.support()))return false;
         var provider=PROVIDERS.get(c.support());var snapshot=provider==null?null:provider.sample(c.support()).orElse(null);
@@ -65,7 +82,7 @@ public final class AnatomyMovement {
         for(var candidate:candidates(body,box))if(candidate.box.overlaps(box))return false;
         return true;
     }
-    public static void tick(net.minecraft.server.level.ServerLevel level) {
+    public static void tick(Level level) {
         if(!ACTIVE.contains(level))return;
         Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
@@ -73,6 +90,14 @@ public final class AnatomyMovement {
         for(var entry:providers.entrySet())if(entry.getKey().level()==level)
             entry.getValue().tick(entry.getKey(),level.getGameTime());
         for(var body:bodies)if(body.level()==level)carry(body);
+    }
+    /** Client-side pose cache update without moving server-owned observer entities. */
+    public static void tickGeometry(Level level) {
+        if(!ACTIVE.contains(level))return;
+        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        for(var entry:providers.entrySet())if(entry.getKey().level()==level)
+            entry.getValue().tick(entry.getKey(),level.getGameTime());
     }
     public static synchronized void deactivate(Level level){
         ACTIVE.remove(level);PROVIDERS.keySet().removeIf(e->e.level()==level);
@@ -193,7 +218,7 @@ public final class AnatomyMovement {
         if(!gravity(body).supports(normal)){clear(body);return;}
         Vec3 local=piece.facePoint(face,body.getBoundingBox().getCenter());
         SURFACES.put(body,new SurfaceContact(c.support.getUUID(),c.revision,c.piece,face,local,normal,body.level().getGameTime()));
-        ANCHORS.put(body,new Anchor(local,piece.point(local),c.support.position(),gravity(body),gravity(c.support)));
+        ANCHORS.put(body,new Anchor(local,piece.point(local),c.support.position(),body.position(),gravity(body),gravity(c.support)));
         body.setOnGround(true);
         body.verticalCollisionBelow=true;
     }
@@ -208,7 +233,8 @@ public final class AnatomyMovement {
             var provider=PROVIDERS.get(c.support);
             var snapshot=provider==null?null:provider.sample(c.support).orElse(null);
             var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
-            if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin)>16){clear(body);return;}
+            if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin)>16
+                    || body.position().distanceToSqr(anchor.bodyOrigin)>16){clear(body);return;}
             var surface=SURFACES.get(body);
             if(surface==null || !gravity(body).supports(piece.faceNormal(surface.face()))){clear(body);return;}
             Vec3 now=piece.point(anchor.local),delta=now.subtract(anchor.previous);
@@ -230,7 +256,7 @@ public final class AnatomyMovement {
                 TRANSPORT.put(body,new SupportTransport(tick,before==null?1:before.sequence()+1,before!=null && before.tick()==tick?before.displacement().add(allowed):allowed));
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
             }
-            ANCHORS.put(body,new Anchor(anchor.local,now,c.support.position(),anchor.bodyGravity,anchor.supportGravity));
+            ANCHORS.put(body,new Anchor(anchor.local,now,c.support.position(),body.position(),anchor.bodyGravity,anchor.supportGravity));
         } finally {visiting.remove(body);}
     }
     /** Root transport can run after passenger ticks; refresh native seats without another physics move. */

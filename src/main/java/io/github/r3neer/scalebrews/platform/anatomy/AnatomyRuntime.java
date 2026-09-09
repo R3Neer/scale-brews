@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 
 /** Server-owned binding/pose lifecycle. Opt-in preparation runtime until the acceptance gate passes. */
 public final class AnatomyRuntime {
@@ -21,7 +22,10 @@ public final class AnatomyRuntime {
         State(MinecraftServer server){catalog=new WorldAnatomyCatalog(AnatomyNetworking.revision(server));}
         final Map<LivingEntity,Active> entities=new WeakHashMap<>();
         final Map<ServerPlayer,Long> sent=new WeakHashMap<>();
+        final Map<ServerPlayer,Map<UUID,PublishedContact>> contacts=new WeakHashMap<>();
     }
+    private record ContactKey(UUID support,long revision,String piece,int face,Vec3 local,Vec3 normal) {}
+    private record PublishedContact(ContactKey key,long sequence) {}
     public static void initialize() {
         ServerLifecycleEvents.SERVER_STARTED.register(server->{if(Boolean.getBoolean("scalebrews.anatomyRuntime"))start(server);});
         ServerLifecycleEvents.SERVER_STOPPED.register(AnatomyRuntime::stop);
@@ -32,12 +36,17 @@ public final class AnatomyRuntime {
         });
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             if(entity instanceof LivingEntity living)send(living,player);
+            contact(entity,player,true);
+        });
+        EntityTrackingEvents.STOP_TRACKING.register((entity,player)->{
+            var state=STATES.get(player.level().getServer());
+            if(state!=null)state.contacts.computeIfPresent(player,(recipient,known)->{known.remove(entity.getUUID());return known;});
         });
         ServerPlayConnectionEvents.JOIN.register((handler,sender,server)->{
             var state=STATES.get(server);if(state!=null)catalog(state,handler.player);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler,server)->{
-            var state=STATES.get(server);if(state!=null)state.sent.remove(handler.player);
+            var state=STATES.get(server);if(state!=null){state.sent.remove(handler.player);state.contacts.remove(handler.player);}
         });
     }
     public static void start(MinecraftServer server) {
@@ -57,7 +66,7 @@ public final class AnatomyRuntime {
         reset(server,state);
     }
     private static void reset(MinecraftServer server,State state) {
-        state.entities.clear();state.sent.clear();
+        state.entities.clear();state.sent.clear();state.contacts.clear();
         for(var level:server.getAllLevels()){
             Platforms.anatomicalDefinitions(level,state.catalog.snapshot().profiles().values());
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepare(level);
@@ -90,9 +99,32 @@ public final class AnatomyRuntime {
             if(entity instanceof ServerPlayer player)players.add(player);
             for(var player:players)send(entity,player);
         }
+        for(var body:level.getAllEntities()) {
+            var interested=new HashSet<>(PlayerLookup.tracking(body));
+            if(body instanceof ServerPlayer player)interested.add(player);
+            for(var player:interested)contact(body,player,false);
+        }
+    }
+    private static void contact(net.minecraft.world.entity.Entity body,ServerPlayer recipient,boolean force) {
+        var state=STATES.get(recipient.level().getServer());if(state==null || !catalog(state,recipient)
+                || !ServerPlayNetworking.canSend(recipient,AnatomyContactPayload.TYPE))return;
+        var surface=AnatomyMovement.surface(body);
+        ContactKey key=surface==null?null:new ContactKey(surface.support(),surface.revision(),surface.piece(),surface.face(),surface.localPoint(),surface.normal());
+        var map=state.contacts.computeIfAbsent(recipient,p->new HashMap<>());var old=map.get(body.getUUID());
+        if(!force && Objects.equals(old==null?null:old.key(),key))return;
+        long sequence=old==null?1:old.sequence()+1;var epoch=AnatomyNetworking.epoch(recipient.level().getServer());long revision=state.catalog.snapshot().revision();
+        AnatomyContactPayload payload;
+        if(surface==null)payload=AnatomyContactPayload.clear(epoch,revision,body.getId(),body.getUUID(),sequence,body.level().getGameTime());
+        else {
+            var support=recipient.level().getEntity(surface.support());
+            if(!(support instanceof LivingEntity living))return;
+            payload=new AnatomyContactPayload(epoch,revision,body.getId(),body.getUUID(),sequence,body.level().getGameTime(),living.getId(),living.getUUID(),surface.piece(),surface.face(),surface.localPoint(),surface.normal());
+        }
+        ServerPlayNetworking.send(recipient,payload);map.put(body.getUUID(),new PublishedContact(key,sequence));
     }
     private static boolean catalog(State state,ServerPlayer player) {
-        if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE) || !ServerPlayNetworking.canSend(player,AnatomyPosePayload.TYPE)) {
+        if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE) || !ServerPlayNetworking.canSend(player,AnatomyPosePayload.TYPE)
+                || !ServerPlayNetworking.canSend(player,AnatomyContactPayload.TYPE)) {
             player.connection.disconnect(Component.literal("Scale Brews: incompatible anatomical protocol; update the client mod."));return false;
         }
         var snapshot=state.catalog.snapshot();

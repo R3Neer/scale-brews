@@ -167,6 +167,20 @@ public class AnatomyExportProof implements FabricClientGameTest {
                         cow.move(net.minecraft.world.entity.MoverType.SELF,new net.minecraft.world.phys.Vec3(.04,.01,0));
                 });
             });
+            var confirmedOnClient=new java.util.concurrent.atomic.AtomicBoolean();
+            for(int attempt=0;attempt<40 && !confirmedOnClient.get();attempt++) {
+                context.waitTicks(5);
+                context.runOnClient(client->{
+                    var pig=client.level.getEntity(transportedPig.get().getUUID());
+                    if(pig!=null) {
+                        var contact=AnatomyMovement.contact(pig);
+                        confirmedOnClient.set(contact!=null && contact.support().getUUID().equals(runtimeCow.get().getUUID()));
+                        if(AnatomyMovement.transport(pig)!=null)
+                            throw new AssertionError("Observer client simulated transport for a server-owned mob");
+                    }
+                });
+            }
+            if(!confirmedOnClient.get())throw new AssertionError("Server contact was not confirmed on the observer client");
             try {for(int attempt=0;attempt<120 && transportElapsed.get()<60;attempt++) {
                 context.waitTicks(5);
                 world.getServer().runOnServer(server->{

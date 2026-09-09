@@ -2,6 +2,27 @@
 
 This is an **unfinished prototype** for the approved shared Scale Brews / Clinging plan. `PlatformPhysics` now delegates movement and transport to the new core only in explicitly activated proof levels. Ordinary worlds, `automatic_top`, Clinging's AABB collision and installed JARs remain unchanged. The existing 0.85 policy is untouched. Gate 1 is not complete.
 
+### 2026-09-09: authoritative material contacts
+
+The server now publishes a versioned contact identity containing the transported
+body, support, catalog revision, stable piece and face, material-local point,
+normal, tick and monotonic sequence. Clients reject the wrong server epoch,
+catalog revision, stale frame or replay. A received contact is reconstructed only
+after both the matching catalog geometry and support pose exist.
+
+Client physics now distinguishes ownership: the server simulates every eligible
+body, while a client predicts only its locally authoritative player or controlled
+vehicle. Observer mobs are positioned by vanilla server packets and never receive
+a second local carry. Tracking stop, disconnect, catalog replacement, unsupported
+poses, gravity discontinuity and body/support teleports clear temporary contact.
+
+The expanded isolated evidence is 123 server GameTests plus the actual
+client/integrated-server anatomy fixture with Alex's Mobs 2.1.9. The client
+confirmed the small pig's server contact on the animated cow, recorded no local
+observer transport, and the server retained support through 60 moving/ascending
+ticks. This closes observer contact synchronization, not local prediction under
+latency, reconnect/host replacement or the remaining model catalogue.
+
 ## Implemented foundations
 
 ### 2026-09-09: restored checkout and client physics identity

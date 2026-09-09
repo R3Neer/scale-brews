@@ -10,6 +10,7 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,AnatomyPoseHistory> poses=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,Long> receivedAt=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ModelGeometryProvider> evaluators=new java.util.HashMap<>();
+    private static final java.util.Map<java.util.UUID,AnatomyContactPayload> contacts=new java.util.HashMap<>();
     private static net.minecraft.client.multiplayer.ClientLevel poseLevel;
     private static long clientTick;
     private AnatomyClientNetworking() {}
@@ -17,7 +18,7 @@ public final class AnatomyClientNetworking {
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
     private static void clearPoses(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
-        poses.clear();receivedAt.clear();evaluators.clear();
+        poses.clear();receivedAt.clear();evaluators.clear();contacts.clear();
     }
     /** Physics reads the latest confirmed pose, never a renderer or an extrapolated animation. */
     private static void bindPhysics() {
@@ -31,6 +32,17 @@ public final class AnatomyClientNetworking {
                 var latest=poses.get(support.getUUID());
                 return latest==null?java.util.Optional.empty():geometry(support,latest.current().tick());
             });
+        }
+        var iterator=contacts.entrySet().iterator();
+        while(iterator.hasNext()) {
+            var entry=iterator.next();var packet=entry.getValue();
+            var body=poseLevel.getEntity(packet.bodyId());
+            if(body==null || !body.getUUID().equals(packet.body()))continue;
+            if(!packet.present()) {AnatomyMovement.clear(body);iterator.remove();continue;}
+            var support=poseLevel.getEntity(packet.supportId());
+            if(!(support instanceof net.minecraft.world.entity.LivingEntity living) || !support.getUUID().equals(packet.support()))continue;
+            var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
+            if(AnatomyMovement.confirm(body,living,surface))iterator.remove();
         }
     }
     /** Shared collision/presentation query; never reads local model animations or resource packs. */
@@ -76,6 +88,11 @@ public final class AnatomyClientNetworking {
                 return false;
             });
             bindPhysics();
+            if(poseLevel!=null) {
+                AnatomyMovement.tickGeometry(poseLevel);
+                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)
+                    AnatomyMovement.carry(entity);
+            }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
             try{if(transfer.accept(packet)){
@@ -95,6 +112,13 @@ public final class AnatomyClientNetworking {
             var history=poses.computeIfAbsent(packet.entity(),id->new AnatomyPoseHistory());
             try{if(history.accept(packet))receivedAt.put(packet.entity(),clientTick);}
             catch(IllegalArgumentException invalid){poses.remove(packet.entity());receivedAt.remove(packet.entity());evaluators.remove(packet.entity());}
+        });
+        ClientPlayNetworking.registerGlobalReceiver(AnatomyContactPayload.TYPE,(packet,context)->{
+            var level=context.client().level;useLevel(level);
+            if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
+                    || packet.tick()+100<level.getGameTime())return;
+            var previous=contacts.get(packet.body());
+            if(previous==null || packet.sequence()>previous.sequence())contacts.put(packet.body(),packet);
         });
     }
 }

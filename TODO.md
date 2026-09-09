@@ -32,12 +32,14 @@
 - [ ] Gate 1: original-model extraction (player/cow/grizzly), server-safe poses, six-sided convex contact and dedicated-server proof. Do not replace installed gameplay before this gate passes.
   - [x] Isolated export command, original vertex comparisons and 320 ordinary animated pose comparisons; dedicated server loads the four JSON models without Alex/client classes. See docs/ANATOMY_IMPLEMENTATION.md.
   - [x] Prototype catalog and authoritative pose transfer over the actual play connection; revision/session validation, replay-safe interpolation and explicit received-frame geometry evaluation. This does not complete live transport synchronization.
-  - [ ] Wire and validate actual anatomical movement/transport, authoritative pose sampling, host/resource independence and conservative hierarchy motion bounds. Mathematical queries alone do not complete this gate.
+  - [x] Wire actual convex movement/transport, authoritative pose sampling, conservative hierarchy motion bounds and server-confirmed contact identity. The real client observes the contact but does not simulate remote bodies; 60 integrated-server transport ticks pass.
+  - [ ] Validate host/resource independence and local-player/controlled-vehicle prediction plus reconciliation. The observer-contact proof does not complete those acceptance cases.
 - [ ] Gate 2: shared geometry/contacts/transport, synced catalog, legacy-profile migration, categories and lifecycle regressions.
   - [x] Register validated geometry codec and anatomical profile references; add common pose-provider registry, piece filters and atomic model/binding validation.
   - [x] Preparation runtime automatically binds/ticks/publishes tracked cow poses; real-client unsupported-state removal and Alex 2.1.9 server pose guards pass.
   - [x] Read the world resource catalog on reload; validate and transfer geometry/profiles as one protocol-v2 revision, with real-client policy replacement coverage.
   - [x] Bind confirmed poses to client physical queries and prevent same-network-ID client/server instances from sharing core state; real-client unsupported-pose removal passes after identity-key correction.
+  - [x] Synchronize material piece/face/local-point contacts with sequence, epoch and catalog revision; late tracking, client ownership boundaries and teleport release are represented in the runtime.
   - [ ] Validate live reload while carrying entities, rejected reload followed by recovery, reconnection and latency. Resource-reader and transfer tests alone do not complete this lifecycle gate.
 - [ ] Gate 3: remove Clinging's AABB collider/duplicate transport; consume shared gravity/contact API; export VP26 compatibility report.
   - [x] Proof-only optional bridge with actual Gravity Changer, six-direction managed Clinging contact, anatomical clearance, no duplicate legacy carry and no inherited support impulse. Ordinary worlds remain on the old path; final protocol/catalog migration is still pending.
