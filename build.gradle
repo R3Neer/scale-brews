@@ -81,9 +81,26 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(JavaExec).configureEach {
+	if (providers.gradleProperty('scalebrewsAnatomyCatalog').isPresent())
+		systemProperty 'scalebrews.anatomyCatalog', file(providers.gradleProperty('scalebrewsAnatomyCatalog').get()).absolutePath
 	systemProperty 'scalebrews.platformSoak', providers.gradleProperty('scalebrewsPlatformSoak').orElse('false').get()
 	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsCompatMods').isPresent()) {
 		systemProperty 'fabric.addMods', file(providers.gradleProperty('scalebrewsCompatMods').get()).absolutePath
+	}
+}
+
+tasks.named('processGametestResources') {
+	def anatomyOnly = providers.gradleProperty('scalebrewsAnatomyProof').orElse('false')
+	def readmeCapture = providers.gradleProperty('scalebrewsReadmeCapture').orElse('false')
+	inputs.property('anatomyOnly', anatomyOnly)
+	inputs.property('readmeCapture', readmeCapture)
+	doLast {
+		if (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()) {
+			def manifest = new File(destinationDir, 'fabric.mod.json')
+			def metadata = new groovy.json.JsonSlurper().parse(manifest)
+			metadata.entrypoints['fabric-client-gametest'] = [readmeCapture.get().toBoolean() ? 'io.github.r3neer.scalebrews.test.ReadmeCapture' : 'io.github.r3neer.scalebrews.test.AnatomyExportProof']
+			manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
+		}
 	}
 }
 

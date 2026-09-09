@@ -9,6 +9,7 @@
   ],
   "entrypoints": {
     "fabric-gametest": [
+      "io.github.r3neer.scalebrews.test.AnatomyGeometryTests",
       "io.github.r3neer.scalebrews.test.MountGestureTests",
       "io.github.r3neer.scalebrews.test.ImpactSurfaceTests",
       "io.github.r3neer.scalebrews.test.ScaleReachTests",
@@ -27,6 +28,7 @@
       "io.github.r3neer.scalebrews.test.MountPlaytestTests"
     ],
     "fabric-client-gametest": [
+      "io.github.r3neer.scalebrews.test.AnatomyExportProof",
       "io.github.r3neer.scalebrews.test.WolfClientProof",
       "io.github.r3neer.scalebrews.test.PlatformClientProof",
       "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"

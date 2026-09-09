@@ -21,6 +21,7 @@ import java.util.*;
 public final class Platforms {
     public static final ResourceKey<Registry<PlatformDefinition>> DEFINITIONS = ResourceKey.createRegistryKey(ScaleBrews.id("entity_platform"));
     public static final ResourceKey<Registry<PlatformPolicy>> POLICIES = ResourceKey.createRegistryKey(ScaleBrews.id("platform_policy"));
+    public static final ResourceKey<Registry<io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry>> GEOMETRIES = ResourceKey.createRegistryKey(ScaleBrews.id("entity_geometry"));
     public static final ResourceKey<PlatformPolicy> DEFAULT = ResourceKey.create(POLICIES, ScaleBrews.id("default"));
     private static final Map<Registry<PlatformDefinition>, Map<Identifier, PlatformDefinition>> INDEX = Collections.synchronizedMap(new WeakHashMap<>());
     public interface PhysicalAdapter {
@@ -32,11 +33,21 @@ public final class Platforms {
     private static final Map<Identifier, PhysicalAdapter> ADAPTERS = new HashMap<>();
     private static final Map<Level,Double> MARGINS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Entity,PlatformDefinition> AUTOMATIC=Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Level,Map<Identifier,PlatformDefinition>> ANATOMICAL_DEFINITIONS=Collections.synchronizedMap(new WeakHashMap<>());
+    public static void anatomicalDefinitions(Level level,Collection<PlatformDefinition> profiles) {
+        Map<Identifier,PlatformDefinition> indexed=new HashMap<>();
+        for(var profile:profiles)if(indexed.putIfAbsent(profile.entity(),profile)!=null)throw new IllegalArgumentException("Duplicate anatomical species "+profile.entity());
+        ANATOMICAL_DEFINITIONS.put(level,Map.copyOf(indexed));
+    }
+    public static void clearAnatomicalDefinitions(Level level){ANATOMICAL_DEFINITIONS.remove(level);}
     public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { ADAPTERS.put(type, adapter); }
     private Platforms() {}
     public static void initialize() {
+        io.github.r3neer.scalebrews.platform.anatomy.AnatomyNetworking.initialize();
+        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.initialize();
         DynamicRegistries.registerSynced(DEFINITIONS, PlatformDefinition.CODEC);
         DynamicRegistries.registerSynced(POLICIES, PlatformPolicy.CODEC);
+        DynamicRegistries.registerSynced(GEOMETRIES, io.github.r3neer.scalebrews.platform.anatomy.AnatomyCodecs.GEOMETRY);
         ServerTickEvents.END_LEVEL_TICK.register(Platforms::tick);
         PlatformNetworking.initialize();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server->
@@ -64,6 +75,8 @@ public final class Platforms {
         // Happy Ghast owns its vanilla platform/parking mechanics. Multipart dragon physics are not ordinary bodies.
         if (!(support instanceof LivingEntity living) || support instanceof net.minecraft.world.entity.animal.happyghast.HappyGhast
                 || support instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
+        var anatomical=ANATOMICAL_DEFINITIONS.get(support.level());
+        if(anatomical!=null)return anatomical.get(BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()));
         var registry = support.registryAccess().lookup(DEFINITIONS).orElse(null);
         if (registry == null) return null;
         var id=BuiltInRegistries.ENTITY_TYPE.getKey(support.getType());
@@ -139,6 +152,9 @@ public final class Platforms {
         return supported(e) ? definition(state(e).support).friction() : original;
     }
     public static void tick(ServerLevel level) {
+        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.prepare(level);
+        io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.tick(level);
+        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.publish(level);
         for(Entity e:level.getAllEntities()) noteSupport(e);
         for (Entity e : level.getAllEntities()) if (state(e).support != null || state(e).published) {
             PlatformPhysics.carry(e);

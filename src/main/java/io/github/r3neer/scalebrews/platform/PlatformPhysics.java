@@ -33,6 +33,8 @@ public final class PlatformPhysics {
         return best;
     }
     public static boolean suppressPair(Entity body, Entity other) {
+        if(MOVING.get()==body && io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(body))
+            return io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.replacesPair(body,other);
         if (MOVING.get()!=body || !(other instanceof LivingEntity support)) return false;
         if (Platforms.state(body).carrying && Platforms.state(body).support==support) return true;
         if (!Platforms.eligible(body,support)) return false;
@@ -43,6 +45,8 @@ public final class PlatformPhysics {
         return false;
     }
     public static Vec3 collide(Entity e, Vec3 requested, Vec3 vanilla) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e))
+            return io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.collide(e,vanilla);
         if(!Platforms.simulates(e)) return vanilla;
         var state=Platforms.state(e);
         if (state.carrying) return vanilla;
@@ -66,6 +70,9 @@ public final class PlatformPhysics {
         return new Vec3(vanilla.x,c.y-e.getBoundingBox().minY,vanilla.z);
     }
     public static void afterMove(Entity e) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)) {
+            io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.afterMove(e);return;
+        }
         if(!Platforms.simulates(e)) return;
         var s=Platforms.state(e);
         if (s.carrying || s.support==null) return;
@@ -78,11 +85,16 @@ public final class PlatformPhysics {
         e.setOnGround(true); e.verticalCollisionBelow=true;
     }
     public static boolean touching(Entity e) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e))
+            return io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.supported(e);
         var s=Platforms.state(e);
         return s.support!=null && Math.abs(e.getY()-PlatformGeometry.height(PlatformGeometry.frame(s.support),s.surface))<.025
             && PlatformGeometry.overlaps(PlatformGeometry.frame(s.support),s.surface,e.getBoundingBox());
     }
     public static void carry(Entity e) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(e)) {
+            io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.carry(e);return;
+        }
         if(!Platforms.simulates(e)) return;
         var s=Platforms.state(e);
         if (s.support==null || s.visiting) return;
@@ -117,6 +129,7 @@ public final class PlatformPhysics {
     }
     /** A rising support may meet a falling/resting body; no horizontal side capture. */
     public static void movedSupport(LivingEntity support,PlatformGeometry.Frame before) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.active(support))return;
         if(!Platforms.ordinary(support) || Platforms.definition(support)==null) return;
         var now=PlatformGeometry.frame(support);
         if(now.origin().distanceTo(before.origin())>4) return;
