@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 env:
-  S00_TREE: 189d5f5e277c4688e2d33423f3863548f35591e9
+  S00_TREE: a2d5ca4dbb50a3d866c2187503c1210a597e403b
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -76,6 +76,7 @@ jobs:
         with:
           java-version: '25'
           distribution: 'microsoft'
+          cache: gradle
       - name: record environment
         run: |
           java -version 2> "$RUNNER_TEMP/s00-evidence/java.txt"
@@ -84,6 +85,28 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew build --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-evidence/server.xml" 2>&1 | tee "$RUNNER_TEMP/s00-evidence/build.log"
+      - name: capture exact dependency references for audit
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          cache = pathlib.Path.home() / '.gradle/caches'
+          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 's00-evidence'
+          paths = sorted({p for pattern in ('minecraft-common*.jar', 'minecraft-clientOnly*.jar', 'minecraft-client-only*.jar', 'joml-1.10.8.jar') for p in cache.rglob(pattern) if 'sources' not in p.name})
+          manifest = []
+          for path in paths:
+              with path.open('rb') as stream:
+                  digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+              manifest.append({'path': str(path), 'sha256': digest})
+          (evidence / 'dependencies.json').write_text(json.dumps(manifest, indent=2))
+          classes = ['net.minecraft.world.entity.LivingEntity', 'net.minecraft.world.entity.Mob', 'net.minecraft.world.entity.ai.control.BodyRotationControl', 'net.minecraft.world.entity.WalkAnimationState', 'net.minecraft.client.renderer.entity.LivingEntityRenderer', 'org.joml.Quaternionf']
+          results = {}
+          for name in classes:
+              result = subprocess.run(['javap', '-p', '-c', '-classpath', os.pathsep.join(map(str, paths)), name], text=True, capture_output=True)
+              (evidence / (name + '.javap.txt')).write_text(result.stdout + result.stderr)
+              results[name] = result.returncode
+          (evidence / 'reference-exits.json').write_text(json.dumps(results, indent=2))
+          PY
       - name: real client and integrated server GameTests
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
