@@ -28,13 +28,3 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: capture temporary source snapshot
-        uses: actions/upload-artifact@v7
-        with:
-          name: SourceSnapshot
-          path: |
-            src/
-            build.gradle
-            gradle.properties
-            settings.gradle
-            tools/
