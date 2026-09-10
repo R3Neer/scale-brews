@@ -6,7 +6,7 @@ import net.minecraft.world.phys.Vec3;
 public final class PlatformMovementReference {
     private PlatformMovementReference() {}
     public static Vec3 resolve(Entity body,Vec3 absolute) {
-        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi.ownsSharedPhysics(body)) {
+        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) {
             Platforms.state(body).pendingReference=null;
             return absolute;
         }

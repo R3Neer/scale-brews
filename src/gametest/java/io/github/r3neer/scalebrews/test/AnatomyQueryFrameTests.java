@@ -1,11 +1,11 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyPoseHistory;
-import io.github.r3neer.scalebrews.platform.anatomy.ConvexBox;
-import io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
-import io.github.r3neer.scalebrews.platform.anatomy.PoseProvider;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -110,7 +110,7 @@ public class AnatomyQueryFrameTests {
                 body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
                 var old=ConvexBox.of(new AABB(-.5,-.1,-2,.5,.1,2),new Matrix4f()).move(support.position());
                 long now=h.getLevel().getGameTime();
-                var stale=new GeometryProvider.MotionSnapshot(9,now-1,now,support.position(),support.position(),Map.of("floor",new io.github.r3neer.scalebrews.platform.anatomy.ConservativeSweep.Motion(t->old,0)));
+                var stale=new GeometryProvider.MotionSnapshot(9,now-1,now,support.position(),support.position(),Map.of("floor",new io.github.r3neer.scalebrews.collision.physics.ConservativeSweep.Motion(t->old,0)));
                 var availability=new GeometryProvider.Availability[]{GeometryProvider.Availability.AVAILABLE};
                 var provider=endpointProvider(9,e->ConvexBox.of(new AABB(-.5,-.1,-2,.5,.1,2),new Matrix4f()
                     .rotateY((float)Math.toRadians(e.yBodyRot)).scale(e.getScale())).move(e.position()),e->INPUTS,e->availability[0],Optional.of(stale));
@@ -136,7 +136,7 @@ public class AnatomyQueryFrameTests {
                 var beforeCarry=body.position();support.setPos(support.position().add(.1,0,0));AnatomyMovement.carry(body);
                 h.assertTrue(AnatomyMovement.contact(body)==null && AnatomyMovement.surface(body)==null
                     && !AnatomyMovement.suppressesPush(body,support) && !AnatomyMovement.supported(body) && body.position().equals(beforeCarry)
-                    && !AnatomyMovement.confirm(body,support,new io.github.r3neer.scalebrews.platform.anatomy.SurfaceContact(support.getUUID(),9,"floor",0,Vec3.ZERO,new Vec3(0,1,0),now)),
+                    && !AnatomyMovement.confirm(body,support,new io.github.r3neer.scalebrews.collision.api.SurfaceContact(support.getUUID(),9,"floor",0,Vec3.ZERO,new Vec3(0,1,0),now)),
                     "Accepting one unavailable endpoint clears dependent contact, surface, push suppression, carry, and confirm without a manual invalidation");
                 availability[0]=GeometryProvider.Availability.AVAILABLE;
                 var restored=AnatomyMovement.queryFrame(support).orElseThrow();

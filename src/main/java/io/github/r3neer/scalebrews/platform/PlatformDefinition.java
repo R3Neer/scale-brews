@@ -10,7 +10,7 @@ import java.util.Optional;
 /** Blocks in an adult's unscaled body frame: +x right, +z forward, +y up. */
 public record PlatformDefinition(Identifier entity, boolean enabled, double friction,
                                  Optional<Double> maxRatio, List<Surface> surfaces,
-                                 Optional<io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition> anatomy) {
+                                 Optional<io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition> anatomy) {
     public PlatformDefinition(Identifier entity,boolean enabled,double friction,Optional<Double> maxRatio,List<Surface> surfaces) {
         this(entity,enabled,friction,maxRatio,surfaces,Optional.empty());
     }
@@ -27,7 +27,7 @@ public record PlatformDefinition(Identifier entity, boolean enabled, double fric
             .optionalFieldOf("friction", .6).forGetter(PlatformDefinition::friction),
         POSITIVE.optionalFieldOf("max_width_ratio").forGetter(PlatformDefinition::maxRatio),
         Surface.CODEC.listOf().optionalFieldOf("surfaces",List.of()).forGetter(PlatformDefinition::surfaces),
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition.CODEC.optionalFieldOf("anatomy").forGetter(PlatformDefinition::anatomy)
+        io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition.CODEC.optionalFieldOf("anatomy").forGetter(PlatformDefinition::anatomy)
     ).apply(i, PlatformDefinition::new)).validate(d -> (d.anatomy.isPresent() ? d.surfaces.isEmpty() : !d.surfaces.isEmpty())
         && d.surfaces.stream().map(Surface::id).distinct().count() == d.surfaces.size()
         ? DataResult.success(d) : DataResult.error(() -> "Choose anatomy or nonempty legacy surfaces with unique ids, not both"));

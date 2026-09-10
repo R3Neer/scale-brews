@@ -1,8 +1,8 @@
 package io.github.r3neer.scalebrews.platform;
 
 import io.github.r3neer.scalebrews.mixin.PlatformBoatItemAccessor;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMode;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

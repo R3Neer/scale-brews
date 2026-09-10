@@ -1,11 +1,11 @@
 package io.github.r3neer.scalebrews.collision.api;
 
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMode;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomySession;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrames;
-import io.github.r3neer.scalebrews.platform.anatomy.SurfaceContact;
+import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomySession;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.internal.GravityFrames;
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.Direction;

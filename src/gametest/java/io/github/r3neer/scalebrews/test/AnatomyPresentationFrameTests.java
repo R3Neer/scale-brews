@@ -1,17 +1,17 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking;
-import io.github.r3neer.scalebrews.client.platform.anatomy.GeometryExtractor;
+import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
+import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyFilter;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyNetworking;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime;
-import io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
-import io.github.r3neer.scalebrews.platform.anatomy.PoseProvider;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyNetworking;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +26,7 @@ import net.minecraft.world.entity.animal.cow.Cow;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * T2-only client receiver proof. It intentionally exercises full accepted
+ * Client receiver proof. It intentionally exercises full accepted
  * endpoint lifecycle rather than rendering state or PoseHistory interpolation.
  * Register in a dedicated future client selector, never ordinary physics A/B.
  */
@@ -129,7 +129,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
 
     private static GeometryProvider.PublishedFrame rootOnly(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,float yaw) {
         var old=prior.endpoint();var sample=old.sample();
-        var nextSample=new io.github.r3neer.scalebrews.platform.anatomy.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
+        var nextSample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
         var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick(),origin,yaw,sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick(),old.jointSampleTick(),root,nextSample,GeometryProvider.Availability.AVAILABLE);
         return new GeometryProvider.PublishedFrame(prior.identity(),endpoint);
@@ -145,7 +145,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
     /** A new drawable endpoint may reacquire after a gap, but never interpolates through it. */
     private static GeometryProvider.PublishedFrame availableAfterGap(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,float yaw) {
         var old=prior.endpoint();var sample=old.sample();
-        var nextSample=new io.github.r3neer.scalebrews.platform.anatomy.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
+        var nextSample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
         var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,yaw,sample.scale(),sample.gravity());
         // The joint sample remains the last accepted one; only the endpoint
         // authority/root advances. This is a static reacquisition, not a
@@ -155,7 +155,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
     }
 
     private static GeometryProvider.PublishedFrame rebound(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,long bindingGeneration) {
-        var old=prior.endpoint();var identity=prior.identity();var sample=new io.github.r3neer.scalebrews.platform.anatomy.AnatomyPoseHistory.Sample(
+        var old=prior.endpoint();var identity=prior.identity();var sample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(
             old.sample().inputs(),origin,old.sample().yaw(),old.sample().scale(),old.sample().gravity());
         var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick()+1,old.jointSampleTick(),root,sample,GeometryProvider.Availability.AVAILABLE);

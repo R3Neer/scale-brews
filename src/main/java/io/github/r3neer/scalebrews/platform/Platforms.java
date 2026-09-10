@@ -17,13 +17,13 @@ import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.level.Level;
 import java.util.*;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 
 public final class Platforms {
     public static final ResourceKey<Registry<PlatformDefinition>> DEFINITIONS = ResourceKey.createRegistryKey(ScaleBrews.id("entity_platform"));
     public static final ResourceKey<Registry<PlatformPolicy>> POLICIES = ResourceKey.createRegistryKey(ScaleBrews.id("platform_policy"));
-    public static final ResourceKey<Registry<io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry>> GEOMETRIES = ResourceKey.createRegistryKey(ScaleBrews.id("entity_geometry"));
+    public static final ResourceKey<Registry<io.github.r3neer.scalebrews.collision.geometry.ModelGeometry>> GEOMETRIES = ResourceKey.createRegistryKey(ScaleBrews.id("entity_geometry"));
     public static final ResourceKey<PlatformPolicy> DEFAULT = ResourceKey.create(POLICIES, ScaleBrews.id("default"));
     private static final Map<Registry<PlatformDefinition>, Map<Identifier, PlatformDefinition>> INDEX = Collections.synchronizedMap(new WeakHashMap<>());
     public interface PhysicalAdapter {
@@ -45,11 +45,11 @@ public final class Platforms {
     public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { ADAPTERS.put(type, adapter); }
     private Platforms() {}
     public static void initialize() {
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyNetworking.initialize();
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.initialize();
+        io.github.r3neer.scalebrews.collision.internal.AnatomyNetworking.initialize();
+        io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.initialize();
         DynamicRegistries.registerSynced(DEFINITIONS, PlatformDefinition.CODEC);
         DynamicRegistries.registerSynced(POLICIES, PlatformPolicy.CODEC);
-        DynamicRegistries.registerSynced(GEOMETRIES, io.github.r3neer.scalebrews.platform.anatomy.AnatomyCodecs.GEOMETRY);
+        DynamicRegistries.registerSynced(GEOMETRIES, io.github.r3neer.scalebrews.collision.internal.AnatomyCodecs.GEOMETRY);
         ServerTickEvents.END_LEVEL_TICK.register(Platforms::tick);
         PlatformNetworking.initialize();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server->
@@ -163,9 +163,9 @@ public final class Platforms {
         return definition==null?original:definition.friction();
     }
     public static void tick(ServerLevel level) {
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.prepare(level);
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.tick(level);
-        io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.publish(level);
+        io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.prepare(level);
+        io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.tick(level);
+        io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.publish(level);
         for(Entity e:level.getAllEntities()) noteSupport(e);
         for (Entity e : level.getAllEntities()) {
             if(AnatomyApi.ownsSharedPhysics(e)) {

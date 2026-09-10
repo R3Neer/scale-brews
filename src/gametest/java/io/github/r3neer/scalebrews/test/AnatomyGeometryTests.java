@@ -1,6 +1,10 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.*;
+import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.geometry.*;
+import io.github.r3neer.scalebrews.collision.pose.*;
+import io.github.r3neer.scalebrews.collision.physics.*;
+import io.github.r3neer.scalebrews.collision.internal.*;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.phys.*;
@@ -172,6 +176,7 @@ public class AnatomyGeometryTests {
         var bear=(net.minecraft.world.entity.LivingEntity)type.create(h.getLevel(),net.minecraft.world.entity.EntitySpawnReason.COMMAND);
         bear.setPos(h.absoluteVec(new Vec3(2,20,2)));h.getLevel().addFreshEntity(bear);
         var provider=net.minecraft.resources.Identifier.parse("scalebrews:grizzly");
+        try{AnatomyPoseEligibility.register(provider,GrizzlyPose.guard());}catch(IllegalArgumentException alreadyRegistered){}
         try {
             h.assertTrue(AnatomyPoseEligibility.supported(provider,bear),"Actual adult ordinary grizzly admitted without renderer classes");
             for(String name:java.util.List.of("standProgress","sitProgress","prevStandProgress","prevSitProgress")) {

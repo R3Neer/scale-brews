@@ -2,16 +2,16 @@ package io.github.r3neer.scalebrews.test;
 
 import com.google.gson.Gson;
 import io.github.r3neer.scalebrews.ScaleBrews;
-import io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking;
+import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyFilter;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyTransportReceipts;
-import io.github.r3neer.scalebrews.platform.anatomy.ConvexBox;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
-import io.github.r3neer.scalebrews.platform.anatomy.SurfaceContact;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyTransportReceipts;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -332,7 +332,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             throw new IllegalStateException("N2 could not confirm real exported-cow material support for "+body.getType());
     }
 
-    private static FaceCandidate findTopFace(Entity body,io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider.Snapshot snapshot) {
+    private static FaceCandidate findTopFace(Entity body,io.github.r3neer.scalebrews.collision.internal.GeometryProvider.Snapshot snapshot) {
         var before=body.getBoundingBox();var center=before.getCenter();var candidates=new ArrayList<FaceCandidate>();
         for(var entry:snapshot.pieces().entrySet())for(int face=0;face<6;face++) {
             ConvexBox piece=entry.getValue();var normal=piece.faceNormal(face);if(normal.y<=.99)continue;

@@ -1,7 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyTransportReceipts;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyTransportReceipts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -1,12 +1,12 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyPoseHistory;
-import io.github.r3neer.scalebrews.platform.anatomy.ConvexBox;
-import io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
-import io.github.r3neer.scalebrews.platform.anatomy.MaterialEventDispatcher;
-import io.github.r3neer.scalebrews.platform.anatomy.PoseProvider;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.internal.MaterialEventDispatcher;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

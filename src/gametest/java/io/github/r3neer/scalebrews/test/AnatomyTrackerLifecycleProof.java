@@ -1,6 +1,10 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.*;
+import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.geometry.*;
+import io.github.r3neer.scalebrews.collision.pose.*;
+import io.github.r3neer.scalebrews.collision.physics.*;
+import io.github.r3neer.scalebrews.collision.internal.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

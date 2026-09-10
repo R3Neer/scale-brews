@@ -1,15 +1,15 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking;
-import io.github.r3neer.scalebrews.client.platform.anatomy.GeometryExtractor;
+import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
+import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyFilter;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime;
-import io.github.r3neer.scalebrews.platform.anatomy.ConvexBox;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
-import io.github.r3neer.scalebrews.platform.anatomy.PoseProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.QuadrupedPose;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
+import io.github.r3neer.scalebrews.collision.pose.QuadrupedPose;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;

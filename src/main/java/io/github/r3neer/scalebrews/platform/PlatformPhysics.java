@@ -4,8 +4,8 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.*;
 import java.util.*;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 
 /** Only called from movement, support and edge checks. Never extends global noCollision/pathfinding. */
 public final class PlatformPhysics {

@@ -2,11 +2,11 @@ package io.github.r3neer.scalebrews.test;
 
 import com.google.gson.Gson;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyFilter;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMode;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

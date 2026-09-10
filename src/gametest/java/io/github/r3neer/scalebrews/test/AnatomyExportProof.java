@@ -1,8 +1,12 @@
 package io.github.r3neer.scalebrews.test;
 
 import com.google.gson.GsonBuilder;
-import io.github.r3neer.scalebrews.client.platform.anatomy.GeometryExtractor;
-import io.github.r3neer.scalebrews.platform.anatomy.*;
+import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
+import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.geometry.*;
+import io.github.r3neer.scalebrews.collision.pose.*;
+import io.github.r3neer.scalebrews.collision.physics.*;
+import io.github.r3neer.scalebrews.collision.internal.*;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.loader.api.FabricLoader;
@@ -78,7 +82,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             world.getServer().runOnServer(server->AnatomyNetworking.sendCatalog(server.getPlayerList().getPlayers().getFirst(),1,models));
             context.waitTicks(10);
             context.runOnClient(client->{
-                var received=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.catalog();
+                var received=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.catalog();
                 if(received.revision()!=1 || !received.snapshot().models().equals(models))throw new AssertionError("Real network catalog differs from server authority");
                 System.out.println("ANATOMY_NETWORK server catalog round trip passed: "+models.size()+" models");
             });
@@ -107,7 +111,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             context.waitTicks(10);
             context.runOnClient(client->{
-                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
+                var history=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.pose(client.player.getUUID());
                 if(history==null || !history.current().inputs().equals(sentPose))throw new AssertionError("Authoritative pose channels did not survive real network transfer");
                 var packet=history.current();
                 var sample=sentFrame.get();
@@ -123,7 +127,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 geometry.evaluate(root,new PlayerWalkingPose().evaluate(geometry,sentPose).orElseThrow(),AnatomyFilter.DEFAULT)
                     .forEach((id,box)->expected.put(id,box.move(packet.origin())));
                 compare(result.pieces(),expected,"network pose world geometry");
-                var shared=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,packet.tick()).orElseThrow();
+                var shared=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,packet.tick()).orElseThrow();
                 compare(shared.pieces(),expected,"shared client geometry query");
                 for(int query=0;query<100;query++)evaluator.sampleAt(client.player,frame);
                 if(evaluator.evaluations()!=1)throw new AssertionError("Observer queries recomputed identical geometry");
@@ -152,13 +156,13 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             context.waitTicks(5);
             context.runOnClient(client->{
-                if(io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
+                if(io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
                     throw new AssertionError("Unavailable causal endpoint retained client geometry");
             });
             world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),firstPublished.get()));
             context.waitTicks(5);
             context.runOnClient(client->{
-                if(io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
+                if(io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
                     throw new AssertionError("Delayed pre-unavailable frame revived client geometry");
             });
             world.getServer().runOnServer(server->{
@@ -169,9 +173,9 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             context.waitTicks(5);
             context.runOnClient(client->{
-                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
+                var history=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.pose(client.player.getUUID());
                 if(history==null || history.current().frameSerial()!=3 || history.segment(client.level.getGameTime()).fraction()!=1
-                        || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
+                        || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
                     throw new AssertionError("Available endpoint did not rebind fresh geometry after the unavailable gap");
             });
             world.getServer().runOnServer(server->{
@@ -184,9 +188,9 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             context.waitTicks(5);
             context.runOnClient(client->{
-                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
+                var history=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.pose(client.player.getUUID());
                 if(history==null || history.current().bindingGeneration()!=2 || history.current().frameSerial()!=4
-                        || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
+                        || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
                     throw new AssertionError("New binding generation did not replace receiver material atomically");
             });
             var runtimeCow=new java.util.concurrent.atomic.AtomicReference<net.minecraft.world.entity.animal.cow.Cow>();
@@ -201,16 +205,16 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             context.waitTicks(30);
             context.runOnClient(client->{
-                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
+                var history=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
                 if(history==null || !history.current().inputs().ordinary() || !history.current().model().toString().equals("minecraft:cow"))
                     throw new AssertionError("Runtime did not automatically bind/tick/publish tracked cow");
                 var entity=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(history.current().entityId());
-                var catalog=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.catalog();
+                var catalog=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.catalog();
                 if(entity==null || catalog.revision()<=1 || catalog.snapshot().profiles().size()!=1 || io.github.r3neer.scalebrews.platform.Platforms.definition(entity)==null || io.github.r3neer.scalebrews.platform.Platforms.definition(entity).anatomy().isEmpty())
                     throw new AssertionError("Runtime catalog did not atomically replace earlier geometry-only session with species bindings");
-                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().tick()).isEmpty())
+                if(entity==null || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,history.current().tick()).isEmpty())
                     throw new AssertionError("Automatically received pose did not reconstruct geometry");
-                var shape=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().tick()).orElseThrow();
+                var shape=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,history.current().tick()).orElseThrow();
                 var center=shape.pieces().values().iterator().next().bounds().getCenter();
                 var occupied=new net.minecraft.world.phys.AABB(center.subtract(.005,.005,.005),center.add(.005,.005,.005));runtimeOccupied.set(occupied);
                 if(!AnatomyMovement.active(client.player) || AnatomyMovement.spaceClear(client.player,occupied))
@@ -255,7 +259,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             if(!confirmedOnClient.get())throw new AssertionError("Server contact was not confirmed on the observer client");
             context.runOnClient(client->{
                 var pig=client.level.getEntity(transportedPig.get().getUUID());
-                if(pig==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty())
+                if(pig==null || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty())
                     throw new AssertionError("Real server contact did not reach the observer presentation receiver");
             });
             try {for(int attempt=0;attempt<120 && transportElapsed.get()<60;attempt++) {
@@ -279,16 +283,16 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 context.runOnClient(client->{
                     var cow=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(runtimeCow.get().getUUID());
                     var pig=client.level.getEntity(transportedPig.get().getUUID());
-                    unsupportedReceived.set(cow!=null && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isEmpty()
+                    unsupportedReceived.set(cow!=null && io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isEmpty()
                         && pig!=null && AnatomyMovement.contact(pig)==null
-                        && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty());
+                        && io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty());
                 });
             }
             context.runOnClient(client->{
-                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
+                var history=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
                 if(history!=null)throw new AssertionError("Unavailable runtime pose retained a geometry pose history");
                 var entity=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(runtimeCow.get().getId());
-                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,client.level.getGameTime()).isPresent())
+                if(entity==null || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,client.level.getGameTime()).isPresent())
                     throw new AssertionError("Unsupported runtime pose retained frozen geometry");
                 if(!AnatomyMovement.spaceClear(client.player,runtimeOccupied.get()))throw new AssertionError("Unsupported pose left a stale client collider");
                 if(!unsupportedReceived.get())throw new AssertionError("Unavailable receiver did not clear geometry, contact, and presentation material");
@@ -297,9 +301,9 @@ public class AnatomyExportProof implements FabricClientGameTest {
             context.waitFor(client->{
                 var cow=client.level==null?null:client.level.getEntity(runtimeCow.get().getUUID());
                 var pig=client.level==null?null:client.level.getEntity(transportedPig.get().getUUID());
-                return cow instanceof LivingEntity living && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(living,client.level.getGameTime()).isPresent()
+                return cow instanceof LivingEntity living && io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(living,client.level.getGameTime()).isPresent()
                     && pig!=null && AnatomyMovement.contact(pig)==null
-                    && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty();
+                    && io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty();
             },200);
             world.getServer().runOnServer(server->{
                 runtimeCow.get().setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);transportedPig.get().discard();runtimeCow.get().setBaby(true);

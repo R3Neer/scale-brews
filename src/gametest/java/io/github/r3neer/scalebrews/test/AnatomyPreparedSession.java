@@ -1,8 +1,8 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.util.Map;
 import net.minecraft.server.MinecraftServer;
 

@@ -1,7 +1,7 @@
 package io.github.r3neer.scalebrews.client.collision.preparation;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.lang.reflect.*;
 import java.util.*;
 import net.minecraft.client.model.geom.ModelPart;

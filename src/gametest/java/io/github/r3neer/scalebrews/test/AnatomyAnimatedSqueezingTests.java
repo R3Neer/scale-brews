@@ -1,14 +1,14 @@
 package io.github.r3neer.scalebrews.test;
 
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyFilter;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
-import io.github.r3neer.scalebrews.platform.anatomy.AnatomyTransportReceipts;
-import io.github.r3neer.scalebrews.platform.anatomy.ConservativeSweep;
-import io.github.r3neer.scalebrews.platform.anatomy.ConvexBox;
-import io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
-import io.github.r3neer.scalebrews.platform.anatomy.HierarchyMotion;
-import io.github.r3neer.scalebrews.platform.anatomy.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyTransportReceipts;
+import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.internal.HierarchyMotion;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
