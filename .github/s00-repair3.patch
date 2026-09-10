@@ -10,3 +10,65 @@ index 5a9a12a..919288a 100644
          var c=contact(body);var anchor=ANCHORS.get(body);
          if(c==null || anchor==null)return;
          if(!visiting.add(body) || !Platforms.eligible(body,c.support)
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
+index 7467761..3d39ff0 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
+@@ -151,6 +151,15 @@ public final class S00CausalTests {
+             return out;
+         }catch(java.security.NoSuchAlgorithmException failure){throw new IllegalStateException(failure);}
+     }
++    @GameTest public void catalogTransferSnapshotUsesServerAuthorityRevision(GameTestHelper h) {
++        var transfer=new AnatomyCatalogTransfer();var models=Map.of("test:model",model());
++        for(var packet:AnatomyCatalogTransfer.encode(EPOCH,7,models))transfer.accept(packet);
++        var seven=transfer.snapshot();
++        check(transfer.revision()==7 && seven.revision()==7,"Accepted catalog split transport and snapshot revision identity");
++        for(var packet:AnatomyCatalogTransfer.encode(EPOCH,12,models))transfer.accept(packet);
++        check(transfer.revision()==12 && transfer.snapshot().revision()==12 && transfer.snapshot()!=seven,"Later authoritative revision did not publish atomically");
++        h.succeed();
++    }
+     @GameTest public void holdoutH06InvalidFinalFragmentPreservesAcceptedCatalog(GameTestHelper h) {
+         var transfer=new AnatomyCatalogTransfer();var models=new TreeMap<String,ModelGeometry>();
+         for(int i=0;i<64;i++)models.put("test:m"+i,model());
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java
+index f401467..266753c 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java
+@@ -87,7 +87,7 @@ public final class AnatomyCatalogTransfer {
+         if(models==null)throw new IllegalArgumentException("Missing catalog object");
+         Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles=new TreeMap<>();
+         for(var entry:bundle.getAsJsonObject("profiles").entrySet())profiles.put(entry.getKey(),io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,entry.getValue()).getOrThrow());
+-        catalog.replace(models,profiles);acceptedRevision=pendingRevision;chunks=null;
++        catalog.replaceAtRevision(pendingRevision,models,profiles);acceptedRevision=pendingRevision;chunks=null;
+         return true;
+     }
+ }
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java
+index 4c9cc89..c488bf6 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java
+@@ -53,6 +53,15 @@ public final class WorldAnatomyCatalog {
+         return replace(models,profiles);
+     }
+     public synchronized Snapshot replace(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
++        return replaceValidated(Math.incrementExact(current.revision()),models,profiles);
++    }
++    /** Client-side publication seam: the packet revision is the authority identity, not a local counter. */
++    synchronized Snapshot replaceAtRevision(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
++        if(revision<0)throw new IllegalArgumentException("Negative catalog revision");
++        return replaceValidated(revision,models,profiles);
++    }
++    private Snapshot replaceValidated(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
++        Objects.requireNonNull(models,"models");Objects.requireNonNull(profiles,"profiles");
+         if(profiles.size()>4096)throw new IllegalArgumentException("Too many anatomical profiles");
+         List<String> references=new ArrayList<>();Map<Identifier,Binding> bindings=new HashMap<>();Set<Identifier> species=new HashSet<>();
+         for(var entry:new TreeMap<>(profiles).entrySet()) {
+@@ -73,7 +82,7 @@ public final class WorldAnatomyCatalog {
+         }
+         var validated=new GeometryCatalog().replace(models,references);
+         AnatomyCatalogTransfer.serializedBundle(validated.models(),profiles); // Reject unsendable bundles before committing server state.
+-        Snapshot next=new Snapshot(Math.incrementExact(current.revision()),validated.models(),bindings,profiles);
++        Snapshot next=new Snapshot(revision,validated.models(),bindings,profiles);
+         current=next;
+         return next;
+     }
