@@ -1,6 +1,6 @@
 {
   "base": "62d03bc99563a79d95f542bbd6af5516988de2a9",
-  "target": "a86dd687f1e12bcc4b2474a34cd1692072f1e4d4",
+  "target": "5ecddf0d1207aa8a84800b4f308b4b6e08cce724",
   "patch_sha256": "56d0560939d0ec52a3fe8e7b019607b1ce5b62711bd2bc947ff95e3ca0201c09",
   "extra_patch_sha256": "da45365649bb6fc654d7422630c8fb1ac76829e0dab0e7449268e6c8a8367045",
   "repair_patch_sha256": "4cb6d41b8d4796a0f0ed10417c2259d0be70fef2b889c6ba866b7fbabbd1d910",
@@ -9,11 +9,12 @@
   "holdout2_patch_sha256": "f5f494b244cd245914ec7f809728f970057d4f3f0ab2989fd1a9502555bc23a9",
   "repair2_patch_sha256": "9aded981fa294a3219ba144fa5956acabbe2936554f40e31b7134c45c4ba63d4",
   "observer_fixture_patch_sha256": "26fbe19239af33f5d9e8afdef9f1e162f8883a89ef6294d974a235c48f518320",
-  "repair3_patch_sha256": "e6f011095fa30069e2bd485f88457aef1f78a4466daa02f147b4a9142403aafc",
+  "repair3_patch_sha256": "df7f15bd370d42af590b65c7df328b844d78979300d199e40ad7375ea553b450",
   "paths": [
     "src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyNetworkingTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java",
+    "src/gametest/java/io/github/r3neer/scalebrews/test/S00ModelTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00TemporalTests.java",

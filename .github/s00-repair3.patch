@@ -30,6 +30,46 @@ index 7467761..3d39ff0 100644
      @GameTest public void holdoutH06InvalidFinalFragmentPreservesAcceptedCatalog(GameTestHelper h) {
          var transfer=new AnatomyCatalogTransfer();var models=new TreeMap<String,ModelGeometry>();
          for(int i=0;i<64;i++)models.put("test:m"+i,model());
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ModelTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ModelTests.java
+index 8a2826b..99ae9d6 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ModelTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ModelTests.java
+@@ -47,11 +47,17 @@ public final class S00ModelTests {
+         new ModelGeometry(2,"test:count","1",model().parts(),pieces,model().modelTransform());pieces.add(piece("overflow","root",null));
+         rejects(()->new ModelGeometry(2,"test:count","1",model().parts(),pieces,model().modelTransform()));h.succeed();
+     }
++    @GameTest public void degeneratePiecesCannotEnterTheModel(GameTestHelper h) {
++        var parts=List.of(part("root",null,new Matrix4f()));
++        rejects(()->new ModelGeometry(2,"test:flat","1",parts,List.of(new ModelGeometry.Piece("flat","root",List.of(0d,0d,0d),List.of(0d,1d,1d),null)),ModelGeometry.values(new Matrix4f())));
++        rejects(()->new ModelGeometry(2,"test:underflow","1",parts,List.of(new ModelGeometry.Piece("tiny","root",List.of(0d,0d,0d),List.of(Double.MIN_VALUE,Double.MIN_VALUE,Double.MIN_VALUE),null)),ModelGeometry.values(new Matrix4f())));
++        h.succeed();
++    }
+     @GameTest public void excludedParentDoesNotErasePhysicalChild(GameTestHelper h) {
+         var geometry=new ModelGeometry(2,"test:filter","1",List.of(part("root",null,new Matrix4f()),part("child","root",new Matrix4f().translation(2,0,0))),
+-            List.of(piece("decoration","root","cosmetic"),piece("physical","child",null),new ModelGeometry.Piece("flat","child",List.of(0d,0d,0d),List.of(0d,1d,1d),null)),ModelGeometry.values(new Matrix4f()));
+-        var filter=new AnatomyFilter(0,0,0,Set.of("flat","decoration"),Set.of("root"));
+-        var report=geometry.filterReport(filter);check(report.get("decoration").equals("cosmetic") && report.get("flat").equals("degenerate"),"Include override resurrected invalid material");
++            List.of(piece("decoration","root","cosmetic"),piece("physical","child",null)),ModelGeometry.values(new Matrix4f()));
++        var filter=new AnatomyFilter(0,0,0,Set.of("decoration"),Set.of("root"));
++        var report=geometry.filterReport(filter);check(report.get("decoration").equals("cosmetic"),"Include override resurrected excluded decoration");
+         var evaluated=geometry.evaluate(new Matrix4f(),Map.of(),filter);check(evaluated.keySet().equals(Set.of("physical")),"Excluded parent erased valid descendant geometry");
+         check(evaluated.get("physical").bounds().minX==2,"Descendant lost excluded parent's transform");h.succeed();
+     }
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java
+index 1443846..4f46bce 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java
+@@ -39,7 +39,9 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
+         Set<String> pieceIds=new HashSet<>();
+         for(Piece p:pieces) {
+             if(p.id==null || p.id.isBlank() || p.id.length()>256 || !pieceIds.add(p.id) || !ids.contains(p.part) || p.min.size()!=3 || p.max.size()!=3)throw new IllegalArgumentException("Invalid piece");
+-            for(int i=0;i<3;i++)if(!Double.isFinite(p.min.get(i)) || !Double.isFinite(p.max.get(i)) || Math.abs(p.min.get(i))>1024 || Math.abs(p.max.get(i))>1024 || p.min.get(i)>p.max.get(i))throw new IllegalArgumentException("Invalid bounds");
++            for(int i=0;i<3;i++)if(!Double.isFinite(p.min.get(i)) || !Double.isFinite(p.max.get(i)) || Math.abs(p.min.get(i))>1024 || Math.abs(p.max.get(i))>1024 || p.min.get(i)>=p.max.get(i))throw new IllegalArgumentException("Invalid bounds");
++            double volume=(p.max.get(0)-p.min.get(0))*(p.max.get(1)-p.min.get(1))*(p.max.get(2)-p.min.get(2));
++            if(!Double.isFinite(volume) || volume<=0)throw new IllegalArgumentException("Degenerate piece volume");
+         }
+     }
+     public static List<Float> values(Matrix4f matrix) {
 diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java
 index f401467..266753c 100644
 --- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java
