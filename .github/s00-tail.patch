@@ -1,0 +1,22 @@
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+index 8654d36..2f2a2b5 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+@@ -52,7 +52,7 @@ public final class BodyPath {
+         try {
+             var first=material.at().apply(0);if(first==null)return Optional.empty();
+             Vec3 normal=first.faceNormal(anchor.face()),up=gravity.up();double support=normal.dot(up);
+-            if(!Double.isFinite(support) || support<SUPPORT || support+1e-9<bounds.minDotAntiGravity())return Optional.empty();
++            if(!Double.isFinite(support) || support<SUPPORT || support+1e-6<bounds.minDotAntiGravity())return Optional.empty();
+             return Optional.of(new BodyPath(material,anchor,body,up,first.point(anchor.coordinates()),normal,bounds));
+         } catch(RuntimeException rejected) {return Optional.empty();}
+     }
+@@ -63,7 +63,7 @@ public final class BodyPath {
+         try {
+             var shape=material.at().apply(time);if(shape==null)return Optional.empty();
+             Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
+-            if(!Double.isFinite(denominator) || denominator<SUPPORT || denominator+1e-9<minDot)return Optional.empty();
++            if(!Double.isFinite(denominator) || denominator<SUPPORT || denominator+1e-6<minDot)return Optional.empty();
+             Vec3 point=shape.point(anchor.coordinates());
+             double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
+             if(!Double.isFinite(lift))return Optional.empty();
