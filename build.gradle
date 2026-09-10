@@ -84,6 +84,10 @@ tasks.withType(JavaExec).configureEach {
 	if (providers.gradleProperty('scalebrewsAnatomyCatalog').isPresent())
 		systemProperty 'scalebrews.anatomyCatalog', file(providers.gradleProperty('scalebrewsAnatomyCatalog').get()).absolutePath
 	systemProperty 'scalebrews.platformSoak', providers.gradleProperty('scalebrewsPlatformSoak').orElse('false').get()
+	// Opt-in GameTest evidence.  This is never set for normal gameplay runs.
+	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsGameTestReport').isPresent()) {
+		systemProperty 'fabric-api.gametest.report-file', file(providers.gradleProperty('scalebrewsGameTestReport').get()).absolutePath
+	}
 	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsCompatMods').isPresent()) {
 		systemProperty 'fabric.addMods', file(providers.gradleProperty('scalebrewsCompatMods').get()).absolutePath
 	}
@@ -91,15 +95,56 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.named('processGametestResources') {
 	def anatomyOnly = providers.gradleProperty('scalebrewsAnatomyProof').orElse('false')
+	def preparedAnatomySuite = providers.gradleProperty('scalebrewsAnatomyPreparedSuite').orElse('false')
+	def trackerLifecycleSuite = providers.gradleProperty('scalebrewsAnatomyTrackerLifecycleSuite').orElse('false')
+	def hostIndependenceProof = providers.gradleProperty('scalebrewsAnatomyHostIndependenceProof').orElse('false')
+	def predictionBaselineProof = providers.gradleProperty('scalebrewsAnatomyPredictionBaselineProof').orElse('false')
 	def readmeCapture = providers.gradleProperty('scalebrewsReadmeCapture').orElse('false')
 	inputs.property('anatomyOnly', anatomyOnly)
+	inputs.property('preparedAnatomySuite', preparedAnatomySuite)
+	inputs.property('trackerLifecycleSuite', trackerLifecycleSuite)
+	inputs.property('hostIndependenceProof', hostIndependenceProof)
+	inputs.property('predictionBaselineProof', predictionBaselineProof)
 	inputs.property('readmeCapture', readmeCapture)
 	doLast {
+		if (hostIndependenceProof.get().toBoolean() && (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()
+				|| preparedAnatomySuite.get().toBoolean() || trackerLifecycleSuite.get().toBoolean() || predictionBaselineProof.get().toBoolean()))
+			throw new GradleException('Host-independence client proof is mutually exclusive with the other client proof selectors.')
+		if (predictionBaselineProof.get().toBoolean() && (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()
+				|| preparedAnatomySuite.get().toBoolean() || trackerLifecycleSuite.get().toBoolean()))
+			throw new GradleException('Prediction-baseline client proof is mutually exclusive with the other client proof selectors.')
 		if (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()) {
 			def manifest = new File(destinationDir, 'fabric.mod.json')
 			def metadata = new groovy.json.JsonSlurper().parse(manifest)
 			metadata.entrypoints['fabric-client-gametest'] = [readmeCapture.get().toBoolean() ? 'io.github.r3neer.scalebrews.test.ReadmeCapture' : 'io.github.r3neer.scalebrews.test.AnatomyExportProof']
 			manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
+		}
+		if (hostIndependenceProof.get().toBoolean()) {
+			def hostManifest = new File(destinationDir, 'fabric.mod.json')
+			def hostMetadata = new groovy.json.JsonSlurper().parse(hostManifest)
+			hostMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.AnatomyHostCatalogIndependenceProof']
+			hostManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(hostMetadata))
+		}
+		if (predictionBaselineProof.get().toBoolean()) {
+			def baselineManifest = new File(destinationDir, 'fabric.mod.json')
+			def baselineMetadata = new groovy.json.JsonSlurper().parse(baselineManifest)
+			baselineMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.AnatomyPredictionBaselineProof']
+			baselineManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(baselineMetadata))
+		}
+		if (preparedAnatomySuite.get().toBoolean()) {
+			// Fabric 26.2 has no batch before/after hook.  The proof therefore owns
+			// one real runtime lifetime and must not run beside raw-core GameTests.
+			def preparedManifest = new File(destinationDir, 'fabric.mod.json')
+			def preparedMetadata = new groovy.json.JsonSlurper().parse(preparedManifest)
+			preparedMetadata.entrypoints['fabric-gametest'] = ['io.github.r3neer.scalebrews.test.AnatomyPreparedIntegrationProof']
+			preparedManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(preparedMetadata))
+		}
+		if (trackerLifecycleSuite.get().toBoolean()) {
+			if (preparedAnatomySuite.get().toBoolean()) throw new GradleException('Prepared and tracker lifecycle suites are mutually exclusive.')
+			def lifecycleManifest = new File(destinationDir, 'fabric.mod.json')
+			def lifecycleMetadata = new groovy.json.JsonSlurper().parse(lifecycleManifest)
+			lifecycleMetadata.entrypoints['fabric-gametest'] = ['io.github.r3neer.scalebrews.test.AnatomyTrackerLifecycleProof']
+			lifecycleManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(lifecycleMetadata))
 		}
 	}
 }

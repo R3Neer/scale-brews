@@ -3,6 +3,8 @@ package io.github.r3neer.scalebrews.client.platform;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.r3neer.scalebrews.ScaleBrews;
 import io.github.r3neer.scalebrews.platform.*;
+import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
+import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMode;
 import io.github.r3neer.scalebrews.client.mixin.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -36,6 +38,14 @@ public final class PlatformVisuals {
     public static void reset() { CACHE.clear(); VISITING.clear(); level=null; }
     public static int missingVisualCount() { return WARNED.size(); }
     public static Vec3 offset(Entity body,float partial) {
+        // Anatomical rendering is derived from the same material contact/pose that
+        // owns collision and transport.  The legacy model-sampling offset must not
+        // be composed on top of it (including through a passenger chain).
+        // In BINDING the shared route owns presentation but has no accepted
+        // contact/pose; READY also cannot compose the legacy sampled offset.
+        // A residual may be applied only from the same presentation contact and
+        // authoritative geometry, never from this legacy renderer sample.
+        if(AnatomyApi.mode(body)!=AnatomyMode.DISABLED) return Vec3.ZERO;
         var client=Minecraft.getInstance();
         long now=client.level==null?0:client.level.getGameTime();
         if(level!=client.level || tick!=now || fraction!=partial) {

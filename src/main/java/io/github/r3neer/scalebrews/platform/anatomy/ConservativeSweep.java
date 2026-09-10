@@ -7,6 +7,8 @@ import net.minecraft.world.phys.Vec3;
 /** Temporal convex query. Does not mutate entities or resolve gameplay movement yet. */
 public final class ConservativeSweep {
     private ConservativeSweep() {}
+    /** Shared numerical clearance used by temporal q corrections and CCD contact. */
+    public static final double SKIN=1e-6;
     public enum Status { CLEAR, CONTACT, INITIAL_OVERLAP, ITERATION_LIMIT }
     public record Result(Status status,double safeFraction,Vec3 normal,int evaluations) {}
     /**
@@ -52,7 +54,7 @@ public final class ConservativeSweep {
         }
         double speed=motion.deformationSpeed()+relative.length(),t=0;
         if(!Double.isFinite(speed))throw new IllegalArgumentException("Unbounded motion");
-        final double skin=1e-6;
+        final double skin=SKIN;
         Vec3 normal=Vec3.ZERO;
         for(int iteration=1;iteration<=maxIterations;iteration++) {
             var separation=motion.at().apply(t).separation(body.move(displacement.scale(t)));

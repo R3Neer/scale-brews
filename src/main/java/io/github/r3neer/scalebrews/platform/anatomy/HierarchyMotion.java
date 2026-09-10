@@ -8,6 +8,32 @@ import org.joml.Quaternionf;
 
 /** Verified TRS interpolation between authoritative poses; static affine/sheared nodes are retained. */
 public final class HierarchyMotion {
+    /** Immutable affine values; {@link #matrix()} always returns a fresh mutable view. */
+    public record AffineTransform(List<Float> values) {
+        public AffineTransform {
+            values=List.copyOf(values);
+            if(values.size()!=16 || values.stream().anyMatch(v->v==null || !Float.isFinite(v)))
+                throw new IllegalArgumentException("Invalid affine transform");
+            var matrix=ModelGeometry.matrix(values);
+            if(Math.abs(matrix.m03())>1e-6 || Math.abs(matrix.m13())>1e-6 || Math.abs(matrix.m23())>1e-6 || Math.abs(matrix.m33()-1)>1e-6
+                    || !Float.isFinite(matrix.determinant()) || Math.abs(matrix.determinant())<1e-12)
+                throw new IllegalArgumentException("Non-affine/degenerate transform");
+        }
+        public Matrix4f matrix(){return ModelGeometry.matrix(values);}
+        private static AffineTransform copyOf(Matrix4f matrix){return new AffineTransform(ModelGeometry.values(matrix));}
+    }
+    /** One immutable interpolation sample, shared by convex physics and original-model presentation. */
+    public record EvaluatedFrame(double fraction,Vec3 origin,AffineTransform rootTrs,AffineTransform modelTransform,
+            Map<String,AffineTransform> localPartTransforms,Map<String,ConvexBox> pieces) {
+        public EvaluatedFrame {
+            if(!Double.isFinite(fraction) || fraction<0 || fraction>1 || origin==null || !Double.isFinite(origin.lengthSqr()) || rootTrs==null || modelTransform==null
+                    || localPartTransforms==null || pieces==null || localPartTransforms.entrySet().stream().anyMatch(e->e.getKey()==null || e.getValue()==null)
+                    || pieces.entrySet().stream().anyMatch(e->e.getKey()==null || e.getValue()==null))
+                throw new IllegalArgumentException("Invalid evaluated frame");
+            localPartTransforms=Collections.unmodifiableMap(new LinkedHashMap<>(localPartTransforms));
+            pieces=Collections.unmodifiableMap(new LinkedHashMap<>(pieces));
+        }
+    }
     private record Trs(Vector3f translation,Quaternionf rotation,Vector3f scale) {}
     private static final class Node {
         final Matrix4f fixed;
@@ -69,21 +95,46 @@ public final class HierarchyMotion {
             return new Trs(p,q,s);
         }
     }
+    private final ModelGeometry model;
+    private final Node root,staticModel;
+    private final Map<String,Node> localNodes;
+    private final Map<String,List<Node>> paths;
+    private final Map<String,String> decisions;
+    private final Vec3 originBefore,originAfter;
     private final Map<String,ConservativeSweep.Motion> pieces;
+    private long frameEvaluations;
     public Map<String,ConservativeSweep.Motion> pieces(){return pieces;}
+    /** Frame samples use cached joint endpoints; this count never measures pose-provider evaluation. */
+    public long frameEvaluations(){return frameEvaluations;}
+    /**
+     * Legacy constructor: roots are already fully composed, including any static
+     * model transform. New callers with root TRS must use {@link #withRootTrs}.
+     */
     public HierarchyMotion(ModelGeometry model,Map<String,Matrix4f> before,Map<String,Matrix4f> after,
         Matrix4f rootBefore,Matrix4f rootAfter,Vec3 originBefore,Vec3 originAfter,AnatomyFilter filter) {
-        Map<String,List<Node>> paths=new HashMap<>();
-        Node root=new Node(rootBefore,rootAfter);
+        this(model,before,after,rootBefore,rootAfter,new Matrix4f(),originBefore,originAfter,filter);
+    }
+    /** Dynamic root TRS plus the model's fixed affine transform (which may contain shear). */
+    public static HierarchyMotion withRootTrs(ModelGeometry model,Map<String,Matrix4f> before,Map<String,Matrix4f> after,
+            Matrix4f rootBefore,Matrix4f rootAfter,Vec3 originBefore,Vec3 originAfter,AnatomyFilter filter) {
+        return new HierarchyMotion(model,before,after,rootBefore,rootAfter,ModelGeometry.matrix(model.modelTransform()),originBefore,originAfter,filter);
+    }
+    private HierarchyMotion(ModelGeometry model,Map<String,Matrix4f> before,Map<String,Matrix4f> after,
+            Matrix4f rootBefore,Matrix4f rootAfter,Matrix4f modelTransform,Vec3 originBefore,Vec3 originAfter,AnatomyFilter filter) {
+        this.model=Objects.requireNonNull(model);this.originBefore=Objects.requireNonNull(originBefore);this.originAfter=Objects.requireNonNull(originAfter);
+        this.root=new Node(rootBefore,rootAfter);this.staticModel=new Node(modelTransform,modelTransform);
+        boolean includeStaticModel=!modelTransform.equals(new Matrix4f());
+        Map<String,List<Node>> builtPaths=new LinkedHashMap<>();Map<String,Node> builtLocals=new LinkedHashMap<>();
         for(var part:model.parts()) {
-            List<Node> path=new ArrayList<>(part.parent()==null?List.of(root):paths.get(part.parent()));
+            List<Node> path=new ArrayList<>(part.parent()==null?(includeStaticModel?List.of(this.root,this.staticModel):List.of(this.root)):builtPaths.get(part.parent()));
             var rest=ModelGeometry.matrix(part.transform());
-            path.add(new Node(before.getOrDefault(part.id(),rest),after.getOrDefault(part.id(),rest)));
-            paths.put(part.id(),List.copyOf(path));
+            var node=new Node(before.getOrDefault(part.id(),rest),after.getOrDefault(part.id(),rest));path.add(node);
+            builtLocals.put(part.id(),node);builtPaths.put(part.id(),List.copyOf(path));
         }
-        var decisions=model.filterReport(filter);Map<String,ConservativeSweep.Motion> result=new LinkedHashMap<>();
+        this.paths=Collections.unmodifiableMap(builtPaths);this.localNodes=Collections.unmodifiableMap(builtLocals);
+        this.decisions=model.filterReport(filter);Map<String,ConservativeSweep.Motion> result=new LinkedHashMap<>();
         for(var piece:model.pieces())if("retained".equals(decisions.get(piece.id()))) {
-            var path=paths.get(piece.part());var box=piece.box();
+            var path=this.paths.get(piece.part());var box=piece.box();
             double radius=new Vec3(Math.max(Math.abs(box.minX),Math.abs(box.maxX)),Math.max(Math.abs(box.minY),Math.abs(box.maxY)),Math.max(Math.abs(box.minZ),Math.abs(box.maxZ))).length();
             double speed=0;
             for(int i=path.size()-1;i>=0;i--) {
@@ -96,7 +147,7 @@ public final class HierarchyMotion {
             java.util.function.DoubleFunction<ConvexBox> trajectory=t->{
                 if(!Double.isFinite(t) || t<0 || t>1)throw new IllegalArgumentException("Invalid motion time");
                 Matrix4f transform=new Matrix4f();for(var node:path)transform.mul(node.at(t));
-                return ConvexBox.of(box,transform).move(originBefore.lerp(originAfter,t));
+                return ConvexBox.of(box,transform).move(this.originBefore.lerp(this.originAfter,t));
             };
             List<ConservativeSweep.Plane> planes=new ArrayList<>();
             var initial=trajectory.apply(0).bounds();
@@ -108,5 +159,29 @@ public final class HierarchyMotion {
             result.put(piece.id(),new ConservativeSweep.Motion(trajectory,bound,originAfter.subtract(originBefore),planes));
         }
         pieces=Collections.unmodifiableMap(result);
+    }
+    /**
+     * Evaluates each local node once. This is intentionally separate from
+     * {@link #pieces()}: CCD keeps its bounded per-piece path instead of calling
+     * this whole-model sampler for every material query.
+     */
+    public EvaluatedFrame evaluate(double fraction) {
+        if(!Double.isFinite(fraction) || fraction<0 || fraction>1)throw new IllegalArgumentException("Invalid motion time");
+        Matrix4f rootMatrix=root.at(fraction),modelMatrix=staticModel.at(0);
+        Map<String,Matrix4f> locals=new LinkedHashMap<>();Map<String,AffineTransform> exposedLocals=new LinkedHashMap<>();
+        for(var part:model.parts()) {
+            Matrix4f local=localNodes.get(part.id()).at(fraction);
+            locals.put(part.id(),local);exposedLocals.put(part.id(),AffineTransform.copyOf(local));
+        }
+        Map<String,Matrix4f> world=new LinkedHashMap<>();
+        for(var part:model.parts()) {
+            Matrix4f parent=part.parent()==null?new Matrix4f(rootMatrix).mul(modelMatrix):new Matrix4f(world.get(part.parent()));
+            world.put(part.id(),parent.mul(locals.get(part.id())));
+        }
+        Vec3 origin=originBefore.lerp(originAfter,fraction);Map<String,ConvexBox> evaluatedPieces=new LinkedHashMap<>();
+        for(var piece:model.pieces())if("retained".equals(decisions.get(piece.id())))
+            evaluatedPieces.put(piece.id(),ConvexBox.of(piece.box(),world.get(piece.part())).move(origin));
+        frameEvaluations++;
+        return new EvaluatedFrame(fraction,origin,AffineTransform.copyOf(rootMatrix),AffineTransform.copyOf(modelMatrix),exposedLocals,evaluatedPieces);
     }
 }

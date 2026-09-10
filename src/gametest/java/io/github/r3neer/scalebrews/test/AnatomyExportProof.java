@@ -10,10 +10,12 @@ import net.minecraft.client.model.animal.cow.CowModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.world.entity.LivingEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.nio.file.*;
 
 /** Original-model export fixture. Does not register exported geometry as gameplay yet. */
@@ -23,6 +25,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             var cow=CowModel.createBodyLayer().bakeRoot();
             verifyVanilla(cow,Set.of(),"minecraft:cow");
             verifyCowPoses();
+            verifyVanillaFamilies();
             var skinLayers=Set.of("hat","jacket","left_sleeve","right_sleeve","left_pants","right_pants");
             for(boolean slim:new boolean[]{false,true}) {
                 var root=LayerDefinition.create(PlayerModel.createMesh(CubeDeformation.NONE,slim),64,64).bakeRoot();
@@ -40,6 +43,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 System.out.println("ANATOMY_EXPORT alexsmobs:grizzly_bear pieces="+result.pieces().size());
             }catch(ReflectiveOperationException e){throw new AssertionError("Alex extraction failed",e);}
         });
+        AnatomyLivePoseAcceptanceTests.verifyCow(context);
         if(FabricLoader.getInstance().isModLoaded("alexsmobs"))try(var world=context.worldBuilder().create()) {
             context.runOnClient(client->{
                 try {
@@ -79,16 +83,36 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 System.out.println("ANATOMY_NETWORK server catalog round trip passed: "+models.size()+" models");
             });
             var sentPose=new PoseProvider.Inputs(.75f,.5f,12,179,10,true);
+            var sentFrame=new AtomicReference<AnatomyPoseHistory.Sample>();
+            var firstPublished=new AtomicReference<GeometryProvider.PublishedFrame>();
             world.getServer().runOnServer(server->{
                 var player=server.getPlayerList().getPlayers().getFirst();
                 AnatomyMovement.gravity(player,new GravityFrame(net.minecraft.core.Direction.EAST));
-                AnatomyNetworking.sendPose(player,1,player,net.minecraft.resources.Identifier.parse("minecraft:player_wide"),net.minecraft.resources.Identifier.parse("scalebrews:player_walking"),sentPose);
+                long authorityTick=server.overworld().getGameTime();
+                var sample=new AnatomyPoseHistory.Sample(sentPose,player.position(),player.yBodyRot,player.getScale(),AnatomyMovement.gravity(player));
+                var root=new AnatomyMovement.RootFrame(1,authorityTick,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
+                var identity=new GeometryProvider.GeometryIdentity(player.level().dimension(),player.getUUID(),player.getId(),
+                    AnatomyNetworking.epoch(server),1,net.minecraft.resources.Identifier.parse("minecraft:player_wide"),
+                    net.minecraft.resources.Identifier.parse("scalebrews:player_walking"),1,1);
+                var endpoint=new GeometryProvider.CausalEndpoint(1,authorityTick,authorityTick,root,sample,GeometryProvider.Availability.AVAILABLE);
+                var published=new GeometryProvider.PublishedFrame(identity,endpoint);
+                sentFrame.set(sample);
+                firstPublished.set(published);
+                // Publication must retain this frame even if root state changes
+                // after provider capture and before networking serializes it.
+                player.setPos(sample.origin().add(3,1,-2));
+                player.yBodyRot+=47;
+                AnatomyMovement.gravity(player,new GravityFrame(net.minecraft.core.Direction.SOUTH));
+                AnatomyNetworking.sendPose(player,published);
             });
             context.waitTicks(10);
             context.runOnClient(client->{
                 var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
                 if(history==null || !history.current().inputs().equals(sentPose))throw new AssertionError("Authoritative pose channels did not survive real network transfer");
                 var packet=history.current();
+                var sample=sentFrame.get();
+                if(sample==null || !packet.origin().equals(sample.origin()) || packet.yaw()!=sample.yaw() || packet.scale()!=sample.scale())
+                    throw new AssertionError("Pose publication read a live root instead of the captured authority frame");
                 if(packet.gravity()!=net.minecraft.core.Direction.EAST)throw new AssertionError("Gravity frame did not survive actual pose network transfer");
                 var geometry=models.get("minecraft:player_wide");
                 var evaluator=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),AnatomyFilter.DEFAULT,packet.revision());
@@ -116,6 +140,54 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 for(int query=0;query<100;query++)evaluator.sampleInterpolated(client.player,interpolation,packet.tick()+.5);
                 if(evaluator.evaluations()!=count)throw new AssertionError("Interpolated geometry is not shared across queries");
                 System.out.println("ANATOMY_NETWORK authoritative pose round trip passed");
+            });
+            // Exercise the actual client receiver's material lifecycle.  The
+            // unavailable endpoint advances the frame fence, so neither an old
+            // frame nor the discarded interpolator may revive convex geometry.
+            world.getServer().runOnServer(server->{
+                var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
+                var unavailable=new GeometryProvider.CausalEndpoint(2,endpoint.authorityTick()+1,endpoint.jointSampleTick()+1,
+                    new AnatomyMovement.RootFrame(2,root.tick()+1,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.UNAVAILABLE);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(first.identity(),unavailable));
+            });
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                if(io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
+                    throw new AssertionError("Unavailable causal endpoint retained client geometry");
+            });
+            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),firstPublished.get()));
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                if(io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isPresent())
+                    throw new AssertionError("Delayed pre-unavailable frame revived client geometry");
+            });
+            world.getServer().runOnServer(server->{
+                var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
+                var restored=new GeometryProvider.CausalEndpoint(3,endpoint.authorityTick()+2,endpoint.jointSampleTick()+2,
+                    new AnatomyMovement.RootFrame(3,root.tick()+2,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(first.identity(),restored));
+            });
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
+                if(history==null || history.current().frameSerial()!=3 || history.segment(client.level.getGameTime()).fraction()!=1
+                        || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
+                    throw new AssertionError("Available endpoint did not rebind fresh geometry after the unavailable gap");
+            });
+            world.getServer().runOnServer(server->{
+                var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
+                var reboundIdentity=new GeometryProvider.GeometryIdentity(first.identity().dimension(),first.identity().support(),first.identity().entityId(),
+                    first.identity().epoch(),first.identity().revision(),first.identity().model(),first.identity().poseProvider(),2,2);
+                var rebound=new GeometryProvider.CausalEndpoint(4,endpoint.authorityTick()+3,endpoint.jointSampleTick()+3,
+                    new AnatomyMovement.RootFrame(4,root.tick()+3,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(reboundIdentity,rebound));
+            });
+            context.waitTicks(5);
+            context.runOnClient(client->{
+                var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(client.player.getUUID());
+                if(history==null || history.current().bindingGeneration()!=2 || history.current().frameSerial()!=4
+                        || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,client.level.getGameTime()).isEmpty())
+                    throw new AssertionError("New binding generation did not replace receiver material atomically");
             });
             var runtimeCow=new java.util.concurrent.atomic.AtomicReference<net.minecraft.world.entity.animal.cow.Cow>();
             var runtimeOccupied=new java.util.concurrent.atomic.AtomicReference<net.minecraft.world.phys.AABB>();
@@ -181,6 +253,11 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 });
             }
             if(!confirmedOnClient.get())throw new AssertionError("Server contact was not confirmed on the observer client");
+            context.runOnClient(client->{
+                var pig=client.level.getEntity(transportedPig.get().getUUID());
+                if(pig==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty())
+                    throw new AssertionError("Real server contact did not reach the observer presentation receiver");
+            });
             try {for(int attempt=0;attempt<120 && transportElapsed.get()<60;attempt++) {
                 context.waitTicks(5);
                 world.getServer().runOnServer(server->{
@@ -193,28 +270,41 @@ public class AnatomyExportProof implements FabricClientGameTest {
             world.getServer().runOnServer(server->{
                 var displacement=transportedPig.get().position().subtract(bodyStart.get());
                 if(displacement.x<.25 || displacement.y<.1)throw new AssertionError("Transport fixture did not actually translate and ascend: "+displacement);
-                runtimeCow.get().setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);transportedPig.get().discard();
                 System.out.println("ANATOMY_RUNTIME original cow carries a mob through 60 actual server ticks");
                 runtimeCow.get().setBaby(true);
             });
-            // Wait for delivery rather than equating client ticks with server ticks.
             var unsupportedReceived=new java.util.concurrent.atomic.AtomicBoolean();
             for(int attempt=0;attempt<40 && !unsupportedReceived.get();attempt++) {
                 context.waitTicks(5);
                 context.runOnClient(client->{
-                    var received=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
-                    unsupportedReceived.set(received!=null && !received.current().inputs().ordinary());
+                    var cow=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(runtimeCow.get().getUUID());
+                    var pig=client.level.getEntity(transportedPig.get().getUUID());
+                    unsupportedReceived.set(cow!=null && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isEmpty()
+                        && pig!=null && AnatomyMovement.contact(pig)==null
+                        && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty());
                 });
             }
             context.runOnClient(client->{
                 var history=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.pose(runtimeCow.get().getUUID());
-                if(history==null || history.current().inputs().ordinary())throw new AssertionError("Unsupported runtime pose was not published");
-                var entity=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(history.current().entityId());
-                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().tick()).isPresent())
+                if(history!=null)throw new AssertionError("Unavailable runtime pose retained a geometry pose history");
+                var entity=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(runtimeCow.get().getId());
+                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,client.level.getGameTime()).isPresent())
                     throw new AssertionError("Unsupported runtime pose retained frozen geometry");
                 if(!AnatomyMovement.spaceClear(client.player,runtimeOccupied.get()))throw new AssertionError("Unsupported pose left a stale client collider");
-                System.out.println("ANATOMY_RUNTIME automatic server binding, tracking, pose publication and unsupported-state removal passed");
+                if(!unsupportedReceived.get())throw new AssertionError("Unavailable receiver did not clear geometry, contact, and presentation material");
             });
+            world.getServer().runOnServer(server->runtimeCow.get().setBaby(false));
+            context.waitFor(client->{
+                var cow=client.level==null?null:client.level.getEntity(runtimeCow.get().getUUID());
+                var pig=client.level==null?null:client.level.getEntity(transportedPig.get().getUUID());
+                return cow instanceof LivingEntity living && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(living,client.level.getGameTime()).isPresent()
+                    && pig!=null && AnatomyMovement.contact(pig)==null
+                    && io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isEmpty();
+            },200);
+            world.getServer().runOnServer(server->{
+                runtimeCow.get().setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);transportedPig.get().discard();runtimeCow.get().setBaby(true);
+            });
+            System.out.println("ANATOMY_RUNTIME actual receiver unavailable/recovery clears material without reviving contact passed");
             world.getServer().runOnServer(server->{AnatomyRuntime.stop(server);runtimeCow.get().discard();});
         }
     }
@@ -222,6 +312,65 @@ public class AnatomyExportProof implements FabricClientGameTest {
         if(!predicted.keySet().equals(actual.keySet()))throw new AssertionError("Animated piece mismatch: "+label);
         for(String key:actual.keySet())for(int i=0;i<8;i++)if(predicted.get(key).vertices().get(i).distanceToSqr(actual.get(key).vertices().get(i))>1e-10)
             throw new AssertionError("Server pose differs from original: "+label+" piece "+key);
+    }
+    @SuppressWarnings({"rawtypes","unchecked"})
+    private static void verifyVanillaFamilies() {
+        for(int tick=0;tick<80;tick++) {
+            float walk=tick*.37f,speed=(tick%20)/20f,age=tick,yaw=tick%80-40,pitch=tick%50-25;
+            var chickenRoot=net.minecraft.client.model.animal.chicken.AdultChickenModel.createBodyLayer().bakeRoot();
+            var chicken=new net.minecraft.client.model.animal.chicken.AdultChickenModel(chickenRoot);var chickenState=new net.minecraft.client.renderer.entity.state.ChickenRenderState();
+            common(chickenState,walk,speed,age,yaw,pitch);chickenState.flap=tick*.41f;chickenState.flapSpeed=(tick%10)/10f;
+            checkPose("chicken "+tick,chickenRoot,chicken,chickenState,new VanillaFamilyPose(VanillaFamilyPose.Family.CHICKEN),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("flap",chickenState.flap,"flap_speed",chickenState.flapSpeed)),Set.of());
+
+            var llamaRoot=net.minecraft.client.model.animal.llama.LlamaModel.createBodyLayer(CubeDeformation.NONE).bakeRoot();
+            var llama=new net.minecraft.client.model.animal.llama.LlamaModel(llamaRoot);var llamaState=new net.minecraft.client.renderer.entity.state.LlamaRenderState();common(llamaState,walk,speed,age,yaw,pitch);
+            checkPose("llama "+tick,llamaRoot,llama,llamaState,new QuadrupedPose(),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of("right_chest","left_chest"));
+
+            var villagerRoot=LayerDefinition.create(net.minecraft.client.model.npc.VillagerModel.createBodyModel(),64,64).bakeRoot();
+            var villager=new net.minecraft.client.model.npc.VillagerModel(villagerRoot);var villagerState=new net.minecraft.client.renderer.entity.state.VillagerRenderState();common(villagerState,walk,speed,age,yaw,pitch);villagerState.isUnhappy=tick%3==0;
+            checkPose("villager "+tick,villagerRoot,villager,villagerState,new VanillaFamilyPose(VanillaFamilyPose.Family.VILLAGER),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("unhappy",villagerState.isUnhappy?1f:0f)),Set.of("hat","hat_rim"));
+
+            var golemRoot=net.minecraft.client.model.animal.golem.IronGolemModel.createBodyLayer().bakeRoot();
+            var golem=new net.minecraft.client.model.animal.golem.IronGolemModel(golemRoot);var golemState=new net.minecraft.client.renderer.entity.state.IronGolemRenderState();common(golemState,walk,speed,age,yaw,pitch);
+            golemState.attackTicksRemaining=tick%4==0?tick%10:0;golemState.offerFlowerTick=tick%4==1?tick%70:0;
+            checkPose("iron_golem "+tick,golemRoot,golem,golemState,new VanillaFamilyPose(VanillaFamilyPose.Family.IRON_GOLEM),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("attack",golemState.attackTicksRemaining,"flower",(float)golemState.offerFlowerTick)),Set.of());
+
+            var ghastRoot=net.minecraft.client.model.monster.ghast.GhastModel.createBodyLayer().bakeRoot();
+            var ghast=new net.minecraft.client.model.monster.ghast.GhastModel(ghastRoot);var ghastState=new net.minecraft.client.renderer.entity.state.GhastRenderState();common(ghastState,walk,speed,age,yaw,pitch);
+            checkPose("ghast "+tick,ghastRoot,ghast,ghastState,new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of());
+
+            var felineRoot=LayerDefinition.create(net.minecraft.client.model.animal.feline.AdultFelineModel.createBodyMesh(CubeDeformation.NONE),64,32).bakeRoot();
+            var feline=new net.minecraft.client.model.animal.feline.AdultFelineModel(felineRoot);var felineState=new net.minecraft.client.renderer.entity.state.FelineRenderState();common(felineState,walk,speed,age,yaw,pitch);
+            felineState.ageScale=1;felineState.isCrouching=tick%3==0;felineState.isSprinting=tick%3==1;
+            checkPose("feline "+tick,felineRoot,feline,felineState,new VanillaFamilyPose(VanillaFamilyPose.Family.FELINE),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("crouching",felineState.isCrouching?1f:0f,"sprinting",felineState.isSprinting?1f:0f)),Set.of());
+
+            var horseRoot=LayerDefinition.create(net.minecraft.client.model.animal.equine.AbstractEquineModel.createBodyMesh(CubeDeformation.NONE),64,64).bakeRoot();
+            var horse=new net.minecraft.client.model.animal.equine.HorseModel(horseRoot);var horseState=new net.minecraft.client.renderer.entity.state.EquineRenderState();common(horseState,walk,speed,age,yaw,pitch);
+            horseState.ageScale=1;horseState.animateTail=tick%2==0;
+            checkPose("equine "+tick,horseRoot,horse,horseState,new VanillaFamilyPose(VanillaFamilyPose.Family.EQUINE),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("tail",horseState.animateTail?1f:0f)),Set.of("left_bit","right_bit","left_rein","right_rein","head_saddle","mouth_saddle_wrap"));
+
+            var beeRoot=net.minecraft.client.model.animal.bee.AdultBeeModel.createBodyLayer().bakeRoot();
+            var bee=new net.minecraft.client.model.animal.bee.AdultBeeModel(beeRoot);var beeState=new net.minecraft.client.renderer.entity.state.BeeRenderState();common(beeState,walk,speed,age,yaw,pitch);
+            beeState.isOnGround=tick%4==0;beeState.isAngry=tick%4==1;beeState.rollAmount=(tick%5)/5f;beeState.hasStinger=false;
+            checkPose("bee "+tick,beeRoot,bee,beeState,new VanillaFamilyPose(VanillaFamilyPose.Family.BEE),
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("on_ground",beeState.isOnGround?1f:0f,"angry",beeState.isAngry?1f:0f,"roll",beeState.rollAmount)),Set.of("stinger"));
+        }
+        System.out.println("ANATOMY_POSE 640 additional vanilla family comparisons passed");
+    }
+    private static void common(net.minecraft.client.renderer.entity.state.LivingEntityRenderState state,float walk,float speed,float age,float yaw,float pitch) {
+        state.walkAnimationPos=walk;state.walkAnimationSpeed=speed;state.ageInTicks=age;state.yRot=yaw;state.xRot=pitch;
+    }
+    @SuppressWarnings({"rawtypes","unchecked"})
+    private static void checkPose(String label,ModelPart root,net.minecraft.client.model.EntityModel model,Object state,PoseProvider provider,PoseProvider.Inputs inputs,Set<String> excluded) {
+        var geometry=GeometryExtractor.vanilla("proof:"+label.substring(0,label.indexOf(' ')),"26.2",root,excluded);
+        model.setupAnim(state);
+        compare(geometry.evaluate(new Matrix4f(),provider.evaluate(geometry,inputs).orElseThrow(),AnatomyFilter.DEFAULT),
+            GeometryExtractor.vanilla(geometry.source(),"26.2",root,excluded).evaluate(new Matrix4f(),Map.of(),AnatomyFilter.DEFAULT),label);
     }
     private static void verifyPlayerPoses(ModelPart root,boolean slim,Set<String> skinLayers) {
         var model=new PlayerModel(root,slim);

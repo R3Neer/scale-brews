@@ -19,7 +19,7 @@ public abstract class PlatformPlayerMixin {
     @Inject(method="maybeBackOffFromEdge",at=@At("HEAD"),cancellable=true)
     private void scalebrews$edge(Vec3 delta, MoverType type, CallbackInfoReturnable<Vec3> cir) {
         Player self=(Player)(Object)this;
-        if (Platforms.supported(self) && (type==MoverType.SELF || type==MoverType.PLAYER))
+        if (PlatformPhysics.touching(self) && (type==MoverType.SELF || type==MoverType.PLAYER))
             cir.setReturnValue(PlatformPhysics.edge(self,delta));
     }
 }

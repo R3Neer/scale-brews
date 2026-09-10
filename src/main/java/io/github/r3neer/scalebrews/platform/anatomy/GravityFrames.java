@@ -12,7 +12,10 @@ public final class GravityFrames {
     public static synchronized void install(String owner,Function<Entity,GravityFrame> resolver) {
         if(owner==null || owner.isBlank())throw new IllegalArgumentException("Missing gravity adapter owner");
         Objects.requireNonNull(resolver);
-        if(adapter!=null)throw new IllegalStateException("Gravity adapter already installed by "+adapter.owner());
+        if(adapter!=null) {
+            if(adapter.owner().equals(owner))return;
+            throw new IllegalStateException("Gravity adapter already installed by "+adapter.owner());
+        }
         adapter=new Adapter(owner,resolver);
     }
     public static GravityFrame get(Entity entity) {

@@ -9,6 +9,8 @@ import com.google.gson.reflect.TypeToken;
 /** One connection's ordered revisions; incomplete/invalid candidates never replace accepted geometry. */
 public final class AnatomyCatalogTransfer {
     private UUID epoch;
+    private int protocolVersion;
+    private long requiredCapabilities;
     private long acceptedRevision=-1,pendingRevision=-1;
     private String digest;
     private byte[][] chunks;
@@ -17,6 +19,20 @@ public final class AnatomyCatalogTransfer {
     public WorldAnatomyCatalog.Snapshot snapshot(){return catalog.snapshot();}
     public long revision(){return acceptedRevision;}
     public UUID epoch(){return epoch;}
+    /** No server announcement means the client must leave shared anatomy disabled. */
+    public boolean announced(){return epoch!=null;}
+    /** A compatible replacement is transferring; the previous accepted snapshot is retained. */
+    public boolean binding(){return announced() && pendingRevision>acceptedRevision;}
+    /** The last complete catalog remains usable unless a replacement is actively binding. */
+    public boolean ready(){return acceptedRevision>=0 && !binding();}
+    /** Connection-level client mode; callers still reject entities from another level. */
+    public AnatomyMode mode(){return !announced()?AnatomyMode.DISABLED:binding()?AnatomyMode.BINDING:ready()?AnatomyMode.READY:AnatomyMode.DISABLED;}
+    /** Reject only the candidate; never discard an atomically accepted prior revision. */
+    public void rejectPending() {
+        if(pendingRevision<=acceptedRevision)return;
+        pendingRevision=acceptedRevision;chunks=null;received=0;totalBytes=0;digest=null;
+        if(acceptedRevision<0){epoch=null;protocolVersion=0;requiredCapabilities=0;}
+    }
     private static String hash(byte[] bytes) {
         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));}
         catch(java.security.NoSuchAlgorithmException e){throw new IllegalStateException(e);}
@@ -29,7 +45,7 @@ public final class AnatomyCatalogTransfer {
         byte[] bytes=serializedBundle(models,profiles);
         int count=(bytes.length+AnatomyCatalogPayload.CHUNK-1)/AnatomyCatalogPayload.CHUNK;String digest=hash(bytes);
         List<AnatomyCatalogPayload> result=new ArrayList<>();
-        for(int index=0;index<count;index++)result.add(new AnatomyCatalogPayload(epoch,revision,index,count,bytes.length,digest,
+        for(int index=0;index<count;index++)result.add(new AnatomyCatalogPayload(epoch,AnatomyApi.PROTOCOL_VERSION,AnatomyApi.capabilities(),revision,index,count,bytes.length,digest,
             Arrays.copyOfRange(bytes,index*AnatomyCatalogPayload.CHUNK,Math.min(bytes.length,(index+1)*AnatomyCatalogPayload.CHUNK))));
         return List.copyOf(result);
     }
@@ -43,14 +59,15 @@ public final class AnatomyCatalogTransfer {
         return bytes;
     }
     public boolean accept(AnatomyCatalogPayload packet) {
+        if(!AnatomyApi.compatible(packet.protocolVersion(),packet.requiredCapabilities()))throw new IllegalArgumentException("Incompatible anatomy protocol/capabilities");
         if(epoch==null)epoch=packet.epoch();
         if(!epoch.equals(packet.epoch()))throw new IllegalArgumentException("Catalog belongs to a different connection epoch");
         if(packet.revision()<=acceptedRevision || packet.revision()<pendingRevision)return false;
         if(packet.revision()!=pendingRevision) {
-            pendingRevision=packet.revision();digest=packet.digest();totalBytes=packet.totalBytes();
+            pendingRevision=packet.revision();protocolVersion=packet.protocolVersion();requiredCapabilities=packet.requiredCapabilities();digest=packet.digest();totalBytes=packet.totalBytes();
             chunks=new byte[packet.count()][];received=0;
         }
-        if(!digest.equals(packet.digest()) || totalBytes!=packet.totalBytes() || chunks.length!=packet.count())throw new IllegalArgumentException("Conflicting catalog fragments");
+        if(protocolVersion!=packet.protocolVersion() || requiredCapabilities!=packet.requiredCapabilities() || !digest.equals(packet.digest()) || totalBytes!=packet.totalBytes() || chunks.length!=packet.count())throw new IllegalArgumentException("Conflicting catalog fragments");
         byte[] fragment=packet.fragment();
         if(chunks[packet.index()]!=null) {
             if(!Arrays.equals(chunks[packet.index()],fragment))throw new IllegalArgumentException("Conflicting repeated fragment");

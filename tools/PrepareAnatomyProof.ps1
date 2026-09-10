@@ -43,6 +43,24 @@ $sourceHashes = Get-ChildItem -LiteralPath (Join-Path $checkout 'src') -Recurse 
     @{ path=$_.FullName.Substring($checkout.Length+1); sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
 }
 $sourceHashes | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $outputRoot 'source-hashes.json') -Encoding UTF8
+function Save-GameTestEvidence {
+    param([Parameter(Mandatory=$true)][string]$Label,[Parameter(Mandatory=$true)][string]$Report)
+    $logs = Join-Path $checkout 'build/run/gameTest/logs'
+    if (!(Test-Path -LiteralPath $logs)) { throw "Missing GameTest logs for $Label." }
+    Copy-Item -LiteralPath $logs -Destination (Join-Path $outputRoot "$Label-logs") -Recurse
+    $manifest = Join-Path $checkout 'build/resources/gametest/fabric.mod.json'
+    if (!(Test-Path -LiteralPath $manifest)) { throw "Missing effective GameTest manifest for $Label." }
+    Copy-Item -LiteralPath $manifest -Destination (Join-Path $outputRoot "$Label-manifest.json")
+    $debug = Join-Path $logs 'debug.log'
+    $registered = @(Select-String -LiteralPath $debug -Pattern 'Registering test method:' | ForEach-Object { $_.Line.Trim() })
+    if ($registered.Count -eq 0) { throw "No Fabric GameTest methods were registered for $Label." }
+    $registered | Set-Content -LiteralPath (Join-Path $outputRoot "$Label-registered-tests.txt") -Encoding UTF8
+    if (!(Test-Path -LiteralPath $Report)) { throw "Fabric did not emit the requested JUnit report for $Label." }
+    [xml]$junit = Get-Content -LiteralPath $Report -Raw
+    $executed = @($junit.SelectNodes('//testcase') | ForEach-Object { $_.GetAttribute('name') })
+    if ($executed.Count -eq 0) { throw "JUnit report contains no executed GameTest cases for $Label." }
+    $executed | Set-Content -LiteralPath (Join-Path $outputRoot "$Label-executed-tests.txt") -Encoding UTF8
+}
 $oldJavaHome = $env:JAVA_HOME
 try {
     $env:JAVA_HOME = $JavaHome
@@ -52,8 +70,40 @@ try {
     & (Join-Path $checkout 'gradlew.bat') @baseArgs "-PscalebrewsCompatMods=$mods" '-PscalebrewsAnatomyProof=true' runClientGameTest
     if ($LASTEXITCODE -ne 0) { throw 'Client reference proof failed. No catalog has been published.' }
     $export = Join-Path $checkout 'build/run/clientGameTest/anatomy-export'
-    & (Join-Path $checkout 'gradlew.bat') @baseArgs "-PscalebrewsAnatomyCatalog=$export" build runGameTest
-    if ($LASTEXITCODE -ne 0) { throw 'Dedicated proof failed. No catalog has been published.' }
+    # A: ordinary dedicated regressions. They intentionally exclude the nine
+    # prepared-session cases, but remain mandatory for the rest of the mod.
+    $ordinaryReport = Join-Path $outputRoot 'ordinary-dedicated-junit.xml'
+    & (Join-Path $checkout 'gradlew.bat') @baseArgs "-PscalebrewsAnatomyCatalog=$export" "-PscalebrewsGameTestReport=$ordinaryReport" build runGameTest
+    if ($LASTEXITCODE -ne 0) { throw 'Ordinary dedicated regression suite failed. No catalog has been published.' }
+    Save-GameTestEvidence -Label 'ordinary-dedicated' -Report $ordinaryReport
+    # B: one isolated prepared runtime lifetime over the same verified export.
+    # It is a separate required result, never inferred from the ordinary suite.
+    # Force the property-conditioned test manifest to be regenerated: a stale
+    # ordinary manifest would make this command silently omit suite B.
+    & (Join-Path $checkout 'gradlew.bat') @baseArgs '--rerun-tasks' "-PscalebrewsAnatomyCatalog=$export" '-PscalebrewsAnatomyPreparedSuite=true' processGametestResources
+    if ($LASTEXITCODE -ne 0) { throw 'Prepared dedicated manifest generation failed. No catalog has been published.' }
+    $preparedManifest = Join-Path $checkout 'build/resources/gametest/fabric.mod.json'
+    $preparedEntrypoints = @((Get-Content -LiteralPath $preparedManifest -Raw | ConvertFrom-Json).entrypoints.'fabric-gametest')
+    if ($preparedEntrypoints.Count -ne 1 -or $preparedEntrypoints[0] -ne 'io.github.r3neer.scalebrews.test.AnatomyPreparedIntegrationProof') {
+        throw 'Prepared dedicated manifest did not select exactly the isolated AnatomyPreparedIntegrationProof suite.'
+    }
+    $preparedReport = Join-Path $outputRoot 'prepared-dedicated-junit.xml'
+    & (Join-Path $checkout 'gradlew.bat') @baseArgs "-PscalebrewsAnatomyCatalog=$export" '-PscalebrewsAnatomyPreparedSuite=true' "-PscalebrewsGameTestReport=$preparedReport" runGameTest
+    if ($LASTEXITCODE -ne 0) { throw 'Prepared dedicated anatomy proof failed. No catalog has been published.' }
+    Save-GameTestEvidence -Label 'prepared-dedicated' -Report $preparedReport
+    # C: delayed tracker lifecycle proof. It alone owns an activated anatomy level
+    # across callbacks, and cannot be hidden by A's concurrent raw-core tests or B.
+    & (Join-Path $checkout 'gradlew.bat') @baseArgs '--rerun-tasks' '-PscalebrewsAnatomyTrackerLifecycleSuite=true' processGametestResources
+    if ($LASTEXITCODE -ne 0) { throw 'Tracker lifecycle manifest generation failed. No catalog has been published.' }
+    $trackerManifest = Join-Path $checkout 'build/resources/gametest/fabric.mod.json'
+    $trackerEntrypoints = @((Get-Content -LiteralPath $trackerManifest -Raw | ConvertFrom-Json).entrypoints.'fabric-gametest')
+    if ($trackerEntrypoints.Count -ne 1 -or $trackerEntrypoints[0] -ne 'io.github.r3neer.scalebrews.test.AnatomyTrackerLifecycleProof') {
+        throw 'Tracker lifecycle manifest did not select exactly the isolated AnatomyTrackerLifecycleProof suite.'
+    }
+    $trackerReport = Join-Path $outputRoot 'tracker-lifecycle-dedicated-junit.xml'
+    & (Join-Path $checkout 'gradlew.bat') @baseArgs '-PscalebrewsAnatomyTrackerLifecycleSuite=true' "-PscalebrewsGameTestReport=$trackerReport" runGameTest
+    if ($LASTEXITCODE -ne 0) { throw 'Tracker lifecycle proof failed. No catalog has been published.' }
+    Save-GameTestEvidence -Label 'tracker-lifecycle-dedicated' -Report $trackerReport
     Copy-Item -LiteralPath $export -Destination (Join-Path $outputRoot 'verified-proof-catalog') -Recurse
     Copy-Item -LiteralPath (Join-Path $checkout 'build/run/clientGameTest/anatomy-report') -Destination (Join-Path $outputRoot 'filter-report') -Recurse
     Write-Host "Proof passed. Results: $outputRoot. This is not yet an installable gameplay datapack."

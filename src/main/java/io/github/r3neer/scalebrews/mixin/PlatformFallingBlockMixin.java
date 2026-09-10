@@ -25,7 +25,7 @@ public abstract class PlatformFallingBlockMixin {
     private java.util.List<net.minecraft.world.entity.Entity> scalebrews$impactSupport(java.util.List<net.minecraft.world.entity.Entity> original) {
         var body=(FallingBlockEntity)(Object)this;
         if(!Platforms.supported(body)) return original;
-        var support=Platforms.state(body).support;
+        var support=Platforms.support(body);
         if(original.contains(support) || support.isSpectator()
             || support instanceof net.minecraft.world.entity.player.Player player && player.isCreative()) return original;
         var targets=new java.util.ArrayList<>(original);

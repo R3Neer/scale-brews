@@ -17,6 +17,8 @@ import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.level.Level;
 import java.util.*;
+import io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi;
+import io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement;
 
 public final class Platforms {
     public static final ResourceKey<Registry<PlatformDefinition>> DEFINITIONS = ResourceKey.createRegistryKey(ScaleBrews.id("entity_platform"));
@@ -147,16 +149,29 @@ public final class Platforms {
         }
         return true;
     }
-    public static boolean supported(Entity e) { var s=state(e); return s.support!=null && eligible(e,s.support); }
+    public static boolean supported(Entity e) {
+        if(AnatomyApi.ownsSharedPhysics(e)) return AnatomyApi.ready(e) && AnatomyMovement.supported(e);
+        var s=state(e);return s.support!=null && eligible(e,s.support);
+    }
+    /** Current physical support across the one active core mode; never creates a fallback. */
+    public static LivingEntity support(Entity e) {
+        if(AnatomyApi.ownsSharedPhysics(e)) return AnatomyApi.ready(e)?AnatomyApi.support(e).orElse(null):null;
+        return state(e).support;
+    }
     public static double friction(Entity e, double original) {
-        return supported(e) ? definition(state(e).support).friction() : original;
+        var support=support(e);var definition=support==null?null:definition(support);
+        return definition==null?original:definition.friction();
     }
     public static void tick(ServerLevel level) {
         io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.prepare(level);
         io.github.r3neer.scalebrews.platform.anatomy.AnatomyMovement.tick(level);
         io.github.r3neer.scalebrews.platform.anatomy.AnatomyRuntime.publish(level);
         for(Entity e:level.getAllEntities()) noteSupport(e);
-        for (Entity e : level.getAllEntities()) if (state(e).support != null || state(e).published) {
+        for (Entity e : level.getAllEntities()) {
+            if(AnatomyApi.ownsSharedPhysics(e)) {
+                state(e).clear();state(e).published=false;continue;
+            }
+            if(state(e).support == null && !state(e).published)continue;
             PlatformPhysics.carry(e);
             PlatformNetworking.broadcast(e);
             state(e).published = state(e).support != null;

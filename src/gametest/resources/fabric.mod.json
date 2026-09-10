@@ -10,6 +10,9 @@
   "entrypoints": {
     "fabric-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyGeometryTests",
+      "io.github.r3neer.scalebrews.test.AnatomyAnimatedSqueezingTests",
+      "io.github.r3neer.scalebrews.test.AnatomyNetworkingTests",
+      "io.github.r3neer.scalebrews.test.AnatomyQueryFrameTests",
       "io.github.r3neer.scalebrews.test.MountGestureTests",
       "io.github.r3neer.scalebrews.test.ImpactSurfaceTests",
       "io.github.r3neer.scalebrews.test.ScaleReachTests",

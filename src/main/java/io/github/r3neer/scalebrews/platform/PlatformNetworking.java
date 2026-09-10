@@ -13,6 +13,7 @@ public final class PlatformNetworking {
         ServerPlayNetworking.registerGlobalReceiver(PlatformMovePayload.TYPE,(reference,context)->{
             var player=context.player();
             Entity body=reference.body()==player.getId()?player:player.getRootVehicle();
+            if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi.ownsSharedPhysics(body))return;
             if((body==player || body.getControllingPassenger()==player)
                 && body.getId()==reference.body() && reference.finite() && Platforms.supported(body)
                 && Platforms.state(body).support.getId()==reference.support())
@@ -28,6 +29,7 @@ public final class PlatformNetworking {
             s.surface==null?"":s.surface.id(),s.contact,e.level().getGameTime());
     }
     public static void send(Entity e,ServerPlayer p) {
+        if(io.github.r3neer.scalebrews.platform.anatomy.AnatomyApi.ownsSharedPhysics(e))return;
         if (ServerPlayNetworking.canSend(p,PlatformPayload.TYPE)) ServerPlayNetworking.send(p,snapshot(e));
     }
     public static void broadcast(Entity e) {

@@ -44,7 +44,16 @@ public final class AnatomyPoseEligibility {
         if(custom!=null)return custom.test(entity);
         return switch(provider.toString()) {
             case "scalebrews:static"->true;
-            case "scalebrews:quadruped"->entity.getType()==EntityTypes.COW && entity.getPose()==Pose.STANDING;
+            case "scalebrews:quadruped"->java.util.Set.of(EntityTypes.COW,EntityTypes.PIG,EntityTypes.SHEEP,EntityTypes.LLAMA,EntityTypes.TRADER_LLAMA).contains(entity.getType())
+                && entity.getPose()==Pose.STANDING && (!(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep) || sheep.getHeadEatPositionScale(1)==0);
+            case "scalebrews:chicken"->entity.getType()==EntityTypes.CHICKEN && entity.getPose()==Pose.STANDING;
+            case "scalebrews:villager"->entity.getType()==EntityTypes.VILLAGER && entity.getPose()==Pose.STANDING;
+            case "scalebrews:iron_golem"->entity.getType()==EntityTypes.IRON_GOLEM && entity.getPose()==Pose.STANDING;
+            case "scalebrews:ghast"->entity.getType()==EntityTypes.GHAST;
+            case "scalebrews:feline"->entity.getType()==EntityTypes.CAT && entity.getPose()==Pose.STANDING;
+            case "scalebrews:equine"->java.util.Set.of(EntityTypes.HORSE,EntityTypes.DONKEY,EntityTypes.MULE,EntityTypes.SKELETON_HORSE,EntityTypes.ZOMBIE_HORSE).contains(entity.getType())
+                && entity instanceof net.minecraft.world.entity.animal.equine.AbstractHorse horse && horse.getEatAnim(1)==0 && horse.getStandAnim(1)==0 && horse.getMouthAnim(1)==0 && !horse.isInWater();
+            case "scalebrews:bee"->entity.getType()==EntityTypes.BEE;
             case "scalebrews:player_walking"->entity instanceof net.minecraft.world.entity.player.Player && entity.getPose()==Pose.STANDING
                 && !entity.isCrouching() && !entity.swinging && !entity.isUsingItem() && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
             case "scalebrews:grizzly"->entity.getClass().getName().equals("com.github.alexthe666.alexsmobs.entity.EntityGrizzlyBear")

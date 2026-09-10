@@ -33,7 +33,8 @@
   - [x] Isolated export command, original vertex comparisons and 320 ordinary animated pose comparisons; dedicated server loads the four JSON models without Alex/client classes. See docs/ANATOMY_IMPLEMENTATION.md.
   - [x] Prototype catalog and authoritative pose transfer over the actual play connection; revision/session validation, replay-safe interpolation and explicit received-frame geometry evaluation. This does not complete live transport synchronization.
   - [x] Wire actual convex movement/transport, authoritative pose sampling, conservative hierarchy motion bounds and server-confirmed contact identity. The real client observes the contact but does not simulate remote bodies; 60 integrated-server transport ticks pass.
-  - [ ] Validate host/resource independence and local-player/controlled-vehicle prediction plus reconciliation. The observer-contact proof does not complete those acceptance cases.
+  - [ ] Run and retain both isolated dedicated lanes from `PrepareAnatomyProof.ps1`: ordinary regression A and prepared-runtime B. B alone owns the non-empty exported catalog and its nine real `Entity.move` scenarios; an A pass cannot substitute for B.
+  - [ ] Validate host/resource independence and local-player/controlled-vehicle prediction plus reconciliation. Host019 proves two isolated dedicated epochs from one immutable original-model export, old-epoch rejection, no carried/contact residue, and an actually active/restored harmless client-pack marker. It reused the body UUID but not the network ID; SharedWorld, same-network-ID reuse, modded renderer/resource-pack geometry, prediction and reconciliation remain open.
 - [ ] Gate 2: shared geometry/contacts/transport, synced catalog, legacy-profile migration, categories and lifecycle regressions.
   - [x] Register validated geometry codec and anatomical profile references; add common pose-provider registry, piece filters and atomic model/binding validation.
   - [x] Preparation runtime automatically binds/ticks/publishes tracked cow poses; real-client unsupported-state removal and Alex 2.1.9 server pose guards pass.
@@ -43,8 +44,18 @@
   - [ ] Validate live reload while carrying entities, rejected reload followed by recovery, reconnection and latency. Resource-reader and transfer tests alone do not complete this lifecycle gate.
 - [ ] Gate 3: remove Clinging's AABB collider/duplicate transport; consume shared gravity/contact API; export VP26 compatibility report.
   - [x] Proof-only optional bridge with actual Gravity Changer, six-direction managed Clinging contact, anatomical clearance, no duplicate legacy carry and no inherited support impulse. Ordinary worlds remain on the old path; final protocol/catalog migration is still pending.
+  - [x] Available Clinging Reoriented source compiles against the Scale snapshot-017 protocol-2 JAR and completes 22 server GameTests; retain the JAR/source/log hashes in `docs/ANATOMY_IMPLEMENTATION.md`. This is not client, latency, full-transition, VP26 or release evidence.
 - [ ] Client/dedicated latency and host-change validation, coordinated artifacts and installation with backups.
 - Preserve previous unfinished QA below. Anatomical support has no automatic bounding-box fallback; use original mod models, world catalog, configurable anatomy filters and optional JSON replacements.
+
+### Consolidated anatomy migration H0–H4 (2026-09-09; additive)
+
+- [ ] H0: publish and consume one versioned Scale anatomy API/capability contract; maintain a per-connection accepted catalog epoch/revision/binding session gate, separate from core-level `active`, so Clinging can enter the new route only when both gates are true. No client geometry/pose/contact upload.
+- [ ] H1: close only original player wide/slim, cow and Alex's Mobs 2.1.9 grizzly evidence: real renderer inputs versus server tracker channels, original vertices/poses/hierarchy/hole filters, six faces, inverted/lateral carry, dedicated without client classes and host/resource-pack independence. Run both isolated JSON DTO dedicated (no Alex/client classes) and live dedicated Alex-common/grizzly guard lanes; neither synthetic formulas nor export-only checks close this gate. The current dirty v3 work compiled and passed 640 extra vanilla plus 240 original cow/player comparisons; its later legacy-ghast/no-catalog fixture failure and wrong Alex command flag remain to fix. H1 does not require H3 latency/reconnect or complete VP26 catalogue.
+- [ ] H2: complete atomic datapack catalogue/reload/lifecycle, per-tick pose cache/instrumentation, builtin original geometry refs and legacy profile migration without `automatic_top` fallback. Then cover verified adult catalogue entries and report all missing/unsupported poses without frozen/AABB collision.
+- [ ] H3: migrate Clinging to the shared contract while retaining its current Space/charge/Elytra/camera behavior; remove duplicate AABB/carry/reconciliation only after the shared session/API and regressions are green. Expand coordinated VP26 coverage.
+- [ ] H4: both-mod builds/suites, 0/100/200 ms dedicated `allow-flight=false`, ten-minute soak, original-only export coverage/hash report, coordinated artifact backups and explicit pack QA. Do not infer release/tag/repository creation.
+- [ ] Instrument and bound P2 publication: server samples each active pose once per tick; clients interpolate only authority frames; report entity/channel/packet/evaluation/cache counts; do not rebuild catalogue/profiles/geometry per recipient or hide an O(n*m) scan in synchronisation.
 
 ## Giant melee reach follow-up
 

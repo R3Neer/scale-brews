@@ -23,6 +23,29 @@ observer transport, and the server retained support through 60 moving/ascending
 ticks. This closes observer contact synchronization, not local prediction under
 latency, reconnect/host replacement or the remaining model catalogue.
 
+The separate host019 client proof subsequently used the same immutable
+original-model export against two isolated dedicated hosts. It accepted a fresh
+catalogue epoch on each host, confirmed the same geometry digest and admissible
+poses, rejected an old-host catalogue packet, and observed no carried/contact
+state from the first host after reconnecting. A harmless temporary resource pack
+marker was genuinely selected and restored by the fixture; it did not touch a
+user world or pack selection. The body UUID was reused, but the harness assigned
+a different network ID, so same-network-ID host reuse and a real SharedWorld
+client remain open acceptance cases. This is host-lifecycle evidence, not a
+closure of Gate 1 or the resource-pack/renderer compatibility matrix.
+
+Snapshot 021 (source manifest
+`6222FE75BB5ED2D233D8639CCDAB3BEC05536D4376D7C30946338C3165FF0424`)
+compiled on Java 25 and launched ordinary lane A. Its runner completed 134
+tests: 132 were not listed as failed and two required fixtures remain red. The
+yawing/ascending-floor fixture did not complete its contact on tick 0; the
+animated-squeezing fixture did not reacquire a material contact after the local
+approach. The retained log hash is
+`7D4ACC9FE56E80C3B9B1A059488C9A7D8166E1F673E3F1068236BE13C34B386F`.
+This direct A invocation did not request Fabric's JUnit report property, so no
+XML evidence exists for this run. It is a failure record, not a green
+regression result.
+
 ## Implemented foundations
 
 ### 2026-09-09: restored checkout and client physics identity
@@ -78,7 +101,7 @@ unsupported-pose removal and the existing original-model/network checks.
 - Geometry providers now expose tick-stamped motion snapshots. Model providers capture consecutive authoritative frames once per tick. `AnatomyMovement.sweep` queries local eligible supports, then uses conservative swept-piece bounds and temporal convex queries, preserving explicit iteration-limit results. Per-level/tick counters record queries, pieces, evaluations and exhausted budgets.
 - Proof-level `collide` now uses event-based `TemporalResponse`, rechecking block/entity clipping after each changed trajectory. Verified constant translation is separated from deformation speed, allowing exact relative sweeps without redundant shared motion. Rising/falling contact response preserves independent tangent movement. Curved/simultaneous contact continuation and overlap separation still need refinement; budget exhaustion returns only the processed displacement and is recorded, not treated as completion.
 - Initial/final anatomical overlap now invokes a bounded shortest-candidate SAT separation search (128 candidates, maximum 4 blocks), checking clipping and preventing entry into previously separate pieces. Unresolvable overlaps release contact and suspend only the affected body/support pair; the pair re-enables once actual overlap ends. This is a bounded candidate search, not a proof of globally minimal separation for arbitrary unions. Sustained animated squeezing and lifecycle/network recovery still require broader fixtures.
-- Authoritative pose protocol v2 includes cardinal gravity. Model evaluation applies that gravity basis before body yaw/model transforms; caches distinguish gravity frames. A cardinal change resets physical interpolation rather than sweeping through arbitrary intermediate directions. Gravity Changer retains its visual/camera rotation. Full contact invalidation/reconciliation on support gravity changes remains pending.
+- Authoritative pose protocol v4 carries a separately ordered material `frameSerial`, authority creation tick, joint-sample tick, rigid-root sequence/tick and server binding generation alongside cardinal gravity and bounded, named animation channels. A causal endpoint can be explicitly unavailable: clients clear its convex/contact/presentation material without an AABB or frozen-pose fallback, retain their ordering watermark, and only restore it from a newer server frame. Root-only updates never re-evaluate joints. Model evaluation applies the captured gravity basis before body yaw/model transforms; caches distinguish gravity frames. A cardinal change resets physical interpolation rather than sweeping through arbitrary intermediate directions. Gravity Changer retains its visual/camera rotation. Full contact invalidation/reconciliation on support gravity changes remains pending.
 
 ## Reproduce the isolated proof
 
@@ -95,9 +118,9 @@ Optional `-GradleUserHome` selects an existing dependency cache; `-Offline` prev
 
 The output directory must not exist. The script copies source into a fresh checkout and reads only the actual Alex's Mobs, CodxLib and Cloth Config JARs into a preparation environment. It does not import worlds, settings, resource packs, EMF, NEA or First Person. `inputs.json` records versions and JAR hashes; `source-hashes.json` identifies the source snapshot.
 
-The client fixture exports cow, both player variants and grizzly, compares original transformed vertices, and compares 80 ordinary animated poses per variant. A separate dedicated GameTest process loads those JSON files **without Alex's Mobs or any client model classes** and evaluates the common pose providers.
+The client fixture exports cow, both player variants and grizzly, compares original transformed vertices, and compares 80 ordinary animated poses per variant. The script then runs two separate dedicated lanes against that same export: the ordinary regression suite (A), followed by the prepared-runtime lane (B). B is the only process that starts the non-empty server-safe catalog and executes the nine real `Entity.move`/transport scenarios; Fabric 26.2 has no batch lifecycle hook, so mixing it with raw-core fixtures would invalidate its runtime lifetime. Both lanes retain separate logs and both must pass. Neither result implies the other.
 
-Only after both commands succeed are results copied to `verified-proof-catalog` and `filter-report`. These are experimental JSON DTOs, **not an installable gameplay datapack**. No world/catalog installation occurs. This command intentionally does not claim full VP26 species coverage.
+Only after the client export plus dedicated A and B succeed are results copied to `verified-proof-catalog` and `filter-report`. These are experimental JSON DTOs, **not an installable gameplay datapack**. No world/catalog installation occurs. This command intentionally does not claim full VP26 species coverage.
 
 ## Evidence (2026-09-06)
 
@@ -196,8 +219,9 @@ the client exited cleanly. This does not yet validate replacement while carrying
 player or reconnecting under artificial latency.
 
 Still unproven: live client collision prediction, sustained articulated contact
-under the runtime tick order, complete hot reload, host replacement and the full
-acceptance matrix. Installed profiles and JARs have not been replaced.
+under the runtime tick order, complete hot reload, same-network-ID/SharedWorld
+host replacement and the full acceptance matrix. Installed profiles and JARs
+have not been replaced.
 
 ### Tangential response and gravity-local locomotion follow-up
 
@@ -238,6 +262,18 @@ completed packet reconciliation, anti-flight latency acceptance or prediction.
 Live Clinging audit on 2026-09-07 subsequently found concurrent alpha.5 development. Its `EXPANSION_ALPHA5_ES.md` supersedes the older Crouch input: preserve jump-key input, limited airborne Clinging use, Reorientation, mounted-root controls, landing recharge and First Person correction. Do not revert these unrelated changes to the alpha.4 snapshot.
 
 The optional Clinging bridge now registers the real Gravity Changer adapter and delegates anatomical clearance, contact and grounding to Scale. In proof-active worlds its legacy AABB injection, carry, outgoing relative reference, reconciliation and inherited jump impulse are bypassed. Mobs' oriented-space preflight also queries the shared geometry. Older Scale artifacts still take the legacy path. This is not final protocol negotiation or a completed migration of the installed artifacts.
+
+Against the immutable Scale snapshot 017 JAR
+(`E3FCC3A732AE7B9BEF578A4DF25605FBFB8CB5D2416419B09C45FD5F9D02A45A`),
+the available Clinging Reoriented source compiled and its 22 server GameTests
+completed successfully. The source fingerprint was
+`5EB005C7362FB209F23B9E36CA7F42C8D9A1434E304250A6101026667C601A36` and the
+dedicated GameTest log hash was
+`9FC546752997AB34F0EA870AEC75E1F46B7B04F1F6C3C4A1C0A3B4CBD5345AB8`.
+No installation, release or source publication occurred. This is a protocol-2
+compile/server regression check only: it does not demonstrate client camera or
+rendering, `allow-flight=false` dedicated latency, all 30 transitions, or the
+full H3/VP26 acceptance matrix.
 
 At 00:35:22 the isolated coordinated dedicated fixture passed managed-Clinging contact on all six cardinal faces, upstream gravity lookup, anatomical-hole clearance, shared support identity, absence of second carry and jump release without stale legacy impulse. The complete Clinging suite was **not green**: its separate alpha.5 effect-refresh/forged-ground assertion failed. This evidence uses a synthetic convex body to isolate the bridge, not the full original-model/animation acceptance matrix. At 00:37:52 Scale build and all 108 dedicated tests passed, including release of material anchors when either body's or support's cardinal gravity changes without replaying old transport. No installed JAR changed.
 
