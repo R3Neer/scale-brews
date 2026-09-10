@@ -166,6 +166,23 @@ That commit includes the collision-documentation consolidation, removal of known
 
 This run is the ordinary repository workflow (`./gradlew build`) on GitHub Actions. It establishes a compilable server/GameTest build baseline after structural cleanup. It does **not** prove the unfinished Q2 material pipeline, client-special proof lanes, dedicated latency/reconnect behavior, Clinging migration, VanillaPlus coverage, performance targets or final physical correctness. Those remain gated by the canonical plan.
 
+### G0 final package reorganization — 2026-09-10
+
+The package migration was verified in GitHub Actions run `34464719776`, job `102830447888`. The Action first built the pre-transform branch snapshot, applied the deterministic package migration, then executed a fresh `./gradlew clean build` **before** committing the transformed tree. The post-transform suite reported **137 required tests, 1 excluded, 137/137 passed**, and `BUILD SUCCESSFUL`.
+
+The verified transformed tree was committed as `0ededb67464b47fb35170f8d9854cf62498fc626` (`refactor: organize entity collision packages`). The resulting source organization moves the replacement subsystem out of `platform.anatomy` into:
+
+- `collision.api` for the public façade and API-adjacent DTOs;
+- `collision.geometry` for pure geometry/data primitives;
+- `collision.pose` for reusable pose providers/channels;
+- `collision.physics` for the CCD/separation/temporal kernel;
+- `collision.internal` for orchestration that still has real Q1/Q2 coupling and is not public API;
+- `client.collision.preparation` and `client.collision.network` for client-only preparation and authoritative receive/cache responsibilities.
+
+The migration also removed the old package shims and removed production-specific Alex/grizzly registration/eligibility code. The old 2.1.9 grizzly formula and guard survive only as `src/gametest/.../GrizzlyPose.java`, explicitly an H1 acceptance fixture. The temporary migration script and temporary self-modifying workflow do not survive in the transformed tree; the normal repository workflow was restored. A follow-up repository-only cleanup restored the Gradle wrapper's original non-executable Git mode after GitHub Actions' local `chmod` had accidentally staged it.
+
+This evidence validates **compilation and the required server/GameTest suite after the structural refactor**. It does not establish that `collision.internal` is the final package boundary, nor does it prove G1's final API/data contract, the unfinished Q2 material pipeline, client-special proof lanes, dedicated latency/reconnect behavior, Clinging migration, VanillaPlus coverage, performance targets or final physical correctness.
+
 ## Current acceptance gaps for entity collisions
 
 The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). For interpreting existing evidence, the major unproved areas after G0 are:
