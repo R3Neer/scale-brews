@@ -1,9 +1,11 @@
 {
-  "base": "c965bf0efa26dec2681151111d3b90d825247929",
-  "target": "1616c91f2f53ed3b182b78a680e5b8768d78ea95",
-  "patch_sha256": "8fe206cc0b7fe9c53a02bcc92bf2130d347213a3be194a3a5441fe45a25e2e9c",
+  "base": "aa1b81866e045699975a2c6881616cf78b710fb3",
+  "target": "5642660086c35cbf90ab36f16329b7105f044a6b",
+  "patch_sha256": "a30cc90328a6de3d00ebabc8e7fbfc9c2af2dd162d4a05b3518e00f366f81017",
   "paths": [
+    "src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyNetworkingTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java",
+    "src/gametest/resources/fabric.mod.json",
     "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java"
   ]
 }
