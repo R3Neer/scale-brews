@@ -1,6 +1,6 @@
 {
   "base": "62d03bc99563a79d95f542bbd6af5516988de2a9",
-  "target": "8433c8c2690cde66623e9b1d1061c4919ef501fe",
+  "target": "89f7c210ada6f711ecfefccec42acc8b6b81a164",
   "patch_sha256": "56d0560939d0ec52a3fe8e7b019607b1ce5b62711bd2bc947ff95e3ca0201c09",
   "extra_patch_sha256": "da45365649bb6fc654d7422630c8fb1ac76829e0dab0e7449268e6c8a8367045",
   "repair_patch_sha256": "4cb6d41b8d4796a0f0ed10417c2259d0be70fef2b889c6ba866b7fbabbd1d910",
@@ -11,6 +11,7 @@
   "observer_fixture_patch_sha256": "26fbe19239af33f5d9e8afdef9f1e162f8883a89ef6294d974a235c48f518320",
   "repair3_patch_sha256": "5a6ad3018761205a3c6ca6ae33ebd11bcbcb76bff50754ff745a3a1c306d36a1",
   "hostile_patch_sha256": "d9b3fc31bb65f7862550e2eb73164bd09505bffe92e2862569d3b8740e752605",
+  "hierarchy_holdout_patch_sha256": "40a2e983fee6a0e0a683a7983abcdef024ccaade3cfb43906bb78171bf470158",
   "paths": [
     "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/GeometryExtractor.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyNetworkingTests.java",
