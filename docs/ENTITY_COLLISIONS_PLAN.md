@@ -39,7 +39,7 @@ Estado de tareas:
 - [x] Eliminar scaffolding sin consumidor real (`RootEventDispatcher`, `AnatomyStreamLifecycle` y su test dedicado).
 - [x] Sacar las fronteras ya desacoplables de los paquetes históricos: API pública a `collision.api` y extracción cliente a `client.collision.preparation`, dejando shims sin lógica sólo mientras compilan callers históricos.
 - [x] Revisar expresamente el motor legacy y decidir su supervivencia temporal por requisitos, no por nostalgia; retirada fijada en G5.
-- [ ] Registrar en VALIDATION un build/CI verde del commit final de esta reestructuración y comprobar que `main` no se movió.
+- [x] Registrar en VALIDATION un build/CI verde del commit final de esta reestructuración y comprobar que `main` no se movió.
 
 **Salida:** árbol comprensible y compilable, sin scaffolding conocido que sólo se pruebe a sí mismo. El feature puede seguir desactivado; G0 no afirma corrección física.
 
