@@ -1,0 +1,24 @@
+diff --git a/src/gametest/resources/fabric.mod.json b/src/gametest/resources/fabric.mod.json
+index f5dcdab..ad40809 100644
+--- a/src/gametest/resources/fabric.mod.json
++++ b/src/gametest/resources/fabric.mod.json
+@@ -34,14 +34,17 @@
+       "io.github.r3neer.scalebrews.test.S00GeometryTests",
+       "io.github.r3neer.scalebrews.test.S00CausalTests",
+       "io.github.r3neer.scalebrews.test.S00ModelTests",
+-      "io.github.r3neer.scalebrews.test.S00RuntimeTests"
++      "io.github.r3neer.scalebrews.test.S00RuntimeTests",
++      "io.github.r3neer.scalebrews.test.S00ReceiptTests",
++      "io.github.r3neer.scalebrews.test.S00TemporalTests"
+     ],
+     "fabric-client-gametest": [
+       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
+       "io.github.r3neer.scalebrews.test.WolfClientProof",
+       "io.github.r3neer.scalebrews.test.PlatformClientProof",
+       "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
+-      "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests"
++      "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
++      "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests"
+     ]
+   }
+ }

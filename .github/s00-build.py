@@ -3,11 +3,13 @@ import base64, hashlib, json, os, pathlib, re, subprocess, urllib.request
 
 assert os.environ['GITHUB_REF'] == 'refs/heads/chatgpt-editing'
 spec = json.loads(pathlib.Path('.github/s00-candidate.json').read_text())
-primary = pathlib.Path('.github/s00-candidate.patch').read_bytes()
-extra_path = pathlib.Path('.github/s00-extra.patch')
-extra = extra_path.read_bytes() if extra_path.exists() else b''
-assert hashlib.sha256(primary).hexdigest() == spec['patch_sha256']
-assert hashlib.sha256(extra).hexdigest() == spec.get('extra_patch_sha256', hashlib.sha256(b'').hexdigest())
+patches = [
+    ('reviewed.patch', pathlib.Path('.github/s00-candidate.patch').read_bytes(), spec['patch_sha256']),
+    ('extra.patch', pathlib.Path('.github/s00-extra.patch').read_bytes(), spec.get('extra_patch_sha256', hashlib.sha256(b'').hexdigest())),
+    ('repair.patch', pathlib.Path('.github/s00-repair.patch').read_bytes(), spec.get('repair_patch_sha256', hashlib.sha256(b'').hexdigest())),
+]
+for _, data, expected in patches:
+    assert hashlib.sha256(data).hexdigest() == expected
 assert all(re.fullmatch('[0-9a-f]{40}', spec[key]) for key in ('base', 'target'))
 assert pathlib.Path('.github/s00-candidate-tree').read_text().strip() == spec['base']
 
@@ -51,12 +53,13 @@ git('read-tree', '--reset', '-u', base)
 assert git('write-tree').decode().strip() == base
 evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 's00-evidence'
 evidence.mkdir()
-for name, data in [('reviewed.patch', primary), ('extra.patch', extra)]:
-    path = pathlib.Path(os.environ['RUNNER_TEMP']) / ('s00-' + name)
-    path.write_bytes(data)
+for name, data, _ in patches:
+    (evidence / name).write_bytes(data)
     if data:
-        git('apply', '--check', '--index', str(path))
-        git('apply', '--index', str(path))
+        staged = pathlib.Path(os.environ['RUNNER_TEMP']) / ('s00-' + name)
+        staged.write_bytes(data)
+        git('apply', '--check', '--index', str(staged))
+        git('apply', '--index', str(staged))
 actual = git('write-tree').decode().strip()
 assert actual == spec['target'], (actual, spec['target'])
 changed = set(git('diff', '--cached', '--name-only', base).decode().splitlines())
@@ -64,10 +67,9 @@ assert changed == set(spec['paths']), (changed, spec['paths'])
 (evidence / 'identity.txt').write_text(
     'source_tree=' + actual + '\ntransport_commit=' + os.environ['GITHUB_SHA']
     + '\nbase_tree=' + base + '\npatch_sha256=' + spec['patch_sha256']
-    + '\nextra_patch_sha256=' + spec.get('extra_patch_sha256','') + '\n')
+    + '\nextra_patch_sha256=' + spec.get('extra_patch_sha256','')
+    + '\nrepair_patch_sha256=' + spec.get('repair_patch_sha256','') + '\n')
 (evidence / 'transport-spec.json').write_text(json.dumps(spec, indent=2))
-(evidence / 'reviewed.patch').write_bytes(primary)
-(evidence / 'extra.patch').write_bytes(extra)
 git('archive', '--format=tar', '--output=' + str(evidence / 'source.tar'), actual)
 print('S00_SOURCE_TREE=' + actual)
 print('S00_TRANSPORT_COMMIT=' + os.environ['GITHUB_SHA'])

@@ -1,0 +1,118 @@
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java
+index f5bce4e..e0b246d 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java
+@@ -34,10 +34,14 @@ public final class AnatomyTransportReceipts {
+         public Receipt {
+             if(epoch==null || catalogRevision<0 || dimension==null || bodyNetworkId<0 || body==null || trackingGeneration<1 || support==null
+                     || piece==null || piece.isBlank() || face<0 || face>5 || localPoint==null || normal==null
+-                    || surfaceTick<0 || contactSequence<0 || rootFrameSequence<0 || transportSequence<1 || tick<0 || bodyBefore==null || bodyAfter==null
++                    || surfaceTick<0 || contactSequence<1 || rootFrameSequence<0 || transportSequence<1 || tick<0 || bodyBefore==null || bodyAfter==null
+                     || rootFrame==null || materialBefore==null || materialAfter==null || appliedDelta==null || !finite(localPoint) || !finite(normal) || !finite(bodyBefore)
+                     || !finite(bodyAfter) || !finite(appliedDelta))
+                 throw new IllegalArgumentException("Invalid confirmed anatomical transport receipt");
++            new SurfaceContact(support,catalogRevision,piece,face,localPoint,normal,surfaceTick);
++            if(rootFrame.sequence()!=rootFrameSequence || rootFrame.tick()>tick || surfaceTick>tick
++                    || bodyAfter.distanceToSqr(bodyBefore.add(appliedDelta))>1e-12)
++                throw new IllegalArgumentException("Contradictory confirmed anatomical transport receipt");
+         }
+         private static boolean finite(Vec3 value){return Double.isFinite(value.x) && Double.isFinite(value.y) && Double.isFinite(value.z);}
+     }
+@@ -62,6 +66,7 @@ public final class AnatomyTransportReceipts {
+         for(var passenger:body.getIndirectPassengers())if(passenger instanceof ServerPlayer player)recipients.add(player);
+         if(recipients.isEmpty())return;
+         long tick=body.level().getGameTime();
++        if(transport.tick()!=tick || transport.rootFrameSequence()!=root.sequence() || root.tick()>tick || surface.tick()>tick)return;
+         Vec3 appliedDelta=transport.appliedDelta(),after=body.position(),before=after.subtract(appliedDelta);
+         for(var recipient:recipients) {
+             long generation=AnatomyRuntime.trackingGeneration(recipient,body);
+@@ -110,7 +115,7 @@ public final class AnatomyTransportReceipts {
+         return history!=null && history.saturatedTicks.contains(tick);
+     }
+     public static synchronized void invalidate(Entity body) {
+-        if(body==null)return;
++        if(body==null || body.level().isClientSide())return;
+         var emptyRecipients=new ArrayList<ServerPlayer>();
+         for(var entry:HISTORIES.entrySet()) {
+             var roots=entry.getValue();roots.remove(body.getUUID());
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
+index 8cf863b..6587781 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
+@@ -105,9 +105,16 @@ public record ConvexBox(List<Vec3> vertices) {
+         List<Vec3> world=List.of(new Vec3(1,0,0),new Vec3(0,1,0),new Vec3(0,0,1));
+         List<Vec3> result=new ArrayList<>(world);result.addAll(List.of(x.cross(y),y.cross(z),z.cross(x)));
+         for(Vec3 edge:List.of(x,y,z))for(Vec3 axis:world)result.add(edge.cross(axis));
+-        // Vec3.normalize intentionally returns ZERO for small vectors. Nearly parallel edges
+-        // produced by model rotations still need a real unit SAT axis, never a zero plane.
+-        return result.stream().filter(v->v.lengthSqr()>1e-20).map(v->v.scale(1/Math.sqrt(v.lengthSqr()))).toList();
++        // A valid affine box may have a physically essential face axis whose magnitude is tiny
++        // compared with another edge. Only an exactly zero cross-product is redundant. Math.hypot
++        // avoids turning a small-but-valid axis into zero through squared-length underflow.
++        List<Vec3> normalized=new ArrayList<>();
++        for(Vec3 axis:result) {
++            double length=Math.hypot(axis.x,Math.hypot(axis.y,axis.z));
++            if(!Double.isFinite(length))throw new IllegalArgumentException("Unbounded SAT axis");
++            if(length>0)normalized.add(axis.scale(1/length));
++        }
++        return List.copyOf(normalized);
+     }
+     private double[] interval(Vec3 axis) {
+         double lo=Double.POSITIVE_INFINITY,hi=-lo;
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+index 576b139..ebe50f7 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+@@ -49,21 +49,27 @@ public final class BodyPath {
+     public static Optional<BodyPath> fromMaterial(ConservativeSweep.Motion material,LocalAnchor anchor,AABB body,GravityFrame gravity,NormalBounds bounds) {
+         if(material==null || anchor==null || body==null || !finite(body) || gravity==null || bounds==null || bounds.face()!=anchor.face())
+             return Optional.empty();
+-        var first=material.at().apply(0);Vec3 normal=first.faceNormal(anchor.face()),up=gravity.up();
+-        if(normal.dot(up)<SUPPORT)return Optional.empty();
+-        try{return Optional.of(new BodyPath(material,anchor,body,up,first.point(anchor.coordinates()),normal,bounds));}
+-        catch(IllegalArgumentException rejected){return Optional.empty();}
++        try {
++            var first=material.at().apply(0);if(first==null)return Optional.empty();
++            Vec3 normal=first.faceNormal(anchor.face()),up=gravity.up();double support=normal.dot(up);
++            if(!Double.isFinite(support) || support<SUPPORT || support+1e-9<bounds.minDotAntiGravity())return Optional.empty();
++            return Optional.of(new BodyPath(material,anchor,body,up,first.point(anchor.coordinates()),normal,bounds));
++        } catch(RuntimeException rejected) {return Optional.empty();}
+     }
+     /** Exact centre displacement; invalid provider output is rejected instead of chord-warped. */
+     public Optional<Vec3> displacement(double time) {
+         if(!Double.isFinite(time) || time<0 || time>1)return Optional.empty();
+         if(time==0)return Optional.of(Vec3.ZERO);
+-        var shape=material.at().apply(time);Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
+-        if(!Double.isFinite(denominator) || denominator<SUPPORT)return Optional.empty();
+-        Vec3 point=shape.point(anchor.coordinates());
+-        double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
+-        if(!Double.isFinite(lift))return Optional.empty();
+-        return Optional.of(point.add(initialOffset).add(up.scale(lift)).subtract(center));
++        try {
++            var shape=material.at().apply(time);if(shape==null)return Optional.empty();
++            Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
++            if(!Double.isFinite(denominator) || denominator<SUPPORT)return Optional.empty();
++            Vec3 point=shape.point(anchor.coordinates());
++            double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
++            if(!Double.isFinite(lift))return Optional.empty();
++            Vec3 result=point.add(initialOffset).add(up.scale(lift)).subtract(center);
++            return Double.isFinite(result.lengthSqr())?Optional.of(result):Optional.empty();
++        } catch(RuntimeException unavailable) {return Optional.empty();}
+     }
+     /** Declared linear cancellation term for a rigidly translated material face. */
+     public Vec3 linearTranslation(){return material.linearTranslation();}
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java b/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
+index c0b2b40..08d00c7 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
+@@ -33,7 +33,10 @@ public final class ConservativeSweep {
+         public Motion(DoubleFunction<ConvexBox> at,double deformationSpeed,Vec3 linearTranslation){this(at,deformationSpeed,linearTranslation,java.util.List.of());}
+         public Motion(DoubleFunction<ConvexBox> at,double maxPointSpeed){this(at,maxPointSpeed,Vec3.ZERO);}
+         public Motion {
++            if(invariantPlanes==null)throw new IllegalArgumentException("Invalid invariant planes");
+             invariantPlanes=java.util.List.copyOf(invariantPlanes);
++            var directions=java.util.EnumSet.noneOf(net.minecraft.core.Direction.class);
++            for(var plane:invariantPlanes)if(plane==null || !directions.add(plane.outward()))throw new IllegalArgumentException("Duplicate invariant plane direction");
+             if(at==null || !Double.isFinite(deformationSpeed) || deformationSpeed<0 || linearTranslation==null || !Double.isFinite(linearTranslation.lengthSqr()))throw new IllegalArgumentException("Invalid motion bound");
+         }
+         public double maxPointSpeed(){return deformationSpeed+linearTranslation.length();}
