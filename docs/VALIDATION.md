@@ -1,258 +1,198 @@
 # Validation record
 
+This file is the sole source of truth for **executed evidence**. It records what was actually built, run or inspected, against which snapshot, and what that evidence does **not** prove.
+
+Normative entity-collision behavior lives in [ENTITY_COLLISIONS_REQUIREMENTS](ENTITY_COLLISIONS_REQUIREMENTS.md), architecture/API/data ownership in [ENTITY_COLLISIONS](ENTITY_COLLISIONS.md), and implementation order/status in [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). Historical details removed from this file remain recoverable through Git; old planning/implementation diaries are not evidence sources anymore.
+
+## Evidence rules
+
+- A source file, implementation class or test method existing is **not** evidence that the behavior passes.
+- A unit/kernel test does not substitute for a real GameTest, client, dedicated server, compatibility target, latency run or human visual review when the requirement calls for one.
+- Evidence is attached to an exact source snapshot/commit or explicitly labelled historical/isolated.
+- Compatibility evidence is version-bounded. Passing with one external-mod version does not certify future versions or a whole modpack.
+- A generated/archive/install result proves packaging only unless gameplay was separately exercised.
+- Current branch status is stated explicitly at the top of the relevant development section; historical green snapshots do not make a later red snapshot green.
+
 ## 0.1.0-beta.5 candidate — 2026-09-09
 
-- Built a fresh isolated snapshot of the recovered canonical repository, including
-  all current gameplay changes and the gated anatomical prototype. Every source
-  file was compared by hash with the canonical checkout.
-- `build runClientGameTest --offline` passed: all **122 required server tests**,
-  the dedicated platform/wolf client fixtures and the complete integrated-client
-  suite; clean client exit at 17:49:26. Screenshot-only mode was off for this run.
-- Captured and visually reviewed two reproducible, HUD-free README images in a
-  disposable vanilla-background client world. Rejected the first framing/particle
-  attempt. These images illustrate size and saddle equipment, not full-pack QA.
-- Normal gameplay retains the existing upper-surface platform system. Anatomical
-  code ships dormant; full Clinging migration, animated six-direction acceptance,
-  dynamic-host/resource-pack proof and latency/soak validation remain unfinished.
-- This run does not repeat the entire optional-mod matrix or certify the exact
-  artifact in a human-played VP26/multiplayer session. Older compatibility evidence
-  below remains historical and version-bounded.
-- GitHub Actions run 34373390000 passed for commit 33b1f5c. The beta.5 prerelease
-  targets that commit; regular and source asset downloads match local SHA-256.
-  The regular JAR was installed in the existing Modrinth VanillaPlus-26.2 (1)
-  profile, with beta.4 backed up outside mods. Installed regular SHA-256:
-  `5cbee58b3da9628f53f267b35ab3a3d16d922c4d2af6dfbf5b31a4d126711fc7`.
-  Installation/hash verification is not a fresh full-pack playtest.
+Snapshot/commit: `33b1f5c` for the published beta.5 candidate.
 
-## Automated checks
+- Fresh isolated `build runClientGameTest --offline` passed with all **122 required server tests** and the complete integrated-client suite; the client exited cleanly at 17:49:26.
+- GitHub Actions run `34373390000` passed for the candidate commit.
+- Two HUD-free README screenshots were captured in a disposable vanilla-background world and visually reviewed. They demonstrate size and saddle equipment, not the in-development all-direction collision system.
+- The regular beta.5 JAR was downloaded from the prerelease, its SHA-256 matched the locally validated artifact, and it was installed in the existing VanillaPlus-26.2 Modrinth profile with beta.4 backed up outside `mods`. Installed regular SHA-256: `5cbee58b3da9628f53f267b35ab3a3d16d922c4d2af6dfbf5b31a4d126711fc7`.
+- Normal beta.5 gameplay uses the released upper-surface Living Platforms engine. The all-direction entity-collision prototype is dormant and is **not** a released feature.
 
-Validated on Windows with Microsoft OpenJDK 25.0.3, Minecraft 26.2, Fabric Loader 0.19.5 and Fabric API 0.159.0+26.2.
+Not proved by this milestone: human acceptance of the exact JAR in the whole VP26 pack, a fresh real dedicated/multiplayer session for beta.5, full optional-mod matrix, Modrinth public publication, or completion of the replacement entity-collision system.
 
-2026-09-05: full build passed with all 14 required server tests; the client GameTest passed, including camera projection/bobbing checks. The close-corner screenshot was inspected: both stone faces remain opaque. English/Spanish key sets match and the production JAR excludes test classes.
+## Released gameplay regression history
 
-`./gradlew build --offline -PscalebrewsBuildDir=<local-output>` compiles/packages the mod and runs server GameTests. The initial suite contained 13 mod tests plus Fabric's default test (expanded below). Tests cover:
+These entries summarize the strongest retained evidence for existing non-collision Scale Brews features. Earlier intermediate counts and superseded behavioral experiments remain available in Git history rather than being repeated as competing current truth.
 
-- All walking/sprint levels, removal, changes while already sprinting, Speed stacking and relative balance.
-- Shrinking jump-strength bonuses at all tiers, removal and composition with another jump modifier.
-- Beacon third-tier access, level-II upgrade and persistence allowlist.
-- Monotonic 20-tick physical scale interpolation, halfway/final values, renewal, removal and another scale modifier.
-- Health fraction across upgrades, hidden-effect downgrades and removal.
-- All Shrinking fall-reduction tiers with and without Feather Falling IV.
-- Physical exhaustion at all tiers for sprint, jumping, sprint-jumping, swimming and attacks; unchanged direct exhaustion, damage, Hunger and natural regeneration.
-- Stone/wood/gold/iron pressure plates and activation by other entities.
-- Farmland protection without cancelling fall damage, and turtle-egg destruction eligibility.
-- Soul sand/berry progression and unchanged cobweb/honey penalties.
-- Swift Sneak III's enchanted/unenchanting/removal lifecycle.
-- Movement vibrations inside/outside each adjusted range, sprint differences, audible block breaking and silent crouching.
-- Real landing hook, no ordinary-jump wave, outward knockback, capped radial damage and retained self fall damage.
+### Core scale, movement, brewing and world mechanics
 
-`./gradlew runClientGameTest --offline -PscalebrewsBuildDir=<local-output>` launches a real client/integrated server, checks icon/translation resources, opens the extended beacon screen, captures screenshots and verifies server-to-client Shrinking III scale synchronization. Screenshots are saved under `build/run/clientGameTest/screenshots` for visual review.
+Across the beta progression on Minecraft 26.2 / Java 25 / Fabric, server and real-client suites exercised:
 
-`ScaleCameraChecks` exercises the injected camera methods across all three perspectives, normal and large sizes, each Shrinking tier, intermediate blend values and an external scale of .0625. It checks render/culling near-plane agreement, near-plane geometric sampling, nonzero bob amplitude, unchanged player position/collision and panoramic exclusion. A disposable stone-corner fixture additionally captures a close-up at Shrinking III with FOV 90 and bobbing enabled. This is not an exhaustive test of every FOV, modded camera, block shape or movement trajectory.
+- Growth/Shrinking I–III, 20-tick effective-scale transitions, mixed effects and external SCALE modifiers;
+- walking/sprint/jump/exhaustion/fall/reach/health behavior and size-aware camera checks;
+- beacon powers and potion brewing, including extended/splash/lingering variants;
+- Growth landing impacts, terrain propagation, creeper explosions, pressure plates, farmland/turtle eggs, vibration range and terrain resistance;
+- relative villager fear using effective size;
+- entity-scoped `scale^1.6` material loot and harvesting integration;
+- packaging rules that exclude GameTest/test-mixin classes from production JARs.
 
-GitHub Actions runs the build/server suite on Ubuntu with Java 25. The client visual check is local, not part of headless CI. Packaging checks ensure production JARs include sprites/languages/tags/mixins but exclude GameTest classes and test-only mixins. `git diff --check` checks patch whitespace.
+The beta.5 122-test run above is the latest clean aggregate evidence for the released core. It does not turn optional compatibility branches into universal guarantees.
 
-## Tiny mounts and configurable mechanics (2026-09-06)
+### Tiny mounts and wolves
 
-The expanded suite has 21 mod tests plus Fabric's default test. The 22-test server run and the real client/integrated-server run passed during implementation. Added coverage includes:
+Historical real server/client tests exercised:
 
-- Synced registry JSONs: exactly chicken and bee initially, enabled defaults and independently decoded module/individual switches.
-- Disabled rules exercise the real hooks using a test-only, scoped server-thread rule override (not packaged in the mod). This is not a live `/reload` or a separate-server configuration-switch test.
-- Wrong-size saddle rejection without consumption, one saddle consumed on success, controller selection, vanilla-packet WASD input, ordinary jump suppression, Shrinking removal and Growth dismount/forced-mount denial; minecarts preserved and native pigs excluded.
-- Bee mounting without a steering item, bounded yaw/pitch flight vector, item removal retaining rider, hive-entry suppression and external hive storage dismount/reset.
-- Jump Boost comparison and stacking; final direct-attack knockback at several input strengths; actual arrow/trident hits at normal size and all effect tiers without damage scaling.
-- Recipe lookup and crafting with small flowers; two-block flowers rejected; identical item components regardless of flower.
-- Client-side JSON/equipment synchronization, saddle texture availability, screenshots before/after saddle removal, actual keyboard-driven chicken movement, held-Space slow fall versus faster fall after release, look-driven bee ascent/forward flight, and relinquishing control when the flower is removed.
+- chicken/bee Tiny Mount definitions, relative size ratios, native saddle state and controller selection;
+- chicken held-Space glide and bee look-directed flight;
+- mounted-bee renderer state, natural bob/roll and rider/saddle presentation without moving physical bounds;
+- unmounted steering-item attraction while retaining native food/breeding semantics;
+- wolf saddle/armor coexistence, Crouch+Use mounting, direct controls, commanded bite/pounce and animation signalling;
+- persistent probabilistic wild-wolf trust/taming with save/load and different riders.
 
-The client tests exposed and fixed a passenger-packet race: mounting restrictions must be server-authoritative, because the client can receive passenger state before equipment/effect updates. Original camera/beacon/scale-sync checks remain in the same run. The saddle and held-item screenshots were visually inspected.
+The wolf attack-animation path was also run with EMF 3.3.5 / ETF 7.2 and Fresh Animations 1.10.5; that establishes the observed integration for those versions, not arbitrary resource packs.
 
-## Effective-scale mounts, explosions and general landings (2026-09-06)
+## Released Living Platforms evidence — beta.2 and later regressions
 
-At this milestone the suite contained 34 mod tests plus Fabric's default test. All 35 required server tests passed both with the base Fabric setup and with Combatify 1.4.0-26.2 / Alex's Mobs Continued 2.1.9. The real client/integrated-server GameTest also passed in both configurations, including mounting/input, synced data, camera and beacon checks. Added coverage includes:
+This section records the **legacy upper-surface engine** that remains active in released beta gameplay while it is being replaced. Its configuration is documented only in [CONFIGURATION](CONFIGURATION.md#released-living-platform-configuration-legacy-during-collision-migration). Its architecture is not the target architecture of the replacement system.
 
-- Effective rider/mount SCALE matrices, external modifiers, transition-time dismounts, exact inclusive JSON boundaries, configurable fallback/overrides and legacy tiny-definition migration. Native saddle/age/passenger restrictions and boat/minecart exemptions remain covered.
-- Actual normal/charged creeper explosions at every level: observed final vanilla radius, increasing/decreasing damage, distant blast reach and block destruction. Actual splash/lingering effect delivery also reaches the same explosion hook.
-- Player and mob landing hooks, a natural gravity-driven mob fall, all Growth tiers, bounded wave damage, particles, native landing game events and retained self fall damage. Flying/no-fall negatives do not trigger a wave.
-- The single combined landing switch disables both push and damage plus wave feedback. Legacy separate false switches migrate to combined-off; encoding omits old keys. Ordinary damage recoil and self fall damage remain active with the wave disabled.
-- Optional integration tests exercise Combatify weapon-dependent reach (hand, sword, axe, trident), scaled attack knockback, Alex's actual tendon brewing ingredient and a Growth grizzly-bear landing. These optional branches run only when their mods are present, not in ordinary CI.
-- Small sprinting player collision against perpendicular block walls and elytra eligibility at every Growth/Shrinking tier. These are bounded regression fixtures, not an exhaustive collision/flight simulation.
+### Base physics and categories
 
-Use `-PscalebrewsCompatMods=<directory-with-jars>` with `runGameTest runClientGameTest` to add optional mods to the test runtime only. The isolated check used Atlas Core 1.1.3-26.2, Defaulted 1.3.8, CodxLib 1.5.1 and Cloth Config 26.2.155 alongside the two mods. It does not edit the user's modpack or bundle these dependencies in the production JAR. Cloth Config is needed by Atlas Core's client UI.
+The beta.2 expansion passed **54 required server tests**. Fixtures covered:
 
-Combatify's alternate knockback wrapper bypassed the original HEAD injection. The shared hook now wraps outside Combatify's priority-1400 method (priority 1500), passing the scaled input into its physics without replacing them. Runtime tests verify the resulting behavior, including the landing-source exclusion. Combatify's configured regeneration timing is compared against an unscaled control rather than imposing vanilla's tick schedule.
+- oriented rectangular upper surfaces, including rejection of corners that exist only in the enclosing AABB;
+- exact width-ratio boundaries and external SCALE;
+- ascending contact, walls, jumping, sneaking edge protection and separation under knockback;
+- support translation/yaw, transient lifecycle and support chains;
+- stationary items, off-rail minecart release and passive-descent accounting;
+- occupied boats on a giant player's head, including crouching support;
+- falling sand remaining an entity after extended support and an anvil damaging its support once per real landing;
+- no global `noCollision` rewrite.
 
-The optional-mod run logs upstream/default-configuration warnings for Combatify optional weapon recipes/enchantment tags and an Alex's loot-table context. Successful Scale Brews tests do not certify those unrelated data files or the complete modpack.
+### Network/latency
 
-## Redstone and mounted-bee animation (2026-09-06)
+A real-client dedicated-server proof passed short **0 / 100 / 200 ms added RTT** runs with `allow-flight=false` for both a player and an occupied boat. The player also completed a **12,000-tick** transport soak, 4,000 ticks per RTT, ten simulated minutes total, without disconnection or support loss. Scheduling lag near the end was logged; this run was not a performance benchmark.
 
-`build runClientGameTest --offline` passed with the base Fabric setup: **36 required server tests** and the real client/integrated-server suite. The optional-mod matrix recorded above was not repeated for this change.
+Later short fixtures counted correction packets to reject repeated correction loops and exercised shared same-frame visual sampling and occupied-boat controls.
 
-- Actual world brewing recipes extend both level-I families to 9,600 ticks, preserve the container, and convert extended Growth to extended Shrinking. Tests cover normal/splash/lingering inputs, both upgrade orders, gunpowder/dragon-breath conversion, unchanged II/III upgrades, rejected redstone on II/III and rejected glowstone/repeated redstone on extended variants. Native lingering quarter-duration is checked (2,400 ticks).
-- Client registry checks verify both extended entries and their shared translated names. No new language keys or art assets are required.
-- The real bee renderer extracts occupied/unoccupied snapshots from the synchronized test mount. Its injected model is sampled over seven animation times, calm/angry and rolling states, before mounting, while steering, after removing the steering item and after dismounting. Mounted body height/pitch remain stable; wings keep moving symmetrically; free bobbing returns; stinger visibility and entity position/bounds remain unchanged. The occupied saddle snapshot remains present. A third-person mounted screenshot was inspected.
+### VP26 bounded integration
 
-## Animated bee riders and steering-item attraction (2026-09-06)
+The beta.2 artifact was installed into the VP26 source pack and Modrinth instance with matching hashes and no duplicate Scale Brews JAR. An MRPack exported successfully. That establishes packaging consistency, not complete modpack compatibility.
 
-The base Fabric `build runClientGameTest --offline` passed with **39 required server tests**. A subsequent client run also passed after adding the real unmounted-following fixture. Optional Combatify/Alex's Mobs integration was not rerun for this change.
+The first diagnostic full-pack dedicated run exposed e4mc 6.2.1 calling a removed permission overload. After the dedicated compatibility shim work, later full-pack server evidence reached **106 passing tests**, real clients received registries and joined dedicated servers, and bounded 0/100/200 ms platform checks completed. The separate full VP26 integrated-client harness still had a teardown/deadlock limitation after gameplay assertions reached their end. Human broad renderer/camera/water/rail/lead/late-observer QA remains open.
 
-- Vanilla pig and strider native temptation predicates accept their respective steering items in either hand, with no saddle or passenger. These tests use the live 26.2 goals and item tags, not hard-coded substitutes.
-- Bee native temptation accepts Flower on a Stick without Shrinking or a saddle, retains real flower attraction/breeding, and respects master/per-mob switches, NoAI and attack targets. The stick is not breeding food.
-- Decoded test-only JSON changes a chicken from direct to item-steered control, verifies the configured item, and rejects disabled/missing-item definitions and empty hands. A snow golem receives exactly one fallback goal through its actual server-AI hook, without requiring a native temptation attribute or goal. These are bounded generic-mob tests, not a claim about every modded brain/navigation implementation.
-- The real client places an unsaddled, unmounted bee about six blocks from an unshrunk player holding the flower stick in the offhand. After 65 ticks of normal AI/navigation it must approach within 3.5 horizontal blocks. No movement or teleport is injected during that interval.
-- Animated rider snapshots are checked before mounting, during flight, after removing the steering item and after dismounting. Across seven animation times, calm/angry rolling states, three mount scales and three yaws, transformed reference points must agree with the actual animated bee body frame. Passenger-relative pivots, native wing symmetry, bobbing, stinger state and unchanged entity position/bounds are also checked. Real third-person screenshots accompany the matrix checks; first-person rendering is exercised in the existing mounted-flight fixture.
-- Packaged JSON parses, English/Spanish keys match, and the production JAR contains neither test classes nor the superseded fixed-body mixin. No new translation keys or textures were needed.
+The released platform engine is intentionally temporary during the new collision migration. Its old success is regression evidence for behavior that must be preserved, not justification for retaining two physical engines in the final architecture.
 
-The earlier fixed-body validation above is historical and is superseded by this animated-rider implementation. Broader visual/modpack and multiplayer-latency QA remain subject to the limits below.
+## All-direction entity-collision development evidence
 
-## First public beta candidate and VP26 packaging (2026-09-06)
+This section consolidates the useful evidence formerly scattered through the `ANATOMY_*` development diary. It is historical/experimental unless a row explicitly identifies a current candidate. The replacement subsystem is governed by the canonical requirements and plan, not by these old proof names.
 
-The versioned `0.1.0-beta.1` candidate pins Loom 1.17.20 and requires Fabric API 0.159.0+26.2 or newer. Its clean local `build runClientGameTest --offline` completed successfully: all **39 required server tests** and the real client/integrated-server suite passed. The inspected production JAR reports the beta version and dependency constraint and contains no GameTest classes.
+### Original geometry and pose vertical slice
 
-That exact JAR was added as a local, both-sides `gameplay` mod to VanillaPlus 26.2. Packwiz/ModpackTools generated a 93-mod MRPack successfully (29 client-only, one host-only, 63 both, zero unknown) and a fresh comparison reported no differences. All four previously unclassified mods were assigned after checking their actual project IDs: Better Archeology and its Dungeons & Taverns compatibility mod to world generation; Resourceful Config and StrawberryLib to libraries. Scale Brews was assigned to gameplay.
+Historical preparation runs demonstrated:
 
-The real Modrinth test instance was synchronized with all 92 client-applicable artifacts declared by the pack. Filename and provider SHA-512/local SHA-256 comparison reported zero missing, extra or mismatched JARs. This establishes packaging and installed-artifact consistency; the owner's interactive gameplay session and a dedicated-server/client session remain pending and are intentionally not claimed here.
+- extraction of original Minecraft `ModelPart` geometry for cow and player wide/slim and original Alex's Mobs Continued 2.1.9 grizzly geometry based on `AdvancedModelBox`;
+- preservation checks for hierarchy, separate boxes/pieces, transforms and filtering decisions;
+- **320 ordinary animated pose comparisons** against original model behavior for the early cow/player/grizzly slice;
+- a dedicated-server lane capable of loading exported common geometry without loading Alex/client renderer classes.
 
-## Living platforms (2026-09-06, beta.2)
+These results prove the bounded vertical slice that was run. They do not prove all vanilla entities, all Alex's Mobs species, arbitrary render frameworks, special poses or the later generic engine architecture.
 
-The expanded base server suite passed all **54 required tests**. The platform tests cover oriented rectangles (including rejection of enclosing-AABB corners), actual-width boundaries and external scale, decoded policy switches, ascending contact, walls, jumping, sneak/knockback separation, yaw/translation, transient lifecycle, mixed support chains, stationary items, off-rail cart release, passive descent, and occupied boats on a giant player's head (including crouching). Sand remains an entity after 700 ticks; an anvil damages its support once per landing. Global `noCollision` remains unchanged.
+### Geometry kernel, gravity and temporal proofs
 
-The real-client dedicated-server proof passed the short 0/100/200 ms additional-RTT matrix with `allow-flight=false` for both a player and an occupied boat. The player completed a separate **12,000-tick soak** (4,000 at each RTT), ten minutes of simulated transport in total, without disconnection or support loss. The machine logged scheduling lag near the end; this is not a server-performance benchmark. Later short tests also count player correction packets to reject repeated corrections. All sixteen built-in model-part paths resolve and produce finite translations in the client fixture. Third-party resource-pack/model animation combinations still need human QA.
+Historical kernel/GameTest evidence covered:
 
-The VP26 integration run used the installed JAR set in an isolated development runtime. It did **not** produce a clean full-pack result:
+- convex piece overlap/separation/raycast operations and six cardinal gravity frames;
+- top, underside, lateral and gap fixtures;
+- hierarchy composition and conservative temporal envelopes;
+- bounded overlap recovery with pair-local suspension rather than global collision disabling;
+- root translation/rotation/scale and joint interpolation proofs on selected fixtures;
+- deterministic multi-step motion proofs, including runs described as 200 steps in the prototype. Those steps were mathematical/test iterations, not automatically 200 real server ticks.
 
-- With the full installed set, e4mc 6.2.1 calls absent `CommandSourceStack.hasPermission(int)` while sending commands to connecting players. This blocks a full dedicated-connection acceptance claim.
-- Excluding e4mc **only in the diagnostic copy**, and copying the installed pack configuration, gave **88/89 passing server tests** (including additional mods' tests). Every platform test passed. The remaining existing exhaustion regression compares regeneration food usage against a matched baseline and observed 20 versus 19. No production hunger behavior or external mod was changed to suppress that result.
-- The full client-mod diagnostic copy (minus e4mc) stopped during development bootstrap with unreferenced `wilderwild:*` biome holders. It did not reach the client platform test. This result is specific to that development launch; it is not proof of the same failure in the production launcher.
+A synthetic or hand-reproduced pose formula is acceptable for a solver fixture but does **not** substitute for original-model equivalence evidence when the requirement is about extraction or model compatibility.
 
-The final base `build runClientGameTest` passed after the last movement-reference authorization change. Client checks include independent occupied-boat controls, shared same-frame visual sampling, actual bee bobbing without modifying physics, and the existing Tiny Mounts/camera/beacon/scale tests. The third-person occupied-boat-on-ghast screenshot was visually inspected. The implementation commit `721dcc0` also passed GitHub's Linux build/server CI.
+### Runtime/catalog/network vertical slice
 
-The beta.2 production JAR contains 33 parseable JSON files, all 16 platform profiles, and no test classes/resources. Its SHA-256 is `6127d50caab8476093a4333141b90b145f0c98518a516f23036511abbc5b81cd`. That exact artifact was installed in the VP26 source pack and the `VanillaPlus-26.2 (1)` Modrinth instance. Both previous beta JARs were moved into a separate backup directory, not deleted. The local gameplay category was retained.
+Historical prototype runs demonstrated pieces of the server-owned pipeline:
 
-`VanillaPlus-26.2-20260906-152523.mrpack` exported successfully with 93 mods; its embedded Scale Brews JAR has the same hash and no beta.1 duplicate. A fresh ModpackTools comparison reports no differences. Metadata verification remained incomplete (125 requirements not verified), so the export is a packaging result, not a compatibility certificate.
+- geometry/profile catalog validation and protocol-v2 transfer with epoch/revision/integrity checks;
+- server-owned pose publication and client rejection of stale/wrong identity data;
+- identity separation for client/server entity instances with the same network ID;
+- ordered material contact publication including piece/face/local point and late-tracking state;
+- unsupported-pose removal rather than indefinitely retaining old geometry;
+- one integrated-server scenario that observed **60 real transport ticks** for a body on a moving original-model cow.
 
-Other original VP26 mods and configurations were retained. These failures, broad visual QA, water/rail/lead combinations and late-join observer permutations remain explicitly open in TODO. Neither a successful archive export nor passing base Fabric tests establishes full modpack compatibility.
+This does not prove the final Q2 continuous material-event pipeline, local-player prediction/reconciliation or all lifecycle adversaries.
 
-## Effective size and item placement — beta.3 (2026-09-06)
+### Host/session independence proof
 
-Physical SCALE now drives derived attributes, sprint, exhaustion, recoil, environmental thresholds, villager fear, creeper power and landing waves. The server suite covers all nine Growth/Shrinking pairs, external cancellation to normal size, fractional transition attributes/health, and inclusive impact thresholds at 1.96 and 3.88. Pure-potion endpoints remain unchanged; external extremes clamp derived strength at tier III.
+The historical Host019 proof ran two isolated dedicated hosts/epochs against one immutable original-model export, rejected an old epoch and showed no carried/contact residue crossing host identity. It reused the body UUID but **not** the network ID. It therefore did not close same-network-ID reuse, SharedWorld, arbitrary resource-pack geometry or the final prediction/reconciliation requirements.
 
-Placement tests exercise a giant player's head, boats/chest boats/rafts and spawn eggs, immediate transport, footprint/obstruction rejection, permissions and creative/survival inventory behavior. Matching spawn eggs retain vanilla baby-spawning fallback where adult platform placement cannot fit.
+### Clinging integration proof
 
-The full installed VP26 mod set is retained in the isolated development runtime, including e4mc. All **98 required server tests passed**, including the final baby-spawning fallback regression (63 base tests plus 35 from Additional Additions). The e4mc optional production shim replaces its obsolete dedicated-server permission call with the 26.2 permission API, preserving the integrated-server branch. A dedicated permission regression exercises both allowed and denied command sources.
+A bounded Clinging Reoriented source snapshot was compiled against an early protocol-2 Scale snapshot and completed **22 server GameTests**. A proof-only bridge exercised Gravity Changer, six-direction managed contact, anatomical clearance and no duplicate legacy carry in its fixture.
 
-The regeneration discrepancy came from Combatify's random food-consumption choice, not increased regeneration exhaustion: the previous test compared different random draws. Both subjects now receive the same random sequence for 100 food ticks, with health, food, saturation and exhaustion compared after every tick. No production hunger/regen logic was changed.
+That evidence does not certify the current consumer against the final API, client behavior, all Space/charge/Elytra/camera transitions, latency, VP26 or release delivery. The canonical plan requires repeating integration after the public collision API/data contract stabilizes.
 
-Development-only client harness adaptations are not packaged in the mod:
+### Snapshot-021 red cases
 
-- With Wilder Wild loaded, defer early vanilla command validation until a test server has loaded its real datapack registries; execute the same validation against those registries and assert that it completed. No biome registrations are removed or fabricated.
-- Defer animated-atlas uploads only while the vanilla Globals uniform buffer has not yet been initialized. Runtime render validation remains enabled.
-- Accept resource-pack requests from loopback test servers automatically, retaining vanilla download/hash validation. Non-local URLs still require normal confirmation.
-- Allow up to 120 seconds for the dedicated test server to bootstrap with Wilder Wild, instead of Fabric's hard-coded ten seconds. Movement assertions, latency simulations and collision/speed checks are unchanged.
+One later recorded prototype run reached **134 tests on its selected lane** but retained two runtime failures:
 
-These adaptations address development bootstrapping and unattended test UI; they do not change the user's production configs or claim that all third-party log warnings are fixed. Wilder Wild's deferred validation completed against real registries at 17:27:49. The client accepted/downloaded the local Polymer pack and advanced to registry synchronization, but failed at 17:27:59 on duplicate `ResourceKey[minecraft:enchantment / enchancement:empty]`. The stack goes through `NetworkRegistryLoadTask` and `MappedRegistry.register`; duplicate-key validation was not weakened. This newly exposed full-pack connection failure remains open, and is not evidence of a Scale Brews platform failure. Its exact cross-mod cause still needs isolation.
+1. initial floor contact in a fixture combining support yaw/ascending motion;
+2. contact reacquisition after animated squeezing.
 
-The development renderer also reports unregistered virtual entity renderers for `enchancement:frozen_player` and `universal_graves:xp`, triggering its strict resource self-test fallback. This is another reason not to call the full-pack client run clean. Neither affected external JAR was changed. Only the isolated test e4mc configs now disable public hosting (`hostEnabled=false`) for subsequent local diagnostic runs; production sharing settings remain untouched.
+Those failures must not be confused with later compilation errors in dispatcher tests. They are preserved because they describe physical scenarios that must remain in the replacement regression suite even if the old fixture code is reorganized.
 
-### Final beta.3 base and artifact checks
+### Pre-restructure `chatgpt-editing` build status — 2026-09-10
 
-`build runClientGameTest --offline` completed successfully at 17:33:41 with the base Fabric setup: all **63 server tests** and both real-client entrypoints passed. The client run includes dedicated player/occupied-boat transport at 0/100/200 ms added RTT with flight disabled, model-part checks, and the existing integrated-server scale, camera, beacon and Tiny Mounts regressions. This turn did not repeat the earlier ten-minute soak or replace the owner's manual playtesting.
+The exact pre-restructure commit `5a8bf915d22d52cf4e79a68e2506d199bb6e848e` was built by GitHub Actions run `34449689179`, job `102782357848`.
 
-The beta.3 JAR has 33 valid JSON files, all 16 platform profiles, and no test classes/resources. SHA-256: `36a19afff102aef2eccd8b46cd01a78b1397266c7ab01dacf1b773ece4a8eceb`. Matching copies are installed in the VP26 source pack and the `VanillaPlus-26.2 (1)` Modrinth instance. Both beta.2 JARs were moved to recoverable backups outside `mods`; the gameplay category was retained. These artifact checks do not imply that the blocked full-pack dedicated-client connection passed.
+- `compileJava` and `compileClientJava` completed.
+- The workflow failed at `:compileGametestJava` before GameTests executed.
+- Two `AnatomyMaterialEventDispatcherTests` call sites still used an older three-argument constructor after `MaterialEventDispatcher` gained a `maximumEvents` budget. The available constructor requires `(maximumBodies, maximumDepth, maximumEvents, identity)`.
+- Warnings present in the job were not the build-breaking cause.
 
-The export `VanillaPlus-26.2-20260906-173602.mrpack` completed with 93 mods; its sole embedded Scale Brews JAR is beta.3 and matches the hash above. ModpackTools reports no differences from that build. Its dependency-metadata verification still lists 125 unverified requirements: packaging success is not a full compatibility certificate. The base occupied-boat proof screenshot was visually inspected; this does not validate the blocked VP26 client.
+This is the latest recorded executable status **before the documentation/code cleanup now being performed**. Historical green anatomy snapshots do not override this red exact-snapshot result. A later build belongs in a new dated/current subsection after it actually runs.
 
-### Remaining general limits
+## Current acceptance gaps for entity collisions
 
-- These are integration tests in development worlds, not a complete modpack playthrough or a performance benchmark.
-- Beyond the bounded tests above, full modpack playthroughs, dedicated multiplayer latency, unusual wall/ally/PvP impact edge cases and every Swift Sneak/Soul Speed equipment combination still need broader playtesting. Passing the tested versions/configuration is not equivalent to testing every external mod or future version.
-- The 26.2 mock connected-player helper used by several tests is deprecated; it remains functional. Damage tests use a plain survival mock to avoid the connected mock's client-loading immunity.
-- OneDrive can lock generated output. The optional local build-directory property avoids most build-output contention while leaving the repository in its intended location. Test-run directory auto-deletion is disabled; no user worlds or source directories are removed.
-- There are no public release/tag claims. A successful build is not a claim that every gameplay interaction is release-ready.
+The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). For interpreting existing evidence, the major unproved areas at the start of that plan are:
 
-## Scale materials and wolf mounts � 2026-09-06
+- one final data/API model independent of legacy `PlatformDefinition.Surface`;
+- complete Q2 continuous material-event consumption in live movement hooks;
+- exactly-once prediction/reconciliation for locally controlled players/vehicles;
+- transactional lifecycle/reload/reconnect coverage on the final architecture;
+- generic family engines and zero-UNRESOLVED vanilla coverage;
+- final Clinging consumer migration;
+- separate version-pinned VanillaPlus compatibility coverage;
+- the normative performance benchmark and final latency/soak matrix on the replacement engine.
 
-Implemented on top of `e094257`, retaining the concurrent effective-size/platform changes.
+This list exists only to scope what the preceding evidence does **not** prove. Task ordering and completion state remain canonical in the plan.
 
-- Integrated Scale Brews build: 71 required server GameTests passed without optional mods.
-- Selected installed-mod suite: 71 required GameTests passed with Alex's Mobs 2.1.9, Animal Weights 1.1.0, Friends & Foes 4.0.27, Wilder Wild 4.2.11, Deeper Dark 4.4.1 and Stormie's Spiders 3.3.0 plus required libraries. This is a selected compatibility environment, not the entire VP26 pack.
-- Real Murmur loot and snapping-turtle player shearing were exercised. Elastic Tendon and Spiked Scute scale; Lobster Tail is excluded. Looting III and probabilistic shrinking/growth were checked.
-- The separate Animal Weights bridge passed its build and 4 required GameTests, including extra-roll production composition, scale-one occupancy, tiny neighbours and compact/giant enclosures.
-- Complete client suite passed, including wolf direct input/pounce on a dedicated server with `allow-flight=false`, existing platform latency checks and existing integrated-client checks.
-- Measured full forward pounce: 5.00000049 blocks. At pitch -30 degrees: 4.33012761 horizontal, 1.59467629 vertical apex.
-- Client screenshots reviewed for simultaneous saddle/Wolf Armor and the reused charge HUD. Saddle art comes from the existing Java generator; no generative image assets.
-- Test-only workaround registers Fabric's test phaser before publishing its worker thread; thread dumps showed a startup race in client-gametest 6.0.1. An integrated-server teardown also blocked once; final wolf proof uses a dedicated server. These changes are absent from production JARs.
-- JARs were inspected for metadata, 81 material JSON definitions and absence of test classes.
+## Reproduction commands
 
-Human two-player acceptance remains pending for borrowed-wolf combat, the full PvP/team/latency matrix and all gameplay cases in the original request. Automated real-client/server checks are not human playtesting. Production instances, pack exports, releases and tags were not updated by this change.
+Ordinary core build/server suite:
 
-## VP26 Enchancement registry correction — 2026-09-06
+```powershell
+.\gradlew.bat build
+```
 
-The earlier `enchancement:empty` duplicate is resolved in the separate VanillaPlus-Enchancement-Compat project, version 1.0.1. Enchancement 26.2-r4 was replacing legitimate pending enchantment references with its missing-entry fallback during asynchronous registry loading. The narrow compatibility guard preserves ordinary pending-holder semantics while the enchantment registry is unfrozen; original fallback behavior resumes after freeze. Duplicate-key validation and all production mods/configuration remain intact.
+Real client/integrated-server suite:
 
-- Corrected minimal negative control fails without the guard; compat build and all 3 minimal server tests pass with it, including fallback preservation after freeze.
-- Full VP26 run used an isolated Scale Brews e19aed3 checkout to avoid concurrent build-output changes: 106 required server tests passed. Later platform-width changes in c39dd98 are not part of this run.
-- Real clients joined dedicated servers at 18:27:08 and 18:28:11 after registry synchronization. Platform checks passed at RTT 0/100/200 ms, 120 ticks per setting, followed by integrated-client checks through bee dismount. This is not the ten-minute soak.
-- The task was interrupted during final integrated-world teardown after 18:29:51. Thread dumps show the render thread waiting in IntegratedServer.halt/executeBlocking while the server and test threads await Fabric client-gametest phasers. The registry blocker is fixed, but a clean exit of the entire client suite is not claimed. Third-party resource warnings and broader manual QA remain outside this result.
-- Installed only `vanillaplus-enchancement-compat-1.0.1.jar` in VP26 and Modrinth, SHA-256 `3858f2ee42f5382a6bb49fd4ac3194fd9eaef91d8225e9a2556dceafe4dbab4a`. Both old 1.0.0 JARs were moved to recoverable task-output backups outside mods; gameplay category preserved. No Scale Brews artifact was replaced by this fix.
-- VP26 export `VanillaPlus-26.2-20260906-183420.mrpack` contains exactly one compat JAR with the same hash; `modpack diff --project vp26` reports no differences from that build. The existing 125 unverified dependency requirements remain packaging-metadata limitations, not new runtime failures. Compat source/tests/docs are committed locally as `4fb26f0`; that separate repository has no remote configured, so no compat push or release is claimed.
+```powershell
+.\gradlew.bat runClientGameTest
+```
 
-## Beta.4 platform and mount playtest follow-up — 2026-09-06
+Optional compatibility JARs for supported test tasks can be supplied with:
 
-- Build and **78 required base server tests passed**. Dedicated real-client suite passed, including the actual Shift interaction, holding the initiating gesture without immediate dismount, release/repress dismount, removing a saddle without losing the passenger, and no unsaddled control. The final base client run ended cleanly at 19:15:38; this does not claim the separate full-VP26 integrated teardown issue is fixed.
-- Actual downward movement and transport tested for a normal-size player above Growth III iron golem, cat, villager, chicken and cow. An unprofiled giant zombie uses automatic dimensions. A normal-size player lands on a giant player's specific head surface, follows movement and stays supported when the giant crouches. All eighteen explicit model paths produce finite client transforms; external model/skin packs and detailed multiplayer visual contact still need human review.
-- Full installed VP26 mod-set server run: **113 required tests passed** at 19:19:05. This includes physical contact on Alex's Mobs Continued 2.1.9's lobster using the automatic surface without a species JSON; real Murmur loot and turtle shearing use exponent 1.6. Special renderers/physics across every Alex's Mobs species are not certified by that case.
-- Four Animal Weights bridge tests passed with Animal Weights 1.1.0 and the beta.4 JAR, including extra-roll multiplication composed once with scale^1.6. Only the bridge's test expectation changed (`e78965b`, local repository without remote); its production behavior/JAR was not changed or installed by this task.
-- Equipment tests cover non-owner, normal-size saddling of a tamed wolf, rejection without consumption for wild wolves, ordinary owner sit interaction, Shift mounting, uncontrolled unsaddled chicken/bee/wolf riding, three sustained taming attempts, early voluntary dismount retaliation, peaceful tamed dismount and owner/armor preservation.
-- Beta.4 packaged JAR: 117 valid JSON files, eighteen explicit profiles, no test classes/resources. SHA-256 `400204f7019479d442c36e6badea70e2f26a00517c2e2026bbf0159a0e1f9375`. Matching copies installed in VP26 and Modrinth, with both previous beta.3 files moved to `outputs/mount-playtest-beta3-backup` outside mods. Existing configuration and gameplay category retained.
+```powershell
+.\gradlew.bat runGameTest runClientGameTest -PscalebrewsCompatMods=C:\path\to\test-mods
+```
 
-Automatic surfaces are bounding-dimension support, not inferred mesh collision. Explicit player/anatomical profiles keep priority. Full-pack graphical playtesting, nonstandard multiplayer player models and untested special entity physics remain manual QA; no release/tag or universal compatibility claim is made.
+The collision preparation harness is `tools/PrepareAnatomyProof.ps1`. Its historical A/B/C lanes are test tooling, not separate product architectures. Use only the current flags declared by the script and pin every external JAR/input used by an evidence run.
 
-## Giant melee reach (2026-09-06)
-
-### Wolf saddle-in-hand interaction follow-up
-
-- Holding a saddle on an already-saddled tameable now enters the riding branch when using the configured Crouch + Use gesture. Empty saddle slots still use the equipment path; ordinary tameable Use and unrelated held-item interactions are preserved.
-- Replaced the wolf client fixture's direct server-side `wolf.interact` call with actual client Use input and normal interaction packets against a sitting wolf. Empty-hand input passed before the production fix, narrowing the reported failure to the held-saddle path. The final test rebinds Crouch to C and Use to R, preserves two held saddles plus installed equipment, and verifies staying mounted until Crouch is released and pressed again. Bindings are restored afterward.
-- Final `build runClientGameTest --offline` passed: **80 required server tests**, dedicated wolf/platform tests and integrated client suite, clean exit at 20:38:47. An earlier diagnostic client run passed its wolf case but timed out starting the unrelated platform dedicated-server fixture; the final complete run passed. No VP26 installation or release/tag changes were made.
-
-- Growth entity reach now uses +50% per equivalent physical growth level: 4.5 / 6 / 7.5 blocks from the normal survival baseline. Block reach and Shrinking penalties are unchanged. Growth reach continues linearly beyond tier III for external sizes, within vanilla attribute limits; the size-change cache now tracks actual SCALE rather than its capped equivalent tier.
-- All **80 required base server tests passed** after the production changes. New tests cover actual empty-hand/sword attack-range validation against a chicken beside the feet at each Growth tier, real melee damage, out-of-range rejection, all nine mixed potion pairs, external scales and return to normal.
-- The real-client suite passed cleanly at 20:24:17, including synchronized Growth III reach and vanilla eye-ray selection of a nearby chicken. Its first attempt exposed a test-fixture orientation error: teleport-facing defaults to the feet anchor. Using `anchored eyes` corrected the fixture without another gameplay change. Existing dedicated platform/vehicle checks and integrated camera/mount regressions also passed.
-- Validated in the isolated checkout with source-file hashes matching the working project. Candidate JAR SHA-256: `e04c9d39c4acb5a8ca55a7bf1afffc47d8417f863e253da46543d034c203ee0d`. This task does not replace the VP26/Modrinth installation, publish a release or certify all custom item attack-range components. Combatify's expected attribute multiplier was updated, but its optional-mod runtime matrix was not rerun.
-
-## Mount gestures and surface-following impacts (2026-09-06)
-
-- Isolated Java 25 build and all 86 required base server GameTests passed.
-- Complete base client suite passed, including actual Crouch + Use, dismount and same-wolf remount with stone, beef and saddle; held items and unsaddled equipment state remain unchanged.
-- Server cases cover saddle/no-saddle item matrices, configured cats, retained ordinary feeding, multi-level ascending/descending surfaces, path-budget detours, slabs, cliffs, gaps, airborne targets and a closed door.
-- Vanilla self fall damage, Growth damage thresholds and existing mounting/scale checks remain covered. Full-modpack human terrain and multiplayer acceptance have not been repeated for this change.
-
-## Wolf commanded attack animation — 2026-09-07
-
-- Minecraft 26.2 source audit: vanilla MeleeAttackGoal calls main-hand swing before damage, but Wolf does not advance LivingEntity's swing clock and WolfModel has no dedicated bite animation. Commanded taps (including misses) and pounce hits now emit that native swing; the shared wolf mixin advances it on both sides. A transient native aggressive pose supports combat-pose resource packs without adding anger, ownership changes or an AI target.
-- Build and all **87 required server GameTests passed**. Regression coverage includes tap damage, single pounce impact, missed bite animation, cleanup after dismount and preservation of pre-existing aggression.
-- Full base client suite passed cleanly. The wolf test uses real jump input, waits for the animation packet and tracked pose to arrive, observes positive attack progress and checks cleanup. The Crouch/Use rebinding to C/R is confined to this isolated test and restored in finally; production controls remain the user's configured bindings (Shift by default for Crouch).
-- Repeated build, all 87 server tests and the full client suite with the installed EMF 3.3.5 / ETF 7.2 and FreshAnimations_v1.10.5.zip; clean completion. Startup confirms the resource pack is active; client assertions observe swing=true, attack progress=0.16666667 and aggressive=true, followed by cleanup. A third-person screenshot was inspected.
-- Installed Fresh Animations 1.10.5's wolf model uses is_aggressive for combat poses, not swing_progress for a discrete bite. EMF maps swing_progress to native getAttackAnim and is_aggressive to native combat state. This change supplies those signals; it does not add a nonexistent jaw animation or certify every resource pack. Detailed visual choreography remains human QA.
-- Validation used a clean isolated b960e83 base plus this change, preserving concurrent anatomical prototype work outside this milestone. No anatomy prototype, resource-pack edits or additional mods are included in the production JAR.
-
-## Probabilistic wild-wolf taming — 2026-09-07
-
-- Supersedes the fixed third-complete-ride rule. Verified Minecraft 26.2 RunAroundLikeCrazyGoal's horse temper roll and Wolf.tryToTame's independent 1-in-3 bone roll from the actual mapped sources. Wolf rides now roll against persistent 0–100 trust after 60 continuous server ticks; failure adds 5 trust. An accepted unsuccessful vanilla bone adds 10. Direct bone success, ordinary item consumption, wild dismount hostility and unsaddled lack of control remain intact.
-- Build, **89 required server GameTests** and the complete base client suite passed cleanly. Deterministic random seeds exercise an unfavorable third ride, a later favorable roll, an unsuccessful bone improving riding odds and direct vanilla bone success. Real entity save/load preserves trust and lets a different rider benefit; early dismount resets elapsed riding time, rejected angry-wolf bones add nothing, and capped trust guarantees the next complete ride.
-- The persistent trust belongs to the wolf, like horse temper; it is not a per-player attempt counter. Old saves default to zero. Only uninterrupted riding time is transient. README and current wolf documentation describe the new behavior; older validation entries retain the historical fixed-count implementation.
-- Validated in an isolated 9797255 checkout plus this change. Concurrent anatomical prototype edits remain outside this artifact. Existing attack-animation and actual remapped Crouch/Use client regressions pass; no controls or resource packs were changed.
-
-## Shrinking III half-block clearance — 2026-09-07
-
-- Adjust only the linear Shrinking scale coefficient from -0.24 to -0.242: settled scales are 0.758 / 0.516 / 0.274. A standing vanilla player is approximately 0.4932 blocks tall at III, down from 0.504. The 20-tick transition and other pure-tier attribute values remain intact. Shrinking III / Shrinking II remains above the 0.53 tiny-mount ratio limit (0.274 / 0.516), preserving existing between-tier riding permissions.
-- Build, **90 required server tests** and the complete base client suite passed. The new regression tests real collision and horizontal movement under top slabs with a half-block gap: an ordinary standing body fails the space check, a settled Shrinking III body fits and moves through without crouching or stepping. The real client asserts the synced 0.274 scale and bounding-box height below 0.5.
-- Updated mixed-effect and external-reach expectations to the new normalization; health/movement/other pure-tier attribute tests and existing mount-policy cases pass. README, mechanics formulas/thresholds and the configuration ratio example are updated. Arbitrary external-scale test values and unrelated movement/armor ratios are unchanged.
-- Validation used an isolated c4b8890 base plus this change, preserving the concurrent anatomical implementation outside this milestone.
-
-## Relative villager size fear — 2026-09-09
-
-- Compare effective SCALE on both living entities using continuous Shrinking/normal/Growth positions. A gap of at least two adds a visible threat within eight blocks; external positions are not capped at III. Vanilla hostile detection and panic memory remain authoritative.
-- The isolated 8384625 baseline plus this change passed build, all 92 server GameTests and the complete base client suite. New sensor regressions cover all 49 tier pairs with a cow, external/fractional thresholds, inclusive radius, the disabled rule, vanilla zombie fear, and actual nearest-hostile memory for a Shrinking I villager seeing a Growth I cow.
-- The recovered D:/Minecraft/Mods/scale-brews checkout, including concurrent anatomical work, also passed build and all 121 server GameTests. The client suite above tests the isolated gameplay baseline; it does not claim client validation of the anatomical prototype. No installed modpack artifact was replaced.
-
+GitHub Actions performs the ordinary Gradle build/server path on Ubuntu/Java 25. Special client, dedicated latency, compatibility and preparation lanes are only evidence when their exact command/snapshot/result has been recorded here.
