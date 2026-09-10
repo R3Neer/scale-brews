@@ -20,3 +20,17 @@ index 8654d36..2f2a2b5 100644
              Vec3 point=shape.point(anchor.coordinates());
              double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
              if(!Double.isFinite(lift))return Optional.empty();
+diff --git a/src/gametest/resources/fabric.mod.json b/src/gametest/resources/fabric.mod.json
+index 78f2412128c5628a37cf8ee204f54fd5cd00b29b..c50f8fa259cacc09d0ea242e31e7149bbfbc7571 100644
+--- a/src/gametest/resources/fabric.mod.json
++++ b/src/gametest/resources/fabric.mod.json
+@@ -45,7 +45,8 @@
+       "io.github.r3neer.scalebrews.test.PlatformClientProof",
+       "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
+       "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
+-      "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests"
++      "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests",
++      "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests"
+     ]
+   }
+ }
