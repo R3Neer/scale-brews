@@ -1,0 +1,50 @@
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
+index b7754d7..086a5cd 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
+@@ -109,4 +109,45 @@ public final class S00LifecycleTests {
+             check(AnatomyMovement.contact(b)==null && AnatomyMovement.contact(a).equals(first),"Cycle rejection mutated the valid contact");
+         }finally{Platforms.clearAnatomicalDefinitions(h.getLevel());AnatomyMovement.deactivate(h.getLevel());a.discard();b.discard();}h.succeed();
+     }
++
++    @GameTest public void firstCaptureInvalidationExceptionCannotForgetBarrier(GameTestHelper h) {
++        var entity=cow(h);AnatomyMovement.activate(h.getLevel());
++        try {
++            var provider=new Provider(entity,1,0);AnatomyMovement.register(entity,provider,descriptor(1));
++            provider.onSample=()->{AnatomyMovement.invalidateRoot(entity);throw new IllegalStateException("fault after lifecycle barrier");};
++            check(AnatomyMovement.queryFrame(entity).isEmpty(),"Invalidating provider failure published its first endpoint");
++            check(AnatomyMovement.queryFrame(entity).isEmpty(),"Provider failure forgot the first-capture lifecycle barrier");
++            AnatomyMovement.register(entity,new Provider(entity,2,0),descriptor(2));
++            check(AnatomyMovement.queryFrame(entity).isPresent(),"Explicit rebind did not recover a quarantined first capture");
++        }finally{AnatomyMovement.deactivate(h.getLevel());entity.discard();}h.succeed();
++    }
++    @GameTest public void rebindThenProviderFailureCannotQuarantineReplacement(GameTestHelper h) {
++        var entity=cow(h);AnatomyMovement.activate(h.getLevel());
++        try {
++            var old=new Provider(entity,1,0);var fresh=new Provider(entity,2,4);AnatomyMovement.register(entity,old,descriptor(1));
++            old.onEndpoint=()->{AnatomyMovement.register(entity,fresh,descriptor(2));throw new IllegalStateException("retired provider failed after rebind");};
++            check(AnatomyMovement.queryFrame(entity).isEmpty(),"Retired failing capture published through its replacement");
++            var current=AnatomyMovement.queryFrame(entity).orElseThrow();
++            check(current.identity().bindingGeneration()==2 && current.snapshot().equals(fresh.snapshot),"Retired provider failure quarantined the replacement binding");
++        }finally{AnatomyMovement.deactivate(h.getLevel());entity.discard();}h.succeed();
++    }
++    @GameTest public void deactivateReactivationCannotReuseLocalRegistrationIdentity(GameTestHelper h) {
++        var entity=cow(h);AnatomyMovement.activate(h.getLevel());
++        try {
++            var provider=new Provider(entity,1,0);AnatomyMovement.register(entity,provider,descriptor(1));
++            long before=AnatomyMovement.registrationGeneration(entity);
++            provider.onSample=()->{AnatomyMovement.deactivate(h.getLevel());AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(entity,provider,descriptor(1));};
++            check(AnatomyMovement.queryFrame(entity).isEmpty(),"Capture crossed deactivate/reactivate with a reused local registration identity");
++            check(AnatomyMovement.registrationGeneration(entity)>before,"Local registration generation rewound across level lifecycle");
++            check(AnatomyMovement.queryFrame(entity).isPresent(),"Fresh local registration failed after lifecycle replacement");
++        }finally{AnatomyMovement.deactivate(h.getLevel());entity.discard();}h.succeed();
++    }
++    @GameTest public void defaultMotionAbsenceDoesNotSampleCurrentGeometry(GameTestHelper h) {
++        var entity=cow(h);
++        try {
++            int[] samples={0};
++            GeometryProvider instantaneous=e->{samples[0]++;return Optional.of(new GeometryProvider.Snapshot(1,Map.of("piece",box(UNIT))));};
++            check(instantaneous.motion(entity).isEmpty() && samples[0]==0,"Absent historical motion evaluated current geometry as a side effect");
++        }finally{entity.discard();}h.succeed();
++    }
+ }

@@ -9,6 +9,7 @@ patches = [
     ('repair.patch', pathlib.Path('.github/s00-repair.patch').read_bytes(), spec.get('repair_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('tail.patch', pathlib.Path('.github/s00-tail.patch').read_bytes(), spec.get('tail_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('lifecycle-repair.patch', pathlib.Path('.github/s00-lifecycle-repair.patch').read_bytes(), spec.get('lifecycle_repair_patch_sha256', hashlib.sha256(b'').hexdigest())),
+    ('holdout2.patch', pathlib.Path('.github/s00-holdout2.patch').read_bytes(), spec.get('holdout2_patch_sha256', hashlib.sha256(b'').hexdigest())),
 ]
 for _, data, expected in patches:
     assert hashlib.sha256(data).hexdigest() == expected
@@ -72,7 +73,8 @@ assert changed == set(spec['paths']), (changed, spec['paths'])
     + '\nextra_patch_sha256=' + spec.get('extra_patch_sha256','')
     + '\nrepair_patch_sha256=' + spec.get('repair_patch_sha256','')
     + '\ntail_patch_sha256=' + spec.get('tail_patch_sha256','')
-    + '\nlifecycle_repair_patch_sha256=' + spec.get('lifecycle_repair_patch_sha256','') + '\n')
+    + '\nlifecycle_repair_patch_sha256=' + spec.get('lifecycle_repair_patch_sha256','')
+    + '\nholdout2_patch_sha256=' + spec.get('holdout2_patch_sha256','') + '\n')
 (evidence / 'transport-spec.json').write_text(json.dumps(spec, indent=2))
 git('archive', '--format=tar', '--output=' + str(evidence / 'source.tar'), actual)
 print('S00_SOURCE_TREE=' + actual)
