@@ -16,6 +16,7 @@ patches = [
     ('hostile.patch', pathlib.Path('.github/s00-hostile.patch').read_bytes(), spec.get('hostile_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('hierarchy-holdout.patch', pathlib.Path('.github/s00-hierarchy-holdout.patch').read_bytes(), spec.get('hierarchy_holdout_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('hierarchy-repair.patch', pathlib.Path('.github/s00-hierarchy-repair.patch').read_bytes(), spec.get('hierarchy_repair_patch_sha256', hashlib.sha256(b'').hexdigest())),
+    ('suspension-reuse-holdout.patch', pathlib.Path('.github/s00-suspension-reuse-holdout.patch').read_bytes(), spec.get('suspension_holdout_patch_sha256', hashlib.sha256(b'').hexdigest())),
 ]
 for _, data, expected in patches:
     assert hashlib.sha256(data).hexdigest() == expected
