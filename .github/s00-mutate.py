@@ -55,9 +55,20 @@ CASES = {
         'if(!old.endpoint().equals(endpoint) || !Objects.equals(old.snapshot(),snapshot))return quarantineEndpoint(support);',
         'if(false)return quarantineEndpoint(support);',
         's00runtime_tests_changed_endpoint_cannot_reuse_material_serial'),
+    'first-capture-quarantine': ('internal/AnatomyMovement.java',
+        'if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registration))return Optional.empty();',
+        'if(false)return Optional.empty();',
+        's00lifecycle_tests_first_capture_invalidation_exception_cannot_forget_barrier'),
+    'registration-lifecycle-watermark': ('internal/AnatomyMovement.java',
+        '        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.\n        DESCRIPTORS.keySet().removeIf(e->e.level()==level);',
+        '        REGISTRATIONS.keySet().removeIf(e->e.level()==level);\n        DESCRIPTORS.keySet().removeIf(e->e.level()==level);',
+        's00lifecycle_tests_deactivate_reactivation_cannot_reuse_local_registration_identity'),
     'client-receipt-invalidate': ('internal/AnatomyTransportReceipts.java',
         'if(body==null || body.level().isClientSide())return;', 'if(body==null)return;',
         'java.lang.AssertionError: Client clear deleted authoritative receipts'),
+    'client-carry-authority': ('internal/AnatomyMovement.java',
+        'if(!simulates(body))return;', 'if(false)return;',
+        'java.lang.AssertionError: Observer direct carry moved a server-owned root'),
 }
 
 def main():

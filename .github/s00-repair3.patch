@@ -1,0 +1,12 @@
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+index 5a9a12a..919288a 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+@@ -664,6 +664,7 @@ public final class AnatomyMovement {
+     }
+     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
+     private static void carry(Entity body,Set<Entity> visiting) {
++        if(!simulates(body))return;
+         var c=contact(body);var anchor=ANCHORS.get(body);
+         if(c==null || anchor==null)return;
+         if(!visiting.add(body) || !Platforms.eligible(body,c.support)
