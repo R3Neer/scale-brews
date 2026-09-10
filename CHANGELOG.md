@@ -27,7 +27,7 @@ latency acceptance remain pending; this is not a stable release.
 - Add isolated original-model extraction and numerical pose/reference proofs for cow, wide/slim players and adult grizzly. Add common convex geometry, catalog validation, filtering reports and server-safe ordinary pose evaluators.
 - Add proof-level temporal movement, relative translation response, shared joint interpolation and bounded overlap recovery with pair-specific suspension. These remain gated experimental paths, not enabled in ordinary worlds.
 - Add geometry registry/profile codecs, piece-selection filters, server-owned pose publication and catalog protocol v2 with atomic geometry/profile validation. Runtime reload reads world resources; full live contact/reload acceptance remains pending.
-- The shared anatomical/Clinging migration remains unfinished. Prototype code is included but disabled in ordinary worlds; existing platform gameplay remains in use. See `docs/ANATOMY_IMPLEMENTATION.md` for evidence and remaining gates.
+- The shared anatomical/Clinging migration remains unfinished. Prototype code is included but disabled in ordinary worlds; existing platform gameplay remains in use. Executed evidence is retained in `docs/VALIDATION.md`; current architecture and remaining work live in `docs/ENTITY_COLLISIONS.md` and `docs/ENTITY_COLLISIONS_PLAN.md`.
 
 ### Mount gesture and terrain impact fixes
 
@@ -52,7 +52,7 @@ latency acceptance remain pending; this is not a stable release.
 - Wild wolf riding provides an alternative taming route with ejection and dismount retaliation; bones and existing owners remain intact.
 - Material loot now uses actual scale raised to 1.6 instead of squared, retaining unbiased rounding, Looting and extra-roll composition.
 
-## Unreleased � scale materials and wolf mounts
+## Unreleased — scale materials and wolf mounts
 
 - Living platforms now accept bodies up to 85% of their support width (previously 60%), allowing closer-sized entities to stand and walk on them.
 - Entity-scoped reloadable material drops based on actual scale (initially squared, superseded by beta.4's exponent 1.6), including installed-mod compatibility and intentional farm production.
