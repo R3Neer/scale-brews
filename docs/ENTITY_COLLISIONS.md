@@ -120,6 +120,8 @@ El vocabulario base contiene locomoción, orientación de cabeza, edad/tick y fl
 
 Familias previstas incluyen poses procedurales vanilla, `AnimationDefinition` de Mojang, adapters reutilizables de frameworks externos y pose programs compilados. Una primitiva, channel o estado desconocido no se improvisa: el endpoint queda `UNAVAILABLE`.
 
+Una fórmula específica de una especie puede existir como fixture de aceptación para comparar contra el modelo original, pero no se registra como engine de producción cuando el objetivo es soportar una familia reusable.
+
 ### 4.5 RootTransformProvider
 
 El root contiene posición, orientación y escala del soporte y se versiona causalmente por separado del sample de joints. Un root-only update no obliga a reevaluar joints idénticos.
@@ -226,25 +228,44 @@ Pueden sobrevivir, trasladados a la capa correcta: policy de categorías/ratio/f
 
 No sobreviven `automatic_top`, la captura por altura/minY, un carry paralelo ni networking/reconciliation paralelos.
 
-## 9. Paquetes objetivo
+## 9. Organización de paquetes
 
-El código se organiza por responsabilidad, no por cronología de prototipos:
+Los paquetes representan responsabilidades, no la cronología del prototipo.
+
+La frontera estructural mínima durante la migración es:
 
 ```text
 io.github.r3neer.scalebrews.collision
-├── api            // frontera pública y DTOs públicos mínimos
-├── catalog        // codecs, bindings, catálogo, filtros y migración de datos
-├── geometry       // ModelGeometry, ConvexBox y geometry engines
-├── pose           // pose engines, channels, trackers y evaluación
-├── physics        // broadphase, CCD, response, contacto y material-event solver
-├── network        // payloads, streams, transfer y receipts/reconciliation
-├── runtime        // lifecycle, activation, tracking y orchestration
-└── integration    // hooks Minecraft y adapters de body/policy/placement
+├── api            // API y DTOs públicos mínimos
+├── geometry       // ModelGeometry, ConvexBox y datos geométricos puros
+├── pose           // providers/engines y channels reutilizables
+├── physics        // kernel CCD, separation, response y trayectorias materiales
+└── internal       // orquestación todavía acoplada; nunca API pública
 
 io.github.r3neer.scalebrews.client.collision
 ├── preparation    // extractors/exporters que pueden usar clases cliente
-├── network
-└── presentation   // render/camera; nunca autoridad física
+└── network        // recepción/cache de material autoritativo
 ```
+
+`collision.internal` es deliberadamente transitorio. Aloja piezas de catálogo, runtime, red, lifecycle y movimiento que todavía comparten contratos package-private o dependencias cíclicas reales. No se crean paquetes nominalmente “puros” si eso sólo desplaza el mismo acoplamiento mediante imports cruzados. Al cerrar las fronteras de G1/G2, `internal` se descompone hasta el objetivo:
+
+```text
+io.github.r3neer.scalebrews.collision
+├── api
+├── catalog
+├── geometry
+├── pose
+├── physics
+├── network
+├── runtime
+└── integration
+
+io.github.r3neer.scalebrews.client.collision
+├── preparation
+├── network
+└── presentation
+```
+
+La presentación/cámara que todavía pertenece al motor Living Platforms no se renombra para fingir que ya implementa la arquitectura nueva; se sustituye en la migración correspondiente.
 
 Los mixins permanecen en el paquete de mixins, pero delegan inmediatamente en una única clase de integración del subsistema; no alojan una segunda implementación.
