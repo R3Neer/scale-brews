@@ -77,7 +77,7 @@ public class AnatomyMaterialEventDispatcherTests {
         var carryScope=roots.begin("derived",RootEventDispatcher.Source.DISPATCH_APPLY,root(0,0,0));
         h.assertTrue(roots.finish(carryScope,root(1,1,.2)).isEmpty(),"Dispatcher setPos stays scope-silent; only its confirmed parent may enqueue DERIVED_CARRY");
 
-        var interval=interval(h,1);var backend=new FakeBackend();var dispatcher=new MaterialEventDispatcher<String>(2,3,key->key);
+        var interval=interval(h,1);var backend=new FakeBackend();var dispatcher=new MaterialEventDispatcher<String>(2,3,8,key->key);
         backend.dispatcher=dispatcher;backend.interval=interval;
         // Timeline A: support E1 drains now; a body entering later cannot cause an E1 replay.
         h.assertTrue(dispatcher.ingest("support-a",MaterialEventDispatcher.Source.ROOT_MUTATION,interval,backend).equals(MaterialEventDispatcher.Outcome.applied(.5)),"First root event resolves synchronously");
@@ -93,7 +93,7 @@ public class AnatomyMaterialEventDispatcherTests {
         h.succeed();
     }
     @GameTest public void jointBatchesGateReentrancyAndQuarantineWholeEvents(GameTestHelper h) {
-        var interval=interval(h,2);var backend=new FakeBackend();var dispatcher=new MaterialEventDispatcher<String>(2,2,key->key);
+        var interval=interval(h,2);var backend=new FakeBackend();var dispatcher=new MaterialEventDispatcher<String>(2,2,8,key->key);
         backend.dispatcher=dispatcher;backend.interval=interval;backend.next=List.of(new MaterialEventDispatcher.Candidate<>("quiet",new AABB(0,0,0,1,1,1)));
         var batch=dispatcher.ingestJointBatch(List.of(new MaterialEventDispatcher.JointInput<>("joint-z",interval),new MaterialEventDispatcher.JointInput<>("joint-a",interval)),backend);
         h.assertTrue(batch.size()==2 && batch.stream().allMatch(outcome->outcome.status()==MaterialEventDispatcher.Status.APPLIED_PREFIX)
