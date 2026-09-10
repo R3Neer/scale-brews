@@ -156,11 +156,19 @@ The exact pre-restructure commit `5a8bf915d22d52cf4e79a68e2506d199bb6e848e` was 
 - Two `AnatomyMaterialEventDispatcherTests` call sites still used an older three-argument constructor after `MaterialEventDispatcher` gained a `maximumEvents` budget. The available constructor requires `(maximumBodies, maximumDepth, maximumEvents, identity)`.
 - Warnings present in the job were not the build-breaking cause.
 
-This is the latest recorded executable status **before the documentation/code cleanup now being performed**. Historical green anatomy snapshots do not override this red exact-snapshot result. A later build belongs in a new dated/current subsection after it actually runs.
+This remains the exact status of that historical snapshot; later green runs do not rewrite it.
+
+### G0 post-restructure baseline — 2026-09-10
+
+The exact G0 review/convergence commit `420c305e301a3082df119a14a7db81f1fd2423d1` was built by GitHub Actions run `34462591148` (run number 82) and completed **successfully**.
+
+That commit includes the collision-documentation consolidation, removal of known unused lifecycle/root-dispatch scaffolding, relocation of the real public API to `collision.api`, relocation of client model extraction to `client.collision.preparation`, and compatibility shims for historical callers. The previously stale `MaterialEventDispatcher` GameTest constructors are therefore compiling in this baseline.
+
+This run is the ordinary repository workflow (`./gradlew build`) on GitHub Actions. It establishes a compilable server/GameTest build baseline after structural cleanup. It does **not** prove the unfinished Q2 material pipeline, client-special proof lanes, dedicated latency/reconnect behavior, Clinging migration, VanillaPlus coverage, performance targets or final physical correctness. Those remain gated by the canonical plan.
 
 ## Current acceptance gaps for entity collisions
 
-The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). For interpreting existing evidence, the major unproved areas at the start of that plan are:
+The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). For interpreting existing evidence, the major unproved areas after G0 are:
 
 - one final data/API model independent of legacy `PlatformDefinition.Surface`;
 - complete Q2 continuous material-event consumption in live movement hooks;
