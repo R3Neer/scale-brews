@@ -1,0 +1,13 @@
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java
+index 75192f9..f35f361 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java
+@@ -57,7 +57,7 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
+                 check(!AnatomyMovement.simulates(body) && AnatomyMovement.simulates(client.player),"Fixture does not distinguish owner from remote observer");
+                 var problems=new ArrayList<String>();var oldPlayer=client.player.position();var initialBody=body.position();
+                 AnatomyMovement.activate(level);
+-                Platforms.anatomicalDefinitions(level,List.of(new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),
++                Platforms.anatomicalDefinitions(level,List.of(new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(2.0),List.of(),
+                     Optional.of(new AnatomyDefinition(MODEL,STATIC,AnatomyFilter.DEFAULT)))));
+                 try {
+                     for(int scenario=0;scenario<2;scenario++) {
