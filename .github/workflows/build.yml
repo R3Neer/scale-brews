@@ -1,5 +1,5 @@
 # Temporary S00 transport infrastructure (SPRINT_WORKFLOW section 13).
-# Production candidates are immutable Git trees, not prematurely closed sprints.
+# The complete source tree hash is checked before any build. No source commits or refs are written here.
 name: build
 on:
   push:
@@ -16,57 +16,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: materialize exact candidate tree without a source commit
+      - name: materialize and verify complete candidate tree
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          test "$GITHUB_REF" = refs/heads/chatgpt-editing
-          python3 - <<'PY'
-          import base64, hashlib, json, os, pathlib, re, subprocess, urllib.request
-          target = pathlib.Path('.github/s00-candidate-tree').read_text().strip()
-          assert re.fullmatch('[0-9a-f]{40}', target)
-          def git(*args, **kwargs):
-              return subprocess.check_output(['git', *args], **kwargs)
-          exists = subprocess.run(['git', 'cat-file', '-e', target + '^{tree}'], capture_output=True).returncode == 0
-          if not exists:
-              def get(suffix):
-                  request = urllib.request.Request('https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/' + suffix,
-                      headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
-                  with urllib.request.urlopen(request, timeout=60) as response:
-                      return json.load(response)
-              tree = get('trees/' + target + '?recursive=1')
-              assert not tree.get('truncated') and tree['sha'] == target
-              entries = []
-              for entry in tree['tree']:
-                  if entry['type'] == 'tree':
-                      continue
-                  path = pathlib.PurePosixPath(entry['path'])
-                  assert not path.is_absolute() and not any(part in ('..', '.git') for part in path.parts)
-                  assert '\n' not in entry['path'] and '\t' not in entry['path']
-                  assert entry['type'] == 'blob' and entry['mode'] in ('100644', '100755')
-                  sha = entry['sha']
-                  assert re.fullmatch('[0-9a-f]{40}', sha)
-                  if subprocess.run(['git', 'cat-file', '-e', sha], capture_output=True).returncode:
-                      blob = get('blobs/' + sha)
-                      assert blob['encoding'] == 'base64'
-                      data = base64.b64decode(blob['content'])
-                      assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() == sha
-                      assert git('hash-object', '-w', '--stdin', input=data).decode().strip() == sha
-                  entries.append(f"{entry['mode']} blob {sha}\t{entry['path']}\n")
-              env = dict(os.environ, GIT_INDEX_FILE=os.path.join(os.environ['RUNNER_TEMP'], 's00-candidate.index'))
-              git('read-tree', '--empty', env=env)
-              git('update-index', '--index-info', input=''.join(entries).encode(), env=env)
-              assert git('write-tree', env=env).decode().strip() == target
-          git('read-tree', '--reset', '-u', target)
-          assert git('write-tree').decode().strip() == target
-          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 's00-evidence'
-          evidence.mkdir()
-          (evidence / 'identity.txt').write_text('source_tree=' + target + '\ntransport_commit=' + os.environ['GITHUB_SHA'] + '\n')
-          git('archive', '--format=tar', '--output=' + str(evidence / 'source.tar'), target)
-          print('S00_SOURCE_TREE=' + target)
-          print('S00_TRANSPORT_COMMIT=' + os.environ['GITHUB_SHA'])
-          PY
+        run: python3 .github/s00-build.py
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
       - name: setup jdk
@@ -83,28 +36,6 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew build --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-evidence/server.xml" 2>&1 | tee "$RUNNER_TEMP/s00-evidence/build.log"
-      - name: capture exact dependency references for audit
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import hashlib, json, os, pathlib, subprocess
-          cache = pathlib.Path.home() / '.gradle/caches'
-          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 's00-evidence'
-          paths = sorted({p for pattern in ('minecraft-common*.jar', 'minecraft-clientOnly*.jar', 'minecraft-client-only*.jar', 'joml-1.10.8.jar') for p in cache.rglob(pattern) if 'sources' not in p.name})
-          manifest = []
-          for path in paths:
-              with path.open('rb') as stream:
-                  digest = hashlib.file_digest(stream, 'sha256').hexdigest()
-              manifest.append({'path': str(path), 'sha256': digest})
-          (evidence / 'dependencies.json').write_text(json.dumps(manifest, indent=2))
-          classes = ['net.minecraft.world.entity.LivingEntity', 'net.minecraft.world.entity.Mob', 'net.minecraft.world.entity.ai.control.BodyRotationControl', 'net.minecraft.world.entity.WalkAnimationState', 'net.minecraft.client.renderer.entity.LivingEntityRenderer', 'org.joml.Quaternionf']
-          results = {}
-          for name in classes:
-              result = subprocess.run(['javap', '-p', '-c', '-classpath', os.pathsep.join(map(str, paths)), name], text=True, capture_output=True)
-              (evidence / (name + '.javap.txt')).write_text(result.stdout + result.stderr)
-              results[name] = result.returncode
-          (evidence / 'reference-exits.json').write_text(json.dumps(results, indent=2))
-          PY
       - name: real client and integrated server GameTests
         if: always()
         env:

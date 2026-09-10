@@ -1,0 +1,26 @@
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
+index 1ce33e8..7467761 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java
+@@ -131,7 +131,7 @@ public final class S00CausalTests {
+         AnatomyMovement.activate(h.getLevel());
+         try {
+             var provider=new ModelGeometryProvider(model(),(m,i)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,1);
+-            provider.pose(support,INPUTS);
++            provider.pose(support,INPUTS);provider.tick(support,h.getLevel().getGameTime());
+             var descriptor=new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,1);
+             AnatomyMovement.register(support,provider,descriptor);
+             long generation=AnatomyMovement.registrationGeneration(support);
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+index 1e6e607..e95b8a8 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+@@ -44,7 +44,7 @@ public final class AnatomyMovement {
+     /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
+     public record RootFrame(long sequence,long tick,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
+         public RootFrame {
+-            if(sequence<0 || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
++            if(sequence<0 || tick<0 || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
+                 throw new IllegalArgumentException("Invalid root frame");
+         }
+     }

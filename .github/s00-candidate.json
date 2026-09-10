@@ -1,0 +1,9 @@
+{
+  "base": "c965bf0efa26dec2681151111d3b90d825247929",
+  "target": "1616c91f2f53ed3b182b78a680e5b8768d78ea95",
+  "patch_sha256": "8fe206cc0b7fe9c53a02bcc92bf2130d347213a3be194a3a5441fe45a25e2e9c",
+  "paths": [
+    "src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java"
+  ]
+}
