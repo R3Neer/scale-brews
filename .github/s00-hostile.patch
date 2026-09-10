@@ -1,0 +1,20 @@
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00DispatcherTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00DispatcherTests.java
+index 4775b99..d891a27 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00DispatcherTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00DispatcherTests.java
+@@ -152,6 +152,15 @@ public final class S00DispatcherTests {
+         var o=ingest(d,"a",b);check(o.safeFraction()==.25 && o.reason()==Reason.INVALID_DERIVATION && b.resolved.equals(List.of("a")),"Invalid derivation was admitted or prefix lost");
+         h.succeed();
+     }
++    @GameTest public void jointBatchInvalidParentMustMarkReturnedOutcomes(GameTestHelper h) {
++        var d=dispatcher();var b=new Backend();
++        b.resolution=e->new Resolution<>(Outcome.applied(.25),List.of(new DerivedCarry<>(new EventId(999,0),"orphan-"+e.support(),INTERVAL)));
++        var outcomes=d.ingestJointBatch(List.of(new JointInput<>("a",INTERVAL),new JointInput<>("b",INTERVAL)),b);
++        check(outcomes.size()==2 && outcomes.stream().allMatch(o->o.status()==Status.APPLIED_PREFIX && o.safeFraction()==.25 && o.reason()==Reason.INVALID_DERIVATION),
++            "Joint invalid derivation notification disagreed with returned applied-prefix outcomes: "+outcomes);
++        check(b.resolved.equals(List.of("a","b")),"An orphan derived carry was resolved: "+b.resolved);
++        h.succeed();
++    }
+     @GameTest public void regressionReleasedParentNoChild(GameTestHelper h) {
+         var d=dispatcher();var b=new Backend();b.resolution=e->new Resolution<>(Outcome.released(.25,Reason.STARTING_OUTSIDE),children(e,"child"));
+         var o=ingest(d,"a",b);check(o.status()==Status.RELEASED && o.safeFraction()==.25 && b.resolved.equals(List.of("a")),"A released parent admitted derived work");

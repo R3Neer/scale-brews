@@ -13,6 +13,7 @@ patches = [
     ('repair2.patch', pathlib.Path('.github/s00-repair2.patch').read_bytes(), spec.get('repair2_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('observer-fixture.patch', pathlib.Path('.github/s00-observer-fixture.patch').read_bytes(), spec.get('observer_fixture_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('repair3.patch', pathlib.Path('.github/s00-repair3.patch').read_bytes(), spec.get('repair3_patch_sha256', hashlib.sha256(b'').hexdigest())),
+    ('hostile.patch', pathlib.Path('.github/s00-hostile.patch').read_bytes(), spec.get('hostile_patch_sha256', hashlib.sha256(b'').hexdigest())),
 ]
 for _, data, expected in patches:
     assert hashlib.sha256(data).hexdigest() == expected
@@ -80,7 +81,8 @@ assert changed == set(spec['paths']), (changed, spec['paths'])
     + '\nholdout2_patch_sha256=' + spec.get('holdout2_patch_sha256','')
     + '\nrepair2_patch_sha256=' + spec.get('repair2_patch_sha256','')
     + '\nobserver_fixture_patch_sha256=' + spec.get('observer_fixture_patch_sha256','')
-    + '\nrepair3_patch_sha256=' + spec.get('repair3_patch_sha256','') + '\n')
+    + '\nrepair3_patch_sha256=' + spec.get('repair3_patch_sha256','')
+    + '\nhostile_patch_sha256=' + spec.get('hostile_patch_sha256','') + '\n')
 (evidence / 'transport-spec.json').write_text(json.dumps(spec, indent=2))
 git('archive', '--format=tar', '--output=' + str(evidence / 'source.tar'), actual)
 print('S00_SOURCE_TREE=' + actual)
