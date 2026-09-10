@@ -1,0 +1,15 @@
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java
+index 5778c31..381838c 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java
+@@ -139,6 +139,10 @@ public final class HierarchyMotion {
+     private HierarchyMotion(ModelGeometry model,Map<String,Matrix4f> before,Map<String,Matrix4f> after,
+             Matrix4f rootBefore,Matrix4f rootAfter,Matrix4f modelTransform,Vec3 originBefore,Vec3 originAfter,AnatomyFilter filter) {
+         this.model=Objects.requireNonNull(model);this.originBefore=Objects.requireNonNull(originBefore);this.originAfter=Objects.requireNonNull(originAfter);
++        Objects.requireNonNull(before);Objects.requireNonNull(after);
++        var knownParts=new HashSet<String>();for(var part:model.parts())knownParts.add(part.id());
++        if(!knownParts.containsAll(before.keySet()) || !knownParts.containsAll(after.keySet()))
++            throw new IllegalArgumentException("Unknown motion joint");
+         this.root=new Node(rootBefore,rootAfter);this.staticModel=new Node(modelTransform,modelTransform);
+         boolean includeStaticModel=!modelTransform.equals(new Matrix4f());
+         Map<String,List<Node>> builtPaths=new LinkedHashMap<>();Map<String,Node> builtLocals=new LinkedHashMap<>();
