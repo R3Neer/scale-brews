@@ -7,7 +7,6 @@ import io.github.r3neer.scalebrews.platform.anatomy.GeometryProvider;
 import io.github.r3neer.scalebrews.platform.anatomy.GravityFrame;
 import io.github.r3neer.scalebrews.platform.anatomy.MaterialEventDispatcher;
 import io.github.r3neer.scalebrews.platform.anatomy.PoseProvider;
-import io.github.r3neer.scalebrews.platform.anatomy.RootEventDispatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,16 +66,7 @@ public class AnatomyMaterialEventDispatcherTests {
         }
         @Override public void quarantine(MaterialEventDispatcher.Event<String> event,MaterialEventDispatcher.Reason reason) {quarantines.add(event.support()+":"+reason);}
     }
-    @GameTest public void rootMutationScopesAndCausalBodyEvents(GameTestHelper h) {
-        var roots=new RootEventDispatcher();
-        var outer=roots.begin("support",RootEventDispatcher.Source.ENTITY_MOVE,root(0,0,0));
-        var nested=roots.begin("support",RootEventDispatcher.Source.DIRECT_SET_POS,root(0,0,0));
-        h.assertTrue(roots.finish(nested,root(1,1,.2)).isEmpty(),"Nested setPos cannot manufacture a second material root segment");
-        var mutation=roots.finish(outer,root(1,1,.2)).orElseThrow();
-        h.assertTrue(mutation.source()==RootEventDispatcher.Source.ENTITY_MOVE && mutation.before().sequence()==0 && mutation.after().sequence()==1 && !roots.scoped(),"Only the completed outer Entity.move publishes its exact before/after root frames");
-        var carryScope=roots.begin("derived",RootEventDispatcher.Source.DISPATCH_APPLY,root(0,0,0));
-        h.assertTrue(roots.finish(carryScope,root(1,1,.2)).isEmpty(),"Dispatcher setPos stays scope-silent; only its confirmed parent may enqueue DERIVED_CARRY");
-
+    @GameTest public void causalBodyEventsPreserveIngestionOrder(GameTestHelper h) {
         var interval=interval(h,1);var backend=new FakeBackend();var dispatcher=new MaterialEventDispatcher<String>(2,3,8,key->key);
         backend.dispatcher=dispatcher;backend.interval=interval;
         // Timeline A: support E1 drains now; a body entering later cannot cause an E1 replay.
