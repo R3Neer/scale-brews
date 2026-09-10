@@ -2,7 +2,9 @@
 
 Since beta.3, Growth/Shrinking levels in the rules below mean the equivalent **effective size**, not a required potion icon. Mixed effects and external SCALE modifiers can enable or disable the same rules. See [Mechanics](MECHANICS.md#effective-size-beta3) for interpolation and exact thresholds. Configuration switches still govern the same modules.
 
-Rules are JSON data owned by the world/server, not per-player client preferences. Fabric synchronizes both rules and mount definitions to connecting clients. All features default to enabled. Close and reopen the world (restart a dedicated server) after changing these dynamic registries; `/reload` alone is not supported for them.
+Rules are JSON data owned by the world/server, not per-player client preferences. Fabric synchronizes the released dynamic registries to connecting clients. All released features default to enabled. Close and reopen the world (restart a dedicated server) after changing those dynamic registries; `/reload` alone is not supported for them. Material-loot resources are the exception and support `/reload` as documented in [Scale loot](SCALE_LOOT.md).
+
+The replacement all-direction entity-collision subsystem is still development work. Its target data/API design lives only in [Entity collisions](ENTITY_COLLISIONS.md) and its normative behavior only in [requirements](ENTITY_COLLISIONS_REQUIREMENTS.md). The JSON below describes **released beta behavior**, not the future collision binding schema.
 
 ## Installation
 
@@ -32,6 +34,66 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 - Migration: obsolete `growth_landing_knockback` / `growth_landing_damage` keys are accepted only for old files; if either is false, the combined effect is disabled. Remove both old keys and use only `growth_landing_impact` to configure new worlds or re-enable the effect. Encoding/network synchronization emits only the combined switch.
 - `environment_interactions` is the master switch for the five following options. Disabling an option removes this mod's intervention; it does not force vanilla to trigger a plate or destroy a crop if vanilla itself would not do so.
 - Missing keys retain enabled defaults. Invalid field types or invalid mount definitions produce a data-loading error; fix the file rather than replacing the world. Use JSON booleans, not quoted strings.
+
+## Released living-platform configuration (legacy during collision migration)
+
+The current beta still has the upper-surface **Living Platforms** engine. This section is its sole configuration reference while the replacement collision system is built. The legacy registry and its `surfaces`/`automatic_surfaces` schema are frozen for compatibility; they are **not** the target schema for all-direction entity collisions. The replacement runtime must not use `automatic_top` or an entity AABB as fallback anatomy.
+
+Override `data/scalebrews/scalebrews/platform_policy/default.json`:
+
+```json
+{
+  "enabled": true,
+  "automatic_surfaces": true,
+  "max_width_ratio": 0.85,
+  "bodies": {
+    "players": true,
+    "mobs": true,
+    "boats": true,
+    "minecarts": true,
+    "items": true,
+    "falling_blocks": true
+  },
+  "supports": {
+    "minecraft:bee": false
+  }
+}
+```
+
+Missing body/species switches default to enabled. `automatic_surfaces` defaults to true in the **legacy released engine**; set it false to require an explicit legacy profile. `max_width_ratio` compares current physical bounding-box widths and therefore includes effective SCALE from Scale Brews or other modifiers. Disabling Living Platforms does not disable Tiny Mounts or Happy Ghast's native platform.
+
+A legacy explicit profile lives at `data/<namespace>/scalebrews/entity_platform/<name>.json`:
+
+```json
+{
+  "entity": "example:pack_animal",
+  "enabled": true,
+  "friction": 0.6,
+  "max_width_ratio": 0.85,
+  "surfaces": [
+    {
+      "id": "back",
+      "x": 0,
+      "y": 1.25,
+      "z": 0,
+      "width": 0.75,
+      "depth": 1.1,
+      "visual": {
+        "part": "body",
+        "x": 0,
+        "y": -0.4,
+        "z": 0
+      }
+    }
+  ]
+}
+```
+
+Legacy physical coordinates are blocks at adult scale 1 relative to the feet: +Y up, +Z forward and +X right. Each `surface` is an oriented **top rectangle**, not full anatomy. `visual` optionally names a model-part-local reference point used only for released client presentation. Two resources defining the same species are an error; datapack priority should override the same resource path instead. Coordinates must be finite, dimensions positive and surface IDs unique.
+
+The current legacy engine supports players, compatible mobs, boats/rafts, off-rail minecarts, items and falling blocks as bodies. Passengers remain attached to their root vehicle, projectiles are excluded and mobs are not taught to pathfind over supports. Babies, sleeping/swimming/fall-flying supports, sitting camels, sitting/lying cats, multipart dragon physics and Happy Ghast's native platform are not replaced. These are descriptions of the released beta only; the future contract and acceptance gates live in the collision requirements/plan.
+
+The copyable files `platform-policy.example.json` and `platform-profile.example.json` are legacy examples for this section. They will be removed when the legacy engine is removed or superseded by an explicit migration tool.
 
 ## Mount definitions
 
@@ -95,7 +157,7 @@ Existing vanilla temptation goals retain their food predicates, speed, range and
 
 Mounted bees cannot enter a hive. The external `BeehiveBlockEntity.addOccupant` route dismounts players using native placement and clears accumulated fall distance before storage. Dismounting in midair does not teleport a player to the ground or grant permanent fall immunity.
 
-Villagers detect Growth II/III players within eight blocks through their nearest-visible-threat sensor and use vanilla panic/flee/golem-summoning behavior. There are no gossip, reputation, attacker-memory or global hostility writes. Vanilla visibility/targetability filtering still applies.
+Villagers detect visible living entities at least two equivalent effective-scale levels larger within eight blocks and use vanilla panic/flee/golem-summoning behavior. There are no gossip, reputation, attacker-memory or global hostility writes. Vanilla visibility/targetability filtering still applies.
 
 The final direct-player attack knockback is multiplied by Growth 1.10/1.20/1.30 or Shrinking 0.90/0.80/0.70. Sprint/enchantment contributions are preserved. Projectiles, thorns and the separate landing-wave damage source are excluded. Vanilla arrow/trident damage does not read the shooter's scale-modified attack attribute; custom projectiles that read it need a mod-specific audit.
 
