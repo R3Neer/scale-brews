@@ -57,3 +57,17 @@ index f74b599071c13bc7088ad5c9def2d81fd19cd549..d79bb2c35ba6eb5a219e151a94f12c9d
 +        h.succeed();
 +    }
  }
+diff --git a/src/gametest/resources/fabric.mod.json b/src/gametest/resources/fabric.mod.json
+index ad40809169c34b0d9ae23f40097b34028d7b8f32..78f2412128c5628a37cf8ee204f54fd5cd00b29b 100644
+--- a/src/gametest/resources/fabric.mod.json
++++ b/src/gametest/resources/fabric.mod.json
+@@ -36,7 +36,8 @@
+       "io.github.r3neer.scalebrews.test.S00ModelTests",
+       "io.github.r3neer.scalebrews.test.S00RuntimeTests",
+       "io.github.r3neer.scalebrews.test.S00ReceiptTests",
+-      "io.github.r3neer.scalebrews.test.S00TemporalTests"
++      "io.github.r3neer.scalebrews.test.S00TemporalTests",
++      "io.github.r3neer.scalebrews.test.S00LifecycleTests"
+     ],
+     "fabric-client-gametest": [
+       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
