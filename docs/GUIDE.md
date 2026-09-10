@@ -28,9 +28,9 @@ Three potion levels, gradual size transitions, beacon powers, size-dependent mat
 
 *Shrinking III → normal → Growth III. Same species, same ground level, different possibilities.*
 
-Living platforms let smaller entities and vehicles use larger creatures as moving surfaces, without mounting them or adding mob navigation routes. Compatible living species have automatic upper support surfaces; optional profiles refine the contact, including the animated player head. These are **not full-body mesh collisions**. See [Living platforms](PLATFORMS.md).
+The released beta's Living Platforms let smaller entities and vehicles use larger creatures as moving **upper** surfaces, without mounting them or adding mob navigation routes. Compatible living species can use an automatic physical top; optional legacy profiles refine it, including animated presentation for selected parts. These are **not full-body collisions**. Released configuration is documented in [Configuration](CONFIGURATION.md#released-living-platform-configuration-legacy-during-collision-migration).
 
-> **In development, not enabled in normal gameplay:** a replacement system for all-direction anatomical collisions and shared Clinging Reoriented physics. Its source and tests are included in this repository, but its implementation and multiplayer validation are unfinished. See [development status](ANATOMY_IMPLEMENTATION.md); do not treat it as a feature of the current beta.
+> **In development, not enabled as released gameplay:** Living Platforms are being replaced by an all-direction, piece-based entity-collision system that can also provide the physical layer consumed by Clinging Reoriented. Requirements, architecture and implementation order live in the canonical [entity-collision documentation](ENTITY_COLLISIONS.md); executed evidence lives in [Validation](VALIDATION.md).
 
 ## Installation
 
@@ -99,9 +99,9 @@ See [Mechanics](MECHANICS.md) for exact attribute, exhaustion, fall and stealth 
 
 ### Stand on larger creatures
 
-Physical support and riding are different systems. A supported body keeps its own movement and does not become a passenger. By default its **physical width must be at most 85% of the support's width**; both widths include their actual scale. Per-species policies can override this ratio.
+Physical support and riding are different systems. In the released beta a supported body keeps its own movement and does not become a passenger. By default its **physical width must be at most 85% of the support's width**; both widths include their actual scale. Per-species legacy policies can override this ratio.
 
-Players, compatible mobs, boats and rafts (including chest variants), off-rail minecarts, dropped items and falling blocks can use these upper surfaces. Mobs may land there incidentally, but do not plan paths over other mobs. Happy Ghast behavior remains vanilla. Special poses and incompatible entities have limitations described in [Living platforms](PLATFORMS.md).
+Players, compatible mobs, boats and rafts (including chest variants), off-rail minecarts, dropped items and falling blocks can use these upper surfaces. Mobs may land there incidentally, but do not plan paths over other mobs. Happy Ghast behavior remains vanilla. Current exclusions and the frozen legacy JSON format are documented in [Configuration](CONFIGURATION.md#released-living-platform-configuration-legacy-during-collision-migration).
 
 Use a boat item or spawn egg on an eligible living surface to place its entity when there is enough room and support. This respects placement permissions and consumes the item normally outside Creative mode.
 
@@ -147,11 +147,11 @@ Only materials selected by entity-scoped rules are affected: this is **not a mul
 
 Copy the [example datapack](../examples/world-config) into your world's `datapacks` directory and edit its JSON. Gameplay registry settings belong to the server/world and synchronize to clients. **Restart the server or reopen the world** after changing these registries. Material-loot definitions are a separate resource system and **do support `/reload`**.
 
-The released optional mechanics below default to enabled (this does not enable the anatomical prototype). Configure:
+The released optional mechanics below default to enabled. This does not enable the replacement all-direction collision subsystem. Configure:
 
 - Tiny Mounts as a whole, individual mount types, controls and saddle visuals.
 - Living-mount size ratios, independently of the Tiny Mounts switch.
-- Living-platform categories, support species, friction and physical-width ratios.
+- Legacy Living Platforms categories, support species, friction and physical-width ratios while that released engine exists.
 - Entity-scoped material drops through the separate reloadable loot definitions.
 - Villager fear.
 - The combined Growth landing impact.
@@ -163,11 +163,11 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
+The current released suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction. Collision-prototype evidence is tracked separately in the same [Validation](VALIDATION.md) record and does not imply release readiness.
 
-Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
+Base Fabric behavior has also been exercised with bounded optional integrations including **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**. These are version-bounded checks, not a guarantee for every modpack, configuration or future version. Custom projectile, camera, movement, renderer or multipart implementations may need adapters or compatibility data.
 
-These are bounded integration tests, **not a guarantee for every modpack, configuration or future version**. Custom projectile, camera, movement or multipart-entity implementations may need additional integration. See [Validation](VALIDATION.md) for coverage and known limitations.
+The target design deliberately separates generic Scale Brews collision engines from modpack-specific bindings. See [entity-collision architecture](ENTITY_COLLISIONS.md) for that developer contract and [Validation](VALIDATION.md) for what has actually been executed.
 
 ## Development
 
@@ -188,7 +188,7 @@ On Linux/macOS, use `./gradlew` instead. JARs are written to `build/libs` by def
 
 For a checkout in OneDrive, redirect generated output with `-PscalebrewsBuildDir=C:/path/to/local/build`. Test directories remain under `build/run`; tests use development worlds rather than your normal saves. Optional compatibility JARs can be supplied with `-PscalebrewsCompatMods=C:/path/to/test-mods`; they are not bundled in the production mod.
 
-See [Changelog](../CHANGELOG.md), [Contributing and Git policy](../CONTRIBUTING.md), [Mechanics](MECHANICS.md) and [Work tracking](../TODO.md).
+See [Changelog](../CHANGELOG.md), [Contributing and Git policy](../CONTRIBUTING.md), [Mechanics](MECHANICS.md), [entity-collision architecture](ENTITY_COLLISIONS.md) and [Work tracking](../TODO.md).
 
 ## License and artwork
 
@@ -198,4 +198,4 @@ Effect icons, saddle textures and the flower overlay are hand-authored pixel art
 
 README screenshots are actual Minecraft gameplay captures, not generated illustrations; underlying Minecraft artwork remains the property of its respective owners. Reproduce these disposable scenes with `./gradlew runClientGameTest -PscalebrewsReadmeCapture=true`.
 
-Developer references: [material loot datapacks](SCALE_LOOT.md) and [wolf mount implementation](WOLF_MOUNT.md).
+Developer references: [entity-collision architecture](ENTITY_COLLISIONS.md), [material loot datapacks](SCALE_LOOT.md) and [wolf mount implementation](WOLF_MOUNT.md).
