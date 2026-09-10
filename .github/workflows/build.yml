@@ -6,8 +6,6 @@ on:
     branches: [chatgpt-editing]
 permissions:
   contents: read
-env:
-  S00_TREE: a2d5ca4dbb50a3d866c2187503c1210a597e403b
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -26,7 +24,7 @@ jobs:
           test "$GITHUB_REF" = refs/heads/chatgpt-editing
           python3 - <<'PY'
           import base64, hashlib, json, os, pathlib, re, subprocess, urllib.request
-          target = os.environ['S00_TREE']
+          target = pathlib.Path('.github/s00-candidate-tree').read_text().strip()
           assert re.fullmatch('[0-9a-f]{40}', target)
           def git(*args, **kwargs):
               return subprocess.check_output(['git', *args], **kwargs)
@@ -108,6 +106,7 @@ jobs:
           (evidence / 'reference-exits.json').write_text(json.dumps(results, indent=2))
           PY
       - name: real client and integrated server GameTests
+        if: always()
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
