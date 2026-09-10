@@ -32,7 +32,10 @@ jobs:
           name: Artifacts
           path: build/libs/
       - name: apply verified collision package refactor
-        if: github.ref == 'refs/heads/chatgpt-editing' && github.event_name == 'push' && github.event.head_commit.message == 'chore: execute collision package refactor'
+        if: >-
+          github.ref == 'refs/heads/chatgpt-editing' &&
+          github.event_name == 'push' &&
+          github.event.head_commit.message == 'chore: execute collision package refactor'
         run: |
           python tools/RefactorCollisionPackages.py
           ./gradlew clean build
