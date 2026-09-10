@@ -14,15 +14,15 @@ El estado de tareas vive **sólo aquí**. La arquitectura no mantiene un segundo
 
 La auditoría iterativa del árbol legacy + anatómico produjo estas decisiones estables:
 
-- `AnatomyMovement` contiene una base Q1 avanzada, pero sigue mezclando registro de providers, histories, broadphase, solver, contacto, root tracking y carry. Dividirlo sin cerrar las fronteras causales de Q2 sólo movería acoplamiento entre paquetes; su partición real pertenece a G2.
+- `AnatomyMovement`, ahora dentro de `collision.internal`, contiene una base Q1 avanzada, pero sigue mezclando registro de providers, histories, broadphase, solver, contacto, root tracking y carry. Dividirlo antes de cerrar las fronteras causales de Q2 sólo trasladaría el mismo acoplamiento entre paquetes; su partición real pertenece a G2.
 - `MaterialEventDispatcher`, `BodyPath`, `ConservativeSweep`, `TemporalResponse`, `HierarchyMotion`, receipts, histories y trackers **se conservan** porque representan capacidades requeridas por G2-G4, aunque algunas no estén todavía integradas en el pipeline vivo.
 - `RootEventDispatcher` se eliminó: era scaffolding de frontera sin consumidor real y duplicaba la dirección del dispatcher material.
 - `AnatomyStreamLifecycle` y su test autorreferencial se eliminaron: declaraban explícitamente no estar integrados en payload/runtime/catalog y duplicaban lifecycle que G3/G4 debe implementar sobre streams reales.
-- `GrizzlyPose` no se considera arquitectura válida por especie, pero se conserva temporalmente porque hoy sigue siendo parte del vertical slice H1 contra el modelo original. G3 lo sustituye por engine/pose-program Citadel reusable y deja cualquier fórmula específica únicamente como fixture/data.
+- La fórmula/guard específicos de Alex's Mobs Continued 2.1.9 para grizzly dejaron de ser producción. `GrizzlyPose` existe sólo en GameTest como fixture H1; el runtime general ya no registra ni hardcodea un provider/guard de grizzly.
 - El motor `platform` legacy **no se borra aún**: todavía es la única implementación ejecutable de varias semánticas que deben preservarse durante migración. Se elimina en G5, después de demostrar equivalencia en el core nuevo. Conservarlo hasta entonces no autoriza fallback durante `BINDING` ni convierte su arquitectura en objetivo.
-- La implementación real del extractor cliente se movió a `client.collision.preparation`; el path anterior contiene sólo un shim de compatibilidad para proofs históricos.
-- La implementación real de la API pública se movió a `collision.api`; el antiguo `platform.anatomy.AnatomyApi` contiene sólo un shim de compatibilidad. Ambos shims se eliminan cuando sus callers históricos estén migrados, no se desarrollan como APIs paralelas.
-- Los paquetes objetivo completos son los definidos exclusivamente en [ENTITY_COLLISIONS](ENTITY_COLLISIONS.md#9-paquetes-objetivo). El resto del gran paquete interno se divide cuando G1/G2 creen fronteras reales, no mediante renombres cosméticos de clases todavía package-private entre sí.
+- La API pública vive en `collision.api`; la extracción de modelos cliente vive en `client.collision.preparation`; la recepción/cache cliente vive en `client.collision.network`. Los shims de los paths `platform.anatomy` y `client.platform.anatomy` ya fueron retirados al migrar todos los callers del repositorio en una operación atómica.
+- Los tipos puros ya están separados en `collision.geometry`, `collision.pose` y `collision.physics`. El resto de orquestación se concentra deliberadamente en `collision.internal` hasta que G1/G2 definan fronteras reales para `catalog`, `network`, `runtime` e `integration`.
+- No queda el paquete `platform.anatomy`. El paquete `platform` que sobrevive pertenece exclusivamente al motor legacy pendiente de sustitución funcional en G5.
 
 ## 3. Gates
 
@@ -37,11 +37,13 @@ Estado de tareas:
 - [x] Corregir los fixtures desactualizados de `MaterialEventDispatcher` sin rebajar el contrato de event budget.
 - [x] Inventariar código, mixins, tests y recursos legacy/anatómicos y clasificarlos por requisito/consumidor.
 - [x] Eliminar scaffolding sin consumidor real (`RootEventDispatcher`, `AnatomyStreamLifecycle` y su test dedicado).
-- [x] Sacar las fronteras ya desacoplables de los paquetes históricos: API pública a `collision.api` y extracción cliente a `client.collision.preparation`, dejando shims sin lógica sólo mientras compilan callers históricos.
+- [x] Retirar producción específica por especie que contradecía la estrategia general cuando ya podía conservarse como evidencia de test (`GrizzlyPose`).
+- [x] Reorganizar físicamente el subsistema nuevo en `collision.api`, `geometry`, `pose`, `physics`, `internal` y los paquetes cliente `collision.preparation`/`network`, sin conservar shims con lógica duplicada.
 - [x] Revisar expresamente el motor legacy y decidir su supervivencia temporal por requisitos, no por nostalgia; retirada fijada en G5.
-- [x] Registrar en VALIDATION un build/CI verde del commit final de esta reestructuración y comprobar que `main` no se movió.
+- [x] Ejecutar una segunda compilación completa después del traslado de paquetes y registrar evidencia exacta en VALIDATION.
+- [x] Comprobar que `main` no se modifica durante toda la reestructuración.
 
-**Salida:** árbol comprensible y compilable, sin scaffolding conocido que sólo se pruebe a sí mismo. El feature puede seguir desactivado; G0 no afirma corrección física.
+**Salida:** árbol comprensible y compilable, sin scaffolding conocido que sólo se pruebe a sí mismo y con el subsistema nuevo fuera de `platform.anatomy`. El feature puede seguir desactivado; G0 no afirma corrección física ni cumplimiento de G1-G9.
 
 ### G1 — contrato público y data model desacoplados del legacy
 
@@ -49,15 +51,17 @@ Estado de tareas:
 
 Tareas:
 
-1. completar la frontera pública de `collision.api`, mover allí sus DTOs públicos mínimos y retirar los aliases/shim de `platform.anatomy` cuando no queden callers;
-2. crear interfaces/registries explícitos `GeometryEngine`, `PoseEngine`, `RootTransformProvider` y adapters físicos necesarios;
-3. crear binding/policy canónicos sin depender de `PlatformDefinition.Surface`;
-4. separar legacy-plane migration como decoder de datos, no motor;
-5. versionar codecs y capabilities;
-6. migrar policy de ratio/categorías/fricción y adapters de bodies al nuevo integration layer;
-7. demostrar un mod fixture que registra comportamiento por API y selecciona ese comportamiento por JSON.
+1. completar la frontera pública de `collision.api` y estabilizar sus DTOs públicos mínimos;
+2. romper el ciclo façade `api ↔ internal` mediante un backend/SPI interno explícito, sin filtrar implementación al API;
+3. crear interfaces/registries explícitos `GeometryEngine`, `PoseEngine`, `RootTransformProvider` y adapters físicos necesarios;
+4. crear binding/policy canónicos sin depender de `PlatformDefinition.Surface`;
+5. separar legacy-plane migration como decoder de datos, no motor;
+6. versionar codecs y capabilities;
+7. migrar policy de ratio/categorías/fricción y adapters de bodies al nuevo integration layer;
+8. demostrar un mod fixture que registra comportamiento por API y selecciona ese comportamiento por JSON;
+9. partir desde `collision.internal` las responsabilidades de catálogo/runtime/integration que ya tengan una frontera estable después de los pasos anteriores.
 
-**Salida:** el core describe una entidad sin conocer su especie en Java y sin depender del motor superior antiguo.
+**Salida:** el core describe una entidad sin conocer su especie en Java y sin depender del motor superior antiguo; `internal` deja de ser el cajón de integración de G0 para las responsabilidades ya estabilizadas.
 
 ### G2 — pipeline material continuo Q2
 
@@ -65,14 +69,15 @@ Tareas:
 
 Tareas:
 
-1. dividir `AnatomyMovement` en estado/índice/query/contact/transport dentro de los paquetes `collision.physics`/`runtime`/`integration`, quitando ownership redundante;
+1. dividir `AnatomyMovement` en estado/índice/query/contact/transport dentro de `collision.physics`/`runtime`/`integration`, quitando ownership redundante;
 2. integrar `MaterialEventDispatcher` con hooks reales de root/joint/carry;
 3. usar `MotionIntervalHandle`/trayectoria certificada para traslación, yaw, scale y joints, no sólo endpoint actual;
 4. procesar varias contribuciones del mismo tick exactamente una vez cada una y mantener ancestry;
 5. cerrar tangential retention, multicontacto, sliding y separation recovery;
 6. impedir que broadphase oversized degrade a scan mundial en hot path: fallback acotado o cuarentena;
 7. probar cadenas, obstrucción, wall squeeze, huecos y contacto que sólo existe en mitad del intervalo;
-8. fijar e instrumentar budgets de sweep/eventos.
+8. fijar e instrumentar budgets de sweep/eventos;
+9. mover fuera de `collision.internal` los tipos físicos/orquestadores que queden realmente desacoplados al cerrar Q2.
 
 **Salida:** física material correcta en server single-player/dedicated sin depender todavía de predicción bajo latencia.
 
@@ -86,13 +91,14 @@ Tareas:
 2. preparar/serializar una vez por revisión y reutilizar bundle por receptor;
 3. consolidar `ModelPart` GeometryEngine;
 4. consolidar engines de pose vanilla y añadir engine general de `AnimationDefinition` antes de providers por especie;
-5. convertir Citadel/Alex de vertical slice de grizzly a engine/pose-program reusable; retirar `GrizzlyPose` de producción y conservar sólo fixture/data de aceptación;
+5. convertir Citadel/Alex desde el vertical slice de test del grizzly a engine/pose-program reusable; el fixture grizzly no vuelve a producción;
 6. añadir `RootTransformProvider` genérico y fixture de orientación externa;
 7. mantener `DisplayRig` como SPI y sólo implementarlo cuando un target real lo exija;
 8. implementar scanner/coverage report y estados FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;
 9. cerrar reload válido/inválido, tracking tardío, unload, rebind, dimension, reconnect y reutilización de identidad;
 10. hacer que unsupported states publiquen unavailable y recuperen sin geometry freeze;
-11. implementar lifecycle/order sobre runtime y packets reales, sin reintroducir el `AnatomyStreamLifecycle` descartado como segundo ledger abstracto.
+11. implementar lifecycle/order sobre runtime y packets reales, sin reintroducir `AnatomyStreamLifecycle` como segundo ledger abstracto;
+12. terminar la separación de `collision.internal` en `catalog`, `network` y `runtime` cuando esas fronteras sean estables.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
@@ -107,7 +113,7 @@ Tareas:
 3. observer path sin carry local;
 4. reconciliación sin double-apply ni drift;
 5. convertir presentación de `CURRENT_ENDPOINT` a intervalo certificado donde Q2 lo requiera;
-6. consolidar residual visual/camera en una única capa;
+6. consolidar residual visual/camera en una única capa bajo `client.collision.presentation`;
 7. ejecutar dedicated `allow-flight=false` con 0/100/200 ms y late tracking/reconnect.
 
 **Salida:** multiplayer autoritativo y prediction estable.
@@ -125,7 +131,7 @@ Tareas:
 5. demostrar no regresión de fall/exhaustion/stats/Growth landing;
 6. eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y los recursos/runtime que sólo los alimentan cuando sus equivalentes estén verdes;
 7. conservar únicamente el decoder de legacy surface si FR-023 sigue justificándolo;
-8. retirar shims de paquetes históricos que hayan quedado sin callers.
+8. comprobar que ningún mixin o helper sigue bifurcando entre dos motores físicos.
 
 **Salida:** un solo motor físico. A partir de aquí no existe ruta legacy de gameplay.
 
@@ -225,18 +231,18 @@ Una pieza se elimina si cumple cualquiera:
 - duplica estado/ownership que pertenece a otra capa;
 - implementa un fallback prohibido;
 - sólo demuestra un experimento ya absorbido por otro componente;
-- codifica una especie donde existe ya el engine reusable que debe sustituirla;
+- codifica una especie donde el comportamiento debe pertenecer a un engine reusable y puede conservarse como fixture/data;
 - pertenece al motor legacy y su requisito ya tiene sustituto funcional verificado.
 
 No se borra una implementación legacy si todavía es el **único** código que conserva un requisito vigente durante la migración. Se mantiene aislada y con retirada explícita en G5. Git conserva el historial; el árbol no necesita conservar scaffolding muerto.
 
-Un shim de paquete sólo es admisible si no contiene lógica y evita una rotura masiva mientras se migran callers. Debe tener criterio de retirada en este plan y no puede recibir nuevas capacidades.
+Un shim de paquete sólo habría sido admisible temporalmente si no contenía lógica y evitaba una rotura masiva durante una migración atómica. Después del reordenamiento G0 ya no queda ninguno en el subsistema nuevo.
 
 ## 6. Método iterativo y convergencia
 
 ### Revisión del plan
 
-**Pasada P1:** antiguos H0-H4 → dependencias explícitas contra FR/NFR; se detectó mezcla de pruebas verticales, migración y compat VP26.
+**P1:** antiguos H0-H4 → dependencias explícitas contra FR/NFR; se detectó mezcla de pruebas verticales, migración y compat VP26.
 
 **P2:** separación core general / VanillaPlus y sustitución de expansión “por mobs” por GeometryEngine/PoseEngine + coverage scanner.
 
@@ -244,18 +250,30 @@ Un shim de paquete sólo es admisible si no contiene lógica y evita una rotura 
 
 **P4:** lifecycle/red se dividió entre Q2 físico, catálogo/lifecycle y reconciliación/presentación. No cambió la dependencia principal.
 
-**P5:** auditoría destructiva del legacy mostró que borrarlo antes de portar categorías/placement/network semantics violaría requisitos todavía sin sustituto; la eliminación total quedó fijada en G5. La organización de paquetes se vinculó a fronteras reales de G1/G2, no a renombres cosméticos.
+**P5:** auditoría destructiva del legacy mostró que borrarlo antes de portar categorías/placement/network semantics violaría requisitos todavía sin sustituto; la eliminación total quedó fijada en G5.
 
-**P6:** después de eliminar scaffolding y mover las dos fronteras ya desacoplables, se volvió a recorrer requisito → dependencia → código → aceptación. No fue necesario crear, eliminar ni reordenar gates. **Plan convergido en esta revisión.**
+**P6:** la primera limpieza eliminó scaffolding y sacó API/extractor a fronteras propias. La revisión siguiente no cambió el orden de gates.
+
+**P7:** el requisito literal de reordenar el código sobreviviente obligó a ejecutar un traslado real, no sólo documentar paquetes objetivo. El ensayo compilado mostró que una división completa en ocho paquetes todavía introduciría acoplamiento nominal porque Q1/Q2 comparten contratos internos. Se adoptó `api/geometry/pose/physics/internal` como frontera transitoria y se dejó la partición fina para G1/G2.
+
+**P8:** la revisión adversarial del árbol reordenado detectó que conservar `GrizzlyPose`/guard en producción contradecía NFR-019/020. Se movió a fixture H1 de GameTest y se retiró su registro/hardcode del runtime. No fue necesario crear, eliminar ni reordenar gates.
+
+**P9:** tras actualizar arquitectura, plan y evidencia contra el árbol efectivo se repitió requisito → dependencia → código → aceptación. No apareció ningún cambio adicional de ownership, orden o gate. **Plan convergido para G0.**
 
 ### Revisión del código
 
-**Pasada C1 — inventario:** cada clase/hook/test/recurso del subsistema se clasificó como runtime vigente, sustituto nuevo, regression oracle, scaffolding o tooling. Se señalaron `RootEventDispatcher` y `AnatomyStreamLifecycle` como candidatos de eliminación.
+**C1 — inventario:** cada clase/hook/test/recurso del subsistema se clasificó como runtime vigente, sustituto nuevo, regression oracle, scaffolding o tooling. Se señalaron `RootEventDispatcher` y `AnatomyStreamLifecycle` como candidatos de eliminación.
 
 **C2 — revisión adversarial de borrado:** se intentó justificar la conservación de cada candidato y, a la inversa, la eliminación del legacy. Los dos scaffolds carecían de consumidor real; el legacy sí mantiene requisitos aún no portados. Resultado: se borran los scaffolds, se retiene temporalmente el legacy.
 
-**C3 — revisión tras cambios:** `MaterialEventDispatcher`, `BodyPath`, receipts/histories y el vertical slice grizzly siguen teniendo requisito futuro o aceptación concreta, por lo que no son código muerto. Se detectaron dos fronteras de paquete falsas y se movieron la API pública y el extractor cliente a sus paquetes objetivo. Los paths antiguos quedaron como shims sin lógica por compatibilidad de callers históricos.
+**C3 — primera revisión estructural:** `MaterialEventDispatcher`, `BodyPath`, receipts/histories y los kernels físicos conservan requisito futuro o aceptación concreta. API y extractor cliente se separaron del package histórico.
 
-**C4 — segunda revisión tras la nueva estructura:** no aparece otra clase que sea simultáneamente (a) sin consumidor/requisito y (b) eliminable sin retirar una capacidad aún no portada. Las siguientes eliminaciones dependen de implementar G1-G5, no de otra limpieza previa. **Revisión de código convergida para G0.**
+**C4 — revisión del grafo:** mover cada clase inmediatamente a `catalog/network/runtime/integration` habría creado fronteras falsas alrededor de dependencias package-private aún reales. Se trasladaron sólo las capas puras y se agrupó la orquestación acoplada en `collision.internal`.
+
+**C5 — compilación del árbol reordenado:** el traslado completo compiló y la suite requerida alcanzó 137/137. Al revisar el diff se detectó el último hardcode específico del grizzly en producción; se eliminó y el fixture se hizo test-only.
+
+**C6 — recompilación adversarial:** el árbol con grizzly sólo de test volvió a compilar y a pasar los 137 tests requeridos. Se comprobó además que no quedan `platform.anatomy`, `client.platform.anatomy`, shims de esos paths ni el script/workflow temporal usado para efectuar la migración.
+
+**C7 — pasada de cierre:** se revisaron de nuevo clases supervivientes contra requisitos y plan. No aparece otra pieza simultáneamente (a) sin consumidor/requisito y (b) eliminable o reubicable sin implementar una frontera futura de G1-G5. **Revisión de código convergida para G0.**
 
 Cualquier cambio de requisitos o implementación vuelve a ejecutar al menos una pasada completa; si esa pasada cambia el plan o la clasificación del código, se repite hasta obtener una pasada sin cambios.
