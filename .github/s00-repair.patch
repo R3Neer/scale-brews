@@ -116,3 +116,99 @@ index c0b2b40..08d00c7 100644
              if(at==null || !Double.isFinite(deformationSpeed) || deformationSpeed<0 || linearTranslation==null || !Double.isFinite(linearTranslation.lengthSqr()))throw new IllegalArgumentException("Invalid motion bound");
          }
          public double maxPointSpeed(){return deformationSpeed+linearTranslation.length();}
+diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java
+index 92b5e1ded305d24a2c62be4e06e99c1381b302a1..c9d6e068a4f0dfd59423623e1253cb6a47706e84 100644
+--- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java
++++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java
+@@ -57,7 +57,7 @@ public final class S00ReceiptTests {
+         check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,"Saturation retained unbounded receipt prefix");
+         h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS-1,()->{
+             try {check(AnatomyTransportReceipts.saturated(body,body.getUUID(),tick),"Saturation fence expired before its full TTL");}
+-            catch(RuntimeException | Error failure){AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();throw failure;}
++            catch(RuntimeException | AssertionError failure){AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();h.assertTrue(false,String.valueOf(failure.getMessage()));return;}
+             h.runAfterDelay(1,()->{
+                 try {
+                     check(!AnatomyTransportReceipts.saturated(body,body.getUUID(),tick) && AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"TTL did not expire at its declared boundary");
+@@ -65,7 +65,8 @@ public final class S00ReceiptTests {
+                     check(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Expired transport replay regained current authority");
+                     record(body,support,h.getLevel().getGameTime(),100);
+                     check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==1,"Fresh post-TTL contribution was incorrectly rejected");h.succeed();
+-                }finally{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}
++                }catch(RuntimeException | AssertionError failure){h.assertTrue(false,String.valueOf(failure.getMessage()));}
++                finally{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}
+             });
+         });
+     }
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
+index 65877811d13046ea74be6e9b06891366947acfb3..3d8817633dc103d80695a512bf69b6c11753dc2d 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java
+@@ -105,14 +105,17 @@ public record ConvexBox(List<Vec3> vertices) {
+         List<Vec3> world=List.of(new Vec3(1,0,0),new Vec3(0,1,0),new Vec3(0,0,1));
+         List<Vec3> result=new ArrayList<>(world);result.addAll(List.of(x.cross(y),y.cross(z),z.cross(x)));
+         for(Vec3 edge:List.of(x,y,z))for(Vec3 axis:world)result.add(edge.cross(axis));
+-        // A valid affine box may have a physically essential face axis whose magnitude is tiny
+-        // compared with another edge. Only an exactly zero cross-product is redundant. Math.hypot
+-        // avoids turning a small-but-valid axis into zero through squared-length underflow.
++        // Direction is independent of magnitude. Scale by the largest component
++        // before normalization: neither squared underflow nor a subnormal reciprocal
++        // may discard a separating plane or create NaN escape candidates.
+         List<Vec3> normalized=new ArrayList<>();
+         for(Vec3 axis:result) {
+-            double length=Math.hypot(axis.x,Math.hypot(axis.y,axis.z));
+-            if(!Double.isFinite(length))throw new IllegalArgumentException("Unbounded SAT axis");
+-            if(length>0)normalized.add(axis.scale(1/length));
++            double largest=Math.max(Math.abs(axis.x),Math.max(Math.abs(axis.y),Math.abs(axis.z)));
++            if(!Double.isFinite(largest))throw new IllegalArgumentException("Unbounded SAT axis");
++            if(largest>0) {
++                var scaled=new Vec3(axis.x/largest,axis.y/largest,axis.z/largest);
++                normalized.add(scaled.scale(1/Math.sqrt(scaled.lengthSqr())));
++            }
+         }
+         return List.copyOf(normalized);
+     }
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+index ebe50f75609583245697595fb14c5fa4f4ed0e00..8654d36c6b688bc31fe938620f88a9b22bfbea5c 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java
+@@ -34,11 +34,11 @@ public final class BodyPath {
+     private final LocalAnchor anchor;
+     private final AABB body;
+     private final Vec3 center,up,initialOffset;
+-    private final double initialGap,liftRate,residualSpeed;
++    private final double initialGap,liftRate,residualSpeed,minDot;
+ 
+     private BodyPath(ConservativeSweep.Motion material,LocalAnchor anchor,AABB body,Vec3 up,Vec3 point0,Vec3 normal0,NormalBounds bounds) {
+         this.material=material;this.anchor=anchor;this.body=body;this.center=body.getCenter();this.up=up;this.initialOffset=center.subtract(point0);
+-        this.initialGap=normal0.dot(initialOffset)-halfExtent(body,normal0);
++        this.initialGap=normal0.dot(initialOffset)-halfExtent(body,normal0);this.minDot=bounds.minDotAntiGravity();
+         double alpha=bounds.minDotAntiGravity(),h=Math.sqrt(square(body.getXsize()*.5)+square(body.getYsize()*.5)+square(body.getZsize()*.5));
+         double radius=h+Math.abs(initialGap)+initialOffset.length(),rate=bounds.normalRateBound();
+         this.liftRate=rate*(h+initialOffset.length())/alpha+radius*rate/(alpha*alpha);
+@@ -63,7 +63,7 @@ public final class BodyPath {
+         try {
+             var shape=material.at().apply(time);if(shape==null)return Optional.empty();
+             Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
+-            if(!Double.isFinite(denominator) || denominator<SUPPORT)return Optional.empty();
++            if(!Double.isFinite(denominator) || denominator<SUPPORT || denominator+1e-9<minDot)return Optional.empty();
+             Vec3 point=shape.point(anchor.coordinates());
+             double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
+             if(!Double.isFinite(lift))return Optional.empty();
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java b/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
+index 08d00c735841184942ad50468e9c03a13c35f2cf..0548209ce362482d873b85d32e9cf8cdeedd1786 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java
+@@ -33,10 +33,10 @@ public final class ConservativeSweep {
+         public Motion(DoubleFunction<ConvexBox> at,double deformationSpeed,Vec3 linearTranslation){this(at,deformationSpeed,linearTranslation,java.util.List.of());}
+         public Motion(DoubleFunction<ConvexBox> at,double maxPointSpeed){this(at,maxPointSpeed,Vec3.ZERO);}
+         public Motion {
+-            if(invariantPlanes==null)throw new IllegalArgumentException("Invalid invariant planes");
+-            invariantPlanes=java.util.List.copyOf(invariantPlanes);
++            if(invariantPlanes==null || invariantPlanes.size()>6)throw new IllegalArgumentException("Invalid invariant plane count");
+             var directions=java.util.EnumSet.noneOf(net.minecraft.core.Direction.class);
+-            for(var plane:invariantPlanes)if(plane==null || !directions.add(plane.outward()))throw new IllegalArgumentException("Duplicate invariant plane direction");
++            for(var plane:invariantPlanes)if(plane==null || !directions.add(plane.outward()))throw new IllegalArgumentException("Duplicate or missing invariant plane direction");
++            invariantPlanes=java.util.List.copyOf(invariantPlanes);
+             if(at==null || !Double.isFinite(deformationSpeed) || deformationSpeed<0 || linearTranslation==null || !Double.isFinite(linearTranslation.lengthSqr()))throw new IllegalArgumentException("Invalid motion bound");
+         }
+         public double maxPointSpeed(){return deformationSpeed+linearTranslation.length();}

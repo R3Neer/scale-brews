@@ -1,5 +1,5 @@
 # Temporary S00 transport infrastructure (SPRINT_WORKFLOW section 13).
-# The complete source tree hash is checked before any build. No source commits or refs are written here.
+# Exact source trees are verified before Gradle; this runner never updates refs.
 name: build
 on:
   push:
@@ -57,12 +57,17 @@ jobs:
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix:
         mutation:
           - dispatcher-reentry
           - dispatcher-abort-clear
           - sat-axis-cutoff
+          - sat-subnormal-reciprocal
           - bodypath-certificate
+          - bodypath-interior-certificate
+          - plane-precopy-cap
+          - tiny-rotation-bound
           - receipt-current-tick
           - receipt-surface
           - frame-binding-generation
@@ -74,6 +79,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: retain reviewed mutator outside candidate source
+        run: cp .github/s00-mutate.py "$RUNNER_TEMP/s00-mutate.py"
       - name: materialize exact candidate
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,31 +93,25 @@ jobs:
       - name: apply one directed mutation
         run: |
           chmod +x ./gradlew
-          python3 .github/s00-mutate.py "${{ matrix.mutation }}"
+          python3 "$RUNNER_TEMP/s00-mutate.py" apply "${{ matrix.mutation }}"
       - name: mutation must compile
-        run: ./gradlew compileGametestJava --console=plain
-      - name: suite must kill mutation
+        run: |
+          set -o pipefail
+          ./gradlew compileGametestJava --console=plain 2>&1 | tee "$RUNNER_TEMP/s00-mutation/compile.log"
+      - name: exact behavioral assertion must kill mutation
         shell: bash
         run: |
           set +e
-          ./gradlew runGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/mutation.log" 2>&1
+          ./gradlew runGameTest --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-mutation/server.xml" > "$RUNNER_TEMP/s00-mutation/run.log" 2>&1
           code=$?
           set -e
-          cat "$RUNNER_TEMP/mutation.log"
-          if [ "$code" -eq 0 ]; then
-            echo "MUTATION_SURVIVED ${{ matrix.mutation }}" >&2
-            exit 1
-          fi
-          if ! grep -Eq 'AssertionError|required tests failed|GAME TESTS COMPLETE|GameTest' "$RUNNER_TEMP/mutation.log"; then
-            echo "Mutation failed outside behavioral test evidence" >&2
-            exit 1
-          fi
-          echo "MUTATION_KILLED ${{ matrix.mutation }}"
+          tail -n 50 "$RUNNER_TEMP/s00-mutation/run.log"
+          python3 "$RUNNER_TEMP/s00-mutate.py" verify "${{ matrix.mutation }}" "$code"
       - if: always()
         uses: actions/upload-artifact@v7
         with:
           name: S00-mutation-${{ matrix.mutation }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/mutation.log
+          path: ${{ runner.temp }}/s00-mutation/
           if-no-files-found: warn
 
   client-mutation:
@@ -122,6 +123,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: retain reviewed mutator outside candidate source
+        run: cp .github/s00-mutate.py "$RUNNER_TEMP/s00-mutate.py"
       - name: materialize exact candidate
         env:
           GH_TOKEN: ${{ github.token }}
@@ -134,28 +137,25 @@ jobs:
       - name: mutate server receipt ownership
         run: |
           chmod +x ./gradlew
-          python3 .github/s00-mutate.py client-receipt-invalidate
+          python3 "$RUNNER_TEMP/s00-mutate.py" apply client-receipt-invalidate
       - name: client mutation must compile
-        run: ./gradlew compileGametestJava compileClientJava --console=plain
-      - name: real client suite must kill mutation
+        run: |
+          set -o pipefail
+          ./gradlew compileGametestJava compileClientJava --console=plain 2>&1 | tee "$RUNNER_TEMP/s00-mutation/compile.log"
+      - name: exact real-client assertion must kill mutation
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
         shell: bash
         run: |
           set +e
-          xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/client-mutation.log" 2>&1
+          xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/s00-mutation/run.log" 2>&1
           code=$?
           set -e
-          cat "$RUNNER_TEMP/client-mutation.log"
-          if [ "$code" -eq 0 ]; then
-            echo 'MUTATION_SURVIVED client-receipt-invalidate' >&2
-            exit 1
-          fi
-          grep -Eq 'Client clear deleted authoritative receipts|S00ClientBoundaryTests|AssertionError' "$RUNNER_TEMP/client-mutation.log"
-          echo 'MUTATION_KILLED client-receipt-invalidate'
+          tail -n 50 "$RUNNER_TEMP/s00-mutation/run.log"
+          python3 "$RUNNER_TEMP/s00-mutate.py" verify client-receipt-invalidate "$code"
       - if: always()
         uses: actions/upload-artifact@v7
         with:
           name: S00-mutation-client-receipt-invalidate-${{ github.run_id }}
-          path: ${{ runner.temp }}/client-mutation.log
+          path: ${{ runner.temp }}/s00-mutation/
           if-no-files-found: warn

@@ -1,12 +1,13 @@
 {
   "base": "236416ab4d3e3b012d813331547986e36837e6d1",
-  "target": "3523cff2b0e8f386d3b02ab58758b8dc81d9e4b6",
+  "target": "5a59ce132ce59d6b17db7852c50a4ef1fccc9ba9",
   "patch_sha256": "56d0560939d0ec52a3fe8e7b019607b1ce5b62711bd2bc947ff95e3ca0201c09",
   "extra_patch_sha256": "0654f54d20c35a336d55db5d657153e64ceae6ede51da9b756ce7497a1834a3f",
-  "repair_patch_sha256": "0ad386e967ac79703cf9bbc417d90e06142fd0e85d1a0eb08a4880f55f88088f",
+  "repair_patch_sha256": "4cb6d41b8d4796a0f0ed10417c2259d0be70fef2b889c6ba866b7fbabbd1d910",
   "paths": [
     "src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyNetworkingTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00CausalTests.java",
+    "src/gametest/java/io/github/r3neer/scalebrews/test/S00ReceiptTests.java",
     "src/gametest/java/io/github/r3neer/scalebrews/test/S00TemporalTests.java",
     "src/gametest/resources/fabric.mod.json",
     "src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java",
