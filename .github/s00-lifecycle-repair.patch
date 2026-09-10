@@ -1,0 +1,136 @@
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+index 324e214..b7caac7 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+@@ -25,6 +25,9 @@ public final class AnatomyMovement {
+     /** Local binding generation; Runtime supplies causal descriptor in the Q1 production overload. */
+     private static final Map<LivingEntity,Long> REGISTRATIONS=entityMap();
+     private static final Map<LivingEntity,GeometryProvider.GeometryIdentityDescriptor> DESCRIPTORS=entityMap();
++    /** Synchronized API entry is reentrant in Java; provider callbacks must not start a second capture. */
++    private static final Set<LivingEntity> CAPTURING=Collections.newSetFromMap(new IdentityHashMap<>());
++    private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
+     /** Server-owned material endpoint serial; it advances for a root or joint endpoint change. */
+     private record EndpointStamp(long jointSampleTick,RootFrame root,AnatomyPoseHistory.Sample sample,long revision,GeometryProvider.Availability availability) {}
+     /** Retains the whole endpoint, including its original authority time, for a material serial. */
+@@ -127,13 +130,17 @@ public final class AnatomyMovement {
+     /** Causal publication survives an unavailable pose so networking can clear stale geometry. */
+     public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
+         requireServerThread(support.level());
+-        var descriptor=DESCRIPTORS.get(support);var provider=PROVIDERS.get(support);
+-        if(descriptor==null)return Optional.empty();
+-        var endpoint=causalEndpoint(support,provider).orElse(null);
+-        if(endpoint==null)return Optional.empty();
+-        var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
+-            descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),registrationGeneration(support));
+-        return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
++        if(!CAPTURING.add(support))return Optional.empty();
++        try {
++            var descriptor=DESCRIPTORS.get(support);var provider=PROVIDERS.get(support);
++            if(descriptor==null || provider==null)return Optional.empty();
++            var capture=new CaptureStamp(provider,descriptor,registrationGeneration(support),transportGeneration(support));
++            var endpoint=causalEndpoint(support,provider,capture).orElse(null);
++            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
++            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
++                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
++            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
++        } finally {CAPTURING.remove(support);}
+     }
+     /** Current collision frame; an unavailable causal endpoint deliberately has no convex query. */
+     public static synchronized Optional<GeometryProvider.QueryFrame> queryFrame(LivingEntity support){
+@@ -149,25 +156,52 @@ public final class AnatomyMovement {
+      * and rebuild the convexes from the combined endpoint.  We never combine an
+      * old root-bearing Sample with a newer RootFrame.
+      */
+-    private static Optional<GeometryProvider.CausalEndpoint> causalEndpoint(LivingEntity support,GeometryProvider provider) {
+-        try {return evaluateEndpoint(support,provider);}
+-        catch(RuntimeException rejectedProvider) {return quarantineEndpoint(support);}
++    private static Optional<GeometryProvider.CausalEndpoint> causalEndpoint(LivingEntity support,GeometryProvider provider,CaptureStamp capture) {
++        try {return evaluateEndpoint(support,provider,capture);}
++        catch(RuntimeException rejectedProvider) {
++            return captureBindingCurrent(support,capture)?quarantineEndpoint(support):Optional.empty();
++        }
+     }
+-    private static Optional<GeometryProvider.CausalEndpoint> evaluateEndpoint(LivingEntity support,GeometryProvider provider) {
++    private static Optional<GeometryProvider.CausalEndpoint> evaluateEndpoint(LivingEntity support,GeometryProvider provider,CaptureStamp capture) {
+         if(provider==null)return Optional.empty();
+         var direct=provider.causalEndpoint(support);
++        if(!captureCurrent(support,capture))return rejectStaleCapture(support,capture,direct.orElse(null),null);
+         if(direct.isPresent()) {
+             var snapshot=direct.get().availability()==GeometryProvider.Availability.AVAILABLE?provider.sample(support).orElse(null):null;
++            if(!captureCurrent(support,capture))return rejectStaleCapture(support,capture,direct.get(),snapshot);
+             return acceptEndpoint(support,direct.get(),snapshot);
+         }
+         if(!(provider instanceof ModelGeometryProvider model))return Optional.empty();
+         var joints=model.authoritativeFrame(support).orElse(null);
+-        if(joints==null)return Optional.empty();
++        if(!captureCurrent(support,capture) || joints==null)return Optional.empty();
+         var root=observeRoot(support);
++        if(!captureCurrent(support,capture))return Optional.empty();
+         var sample=new AnatomyPoseHistory.Sample(joints.sample().inputs(),root.origin(),root.yaw(),root.scale(),root.gravity());
+         var snapshot=sample.inputs().ordinary()?model.sampleAt(support,sample).orElse(null):null;
++        if(!captureCurrent(support,capture))return Optional.empty();
+         return Optional.of(serverEndpoint(support,joints.tick(),root,sample,snapshot));
+     }
++    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
++        return PROVIDERS.get(support)==capture.provider() && Objects.equals(DESCRIPTORS.get(support),capture.descriptor())
++            && registrationGeneration(support)==capture.registration();
++    }
++    private static boolean captureCurrent(LivingEntity support,CaptureStamp capture) {
++        return captureBindingCurrent(support,capture) && transportGeneration(support)==capture.lifecycle();
++    }
++    /**
++     * A lifecycle callback may invalidate the very endpoint currently being sampled. Retain that
++     * serial only as an invalidated fence; a rebind instead owns a new registration and is untouched.
++     */
++    private static Optional<GeometryProvider.CausalEndpoint> rejectStaleCapture(LivingEntity support,CaptureStamp capture,
++            GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot) {
++        if(!captureBindingCurrent(support,capture))return Optional.empty();
++        var old=FRAME_SERIALS.get(support);
++        if(endpoint!=null && (old==null || endpoint.frameSerial()>old.endpoint().frameSerial()))
++            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,true));
++        else if(old!=null)FRAME_SERIALS.put(support,new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
++        clearSupportContacts(support);SPATIAL.remove(support.level());
++        return Optional.empty();
++    }
+     private static synchronized GeometryProvider.CausalEndpoint serverEndpoint(LivingEntity support,long jointSampleTick,RootFrame root,AnatomyPoseHistory.Sample sample,GeometryProvider.Snapshot snapshot) {
+         var availability=snapshot==null?GeometryProvider.Availability.UNAVAILABLE:GeometryProvider.Availability.AVAILABLE;
+         var stamp=new EndpointStamp(jointSampleTick,root,sample,snapshot==null?-1:snapshot.revision(),availability);var old=FRAME_SERIALS.get(support);
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java
+index 384a02d..a4136c4 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java
+@@ -82,15 +82,10 @@ public interface GeometryProvider {
+             pieces=validatedPieces(pieces);
+         }
+     }
+-    /** Default is an explicitly static current pose, not a whole-entity bounding box. */
+-    default Optional<MotionSnapshot> motion(LivingEntity entity) {
+-        long to=entity.level().getGameTime();
+-        if(to<1)return Optional.empty();
+-        return sample(entity).map(snapshot->{
+-            Map<String,ConservativeSweep.Motion> motions=new java.util.LinkedHashMap<>();
+-            snapshot.pieces().forEach((id,box)->motions.put(id,new ConservativeSweep.Motion(t->box,0)));
+-            return new MotionSnapshot(snapshot.revision(),to-1,to,entity.position(),entity.position(),motions);
+-        });
+-    }
++    /**
++     * No historical provenance is safer than invented static history. Providers
++     * that can prove a consecutive material interval must override this method.
++     */
++    default Optional<MotionSnapshot> motion(LivingEntity entity) {return Optional.empty();}
+     default void tick(LivingEntity entity,long tick) {}
+ }
+diff --git a/src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java b/src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java
+index 0a03eab..ef3e3ec 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java
++++ b/src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java
+@@ -145,7 +145,8 @@ public final class Platforms {
+         Set<Entity> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+         while (ancestor != null) {
+             if (ancestor == body || !seen.add(ancestor)) return false;
+-            ancestor = state(ancestor).support;
++            var anatomical=AnatomyMovement.contact(ancestor);
++            ancestor=anatomical==null?state(ancestor).support:anatomical.support();
+         }
+         return true;
+     }
