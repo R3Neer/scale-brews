@@ -50,3 +50,112 @@ jobs:
           name: S00-${{ github.run_id }}
           path: ${{ runner.temp }}/s00-evidence/
           if-no-files-found: error
+
+  mutation:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mutation:
+          - dispatcher-reentry
+          - dispatcher-abort-clear
+          - sat-axis-cutoff
+          - bodypath-certificate
+          - receipt-current-tick
+          - receipt-surface
+          - frame-binding-generation
+          - model-unknown-joint
+          - runtime-thread-owner
+          - endpoint-same-serial
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: materialize exact candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/s00-build.py
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+          cache: gradle
+      - name: apply one directed mutation
+        run: |
+          chmod +x ./gradlew
+          python3 .github/s00-mutate.py "${{ matrix.mutation }}"
+      - name: mutation must compile
+        run: ./gradlew compileGametestJava --console=plain
+      - name: suite must kill mutation
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/mutation.log" 2>&1
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/mutation.log"
+          if [ "$code" -eq 0 ]; then
+            echo "MUTATION_SURVIVED ${{ matrix.mutation }}" >&2
+            exit 1
+          fi
+          if ! grep -Eq 'AssertionError|required tests failed|GAME TESTS COMPLETE|GameTest' "$RUNNER_TEMP/mutation.log"; then
+            echo "Mutation failed outside behavioral test evidence" >&2
+            exit 1
+          fi
+          echo "MUTATION_KILLED ${{ matrix.mutation }}"
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S00-mutation-${{ matrix.mutation }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/mutation.log
+          if-no-files-found: warn
+
+  client-mutation:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: materialize exact candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/s00-build.py
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+          cache: gradle
+      - name: mutate server receipt ownership
+        run: |
+          chmod +x ./gradlew
+          python3 .github/s00-mutate.py client-receipt-invalidate
+      - name: client mutation must compile
+        run: ./gradlew compileGametestJava compileClientJava --console=plain
+      - name: real client suite must kill mutation
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/client-mutation.log" 2>&1
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/client-mutation.log"
+          if [ "$code" -eq 0 ]; then
+            echo 'MUTATION_SURVIVED client-receipt-invalidate' >&2
+            exit 1
+          fi
+          grep -Eq 'Client clear deleted authoritative receipts|S00ClientBoundaryTests|AssertionError' "$RUNNER_TEMP/client-mutation.log"
+          echo 'MUTATION_KILLED client-receipt-invalidate'
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S00-mutation-client-receipt-invalidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/client-mutation.log
+          if-no-files-found: warn
