@@ -82,6 +82,10 @@ public final class AnatomyPreparedIntegrationProof {
             // material interval. This distinguishes dispatcher contact establishment from an
             // own-movement path that merely happens to land on the new endpoint.
             S09PreparedIntervalContactProof.run(h);
+            // S09 A9: both endpoint frames are clear. Only the certified interior trajectory
+            // intersects the stationary body, so the event must affect it without retaining a
+            // contact after the moving piece has withdrawn again.
+            S09PreparedIntermediateContactProof.run(h);
         }
         h.succeed();
     }
