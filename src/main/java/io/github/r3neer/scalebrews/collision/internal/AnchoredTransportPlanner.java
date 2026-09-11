@@ -27,10 +27,10 @@ final class AnchoredTransportPlanner {
     private static final double MAX_ENVELOPE_SPAN=64,OVERLAP_EPS=1e-8;
 
     enum Status {NOT_APPLICABLE,COMPLETE,RELEASE}
-    record Evidence(LivingEntity support,SurfaceContact surface,AnatomyMovement.RootFrame root,
-            ConvexBox materialBefore,ConvexBox materialAfter) {
+    record Evidence(MaterialEventDispatcher.EventId parent,LivingEntity support,SurfaceContact surface,
+            AnatomyMovement.RootFrame root,ConvexBox materialBefore,ConvexBox materialAfter) {
         Evidence {
-            if(support==null || surface==null || root==null || materialBefore==null || materialAfter==null)
+            if(parent==null || support==null || surface==null || root==null || materialBefore==null || materialAfter==null)
                 throw new IllegalArgumentException("Missing anchored transport evidence");
         }
     }
@@ -52,7 +52,7 @@ final class AnchoredTransportPlanner {
         if(retained==null || surface==null)return Result.none();
         MaterialEventDispatcher.Event<Entity> own=null;
         for(var event:events)if(event.support()==retained.support()) {
-            if(own!=null)return Result.release(0); // More than one interval for the retained support is not one certifiable path.
+            if(own!=null)return Result.release(0);
             own=event;
         }
         if(own==null)return Result.none();
@@ -67,10 +67,6 @@ final class AnchoredTransportPlanner {
         var materialAfter=handle.after().snapshot().pieces().get(retained.piece());
         if(pieceMotion==null || materialBefore==null || materialAfter==null)return Result.release(0);
 
-        // First live certificate: unchanged joint inputs + continuous root TRS. The support's
-        // gravity determines the root-yaw axis; the body's own gravity independently determines
-        // whether the retained face is supporting. Joint-changing intervals remain fail-closed
-        // until their own face-normal certificate is wired.
         if(!handle.before().sample().inputs().equals(handle.after().sample().inputs()))return Result.release(0);
         var bodyGravity=AnatomyMovement.gravity(body);
         try {
@@ -92,8 +88,6 @@ final class AnchoredTransportPlanner {
                 return Result.release(0);
 
             int evaluations=0;
-            // Every other material piece is an obstacle in the moving body frame. The retained
-            // piece itself defines the path and is therefore not reinterpreted as an obstruction.
             for(var event:events) {
                 if(!(event.support() instanceof LivingEntity eventSupport) || !Platforms.eligible(body,eventSupport))continue;
                 var eventMotion=motions.get(event.interval().handle());if(eventMotion==null)return Result.release(evaluations);
@@ -105,9 +99,6 @@ final class AnchoredTransportPlanner {
                 }
             }
 
-            // Arc-only block obstruction: endpoint vanilla clipping is not enough when the anchor
-            // sweeps a curve. Persistent t=0 tangencies are left to vanilla endpoint clipping;
-            // initially separated shapes are checked continuously in the BodyPath-relative frame.
             int obstacles=0;
             for(var shape:level.getBlockCollisions(body,envelope))for(var box:shape.toAabbs()) {
                 if(++obstacles>MAX_STATIC_OBSTACLES)return Result.release(evaluations);
@@ -124,15 +115,10 @@ final class AnchoredTransportPlanner {
             try {allowed=clip.apply(captured,displacement);} finally {PlatformPhysics.exit(previous);}
             if(allowed.distanceToSqr(displacement)>OVERLAP_EPS)return Result.release(evaluations);
             return new Result(Status.COMPLETE,displacement,evaluations,
-                new Evidence(support,surface,handle.after().root(),materialBefore,materialAfter));
+                new Evidence(own.id(),support,surface,handle.after().root(),materialBefore,materialAfter));
         } catch(RuntimeException rejected) {return Result.release(0);}
     }
 
-    /**
-     * Root yaw is a rigid rotation about supportUp. If bodyUp is parallel to that axis,
-     * support dot is invariant. Otherwise |d/dt(normal·bodyUp)| is bounded by the yaw
-     * angular rate, so the endpoint Lipschitz cones provide a continuous lower bound.
-     */
     private static double certifiedMinDot(double dot0,double dot1,double normalRate,Vec3 bodyUp,Vec3 supportUp) {
         if(normalRate==0 || Math.abs(Math.abs(bodyUp.dot(supportUp))-1)<1e-9)return Math.min(dot0,dot1);
         if(Math.abs(dot1-dot0)>normalRate+1e-6)throw new IllegalArgumentException("Endpoint normals contradict root-yaw rate");
