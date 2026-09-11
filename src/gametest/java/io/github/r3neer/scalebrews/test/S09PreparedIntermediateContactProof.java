@@ -6,6 +6,7 @@ import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime;
+import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.Comparator;
 import java.util.Map;
@@ -22,7 +23,10 @@ final class S09PreparedIntermediateContactProof {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,20,20,20);
         support.setNoAi(true);support.setNoGravity(true);
-        support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+        // Keep this comfortably inside MaterialPhysicsRuntime.MAX_ENVELOPE_SPAN. The earlier
+        // scale-4 version was a valid geometric sweep but an invalid runtime fixture because its
+        // conservative root-rotation envelope was deliberately quarantined before broadphase.
+        support.getAttribute(Attributes.SCALE).setBaseValue(1);support.refreshDimensions();
         var body=h.spawn(EntityTypes.SHEEP,24,20,20);
         body.setNoAi(true);body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.08);body.refreshDimensions();
@@ -42,6 +46,7 @@ final class S09PreparedIntermediateContactProof {
             var certified=hypotheticalRootMotion(support,before,yawDelta);
             h.assertTrue(certified!=null && !certified.pieces().isEmpty(),
                 "A9 fixture requires a certified root-yaw material trajectory");
+            assertRuntimeEnvelope(h,certified,"fixture placement interval");
 
             String chosen=null;AABB chosenMid=null;
             for(var entry:certified.pieces().entrySet().stream()
@@ -80,6 +85,7 @@ final class S09PreparedIntermediateContactProof {
             var liveAfter=AnatomyMovement.queryFrame(support).orElseThrow();
             var liveHandle=new GeometryProvider.MotionIntervalHandle(capture.before().identity(),1,capture.before(),liveAfter);
             var liveMotion=AnatomyRuntime.interval(support,liveHandle).orElseThrow();
+            assertRuntimeEnvelope(h,liveMotion,"exact live interval");
             h.assertTrue(endpointClear(liveMotion,captured,0) && endpointClear(liveMotion,captured,1),
                 "A9 live interval itself must remain endpoint-clear after publication");
             h.assertTrue(liveMotion.pieces().containsKey(chosen) && liveMotion.pieces().get(chosen).at().apply(.5).overlaps(captured),
@@ -130,11 +136,31 @@ final class S09PreparedIntermediateContactProof {
         var sample1=new AnatomyPoseHistory.Sample(sample0.inputs(),sample0.origin(),sample0.yaw()+yawDelta,sample0.scale(),sample0.gravity());
         var endpoint1=new GeometryProvider.CausalEndpoint(before.endpoint().frameSerial()+1,before.authorityTick(),before.endpoint().jointSampleTick(),
             root1,sample1,GeometryProvider.Availability.AVAILABLE);
-        // Snapshot content is deliberately not guessed. AnatomyRuntime.interval only accepts its revision/identity
-        // here and asks the bound provider to construct the continuous motion from the two immutable samples.
         var syntheticAfter=new GeometryProvider.QueryFrame(before.identity(),endpoint1,before.snapshot());
         var handle=new GeometryProvider.MotionIntervalHandle(before.identity(),1,before,syntheticAfter);
         return AnatomyRuntime.interval(support,handle).orElse(null);
+    }
+
+    private static void assertRuntimeEnvelope(GameTestHelper h,GeometryProvider.MotionSnapshot motion,String label) {
+        AABB envelope=null;
+        try {
+            for(var piece:motion.pieces().values()) {
+                var first=piece.at().apply(0);
+                double margin=piece.maxPointSpeed()+ConservativeSweep.SKIN;
+                h.assertTrue(first!=null && Double.isFinite(margin),label+" must have finite conservative motion bounds");
+                var bounds=first.bounds().inflate(margin);
+                envelope=envelope==null?bounds:union(envelope,bounds);
+            }
+        } catch(RuntimeException rejected) {
+            h.assertTrue(false,label+" must be sampleable for the runtime envelope: "+rejected);
+        }
+        h.assertTrue(envelope!=null && envelope.getXsize()<=64 && envelope.getYsize()<=64 && envelope.getZsize()<=64,
+            label+" must fit MaterialPhysicsRuntime's 64-block envelope cap, got "+envelope);
+    }
+
+    private static AABB union(AABB a,AABB b) {
+        return new AABB(Math.min(a.minX,b.minX),Math.min(a.minY,b.minY),Math.min(a.minZ,b.minZ),
+            Math.max(a.maxX,b.maxX),Math.max(a.maxY,b.maxY),Math.max(a.maxZ,b.maxZ));
     }
 
     private static boolean endpointClear(GeometryProvider.MotionSnapshot motion,AABB body,double t) {
