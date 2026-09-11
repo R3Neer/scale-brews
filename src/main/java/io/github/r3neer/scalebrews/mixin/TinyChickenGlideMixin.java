@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.r3neer.scalebrews.integration.gravity.GravityFrames;
 import io.github.r3neer.scalebrews.mount.TinyMountDefinition;
+import io.github.r3neer.scalebrews.mount.TinyMountGravity;
 import io.github.r3neer.scalebrews.mount.TinyMounts;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.animal.chicken.Chicken;
@@ -27,9 +28,9 @@ public abstract class TinyChickenGlideMixin {
 
         var frame = GravityFrames.frame(chicken);
         if (frame.direction() != Direction.DOWN) {
-            // The vanilla branch is guarded by world-Y fall state. Under rotated
-            // gravity neither that guard nor its Y multiplier represents local fall,
-            // so the complete local rule is applied once at TAIL instead.
+            // Vanilla's branch is guarded by world-Y fall state. Under rotated gravity
+            // both the guard and this multiplier are the wrong frame, so TAIL applies
+            // the equivalent local rule exactly once.
             return movement;
         }
 
@@ -53,10 +54,6 @@ public abstract class TinyChickenGlideMixin {
         boolean suppressFallDamping = definition != null
                 && definition.ability() == TinyMountDefinition.Ability.CHICKEN_GLIDE
                 && !TinyMounts.input(rider).jump();
-        if (suppressFallDamping) return;
-
-        Vec3 movement = chicken.getDeltaMovement();
-        if (frame.toLocal(movement).y < 0)
-            chicken.setDeltaMovement(frame.multiplyLocalVertical(movement, VANILLA_FALL_DAMPING));
+        chicken.setDeltaMovement(TinyMountGravity.dampLocalFall(chicken.getDeltaMovement(),frame,VANILLA_FALL_DAMPING,suppressFallDamping));
     }
 }
