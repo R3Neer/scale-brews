@@ -61,9 +61,9 @@ public final class AnatomyPreparedIntegrationProof {
             AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
             AnatomyGeometryTests.actualMovementSixDirectionsPrepared(h);
             AnatomyGeometryTests.geometryBroadphaseFindsPieceOutsideSupportAabbPrepared(h);
-            // This scenario deliberately fills a local block volume; keep it
-            // last so its obstruction cannot contaminate another assertion.
-            AnatomyGeometryTests.trappedPairSuspendsAndReacquiresIndependentlyPrepared(h);
+            // Pair-local recovery must be proven geometrically, not via a block-wall fixture
+            // whose absolute GameTest coordinates can accidentally leave an escape route.
+            S07PreparedPairSuspensionProof.run(h);
         }
         h.succeed();
     }
