@@ -83,9 +83,14 @@ public final class S07PlanConflictLocalizationTests {
                     && confirm(h,rightBody,support,rightWall,"right",98)
                     && confirm(h,safe,support,safeFloor,"safe",98),
                 "All three fixture contacts must be valid before the material event");
+
+            h.assertTrue(AnatomyMovement.supported(leftBody),fixtureState("left",leftBody,leftWall));
+            h.assertTrue(AnatomyMovement.supported(rightBody),fixtureState("right",rightBody,rightWall));
+            h.assertTrue(AnatomyMovement.supported(safe),fixtureState("safe",safe,safeFloor));
             AnatomyMovement.afterMove(leftBody);AnatomyMovement.afterMove(rightBody);AnatomyMovement.afterMove(safe);
-            h.assertTrue(AnatomyMovement.supported(leftBody) && AnatomyMovement.supported(rightBody) && AnatomyMovement.supported(safe),
-                "All retained contacts must be authoritative before conflict resolution");
+            h.assertTrue(AnatomyMovement.supported(leftBody),"Left retained contact became invalid after afterMove: "+fixtureState("left",leftBody,leftWall));
+            h.assertTrue(AnatomyMovement.supported(rightBody),"Right retained contact became invalid after afterMove: "+fixtureState("right",rightBody,rightWall));
+            h.assertTrue(AnatomyMovement.supported(safe),"Safe retained contact became invalid after afterMove: "+fixtureState("safe",safe,safeFloor));
 
             // Prove each plan is individually complete under the same world clip. The only reason
             // the backend may reject the pair together is the simultaneous final body/body overlap.
@@ -120,6 +125,12 @@ public final class S07PlanConflictLocalizationTests {
             support.discard();leftBody.discard();rightBody.discard();safe.discard();
         }
         h.succeed();
+    }
+
+    private static String fixtureState(String name,Entity body,ConvexBox piece) {
+        var separation=piece.separation(body.getBoundingBox());
+        return name+" gap="+separation.gap()+" sepNormal="+separation.normal()+" gravity="+AnatomyMovement.gravity(body).down()
+            +" contact="+AnatomyMovement.contact(body);
     }
 
     private static TemporalResponse.Result resolveIndividually(ServerLevel level,Entity body,AABB captured,
