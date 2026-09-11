@@ -83,6 +83,16 @@ public final class S04G1IntegrationTests {
     }
 
     @GameTest
+    public void catalogSnapshotHasCanonicalEntityOrder(GameTestHelper h) {
+        var cow = Identifier.parse("minecraft:cow");
+        var pig = Identifier.parse("minecraft:pig");
+        var catalog = new CollisionBindingCatalog(List.of(fixtureBinding(pig, Map.of()), fixtureBinding(cow, Map.of())));
+        h.assertTrue(List.copyOf(catalog.snapshot().keySet()).equals(List.of(cow, pig)),
+            "Catalog snapshots expose deterministic entity order independent of input insertion order");
+        h.succeed();
+    }
+
+    @GameTest
     public void capabilitiesVersionTheNewG1Contract(GameTestHelper h) {
         long required = AnatomyApi.mask(AnatomyApi.Capability.ENGINE_REGISTRY,
             AnatomyApi.Capability.VERSIONED_BINDINGS, AnatomyApi.Capability.BODY_ADAPTERS);

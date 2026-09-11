@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.collision.api.spi;
 
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -24,7 +25,7 @@ public interface GeometryEngine {
                     throw new IllegalArgumentException("Invalid geometry engine parameter");
                 copy.put(key, value);
             });
-            parameters = Map.copyOf(copy);
+            parameters = Collections.unmodifiableMap(copy);
         }
 
         public Request(Identifier model) { this(model, Map.of()); }

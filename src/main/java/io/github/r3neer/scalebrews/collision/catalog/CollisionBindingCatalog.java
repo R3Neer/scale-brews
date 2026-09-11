@@ -7,8 +7,10 @@ import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +45,7 @@ public final class CollisionBindingCatalog {
             .sorted(Comparator.<CollisionBinding>comparingInt(value -> value.variant().size()).reversed()
                 .thenComparing(CollisionBinding::variant, CollisionBindingCatalog::compareVariants))
             .toList());
-        byEntity = Map.copyOf(index);
+        byEntity = Collections.unmodifiableMap(new LinkedHashMap<>(index));
     }
 
     public static CollisionBindingCatalog load(ResourceManager resources) {
@@ -90,6 +92,7 @@ public final class CollisionBindingCatalog {
         return Optional.ofNullable(selected);
     }
 
+    /** Deterministic entity and per-entity binding order for tooling and later catalog serialization. */
     public Map<Identifier, List<CollisionBinding>> snapshot() { return byEntity; }
 
     private static void validateRegisteredEngines(CollisionBinding binding) {
