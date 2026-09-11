@@ -1,6 +1,6 @@
 # S02 — SPI y registries de engines reutilizables
 
-Estado: **candidato de implementación; pendiente de CI**.
+Estado: **CERRADO**.
 
 ## 1. Scope
 
@@ -14,7 +14,7 @@ Excluye expresamente G2 solver/material pipeline, G3 cobertura/model extraction 
 
 S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como API final de familia; no existían `GeometryEngine`, `PoseEngine` ni `RootTransformProvider` públicos registrables. El plan G1 exige introducir esas fronteras antes de que G3 pueda implementar familias concretas.
 
-## 3. Plan
+## 3. Plan y convergencia
 
 - [x] definir `GeometryEngine` con request bounded y resultado `ModelGeometry`;
 - [x] definir `PoseEngine` determinista con DTO público de inputs/channels;
@@ -23,19 +23,11 @@ S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como
 - [x] probar registro de fixture externo y ausencia de fallback por id desconocido;
 - [x] probar validación/bounds de DTOs.
 
-### Revisión iterativa
-
-P1 separó root orientation de gravity: el root provider expresa TRS del soporte y no escribe la gravedad del body.
-
-P2 evitó hacer que `PoseEngine` heredase del legacy `PoseProvider`; eso habría convertido un adapter temporal en contrato público.
-
-P3 eliminó cualquier built-in por especie del scope. G3 registrará engines de familia; S02 sólo crea el mecanismo. La siguiente pasada no cambió el plan.
+P1 separó root orientation de gravity. P2 evitó hacer que `PoseEngine` heredase del legacy `PoseProvider`. P3 eliminó cualquier built-in por especie del scope. La siguiente pasada no cambió el plan.
 
 ## 4. Modelo adversarial
 
-Ataques reservados: id desconocido, registro duplicado, request geometry con parámetros inválidos/oversize, pose con NaN o walkAmount negativo, root quaternion degenerado. Propiedad metamórfica: registrar una engine no puede crear por sí solo ningún binding de especie ni alterar física existente.
-
-Holdout: comprobar que una engine registrada por fixture externo sólo es recuperable por su id exacto y que un id ausente queda unresolved.
+Se reservaron id desconocido, registro duplicado, parámetros geometry inválidos/oversize, pose inválida y quaternion root degenerado. La propiedad metamórfica fue que registrar una engine no puede crear por sí solo un binding de especie ni alterar física existente. El holdout exigió recuperar una fixture sólo por su id exacto y mantener unresolved un id ausente.
 
 ## 5. Implementación
 
@@ -51,23 +43,29 @@ No se modificó `AnatomyMovement`, `WorldAnatomyCatalog` ni la ruta física lega
 
 | Propiedad | Nivel | Resultado |
 | --- | --- | --- |
-| fixture registra 3 familias por API | GameTest | pendiente CI |
-| id desconocido no tiene fallback | GameTest | pendiente CI |
-| duplicate id rechazado | GameTest | pendiente CI |
-| DTOs inválidos rechazados | GameTest | pendiente CI |
-| suite previa | `./gradlew build` | pendiente CI |
+| fixture registra 3 familias por API | GameTest | PASS dentro de `./gradlew build` |
+| id desconocido no tiene fallback | GameTest | PASS |
+| duplicate id rechazado | GameTest | PASS |
+| DTOs inválidos rechazados | GameTest | PASS |
+| suite previa | GitHub Actions `./gradlew build` | PASS |
+
+La segunda pasada adversarial no encontró registro implícito, fallback ni acoplamiento por especie. Las mutaciones de duplicate-accept, missing-id fallback y DTO laxos tienen oráculos directos en la suite.
 
 ## 7. Fallos/bucles
 
-Pendiente de CI.
+Ninguno. El candidato pasó a la primera ejecución CI.
 
 ## 8. Revisión final
 
-Pendiente después de CI.
+Se recorrieron límites API, mutabilidad de DTO, duplicate semantics, ausencia de mods externos, separación root/joints/gravity y exclusiones G2/G3. La pasada completa no produjo cambios.
 
 ## 9. Cierre
 
-- [ ] CI verde;
-- [ ] segunda pasada adversarial;
-- [ ] revisión completa sin cambios;
-- [ ] S02 cerrado.
+- [x] CI verde;
+- [x] segunda pasada adversarial;
+- [x] revisión completa sin cambios;
+- [x] S02 cerrado.
+
+Commit candidato: `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3`.
+
+GitHub Actions run `34583088612`, job `103210955751`, finalizó **success** el 2026-09-11. El paso `build` completó `./gradlew build`; wrapper validation, Java 25 y artefactos también quedaron verdes. La evidencia se consolidará en `VALIDATION.md` al cierre de G1.
