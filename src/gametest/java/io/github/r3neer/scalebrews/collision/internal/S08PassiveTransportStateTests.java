@@ -23,8 +23,8 @@ public final class S08PassiveTransportStateTests {
             var contact=new SurfaceContact(support.getUUID(),revision,"floor",face,local,normal,tick);
             h.assertTrue(AnatomyMovement.confirm(body,support,contact),"Fixture must retain support contact");
             var surface=AnatomyMovement.surface(body);
-            Vec3 voluntary=new Vec3(.17,-.31,.09);body.setDeltaMovement(voluntary);body.fallDistance=4.75f;
-            float fall=body.fallDistance;Vec3 applied=new Vec3(.25,0,0);
+            Vec3 voluntary=new Vec3(.17,-.31,.09);body.setDeltaMovement(voluntary);body.fallDistance=4.75;
+            double fall=body.fallDistance;Vec3 applied=new Vec3(.25,0,0);
             body.setPos(body.position().add(applied));
             var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,AnatomyMovement.gravity(support));
             h.assertTrue(AnatomyMovement.recordCertifiedTransport(body,support,surface,root,applied,material,material.move(applied)),
