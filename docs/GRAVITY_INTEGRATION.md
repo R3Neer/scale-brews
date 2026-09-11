@@ -2,6 +2,8 @@
 
 Scale Brews treats Tiny Mounts as ordinary Minecraft vehicle/passenger relationships. External mods do not need a Tiny-Mount-specific API to rotate or otherwise manage a mount: they operate on the root `LivingEntity`, and Scale-owned mount mechanics read that root's effective gravity when generating their own movement.
 
+This integration is released for Tiny Mount movement starting with **0.1.0-beta.6**. It does not make the in-development anatomical collision system a released feature.
+
 ## Ownership boundary
 
 Scale Brews owns the vectors that Scale Brews creates. Bee flight, controlled chicken glide and wolf pounce/landing therefore interpret local up/down and control vectors in the root mount's effective gravity frame. A frame change affects subsequent generated contributions; it does not reinterpret or rotate world-space momentum that was already present.

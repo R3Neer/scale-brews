@@ -1,5 +1,13 @@
 # Validation record
 
+## 0.1.0-beta.6 candidate — 2026-09-11
+
+- Candidate scope adds optional effective-gravity support for Scale-generated Tiny Mount movement: bee flight, chicken glide and wolf pounce/landing use the root mount's effective gravity frame rather than assuming world-down.
+- Gravity Changer is the concrete provider recognized automatically. It is not a hard dependency; without a provider, the shared frame service resolves to vanilla `DOWN` and the existing Tiny Mount behavior is retained.
+- Normal gameplay still uses the released upper-surface living-platform system. All-direction anatomical collisions and the shared Clinging Reoriented physics remain unfinished and disabled in ordinary worlds.
+- Prerelease publication is gated by `.github/workflows/prerelease.yml`: the exact release tree must pass `git diff --check`, build, every required server GameTest, the real client GameTest suite, and packaged-version checks before the workflow may create a tag or GitHub prerelease.
+- Full-pack human acceptance, broad optional-mod combinations and multiplayer latency/host-change coverage remain bounded separately; a passing prerelease lane does not certify every modpack.
+
 ## 0.1.0-beta.5 candidate — 2026-09-09
 
 - Built a fresh isolated snapshot of the recovered canonical repository, including
@@ -50,7 +58,7 @@ Validated on Windows with Microsoft OpenJDK 25.0.3, Minecraft 26.2, Fabric Loade
 
 `ScaleCameraChecks` exercises the injected camera methods across all three perspectives, normal and large sizes, each Shrinking tier, intermediate blend values and an external scale of .0625. It checks render/culling near-plane agreement, near-plane geometric sampling, nonzero bob amplitude, unchanged player position/collision and panoramic exclusion. A disposable stone-corner fixture additionally captures a close-up at Shrinking III with FOV 90 and bobbing enabled. This is not an exhaustive test of every FOV, modded camera, block shape or movement trajectory.
 
-GitHub Actions runs the build/server suite on Ubuntu with Java 25. The client visual check is local, not part of headless CI. Packaging checks ensure production JARs include sprites/languages/tags/mixins but exclude GameTest classes and test-only mixins. `git diff --check` checks patch whitespace.
+GitHub Actions runs both the build/server suite and the real client GameTest under Xvfb on Ubuntu with Java 25 for every push and pull request. Screenshot interpretation remains a human/local task, but client assertions now run in CI and CI uploads logs/screenshots for inspection. Packaging checks ensure production JARs include sprites/languages/tags/mixins but exclude GameTest classes and test-only mixins. `git diff --check` checks patch whitespace.
 
 ## Tiny mounts and configurable mechanics (2026-09-06)
 

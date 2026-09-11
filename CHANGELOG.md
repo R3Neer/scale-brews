@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.0-beta.6] - 2026-09-11
+
+This prerelease adds optional effective-gravity support to Scale-owned Tiny Mount movement and moves the real-client GameTest into ordinary GitHub Actions validation. The all-direction anatomical collision system remains unfinished and disabled in normal gameplay.
+
+### Tiny Mount effective gravity
+
+- Bee flight, controlled chicken glide and wolf pounce/landing now generate their Scale-owned movement in the root mount's effective gravity frame instead of assuming world-down. Existing world-space momentum is not reinterpreted when the frame changes.
+- Centralize effective gravity behind one Scale-side service with vanilla `DOWN` fallback. Gravity Changer is discovered reflectively when present and remains an optional dependency.
+- Cover all six cardinal frames, root-versus-rider ownership, frame changes between actions and preservation of pre-existing momentum with dedicated regressions.
+
+### Validation and release engineering
+
+- Run both server and real-client GameTests in ordinary GitHub Actions CI. Client assertions execute headlessly under Xvfb; screenshots/logs are retained as workflow artifacts for inspection.
+- Add a guarded prerelease workflow that validates the exact release tree, checks packaged metadata and test-class exclusion, calculates the regular-JAR SHA-256 and creates the GitHub prerelease only after all gates pass.
+
+### Development prototype - anatomical geometry (not active gameplay)
+
+- Retain and extend the internal anatomical/contact synchronization and gravity-frame preparation without enabling it in normal worlds. The existing upper-surface living-platform system remains the released behavior.
+
 ## [0.1.0-beta.5] - 2026-09-09
 
 This prerelease consolidates the previous local betas and the changes below.
