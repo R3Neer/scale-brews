@@ -23,6 +23,31 @@ public final class S01PublicApiBoundaryTests {
     }
 
     @GameTest
+    public void publicApiAndRuntimeDoNotFormALayerCycle(GameTestHelper h) {
+        var runtimeTypesReferencedByApi = Stream.concat(
+            Stream.of(AnatomyApi.class.getDeclaredFields()).map(field -> field.getType()),
+            Stream.of(AnatomyApi.class.getDeclaredMethods()).flatMap(method ->
+                Stream.concat(Stream.of(method.getReturnType()), Stream.of(method.getParameterTypes()))))
+            .filter(type -> type.getName().startsWith("io.github.r3neer.scalebrews.collision.runtime."))
+            .distinct()
+            .toList();
+
+        var cyclicRuntimeTypes = runtimeTypesReferencedByApi.stream().filter(runtimeType ->
+            Stream.concat(
+                Stream.of(runtimeType.getDeclaredFields()).map(field -> field.getType()),
+                Stream.of(runtimeType.getDeclaredMethods()).flatMap(method ->
+                    Stream.concat(Stream.of(method.getReturnType()), Stream.of(method.getParameterTypes()))))
+                .map(Class::getName)
+                .anyMatch(name -> name.startsWith("io.github.r3neer.scalebrews.collision.api.")))
+            .map(Class::getName)
+            .toList();
+
+        h.assertTrue(cyclicRuntimeTypes.isEmpty(),
+            "NFR-025 forbids high-level package cycles; collision.api and collision.runtime depend on each other through " + cyclicRuntimeTypes);
+        h.succeed();
+    }
+
+    @GameTest
     public void publicFacadeMissingArgumentsFailClosed(GameTestHelper h) {
         h.assertTrue(AnatomyApi.mode(null) == AnatomyMode.DISABLED,
             "Missing entity must resolve to the disabled public mode");
