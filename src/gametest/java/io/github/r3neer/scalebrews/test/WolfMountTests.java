@@ -86,7 +86,7 @@ public class WolfMountTests {
     }
 
     @GameTest public void tapAndSinglePounceImpact(GameTestHelper h) {
-        var rider=h.makeMockServerPlayer(GameType.SURVIVAL);
+        var rider=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
         rider.getAttribute(Attributes.SCALE).setBaseValue(.76);
         var wolf=h.spawn(EntityTypes.WOLF,2,4,2);wolf.tame(rider);wolf.setNoAi(true);
         wolf.setItemSlot(EquipmentSlot.SADDLE,new ItemStack(Items.SADDLE));
@@ -114,7 +114,7 @@ public class WolfMountTests {
     }
 
     @GameTest(maxTicks=60) public void missedBiteAnimatesAndPoseExpires(GameTestHelper h) {
-        var rider=h.makeMockServerPlayer(GameType.SURVIVAL);
+        var rider=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
         rider.getAttribute(Attributes.SCALE).setBaseValue(.76);
         var wolf=h.spawn(EntityTypes.WOLF,2,20,2);wolf.tame(rider);wolf.setNoAi(true);wolf.setNoGravity(true);
         wolf.setItemSlot(EquipmentSlot.SADDLE,new ItemStack(Items.SADDLE));rider.startRiding(wolf);
