@@ -6,6 +6,8 @@ import io.github.r3neer.scalebrews.platform.*;
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
+import io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.*;
@@ -39,7 +41,12 @@ public abstract class PlatformEntityMixin implements PlatformBody {
         Entity previous=PlatformPhysics.enter(self);
         try {
             original.call(type,delta);
-            if(self instanceof LivingEntity living && root!=null)MaterialIntervalRuntime.commitRoot(living,root);
+            if(self instanceof LivingEntity living && root!=null) {
+                MaterialIntervalRuntime.commitRoot(living,root);
+                // Root mutations are causally ordered by the move call itself. Drain now, before a
+                // later body can enter the swept region and be affected retrospectively.
+                if(living.level() instanceof ServerLevel serverLevel)MaterialPhysicsRuntime.drain(serverLevel);
+            }
             PlatformPhysics.afterMove(self);
             if(before!=null) PlatformPhysics.movedSupport((LivingEntity)self,before);
         }
