@@ -85,10 +85,17 @@ public final class S04G1IntegrationTests {
             Map.of("players", new CollisionPolicy.Patch(java.util.Optional.empty(), java.util.Optional.of(.8), java.util.Optional.empty())),
             Map.of(support, new CollisionPolicy.Patch(java.util.Optional.empty(), java.util.Optional.empty(), java.util.Optional.of(.4))));
         var profile = new CollisionPolicy.Patch(java.util.Optional.empty(), java.util.Optional.of(.75), java.util.Optional.of(.5));
-        h.assertTrue(CollisionRules.allows(policy, profile, "players", support, .75), "Exact ratio boundary is eligible");
-        h.assertTrue(!CollisionRules.allows(policy, profile, "players", support, .750001), "Above profile ratio is rejected");
+        h.assertTrue(CollisionRules.allows(policy, profile, "players", support, Math.nextDown(.75)), "Immediately below profile ratio is eligible");
+        h.assertTrue(CollisionRules.allows(policy, profile, "players", support, .75), "Exact profile ratio boundary is eligible");
+        h.assertTrue(!CollisionRules.allows(policy, profile, "players", support, Math.nextUp(.75)), "Immediately above profile ratio is rejected");
         h.assertTrue(Math.abs(CollisionRules.resolve(policy, profile, "players", support).friction() - .5) < 1e-9,
             "Friction resolves in the same canonical precedence layer");
+        h.assertTrue(CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, Math.nextDown(.85)),
+            "Immediately below default 0.85 ratio is eligible");
+        h.assertTrue(CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, .85),
+            "Exact default 0.85 ratio is eligible");
+        h.assertTrue(!CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, Math.nextUp(.85)),
+            "Immediately above default 0.85 ratio is rejected");
         h.succeed();
     }
 

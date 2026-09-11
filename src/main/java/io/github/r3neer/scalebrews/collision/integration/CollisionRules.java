@@ -17,6 +17,6 @@ public final class CollisionRules {
                                  String category, Identifier supportType, double widthRatio) {
         if (category == null || supportType == null || !Double.isFinite(widthRatio) || widthRatio <= 0) return false;
         var resolved = resolve(policy, profile, category, supportType);
-        return resolved.enabled() && widthRatio <= resolved.maxWidthRatio() + 1e-7;
+        return resolved.enabled() && widthRatio <= resolved.maxWidthRatio();
     }
 }

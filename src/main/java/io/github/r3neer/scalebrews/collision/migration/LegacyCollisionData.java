@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.migration;
 
+import io.github.r3neer.scalebrews.ScaleBrews;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
@@ -8,6 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -20,6 +23,7 @@ public final class LegacyCollisionData {
     public static final Identifier PRECOMPUTED_GEOMETRY = Identifier.parse("scalebrews:precomputed_geometry");
     public static final Identifier LEGACY_POSE_PROVIDER = Identifier.parse("scalebrews:legacy_pose_provider");
     public static final Identifier ENTITY_ROOT = Identifier.parse("scalebrews:entity_root");
+    private static final Set<Identifier> WARNED_LEGACY_PLANES = ConcurrentHashMap.newKeySet();
 
     public record Visual(String part, double x, double y, double z) {}
     public record Plane(String id, double x, double y, double z, double width, double depth, Optional<Visual> visual) {}
@@ -46,6 +50,9 @@ public final class LegacyCollisionData {
                 new CollisionBinding.Pose(LEGACY_POSE_PROVIDER, Map.of("provider", old.poses().toString()), java.util.Set.of()),
                 ENTITY_ROOT, patch, java.util.Set.of());
             return new Decoded(Optional.of(binding), Optional.empty());
+        }
+        if (WARNED_LEGACY_PLANES.add(source.entity())) {
+            ScaleBrews.LOGGER.warn("Entity collision profile {} uses legacy one-sided surfaces; migrating them as explicit planes, not anatomical geometry", source.entity());
         }
         var decoded = source.surfaces().stream().map(surface -> new Plane(surface.id(), surface.x(), surface.y(), surface.z(),
             surface.width(), surface.depth(), surface.visual().map(visual -> new Visual(visual.part(), visual.x(), visual.y(), visual.z())))).toList();
