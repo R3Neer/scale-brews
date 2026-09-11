@@ -1,0 +1,66 @@
+name: anatomy-movement-hotfix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - .github/workflows/anatomy-movement-hotfix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: patch AnatomyMovement causal invalidation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          text=path.read_text()
+          replacements=[
+              (
+                  '    private static void suspend(Entity body,LivingEntity support) {',
+                  '    static void suspend(Entity body,LivingEntity support) {'
+              ),
+              (
+                  '        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));return endpoint;',
+                  '        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));SPATIAL.remove(support.level());return endpoint;'
+              ),
+              (
+                  '            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));return Optional.of(endpoint);',
+                  '            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));SPATIAL.remove(support.level());return Optional.of(endpoint);'
+              ),
+              (
+                  '        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));return Optional.of(endpoint);',
+                  '        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));SPATIAL.remove(support.level());return Optional.of(endpoint);'
+              ),
+          ]
+          for old,new in replacements:
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, found {count}: {old}')
+              text=text.replace(old,new,1)
+          path.write_text(text)
+          PY
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+      - name: commit hotfix
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git config user.name 'ChatGPT'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+          git commit -m 'fix(collision): invalidate spatial cache on causal endpoint changes'
+          git push origin HEAD:chatgpt-editing
