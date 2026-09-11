@@ -1,6 +1,6 @@
 name: s05-s07-live-owner-fix
 
-'on':
+on:
   push:
     branches: [chatgpt-editing]
     paths:
@@ -13,192 +13,20 @@ jobs:
   patch:
     runs-on: ubuntu-24.04
     steps:
-      - name: checkout branch
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           ref: chatgpt-editing
           fetch-depth: 0
-      - name: patch live broadphase owner and plan conflicts
+      - name: patch source
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def once(text, old, new, label):
-              n=text.count(old)
-              if n != 1:
-                  raise SystemExit(f'{label}: expected 1 match, got {n}')
-              return text.replace(old,new,1)
-
-          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
-          t=p.read_text()
-          anchor='    private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());\n'
-          helpers=anchor+'''    /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
-    private static synchronized void removeSpatialEntry(LivingEntity support) {
-        if(support==null)return;
-        var index=SPATIAL.get(support.level());
-        if(index==null || index.tick()!=support.level().getGameTime())return;
-        index.broadphase().remove(support);index.frames().remove(support);
-    }
-    private static synchronized void refreshSpatialEntry(LivingEntity support) {
-        if(support==null)return;
-        var index=SPATIAL.get(support.level());
-        if(index==null || index.tick()!=support.level().getGameTime())return;
-        index.broadphase().remove(support);index.frames().remove(support);
-        var provider=PROVIDERS.get(support);if(provider==null || support.isRemoved())return;
-        GeometryProvider.Snapshot snapshot;FrameStamp frame;
-        var descriptor=DESCRIPTORS.get(support);
-        if(descriptor!=null) {
-            var accepted=FRAME_SERIALS.get(support);
-            if(accepted==null || accepted.invalidated() || accepted.snapshot()==null
-                    || accepted.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE
-                    || accepted.snapshot().revision()!=descriptor.revision())return;
-            snapshot=accepted.snapshot();long registration=registrationGeneration(support);
-            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),
-                descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),registration);
-            frame=new FrameStamp(identity,accepted.endpoint().root(),snapshot.revision(),registration,accepted.endpoint().frameSerial());
-        } else {
-            snapshot=provider.sample(support).orElse(null);if(snapshot==null)return;
-            frame=new FrameStamp(null,observeRoot(support),snapshot.revision(),registrationGeneration(support),0);
-        }
-        var envelope=snapshotBounds(snapshot);if(envelope==null)return;
-        var rejected=index.broadphase().upsert(new MaterialBroadphase.Entry<>(support,envelope));
-        if(rejected!=null) {
-            index.frames().remove(support);clearSupportContacts(support);
-            if(descriptor!=null)quarantineEndpoint(support);
-            return;
-        }
-        index.frames().put(support,frame);
-    }
-    /** Supported external root/dimension mutation hook; observes only this registered support. */
-    public static synchronized void spatialMutation(LivingEntity support) {
-        if(support==null || !ACTIVE.contains(support.level()) || !PROVIDERS.containsKey(support))return;
-        observeRoot(support);
-        if(DESCRIPTORS.containsKey(support))queryFrame(support);else refreshSpatialEntry(support);
-    }
-'''
-          t=once(t,anchor,helpers,'spatial helpers')
-
-          old='''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);SPATIAL.remove(support.level());
-    }
-'''
-          new='''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-        refreshSpatialEntry(support);
-    }
-'''
-          t=once(t,old,new,'legacy register')
-          old='''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
-        DESCRIPTORS.put(support,descriptor);
-    }
-'''
-          new='''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
-        DESCRIPTORS.put(support,descriptor);
-        queryFrame(support);
-    }
-'''
-          t=once(t,old,new,'descriptor register')
-
-          # Rejected/unavailable/lifecycle transitions remove only this support. Accepted frames are reinserted below.
-          count=t.count('SPATIAL.remove(support.level())')
-          if count < 5:
-              raise SystemExit(f'support-wide invalidation count too small: {count}')
-          t=t.replace('SPATIAL.remove(support.level())','removeSpatialEntry(support)')
-
-          old='''        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));removeSpatialEntry(support);return endpoint;
-'''
-          new='''        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));refreshSpatialEntry(support);return endpoint;
-'''
-          t=once(t,old,new,'server endpoint refresh')
-          old='''            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));removeSpatialEntry(support);return Optional.of(endpoint);
-'''
-          new='''            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
-'''
-          t=once(t,old,new,'first direct endpoint refresh')
-          old='''        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));removeSpatialEntry(support);return Optional.of(endpoint);
-'''
-          new='''        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
-'''
-          t=once(t,old,new,'advanced direct endpoint refresh')
-
-          old='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
-'''
-          new='''        var index=new SpatialIndex(level.getGameTime(),built.index(),new IdentityHashMap<>(frames));
-'''
-          t=once(t,old,new,'mutable frame map')
-          p.write_text(t)
-
-          p=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
-          t=p.read_text()
-          anchor='''    @Inject(method="remove",at=@At("HEAD"))
-    private void scalebrews$remove(Entity.RemovalReason reason,CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
-    }
-'''
-          addition=anchor+'''    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
-    private void scalebrews$spatialSetPos(double x,double y,double z,CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
-    }
-    @Inject(method="refreshDimensions",at=@At("RETURN"))
-    private void scalebrews$spatialDimensions(CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
-    }
-'''
-          t=once(t,anchor,addition,'entity spatial hooks')
-          p.write_text(t)
-
-          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java')
-          t=p.read_text()
-          old='''            if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-'''
-          new='''            var conflicts=bodyOverlapConflicts(plans,candidates);
-            if(!conflicts.isEmpty()) {
-                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
-                return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-            }
-'''
-          t=once(t,old,new,'joint plan conflict')
-          old='''            if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-'''
-          new='''            var conflicts=bodyOverlapConflicts(plans,candidates);
-            if(!conflicts.isEmpty()) {
-                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
-                return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-            }
-'''
-          t=once(t,old,new,'single plan conflict')
-          old='''        private boolean worsensBodyOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
-            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
-                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
-                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
-                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS)return true;
-            }
-            return false;
-        }
-'''
-          new='''        private Set<Integer> bodyOverlapConflicts(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
-            var conflicts=new TreeSet<Integer>();
-            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
-                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
-                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
-                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS) {conflicts.add(i);conflicts.add(j);}
-            }
-            return conflicts;
-        }
-'''
-          t=once(t,old,new,'conflict set helper')
-          p.write_text(t)
-          PY
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpkZWYgb25jZSh0ZXh0LCBvbGQsIG5ldywgbGFiZWwpOgogICAgbj10ZXh0LmNvdW50KG9sZCkKICAgIGlmIG4gIT0gMToKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KGYne2xhYmVsfTogZXhwZWN0ZWQgMSBtYXRjaCwgZ290IHtufScpCiAgICByZXR1cm4gdGV4dC5yZXBsYWNlKG9sZCxuZXcsMSkKCnA9UGF0aCgnc3JjL21haW4vamF2YS9pby9naXRodWIvcjNuZWVyL3NjYWxlYnJld3MvY29sbGlzaW9uL2ludGVybmFsL0FuYXRvbXlNb3ZlbWVudC5qYXZhJykKdD1wLnJlYWRfdGV4dCgpCmFuY2hvcj0nICAgIHByaXZhdGUgc3RhdGljIGZpbmFsIE1hcDxMZXZlbCxTcGF0aWFsSW5kZXg+IFNQQVRJQUw9Q29sbGVjdGlvbnMuc3luY2hyb25pemVkTWFwKG5ldyBXZWFrSGFzaE1hcDw+KCkpO1xuJwpoZWxwZXJzPWFuY2hvcisnJycgICAgLyoqIFBlci1zdXBwb3J0IGxpdmUgbWFpbnRlbmFuY2UuIE5ldmVyIHJlYnVpbGQgb3Igc2FtcGxlIHVucmVsYXRlZCBwcm92aWRlcnMgZnJvbSBhIGxvY2FsIG11dGF0aW9uIGhvb2suICovCiAgICBwcml2YXRlIHN0YXRpYyBzeW5jaHJvbml6ZWQgdm9pZCByZW1vdmVTcGF0aWFsRW50cnkoTGl2aW5nRW50aXR5IHN1cHBvcnQpIHsKICAgICAgICBpZihzdXBwb3J0PT1udWxsKXJldHVybjsKICAgICAgICB2YXIgaW5kZXg9U1BBVElBTC5nZXQoc3VwcG9ydC5sZXZlbCgpKTsKICAgICAgICBpZihpbmRleD09bnVsbCB8fCBpbmRleC50aWNrKCkhPXN1cHBvcnQubGV2ZWwoKS5nZXRHYW1lVGltZSgpKXJldHVybjsKICAgICAgICBpbmRleC5icm9hZHBoYXNlKCkucmVtb3ZlKHN1cHBvcnQpO2luZGV4LmZyYW1lcygpLnJlbW92ZShzdXBwb3J0KTsKICAgIH0KICAgIHByaXZhdGUgc3RhdGljIHN5bmNocm9uaXplZCB2b2lkIHJlZnJlc2hTcGF0aWFsRW50cnkoTGl2aW5nRW50aXR5IHN1cHBvcnQpIHsKICAgICAgICBpZihzdXBwb3J0PT1udWxsKXJldHVybjsKICAgICAgICB2YXIgaW5kZXg9U1BBVElBTC5nZXQoc3VwcG9ydC5sZXZlbCgpKTsKICAgICAgICBpZihpbmRleD09bnVsbCB8fCBpbmRleC50aWNrKCkhPXN1cHBvcnQubGV2ZWwoKS5nZXRHYW1lVGltZSgpKXJldHVybjsKICAgICAgICBpbmRleC5icm9hZHBoYXNlKCkucmVtb3ZlKHN1cHBvcnQpO2luZGV4LmZyYW1lcygpLnJlbW92ZShzdXBwb3J0KTsKICAgICAgICB2YXIgcHJvdmlkZXI9UFJPVklERVJTLmdldChzdXBwb3J0KTtpZihwcm92aWRlcj09bnVsbCB8fCBzdXBwb3J0LmlzUmVtb3ZlZCgpKXJldHVybjsKICAgICAgICBHZW9tZXRyeVByb3ZpZGVyLlNuYXBzaG90IHNuYXBzaG90O0ZyYW1lU3RhbXAgZnJhbWU7CiAgICAgICAgdmFyIGRlc2NyaXB0b3I9REVTQ1JJUFRPUlMuZ2V0KHN1cHBvcnQpOwogICAgICAgIGlmKGRlc2NyaXB0b3IhPW51bGwpIHsKICAgICAgICAgICAgdmFyIGFjY2VwdGVkPUZSQU1FX1NFUklBTFMuZ2V0KHN1cHBvcnQpOwogICAgICAgICAgICBpZihhY2NlcHRlZD09bnVsbCB8fCBhY2NlcHRlZC5pbnZhbGlkYXRlZCgpIHx8IGFjY2VwdGVkLnNuYXBzaG90KCk9PW51bGwKICAgICAgICAgICAgICAgICAgICB8fCBhY2NlcHRlZC5lbmRwb2ludCgpLmF2YWlsYWJpbGl0eSgpIT1HZW9tZXRyeVByb3ZpZGVyLkF2YWlsYWJpbGl0eS5BVkFJTEFCTEUKICAgICAgICAgICAgICAgICAgICB8fCBhY2NlcHRlZC5zbmFwc2hvdCgpLnJldmlzaW9uKCkhPWRlc2NyaXB0b3IucmV2aXNpb24oKSlyZXR1cm47CiAgICAgICAgICAgIHNuYXBzaG90PWFjY2VwdGVkLnNuYXBzaG90KCk7bG9uZyByZWdpc3RyYXRpb249cmVnaXN0cmF0aW9uR2VuZXJhdGlvbihzdXBwb3J0KTsKICAgICAgICAgICAgdmFyIGlkZW50aXR5PW5ldyBHZW9tZXRyeVByb3ZpZGVyLkdlb21ldHJ5SWRlbnRpdHkoc3VwcG9ydC5sZXZlbCgpLmRpbWVuc2lvbigpLHN1cHBvcnQuZ2V0VVVJRCgpLHN1cHBvcnQuZ2V0SWQoKSwKICAgICAgICAgICAgICAgIGRlc2NyaXB0b3IuZXBvY2goKSxkZXNjcmlwdG9yLnJldmlzaW9uKCksZGVzY3JpcHRvci5tb2RlbCgpLGRlc2NyaXB0b3IucG9zZVByb3ZpZGVyKCksZGVzY3JpcHRvci5iaW5kaW5nR2VuZXJhdGlvbigpLHJlZ2lzdHJhdGlvbik7CiAgICAgICAgICAgIGZyYW1lPW5ldyBGcmFtZVN0YW1wKGlkZW50aXR5LGFjY2VwdGVkLmVuZHBvaW50KCkucm9vdCgpLHNuYXBzaG90LnJldmlzaW9uKCkscmVnaXN0cmF0aW9uLGFjY2VwdGVkLmVuZHBvaW50KCkuZnJhbWVTZXJpYWwoKSk7CiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgc25hcHNob3Q9cHJvdmlkZXIuc2FtcGxlKHN1cHBvcnQpLm9yRWxzZShudWxsKTtpZihzbmFwc2hvdD09bnVsbClyZXR1cm47CiAgICAgICAgICAgIGZyYW1lPW5ldyBGcmFtZVN0YW1wKG51bGwsb2JzZXJ2ZVJvb3Qoc3VwcG9ydCksc25hcHNob3QucmV2aXNpb24oKSxyZWdpc3RyYXRpb25HZW5lcmF0aW9uKHN1cHBvcnQpLDApOwogICAgICAgIH0KICAgICAgICB2YXIgZW52ZWxvcGU9c25hcHNob3RCb3VuZHMoc25hcHNob3QpO2lmKGVudmVsb3BlPT1udWxsKXJldHVybjsKICAgICAgICB2YXIgcmVqZWN0ZWQ9aW5kZXguYnJvYWRwaGFzZSgpLnVwc2VydChuZXcgTWF0ZXJpYWxCcm9hZHBoYXNlLkVudHJ5PD4oc3VwcG9ydCxlbnZlbG9wZSkpOwogICAgICAgIGlmKHJlamVjdGVkIT1udWxsKSB7CiAgICAgICAgICAgIGluZGV4LmZyYW1lcygpLnJlbW92ZShzdXBwb3J0KTtjbGVhclN1cHBvcnRDb250YWN0cyhzdXBwb3J0KTsKICAgICAgICAgICAgaWYoZGVzY3JpcHRvciE9bnVsbClxdWFyYW50aW5lRW5kcG9pbnQoc3VwcG9ydCk7CiAgICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgaW5kZXguZnJhbWVzKCkucHV0KHN1cHBvcnQsZnJhbWUpOwogICAgfQogICAgLyoqIFN1cHBvcnRlZCBleHRlcm5hbCByb290L2RpbWVuc2lvbiBtdXRhdGlvbiBob29rOyBvYnNlcnZlcyBvbmx5IHRoaXMgcmVnaXN0ZXJlZCBzdXBwb3J0LiAqLwogICAgcHVibGljIHN0YXRpYyBzeW5jaHJvbml6ZWQgdm9pZCBzcGF0aWFsTXV0YXRpb24oTGl2aW5nRW50aXR5IHN1cHBvcnQpIHsKICAgICAgICBpZihzdXBwb3J0PT1udWxsIHx8ICFBQ1RJVkUuY29udGFpbnMoc3VwcG9ydC5sZXZlbCgpKSB8fCAhUFJPVklERVJTLmNvbnRhaW5zS2V5KHN1cHBvcnQpKXJldHVybjsKICAgICAgICBvYnNlcnZlUm9vdChzdXBwb3J0KTsKICAgICAgICBpZihERVNDUklQVE9SUy5jb250YWluc0tleShzdXBwb3J0KSlxdWVyeUZyYW1lKHN1cHBvcnQpO2Vsc2UgcmVmcmVzaFNwYXRpYWxFbnRyeShzdXBwb3J0KTsKICAgIH0KJycnCnQ9b25jZSh0LGFuY2hvcixoZWxwZXJzLCdzcGF0aWFsIGhlbHBlcnMnKQoKb2xkPScnJyAgICAgICAgUVVBUkFOVElORURfUkVHSVNUUkFUSU9OUy5yZW1vdmUoc3VwcG9ydCk7REVTQ1JJUFRPUlMucmVtb3ZlKHN1cHBvcnQpOwogICAgICAgIEZSQU1FX1NFUklBTFMucmVtb3ZlKHN1cHBvcnQpO1JPT1RTLnJlbW92ZShzdXBwb3J0KTtjbGVhclN1cHBvcnRDb250YWN0cyhzdXBwb3J0KTtTUEFUSUFMLnJlbW92ZShzdXBwb3J0LmxldmVsKCkpOwogICAgfQonJycKbmV3PScnJyAgICAgICAgUVVBUkFOVElORURfUkVHSVNUUkFUSU9OUy5yZW1vdmUoc3VwcG9ydCk7REVTQ1JJUFRPUlMucmVtb3ZlKHN1cHBvcnQpOwogICAgICAgIEZSQU1FX1NFUklBTFMucmVtb3ZlKHN1cHBvcnQpO1JPT1RTLnJlbW92ZShzdXBwb3J0KTtjbGVhclN1cHBvcnRDb250YWN0cyhzdXBwb3J0KTtyZW1vdmVTcGF0aWFsRW50cnkoc3VwcG9ydCk7CiAgICAgICAgcmVmcmVzaFNwYXRpYWxFbnRyeShzdXBwb3J0KTsKICAgIH0KJycnCnQ9b25jZSh0LG9sZCxuZXcsJ2xlZ2FjeSByZWdpc3RlcicpCm9sZD0nJycgICAgICAgIGlmKGRlc2NyaXB0b3IuYmluZGluZ0dlbmVyYXRpb24oKT09MClkZXNjcmlwdG9yPW5ldyBHZW9tZXRyeVByb3ZpZGVyLkdlb21ldHJ5SWRlbnRpdHlEZXNjcmlwdG9yKGRlc2NyaXB0b3IuZXBvY2goKSxkZXNjcmlwdG9yLnJldmlzaW9uKCksZGVzY3JpcHRvci5tb2RlbCgpLGRlc2NyaXB0b3IucG9zZVByb3ZpZGVyKCkscmVnaXN0cmF0aW9uR2VuZXJhdGlvbihzdXBwb3J0KSk7CiAgICAgICAgREVTQ1JJUFRPUlMucHV0KHN1cHBvcnQsZGVzY3JpcHRvcik7CiAgICB9CicnJwpuZXc9JycnICAgICAgICBpZihkZXNjcmlwdG9yLmJpbmRpbmdHZW5lcmF0aW9uKCk9PTApZGVzY3JpcHRvcj1uZXcgR2VvbWV0cnlQcm92aWRlci5HZW9tZXRyeUlkZW50aXR5RGVzY3JpcHRvcihkZXNjcmlwdG9yLmVwb2NoKCksZGVzY3JpcHRvci5yZXZpc2lvbigpLGRlc2NyaXB0b3IubW9kZWwoKSxkZXNjcmlwdG9yLnBvc2VQcm92aWRlcigpLHJlZ2lzdHJhdGlvbkdlbmVyYXRpb24oc3VwcG9ydCkpOwogICAgICAgIERFU0NSSVBUT1JTLnB1dChzdXBwb3J0LGRlc2NyaXB0b3IpOwogICAgICAgIHF1ZXJ5RnJhbWUoc3VwcG9ydCk7CiAgICB9CicnJwp0PW9uY2UodCxvbGQsbmV3LCdkZXNjcmlwdG9yIHJlZ2lzdGVyJykKCmNvdW50PXQuY291bnQoJ1NQQVRJQUwucmVtb3ZlKHN1cHBvcnQubGV2ZWwoKSknKQppZiBjb3VudCA8IDU6CiAgICByYWlzZSBTeXN0ZW1FeGl0KGYnc3VwcG9ydC13aWRlIGludmFsaWRhdGlvbiBjb3VudCB0b28gc21hbGw6IHtjb3VudH0nKQp0PXQucmVwbGFjZSgnU1BBVElBTC5yZW1vdmUoc3VwcG9ydC5sZXZlbCgpKScsJ3JlbW92ZVNwYXRpYWxFbnRyeShzdXBwb3J0KScpCgpvbGQ9JycnICAgICAgICBGUkFNRV9TRVJJQUxTLnB1dChzdXBwb3J0LG5ldyBFbmRwb2ludFNlcmlhbChzdGFtcCxlbmRwb2ludCxzbmFwc2hvdCxmYWxzZSkpO3JlbW92ZVNwYXRpYWxFbnRyeShzdXBwb3J0KTtyZXR1cm4gZW5kcG9pbnQ7CicnJwpuZXc9JycnICAgICAgICBGUkFNRV9TRVJJQUxTLnB1dChzdXBwb3J0LG5ldyBFbmRwb2ludFNlcmlhbChzdGFtcCxlbmRwb2ludCxzbmFwc2hvdCxmYWxzZSkpO3JlZnJlc2hTcGF0aWFsRW50cnkoc3VwcG9ydCk7cmV0dXJuIGVuZHBvaW50OwonJycKdD1vbmNlKHQsb2xkLG5ldywnc2VydmVyIGVuZHBvaW50IHJlZnJlc2gnKQpvbGQ9JycnICAgICAgICAgICAgRlJBTUVfU0VSSUFMUy5wdXQoc3VwcG9ydCxuZXcgRW5kcG9pbnRTZXJpYWwobnVsbCxlbmRwb2ludCxzbmFwc2hvdCxmYWxzZSkpO3JlbW92ZVNwYXRpYWxFbnRyeShzdXBwb3J0KTtyZXR1cm4gT3B0aW9uYWwub2YoZW5kcG9pbnQpOwonJycKbmV3PScnJyAgICAgICAgICAgIEZSQU1FX1NFUklBTFMucHV0KHN1cHBvcnQsbmV3IEVuZHBvaW50U2VyaWFsKG51bGwsZW5kcG9pbnQsc25hcHNob3QsZmFsc2UpKTtyZWZyZXNoU3BhdGlhbEVudHJ5KHN1cHBvcnQpO3JldHVybiBPcHRpb25hbC5vZihlbmRwb2ludCk7CicnJwp0PW9uY2UodCxvbGQsbmV3LCdmaXJzdCBkaXJlY3QgZW5kcG9pbnQgcmVmcmVzaCcpCm9sZD0nJycgICAgICAgIEZSQU1FX1NFUklBTFMucHV0KHN1cHBvcnQsbmV3IEVuZHBvaW50U2VyaWFsKG51bGwsZW5kcG9pbnQsc25hcHNob3QsZmFsc2UpKTtyZW1vdmVTcGF0aWFsRW50cnkoc3VwcG9ydCk7cmV0dXJuIE9wdGlvbmFsLm9mKGVuZHBvaW50KTsKJycnCm5ldz0nJycgICAgICAgIEZSQU1FX1NFUklBTFMucHV0KHN1cHBvcnQsbmV3IEVuZHBvaW50U2VyaWFsKG51bGwsZW5kcG9pbnQsc25hcHNob3QsZmFsc2UpKTtyZWZyZXNoU3BhdGlhbEVudHJ5KHN1cHBvcnQpO3JldHVybiBPcHRpb25hbC5vZihlbmRwb2ludCk7CicnCnQ9b25jZSh0LG9sZCxuZXcsJ2FkdmFuY2VkIGRpcmVjdCBlbmRwb2ludCByZWZyZXNoJykKCm9sZD0nJycgICAgICAgIHZhciBpbmRleD1uZXcgU3BhdGlhbEluZGV4KGxldmVsLmdldEdhbWVUaW1lKCksYnVpbHQuaW5kZXgoKSxDb2xsZWN0aW9ucy51bm1vZGlmaWFibGVNYXAobmV3IElkZW50aXR5SGFzaE1hcDw+KGZyYW1lcykpKTsKJycnCm5ldz0nJycgICAgICAgIHZhciBpbmRleD1uZXcgU3BhdGlhbEluZGV4KGxldmVsLmdldEdhbWVUaW1lKCksYnVpbHQuaW5kZXgoKSxuZXcgSWRlbnRpdHlIYXNoTWFwPD4oZnJhbWVzKSk7CicnCnQ9b25jZSh0LG9sZCxuZXcsJ211dGFibGUgZnJhbWUgbWFwJykKcC53cml0ZV90ZXh0KHQpCgpwPVBhdGgoJ3NyYy9tYWluL2phdmEvaW8vZ2l0aHViL3IzbmVlci9zY2FsZWJyZXdzL21peGluL1BsYXRmb3JtRW50aXR5TWl4aW4uamF2YScpCnQ9cC5yZWFkX3RleHQoKQphbmNob3I9JycnICAgIEBJbmplY3QobWV0aG9kPSJyZW1vdmUiLGF0PUBBdCgiSEVBRCIpKQogICAgcHJpdmF0ZSB2b2lkIHNjYWxlYnJld3MkcmVtb3ZlKEVudGl0eS5SZW1vdmFsUmVhc29uIHJlYXNvbixDYWxsYmFja0luZm8gY2kpIHsKICAgICAgICBpZigoT2JqZWN0KXRoaXMgaW5zdGFuY2VvZiBMaXZpbmdFbnRpdHkgbGl2aW5nKXtBbmF0b215TW92ZW1lbnQuaW52YWxpZGF0ZVJvb3QobGl2aW5nKTtNYXRlcmlhbEludGVydmFsUnVudGltZS5pbnZhbGlkYXRlKGxpdmluZyk7fQogICAgfQonJycKYWRkaXRpb249YW5jaG9yKyc n' | base64 -d | python
           git diff --check
           git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
       - name: commit source fix
         shell: bash
         run: |
-          if git diff --quiet; then
-            echo 'No source changes required.'
-            exit 0
-          fi
+          if git diff --quiet; then exit 0; fi
           git config user.name 'ChatGPT'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
