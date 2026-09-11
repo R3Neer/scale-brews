@@ -13,6 +13,7 @@ import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -104,6 +105,57 @@ public final class S03CanonicalCollisionDataTests {
         var encodedFilter = CollisionCodecs.FILTER.encodeStart(JsonOps.INSTANCE, modelIdFilter).getOrThrow();
         h.assertTrue(CollisionCodecs.FILTER.parse(JsonOps.INSTANCE, encodedFilter).getOrThrow().equals(modelIdFilter),
             "Filter codec must preserve the ModelGeometry id domain rather than canonical-key syntax");
+        h.succeed();
+    }
+
+    @GameTest
+    public void constructorAcceptedBoundaryDataRoundTripsCanonically(GameTestHelper h) {
+        var variant = new HashMap<String, String>();
+        for (int n = 0; n < 32; n++) variant.put(n == 0 ? "v".repeat(64) : "v" + n, "x".repeat(256));
+
+        var geometryParameters = new HashMap<String, String>();
+        var poseParameters = new HashMap<String, String>();
+        for (int n = 0; n < 128; n++) {
+            String key = n == 0 ? "g".repeat(64) : "g" + n;
+            geometryParameters.put(key, "g".repeat(1024));
+            poseParameters.put(n == 0 ? "p".repeat(64) : "p" + n, "p".repeat(1024));
+        }
+
+        var channels = new HashSet<String>();
+        var excludedStates = new HashSet<String>();
+        for (int n = 0; n < 64; n++) {
+            channels.add(n == 0 ? "c".repeat(64) : "channel" + n);
+            excludedStates.add(n == 0 ? "s".repeat(64) : "state" + n);
+        }
+
+        var include = new HashSet<String>();
+        var exclude = new HashSet<String>();
+        include.add("i".repeat(256));
+        exclude.add("e".repeat(256));
+        for (int n = 1; n < 2048; n++) {
+            include.add("include/part:" + n);
+            exclude.add("exclude/part:" + n);
+        }
+        var filter = new AnatomyFilter(.01, .5, .5, include, exclude);
+
+        var binding = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, Identifier.parse("fixture:boundary"), variant,
+            new CollisionBinding.Geometry(Identifier.parse("fixture:geometry"), Identifier.parse("fixture:model"), geometryParameters, filter),
+            new CollisionBinding.Pose(Identifier.parse("fixture:pose"), poseParameters, channels),
+            Identifier.parse("fixture:root"), CollisionPolicy.Patch.EMPTY, excludedStates);
+        var bindingJson = CollisionCodecs.BINDING.encodeStart(JsonOps.INSTANCE, binding).getOrThrow();
+        var decodedBinding = CollisionCodecs.BINDING.parse(JsonOps.INSTANCE, bindingJson).getOrThrow();
+        h.assertTrue(decodedBinding.equals(binding),
+            "Every constructor-accepted canonical binding at its declared size/length boundaries must codec round-trip");
+
+        var categories = new HashMap<String, CollisionPolicy.Patch>();
+        for (int n = 0; n < 256; n++) categories.put(n == 0 ? "k".repeat(64) : "category" + n, CollisionPolicy.Patch.EMPTY);
+        var supports = new HashMap<Identifier, CollisionPolicy.Patch>();
+        for (int n = 0; n < 4096; n++) supports.put(Identifier.parse("fixture:support_" + n), CollisionPolicy.Patch.EMPTY);
+        var policy = new CollisionPolicy(CollisionPolicy.SCHEMA_VERSION, new CollisionPolicy.Rule(true, 1024, 1), categories, supports);
+        var policyJson = CollisionCodecs.POLICY.encodeStart(JsonOps.INSTANCE, policy).getOrThrow();
+        var decodedPolicy = CollisionCodecs.POLICY.parse(JsonOps.INSTANCE, policyJson).getOrThrow();
+        h.assertTrue(decodedPolicy.equals(policy),
+            "Every constructor-accepted canonical policy at its declared collection boundaries must codec round-trip");
         h.succeed();
     }
 
