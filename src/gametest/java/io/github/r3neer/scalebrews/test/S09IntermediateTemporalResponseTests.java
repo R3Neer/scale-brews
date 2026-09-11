@@ -38,6 +38,38 @@ public final class S09IntermediateTemporalResponseTests {
         h.succeed();
     }
 
+    /** Reserved S09 holdout: the material contact exists for less than two percent of the interval. */
+    @GameTest
+    public void veryShortInteriorTouchCannotBeSkippedWhenPieceRetracts(GameTestHelper h) {
+        var local=ConvexBox.of(new AABB(1.98,-.02,-.02,2.02,.02,.02),new Matrix4f());
+        var body=new AABB(-.015,-.015,1.985,.015,.015,2.015);
+        // Max radius is just over 2.02; 2.05*pi safely bounds every point's angular speed.
+        var motion=new ConservativeSweep.Motion(t->rotateY(local,Math.PI*t),2.05*Math.PI,Vec3.ZERO);
+
+        h.assertTrue(!motion.at().apply(0).overlaps(body) && !motion.at().apply(1).overlaps(body),
+            "Short-touch holdout requires clear endpoints");
+        h.assertTrue(!motion.at().apply(.49).overlaps(body) && motion.at().apply(.5).overlaps(body)
+                && !motion.at().apply(.51).overlaps(body),
+            "Short-touch holdout must enter and leave material contact inside a window narrower than 2% of the interval");
+
+        var ccd=ConservativeSweep.query(body,Vec3.ZERO,motion,256);
+        h.assertTrue(ccd.status()==ConservativeSweep.Status.CONTACT
+                && ccd.safeFraction()>.49 && ccd.safeFraction()<.51,
+            "CCD must not step over the narrow interior contact before the piece retracts: "+ccd);
+
+        var response=TemporalResponse.resolve(body,Vec3.ZERO,Map.of("short_swing",motion),32,256);
+        h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE,
+            "A narrow but real material contact must resolve completely rather than disappear or exhaust: "+response);
+        h.assertTrue(response.displacement().lengthSqr()>1e-12,
+            "FR-049 applies even when the material contact exists only briefly: "+response);
+        h.assertTrue(response.contacts().stream().anyMatch(c->c.piece().equals("short_swing")
+                && c.time()>.49 && c.time()<.51),
+            "Response evidence must preserve the brief interior hit itself: "+response.contacts());
+        h.assertTrue(!motion.at().apply(1).overlaps(body.move(response.displacement())),
+            "Retraction must leave the resolved body clear at the material endpoint");
+        h.succeed();
+    }
+
     private static ConvexBox rotateY(ConvexBox box,double radians) {
         double sin=Math.sin(radians),cos=Math.cos(radians);
         return new ConvexBox(box.vertices().stream().map(v->new Vec3(v.x*cos-v.z*sin,v.y,v.x*sin+v.z*cos)).toList());
