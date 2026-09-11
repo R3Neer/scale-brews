@@ -62,9 +62,11 @@ public final class S09OwnMoveBudgetBoundaryTests {
                 "A11 live wrapper must expose the same query-budget exhaustion in metrics: before="+beforeMetrics+" after="+afterMetrics);
             h.assertTrue(body.position().equals(beforePos),
                 "AnatomyMovement.collide is query-only and must not mutate the entity while reporting exhaustion");
-            h.assertTrue(allowed.lengthSqr()<1e-20,
-                "S09 A11 forbids exporting the kernel's safe prefix as partial own movement after budget exhaustion; kernel="
-                    +kernel+" liveAllowed="+allowed+" decoys="+calibrated);
+            var leakedContact=AnatomyMovement.contact(body);
+            boolean leakedSuspension=AnatomyMovement.suspended(body,support);
+            h.assertTrue(allowed.lengthSqr()<1e-20 && leakedContact==null && !leakedSuspension,
+                "S09 A11 fail-closed exhaustion may export neither the kernel prefix nor logical state derived from it; kernel="
+                    +kernel+" liveAllowed="+allowed+" contact="+leakedContact+" suspended="+leakedSuspension+" decoys="+calibrated);
         } finally {
             AnatomyMovement.clear(body);
             AnatomyMovement.deactivate(level);
