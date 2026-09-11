@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.collision.catalog;
 
 import com.mojang.serialization.JsonOps;
+import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public final class CollisionBindingCatalog {
         var selectors = new HashSet<String>();
         for (var binding : bindings) {
             if (binding == null) throw new IllegalArgumentException("Null collision binding");
+            validateRegisteredEngines(binding);
             String selector = binding.entity() + "|" + binding.variant();
             if (!selectors.add(selector)) throw new IllegalArgumentException("Duplicate collision binding selector: " + selector);
             index.computeIfAbsent(binding.entity(), ignored -> new ArrayList<>()).add(binding);
@@ -87,6 +89,15 @@ public final class CollisionBindingCatalog {
     }
 
     public Map<Identifier, List<CollisionBinding>> snapshot() { return byEntity; }
+
+    private static void validateRegisteredEngines(CollisionBinding binding) {
+        if (CollisionEngines.geometry(binding.geometry().engine()).isEmpty())
+            throw new IllegalArgumentException("Missing collision geometry engine " + binding.geometry().engine() + " for " + binding.entity());
+        if (CollisionEngines.pose(binding.pose().engine()).isEmpty())
+            throw new IllegalArgumentException("Missing collision pose engine " + binding.pose().engine() + " for " + binding.entity());
+        if (CollisionEngines.rootTransform(binding.rootTransform()).isEmpty())
+            throw new IllegalArgumentException("Missing collision root transform provider " + binding.rootTransform() + " for " + binding.entity());
+    }
 
     private static boolean matches(Map<String, String> selector, Map<String, String> runtime) {
         for (var entry : selector.entrySet()) if (!entry.getValue().equals(runtime.get(entry.getKey()))) return false;

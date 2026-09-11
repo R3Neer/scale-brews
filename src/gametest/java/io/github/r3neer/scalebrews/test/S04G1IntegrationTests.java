@@ -4,10 +4,14 @@ import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
 import io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -34,11 +38,31 @@ public final class S04G1IntegrationTests {
     }
 
     @GameTest
+    public void canonicalCatalogRejectsUnregisteredEngineReferences(GameTestHelper h) {
+        ExternalCollisionFixture.register();
+        var entity = Identifier.parse("minecraft:pig");
+        var base = fixtureBinding(entity, Map.of());
+        var missingGeometry = new CollisionBinding(1, entity, Map.of(),
+            new CollisionBinding.Geometry(Identifier.parse("scalebrews_test:missing_geometry"), base.geometry().model(), Map.of(), AnatomyFilter.DEFAULT),
+            base.pose(), base.rootTransform(), CollisionPolicy.Patch.EMPTY, Set.of());
+        var missingPose = new CollisionBinding(1, entity, Map.of(), base.geometry(),
+            new CollisionBinding.Pose(Identifier.parse("scalebrews_test:missing_pose"), Map.of(), Set.of()),
+            base.rootTransform(), CollisionPolicy.Patch.EMPTY, Set.of());
+        var missingRoot = new CollisionBinding(1, entity, Map.of(), base.geometry(), base.pose(),
+            Identifier.parse("scalebrews_test:missing_root"), CollisionPolicy.Patch.EMPTY, Set.of());
+        h.assertTrue(rejected(missingGeometry), "Catalog rejects an unregistered geometry engine");
+        h.assertTrue(rejected(missingPose), "Catalog rejects an unregistered pose engine");
+        h.assertTrue(rejected(missingRoot), "Catalog rejects an unregistered root transform provider");
+        h.succeed();
+    }
+
+    @GameTest
     public void canonicalCatalogFailsClosedOnAmbiguousVariantSelection(GameTestHelper h) {
+        ExternalCollisionFixture.register();
         var entity = Identifier.parse("minecraft:pig");
         var first = fixtureBinding(entity, Map.of("coat", "brown"));
         var second = fixtureBinding(entity, Map.of("age", "adult"));
-        var catalog = new CollisionBindingCatalog(java.util.List.of(first, second));
+        var catalog = new CollisionBindingCatalog(List.of(first, second));
         h.assertTrue(catalog.resolve(entity, Map.of("coat", "brown", "age", "adult")).isEmpty(),
             "Equally-specific variant matches must fail closed instead of depending on resource order");
         h.succeed();
@@ -69,11 +93,20 @@ public final class S04G1IntegrationTests {
         h.succeed();
     }
 
-    private static io.github.r3neer.scalebrews.collision.data.CollisionBinding fixtureBinding(Identifier entity, Map<String,String> variant) {
-        return new io.github.r3neer.scalebrews.collision.data.CollisionBinding(1, entity, variant,
-            new io.github.r3neer.scalebrews.collision.data.CollisionBinding.Geometry(ExternalCollisionFixture.GEOMETRY,
-                Identifier.parse("scalebrews_test:model"), Map.of(), io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter.DEFAULT),
-            new io.github.r3neer.scalebrews.collision.data.CollisionBinding.Pose(ExternalCollisionFixture.POSE, Map.of(), java.util.Set.of()),
-            ExternalCollisionFixture.ROOT, CollisionPolicy.Patch.EMPTY, java.util.Set.of());
+    private static boolean rejected(CollisionBinding binding) {
+        try {
+            new CollisionBindingCatalog(List.of(binding));
+            return false;
+        } catch (IllegalArgumentException expected) {
+            return true;
+        }
+    }
+
+    private static CollisionBinding fixtureBinding(Identifier entity, Map<String,String> variant) {
+        return new CollisionBinding(1, entity, variant,
+            new CollisionBinding.Geometry(ExternalCollisionFixture.GEOMETRY,
+                Identifier.parse("scalebrews_test:model"), Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(ExternalCollisionFixture.POSE, Map.of(), Set.of()),
+            ExternalCollisionFixture.ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
     }
 }

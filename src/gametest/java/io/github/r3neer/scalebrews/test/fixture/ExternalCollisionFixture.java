@@ -16,13 +16,18 @@ public final class ExternalCollisionFixture {
     public static final Identifier ROOT = Identifier.parse("scalebrews_test:s04_root");
     public static final Identifier BODY = Identifier.parse("scalebrews_test:s04_virtual_body");
 
+    /** GameTests share one JVM registry; make the fixture bootstrap repeat-safe without weakening registry duplicate rejection. */
     public static void register() {
-        CollisionEngines.registerGeometry(GEOMETRY, request -> Optional.empty());
-        CollisionEngines.registerPose(POSE, (model, inputs, parameters) -> Optional.of(Map.of()));
-        CollisionEngines.registerRootTransform(ROOT, entity -> Optional.empty());
-        CollisionAdapters.registerBody(BODY, new BodyAdapter() {
-            @Override public String category() { return "fixture_bodies"; }
-            @Override public boolean permits(net.minecraft.world.entity.Entity body) { return true; }
-        });
+        if (CollisionEngines.geometry(GEOMETRY).isEmpty())
+            CollisionEngines.registerGeometry(GEOMETRY, request -> Optional.empty());
+        if (CollisionEngines.pose(POSE).isEmpty())
+            CollisionEngines.registerPose(POSE, (model, inputs, parameters) -> Optional.of(Map.of()));
+        if (CollisionEngines.rootTransform(ROOT).isEmpty())
+            CollisionEngines.registerRootTransform(ROOT, entity -> Optional.empty());
+        if (CollisionAdapters.body(BODY).isEmpty())
+            CollisionAdapters.registerBody(BODY, new BodyAdapter() {
+                @Override public String category() { return "fixture_bodies"; }
+                @Override public boolean permits(net.minecraft.world.entity.Entity body) { return true; }
+            });
     }
 }
