@@ -47,8 +47,13 @@ public final class S07BudgetFailureLocalizationTests {
 
         Vec3 base=support.position();
         uncertain.setPos(base.x,base.y+1.2,base.z);
-        double top=uncertain.getBoundingBox().minY-.01;
-        var budgetPiece=ConvexBox.of(new AABB(base.x-1,top-.5,base.z-1,base.x+1,top,base.z+1),new Matrix4f());
+        double bodyBottom=uncertain.getBoundingBox().minY;
+        // Matrix4f exports through float. First align the actual SAT face to zero gap,
+        // then move it down by an exact double 0.01 so the fixture cannot fail on
+        // representation noise before reaching the budget-exhaustion path.
+        var approximate=ConvexBox.of(new AABB(base.x-1,bodyBottom-.5,base.z-1,base.x+1,bodyBottom,base.z+1),new Matrix4f());
+        double alignment=approximate.separation(uncertain.getBoundingBox()).gap();
+        var budgetPiece=approximate.move(new Vec3(0,alignment-.01,0));
         Vec3 safeOrigin=base.add(8,0,0);
         safe.setPos(safeOrigin);
         var safePiece=ConvexBox.of(new AABB(safeOrigin.x-1,safeOrigin.y-.5,safeOrigin.z-1,
@@ -60,8 +65,9 @@ public final class S07BudgetFailureLocalizationTests {
         try {
             h.assertTrue(Platforms.eligible(uncertain,support) && Platforms.eligible(safe,support),
                 "Both bodies must be eligible so the holdout isolates failure locality");
-            h.assertTrue(Math.abs(budgetPiece.separation(uncertain.getBoundingBox()).gap()-.01)<1e-7,
-                "Uncertain pair must begin separated, not in the initial-overlap recovery path");
+            double actualGap=budgetPiece.separation(uncertain.getBoundingBox()).gap();
+            h.assertTrue(Math.abs(actualGap-.01)<1e-9,
+                "Uncertain pair must begin separated by the intended retained-contact gap, not in initial-overlap recovery: "+actualGap);
 
             h.assertTrue(confirm(h,uncertain,support,budgetPiece,"budget",97),
                 "Uncertain fixture must start with a materially valid retained contact inside the .025 tolerance");
