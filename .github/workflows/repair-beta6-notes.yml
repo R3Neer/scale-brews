@@ -1,0 +1,46 @@
+name: repair beta6 release notes
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ contains(github.event.head_commit.message, '[repair-beta6-notes]') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: repair published notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v0.1.0-beta.6 --repo "$GITHUB_REPOSITORY" --json body --jq .body > release-notes.md
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("release-notes.md")
+          lines = path.read_text(encoding="utf-8").splitlines()
+          removed = False
+          cleaned = []
+          for line in lines:
+              if not removed and re.fullmatch(r"- \d{4}-\d{2}-\d{2}", line.strip()):
+                  removed = True
+                  continue
+              cleaned.append(line)
+          if not removed:
+              raise SystemExit("Expected stray changelog date line was not present")
+          while len(cleaned) > 1 and cleaned[1] == "" and len(cleaned) > 2 and cleaned[2] == "":
+              del cleaned[1]
+          path.write_text("\n".join(cleaned).rstrip() + "\n", encoding="utf-8")
+          PY
+          gh release edit v0.1.0-beta.6 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Scale Brews 0.1.0-beta.6" \
+            --notes-file release-notes.md \
+            --prerelease
