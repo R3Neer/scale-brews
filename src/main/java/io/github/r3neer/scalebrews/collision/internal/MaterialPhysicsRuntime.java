@@ -169,6 +169,10 @@ public final class MaterialPhysicsRuntime {
     private static final class Backend implements MaterialEventDispatcher.Backend<Entity> {
         private final ServerLevel level;
         private final Map<GeometryProvider.MotionIntervalHandle,Prepared> prepared=new IdentityHashMap<>();
+        private final Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> derivedMotions=new IdentityHashMap<>();
+        private record Applied(List<MaterialEventDispatcher.DerivedCarry<Entity>> derived,Set<MaterialEventDispatcher.EventId> invalidParents) {
+            private Applied {derived=List.copyOf(derived);invalidParents=Set.copyOf(invalidParents);}
+        }
         Backend(ServerLevel level,List<Prepared> values){this.level=level;for(var value:values)prepared.put(value.pending().handle(),value);}
 
         @Override public MaterialEventDispatcher.Candidates<Entity> capture(MaterialEventDispatcher.Event<Entity> event,int maximumBodies) {
@@ -215,8 +219,7 @@ public final class MaterialPhysicsRuntime {
             var motion=motion(event.interval().handle());
             if(motion==null)return new MaterialEventDispatcher.Resolution<>(fail(List.of(event),MaterialEventDispatcher.Reason.BACKEND_FAILURE),List.of());
             var pieces=scopedPieces(event,motion);
-            var outcome=resolveAll(List.of(event),pieces,Map.of(event.interval().handle(),motion),candidates);
-            return new MaterialEventDispatcher.Resolution<>(outcome,List.of());
+            return resolveAll(List.of(event),pieces,Map.of(event.interval().handle(),motion),candidates);
         }
         @Override public MaterialEventDispatcher.BatchResolution<Entity> resolveJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,
                 List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
@@ -229,8 +232,6 @@ public final class MaterialPhysicsRuntime {
             var plans=new ArrayList<Plan>();int evaluations=0;
             for(var candidate:candidates) {
                 var body=candidate.body();
-                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent())
-                    return batchFailure(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 var pieces=new TreeMap<String,ConservativeSweep.Motion>();
                 for(var event:events) {
                     if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
@@ -244,6 +245,8 @@ public final class MaterialPhysicsRuntime {
                     revalidateRetainedContacts(candidates,events);
                     return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
                 }
+                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent() && plan.transport()==null)
+                    return batchFailure(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             var conflicts=bodyOverlapPairs(plans,candidates);
@@ -257,10 +260,12 @@ public final class MaterialPhysicsRuntime {
                 revalidateRetainedContacts(candidates,events);
                 return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
             }
-            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+            var applied=apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             var outcomes=new ArrayList<MaterialEventDispatcher.Outcome>(events.size());
-            for(int i=0;i<events.size();i++)outcomes.add(MaterialEventDispatcher.Outcome.applied(1));
-            return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
+            for(var event:events)outcomes.add(applied.invalidParents().contains(event.id())
+                ?MaterialEventDispatcher.Outcome.applied(1,MaterialEventDispatcher.Reason.INVALID_DERIVATION)
+                :MaterialEventDispatcher.Outcome.applied(1));
+            return new MaterialEventDispatcher.BatchResolution<>(outcomes,applied.derived());
         }
         @Override public void quarantine(MaterialEventDispatcher.Event<Entity> event,MaterialEventDispatcher.Reason reason) {
             if(reason!=MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED && event.support() instanceof LivingEntity support)
@@ -268,7 +273,16 @@ public final class MaterialPhysicsRuntime {
             record(level,0,0,0,1,reason==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED?1:0);
         }
         private GeometryProvider.MotionSnapshot motion(GeometryProvider.MotionIntervalHandle handle) {
-            var value=prepared.get(handle);return value==null?null:value.motion();
+            var value=prepared.get(handle);return value==null?derivedMotions.get(handle):value.motion();
+        }
+        private MaterialEventDispatcher.MaterialInterval derivedInterval(LivingEntity support,GeometryProvider.MotionIntervalHandle handle) {
+            var motion=AnatomyRuntime.interval(support,handle).orElse(null);if(motion==null)return null;
+            var bounds=envelope(motion);if(bounds==null || bounds.getXsize()>MAX_ENVELOPE_SPAN
+                    || bounds.getYsize()>MAX_ENVELOPE_SPAN || bounds.getZsize()>MAX_ENVELOPE_SPAN)return null;
+            try {
+                var interval=new MaterialEventDispatcher.MaterialInterval(handle,bounds);
+                derivedMotions.put(handle,motion);return interval;
+            } catch(RuntimeException rejected){return null;}
         }
         private TreeMap<String,ConservativeSweep.Motion> scopedPieces(MaterialEventDispatcher.Event<Entity> event,
                 GeometryProvider.MotionSnapshot motion) {
@@ -279,29 +293,33 @@ public final class MaterialPhysicsRuntime {
         private String prefix(MaterialEventDispatcher.Event<Entity> event) {
             return event.support().getUUID()+"/"+event.interval().handle().materialSerial()+"/";
         }
-        private MaterialEventDispatcher.Outcome resolveAll(List<MaterialEventDispatcher.Event<Entity>> events,
+        private MaterialEventDispatcher.Resolution<Entity> resolveAll(List<MaterialEventDispatcher.Event<Entity>> events,
                 Map<String,ConservativeSweep.Motion> pieces,
                 Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> motions,
                 List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             var plans=new ArrayList<Plan>();int evaluations=0;
             for(var candidate:candidates) {
                 var body=candidate.body();
-                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent())
-                    return fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 var plan=planCandidate(body,candidate.bounds(),events,motions,pieces);
                 if(plan==null) {
                     suspendUncertainPairs(body,candidate.bounds(),events);
-                    return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                    return new MaterialEventDispatcher.Resolution<>(fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED),List.of());
                 }
+                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent() && plan.transport()==null)
+                    return new MaterialEventDispatcher.Resolution<>(fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION),List.of());
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             var conflicts=bodyOverlapConflicts(plans,candidates);
             if(!conflicts.isEmpty()) {
                 for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
-                return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                return new MaterialEventDispatcher.Resolution<>(fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED),List.of());
             }
-            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
-            return MaterialEventDispatcher.Outcome.applied(1);
+            var applied=apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+            var parent=events.getFirst().id();
+            var outcome=applied.invalidParents().contains(parent)
+                ?MaterialEventDispatcher.Outcome.applied(1,MaterialEventDispatcher.Reason.INVALID_DERIVATION)
+                :MaterialEventDispatcher.Outcome.applied(1);
+            return new MaterialEventDispatcher.Resolution<>(outcome,applied.derived());
         }
         private Plan planCandidate(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events,
                 Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> motions,
@@ -470,8 +488,15 @@ public final class MaterialPhysicsRuntime {
             for(int i=0;i<events.size();i++)outcomes.add(outcome);
             return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
         }
-        private void apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
+        private Applied apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
+            var derived=new ArrayList<MaterialEventDispatcher.DerivedCarry<Entity>>();
+            var invalidParents=new java.util.HashSet<MaterialEventDispatcher.EventId>();
             for(var plan:plans) {
+                LivingEntity childSupport=null;MaterialIntervalRuntime.RootCapture childBefore=null;
+                if(plan.transport()!=null && plan.displacement().lengthSqr()>1e-20
+                        && plan.body() instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent()) {
+                    childSupport=living;childBefore=MaterialIntervalRuntime.captureRoot(living);
+                }
                 if(plan.displacement().lengthSqr()>1e-20) {
                     plan.body().setPos(plan.body().position().add(plan.displacement()));
                     if(plan.transport()!=null) {
@@ -480,6 +505,14 @@ public final class MaterialPhysicsRuntime {
                                 plan.displacement(),evidence.materialBefore(),evidence.materialAfter()))
                             AnatomyMovement.clear(plan.body());
                     }
+                }
+                if(childSupport!=null) {
+                    var parent=plan.transport().parent();
+                    var handle=MaterialIntervalRuntime.deriveRoot(childSupport,childBefore).orElse(null);
+                    var interval=handle==null?null:derivedInterval(childSupport,handle);
+                    if(interval==null) {
+                        AnatomyMovement.invalidateSupport(childSupport);invalidParents.add(parent);
+                    } else derived.add(new MaterialEventDispatcher.DerivedCarry<>(parent,childSupport,interval));
                 }
                 AnatomyMovement.afterMove(plan.body());
                 if(AnatomyMovement.contact(plan.body())!=null)continue;
@@ -490,6 +523,7 @@ public final class MaterialPhysicsRuntime {
                     if(establish(plan.body(),support,event.interval().handle().after(),allowed))break;
                 }
             }
+            return new Applied(derived,invalidParents);
         }
         private Set<String> contactPieces(MaterialEventDispatcher.Event<Entity> event,Set<String> evidence) {
             String prefix=prefix(event);var pieces=new TreeSet<String>();
