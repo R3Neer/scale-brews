@@ -8,6 +8,7 @@ import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,6 +49,17 @@ public final class S03CanonicalCollisionDataTests {
         var disabled = policy.resolve("players", cow, new CollisionPolicy.Patch(Optional.of(false), Optional.empty(), Optional.empty()));
         h.assertTrue(!disabled.enabled() && Math.abs(disabled.maxWidthRatio() - .8) < 1e-9 && Math.abs(disabled.friction() - .4) < 1e-9,
             "Policy layers must resolve independently and in documented order");
+        h.succeed();
+    }
+
+    @GameTest
+    public void policyRejectsNullSupportEntriesBeforeCanonicalOrdering(GameTestHelper h) {
+        var invalid = new HashMap<Identifier, CollisionPolicy.Patch>();
+        invalid.put(null, CollisionPolicy.Patch.EMPTY);
+        boolean rejected = false;
+        try { new CollisionPolicy(1, CollisionPolicy.DEFAULT.defaults(), Map.of(), invalid); }
+        catch (IllegalArgumentException expected) { rejected = true; }
+        h.assertTrue(rejected, "Invalid support keys fail explicitly before deterministic sorting");
         h.succeed();
     }
 

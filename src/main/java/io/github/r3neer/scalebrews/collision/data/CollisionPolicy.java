@@ -26,11 +26,13 @@ public record CollisionPolicy(int schemaVersion, Rule defaults, Map<String, Patc
             categoryCopy.put(key, value);
         });
         categories = Collections.unmodifiableMap(categoryCopy);
+        for (var entry : supports.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null)
+                throw new IllegalArgumentException("Invalid support policy");
+        }
         var supportCopy = new LinkedHashMap<Identifier, Patch>();
-        supports.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toString())).forEach(entry -> {
-            if (entry.getKey() == null || entry.getValue() == null) throw new IllegalArgumentException("Invalid support policy");
-            supportCopy.put(entry.getKey(), entry.getValue());
-        });
+        supports.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toString()))
+            .forEach(entry -> supportCopy.put(entry.getKey(), entry.getValue()));
         supports = Collections.unmodifiableMap(supportCopy);
     }
 
