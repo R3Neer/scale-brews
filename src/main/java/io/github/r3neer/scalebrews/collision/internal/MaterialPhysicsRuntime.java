@@ -56,6 +56,12 @@ public final class MaterialPhysicsRuntime {
         if(pending.isEmpty())return;
         var prepared=new ArrayList<Prepared>();
         for(var next:pending) {
+            if(!AnatomyRuntime.acceptsIntervalIdentity(next.support(),next.handle())) {
+                // Old queued work belongs to a prior lifecycle. Dropping it is conservative;
+                // invalidating the current support would destroy a new binding/contact.
+                record(level,1,0,0,1,0);
+                continue;
+            }
             var value=prepare(next);
             if(value==null) {
                 AnatomyMovement.invalidateSupport(next.support());
@@ -154,14 +160,24 @@ public final class MaterialPhysicsRuntime {
             return capture(event.interval().envelope(),List.of(support),maximumBodies);
         }
         @Override public MaterialEventDispatcher.Candidates<Entity> captureJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,int maximumBodies) {
-            AABB envelope=null;var supports=new ArrayList<LivingEntity>();
-            for(var event:events){
-                if(!(event.support() instanceof LivingEntity support))return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-                envelope=envelope==null?event.interval().envelope():union(envelope,event.interval().envelope());supports.add(support);
+            var seen=Collections.newSetFromMap(new IdentityHashMap<Entity,Boolean>());
+            var combined=new ArrayList<MaterialEventDispatcher.Candidate<Entity>>();
+            for(var event:events) {
+                if(!(event.support() instanceof LivingEntity support) || !finite(event.interval().envelope()))
+                    return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+                var envelope=event.interval().envelope();
+                if(envelope.getXsize()>MAX_ENVELOPE_SPAN || envelope.getYsize()>MAX_ENVELOPE_SPAN || envelope.getZsize()>MAX_ENVELOPE_SPAN)
+                    return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+                var local=capture(envelope,List.of(support),maximumBodies);
+                if(local.overflow())return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+                for(var candidate:local.bodies())if(seen.add(candidate.body())) {
+                    combined.add(candidate);
+                    if(combined.size()>maximumBodies)return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+                }
             }
-            if(!finite(envelope) || envelope.getXsize()>MAX_ENVELOPE_SPAN || envelope.getYsize()>MAX_ENVELOPE_SPAN || envelope.getZsize()>MAX_ENVELOPE_SPAN)
-                return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-            return capture(envelope,supports,maximumBodies);
+            combined.sort(Comparator.comparing((MaterialEventDispatcher.Candidate<Entity> c)->c.body().getUUID())
+                .thenComparingInt(c->c.body().getId()));
+            return new MaterialEventDispatcher.Candidates<>(combined,false);
         }
         private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
             var entities=new ArrayList<Entity>(Math.min(maximumBodies+1,256));
