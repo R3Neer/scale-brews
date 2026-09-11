@@ -24,7 +24,7 @@ import org.joml.Matrix4f;
 final class AnchoredTransportPlanner {
     private AnchoredTransportPlanner() {}
     private static final int QUERY_BUDGET=256,MAX_STATIC_OBSTACLES=256;
-    private static final double MAX_ENVELOPE_SPAN=64,OVERLAP_EPS=1e-8;
+    private static final double MAX_ENVELOPE_SPAN=64,OVERLAP_EPS=1e-8,NORMAL_EPS=1e-6;
 
     enum Status {NOT_APPLICABLE,COMPLETE,RELEASE,EXHAUSTED}
     record Evidence(MaterialEventDispatcher.EventId parent,LivingEntity support,SurfaceContact surface,
@@ -68,15 +68,22 @@ final class AnchoredTransportPlanner {
         var materialAfter=handle.after().snapshot().pieces().get(retained.piece());
         if(pieceMotion==null || materialBefore==null || materialAfter==null)return Result.release(0);
 
-        if(!handle.before().sample().inputs().equals(handle.after().sample().inputs()))return Result.release(0);
         var bodyGravity=AnatomyMovement.gravity(body);
         try {
             Vec3 bodyUp=bodyGravity.up(),supportUp=handle.before().root().gravity().up();
             Vec3 normal0=materialBefore.faceNormal(surface.face()),normal1=materialAfter.faceNormal(surface.face());
             double dot0=normal0.dot(bodyUp),dot1=normal1.dot(bodyUp);
             if(!Double.isFinite(dot0+dot1))return Result.release(0);
-            double normalRate=Math.abs(Math.toRadians(wrapDegrees(handle.after().root().yaw()-handle.before().root().yaw())));
-            double minDot=certifiedMinDot(dot0,dot1,normalRate,bodyUp,supportUp);
+
+            boolean rootOnly=handle.before().sample().inputs().equals(handle.after().sample().inputs());
+            double normalRate;
+            if(hasInvariantFacePlane(pieceMotion,normal0,normal1))normalRate=0;
+            else if(rootOnly)normalRate=Math.abs(Math.toRadians(wrapDegrees(handle.after().root().yaw()-handle.before().root().yaw())));
+            else normalRate=certifiedFaceNormalRate(pieceMotion,materialBefore,materialAfter,surface.face());
+            double minDot=rootOnly
+                ?certifiedRootMinDot(dot0,dot1,normalRate,bodyUp,supportUp)
+                :certifiedGenericMinDot(dot0,dot1,normalRate);
+
             var bounds=new BodyPath.NormalBounds(surface.face(),minDot,normalRate);
             var anchor=new BodyPath.LocalAnchor(surface.face(),surface.localPoint());
             var path=BodyPath.fromMaterial(pieceMotion,anchor,captured,bodyGravity,bounds).orElse(null);
@@ -123,9 +130,53 @@ final class AnchoredTransportPlanner {
         } catch(RuntimeException rejected) {return Result.release(0);}
     }
 
-    private static double certifiedMinDot(double dot0,double dot1,double normalRate,Vec3 bodyUp,Vec3 supportUp) {
+    /** Exact hierarchy certificates win over derivative bounds when the retained face plane is fixed. */
+    private static boolean hasInvariantFacePlane(ConservativeSweep.Motion motion,Vec3 before,Vec3 after) {
+        for(var plane:motion.invariantPlanes()) {
+            Vec3 outward=new Vec3(plane.outward().getStepX(),plane.outward().getStepY(),plane.outward().getStepZ());
+            if(before.distanceToSqr(outward)<=NORMAL_EPS*NORMAL_EPS && after.distanceToSqr(outward)<=NORMAL_EPS*NORMAL_EPS)return true;
+        }
+        return false;
+    }
+
+    /**
+     * Every material point has residual velocity <= deformationSpeed after exact linear translation.
+     * Therefore each face edge changes at <=2V. The cross product of the two tangential edges has
+     * a certified Lipschitz rate; a positive lower bound on its magnitude then bounds the normalized
+     * face-normal rate. No intermediate sampling is used as authority.
+     */
+    private static double certifiedFaceNormalRate(ConservativeSweep.Motion motion,ConvexBox before,ConvexBox after,int face) {
+        double v=motion.deformationSpeed();
+        if(v==0)return 0;
+        Vec3[] a=edges(before),b=edges(after);int axis=face/2,i=(axis+1)%3,j=(axis+2)%3;
+        double e1=Math.min(a[i].length(),b[i].length())+2*v;
+        double e2=Math.min(a[j].length(),b[j].length())+2*v;
+        double crossRate=2*v*(e1+e2);
+        double c0=a[i].cross(a[j]).length(),c1=b[i].cross(b[j]).length();
+        if(!Double.isFinite(crossRate+c0+c1) || crossRate<0 || c0<=0 || c1<=0
+                || Math.abs(c0-c1)>crossRate+NORMAL_EPS)throw new IllegalArgumentException("Face-area endpoints contradict motion bound");
+        if(crossRate==0)return 0;
+        double crossMin=(c0+c1-crossRate)*.5;
+        if(!(crossMin>1e-12) || !Double.isFinite(crossMin))throw new IllegalArgumentException("Face normal cannot be bounded through interval");
+        double rate=2*crossRate/crossMin;
+        if(!Double.isFinite(rate))throw new IllegalArgumentException("Unbounded face normal rate");
+        return rate;
+    }
+
+    private static Vec3[] edges(ConvexBox box) {
+        var vertices=box.vertices();Vec3 origin=vertices.getFirst();
+        return new Vec3[]{vertices.get(1).subtract(origin),vertices.get(2).subtract(origin),vertices.get(4).subtract(origin)};
+    }
+
+    /** Tight root-only certificate: root yaw is rigid rotation about supportUp. */
+    private static double certifiedRootMinDot(double dot0,double dot1,double normalRate,Vec3 bodyUp,Vec3 supportUp) {
         if(normalRate==0 || Math.abs(Math.abs(bodyUp.dot(supportUp))-1)<1e-9)return Math.min(dot0,dot1);
-        if(Math.abs(dot1-dot0)>normalRate+1e-6)throw new IllegalArgumentException("Endpoint normals contradict root-yaw rate");
+        return certifiedGenericMinDot(dot0,dot1,normalRate);
+    }
+
+    /** Endpoint cones from a certified unit-normal Lipschitz rate bound the full interval. */
+    private static double certifiedGenericMinDot(double dot0,double dot1,double normalRate) {
+        if(Math.abs(dot1-dot0)>normalRate+NORMAL_EPS)throw new IllegalArgumentException("Endpoint normals contradict certified normal rate");
         return Math.min(Math.min(dot0,dot1),(dot0+dot1-normalRate)*.5);
     }
 
