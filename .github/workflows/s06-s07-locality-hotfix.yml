@@ -1,0 +1,162 @@
+name: s06-s07-locality-hotfix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - .github/workflows/s06-s07-locality-hotfix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: patch causal spatial membership and pair-local exhaustion
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          movement=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          text=movement.read_text()
+
+          old='''    private static SpatialIndex spatial(Level level) {
+        var current=SPATIAL.get(level);
+        if(current!=null && current.tick()==level.getGameTime() && current.frames().entrySet().stream().allMatch(entry->{
+            var support=entry.getKey();var provider=PROVIDERS.get(support);var frame=currentFrameStamp(support,provider);
+            return frame!=null && entry.getValue().equals(frame);
+        }))return current;
+        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        return rebuildSpatial(level,providers);
+    }
+'''
+          new='''    private static SpatialIndex spatial(Level level) {
+        var current=SPATIAL.get(level);
+        // Endpoint acceptance, register/rebind, lifecycle barriers and tick rollover all
+        // invalidate this cache explicitly.  Do not globally resample every registered
+        // support on each local query: unavailable bindings remain locally discoverable
+        // through their fallback support envelope in rebuildSpatial.
+        if(current!=null && current.tick()==level.getGameTime())return current;
+        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        return rebuildSpatial(level,providers);
+    }
+'''
+          if text.count(old)!=1: raise SystemExit(f'spatial method matches={text.count(old)}')
+          text=text.replace(old,new,1)
+
+          old='''        for(var entry:providers.entrySet()) {
+            var support=entry.getKey();if(support.level()!=level)continue;
+            var sample=currentSnapshot(support,entry.getValue()).orElse(null);var frame=currentFrameStamp(support,entry.getValue());
+            if(sample==null || frame==null)continue;
+            AABB envelope=snapshotBounds(sample);if(envelope==null)continue;
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
+        }
+'''
+          new='''        for(var entry:providers.entrySet()) {
+            var support=entry.getKey();if(support.level()!=level)continue;
+            var frame=currentFrameStamp(support,entry.getValue());if(frame==null)continue;
+            frames.put(support,frame);
+            // Even an UNAVAILABLE binding gets a local discovery envelope.  It is not
+            // collision geometry: candidates() still asks currentSnapshot before adding
+            // any convex.  This lets the first nearby query observe UNAVAILABLE->AVAILABLE
+            // without polling far-world providers, while available anatomy keeps its full
+            // geometry envelope (including pieces outside the vanilla support AABB).
+            AABB envelope=support.getBoundingBox();
+            var sample=currentSnapshot(support,entry.getValue()).orElse(null);
+            if(sample!=null) {
+                var geometry=snapshotBounds(sample);
+                if(geometry!=null)envelope=union(envelope,geometry);
+            }
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));
+        }
+'''
+          if text.count(old)!=1: raise SystemExit(f'rebuild loop matches={text.count(old)}')
+          text=text.replace(old,new,1)
+
+          old='''    private static FrameStamp currentFrameStamp(LivingEntity support,GeometryProvider provider) {
+        if(provider==null)return null;
+        if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(frame->new FrameStamp(frame.identity(),frame.root(),frame.snapshot().revision(),registrationGeneration(support),frame.endpoint().frameSerial())).orElse(null);
+        var sample=provider.sample(support).orElse(null);
+        return sample==null?null:new FrameStamp(null,observeRoot(support),sample.revision(),registrationGeneration(support),0);
+    }
+'''
+          new='''    private static FrameStamp currentFrameStamp(LivingEntity support,GeometryProvider provider) {
+        if(provider==null)return null;
+        if(DESCRIPTORS.containsKey(support)) {
+            var published=publishedFrame(support).orElse(null);
+            return published==null?null:new FrameStamp(published.identity(),published.endpoint().root(),published.identity().revision(),
+                registrationGeneration(support),published.endpoint().frameSerial());
+        }
+        var sample=provider.sample(support).orElse(null);
+        // Legacy fixture bindings have no causal UNAVAILABLE endpoint.  Keep an explicit
+        // local membership stamp anyway so an empty sample still receives the fallback
+        // discovery envelope and can become visible without a global rescan.
+        return new FrameStamp(null,observeRoot(support),sample==null?-1:sample.revision(),registrationGeneration(support),0);
+    }
+'''
+          if text.count(old)!=1: raise SystemExit(f'frame stamp matches={text.count(old)}')
+          text=text.replace(old,new,1)
+          movement.write_text(text)
+
+          runtime=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java')
+          text=runtime.read_text()
+          if text.count('suspendInitialOverlapPairs(body,candidate.bounds(),events);')!=2:
+              raise SystemExit('unexpected suspension call count')
+          text=text.replace('suspendInitialOverlapPairs(body,candidate.bounds(),events);','suspendUncertainPairs(body,candidate.bounds(),events);')
+
+          old='''        private void suspendInitialOverlapPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
+            for(var event:events) {
+                if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
+                var motion=motion(event.interval().handle());if(motion==null)continue;
+                boolean overlaps=false;
+                try {
+                    for(var piece:motion.pieces().values())if(piece.at().apply(0).overlaps(captured)){overlaps=true;break;}
+                } catch(RuntimeException rejected){continue;}
+                if(overlaps)AnatomyMovement.suspend(body,support);
+            }
+        }
+'''
+          new='''        private void suspendUncertainPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
+            var retained=AnatomyMovement.contact(body);
+            for(var event:events) {
+                if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
+                // A solver failure makes an already-retained relation non-authoritative even
+                // when the body began separated.  Initial overlaps have no prior contact, so
+                // retain the existing overlap test for that recovery path.  In both cases the
+                // quarantine is body/support-local; unrelated bodies on the support survive.
+                boolean uncertain=retained!=null && retained.support()==support;
+                var motion=motion(event.interval().handle());
+                if(!uncertain && motion!=null)try {
+                    for(var piece:motion.pieces().values())if(piece.at().apply(0).overlaps(captured)){uncertain=true;break;}
+                } catch(RuntimeException rejected){uncertain=true;}
+                if(uncertain)AnatomyMovement.suspend(body,support);
+            }
+        }
+'''
+          if text.count(old)!=1: raise SystemExit(f'suspension method matches={text.count(old)}')
+          text=text.replace(old,new,1)
+          runtime.write_text(text)
+          PY
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
+      - name: commit hotfix
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git config user.name 'ChatGPT'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
+          git commit -m 'fix(collision): localize causal membership and solver uncertainty'
+          git push origin HEAD:chatgpt-editing
