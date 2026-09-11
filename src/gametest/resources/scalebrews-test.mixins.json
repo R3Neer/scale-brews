@@ -18,7 +18,8 @@
     "TestArrowAccess",
     "TestMobGoalsAccess",
     "TestTemptGoalAccess",
-    "TestTinyDefinitionMixin"
+    "TestTinyDefinitionMixin",
+    "TestConnectedServerPlayerMixin"
   ],
   "client": [
     "TestPackStartupTimeoutMixin",

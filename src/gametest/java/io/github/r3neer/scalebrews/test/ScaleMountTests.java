@@ -16,6 +16,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.sensing.VillagerHostilesSensor;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.item.ItemStack;
@@ -123,8 +124,7 @@ public class ScaleMountTests {
         h.succeed();
     }
     @GameTest public void saddleMountAndGrowthGuards(GameTestHelper h) {
-        var p = h.makeMockServerPlayerInLevel();
-        p.setGameMode(GameType.SURVIVAL);
+        var p = (net.minecraft.server.level.ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
         var chicken = h.spawn(EntityTypes.CHICKEN, 1, 2, 1);
         chicken.setNoAi(true);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE, 2));
@@ -163,8 +163,7 @@ public class ScaleMountTests {
         h.succeed();
     }
     @GameTest public void beeSteeringAndHive(GameTestHelper h) {
-        var p = h.makeMockServerPlayerInLevel();
-        p.setGameMode(GameType.SURVIVAL);
+        var p = (net.minecraft.server.level.ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
         p.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 200, 1)); TestScale.settle(p);
         settle(p);
         var bee = h.spawn(EntityTypes.BEE, 1, 2, 1);
@@ -261,14 +260,13 @@ public class ScaleMountTests {
                         "Relative scale pair " + observer + ":" + target + " follows the two-level gap for mobs");
             }
         }
-        // External scales beyond potion endpoints must not both collapse to tier III.
         villager.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(4.84);
         cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(6.76);
         h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "External two-level gap is inclusive");
-        cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(6.7599);
+        cow.getAttribute(Attributes.SCALE).setBaseValue(6.7599);
         h.assertFalse(sensor.test$matches(h.getLevel(), villager, cow), "Just below the gap does not trigger fear");
-        villager.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.879);
-        cow.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(2.44);
+        villager.getAttribute(Attributes.SCALE).setBaseValue(.879);
+        cow.getAttribute(Attributes.SCALE).setBaseValue(2.44);
         h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "Fractional positions -0.5 to 1.5 qualify");
         cow.setPos(villager.position().add(8, 0, 0));
         h.assertTrue(sensor.test$matches(h.getLevel(), villager, cow), "Eight-block range remains inclusive");

@@ -17,8 +17,24 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+      - name: reject deprecated 26.2 GameTest player helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n 'makeMockServerPlayerInLevel' -- src/gametest; then
+            echo '::error::Deprecated GameTestHelper.makeMockServerPlayerInLevel usage remains.'
+            exit 1
+          fi
       - name: build and run server GameTests
-        run: ./gradlew build runGameTest --no-daemon --console=plain
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          ./gradlew build runGameTest --no-daemon --console=plain 2>&1 | tee server-tests.log
+          if grep -F '[deprecation]' server-tests.log; then
+            echo '::error::Deprecated Java API usage remains.'
+            exit 1
+          fi
       - name: run client GameTests
         run: xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain
       - name: capture build artifacts and diagnostics
@@ -28,6 +44,7 @@ jobs:
           name: Artifacts
           path: |
             build/libs/
+            server-tests.log
             build/run/*/logs/latest.log
             build/run/clientGameTest/screenshots/*.png
           if-no-files-found: warn
