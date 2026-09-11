@@ -52,10 +52,13 @@ public final class AnatomyPreparedIntegrationProof {
             // stop or otherwise simulate the session.
             AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h);
             AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h);
+            // Run the simple occupied-boat control before exported player geometry. If this
+            // passes while the next scenario fails, the defect is geometry/provider-specific,
+            // not a generic prepared-ownership or boat-body failure.
+            AnatomyGeometryTests.anatomicalRootTransportOncePrepared(h);
             AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h);
             AnatomyGeometryTests.exportedCowActualMovementPrepared(h);
             AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
-            AnatomyGeometryTests.anatomicalRootTransportOncePrepared(h);
             AnatomyGeometryTests.actualMovementSixDirectionsPrepared(h);
             AnatomyGeometryTests.geometryBroadphaseFindsPieceOutsideSupportAabbPrepared(h);
             // This scenario deliberately fills a local block volume; keep it
