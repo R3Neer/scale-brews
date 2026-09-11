@@ -15,12 +15,12 @@ public final class S09TemporalScreeningBudgetTests {
     @GameTest
     public void screeningCannotCostMoreThanTheClearSweepItReplaces(GameTestHelper h) {
         var body=new AABB(-.05,-.05,-.05,.05,.05,.05);
-        var distant=ConvexBox.of(new AABB(.95,-.05,-.05,1.05,.05,.05),new Matrix4f());
+        // Keep the actual geometry static and clear by ~0.064 blocks, but use a valid loose
+        // deformation bound near the prepared cow's real 13-16 block/tick bounds. This reproduces
+        // the real A9 ratio without relying on a theatrical speed=200 certificate.
+        var distant=ConvexBox.of(new AABB(.114,-.05,-.05,.214,.05,.05),new Matrix4f());
+        var motion=new ConservativeSweep.Motion(t->distant,16.0,Vec3.ZERO);
 
-        // The geometry is actually static. A deliberately loose deformation bound is still a valid
-        // provider certificate: bounds may be conservative, and the kernel explicitly documents
-        // that looseness costs iterations rather than changing the physical result.
-        var motion=new ConservativeSweep.Motion(t->distant,200.0,Vec3.ZERO);
         var direct=ConservativeSweep.query(body,Vec3.ZERO,motion,256);
         h.assertTrue(direct.status()==ConservativeSweep.Status.CLEAR && direct.evaluations()>128 && direct.evaluations()<256,
             "Fixture requires a valid clear CCD that is expensive but still inside the contractual 256 budget: "+direct);
