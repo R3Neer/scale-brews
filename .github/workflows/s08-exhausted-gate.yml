@@ -1,0 +1,29 @@
+name: s08-exhausted-gate
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s08-exhausted-gate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: patch and push
+        shell: bash
+        run: |
+          python tools/s08_exhausted_gate.py
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
+          git commit -m 'fix(s08): propagate anchored transport exhaustion'
+          git push origin HEAD:chatgpt-editing
