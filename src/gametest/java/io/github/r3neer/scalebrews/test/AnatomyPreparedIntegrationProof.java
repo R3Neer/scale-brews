@@ -3,6 +3,9 @@ package io.github.r3neer.scalebrews.test;
 import com.google.gson.Gson;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
@@ -37,6 +40,7 @@ public final class AnatomyPreparedIntegrationProof {
                 h.assertTrue(AnatomyApi.mode(probe)==AnatomyMode.READY && AnatomyApi.ownsSharedPhysics(probe),
                     "Prepared catalog makes the shared mode ready for a body without requiring that body to be a support binding");
             } finally {probe.discard();}
+            staleBindingGenerationCannotCertifyInterval(h);
             // The helpers retain their production route: actual Entity.move,
             // mixins, core queries and material contacts.  They do not start,
             // stop or otherwise simulate the session.
@@ -53,6 +57,30 @@ public final class AnatomyPreparedIntegrationProof {
             AnatomyGeometryTests.trappedPairSuspendsAndReacquiresIndependentlyPrepared(h);
         }
         h.succeed();
+    }
+
+    /**
+     * A causal handle can belong to the same live entity while belonging to a different
+     * binding generation. Physical entity identity is necessary but not sufficient.
+     */
+    private static void staleBindingGenerationCannotCertifyInterval(GameTestHelper h) {
+        var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,1,20,1);
+        try {
+            AnatomyRuntime.prepare(h.getLevel());
+            AnatomyMovement.tick(h.getLevel());
+            var current=AnatomyMovement.queryFrame(support).orElseThrow();
+            var live=current.identity();
+            var stale=new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
+                live.model(),live.poseProvider(),Math.incrementExact(live.bindingGeneration()),live.localRegistrationGeneration());
+            var endpoint=current.endpoint();
+            var before=new GeometryProvider.QueryFrame(stale,endpoint,current.snapshot());
+            var afterEndpoint=new GeometryProvider.CausalEndpoint(Math.incrementExact(endpoint.frameSerial()),endpoint.authorityTick(),
+                endpoint.jointSampleTick(),endpoint.root(),endpoint.sample(),endpoint.availability());
+            var after=new GeometryProvider.QueryFrame(stale,afterEndpoint,current.snapshot());
+            var handle=new GeometryProvider.MotionIntervalHandle(stale,1,before,after);
+            h.assertTrue(AnatomyRuntime.interval(support,handle).isEmpty(),
+                "Prepared runtime must reject an interval from another binding generation even when dimension, UUID, entity id and revision still match");
+        } finally {support.discard();}
     }
 
     private record ExportedCatalog(ModelGeometry cow,ModelGeometry player) {}
