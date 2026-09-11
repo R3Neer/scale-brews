@@ -215,8 +215,7 @@ public final class AnatomyNetworkingTests {
     @GameTest
     public void transportReceiptRecordsOnlyAppliedBaselineProvenance(GameTestHelper h) {
         var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,2,20,2);
-        var body=h.makeMockServerPlayerInLevel();
-        body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        var body=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);
         long tick=h.getLevel().getGameTime();var delta=new Vec3(.2,0,0);
         var normal=new Vec3(0,1,0);
@@ -253,8 +252,7 @@ public final class AnatomyNetworkingTests {
     @GameTest(maxTicks=60)
     public void receiptSaturationRetainsEachTickForTheFullWindow(GameTestHelper h) {
         var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,2,20,2);
-        var body=h.makeMockServerPlayerInLevel();
-        body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        var body=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);long firstTick=h.getLevel().getGameTime();
         try {
             saturateReceiptTick(body,support,1000);
