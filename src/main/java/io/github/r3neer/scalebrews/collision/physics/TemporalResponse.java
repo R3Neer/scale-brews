@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,SCREEN_DEPTH=5;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
@@ -40,6 +40,7 @@ public final class TemporalResponse {
     private record Constraint(ConservativeSweep.Motion motion,Vec3 normal) {}
     private record RelativeConstraint(Vec3 normal,double minimumAdvance) {}
     private record Proposal(double end,Vec3 delta) {}
+    private record Uncovered(double start,double end) {}
 
     /** Pure/kernel view retains the certified prefix on exhaustion for diagnosis and composition tests. */
     public static Result resolve(AABB body,Vec3 requested,Map<String,ConservativeSweep.Motion> pieces,int events,int queryBudget) {
@@ -125,66 +126,59 @@ public final class TemporalResponse {
     }
 
     /**
-     * Screen deforming motion with certified temporal windows before paying for iterative CCD.
-     * A midpoint SAT separator remains valid for its whole window when its gap exceeds the maximum
-     * material/body support advance allowed by the motion bounds. Ambiguous windows are subdivided
-     * chronologically; only a depth-bounded leaf invokes ConservativeSweep with the full shared
-     * budget still remaining. This prevents one clear high-deformation piece from monopolizing the
-     * response budget without putting an artificial per-contact cap on genuine CCD.
+     * First try to certify the complete material trajectory as clear by covering time with fixed SAT
+     * separators. Every screening sample must buy a real certified interval; no depth-only internal
+     * nodes are charged and discarded. If a sample reaches contact skin, exact CCD receives the full
+     * interval with the remaining shared budget so genuine contacts keep their normal precision.
      */
     private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(!possible)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
-        return firstWindow(body,delta,interval,0,0,1,budget);
-    }
-
-    /** Result fractions are mapped back to the original piece interval. */
-    private static ConservativeSweep.Result firstWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,
-            int depth,double origin,double scale,Budget budget) {
-        Boolean clear=certifiedClearWindow(body,delta,interval,budget);
-        if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin,Vec3.ZERO,0);
+        Boolean clear=certifiedClearTrajectory(body,delta,interval,budget);
+        if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(clear)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
-
-        if(depth>=SCREEN_DEPTH) {
-            var result=budget.query(body,delta,interval);
-            double fraction=origin+scale*Math.clamp(result.safeFraction(),0,1);
-            var status=result.status();
-            // Every earlier sibling was certified clear, so a later leaf that starts just inside
-            // the material represents the boundary contact of the continuous trajectory.
-            if(status==ConservativeSweep.Status.INITIAL_OVERLAP && origin>TIME_EPS)
-                status=ConservativeSweep.Status.CONTACT;
-            return new ConservativeSweep.Result(status,fraction,result.normal(),result.evaluations());
-        }
-
-        Vec3 halfDelta=delta.scale(.5);
-        var left=firstWindow(body,halfDelta,interval.interval(0,.5),depth+1,origin,scale*.5,budget);
-        if(left.status()!=ConservativeSweep.Status.CLEAR)return left;
-        var right=firstWindow(body.move(halfDelta),halfDelta,interval.interval(.5,1),depth+1,
-            origin+scale*.5,scale*.5,budget);
-        return right.status()==ConservativeSweep.Status.CLEAR
-            ?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)
-            :right;
+        return budget.query(body,delta,interval);
     }
 
     /**
-     * Midpoint separating-plane certificate. Motion.interval() scales maxPointSpeed to this window,
-     * so any material support value along the sampled unit normal can worsen by at most half that
-     * bound from the midpoint to either edge. The translating body contributes the corresponding
-     * half projected displacement. A positive remainder above SKIN proves the entire window clear.
+     * Cover [0,1] with neighborhoods certified by sampled separating planes. At sample time t, the
+     * fixed plane gap can close no faster than residual deformation plus the relative declared
+     * translation projected on that normal. Thus (gap-SKIN)/rate is a conservative temporal radius.
+     * Largest uncovered windows are sampled first for deterministic, useful progress under a hard budget.
+     * {@code null} means the shared budget itself was exhausted; {@code false} means screening cannot
+     * prove clearance and the caller must fall back to exact CCD.
      */
-    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
-        if(!budget.sample())return null;
-        var material=interval.at().apply(.5);
-        if(material==null)throw new IllegalArgumentException("Missing material midpoint");
-        var midpointBody=body.move(delta.scale(.5));
-        var separation=material.separation(midpointBody);
-        Vec3 normal=separation.normal();
-        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
-                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
-        double adverse=.5*(interval.maxPointSpeed()+Math.abs(delta.dot(normal)));
-        return separation.gap()-adverse>ConservativeSweep.SKIN;
+    private static Boolean certifiedClearTrajectory(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+        var pending=new PriorityQueue<Uncovered>(Comparator
+            .comparingDouble((Uncovered window)->window.end()-window.start()).reversed()
+            .thenComparingDouble(Uncovered::start));
+        pending.add(new Uncovered(0,1));
+        Vec3 relative=delta.subtract(interval.linearTranslation());
+        while(!pending.isEmpty()) {
+            var window=pending.remove();
+            if(window.end()-window.start()<=TIME_EPS)continue;
+            if(!budget.sample())return null;
+            double time=(window.start()+window.end())*.5;
+            var material=interval.at().apply(time);
+            if(material==null)return false;
+            var separation=material.separation(body.move(delta.scale(time)));
+            Vec3 normal=separation.normal();
+            if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
+                    || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
+            if(separation.gap()<=ConservativeSweep.SKIN)return false;
+            double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));
+            if(!Double.isFinite(rate) || rate<0)return false;
+            if(rate<=1e-20)continue;
+            double radius=(separation.gap()-ConservativeSweep.SKIN)/rate;
+            if(!Double.isFinite(radius) || radius<=TIME_EPS)return false;
+            double leftEnd=Math.min(window.end(),time-radius);
+            if(leftEnd>window.start()+TIME_EPS)pending.add(new Uncovered(window.start(),leftEnd));
+            double rightStart=Math.max(window.start(),time+radius);
+            if(window.end()>rightStart+TIME_EPS)pending.add(new Uncovered(rightStart,window.end()));
+        }
+        return true;
     }
 
     /**
