@@ -77,7 +77,12 @@ public final class S09SeparationBudgetBoundaryTests {
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,bystander),
                 "A12 live fixture requires both culprit and non-causal bystander to be eligible indexed supports");
             var beforeMetrics=AnatomyMovement.sweepMetrics(level);var before=body.position();
-            Vec3 allowed=AnatomyMovement.collide(body,Vec3.ZERO);
+            // Candidate 128 clears by exactly the separation skin. A small outward own-move keeps
+            // this case focused on the 128-candidate recovery boundary instead of immediately
+            // re-entering TemporalResponse's independent t=0 contact/budget machinery. The +1
+            // case stays stationary so an unsearched correction can never hide as requested motion.
+            Vec3 requested=mustRecover?new Vec3(.05,0,0):Vec3.ZERO;
+            Vec3 allowed=AnatomyMovement.collide(body,requested);
             var afterMetrics=AnatomyMovement.sweepMetrics(level);
             h.assertTrue(body.position().equals(before),
                 "AnatomyMovement.collide must remain query-only at the separation boundary");
@@ -86,10 +91,12 @@ public final class S09SeparationBudgetBoundaryTests {
 
             if(mustRecover) {
                 var exact=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
-                h.assertTrue(allowed.distanceToSqr(exact.displacement())<1e-12,
-                    "Candidate 128 must be exported as the complete bounded initial correction: kernel="+exact+" live="+allowed);
+                Vec3 expected=exact.displacement().add(requested);
+                h.assertTrue(allowed.distanceToSqr(expected)<1e-12,
+                    "Candidate 128 must be exported as the complete bounded correction before the outward own-move: kernel="
+                        +exact+" requested="+requested+" live="+allowed+" metrics="+afterMetrics);
                 h.assertTrue(slabs.values().stream().noneMatch(piece->piece.overlaps(captured.move(allowed))),
-                    "Exact-budget recovery must finish clear of every culprit slab");
+                    "Exact-budget recovery plus outward motion must finish clear of every culprit slab");
                 h.assertTrue(!AnatomyMovement.suspended(body,culprit) && !AnatomyMovement.suspended(body,bystander),
                     "A successful candidate-128 recovery must suspend neither the culprit nor the non-causal bystander");
                 h.assertTrue(afterMetrics.pieces()-beforeMetrics.pieces()==slabCount+1,
