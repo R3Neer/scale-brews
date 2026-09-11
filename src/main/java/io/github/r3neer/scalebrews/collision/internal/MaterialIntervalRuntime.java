@@ -100,10 +100,22 @@ public final class MaterialIntervalRuntime {
         PENDING.computeIfPresent(support.level(),(level,list)->{list.removeIf(p->p.support()==support);return list.isEmpty()?null:list;});
     }
 
-    /** One-shot queue seam for S07. Root order is causal; joint subgroups are already canonical. */
+    /**
+     * One-shot queue seam for S07. Root order is causal; joint subgroups are already canonical.
+     * A local provider rebind can happen after publication and before drain; such work belongs to
+     * the previous registration and is discarded rather than invalidating the new binding/contact.
+     */
     public static List<Pending> poll(Level level) {
         var list=PENDING.remove(level);
-        return list==null || list.isEmpty()?List.of():List.copyOf(list);
+        if(list==null || list.isEmpty())return List.of();
+        var live=new ArrayList<Pending>(list.size());
+        for(var pending:list) {
+            var identity=pending.handle().identity();
+            if(identity.matches(pending.support())
+                    && identity.localRegistrationGeneration()==AnatomyMovement.registrationGeneration(pending.support()))
+                live.add(pending);
+        }
+        return live.isEmpty()?List.of():List.copyOf(live);
     }
 
     /** One-shot overflow signal paired with the queue seam; S07 records it as explicit exhaustion. */
