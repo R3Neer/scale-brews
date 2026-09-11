@@ -1,0 +1,206 @@
+name: s05-s07-live-owner-fix
+
+'on':
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - .github/workflows/s05-s07-live-owner-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: patch live broadphase owner and plan conflicts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def once(text, old, new, label):
+              n=text.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label}: expected 1 match, got {n}')
+              return text.replace(old,new,1)
+
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          t=p.read_text()
+          anchor='    private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());\n'
+          helpers=anchor+'''    /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
+    private static synchronized void removeSpatialEntry(LivingEntity support) {
+        if(support==null)return;
+        var index=SPATIAL.get(support.level());
+        if(index==null || index.tick()!=support.level().getGameTime())return;
+        index.broadphase().remove(support);index.frames().remove(support);
+    }
+    private static synchronized void refreshSpatialEntry(LivingEntity support) {
+        if(support==null)return;
+        var index=SPATIAL.get(support.level());
+        if(index==null || index.tick()!=support.level().getGameTime())return;
+        index.broadphase().remove(support);index.frames().remove(support);
+        var provider=PROVIDERS.get(support);if(provider==null || support.isRemoved())return;
+        GeometryProvider.Snapshot snapshot;FrameStamp frame;
+        var descriptor=DESCRIPTORS.get(support);
+        if(descriptor!=null) {
+            var accepted=FRAME_SERIALS.get(support);
+            if(accepted==null || accepted.invalidated() || accepted.snapshot()==null
+                    || accepted.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE
+                    || accepted.snapshot().revision()!=descriptor.revision())return;
+            snapshot=accepted.snapshot();long registration=registrationGeneration(support);
+            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),
+                descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),registration);
+            frame=new FrameStamp(identity,accepted.endpoint().root(),snapshot.revision(),registration,accepted.endpoint().frameSerial());
+        } else {
+            snapshot=provider.sample(support).orElse(null);if(snapshot==null)return;
+            frame=new FrameStamp(null,observeRoot(support),snapshot.revision(),registrationGeneration(support),0);
+        }
+        var envelope=snapshotBounds(snapshot);if(envelope==null)return;
+        var rejected=index.broadphase().upsert(new MaterialBroadphase.Entry<>(support,envelope));
+        if(rejected!=null) {
+            index.frames().remove(support);clearSupportContacts(support);
+            if(descriptor!=null)quarantineEndpoint(support);
+            return;
+        }
+        index.frames().put(support,frame);
+    }
+    /** Supported external root/dimension mutation hook; observes only this registered support. */
+    public static synchronized void spatialMutation(LivingEntity support) {
+        if(support==null || !ACTIVE.contains(support.level()) || !PROVIDERS.containsKey(support))return;
+        observeRoot(support);
+        if(DESCRIPTORS.containsKey(support))queryFrame(support);else refreshSpatialEntry(support);
+    }
+'''
+          t=once(t,anchor,helpers,'spatial helpers')
+
+          old='''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);SPATIAL.remove(support.level());
+    }
+'''
+          new='''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        refreshSpatialEntry(support);
+    }
+'''
+          t=once(t,old,new,'legacy register')
+          old='''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        DESCRIPTORS.put(support,descriptor);
+    }
+'''
+          new='''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        DESCRIPTORS.put(support,descriptor);
+        queryFrame(support);
+    }
+'''
+          t=once(t,old,new,'descriptor register')
+
+          # Rejected/unavailable/lifecycle transitions remove only this support. Accepted frames are reinserted below.
+          count=t.count('SPATIAL.remove(support.level())')
+          if count < 5:
+              raise SystemExit(f'support-wide invalidation count too small: {count}')
+          t=t.replace('SPATIAL.remove(support.level())','removeSpatialEntry(support)')
+
+          old='''        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));removeSpatialEntry(support);return endpoint;
+'''
+          new='''        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));refreshSpatialEntry(support);return endpoint;
+'''
+          t=once(t,old,new,'server endpoint refresh')
+          old='''            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));removeSpatialEntry(support);return Optional.of(endpoint);
+'''
+          new='''            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
+'''
+          t=once(t,old,new,'first direct endpoint refresh')
+          old='''        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));removeSpatialEntry(support);return Optional.of(endpoint);
+'''
+          new='''        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
+'''
+          t=once(t,old,new,'advanced direct endpoint refresh')
+
+          old='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+'''
+          new='''        var index=new SpatialIndex(level.getGameTime(),built.index(),new IdentityHashMap<>(frames));
+'''
+          t=once(t,old,new,'mutable frame map')
+          p.write_text(t)
+
+          p=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
+          t=p.read_text()
+          anchor='''    @Inject(method="remove",at=@At("HEAD"))
+    private void scalebrews$remove(Entity.RemovalReason reason,CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+    }
+'''
+          addition=anchor+'''    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
+    private void scalebrews$spatialSetPos(double x,double y,double z,CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+    }
+    @Inject(method="refreshDimensions",at=@At("RETURN"))
+    private void scalebrews$spatialDimensions(CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+    }
+'''
+          t=once(t,anchor,addition,'entity spatial hooks')
+          p.write_text(t)
+
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java')
+          t=p.read_text()
+          old='''            if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+'''
+          new='''            var conflicts=bodyOverlapConflicts(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
+                return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
+'''
+          t=once(t,old,new,'joint plan conflict')
+          old='''            if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+'''
+          new='''            var conflicts=bodyOverlapConflicts(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
+                return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
+'''
+          t=once(t,old,new,'single plan conflict')
+          old='''        private boolean worsensBodyOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
+                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
+                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS)return true;
+            }
+            return false;
+        }
+'''
+          new='''        private Set<Integer> bodyOverlapConflicts(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            var conflicts=new TreeSet<Integer>();
+            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
+                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
+                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS) {conflicts.add(i);conflicts.add(j);}
+            }
+            return conflicts;
+        }
+'''
+          t=once(t,old,new,'conflict set helper')
+          p.write_text(t)
+          PY
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
+      - name: commit source fix
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git config user.name 'ChatGPT'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java
+          git commit -m 'fix(collision): localize live spatial and plan-conflict updates'
+          git push origin HEAD:chatgpt-editing
