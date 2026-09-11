@@ -20,12 +20,32 @@ import org.joml.Matrix4f;
 public final class S09SeparationBudgetBoundaryTests {
     @GameTest
     public void exactBoundaryRecoversButCandidate129FailsClosedAndPairLocal(GameTestHelper h) {
+        // A budget is meaningful only if physically identical offsets are one candidate. Verify
+        // that prerequisite first: two nested slabs have exactly three physical states before
+        // success (ZERO, the inner +X escape and the outer +X escape). Signed-zero/SAT aliases
+        // must not turn those three states into several charged queue nodes.
+        assertEquivalentOffsetsAreOneCandidate(h);
+
         // Do not infer the queue cardinality from slab count. ConvexBox.escapeVectors deliberately
         // publishes several SAT exits per overlap, so the kernel itself calibrates the two exact
         // boundaries and the live path must reproduce those already-proven fixtures.
         runCase(h,true,8,6,2);
         runCase(h,false,24,6,18);
         h.succeed();
+    }
+
+    private static void assertEquivalentOffsetsAreOneCandidate(GameTestHelper h) {
+        var body=new AABB(-.05,0,-.05,.05,.1,.05);
+        var inner=ConvexBox.of(new AABB(-1,-1,-1,-.04,1,1),new Matrix4f());
+        var outer=ConvexBox.of(new AABB(-1,-1,-1,-.03,1,1),new Matrix4f());
+        h.assertTrue(inner.overlaps(body) && outer.overlaps(body),
+            "A12 alias control requires two genuine nested initial overlaps");
+        var result=AnatomySeparation.resolve(body,java.util.List.of(inner,outer),4,64,(box,delta)->delta);
+        h.assertTrue(result.separated() && result.displacement().x>.019 && result.displacement().x<.021
+                && Math.abs(result.displacement().y)<1e-12 && Math.abs(result.displacement().z)<1e-12,
+            "A12 alias control must escape through the outer +X face: "+result);
+        h.assertTrue(result.candidates()==3,
+            "A12 recovery budget must count physical offsets, not signed-zero/SAT aliases. Two nested slabs require only ZERO, inner +X and outer +X; got "+result);
     }
 
     private static void runCase(GameTestHelper h,boolean mustRecover,
