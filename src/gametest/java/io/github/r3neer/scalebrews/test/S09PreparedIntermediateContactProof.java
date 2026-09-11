@@ -73,16 +73,36 @@ final class S09PreparedIntermediateContactProof {
                 "A9 live root capture must preserve the prepared binding identity");
             support.yBodyRot=capture.root().yaw()+yawDelta;
             MaterialIntervalRuntime.commitRoot(support,capture);
+
+            // Prove that the exact live before/after frames queued above still describe the same
+            // interior-only collision. This prevents a placement-oracle mismatch from masquerading
+            // as a dispatcher/solver defect.
+            var liveAfter=AnatomyMovement.queryFrame(support).orElseThrow();
+            var liveHandle=new GeometryProvider.MotionIntervalHandle(capture.before().identity(),1,capture.before(),liveAfter);
+            var liveMotion=AnatomyRuntime.interval(support,liveHandle).orElseThrow();
+            h.assertTrue(endpointClear(liveMotion,captured,0) && endpointClear(liveMotion,captured,1),
+                "A9 live interval itself must remain endpoint-clear after publication");
+            h.assertTrue(liveMotion.pieces().containsKey(chosen) && liveMotion.pieces().get(chosen).at().apply(.5).overlaps(captured),
+                "A9 live interval must preserve the certified interior hit used by the fixture; piece="+chosen);
+
             MaterialPhysicsRuntime.drain(level);
 
             var metricsAfter=MaterialPhysicsRuntime.metrics(level);
+            long admitted=metricsAfter.admitted()-metricsBefore.admitted();
+            long candidates=metricsAfter.candidates()-metricsBefore.candidates();
+            long evaluations=metricsAfter.evaluations()-metricsBefore.evaluations();
+            long quarantined=metricsAfter.quarantined()-metricsBefore.quarantined();
+            long exhausted=metricsAfter.exhausted()-metricsBefore.exhausted();
+            h.assertTrue(admitted==1 && quarantined==0 && exhausted==0,
+                "A9 requires one clean published event before judging its physical response: admitted="+admitted
+                    +" candidates="+candidates+" evaluations="+evaluations+" quarantined="+quarantined+" exhausted="+exhausted);
+            h.assertTrue(candidates>=1,
+                "A9 material envelope must capture the stationary body; candidates="+candidates+" evaluations="+evaluations);
+
             var applied=body.position().subtract(bodyBefore);
             h.assertTrue(applied.lengthSqr()>1e-10,
-                "FR-049 requires an intermediate-only material hit to affect the stationary body; displacement="+applied);
-            h.assertTrue(metricsAfter.admitted()-metricsBefore.admitted()==1
-                    && metricsAfter.quarantined()==metricsBefore.quarantined()
-                    && metricsAfter.exhausted()==metricsBefore.exhausted(),
-                "A9 must be resolved by one clean published material interval: before="+metricsBefore+" after="+metricsAfter);
+                "FR-049 requires an intermediate-only material hit to affect the stationary body; displacement="+applied
+                    +" candidates="+candidates+" evaluations="+evaluations);
             h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
                 "A9 synchronous root drain must leave no material debt");
             h.assertTrue(AnatomyMovement.contact(body)==null && AnatomyMovement.surface(body)==null,
