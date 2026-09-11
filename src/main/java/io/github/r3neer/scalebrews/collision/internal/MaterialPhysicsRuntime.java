@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.WeakHashMap;
@@ -42,7 +43,10 @@ public final class MaterialPhysicsRuntime {
     public record Metrics(long tick,long admitted,long candidates,long evaluations,long quarantined,long exhausted) {}
     private record Prepared(MaterialIntervalRuntime.Pending pending,MaterialEventDispatcher.MaterialInterval interval,
             GeometryProvider.MotionSnapshot motion) {}
-    private record Plan(Entity body,Vec3 displacement,int evaluations) {}
+    /** Contact pieces are scoped keys from real CCD hits or actual t=0 overlap recovery, never endpoint proximity. */
+    private record Plan(Entity body,Vec3 displacement,int evaluations,Set<String> contactPieces) {
+        private Plan {contactPieces=Set.copyOf(contactPieces);}
+    }
 
     public static Metrics metrics(ServerLevel level) {
         return METRICS.getOrDefault(level,new Metrics(level.getGameTime(),0,0,0,0,0));
@@ -200,7 +204,8 @@ public final class MaterialPhysicsRuntime {
                 List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             var motion=motion(event.interval().handle());
             if(motion==null)return new MaterialEventDispatcher.Resolution<>(fail(List.of(event),MaterialEventDispatcher.Reason.BACKEND_FAILURE),List.of());
-            var outcome=resolveAll(List.of(event),motion.pieces(),candidates);
+            var pieces=scopedPieces(event,motion);
+            var outcome=resolveAll(List.of(event),pieces,candidates);
             return new MaterialEventDispatcher.Resolution<>(outcome,List.of());
         }
         @Override public MaterialEventDispatcher.BatchResolution<Entity> resolveJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,
@@ -219,14 +224,16 @@ public final class MaterialPhysicsRuntime {
                 var pieces=new TreeMap<String,ConservativeSweep.Motion>();
                 for(var event:events) {
                     if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
-                    var motion=motions.get(event.interval().handle());
-                    String prefix=support.getUUID()+"/"+event.interval().handle().materialSerial()+"/";
-                    for(var entry:motion.pieces().entrySet())if(pieces.put(prefix+entry.getKey(),entry.getValue())!=null)
+                    var scoped=scopedPieces(event,motions.get(event.interval().handle()));
+                    for(var entry:scoped.entrySet())if(pieces.put(entry.getKey(),entry.getValue())!=null)
                         return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_FAILURE);
                 }
-                if(pieces.isEmpty()) {plans.add(new Plan(body,Vec3.ZERO,0));continue;}
+                if(pieces.isEmpty()) {plans.add(new Plan(body,Vec3.ZERO,0,Set.of()));continue;}
                 var plan=plan(body,candidate.bounds(),pieces);
-                if(plan==null)return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                if(plan==null) {
+                    suspendInitialOverlapPairs(body,candidate.bounds(),events);
+                    return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                }
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
@@ -236,11 +243,21 @@ public final class MaterialPhysicsRuntime {
             return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
         }
         @Override public void quarantine(MaterialEventDispatcher.Event<Entity> event,MaterialEventDispatcher.Reason reason) {
-            if(event.support() instanceof LivingEntity support)AnatomyMovement.invalidateSupport(support);
+            if(reason!=MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED && event.support() instanceof LivingEntity support)
+                AnatomyMovement.invalidateSupport(support);
             record(level,0,0,0,1,reason==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED?1:0);
         }
         private GeometryProvider.MotionSnapshot motion(GeometryProvider.MotionIntervalHandle handle) {
             var value=prepared.get(handle);return value==null?null:value.motion();
+        }
+        private TreeMap<String,ConservativeSweep.Motion> scopedPieces(MaterialEventDispatcher.Event<Entity> event,
+                GeometryProvider.MotionSnapshot motion) {
+            var pieces=new TreeMap<String,ConservativeSweep.Motion>();String prefix=prefix(event);
+            for(var entry:motion.pieces().entrySet())pieces.put(prefix+entry.getKey(),entry.getValue());
+            return pieces;
+        }
+        private String prefix(MaterialEventDispatcher.Event<Entity> event) {
+            return event.support().getUUID()+"/"+event.interval().handle().materialSerial()+"/";
         }
         private MaterialEventDispatcher.Outcome resolveAll(List<MaterialEventDispatcher.Event<Entity>> events,
                 Map<String,ConservativeSweep.Motion> pieces,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
@@ -250,7 +267,10 @@ public final class MaterialPhysicsRuntime {
                 if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent())
                     return fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 var plan=plan(body,candidate.bounds(),pieces);
-                if(plan==null)return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                if(plan==null) {
+                    suspendInitialOverlapPairs(body,candidate.bounds(),events);
+                    return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+                }
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
@@ -258,7 +278,8 @@ public final class MaterialPhysicsRuntime {
             return MaterialEventDispatcher.Outcome.applied(1);
         }
         private Plan plan(Entity body,AABB captured,Map<String,ConservativeSweep.Motion> pieces) {
-            if(pieces.isEmpty())return new Plan(body,Vec3.ZERO,0);
+            if(pieces.isEmpty())return new Plan(body,Vec3.ZERO,0,Set.of());
+            var evidence=new TreeSet<String>();
             var clip=clip(body);TemporalResponse.Result response;
             Entity previous=PlatformPhysics.enter(body);
             try {response=TemporalResponse.resolve(captured,Vec3.ZERO,pieces,RESPONSE_EVENTS,QUERY_BUDGET,clip);}
@@ -267,6 +288,7 @@ public final class MaterialPhysicsRuntime {
             int evaluations=response.evaluations();
             if(response.status()==TemporalResponse.Status.ITERATION_LIMIT)return null;
             if(response.status()==TemporalResponse.Status.INITIAL_OVERLAP) {
+                for(var entry:pieces.entrySet())if(entry.getValue().at().apply(0).overlaps(captured))evidence.add(entry.getKey());
                 var start=pieces.values().stream().map(m->m.at().apply(0)).toList();
                 AnatomySeparation.Result separation;
                 previous=PlatformPhysics.enter(body);
@@ -279,15 +301,32 @@ public final class MaterialPhysicsRuntime {
                 catch(RuntimeException rejected){return null;}
                 finally {PlatformPhysics.exit(previous);}
                 evaluations+=response.evaluations();if(response.status()!=TemporalResponse.Status.COMPLETE)return null;
-                return new Plan(body,separation.displacement().add(response.displacement()),evaluations);
+                addContacts(evidence,response);
+                return new Plan(body,separation.displacement().add(response.displacement()),evaluations,evidence);
             }
-            return new Plan(body,response.displacement(),evaluations);
+            addContacts(evidence,response);
+            return new Plan(body,response.displacement(),evaluations,evidence);
+        }
+        private void addContacts(Set<String> evidence,TemporalResponse.Result response) {
+            for(var contact:response.contacts())evidence.add(contact.piece());
+        }
+        private void suspendInitialOverlapPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
+            for(var event:events) {
+                if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
+                var motion=motion(event.interval().handle());if(motion==null)continue;
+                boolean overlaps=false;
+                try {
+                    for(var piece:motion.pieces().values())if(piece.at().apply(0).overlaps(captured)){overlaps=true;break;}
+                } catch(RuntimeException rejected){continue;}
+                if(overlaps)AnatomyMovement.suspend(body,support);
+            }
         }
         private java.util.function.BiFunction<AABB,Vec3,Vec3> clip(Entity body) {
             return (box,delta)->Entity.collideBoundingBox(body,delta,box,level,level.getEntityCollisions(body,box.expandTowards(delta)));
         }
         private MaterialEventDispatcher.Outcome fail(List<MaterialEventDispatcher.Event<Entity>> events,MaterialEventDispatcher.Reason reason) {
-            for(var event:events)if(event.support() instanceof LivingEntity support)AnatomyMovement.invalidateSupport(support);
+            if(reason!=MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED)
+                for(var event:events)if(event.support() instanceof LivingEntity support)AnatomyMovement.invalidateSupport(support);
             record(level,0,0,0,events.size(),reason==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED?1:0);
             return MaterialEventDispatcher.Outcome.quarantined(reason);
         }
@@ -298,21 +337,27 @@ public final class MaterialPhysicsRuntime {
         }
         private void apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
             for(var plan:plans) {
-                boolean moved=plan.displacement().lengthSqr()>1e-20;
-                if(moved)plan.body().setPos(plan.body().position().add(plan.displacement()));
+                if(plan.displacement().lengthSqr()>1e-20)plan.body().setPos(plan.body().position().add(plan.displacement()));
                 AnatomyMovement.afterMove(plan.body());
-                if(AnatomyMovement.contact(plan.body())!=null || !moved)continue;
+                if(AnatomyMovement.contact(plan.body())!=null)continue;
                 for(var event:events) {
                     if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support))continue;
-                    if(establish(plan.body(),support,event.interval().handle().after()))break;
+                    var allowed=contactPieces(event,plan.contactPieces());if(allowed.isEmpty())continue;
+                    if(establish(plan.body(),support,event.interval().handle().after(),allowed))break;
                 }
             }
         }
-        private boolean establish(Entity body,LivingEntity support,GeometryProvider.QueryFrame after) {
+        private Set<String> contactPieces(MaterialEventDispatcher.Event<Entity> event,Set<String> evidence) {
+            String prefix=prefix(event);var pieces=new TreeSet<String>();
+            for(var key:evidence)if(key.startsWith(prefix))pieces.add(key.substring(prefix.length()));
+            return pieces;
+        }
+        private boolean establish(Entity body,LivingEntity support,GeometryProvider.QueryFrame after,Set<String> allowedPieces) {
             var identity=after.identity();
             if(!identity.matches(support) || identity.localRegistrationGeneration()!=AnatomyMovement.registrationGeneration(support))return false;
-            for(var id:new TreeSet<>(after.snapshot().pieces().keySet())) {
-                var piece=after.snapshot().pieces().get(id);var separation=piece.separation(body.getBoundingBox());
+            for(var id:new TreeSet<>(allowedPieces)) {
+                var piece=after.snapshot().pieces().get(id);if(piece==null)continue;
+                var separation=piece.separation(body.getBoundingBox());
                 if(Math.abs(separation.gap())>.025)continue;
                 int face=piece.closestFace(separation.normal());var normal=piece.faceNormal(face);
                 if(!AnatomyMovement.gravity(body).supports(normal))continue;
