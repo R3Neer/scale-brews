@@ -35,8 +35,10 @@ public final class CollisionCodecs {
         ? DataResult.success(value) : DataResult.error(() -> "Invalid anatomy piece/part id"));
     private static final Codec<Map<String, String>> STRING_MAP = Codec.unboundedMap(KEY, VALUE).validate(map -> map.size() <= 128
         ? DataResult.success(map) : DataResult.error(() -> "Too many engine parameters"));
-    private static final Codec<Map<String, String>> VARIANT_MAP = STRING_MAP.validate(map -> map.size() <= 32
-        ? DataResult.success(map) : DataResult.error(() -> "Too many collision variant selectors"));
+    private static final Codec<Map<String, String>> VARIANT_MAP = STRING_MAP
+        .validate(map -> map.size() <= 32 ? DataResult.success(map) : DataResult.error(() -> "Too many collision variant selectors"))
+        .validate(map -> map.values().stream().allMatch(value -> value.length() <= 256)
+            ? DataResult.success(map) : DataResult.error(() -> "Collision variant value too long"));
     private static final Codec<Set<String>> STRING_SET = canonicalSet(KEY);
     private static final Codec<Set<String>> PIECE_SET = canonicalSet(PIECE_ID);
     private static final Codec<Set<String>> POSE_CHANNELS = STRING_SET.validate(values -> values.size() <= 64

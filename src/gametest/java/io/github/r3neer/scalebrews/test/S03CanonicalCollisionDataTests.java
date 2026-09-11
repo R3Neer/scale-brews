@@ -47,6 +47,12 @@ public final class S03CanonicalCollisionDataTests {
         oversizedVariant.add("variant", variants);
         assertCodecError(h, CollisionCodecs.BINDING, oversizedVariant, "33 variant selectors must be a codec error, not a constructor exception");
 
+        var oversizedVariantValue = base.deepCopy();
+        var longVariant = new JsonObject();
+        longVariant.addProperty("kind", "x".repeat(257));
+        oversizedVariantValue.add("variant", longVariant);
+        assertCodecError(h, CollisionCodecs.BINDING, oversizedVariantValue, "Variant values longer than 256 characters must fail through DataResult");
+
         var oversizedChannels = base.deepCopy();
         var channels = new JsonArray();
         for (int n = 0; n < 65; n++) channels.add("channel" + n);
