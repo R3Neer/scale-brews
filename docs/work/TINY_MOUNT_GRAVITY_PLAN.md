@@ -1,0 +1,82 @@
+# Tiny Mount arbitrary-gravity implementation plan
+
+Status: **TEMPORARY — DELETE ON SUCCESS**.
+
+Branch target: dedicated Scale branch from `main`; do not use or modify `chatgpt-editing`.
+
+## T0 — baseline and coordination
+
+- [x] Read current Tiny Mount code and `chatgpt-editing` entity-collision requirements/architecture/plan.
+- [x] Establish mount-vs-collision ownership and future single gravity-frame authority.
+- [x] Converge temporary requirements/analysis/workflow/plan.
+- [ ] Record exact Scale `main` baseline and CI before implementation.
+- [ ] Re-check active `chatgpt-editing` state immediately before implementation in case S00/G1 has changed the coordination contract.
+
+## T1 — canonical gravity-frame service
+
+**Requirements:** TGR-003, TGR-011..014, TGR-017..019.
+
+- [ ] Inspect pinned Gravity Changer API and choose optional integration mechanism that cannot break Scale-only loading.
+- [ ] Introduce one canonical Scale gravity-frame service outside collision-specific internals.
+- [ ] Default to vanilla/DOWN with no provider.
+- [ ] Preserve single-owner/idempotent-owner semantics.
+- [ ] Add a stable native Tiny Mount gravity-capability marker.
+- [ ] Keep API minimal enough for future `chatgpt-editing` collision adoption.
+
+## T2 — bee/general Tiny Mount flight
+
+**Requirements:** TGR-001..006, TGR-009..010.
+
+- [ ] Express rider look/control intent in the root gravity frame.
+- [ ] Reuse one shared transform helper rather than Clinging-specific mixins.
+- [ ] Preserve current speed, pitch and vertical limits.
+- [ ] Prove DOWN differential equivalence and six-frame behavior.
+
+## T3 — chicken glide
+
+**Requirements:** TGR-001..005, TGR-007, TGR-009..010.
+
+- [ ] Replace world-Y assumptions with local gravity vertical for controlled Tiny Mount behavior only.
+- [ ] Preserve jump-held/released semantics and ordinary unmounted chicken behavior.
+- [ ] Add six-frame and frame-change adversarial coverage.
+
+## T4 — wolf pounce/landing
+
+**Requirements:** TGR-001..005, TGR-008..010.
+
+- [ ] Transform newly generated pounce impulse using root frame.
+- [ ] Make landing cleanup local-frame aware without rotating unrelated velocity components incorrectly.
+- [ ] Preserve hit attribution, cooldown and attack-animation behavior.
+- [ ] Add six-frame, mid-action frame change and DOWN regression cases.
+
+## T5 — compatibility/double-application gate
+
+**Requirements:** TGR-015..016, TNFR-004.
+
+- [ ] Expose/verify native capability in a way Clinging can detect without private reflection.
+- [ ] Validate expected old-Clinging/new-Scale interaction design: Clinging shims must be disabled on native Scale.
+- [ ] Retain no dependency from Scale to Clinging.
+
+## T6 — permanent docs and merge
+
+- [ ] Run Scale without Gravity Changer.
+- [ ] Run Scale with pinned Gravity Changer integration.
+- [ ] Run applicable real client tests.
+- [ ] Run Clinging compatibility fixture/capability check.
+- [ ] Update permanent Scale docs according to existing scope (MECHANICS/GUIDE/CONFIGURATION/VALIDATION and any Tiny Mount-specific doc actually affected).
+- [ ] Add a concise coordination note to the canonical entity-collision requirements/architecture only when the `chatgpt-editing` agent is ready to absorb `main`; do not edit their active branch from this workstream.
+- [ ] Full review produces zero changes.
+- [ ] Delete `docs/work/*`.
+- [ ] Re-run candidate CI.
+- [ ] Merge normally to `main` and verify `main` CI.
+
+## Dependency graph
+
+```text
+T0 → T1 → T2
+       ├── T3
+       └── T4
+T2+T3+T4 → T5 → T6
+```
+
+T1 is the architectural coordination point. T2/T3/T4 may be separate commits after that service stabilizes.
