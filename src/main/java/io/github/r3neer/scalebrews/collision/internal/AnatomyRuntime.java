@@ -149,6 +149,15 @@ public final class AnatomyRuntime {
         var server=entity.level().getServer();if(server==null)return Optional.empty();
         var state=STATES.get(server);if(state==null)return Optional.empty();
         var active=state.entities.get(entity);if(active==null)return Optional.empty();
+        var identity=handle.identity();
+        var definition=active.binding().policy().anatomy().orElse(null);
+        if(definition==null || !identity.matches(entity)
+                || identity.bindingGeneration()!=active.bindingGeneration()
+                || identity.localRegistrationGeneration()!=AnatomyMovement.registrationGeneration(entity)
+                || !identity.epoch().equals(AnatomyNetworking.epoch(server))
+                || identity.revision()!=state.catalog.snapshot().revision()
+                || !identity.model().equals(definition.model())
+                || !identity.poseProvider().equals(definition.poses()))return Optional.empty();
         return active.provider.interval(entity,handle);
     }
     /** Canonical one-shot S06 queue for the later S07 dispatcher. */
