@@ -1,6 +1,6 @@
 # S01 — Frontera pública y backend explícito
 
-Estado: **CERRADO**.
+Estado: **implementación y CI real verificadas; cierre formal pendiente de la campaña adversarial paralela**.
 
 ## 1. Scope
 
@@ -47,11 +47,11 @@ P2 revisó lifecycle y determinó que el backend no debe poseer estado: sólo de
 
 P3 contrastó el plan con G2/G3 y retiró cualquier intento de mover `AnatomyMovement` o `AnatomyRuntime` en este sprint. La pasada completa siguiente no produjo cambios.
 
-## 4. Modelo adversarial previo
+## 4. Modelo adversarial base
 
 Se cubrieron runtime con exactamente un backend, API-only sin backend, provider duplicado, consultas en DISABLED/BINDING/READY y adapter de gravedad presente/ausente. La ausencia de provider no puede convertirse en READY ni inventar contacto/raycast. Un provider duplicado no se selecciona por orden de classpath: se rechaza explícitamente.
 
-El holdout reservado fue inspeccionar por reflexión las firmas declaradas de `AnatomyApi`, buscando cualquier tipo de `collision.internal` que hubiera sobrevivido por accidente.
+El holdout base fue inspeccionar por reflexión las firmas declaradas de `AnatomyApi`, buscando cualquier tipo de `collision.internal` que hubiera sobrevivido por accidente. La campaña adversarial ampliada de los sprints G1 está delegada al agente paralelo indicado por el propietario y puede reabrir S01 si encuentra un fallo.
 
 ## 5. Implementación
 
@@ -65,36 +65,33 @@ No hubo cambios de plan después de P3.
 
 ## 6. Test matrix
 
-| Ataque / propiedad | Requisito | Nivel | Resultado |
+| Ataque / propiedad | Requisito | Nivel | Resultado ejecutado |
 | --- | --- | --- | --- |
-| Backend ausente falla cerrado | FR-003, NFR-021 | GameTest | PASS dentro de `./gradlew build` |
-| Único backend Scale-owned | FR-001 | GameTest | PASS dentro de `./gradlew build` |
-| Holdout: firmas sin `collision.internal` | NFR-021/025 | GameTest/reflection | PASS dentro de `./gradlew build` |
+| Backend ausente falla cerrado | FR-003, NFR-021 | GameTest | PASS en suite G1 registrada |
+| Único backend Scale-owned | FR-001 | GameTest | PASS en suite G1 registrada |
+| Holdout: firmas sin `collision.internal` | NFR-021/025 | GameTest/reflection | PASS en suite G1 registrada |
 | Suite previa completa | no regresión | GitHub Actions `./gradlew build` | PASS |
-
-### Segunda pasada adversarial
-
-La pasada posterior a implementación no encontró una ruta alternativa de backend, estado duplicado ni exposición de tipos internos en la fachada. Las mutaciones mínimas reservadas, devolver READY con backend ausente, aceptar dos providers o reintroducir un tipo internal en una firma, tienen oráculo directo en los tests añadidos.
 
 ## 7. Fallos encontrados y bucles
 
-Ninguno. El candidato compiló y pasó a la primera ejecución CI.
+El candidato inicial `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd` pasó GitHub Actions run `34582769682`, pero una auditoría posterior de S04 detectó que `S01PublicApiBoundaryTests` todavía no figuraba en `fabric-gametest`. Ese run demuestra compilación/regresión del árbol, **no** la ejecución de las aserciones S01.
+
+La evidencia de tests real se obtiene después de registrar S01-S04 en el test mod: run `34584717556`, intento 2, job `103216390687`, ejecutó **256/256 required GameTests**; el snapshot posterior `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` volvió a ejecutar **256/256** en run `34585112975`, job `103217403352`.
 
 ## 8. Revisión final
 
-La revisión final recorrió frontera API, lifecycle, ownership, fail-closed, gravedad, service loading, tests y exclusiones G2/G3. No produjo cambios.
+La revisión de implementación recorrió frontera API, lifecycle, ownership, fail-closed, gravedad, service loading, tests y exclusiones G2/G3. No produjo cambios de implementación de S01. El cierre formal queda condicionado únicamente a integrar la campaña adversarial paralela y repetir la revisión final si esa campaña modifica el árbol.
 
 ## 9. Cierre
 
-- [x] evidencia CI de la suite nueva y existente;
-- [x] segunda pasada adversarial;
-- [x] pasada final completa sin cambios;
-- [x] S01 cerrado.
+- [x] implementación del scope;
+- [x] CI con tests S01 realmente ejecutados;
+- [ ] campaña adversarial paralela integrada o sin fallos pendientes;
+- [ ] pasada final completa posterior a esa campaña;
+- [ ] S01 cerrado formalmente.
 
 ### Evidencia
 
-Commit candidato: `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd`.
+Candidato lógico inicial: `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd`.
 
-GitHub Actions run `34582769682`, job `103209945504`, finalizó **success** el 2026-09-11. El paso `build` ejecutó `./gradlew build` y finalizó correctamente; wrapper validation, Java 25 setup y captura de artefactos también finalizaron correctamente.
-
-La evidencia acumulada de S01 se incorporará también al bloque G1 de `VALIDATION.md` cuando cierre el gate, para no convertir cada commit documental intermedio en una segunda fuente de verdad de estado.
+Evidencia vigente de las aserciones S01: `1a19ec31cdaeb8c0d98cc86b327adb1661e09632`, GitHub Actions run `34585112975`, job `103217403352`, **256/256 required GameTests passed**.

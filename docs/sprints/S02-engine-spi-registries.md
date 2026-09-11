@@ -1,6 +1,6 @@
 # S02 — SPI y registries de engines reutilizables
 
-Estado: **CERRADO**.
+Estado: **implementación y CI real verificadas; cierre formal pendiente de la campaña adversarial paralela**.
 
 ## 1. Scope
 
@@ -25,9 +25,11 @@ S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como
 
 P1 separó root orientation de gravity. P2 evitó hacer que `PoseEngine` heredase del legacy `PoseProvider`. P3 eliminó cualquier built-in por especie del scope. La siguiente pasada no cambió el plan.
 
-## 4. Modelo adversarial
+## 4. Modelo adversarial base
 
-Se reservaron id desconocido, registro duplicado, parámetros geometry inválidos/oversize, pose inválida y quaternion root degenerado. La propiedad metamórfica fue que registrar una engine no puede crear por sí solo un binding de especie ni alterar física existente. El holdout exigió recuperar una fixture sólo por su id exacto y mantener unresolved un id ausente.
+Se reservaron id desconocido, registro duplicado, parámetros geometry inválidos/oversize, pose inválida y quaternion root degenerado. La propiedad metamórfica fue que registrar una engine no puede crear por sí solo un binding de especie ni alterar física existente. El holdout base exigió recuperar una fixture sólo por su id exacto y mantener unresolved un id ausente.
+
+La campaña adversarial ampliada está delegada al agente paralelo del propietario y puede reabrir S02.
 
 ## 5. Implementación
 
@@ -41,31 +43,32 @@ No se modificó `AnatomyMovement`, `WorldAnatomyCatalog` ni la ruta física lega
 
 ## 6. Test matrix
 
-| Propiedad | Nivel | Resultado |
+| Propiedad | Nivel | Resultado ejecutado |
 | --- | --- | --- |
-| fixture registra 3 familias por API | GameTest | PASS dentro de `./gradlew build` |
+| fixture registra 3 familias por API | GameTest | PASS en suite G1 registrada |
 | id desconocido no tiene fallback | GameTest | PASS |
 | duplicate id rechazado | GameTest | PASS |
 | DTOs inválidos rechazados | GameTest | PASS |
 | suite previa | GitHub Actions `./gradlew build` | PASS |
 
-La segunda pasada adversarial no encontró registro implícito, fallback ni acoplamiento por especie. Las mutaciones de duplicate-accept, missing-id fallback y DTO laxos tienen oráculos directos en la suite.
-
 ## 7. Fallos/bucles
 
-Ninguno. El candidato pasó a la primera ejecución CI.
+El candidato inicial `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3` pasó run `34583088612`, pero `S02EngineRegistryTests` aún no estaba registrado en el test mod. Ese verde se conserva como evidencia de build, no de las aserciones S02.
+
+Tras corregir el manifest, run `34584717556` intento 2/job `103216390687` ejecutó **256/256** GameTests. El snapshot G1 posterior `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` repitió **256/256** en run `34585112975`, job `103217403352`.
 
 ## 8. Revisión final
 
-Se recorrieron límites API, mutabilidad de DTO, duplicate semantics, ausencia de mods externos, separación root/joints/gravity y exclusiones G2/G3. La pasada completa no produjo cambios.
+La revisión de implementación recorrió límites API, mutabilidad de DTO, duplicate semantics, ausencia de mods externos, separación root/joints/gravity y exclusiones G2/G3. No produjo cambios específicos de S02. Debe repetirse si la campaña adversarial cambia el árbol.
 
 ## 9. Cierre
 
-- [x] CI verde;
-- [x] segunda pasada adversarial;
-- [x] revisión completa sin cambios;
-- [x] S02 cerrado.
+- [x] implementación del scope;
+- [x] CI con tests S02 realmente ejecutados;
+- [ ] campaña adversarial paralela integrada o sin fallos pendientes;
+- [ ] revisión final posterior a esa campaña;
+- [ ] S02 cerrado formalmente.
 
-Commit candidato: `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3`.
+Candidato lógico inicial: `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3`.
 
-GitHub Actions run `34583088612`, job `103210955751`, finalizó **success** el 2026-09-11. El paso `build` completó `./gradlew build`; wrapper validation, Java 25 y artefactos también quedaron verdes. La evidencia se consolidará en `VALIDATION.md` al cierre de G1.
+Evidencia vigente: `1a19ec31cdaeb8c0d98cc86b327adb1661e09632`, run `34585112975`, job `103217403352`, **256/256 required GameTests passed**.
