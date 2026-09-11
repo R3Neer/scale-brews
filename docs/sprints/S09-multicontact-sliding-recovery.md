@@ -1,6 +1,6 @@
 # S09 — Multicontacto, sliding y recovery material
 
-Estado: **IMPLEMENTACIÓN EN REVISIÓN / ABIERTO POR A9 + A11**. Quinto sprint de G2.
+Estado: **IMPLEMENTACIÓN COMPLETA / PASADA FINAL EN CURSO**. Quinto sprint de G2.
 
 ## 1. Scope
 
@@ -56,18 +56,30 @@ Gate: **G2 — pipeline material continuo Q2**.
 7. `MaterialPhysicsRuntime.apply(...)` sólo intenta `establish(...)` con pieces presentes en `contactPieces`, que proceden de hits CCD o overlap inicial real; no usa proximidad arbitraria.
 8. `MaterialPhysicsRuntime.Metrics` expone admitted/candidates/evaluations/quarantined/exhausted; `AnatomyMovement.SweepMetrics` expone queries/pieces/evaluations/exhausted.
 
-### Estado adversarial actual
+### Estado adversarial final
 
-- **A1/A2 verdes:** `S09LiveOwnMoveTests.retainedContactSurvivesTangentWithoutNewHitThenReleasesPastFootprint` demuestra retención tangencial sin hit nuevo y release real al abandonar el footprint.
-- **A3 verde:** el fixture live floor+wall simultáneo, tras corregir una construcción de `ConvexBox` con coordenadas world como fixture inválido, queda estable bajo inversión de orden de registro y conserva el tangente libre.
-- **A8 verde:** `S09PreparedIntervalContactProof` se ejecuta en la lane preparada real. Un barco estacionario, separado y sin contacto previo, adquiere contacto por un único ROOT publicado del cow preparado sin llamar a own-move.
-- **A9 BLOQUEANTE:** el contacto estrictamente intermedio de un cow preparado con ambos endpoints libres agota `TemporalResponse` al combinar apenas tres piezas canónicas. La pieza causal aislada sí resuelve; el prefijo `[root/body/cube_0, root/body/cube_1, root/head/cube_0]` devuelve `ITERATION_LIMIT`, displacement cero, time cero, contacts vacíos y 256 evaluaciones. El kernel mínimo de una sola pieza también es verde. La deuda está en el barrido multipieza/budget del primer contacto, no en provider, broadphase ni dispatcher.
-- **A11 BLOQUEANTE:** `AnatomyMovement.collide` exporta como movimiento permitido el prefijo seguro de un `TemporalResponse` agotado. El holdout calibrado encuentra dinámicamente 82 decoys: kernel `ITERATION_LIMIT`, 256 evaluaciones y displacement `(1.9999999403953552,-1,0)`; el wrapper live devuelve exactamente ese prefijo en vez de fallar cerrado. El oracle endurecido exige además cero contacto y cero suspensión en exhaustion.
+- **A1/A2 verdes:** la retención tangencial sin hit nuevo sobrevive mientras el endpoint siga materialmente válido y se libera al abandonar el footprint.
+- **A3/A4 verdes:** floor+wall y esquina de tres contactos activan las constraints simultáneas de forma estable; inversión de orden, signed zero y contactos dentro de `TIME_EPS` conservan el conjunto simultáneo.
+- **A5 verde:** el sliding equivalente con gravedad lateral bloquea las normales físicas correctas y conserva el tangente permitido.
+- **A6/A7 verdes:** recovery resoluble queda dentro del límite; los casos irresolubles fallan cerrados y localizan suspensión/conflicto sin destruir relaciones sanas no causales.
+- **A8 verde:** `S09PreparedIntervalContactProof` demuestra en la lane preparada real que un body estacionario puede adquirir contacto por un ROOT publicado sin own-move auxiliar.
+- **A9 verde:** `S09PreparedIntermediateContactProof` demuestra con catálogo real de cow que una pieza puede tocar sólo en `0<t<1`, desplazar al body, terminar con ambos endpoints libres, no inventar contacto final y dejar `admitted=1`, `quarantined=0`, `exhausted=0` bajo el budget existente.
+- **A10 verde:** endpoint cercano sin contacto temporal no magnetiza relación.
+- **A11 verde:** exhaustion conserva el prefijo seguro sólo como diagnóstico del kernel; la frontera live devuelve cero desplazamiento y cero contactos/deuda lógica, manteniendo exhaustion observable en métricas.
+- **A12 verde:** la frontera exacta de `AnatomySeparation` quedó estabilizada canonicalizando/deduplicando candidatos antes de encolarlos; candidate 128 y `+1` se distinguen sin crecimiento artificial de duplicados.
+- **Holdout de screening verde:** un motion CLEAR con cota deformante floja que consume cientos de evaluaciones en CCD directo completa bajo 256 mediante screening certificado; los CLEAR baratos usan primero un probe CCD acotado.
+- **Holdout de tolerancia simultánea verde:** dos contactos distintos separados por menos de `TIME_EPS` siguen recogidos ambos.
+- **Cota jerárquica fijada:** los nodos rígidos ya no multiplican artificialmente la velocidad por usar norma de Frobenius; `HierarchyMotion` usa una cota espectral conservadora para el bloque lineal y conserva soporte para afines/shear.
 
-Rojos retirados/no probatorios durante A9:
+Rojos retirados/no probatorios durante la revisión:
 
 - un typo de fixture `before.jointSampleTick()` fue fallo de compilación, no evidencia física;
-- una primera versión con cow scale 4 superaba deliberadamente el cap runtime de envelope 64 y fue cuarentenada antes de broadphase; se sustituyó por scale 1 y precondiciones explícitas de envelope válido.
+- una primera versión A9 con cow scale 4 superaba deliberadamente el cap runtime de envelope 64 y fue cuarentenada antes de broadphase;
+- un squeeze batch inicial no ejercía correctamente la localidad pretendida y se retiró en vez de parchear producción;
+- varias calibraciones A12 asumían una cardinalidad incorrecta de candidatos o dejaban entrar al bystander en la corrección; se corrigieron los fixtures hasta aislar el bug real de deduplicación;
+- un primer screening por ventanas con cap local rompía contactos reales y se descartó;
+- un recorte del horizonte al primer contacto alteraba empates dentro de tolerancia y se descartó;
+- el diagnóstico temporal detallado de A9 (`segments`, SAT uniforme y lower bounds) se eliminó una vez resuelto el bloqueo.
 
 ## 3. Plan de implementación
 
@@ -76,45 +88,49 @@ Rojos retirados/no probatorios durante A9:
 - [x] I1 Construir fixtures live mínimos para own-move y material-interval usando sólo hooks productivos; no añadir seam de test que replique el solver.
 - [x] I2 Verificar/ajustar la ruta de own-move para que un contacto previo tangencial final-válido sobreviva aunque `TemporalResponse` no produzca un hit nuevo.
 - [x] I3 Verificar multicontacto live inicial: floor+wall simultáneos limitan ambas normales y la respuesta no depende del orden de registro.
-- [ ] I4 Verificar/ajustar sliding live con floor+wall y al menos una gravedad no vanilla: componente normal bloqueada, tangentes preservadas y block clip respetado.
-- [ ] I5 Verificar/ajustar initial separation y final recovery live: salida segura acotada o suspensión exclusiva de la pareja irresoluble, sin teleport parcial.
+- [x] I4 Verificar/ajustar sliding live con floor+wall y al menos una gravedad no vanilla: componente normal bloqueada, tangentes preservadas y block clip respetado.
+- [x] I5 Verificar/ajustar initial separation y final recovery live: salida segura acotada o suspensión exclusiva de la pareja irresoluble, sin teleport parcial.
 - [x] I6 Verificar establecimiento/reacquisition por intervalo material publicado con body estacionario; sólo un hit/overlap temporal real puede crear contacto.
-- [ ] I7 Reparar/verificar A9: contacto material estrictamente intermedio con endpoints libres debe influir en la respuesta física sin dejar contacto final inventado.
-- [ ] I8 Reparar/verificar A11 y las demás fronteras afectadas: exhaustion observable, sin displacement parcial ni deuda lógica; no subir budgets como sustituto de la corrección.
-- [ ] I9 Auditar hot paths de S09: ningún arreglo puede introducir `level.getAllEntities()` por query/move ni resample global de providers.
-- [ ] I10 Revisión completa contra FR-043/044/047-053 y NFR-001/002/004/007/008; eliminar sólo helpers nuevos sin consumidor.
-- [ ] I11 Ejecutar suite ordinaria + lane preparada necesaria y hacer pasada final completa sin cambios de producción.
+- [x] I7 Reparar/verificar A9: contacto material estrictamente intermedio con endpoints libres influye en la respuesta física sin dejar contacto final inventado.
+- [x] I8 Reparar/verificar A11 y las demás fronteras afectadas: exhaustion observable, sin displacement parcial ni deuda lógica; budgets normativos permanecen en 32/256 y 128.
+- [x] I9 Auditar hot paths de S09: no hay `level.getAllEntities()` por query/move ni resample global de providers; la captura live sigue acotada por envelope y `maximumBodies`.
+- [x] I10 Revisión completa contra FR-043/044/047-053 y NFR-001/002/004/007/008; se eliminaron los diagnósticos temporales de A9 y no se creó segundo solver/owner.
+- [ ] I11 Ejecutar suite ordinaria + lane preparada sobre la versión limpia y hacer pasada final completa sin cambios de producción.
 
-### Criterios de reparación actuales
+### Reparaciones aplicadas
 
-**A9**
+**A9 / budget multipieza**
 
-- No se acepta aumentar `QUERY_BUDGET` como arreglo.
-- Debe conservarse el orden canónico y el fail-closed.
-- Las piezas que una cota conservadora demuestra incapaces de alcanzar al body no deben consumir CCD caro hasta impedir consultar la pieza causal.
-- Cualquier filtro barato nuevo debe seguir estando explícitamente acotado; no puede convertir miles de piezas en trabajo gratuito no contabilizado.
-- La pieza causal aislada debe mantener su resultado.
-- El prefijo real del cow y el manifold completo deben completar bajo el budget existente.
-- El A9 preparado final debe mover al body por el hit interior, terminar sin contacto retenido porque el endpoint está separado y dejar admitted=1, quarantine=0, exhausted=0.
+- No se aumentó `QUERY_BUDGET`; permanece en 256.
+- `HierarchyMotion` sustituyó la norma de Frobenius usada como factor lineal por una cota superior conservadora de la norma espectral basada en `AᵀA`, evitando inflar identidades/rotaciones rígidas por `√3` a cada nivel jerárquico.
+- `TemporalResponse` mantiene el orden canónico de piece ids.
+- Para piezas deformantes inactivas, un probe CCD de 8 evaluaciones resuelve inmediatamente los casos baratos; `ITERATION_LIMIT` del probe significa sólo “no barato”, no failure global.
+- Los casos caros pasan por broadphase temporal y cobertura certificada de intervalos libres mediante planos SAT y cotas de velocidad; cada muestra consume el mismo budget global.
+- Si el screening alcanza una zona que no puede certificar como libre, el CCD exacto recibe el budget restante; los contactos activos ya no vuelven a pagar screening.
+- La pieza causal aislada y el manifold real completo del cow preparado completan bajo 256; la ruta runtime física queda verde sin contacto final inventado.
 
-**A11**
+**A11 / exhaustion live**
 
-- `TemporalResponse` puede conservar internamente un prefijo seguro como diagnóstico; el wrapper live no puede publicarlo como movimiento permitido una vez el resultado es `ITERATION_LIMIT`.
-- Exhaustion debe seguir visible en métricas.
-- El retorno live debe ser cero en el holdout calibrado y no puede dejar contacto ni suspensión derivados del prefijo que no se aplica.
-- El corte debe ocurrir antes de recovery/selección de contacto; no basta con reemplazar el valor retornado al final.
+- El overload puro de `TemporalResponse` puede conservar un prefijo seguro para diagnóstico.
+- El overload live con `clip` convierte `ITERATION_LIMIT` en displacement cero y contacts vacíos antes de recovery/selección persistente.
+- Exhaustion sigue contabilizado en métricas y el holdout calibrado no deja contacto ni suspensión derivados de un movimiento que no se aplica.
+
+**A12 / recovery acotado**
+
+- `AnatomySeparation` canonicaliza candidatos antes de encolarlos para que offsets numéricamente equivalentes no consuman el budget como estados independientes.
+- El límite de 128 candidatos permanece intacto; el caso `+1` falla cerrado y localmente.
 
 ### Revisiones del plan
 
 - P1 requisitos: el scope cierra tareas G2 5 y la parte pendiente de 7/8 que depende de contacto/respuesta; no adelanta G3-G5.
 - P2 ownership: `TemporalResponse` sigue siendo kernel, `AnatomyMovement.collide` own-move live y `MaterialPhysicsRuntime` interval-move live. No se crea otro motor.
-- P3 consumidores: los únicos cambios productivos admisibles deben caer en esas rutas o en una frontera física reutilizable consumida por ambas.
+- P3 consumidores: las reparaciones quedaron en fronteras físicas reutilizadas por las rutas live (`TemporalResponse`, `HierarchyMotion`, `AnatomySeparation`) y en la política live de exhaustion.
 - P4 fail-closed: budget/recovery ambiguo libera/suspende localmente; nunca aproxima con endpoint-only ni scan global.
-- P5 determinismo: cualquier selección persistente debe derivar de ids/material provenance ordenados, no del orden de `HashMap`/registro.
-- P6 simplicidad: no se modifica producción si el holdout demuestra que la implementación actual ya cumple.
-- P7 verificabilidad: cada I2-I8 tiene observable físico o métrico independiente.
+- P5 determinismo: orden canónico, contactos simultáneos dentro de `TIME_EPS` y signed zero quedan fijados por tests; se descartó el recorte de horizonte que alteraba empates.
+- P6 simplicidad: se retiraron intentos que sólo desplazaban el problema (cap local, screening repetido de constraints activas, horizonte truncado) en vez de conservarlos como deuda.
+- P7 verificabilidad: I2-I8 tienen observables físicos o métricos independientes y A9 se prueba además contra catálogo preparado real.
 
-**Convergencia del plan:** el plan arquitectónico inicial sigue vigente. Los A9/A11 no exigen cambiar ownership: exigen corregir boundedness/consumo del kernel multipieza y la política live de exhaustion.
+**Convergencia del plan:** el ownership inicial permanece intacto. La revisión convergió en corregir la calidad de las cotas jerárquicas, hacer eficiente el consumo bounded del kernel y endurecer la frontera live de exhaustion, sin aumentar budgets ni añadir un segundo solver.
 
 ## 4. Modelo adversarial previo
 
@@ -170,22 +186,25 @@ Recovery que encuentra salida en la última candidatura permitida frente a uno q
 
 Repetir A3/A7 con orden de registro invertido y tras una traslación común grande del fixture conserva resultado relativo, contactos y razones de fallo.
 
-### Holdouts reservados
+### Holdouts concretados durante la revisión
 
-Después de implementar/revisar se concretarán sin avisar al código de antemano:
+- contacto tangencial retenido + nuevo segundo contacto;
+- pieza que toca sólo en subintervalo y se retira, incluida la prueba preparada A9;
+- endpoint casi tocando pero sin contacto temporal;
+- frontera exacta de own-move y de separation con bystander no causal;
+- sliding con gravedad lateral;
+- tres contactos simultáneos;
+- screening con cota deformante floja pero trayectoria CLEAR;
+- dos contactos distintos dentro de `TIME_EPS`;
+- cota rígida jerárquica para no multiplicar yaw speed por dimensión.
 
-- una combinación de contacto tangencial retenido + nuevo segundo contacto;
-- una pieza que toca sólo en un subintervalo muy corto y se retira;
-- un squeeze irresoluble donde el support culpable comparte batch con otro support válido;
-- una frontera exacta de budget que además contiene un bystander no causal.
+## 5. Clasificación de fallos aplicada
 
-## 5. Clasificación previa de fallos
-
-- Un holdout live rojo con precondiciones físicas válidas es **bug de implementación** salvo prueba contraria.
-- Si el fixture no alcanza la rama declarada o fabrica contacto/overlap accidental, es **test incorrecto** y se corrige sin tocar producción.
-- Si el kernel puro falla una propiedad ya normativa, se vuelve a implementación del kernel; no se parchea en el wrapper.
-- Si el fallo revela doble ownership/fallback, se vuelve a arquitectura/plan antes de código.
-- Si CI falla antes de ejecutar el oracle físico, se clasifica como entorno/evidencia o compilación de fixture antes de inferir una regresión física.
+- Un holdout live rojo con precondiciones físicas válidas se trató como **bug de implementación** salvo prueba contraria.
+- Fixtures que no alcanzaban la rama declarada, excedían deliberadamente caps o fabricaban causalidad accidental se corrigieron/retiraron sin tocar producción.
+- Fallos de kernel normativos se repararon en el kernel reutilizable, no en wrappers ad hoc.
+- No apareció doble ownership ni fue necesario cambiar arquitectura.
+- Fallos previos al oracle físico se separaron de regresiones físicas antes de modificar código.
 
 ## 6. Criterio de cierre
 
@@ -199,3 +218,5 @@ S09 sólo cierra cuando:
 6. fronteras de budget afectadas tienen outcome observable y no mutación parcial ni deuda lógica;
 7. no se introduce scan mundial ni segundo solver;
 8. suite final requerida está verde y la pasada completa posterior no produce cambios de producción.
+
+Los puntos 1-7 están demostrados. El punto 8 queda pendiente únicamente de la ejecución final sobre la versión ya limpiada de diagnósticos; no queda ningún blocker funcional conocido.
