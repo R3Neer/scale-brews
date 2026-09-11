@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/s06-prepared-adversarial-proof.yml'
 
-# Temporary rerun marker: S07-initial-separation-contact-fix-17bb.
+# Temporary rerun marker: S07-initial-separation-contact-fix-correction-gated.
 jobs:
   prepared-proof:
     runs-on: ubuntu-24.04
