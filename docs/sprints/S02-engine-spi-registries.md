@@ -1,18 +1,16 @@
 # S02 — SPI y registries de engines reutilizables
 
-Estado: **implementación y CI real verificadas; cierre formal pendiente de la campaña adversarial paralela**.
+Estado: **CERRADO**.
 
 ## 1. Scope
 
-Tesis única: crear las extensiones reutilizables que permiten registrar tecnologías de geometría, pose y root transform sin introducir Java específico por especie.
+Tesis única: crear extensiones reutilizables que permitan registrar tecnologías de geometría, pose y root transform sin introducir Java específico por especie.
 
-Incluye FR-015..018, FR-025..032 y FR-034 en su dimensión de contrato/registro; contribuye a NFR-019..022 y NFR-024/025. No implementa todavía engines ModelPart/Mojang completos, bindings de especies, catálogo final ni consumer Clinging.
-
-Excluye expresamente G2 solver/material pipeline, G3 cobertura/model extraction completa, G4 networking final y G5 categorías especiales.
+Incluye FR-015..018, FR-025..032 y FR-034 en su dimensión de contrato/registro; contribuye a NFR-019..022 y NFR-024/025. No implementa todavía engines ModelPart/Mojang completos, bindings de especies, catálogo final ni consumer Clinging. G2 solver/material pipeline, G3 cobertura/model extraction, G4 networking final y G5 categorías especiales quedan fuera.
 
 ## 2. Estado inicial
 
-S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como API final de familia; no existían `GeometryEngine`, `PoseEngine` ni `RootTransformProvider` públicos registrables. El plan G1 exige introducir esas fronteras antes de que G3 pueda implementar familias concretas.
+S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como API final de familia; no existían `GeometryEngine`, `PoseEngine` ni `RootTransformProvider` públicos registrables.
 
 ## 3. Plan y convergencia
 
@@ -21,15 +19,15 @@ S00 dejó `PoseProvider`/`PoseProviders` como infraestructura útil pero no como
 - [x] definir `RootTransformProvider` separado de joints y con DTO de rotación inmutable;
 - [x] crear registry público por `Identifier`, sin fallback y con duplicate rejection;
 - [x] probar registro de fixture externo y ausencia de fallback por id desconocido;
-- [x] probar validación/bounds de DTOs.
+- [x] probar validación/bounds y orden determinista de DTOs/registries.
 
-P1 separó root orientation de gravity. P2 evitó hacer que `PoseEngine` heredase del legacy `PoseProvider`. P3 eliminó cualquier built-in por especie del scope. La siguiente pasada no cambió el plan.
+P1 separó root orientation de gravity. P2 evitó hacer que `PoseEngine` heredase del legacy `PoseProvider`. P3 eliminó built-ins por especie del scope. Revisiones G1 posteriores añadieron canonical ordering y validación de referencias antes de consumo. La pasada final no cambió el contrato S02.
 
-## 4. Modelo adversarial base
+## 4. Modelo adversarial
 
-Se reservaron id desconocido, registro duplicado, parámetros geometry inválidos/oversize, pose inválida y quaternion root degenerado. La propiedad metamórfica fue que registrar una engine no puede crear por sí solo un binding de especie ni alterar física existente. El holdout base exigió recuperar una fixture sólo por su id exacto y mantener unresolved un id ausente.
+Se cubrieron id desconocido, registro duplicado, parámetros geometry inválidos/oversize, pose inválida, quaternion root degenerado, orden de registros y referencias a engines ausentes. Registrar una engine no crea por sí solo binding de especie ni altera física existente.
 
-La campaña adversarial ampliada está delegada al agente paralelo del propietario y puede reabrir S02.
+La campaña adversarial paralela se integró completa. No produjo un fallo residual atribuible a S02 después de las reparaciones transversales de G1.
 
 ## 5. Implementación
 
@@ -37,38 +35,44 @@ La campaña adversarial ampliada está delegada al agente paralelo del propietar
 - [x] `collision.api.spi.PoseEngine`;
 - [x] `collision.api.spi.RootTransformProvider`;
 - [x] `collision.api.CollisionEngines`;
-- [x] `S02EngineRegistryTests`.
+- [x] tests S02 registrados;
+- [x] ordering determinista de snapshots;
+- [x] `CollisionBindingCatalog` rechaza geometry/pose/root no registrados antes de aceptar el binding para uso.
 
-No se modificó `AnatomyMovement`, `WorldAnatomyCatalog` ni la ruta física legacy.
+No se modificó `AnatomyMovement`, no se implementaron engines por especie y no se adelantó G3.
 
 ## 6. Test matrix
 
-| Propiedad | Nivel | Resultado ejecutado |
+| Propiedad | Nivel | Resultado final |
 | --- | --- | --- |
-| fixture registra 3 familias por API | GameTest | PASS en suite G1 registrada |
+| fixture registra engines por API | GameTest | PASS |
 | id desconocido no tiene fallback | GameTest | PASS |
 | duplicate id rechazado | GameTest | PASS |
 | DTOs inválidos rechazados | GameTest | PASS |
-| suite previa | GitHub Actions `./gradlew build` | PASS |
+| snapshots/requests canónicos | adversarial GameTest | PASS |
+| binding con engine/provider ausente | adversarial GameTest | PASS, fail-closed |
+| suite servidor completa | `./gradlew build` | PASS, 266/266 |
+| client/integrated/dedicated | `runClientGameTest` | PASS |
 
 ## 7. Fallos/bucles
 
-El candidato inicial `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3` pasó run `34583088612`, pero `S02EngineRegistryTests` aún no estaba registrado en el test mod. Ese verde se conserva como evidencia de build, no de las aserciones S02.
+El candidato inicial `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3` pasó run `34583088612`, pero S02 aún no estaba registrado como entrypoint del test mod. Tras corregir el manifest, run `34584717556` intento 2/job `103216390687` ejecutó **256/256**. Revisiones posteriores elevaron la suite con ataques adicionales sin encontrar un defecto final específico de S02.
 
-Tras corregir el manifest, run `34584717556` intento 2/job `103216390687` ejecutó **256/256** GameTests. El snapshot G1 posterior `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` repitió **256/256** en run `34585112975`, job `103217403352`.
+Durante S04 se descubrió que el catálogo aceptaba referencias a geometry/pose/root no registrados. Se clasificó como bug de integración de G1/FR-033 y `8f4a682232fe39e385f6279352430f326f982711` añadió rechazo explícito y pruebas de las tres referencias. Las campañas posteriores conservaron el comportamiento.
 
 ## 8. Revisión final
 
-La revisión de implementación recorrió límites API, mutabilidad de DTO, duplicate semantics, ausencia de mods externos, separación root/joints/gravity y exclusiones G2/G3. No produjo cambios específicos de S02. Debe repetirse si la campaña adversarial cambia el árbol.
+Se revisaron límites API, mutabilidad, duplicate semantics, ausencia de mods externos, separación root/joints/gravity, determinismo, engine-reference validation y exclusiones G2/G3. La campaña adversarial final no dejó fallos S02 pendientes y la pasada posterior no produjo cambios.
 
 ## 9. Cierre
 
 - [x] implementación del scope;
-- [x] CI con tests S02 realmente ejecutados;
-- [ ] campaña adversarial paralela integrada o sin fallos pendientes;
-- [ ] revisión final posterior a esa campaña;
-- [ ] S02 cerrado formalmente.
+- [x] tests S02 realmente registrados;
+- [x] campaña adversarial integrada;
+- [x] regresiones transversales reparadas;
+- [x] suite final servidor verde;
+- [x] client/integrated/dedicated final verde;
+- [x] revisión final sin cambios;
+- [x] S02 cerrado.
 
-Candidato lógico inicial: `a5bb8cc6622d73ec9c4a1cc34bc0b84e1743ada3`.
-
-Evidencia vigente: `1a19ec31cdaeb8c0d98cc86b327adb1661e09632`, run `34585112975`, job `103217403352`, **256/256 required GameTests passed**.
+Evidencia final compartida de G1: implementación/test `3ba014dc2e19b6b700a707bd3177c55ac443328f`; GitHub Actions run `34593762577`, job `103244714934`, **266/266 required GameTests passed**. Client/integrated/dedicated: trigger code-identical `23a1072ef451a14f59f707019415e1f4ac60dbab`, run `34593970131`, job `103245364717`, **success**.

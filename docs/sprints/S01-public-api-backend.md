@@ -1,97 +1,80 @@
 # S01 — Frontera pública y backend explícito
 
-Estado: **implementación y CI real verificadas; cierre formal pendiente de la campaña adversarial paralela**.
+Estado: **CERRADO**.
 
 ## 1. Scope
 
-### Incluido
+S01 pertenece a G1 y tiene una sola tesis: `collision.api` no conoce implementación interna; una implementación Scale-owned queda detrás de un backend explícito y la ausencia de backend falla cerrada.
 
-S01 pertenece a G1 y tiene una sola tesis: `collision.api` deja de conocer clases de `collision.internal`; una implementación Scale-owned queda detrás de un backend explícito y la ausencia de backend falla cerrada.
+Quedan fuera el binding/policy canónico, registries de engines, codecs versionados, migración de planos legacy y body adapters. También quedan fuera G2+: división de `AnatomyMovement`, pipeline Q2, catálogo/lifecycle final y prediction/reconciliation.
 
-### Excluido
-
-Quedan fuera de S01 el binding/policy canónico, registries de engines, codecs versionados, migración de planos legacy y body adapters. También quedan fuera, por pertenecer a G2+, la división de `AnatomyMovement`, el pipeline Q2, el catálogo/lifecycle final y prediction/reconciliation.
-
-### Requisitos
-
-Contribuye directamente a FR-001..004 y FR-072..074, y a NFR-021, NFR-025, NFR-034. No declara cerrados requisitos cuya aceptación completa necesita sprints posteriores de G1 o gates posteriores.
-
-### Invariantes
-
-- `BINDING` sigue siendo fail-closed.
-- sólo Scale posee la física compartida;
-- el backend no crea un segundo solver ni duplica estado;
-- `GravityFrame` y `AnatomyMode`, clasificados TRUSTED por S00, no cambian de semántica;
-- el motor legacy no se retira antes de G5.
+Contribuye directamente a FR-001..004 y FR-072..074, y a NFR-021, NFR-025 y NFR-034.
 
 ## 2. Estado inicial e investigación
 
-S00 clasificó `AnatomyApi` como REWORK porque importaba `AnatomyMovement`, `AnatomySession` y `GravityFrames`. La fachada pública era por tanto dependiente de la implementación que debía ocultar. Las operaciones públicas existentes ya coincidían con la frontera arquitectónica de alto nivel, así que no era necesario rediseñarlas para este sprint.
+S00 clasificó `AnatomyApi` como REWORK porque importaba `AnatomyMovement`, `AnatomySession` y `GravityFrames`. La fachada pública dependía de la implementación que debía ocultar. `AnatomySession` conservaba la semántica DISABLED/BINDING/READY y `AnatomyMovement` seguía siendo el owner temporal de contacto/query/carry hasta G2.
 
-La investigación confirmó que `AnatomySession` conserva la semántica DISABLED/BINDING/READY y que `AnatomyMovement` sigue siendo el owner temporal de contacto/query/carry hasta G2. Mover esas responsabilidades sería adelantar G2, no desacoplar G1.
+Invariantes conservados: `BINDING` fail-closed, owner físico único Scale, backend sin estado físico propio, semántica de `GravityFrame`/`AnatomyMode` intacta y motor legacy no retirado antes de G5.
 
 ## 3. Plan de implementación
 
-- [x] I1 Introducir un contrato de backend mínimo que reproduzca únicamente las operaciones ya expuestas por `AnatomyApi`.
-- [x] I2 Proporcionar un backend inerte que falle cerrado cuando el runtime Scale no esté disponible.
-- [x] I3 Implementar un único backend Scale-owned que delegue en el runtime existente sin duplicar estado.
-- [x] I4 Descubrir el backend mediante Java services y rechazar cardinalidad distinta de uno cuando haya providers reales.
-- [x] I5 Reescribir `AnatomyApi` para que no importe `collision.internal`.
-- [x] I6 Añadir tests de fail-closed, unicidad de provider y ausencia de tipos internos en firmas de la fachada.
+- [x] I1 Introducir un contrato de backend mínimo con las operaciones ya expuestas por `AnatomyApi`.
+- [x] I2 Proporcionar un backend inerte fail-closed cuando el runtime Scale no esté disponible.
+- [x] I3 Implementar un único backend Scale-owned que delegue en owners existentes sin duplicar estado.
+- [x] I4 Descubrir el backend mediante Java services y rechazar cardinalidad distinta de uno.
+- [x] I5 Reescribir `AnatomyApi` sin dependencias de `collision.internal`.
+- [x] I6 Añadir tests de fail-closed, unicidad y frontera pública.
 
-### Historial de revisiones hasta convergencia
+P1 sustituyó un posible `installBackend` público por service discovery. P2 dejó el backend stateless. P3 descartó adelantar responsabilidades de G2/G3. La siguiente revisión no cambió el plan.
 
-P1 detectó que un `installBackend` público convertiría el bootstrap en una mutación accesible a consumers y lo sustituyó por descubrimiento de servicio.
+## 4. Modelo adversarial
 
-P2 revisó lifecycle y determinó que el backend no debe poseer estado: sólo delega en los owners existentes, evitando un segundo ledger.
+La base cubrió backend único/ausente/duplicado, DISABLED/BINDING/READY y gravity adapter presente/ausente. El holdout inicial inspeccionó por reflexión las firmas de `AnatomyApi` para impedir fugas de `collision.internal`.
 
-P3 contrastó el plan con G2/G3 y retiró cualquier intento de mover `AnatomyMovement` o `AnatomyRuntime` en este sprint. La pasada completa siguiente no produjo cambios.
-
-## 4. Modelo adversarial base
-
-Se cubrieron runtime con exactamente un backend, API-only sin backend, provider duplicado, consultas en DISABLED/BINDING/READY y adapter de gravedad presente/ausente. La ausencia de provider no puede convertirse en READY ni inventar contacto/raycast. Un provider duplicado no se selecciona por orden de classpath: se rechaza explícitamente.
-
-El holdout base fue inspeccionar por reflexión las firmas declaradas de `AnatomyApi`, buscando cualquier tipo de `collision.internal` que hubiera sobrevivido por accidente. La campaña adversarial ampliada de los sprints G1 está delegada al agente paralelo indicado por el propietario y puede reabrir S01 si encuentra un fallo.
+La campaña adversarial paralela amplió la frontera: no basta con que `AnatomyApi` no importe internals; el **contrato del backend tampoco puede ser API pública de consumer**.
 
 ## 5. Implementación
 
-- [x] Contrato `AnatomyBackend` con defaults fail-closed.
-- [x] `ScaleAnatomyBackend` como única implementación de producción.
-- [x] Service descriptor de producción.
-- [x] `AnatomyApi` delegando sin imports internos.
-- [x] Tests S01 añadidos.
+- [x] `AnatomyApi` como façade pública mínima.
+- [x] contrato backend fail-closed fuera de la superficie pública de consumer.
+- [x] `ScaleAnatomyBackend` como implementación Scale-owned única.
+- [x] service descriptor correspondiente al contrato runtime.
+- [x] tests S01 registrados y ejecutados.
 
-No hubo cambios de plan después de P3.
+La implementación inicial colocó `AnatomyBackend` en `collision.api`. Eso satisfacía la inversión de dependencias de `AnatomyApi`, pero no el requisito más fuerte de mantener el backend como wiring interno/runtime.
 
 ## 6. Test matrix
 
-| Ataque / propiedad | Requisito | Nivel | Resultado ejecutado |
-| --- | --- | --- | --- |
-| Backend ausente falla cerrado | FR-003, NFR-021 | GameTest | PASS en suite G1 registrada |
-| Único backend Scale-owned | FR-001 | GameTest | PASS en suite G1 registrada |
-| Holdout: firmas sin `collision.internal` | NFR-021/025 | GameTest/reflection | PASS en suite G1 registrada |
-| Suite previa completa | no regresión | GitHub Actions `./gradlew build` | PASS |
+| Ataque / propiedad | Nivel | Resultado final |
+| --- | --- | --- |
+| backend ausente falla cerrado | GameTest | PASS |
+| provider único / duplicado | GameTest | PASS |
+| façade pública sin `collision.internal` | reflection/GameTest | PASS |
+| backend contract no es API pública de consumer | adversarial reflection/GameTest | PASS tras reparación |
+| suite servidor completa | `./gradlew build` | PASS, 266/266 |
+| client/integrated/dedicated | `runClientGameTest` | PASS |
 
 ## 7. Fallos encontrados y bucles
 
-El candidato inicial `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd` pasó GitHub Actions run `34582769682`, pero una auditoría posterior de S04 detectó que `S01PublicApiBoundaryTests` todavía no figuraba en `fabric-gametest`. Ese run demuestra compilación/regresión del árbol, **no** la ejecución de las aserciones S01.
+El candidato inicial `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd` pasó run `34582769682`, pero S01 todavía no estaba registrado como entrypoint GameTest. Ese verde demuestra build/regresión, no sus aserciones. Tras registrar S01-S04, snapshots posteriores ejecutaron la suite real.
 
-La evidencia de tests real se obtiene después de registrar S01-S04 en el test mod: run `34584717556`, intento 2, job `103216390687`, ejecutó **256/256 required GameTests**; el snapshot posterior `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` volvió a ejecutar **256/256** en run `34585112975`, job `103217403352`.
+La campaña adversarial final sobre `19626950569110963cd47611b245234c650f2ca0` produjo un fallo real en run `34592683287`, job `103241351742`: `S01PublicApiBoundaryTests.backendContractIsNotPublicConsumerApi` encontró `io.github.r3neer.scalebrews.collision.api.AnatomyBackend` público. Se clasificó como **bug de implementación**, no como defecto del test o del requisito.
+
+`3ba014dc2e19b6b700a707bd3177c55ac443328f` movió el contrato a `collision.runtime.AnatomyBackend`, actualizó `AnatomyApi`, `ScaleAnatomyBackend` y el descriptor ServiceLoader, y eliminó el tipo `collision.api.AnatomyBackend`.
 
 ## 8. Revisión final
 
-La revisión de implementación recorrió frontera API, lifecycle, ownership, fail-closed, gravedad, service loading, tests y exclusiones G2/G3. No produjo cambios de implementación de S01. El cierre formal queda condicionado únicamente a integrar la campaña adversarial paralela y repetir la revisión final si esa campaña modifica el árbol.
+La pasada posterior a la campaña revisó façade, service loading, ownership, fail-closed, gravedad y superficie de tipos. El backend Scale queda fuera de `collision.api`; no se creó un segundo ledger/solver y no se tocaron responsabilidades Q2. La repetición completa no produjo cambios adicionales de S01.
 
 ## 9. Cierre
 
 - [x] implementación del scope;
-- [x] CI con tests S01 realmente ejecutados;
-- [ ] campaña adversarial paralela integrada o sin fallos pendientes;
-- [ ] pasada final completa posterior a esa campaña;
-- [ ] S01 cerrado formalmente.
+- [x] tests S01 realmente registrados;
+- [x] campaña adversarial integrada;
+- [x] fallo adversarial clasificado y reparado;
+- [x] suite final servidor verde;
+- [x] client/integrated/dedicated final verde;
+- [x] revisión final posterior a la campaña sin cambios;
+- [x] S01 cerrado.
 
-### Evidencia
-
-Candidato lógico inicial: `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd`.
-
-Evidencia vigente de las aserciones S01: `1a19ec31cdaeb8c0d98cc86b327adb1661e09632`, GitHub Actions run `34585112975`, job `103217403352`, **256/256 required GameTests passed**.
+Evidencia final compartida de G1: implementación/test `3ba014dc2e19b6b700a707bd3177c55ac443328f`; GitHub Actions run `34593762577`, job `103244714934`, **266/266 required GameTests passed**. El trigger code-identical `23a1072ef451a14f59f707019415e1f4ac60dbab` repitió build y ejecutó client/integrated/dedicated en run `34593970131`, job `103245364717`, con conclusión **success**.

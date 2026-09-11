@@ -183,55 +183,72 @@ The migration also removed the old package shims and removed production-specific
 
 This evidence validates **compilation and the required server/GameTest suite after the structural refactor**. It does not establish that `collision.internal` is the final package boundary, nor does it prove G1's final API/data contract, the unfinished Q2 material pipeline, client-special proof lanes, dedicated latency/reconnect behavior, Clinging migration, VanillaPlus coverage, performance targets or final physical correctness.
 
-## G1 public contract and canonical data candidate — 2026-09-11
+## G1 public contract and canonical data — CLOSED 2026-09-11
 
-Status: **implementation candidate verified on server and real client; G1 is not formally closed yet**. The owner delegated the independent adversarial campaign for completed sprints to a second agent. Until those tests/changes are integrated and followed by one complete zero-change review, this section is evidence for the candidate rather than a declaration that the gate is closed.
+Status: **G1 formally closed** after S01-S04, the independent adversarial campaign, repair of every observed implementation failure, a complete server rerun and a fresh real-client/integrated/dedicated proof. G2 has not been started.
 
-Exact validation snapshot: `b1d7c3b204412119d2c5ee708d3784f231a7db76`. The later commit `3da3f569749ad8f5bbc87e99c03a58d6da2dc9fc` only removes the temporary client-proof workflow and does not change production or GameTest sources.
+### Candidate progression and evidence corrections
 
-### Server/build evidence
+Early S01-S03/S04 workflow runs remained at the S00 baseline of **242 tests** because the new test classes compiled but were not registered as Fabric GameTest entrypoints. Those green runs are retained only as build/regression history and are not acceptance evidence for G1 assertions. `144470d769869426d8ee4be57912b9468a25e79e` registered S01-S04 and made the external fixture a real test-mod initializer.
 
-GitHub Actions run `34588346710`, job `103227629075`, checked out the exact snapshot above and ran the ordinary `./gradlew build` path on Ubuntu/Java 25.
+The first registered run encountered one environment/download failure before compilation; the unchanged retry passed. Later review-driven fixes raised the suite through 256, 257, 258, 260 and **262** tests. Material corrections before the independent campaign included fail-closed filter decode, missing engine-reference rejection, exact ratio boundaries, legacy migration warnings, validation-before-ordering, structural selector identity, deterministic snapshots, fail-closed body adapters and removal of duplicate ratio semantics from `PlatformEligibility`.
 
-- **262/262 required server GameTests passed**.
-- The S01-S04 tests are actually registered as Fabric GameTest entrypoints in this snapshot; this is not the earlier 242-test false-green condition.
-- The runtime log emitted the required warning while migrating the legacy `minecraft:cow` one-sided surface as an explicit plane.
-- Build artifact `10194580575` has SHA-256 `3f0fa9bb4c344eab80452d7eba9235253acb158677c6a544a9acabf0d8ee99da`.
+The non-adversarial snapshot `b1d7c3b204412119d2c5ee708d3784f231a7db76` passed server run `34588346710`, job `103227629075`, with **262/262** and client proof run `34588346767`, job `103227629118`, with real client/integrated/dedicated success. That evidence was provisional pending the independent campaign.
 
-The server suite exercises the explicit API/backend boundary, public engine/body registries, bounded DTOs, versioned canonical binding/policy codecs, legacy anatomy/plane separation, policy precedence, exact ratio boundaries, registered engine/provider references, init-time external fixture + JSON selection, ambiguous selector fail-closed behavior, structural selector identity, deterministic ordering and fail-closed adapter boundaries. Historical legacy callers now reach the same canonical eligibility rules through a deprecated compatibility facade rather than retaining a second ratio implementation.
+### Independent adversarial red-before-green
 
-### Real client / integrated / dedicated evidence
+The adversarial campaign expanded the suite to **266 tests**. GitHub Actions run `34592683287`, job `103241351742`, on exact snapshot `19626950569110963cd47611b245234c650f2ca0` failed exactly two required tests:
 
-A temporary one-shot workflow executed `xvfb-run -a ./gradlew runClientGameTest` on the same `b1d7c3b...` snapshot: GitHub Actions run `34588346767`, job `103227629118`, conclusion **success**.
+1. `S01PublicApiBoundaryTests.backendContractIsNotPublicConsumerApi`: `AnatomyBackend` was public under `collision.api`, leaking runtime wiring into the consumer API surface.
+2. `S03CanonicalCollisionDataTests.canonicalCodecsRejectInjectedLegacyKeys`: canonical codecs accepted unknown/legacy fields because `RecordCodecBuilder` ignored unrecognized keys.
 
-That run:
+Both were classified as **implementation bugs**. No test was weakened or removed and no normative requirement was changed.
 
-- started the real client under Xvfb/llvmpipe and the integrated server;
-- exported original Minecraft cow and player wide/slim geometry;
-- completed the harness's original-model pose comparisons, including the 80-comparison cow/player-wide/player-slim lanes and the additional 640 vanilla-family comparisons inherited from the accepted client harness;
-- printed the client receipt-authority and observer-authority PASS markers;
-- launched the dedicated proof with `allow-flight=false` and completed **0 / 100 / 200 ms RTT, 120 ticks each**;
-- completed `BUILD SUCCESSFUL`.
+`3ba014dc2e19b6b700a707bd3177c55ac443328f` repaired both defects: the backend contract moved to `collision.runtime.AnatomyBackend` with the corresponding ServiceLoader descriptor, and canonical binding/policy codecs became strict about allowed fields, including nested canonical objects, while preserving fail-closed filter decoding.
 
-ALSA/narrator and remote-service HTTP warnings in the hosted runner were environmental noise and did not fail the client/dedicated assertions. The temporary workflow was removed after the proof and is not part of the maintained CI surface.
+### Final server/build evidence
 
-### Evidence corrections and red-before-green history
+GitHub Actions run `34593762577`, job `103244714934`, checked out `3ba014dc2e19b6b700a707bd3177c55ac443328f` and ran the ordinary `./gradlew build` path on Ubuntu / Microsoft Java 25.0.3.
 
-The first S01-S03 and early S04 workflow runs remained at the S00 baseline of **242 tests** because the new test classes compiled but were not listed as `fabric-gametest` entrypoints. Those runs are retained only as build/regression history and are **not** acceptance evidence for G1 assertions. `144470d769869426d8ee4be57912b9468a25e79e` corrected the manifest and made the external fixture a real test-mod initializer.
+- **266/266 required server GameTests passed**.
+- `BUILD SUCCESSFUL`.
+- The complete adversarial S01-S04 suite was present and executed.
+- Build artifact `10260227920` has SHA-256 `67622ee3c4af2ddffb902854f6d6843371aa9b6768b4cd79c300c6e44c238049`.
 
-The first fully registered attempt then hit a transient Loom/Minecraft download failure before compilation. Re-running that unchanged snapshot produced **256/256**. Later review-driven fixes raised the count through 257, 258, 260 and finally **262**, while preserving the historical suite. Material fixes included codec fail-closed behavior, missing engine-reference rejection, exact `0.85`/profile ratio boundaries without epsilon, legacy migration warning, validation before canonical ordering, structural selector identity instead of `Map.toString()`, deterministic snapshots and fail-closed body-adapter outputs.
+The final server suite covers the public façade/backend boundary, backend non-public consumer contract, public engine/body registries, bounded/canonical DTOs, versioned schemas/capabilities, unknown-field rejection, legacy xor semantics, strict filter errors, engine/provider reference validation, exact ratio boundaries, structural selector identity, deterministic ordering, body-adapter fail-closed behavior and the external init-time fixture selected by JSON.
 
-### What this candidate proves and does not prove
+### Final real client / integrated / dedicated evidence
 
-This candidate establishes the implemented G1 contract/data boundary: one public façade with one Scale-owned backend, versioned capabilities/schema, reusable geometry/pose/root/body extension points, canonical binding/policy data independent of legacy surface shapes, a one-way legacy decoder, deterministic data/registry selection and an external init-time fixture selected by JSON. S00 already supplies accepted evidence for the unchanged single-owner/idempotent gravity adapter boundary and six cardinal gravity frames.
+A temporary one-shot workflow was triggered by `23a1072ef451a14f59f707019415e1f4ac60dbab`. That commit changed only the workflow comment; production and GameTest sources are code-identical to the repaired G1 implementation.
 
-This evidence **does not** close the delegated parallel adversarial campaign and therefore does not formally close G1. It also does not prove G2's live Q2 material-event pipeline, G3's final prepared catalog/lifecycle/coverage engines, G4 prediction/reconciliation, G5 legacy-motor removal, the final Clinging migration, VanillaPlus compatibility, final performance, or release acceptance.
+- The ordinary build run `34593970120` passed again.
+- `g1-client-proof` run `34593970131`, job `103245364717`, executed `xvfb-run -a ./gradlew runClientGameTest` and completed **success / BUILD SUCCESSFUL**.
+- The real client/integrated harness exported original Minecraft cow and player wide/slim geometry.
+- It completed 80 animated pose comparisons for cow, player wide and player slim plus **640 additional vanilla-family comparisons**.
+- It printed `S00_CLIENT_RECEIPT_AUTHORITY PASS` and `S00_OBSERVER_AUTHORITY PASS`.
+- The dedicated proof used `allow-flight=false` and completed **0 / 100 / 200 ms RTT, 120 ticks each**.
+
+ALSA/narrator, X11 and remote profile/service warnings in the hosted runner were environmental noise and did not fail the asserted lanes. The temporary workflow was deleted after the proof; its removal does not change production or tests.
+
+### Final review and scope limits
+
+The final zero-change review after the adversarial repair confirmed:
+
+- `collision.api` no longer contains the backend contract; runtime wiring lives outside the consumer API surface;
+- canonical codecs reject legacy/unknown fields rather than silently ignoring them;
+- `CollisionBindingCatalog` validates registered geometry/pose/root ids and has deterministic/fail-closed selection;
+- binding/policy data remain independent of `PlatformDefinition.Surface` and `automatic_top`;
+- legacy planes migrate explicitly and never become anatomical geometry;
+- body categories, ratio/friction policy and adapters use the canonical integration layer;
+- the external fixture registers via public API and is selected by declarative JSON;
+- G1 did not divide or redesign `AnatomyMovement`, integrate the live Q2 material dispatcher, replace final G3 lifecycle/catalog behavior, or remove the G5 legacy motor.
+
+G1 therefore proves the public/data/integration contract required by its gate. It does **not** prove G2's continuous material-event pipeline, G3's final prepared catalog/lifecycle/coverage engines, G4 prediction/reconciliation, G5 legacy-motor removal, final Clinging migration, VanillaPlus compatibility, normative performance benchmark or final release acceptance.
 
 ## Current acceptance gaps for entity collisions
 
-The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). For interpreting existing evidence, the major unproved areas after the current G1 candidate are:
+The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). After formal G1 closure, the major unproved areas are:
 
-- formal G1 closure after the delegated adversarial campaign is integrated and a final zero-change review passes;
 - complete Q2 continuous material-event consumption in live movement hooks;
 - exactly-once prediction/reconciliation for locally controlled players/vehicles;
 - transactional lifecycle/reload/reconnect coverage on the final architecture;

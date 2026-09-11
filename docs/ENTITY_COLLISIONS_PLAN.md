@@ -49,11 +49,11 @@ Estado de tareas:
 
 Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó el modelo adversarial clean-room, inventario/clasificación de cimientos, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. El registro de ejecución está en `docs/sprints/S00-foundation-audit.md` y la evidencia realmente ejecutada en `VALIDATION.md`.
 
-Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5 y no se consideran implementados por cerrar S00. **G1 está en curso; S01-S04 tienen implementación candidata y evidencia no adversarial, pero G1 no se declara cerrado hasta integrar la campaña adversarial paralela y completar una pasada final cero-cambios. G2 no se ha iniciado.**
+Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5 y no se consideran implementados por cerrar S00. **G1 está cerrado tras S01-S04, campaña adversarial integrada y repetición final server/client/dedicated. El siguiente gate es G2, que no se ha iniciado.**
 
 ### G1 — contrato público y data model desacoplados del legacy
 
-**Estado:** **EN CURSO**. Las nueve tareas de implementación están completadas en el candidato actual y existen pruebas reales de servidor y cliente; quedan la campaña adversarial paralela, la repetición de CI sobre cualquier cambio que produzca y la pasada final completa sin cambios antes del cierre formal.
+**Estado:** **CERRADO**. Las nueve tareas están implementadas, la campaña adversarial paralela se integró, sus dos fallos reales se repararon sin relajar requisitos, la suite final pasó **266/266 GameTests** y la capa client/integrated/dedicated se repitió verde. Evidencia exacta en `VALIDATION.md` y registro de cierre en `docs/sprints/S04-g1-integration-contract.md`.
 
 **Requisitos:** FR-001..006, FR-009..013, FR-015..034, FR-072..076; NFR-019..025, NFR-034..036.
 
