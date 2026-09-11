@@ -62,6 +62,20 @@ public final class S06MaterialIntervalIdentityTests {
         h.succeed();
     }
 
+    @GameTest public void conflictingPayloadCannotReuseFrameSerial(GameTestHelper h) {
+        var tracker = new MaterialIntervalTracker();
+        var id = identity(h, UUID.randomUUID(), 2, 1);
+        var accepted = frame(id,7,30,30,Vec3.ZERO,GravityFrame.VANILLA);
+        var conflicting = frame(id,7,30,30,new Vec3(.25,0,0),GravityFrame.VANILLA);
+        tracker.seed(accepted);
+        var result = tracker.accept(accepted,conflicting);
+        h.assertTrue(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && result.handle()==null,
+            "A changed causal payload reusing the accepted frameSerial must fail closed, not masquerade as UNCHANGED");
+        h.assertTrue(tracker.current().equals(accepted) && tracker.materialSerial()==0,
+            "Conflicting same-serial data must not replace the last accepted frame or advance material identity");
+        h.succeed();
+    }
+
     @GameTest public void sameTickMotionSnapshotIsValidButRewindIsRejected(GameTestHelper h) {
         var box = ConvexBox.of(new AABB(0,0,0,1,1,1),new Matrix4f());
         var motion = new io.github.r3neer.scalebrews.collision.physics.ConservativeSweep.Motion(t->box,0);
@@ -145,7 +159,7 @@ public final class S06MaterialIntervalIdentityTests {
             java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.5d,-.5d,-.5d),java.util.List.of(.5d,.5d,.5d),null)),
             ModelGeometry.values(new Matrix4f()));
         var provider=new ModelGeometryProvider(model,(geometry,inputs)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,7);
-        var id=identity(h,support.getUUID(),7,1);
+        var id=identity(h,support,7,1);
         var before=frame(id,1,50,50,new Vec3(2,20,2),GravityFrame.VANILLA);
         var after=frame(id,2,50,50,new Vec3(2.5,20,2),GravityFrame.VANILLA);
         var handle=new GeometryProvider.MotionIntervalHandle(id,1,before,after);
@@ -160,6 +174,43 @@ public final class S06MaterialIntervalIdentityTests {
                     && end.equals(repeated.pieces().get("body").at().apply(1).bounds()),
                 "Certified interval must derive only from captured handle endpoints, never later live TRS");
         } finally {support.discard();}
+        h.succeed();
+    }
+
+    @GameTest public void providerRejectsHandleBelongingToAnotherSupport(GameTestHelper h) {
+        var first=h.spawn(EntityTypes.COW,2,20,2);var second=h.spawn(EntityTypes.COW,4,20,2);
+        first.setNoAi(true);first.setNoGravity(true);second.setNoAi(true);second.setNoGravity(true);
+        var model=new ModelGeometry(2,"test:s06_cross_support","1",
+            java.util.List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.5d,-.5d,-.5d),java.util.List.of(.5d,.5d,.5d),null)),
+            ModelGeometry.values(new Matrix4f()));
+        var provider=new ModelGeometryProvider(model,(geometry,inputs)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,8);
+        var id=identity(h,first,8,1);
+        var before=frame(id,1,60,60,first.position(),GravityFrame.VANILLA);
+        var after=frame(id,2,60,60,first.position().add(.25,0,0),GravityFrame.VANILLA);
+        var handle=new GeometryProvider.MotionIntervalHandle(id,1,before,after);
+        try {
+            h.assertTrue(provider.interval(first,handle).isPresent(),"Fixture must certify its handle for the owning support");
+            h.assertTrue(provider.interval(second,handle).isEmpty(),
+                "A provider must not certify support A's causal handle while invoked for support B");
+        } finally {first.discard();second.discard();}
+        h.succeed();
+    }
+
+    @GameTest public void pendingCannotPairHandleWithDifferentSupport(GameTestHelper h) {
+        var first=h.spawn(EntityTypes.COW,2,20,2);var second=h.spawn(EntityTypes.COW,4,20,2);
+        first.setNoAi(true);first.setNoGravity(true);second.setNoAi(true);second.setNoGravity(true);
+        var id=identity(h,first,9,1);
+        var before=frame(id,1,70,70,first.position(),GravityFrame.VANILLA);
+        var after=frame(id,2,70,70,first.position().add(.25,0,0),GravityFrame.VANILLA);
+        var handle=new GeometryProvider.MotionIntervalHandle(id,1,before,after);
+        boolean rejected=false;
+        try {new MaterialIntervalRuntime.Pending(second,handle);}
+        catch(IllegalArgumentException expected){rejected=true;}
+        try {
+            h.assertTrue(rejected,
+                "Pending work must fail closed if its support object disagrees with the handle UUID/network-id/dimension identity");
+        } finally {first.discard();second.discard();}
         h.succeed();
     }
 
@@ -191,6 +242,11 @@ public final class S06MaterialIntervalIdentityTests {
 
     private static GeometryProvider.GeometryIdentity identity(GameTestHelper h,UUID support,long revision,long generation) {
         return new GeometryProvider.GeometryIdentity(h.getLevel().dimension(),support,1,UUID.randomUUID(),revision,
+            Identifier.parse("test:s06_model"),Identifier.parse("test:s06_pose"),generation,generation);
+    }
+
+    private static GeometryProvider.GeometryIdentity identity(GameTestHelper h,net.minecraft.world.entity.LivingEntity support,long revision,long generation) {
+        return new GeometryProvider.GeometryIdentity(h.getLevel().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
             Identifier.parse("test:s06_model"),Identifier.parse("test:s06_pose"),generation,generation);
     }
 
