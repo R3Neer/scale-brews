@@ -25,20 +25,22 @@ jobs:
           from pathlib import Path
           p=Path('src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java')
           t=p.read_text()
-          old='''            var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();
-            AnatomyMovement.register(entity,provider,descriptor(1));
-            provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));
-            AnatomyMovement.queryFrame(entity);
-            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==1,"Reentrant provider query evaluated or published a second endpoint");
-          '''
-          new='''            var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();
-            AnatomyMovement.register(entity,provider,descriptor(1));
-            int callsAfterRegister=provider.endpointCalls;
-            provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));
-            AnatomyMovement.queryFrame(entity);
-            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==callsAfterRegister+1,
-                "Reentrant provider query evaluated or published a second endpoint beyond the outer capture");
-          '''
+          old=(
+              "            var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();\n"
+              "            AnatomyMovement.register(entity,provider,descriptor(1));\n"
+              "            provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));\n"
+              "            AnatomyMovement.queryFrame(entity);\n"
+              "            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==1,\"Reentrant provider query evaluated or published a second endpoint\");\n"
+          )
+          new=(
+              "            var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();\n"
+              "            AnatomyMovement.register(entity,provider,descriptor(1));\n"
+              "            int callsAfterRegister=provider.endpointCalls;\n"
+              "            provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));\n"
+              "            AnatomyMovement.queryFrame(entity);\n"
+              "            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==callsAfterRegister+1,\n"
+              "                \"Reentrant provider query evaluated or published a second endpoint beyond the outer capture\");\n"
+          )
           if t.count(old)!=1:
               raise SystemExit(f'expected one S00 reentrancy oracle, found {t.count(old)}')
           p.write_text(t.replace(old,new,1))
