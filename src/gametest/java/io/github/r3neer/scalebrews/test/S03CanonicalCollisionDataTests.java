@@ -38,6 +38,28 @@ public final class S03CanonicalCollisionDataTests {
     }
 
     @GameTest
+    public void canonicalCodecsRejectInjectedLegacyKeys(GameTestHelper h) {
+        JsonObject binding = CollisionCodecs.BINDING.encodeStart(JsonOps.INSTANCE, fixtureBinding()).getOrThrow().getAsJsonObject();
+
+        var withLegacySurfaces = binding.deepCopy();
+        withLegacySurfaces.add("surfaces", new JsonArray());
+        assertCodecError(h, CollisionCodecs.BINDING, withLegacySurfaces,
+            "Canonical binding must reject the legacy surfaces key instead of silently ignoring it");
+
+        var withLegacyAnatomy = binding.deepCopy();
+        withLegacyAnatomy.add("anatomy", new JsonObject());
+        assertCodecError(h, CollisionCodecs.BINDING, withLegacyAnatomy,
+            "Canonical binding must reject the legacy anatomy key instead of silently creating dual-format data");
+
+        JsonObject policy = CollisionCodecs.POLICY.encodeStart(JsonOps.INSTANCE, CollisionPolicy.DEFAULT).getOrThrow().getAsJsonObject();
+        var withAutomaticSurfaces = policy.deepCopy();
+        withAutomaticSurfaces.addProperty("automatic_surfaces", true);
+        assertCodecError(h, CollisionCodecs.POLICY, withAutomaticSurfaces,
+            "Canonical policy must reject legacy automatic_surfaces instead of silently reviving top-surface semantics");
+        h.succeed();
+    }
+
+    @GameTest
     public void oversizedCanonicalCollectionsReturnCodecErrors(GameTestHelper h) {
         JsonObject base = CollisionCodecs.BINDING.encodeStart(JsonOps.INSTANCE, fixtureBinding()).getOrThrow().getAsJsonObject();
 
