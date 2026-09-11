@@ -1,5 +1,12 @@
 # Scale Brews — active work
 
+## Beta.6 prerelease delivery — 2026-09-11
+
+- [x] Audit `main` against beta.5 and current README claims; confirm the latest pre-release code snapshot has green server/client CI before changing publication metadata.
+- [x] Align README, player guide, gravity integration, validation record and changelog around released Tiny Mount effective-gravity scope versus the still-disabled anatomical prototype.
+- [x] Bump the project candidate to `0.1.0-beta.6` and define a guarded GitHub Actions prerelease lane that publishes only after exact-tree server/client validation and package checks.
+- [ ] Human acceptance of the resulting beta.6 JAR in the full pack/multiplayer remains separate from automated prerelease publication and does not complete the anatomical migration.
+
 ## Discovery-first documentation and beta.5 delivery — 2026-09-09
 
 - [x] Audit current gameplay, plan/write/review iteratively, split concise README

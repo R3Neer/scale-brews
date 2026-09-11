@@ -1,0 +1,161 @@
+name: prerelease
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-prerelease]') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: prepare release tree
+        id: prep
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -f .github/scripts/prerelease-prep.py ]]; then
+            python .github/scripts/prerelease-prep.py
+            git diff --check
+
+            if ! git diff --quiet; then
+              version="$(sed -n 's/^version=//p' gradle.properties)"
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add -A
+              git commit -m "release: prepare Scale Brews ${version}"
+              git push origin HEAD:main
+            fi
+          fi
+
+          release_sha="$(git rev-parse HEAD)"
+          version="$(sed -n 's/^version=//p' gradle.properties)"
+          if [[ -z "$version" || "$version" != *-* ]]; then
+            echo "::error::Refusing prerelease for invalid/non-prerelease version: $version"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null 2>&1; then
+            echo "::error::Tag v${version} already exists"
+            exit 1
+          fi
+
+          echo "release_sha=${release_sha}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: build and run server GameTests
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          ./gradlew build runGameTest --no-daemon --console=plain | tee server-tests.log
+
+      - name: run client GameTests
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain | tee client-tests.log
+
+      - name: verify release artifacts
+        id: package
+        shell: bash
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          set -euo pipefail
+          regular="build/libs/scalebrews-${VERSION}.jar"
+          sources="build/libs/scalebrews-${VERSION}-sources.jar"
+          test -f "$regular"
+          test -f "$sources"
+
+          python - "$regular" "$VERSION" <<'PY'
+          import json
+          import sys
+          import zipfile
+
+          jar, expected = sys.argv[1:]
+          with zipfile.ZipFile(jar) as archive:
+              metadata = json.loads(archive.read("fabric.mod.json"))
+              if metadata.get("version") != expected:
+                  raise SystemExit(
+                      f"fabric.mod.json version {metadata.get('version')!r} != {expected!r}"
+                  )
+              names = archive.namelist()
+              leaked = [name for name in names if name.startswith("io/github/r3neer/scalebrews/test/")]
+              if leaked:
+                  raise SystemExit(f"GameTest classes leaked into production JAR: {leaked[:5]}")
+          PY
+
+          server_tests="$(grep -oE 'All [0-9]+ required tests passed' server-tests.log | tail -n 1 | grep -oE '[0-9]+')"
+          test -n "$server_tests"
+          regular_sha="$(sha256sum "$regular" | awk '{print $1}')"
+
+          echo "regular=${regular}" >> "$GITHUB_OUTPUT"
+          echo "sources=${sources}" >> "$GITHUB_OUTPUT"
+          echo "server_tests=${server_tests}" >> "$GITHUB_OUTPUT"
+          echo "regular_sha=${regular_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: compose prerelease notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+          RELEASE_SHA: ${{ steps.prep.outputs.release_sha }}
+          SERVER_TESTS: ${{ steps.package.outputs.server_tests }}
+          REGULAR_SHA: ${{ steps.package.outputs.regular_sha }}
+        run: python .github/scripts/compose-prerelease-notes.py
+
+      - name: create GitHub prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          RELEASE_SHA: ${{ steps.prep.outputs.release_sha }}
+          REGULAR: ${{ steps.package.outputs.regular }}
+          SOURCES: ${{ steps.package.outputs.sources }}
+        run: |
+          set -euo pipefail
+          gh release create "v${VERSION}" \
+            "$REGULAR" \
+            "$SOURCES" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_SHA" \
+            --title "Scale Brews ${VERSION}" \
+            --notes-file release-notes.md \
+            --prerelease
+
+      - name: capture prerelease artifacts and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Prerelease-${{ steps.prep.outputs.version }}
+          path: |
+            build/libs/
+            server-tests.log
+            client-tests.log
+            release-notes.md
+            build/run/*/logs/latest.log
+            build/run/clientGameTest/screenshots/*.png
+          if-no-files-found: warn

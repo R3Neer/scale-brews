@@ -1,8 +1,4 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
-
+# Build and execute the real server/client regression suites for every push and PR.
 name: build
 on: [pull_request, push]
 
@@ -21,10 +17,17 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
+      - name: build and run server GameTests
+        run: ./gradlew build runGameTest --no-daemon --console=plain
+      - name: run client GameTests
+        run: xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain
+      - name: capture build artifacts and diagnostics
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: Artifacts
-          path: build/libs/
+          path: |
+            build/libs/
+            build/run/*/logs/latest.log
+            build/run/clientGameTest/screenshots/*.png
+          if-no-files-found: warn

@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.mount;
 
+import io.github.r3neer.scalebrews.integration.gravity.GravityFrames;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -71,7 +72,8 @@ public final class WolfMount {
             state.previous = wolf.position();
             if (--state.flight == 0 || wolf.onGround()) {
                 state.flight = 0;
-                if (wolf.onGround()) wolf.setDeltaMovement(0, wolf.getDeltaMovement().y, 0);
+                if (wolf.onGround())
+                    wolf.setDeltaMovement(GravityFrames.frame(wolf).keepLocalVertical(wolf.getDeltaMovement()));
             }
         }
         boolean jump = TinyMounts.input(rider).jump();
@@ -86,8 +88,8 @@ public final class WolfMount {
                 state.cooldown = 20; // Vanilla melee goal attack interval.
             } else {
                 double charge = Math.min(1, state.held * .1);
-                Vec3 velocity = launchVelocity(rider.getYRot(), rider.getXRot(), Math.clamp(charge, 0, 1));
-                wolf.setDeltaMovement(velocity);
+                Vec3 localVelocity = launchVelocity(rider.getYRot(), rider.getXRot(), Math.clamp(charge, 0, 1));
+                wolf.setDeltaMovement(GravityFrames.frame(wolf).toWorld(localVelocity));
                 wolf.setOnGround(false);
                 wolf.hurtMarked = true;
                 state.flight = 30;
@@ -99,6 +101,7 @@ public final class WolfMount {
         if (!jump) state.held = 0;
         state.previousJump = jump;
     }
+    /** Returns the pounce in gravity-local coordinates; callers choose the current world frame. */
     public static Vec3 launchVelocity(float yawDegrees, float pitchDegrees, double charge) {
         double pitch = Math.toRadians(Math.clamp(pitchDegrees, -55, 55));
         double yaw = Math.toRadians(yawDegrees);
@@ -118,7 +121,7 @@ public final class WolfMount {
     private static LivingEntity target(Wolf wolf, Player rider, Vec3 from, Vec3 to) {
         double reach = .35 * wolf.getScale();
         var box = wolf.getBoundingBox().move(from.subtract(wolf.position())).expandTowards(to.subtract(from)).inflate(reach);
-        Vec3 offset = new Vec3(0, wolf.getBbHeight() * .55, 0);
+        Vec3 offset = GravityFrames.frame(wolf).toWorld(0, wolf.getBbHeight() * .55, 0);
         Vec3 a = from.add(offset), b = to.add(offset);
         return wolf.level().getEntitiesOfClass(LivingEntity.class, box, candidate -> {
             if (candidate == wolf || candidate == rider || !wolf.canAttack(candidate)) return false;

@@ -43,12 +43,15 @@ No other mod is required. English and Spanish translations are included. World o
 
 This is a **beta**, not a promise of compatibility with every pack. Back up worlds before updating. See [tested behavior and remaining QA](docs/VALIDATION.md).
 
+Tiny Mounts remain ordinary Minecraft mounts at the integration boundary. When a compatible gravity provider is present, Scale-generated bee flight, chicken glide and wolf pounce/landing use the root mount's effective gravity frame instead of assuming world-down. **Gravity Changer is the provider Scale Brews currently recognizes automatically**; with no provider installed, the frame falls back to vanilla `DOWN` and Tiny Mount behavior is unchanged. See [effective-gravity integration](docs/GRAVITY_INTEGRATION.md).
+
 Living platforms currently provide upper support surfaces, **not full-body collisions**. The new all-direction anatomical system and shared Clinging Reoriented physics are **unfinished and disabled in normal gameplay**; their presence in the source is not a released feature. [Development status](docs/ANATOMY_IMPLEMENTATION.md).
 
 ## Go further
 
 - [Player guide / wiki](docs/GUIDE.md) — the full reference, with spoilers.
 - [World configuration](docs/CONFIGURATION.md) — make the rules fit your world.
+- [Effective-gravity integration](docs/GRAVITY_INTEGRATION.md) — how mount-generated movement composes with optional gravity providers.
 - [Build and contribute](docs/GUIDE.md#development) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/R3Neer/scale-brews/issues)
 
 [GPL-3.0-or-later](LICENSE). Original pixel art is hand-authored, not AI-generated; the images above are real in-game captures. [Artwork and screenshot details](docs/GUIDE.md#license-and-artwork).

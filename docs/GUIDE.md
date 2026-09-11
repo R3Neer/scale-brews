@@ -117,6 +117,8 @@ For wolves and other configured tameables, hold **Crouch + Use** (your configure
 | Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
 | Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
 
+Scale-generated bee flight, chicken glide and wolf pounce/landing use the **root mount's effective gravity frame** when a compatible provider is available. Gravity Changer is recognized automatically; no gravity mod is required, and without one the frame is vanilla `DOWN`. See [Effective-gravity integration](GRAVITY_INTEGRATION.md) for the ownership boundary and validation scope.
+
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chicken and bee saddles have separate hand-authored visual layers; wolves can wear their saddle and Wolf Armor together. Each tiny mount carries one rider. Mounted bees stay out of hives.
 
 ![A bee, chicken and tamed wolf wearing their saddles](images/tiny-mounts.png)
@@ -163,9 +165,11 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
+The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
+
+**Gravity Changer** is the concrete optional gravity provider currently recognized automatically. Six-frame Tiny Mount semantics are covered by provider-fixture regressions, while ordinary base CI verifies that the integration remains optional and vanilla-DOWN behavior still works without a gravity mod. See [Effective-gravity integration](GRAVITY_INTEGRATION.md).
 
 These are bounded integration tests, **not a guarantee for every modpack, configuration or future version**. Custom projectile, camera, movement or multipart-entity implementations may need additional integration. See [Validation](VALIDATION.md) for coverage and known limitations.
 
