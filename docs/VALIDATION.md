@@ -183,9 +183,9 @@ The migration also removed the old package shims and removed production-specific
 
 This evidence validates **compilation and the required server/GameTest suite after the structural refactor**. It does not establish that `collision.internal` is the final package boundary, nor does it prove G1's final API/data contract, the unfinished Q2 material pipeline, client-special proof lanes, dedicated latency/reconnect behavior, Clinging migration, VanillaPlus coverage, performance targets or final physical correctness.
 
-## G1 public contract and canonical data — CLOSED 2026-09-11
+## G1 public contract and canonical data — REOPENED 2026-09-11
 
-Status: **G1 formally closed** after S01-S04, the independent adversarial campaign, repair of every observed implementation failure, a complete server rerun and a fresh real-client/integrated/dedicated proof. G2 has not been started.
+Status: **G1 is currently reopened** after a later independent adversarial pass found a remaining NFR-025 package-layer cycle. The earlier 266/266 server and client/integrated/dedicated evidence below remains valid for the exact snapshots on which it ran, but it no longer establishes current G1 closure. G2 has not been started.
 
 ### Candidate progression and evidence corrections
 
@@ -206,20 +206,16 @@ Both were classified as **implementation bugs**. No test was weakened or removed
 
 `3ba014dc2e19b6b700a707bd3177c55ac443328f` repaired both defects: the backend contract moved to `collision.runtime.AnatomyBackend` with the corresponding ServiceLoader descriptor, and canonical binding/policy codecs became strict about allowed fields, including nested canonical objects, while preserving fail-closed filter decoding.
 
-### Final server/build evidence
+### Historical green evidence after the first adversarial repair
 
 GitHub Actions run `34593762577`, job `103244714934`, checked out `3ba014dc2e19b6b700a707bd3177c55ac443328f` and ran the ordinary `./gradlew build` path on Ubuntu / Microsoft Java 25.0.3.
 
 - **266/266 required server GameTests passed**.
 - `BUILD SUCCESSFUL`.
-- The complete adversarial S01-S04 suite was present and executed.
+- The complete adversarial S01-S04 suite then present was executed.
 - Build artifact `10260227920` has SHA-256 `67622ee3c4af2ddffb902854f6d6843371aa9b6768b4cd79c300c6e44c238049`.
 
-The final server suite covers the public façade/backend boundary, backend non-public consumer contract, public engine/body registries, bounded/canonical DTOs, versioned schemas/capabilities, unknown-field rejection, legacy xor semantics, strict filter errors, engine/provider reference validation, exact ratio boundaries, structural selector identity, deterministic ordering, body-adapter fail-closed behavior and the external init-time fixture selected by JSON.
-
-### Final real client / integrated / dedicated evidence
-
-A temporary one-shot workflow was triggered by `23a1072ef451a14f59f707019415e1f4ac60dbab`. That commit changed only the workflow comment; production and GameTest sources are code-identical to the repaired G1 implementation.
+A temporary one-shot workflow was then triggered by `23a1072ef451a14f59f707019415e1f4ac60dbab`. That commit changed only the workflow comment; production and GameTest sources were code-identical to the repaired implementation.
 
 - The ordinary build run `34593970120` passed again.
 - `g1-client-proof` run `34593970131`, job `103245364717`, executed `xvfb-run -a ./gradlew runClientGameTest` and completed **success / BUILD SUCCESSFUL**.
@@ -228,13 +224,23 @@ A temporary one-shot workflow was triggered by `23a1072ef451a14f59f707019415e1f4
 - It printed `S00_CLIENT_RECEIPT_AUTHORITY PASS` and `S00_OBSERVER_AUTHORITY PASS`.
 - The dedicated proof used `allow-flight=false` and completed **0 / 100 / 200 ms RTT, 120 ticks each**.
 
-ALSA/narrator, X11 and remote profile/service warnings in the hosted runner were environmental noise and did not fail the asserted lanes. The temporary workflow was deleted after the proof; its removal does not change production or tests.
+ALSA/narrator, X11 and remote profile/service warnings in the hosted runner were environmental noise and did not fail the asserted lanes. The temporary workflow was deleted after the proof; its removal did not change production or tests.
 
-### Final review and scope limits
+### Post-closure adversarial reopening
 
-The final zero-change review after the adversarial repair confirmed:
+A later structural review checked NFR-025 literally rather than only verifying that `collision.api` no longer contained the backend type. It found that the repair had moved the type but left a **high-level dependency cycle**: `AnatomyApi` in `collision.api` references `collision.runtime.AnatomyBackend`, while that runtime contract references API types including `AnatomyApi.RayHit`, `AnatomyMode` and `GravityFrame`.
 
-- `collision.api` no longer contains the backend contract; runtime wiring lives outside the consumer API surface;
+`94f2db96277f02c9e9d4903bdb02046b7878f4c2` added an adversarial package-cycle oracle without changing production. GitHub Actions run `34595220211`, job `103249293688`, executed **267 GameTests**: **266 passed and exactly one required test failed**, `S01PublicApiBoundaryTests.publicApiAndRuntimeDoNotFormALayerCycle`, reporting the `collision.api ↔ collision.runtime` cycle through `collision.runtime.AnatomyBackend`.
+
+`be41003bbceaecd27a36dc1d13e4bef0f8bde114` then added the inherited S03 property holdout that every constructor-accepted canonical object at its declared maximum collection/string boundaries must codec round-trip. GitHub Actions run `34595505502`, job `103250215902`, executed **268 GameTests**: again exactly one required test failed, the same S01 layer-cycle oracle. The new boundary round-trip holdout therefore **passed**. It exercised, at exact accepted limits, 32 variant selectors with 256-character values, 128 geometry parameters and 128 pose parameters with 1024-character values, 64 pose channels, 64 excluded states, 4096 anatomy include/exclude selections including 256-character piece ids, 256 category policies and 4096 support policies.
+
+These two runs are intentional **red-before-green** evidence. They prove that the constructor/codec limit debt is closed by a strong round-trip property, while G1 remains blocked solely on NFR-025. The canonical plan is correspondingly reopened. Any repair of the common/API boundary must rerun the full server suite and the applicable real-client/integrated/dedicated proof before G1 can be closed again.
+
+### Current review and scope limits
+
+The earlier review remains useful for the properties it actually covered:
+
+- `collision.api` no longer contains the backend contract itself;
 - canonical codecs reject legacy/unknown fields rather than silently ignoring them;
 - `CollisionBindingCatalog` validates registered geometry/pose/root ids and has deterministic/fail-closed selection;
 - binding/policy data remain independent of `PlatformDefinition.Surface` and `automatic_top`;
@@ -243,12 +249,13 @@ The final zero-change review after the adversarial repair confirmed:
 - the external fixture registers via public API and is selected by declarative JSON;
 - G1 did not divide or redesign `AnatomyMovement`, integrate the live Q2 material dispatcher, replace final G3 lifecycle/catalog behavior, or remove the G5 legacy motor.
 
-G1 therefore proves the public/data/integration contract required by its gate. It does **not** prove G2's continuous material-event pipeline, G3's final prepared catalog/lifecycle/coverage engines, G4 prediction/reconciliation, G5 legacy-motor removal, final Clinging migration, VanillaPlus compatibility, normative performance benchmark or final release acceptance.
+A later holdout invalidated only the claim that the package layering had converged: `collision.api ↔ collision.runtime` is still cyclic. Therefore G1 is **not currently closed** despite the historical green snapshots above.
 
 ## Current acceptance gaps for entity collisions
 
-The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). After formal G1 closure, the major unproved areas are:
+The open work itself is not duplicated here; see [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md). The major unproved areas are:
 
+- formal G1 re-closure after eliminating the `collision.api ↔ collision.runtime` cycle, rerunning the required evidence and completing a final zero-change review;
 - complete Q2 continuous material-event consumption in live movement hooks;
 - exactly-once prediction/reconciliation for locally controlled players/vehicles;
 - transactional lifecycle/reload/reconnect coverage on the final architecture;
