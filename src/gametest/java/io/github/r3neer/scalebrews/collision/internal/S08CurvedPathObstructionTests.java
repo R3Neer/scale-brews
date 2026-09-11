@@ -46,8 +46,9 @@ public final class S08CurvedPathObstructionTests {
         AABB captured=body.getBoundingBox();
         Vec3 pivot=new Vec3(start.x-2,start.y,start.z);
         double floorHalf=.01;
-        var floorBefore=ConvexBox.of(new AABB(start.x-floorHalf,captured.minY-.20,start.z-floorHalf,
-            start.x+floorHalf,captured.minY,start.z+floorHalf),new Matrix4f());
+        // Avoid Matrix4f precision collapse at GameTest's very large absolute coordinates.
+        var floorLocal=ConvexBox.of(new AABB(0,0,0,floorHalf*2,.20,floorHalf*2),new Matrix4f());
+        var floorBefore=floorLocal.move(new Vec3(start.x-floorHalf,captured.minY-.20,start.z-floorHalf));
         var floorAfter=rotateY(floorBefore,pivot,Math.PI);
         double maxRadius=floorBefore.vertices().stream().mapToDouble(v->Math.hypot(v.x-pivot.x,v.z-pivot.z)).max().orElseThrow();
         var floorMotion=new ConservativeSweep.Motion(t->rotateY(floorBefore,pivot,Math.PI*t),maxRadius*Math.PI,Vec3.ZERO);
@@ -64,7 +65,7 @@ public final class S08CurvedPathObstructionTests {
             var initialSurface=new SurfaceContact(support.getUUID(),revision,"floor",face,local,normal,level.getGameTime());
             h.assertTrue(AnatomyMovement.confirm(body,support,initialSurface),"Fixture must establish retained floor contact");
 
-            var obstacle=ConvexBox.of(blockBox,new Matrix4f());
+            var obstacle=ConvexBox.of(new AABB(0,0,0,1,1,1),new Matrix4f()).move(blockMin);
             double gap=obstacle.separation(captured).gap();
             h.assertTrue(gap>0 && gap<=ConservativeSweep.SKIN,
                 "Fixture block must start separated but inside CCD skin: "+gap);
