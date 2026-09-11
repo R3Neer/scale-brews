@@ -92,9 +92,18 @@ final class S09PreparedIntermediateContactProof {
                     failedAt=id;failedResponse=response;break;
                 }
             }
+            TemporalResponse.Result failedSolo256=null;ConservativeSweep.Result failedSweep4096=null;double failedMaxPointSpeed=Double.NaN;
+            if(failedAt!=null) {
+                var failedMotion=liveMotion.pieces().get(failedAt);
+                failedSolo256=TemporalResponse.resolve(captured,Vec3.ZERO,Map.of(failedAt,failedMotion),32,256);
+                failedSweep4096=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,4096);
+                failedMaxPointSpeed=failedMotion.maxPointSpeed();
+            }
             h.assertTrue(failedAt==null,
                 "A9 canonical cow prefix must not exhaust before resolving the interior contact: chosen="+chosen
-                    +" failedAt="+failedAt+" prefix="+progressive.keySet()+" response="+failedResponse);
+                    +" failedAt="+failedAt+" prefix="+progressive.keySet()+" response="+failedResponse
+                    +" failedSolo256="+failedSolo256+" failedSweep4096="+failedSweep4096
+                    +" failedMaxPointSpeed="+failedMaxPointSpeed);
 
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
