@@ -77,6 +77,9 @@ public final class MaterialIntervalTracker {
         if (!sameIdentity) materialSerial = 0;
     }
 
+    /** Barrier where the binding identity is not currently publishable; preserve the existing fence. */
+    public void cut() { current=null;last=null; }
+
     public void clear() {
         identity = null;
         current = null;

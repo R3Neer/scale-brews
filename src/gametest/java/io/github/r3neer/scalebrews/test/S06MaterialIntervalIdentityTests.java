@@ -1,12 +1,15 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalTracker;
+import io.github.r3neer.scalebrews.collision.internal.ModelGeometryProvider;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.util.Map;
 import java.util.Optional;
@@ -104,7 +107,7 @@ public final class S06MaterialIntervalIdentityTests {
         h.succeed();
     }
 
-    @GameTest public void jointObservationAndLifecycleBarrierDoNotInventHistory(GameTestHelper h) {
+    @GameTest public void jointObservationAndLifecycleBarrierDoNotInventOrReuseHistory(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         var joint=new float[]{0};
         var provider=endpointProvider(6,e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])));
@@ -118,7 +121,7 @@ public final class S06MaterialIntervalIdentityTests {
             h.assertTrue(first.size()==1 && first.getFirst().handle().materialSerial()==1,
                 "A new joint sample on the same root publishes one causal interval");
             joint[0]=2;
-            MaterialIntervalRuntime.observe(support);
+            MaterialIntervalRuntime.observe(support); // allocates serial 2, but the lifecycle barrier cancels its pending work
             MaterialIntervalRuntime.invalidate(support);
             h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),
                 "Lifecycle invalidation removes pending work that could cross the barrier");
@@ -126,7 +129,37 @@ public final class S06MaterialIntervalIdentityTests {
             MaterialIntervalRuntime.observe(support);
             h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),
                 "First valid frame after a barrier seeds continuity instead of sweeping through the gap");
+            joint[0]=4;
+            MaterialIntervalRuntime.observe(support);
+            var resumed=MaterialIntervalRuntime.poll(h.getLevel());
+            h.assertTrue(resumed.size()==1 && resumed.getFirst().handle().materialSerial()==3,
+                "Same-binding barrier must not recycle a previously allocated material serial");
         } finally {MaterialIntervalRuntime.clear(h.getLevel());AnatomyMovement.deactivate(h.getLevel());support.discard();}
+        h.succeed();
+    }
+
+    @GameTest public void modelProviderIntervalIgnoresLiveEntityStateAfterCapture(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var model=new ModelGeometry(2,"test:s06_live_trap","1",
+            java.util.List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.5d,-.5d,-.5d),java.util.List.of(.5d,.5d,.5d),null)),
+            ModelGeometry.values(new Matrix4f()));
+        var provider=new ModelGeometryProvider(model,(geometry,inputs)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,7);
+        var id=identity(h,support.getUUID(),7,1);
+        var before=frame(id,1,50,50,new Vec3(2,20,2),GravityFrame.VANILLA);
+        var after=frame(id,2,50,50,new Vec3(2.5,20,2),GravityFrame.VANILLA);
+        var handle=new GeometryProvider.MotionIntervalHandle(id,1,before,after);
+        try {
+            var certified=provider.interval(support,handle).orElseThrow();
+            var start=certified.pieces().get("body").at().apply(0).bounds();
+            var end=certified.pieces().get("body").at().apply(1).bounds();
+            support.setPos(100,80,-100);support.yBodyRot=137;
+            support.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(3);support.refreshDimensions();
+            var repeated=provider.interval(support,handle).orElseThrow();
+            h.assertTrue(start.equals(repeated.pieces().get("body").at().apply(0).bounds())
+                    && end.equals(repeated.pieces().get("body").at().apply(1).bounds()),
+                "Certified interval must derive only from captured handle endpoints, never later live TRS");
+        } finally {support.discard();}
         h.succeed();
     }
 

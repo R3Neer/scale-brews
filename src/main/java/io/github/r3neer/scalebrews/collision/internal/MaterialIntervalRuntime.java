@@ -49,7 +49,7 @@ public final class MaterialIntervalRuntime {
         var tracker=TRACKERS.computeIfAbsent(support,ignored->new MaterialIntervalTracker());
         var before=tracker.current();
         if(after==null) {
-            AnatomyMovement.publishedFrame(support).ifPresent(frame->tracker.cut(frame.identity()));
+            AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::cut);
             return;
         }
         if(before==null) {tracker.seed(after);return;}
@@ -59,25 +59,28 @@ public final class MaterialIntervalRuntime {
     private static void accept(LivingEntity support,GeometryProvider.QueryFrame before,GeometryProvider.QueryFrame after) {
         var tracker=TRACKERS.computeIfAbsent(support,ignored->new MaterialIntervalTracker());
         if(after==null) {
-            AnatomyMovement.publishedFrame(support).ifPresent(frame->tracker.cut(frame.identity()));
+            AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::cut);
             return;
         }
         if(before==null) {tracker.seed(after);return;}
         if(tracker.current()==null)tracker.seed(before);
-        else if(!tracker.current().equals(before)) {
-            if(tracker.current().identity().equals(before.identity())
-                    && tracker.current().endpoint().frameSerial()<before.endpoint().frameSerial())tracker.seed(before);
-        }
+        var currentBefore=tracker.current();
         var result=tracker.accept(before,after);
-        if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED)
+        if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED) {
             PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>()).add(new Pending(support,result.handle()));
+        } else if(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && currentBefore!=null
+                && currentBefore.identity().equals(after.identity())
+                && after.endpoint().frameSerial()>currentBefore.endpoint().frameSerial()) {
+            // Explicitly resynchronise after a detected gap without publishing fabricated history.
+            tracker.seed(after);
+        }
     }
 
     /** Lifecycle barrier for teleports/removal/unavailable transitions. */
     public static void invalidate(LivingEntity support) {
         var tracker=TRACKERS.get(support);
         if(tracker==null)return;
-        AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::clear);
+        AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::cut);
         PENDING.computeIfPresent(support.level(),(level,list)->{list.removeIf(p->p.support()==support);return list.isEmpty()?null:list;});
     }
 
