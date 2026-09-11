@@ -14,9 +14,9 @@ S06 no resuelve todavía cuerpos contra el intervalo ni integra derived carry: `
 
 - `GeometryProvider.MotionIntervalHandle` ya une dos `QueryFrame` bajo una `GeometryIdentity` y un `materialSerial`, pero nadie posee todavía la asignación/replay fence de ese serial en runtime.
 - `MaterialEventDispatcher.EventId` es un contador del scheduler. Reingerir el mismo `MotionIntervalHandle` crea otro `EventId`; por sí solo no demuestra FR-050.
-- `ModelGeometryProvider.motion()` conserva un único intervalo tick→tick y `MotionSnapshot` exige `toTick == fromTick + 1`; eso no puede representar dos root mutations materiales durante el mismo tick.
-- `PlatformEntityMixin.move` ya captura y observa root antes/después, pero sólo como `RootFrame`; no retiene el `QueryFrame` material anterior.
-- `AnatomyMovement.tick` avanza providers a 20 Hz, pero no publica un batch de handles para las mutaciones de joints detectadas en esa cadencia.
+- `ModelGeometryProvider.motion()` conserva un único intervalo tick→tick y `MotionSnapshot` exigía `toTick == fromTick + 1`; eso no podía representar dos root mutations materiales durante el mismo tick.
+- `PlatformEntityMixin.move` ya captura y observa root antes/después, pero sólo como `RootFrame`; no retiene todavía el `QueryFrame` material anterior.
+- `AnatomyMovement.tick` avanza providers a 20 Hz, pero no publica todavía un batch de handles para las mutaciones de joints detectadas en esa cadencia.
 
 ## 3. Invariantes
 
@@ -31,16 +31,16 @@ S06 no resuelve todavía cuerpos contra el intervalo ni integra derived carry: `
 
 ## 4. Plan de implementación
 
-- [ ] I1 Añadir un tracker de intervalos causales con outcomes `ADVANCED`, `UNCHANGED`, `REPLAY`, `GAP_OR_STALE`, `DISCONTINUITY` y serial material monotónico.
-- [ ] I2 Hacer que el tracker compare `GeometryIdentity` + frame serial y no UUID/network id sueltos.
-- [ ] I3 Permitir `MotionSnapshot` con `toTick == fromTick` y tiempos no decrecientes, manteniendo prohibidos rewinds/non-finite data.
-- [ ] I4 Añadir `GeometryProvider.interval(entity, handle)` fail-closed por defecto.
-- [ ] I5 Implementar `ModelGeometryProvider.interval` desde los `QueryFrame` del handle, usando `motionBetween` y nunca estado root/joint actual.
+- [x] I1 Añadir un tracker de intervalos causales con outcomes `ADVANCED`, `UNCHANGED`, `REPLAY`, `GAP_OR_STALE`, `DISCONTINUITY` y serial material monotónico.
+- [x] I2 Hacer que el tracker compare `GeometryIdentity` + frame serial y no UUID/network id sueltos.
+- [x] I3 Permitir `MotionSnapshot` con `toTick == fromTick` y tiempos no decrecientes, manteniendo prohibidos rewinds/non-finite data.
+- [x] I4 Añadir `GeometryProvider.interval(entity, handle)` fail-closed por defecto.
+- [x] I5 Implementar `ModelGeometryProvider.interval` desde los `QueryFrame` del handle, usando `motionBetween` y nunca estado root/joint actual.
 - [ ] I6 Añadir a `AnatomyMovement` una captura/commit root explícita que conserve el `QueryFrame` before y produzca un intervalo después de `observeRoot` si hubo cambio material.
 - [ ] I7 En el tick de providers, capturar before→after y producir una lista/batch de intervalos joint sin depender del orden de `IdentityHashMap`.
 - [ ] I8 Mantener fences por soporte/binding en weak identity state y limpiarlos/incrementarlos en register, invalidation y deactivate según lifecycle.
 - [ ] I9 Exponer una seam interna de `poll/consume` que S07 pueda conectar al dispatcher sin volver a deducir identidad.
-- [ ] I10 Añadir holdouts S06 y registrar los nuevos GameTests.
+- [x] I10 Añadir holdouts S06 del núcleo causal; faltan los holdouts runtime de I6–I9.
 - [ ] I11 Ejecutar suite completa y revisión estructural final.
 
 ## 5. Modelo adversarial previo
@@ -70,7 +70,13 @@ P4 evita hacer del tracker otro owner de geometry. El provider certifica el moti
 
 P5 deja explícitamente fuera la aplicación CCD y derived carry. No aparece otro cambio de scope respecto de P4; el plan converge.
 
-## 7. Criterio de cierre
+## 7. Reconciliación obligatoria antes de cerrar G2
+
+`main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` contiene el workstream de gravedad de Tiny Mounts. G2 no podrá considerarse cerrado hasta reconciliar `chatgpt-editing` con ese main y revalidar server+client.
+
+La reconciliación debe dejar `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como única autoridad transversal Scale para leer gravedad efectiva. `collision.internal.GravityFrames` deberá desaparecer como autoridad duplicada o quedar únicamente como delegación transitoria sin ownership propio. `collision.api.GravityFrame` conserva el tipo/contrato de frame de Entity Collisions; `RootTransformProvider` conserva la separación conceptual entre root transform y body gravity. No se introducirá ninguna API Tiny-Mount-específica y G7/Clinging no se adelanta.
+
+## 8. Criterio de cierre
 
 S06 se cierra sólo cuando:
 
@@ -80,3 +86,5 @@ S06 se cierra sólo cuando:
 - `ModelGeometryProvider.interval` usa únicamente provenance del handle;
 - los holdouts anteriores están registrados y verdes junto con toda la suite;
 - una pasada final no detecta otra fuente que pueda volver a aplicar un intervalo externo sin pasar por el replay fence.
+
+G2, además, requerirá la reconciliación de gravedad con `main@39824dd…` descrita arriba antes de su cierre final.
