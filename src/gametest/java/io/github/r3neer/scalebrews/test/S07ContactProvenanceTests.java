@@ -60,8 +60,10 @@ public final class S07ContactProvenanceTests {
         var nearBefore=nearAfter.move(lift.scale(-1));
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(hitSupport,e->Optional.of(new GeometryProvider.Snapshot(73,Map.of("hit",hitAfter))));
-        AnatomyMovement.register(nearSupport,e->Optional.of(new GeometryProvider.Snapshot(74,Map.of("near",nearAfter))));
+        // Runtime contact certification uses the same material piece id carried by the
+        // interval handle.  Keep provider/current snapshot and handle provenance aligned.
+        AnatomyMovement.register(hitSupport,e->Optional.of(new GeometryProvider.Snapshot(73,Map.of("body",hitAfter))));
+        AnatomyMovement.register(nearSupport,e->Optional.of(new GeometryProvider.Snapshot(74,Map.of("body",nearAfter))));
         try {
             h.assertTrue(Platforms.eligible(body,hitSupport) && Platforms.eligible(body,nearSupport),
                 "Both supports must be eligible so event order, not policy, is the only ambiguity");
@@ -82,7 +84,8 @@ public final class S07ContactProvenanceTests {
                 "Exact endpoint contact should not manufacture body displacement in the provenance fixture");
             var contact=AnatomyMovement.contact(body);
             h.assertTrue(contact!=null && contact.support()==hitSupport,
-                "Contact provenance must identify the support that actually produced the CCD hit; a merely-near earlier event cannot steal the anchor");
+                "Contact provenance must identify the support that actually produced the CCD hit; a merely-near earlier event cannot steal the anchor; actual="
+                    +(contact==null?"null":contact.support().getUUID()+"/"+contact.piece()));
         } finally {
             AnatomyMovement.clear(body);
             AnatomyMovement.deactivate(level);
