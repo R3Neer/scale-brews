@@ -10,9 +10,13 @@ import net.minecraft.world.entity.animal.chicken.Chicken;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Chicken.class)
 public abstract class TinyChickenGlideMixin {
+    private static final double VANILLA_FALL_DAMPING = 0.6;
+
     @WrapOperation(method = "aiStep", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/phys/Vec3;multiply(DDD)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 scalebrews$gravityAwareGlide(Vec3 movement, double x, double y, double z,
@@ -21,20 +25,38 @@ public abstract class TinyChickenGlideMixin {
         var rider = TinyMounts.controller(chicken);
         if (rider == null) return original.call(movement, x, y, z);
 
+        var frame = GravityFrames.frame(chicken);
+        if (frame.direction() != Direction.DOWN) {
+            // The vanilla branch is guarded by world-Y fall state. Under rotated
+            // gravity neither that guard nor its Y multiplier represents local fall,
+            // so the complete local rule is applied once at TAIL instead.
+            return movement;
+        }
+
         var definition = TinyMounts.definition(chicken);
         boolean suppressFallDamping = definition != null
                 && definition.ability() == TinyMountDefinition.Ability.CHICKEN_GLIDE
                 && !TinyMounts.input(rider).jump();
+        return original.call(movement, x, suppressFallDamping ? 1.0 : y, z);
+    }
+
+    @Inject(method = "aiStep", at = @At("TAIL"))
+    private void scalebrews$applyLocalFallDamping(CallbackInfo ci) {
+        var chicken = (Chicken)(Object)this;
+        var rider = TinyMounts.controller(chicken);
+        if (rider == null || chicken.onGround()) return;
+
         var frame = GravityFrames.frame(chicken);
+        if (frame.direction() == Direction.DOWN) return;
 
-        if (frame.direction() == Direction.DOWN)
-            return original.call(movement, x, suppressFallDamping ? 1.0 : y, z);
+        var definition = TinyMounts.definition(chicken);
+        boolean suppressFallDamping = definition != null
+                && definition.ability() == TinyMountDefinition.Ability.CHICKEN_GLIDE
+                && !TinyMounts.input(rider).jump();
+        if (suppressFallDamping) return;
 
-        // Vanilla's call damps world Y. Under rotated gravity that would modify a
-        // tangential axis, so controlled chickens apply only the equivalent local
-        // vertical damping. A released glide suppresses that damping entirely.
-        if (suppressFallDamping) return movement;
-        Vec3 local = frame.toLocal(movement);
-        return local.y < 0 ? frame.multiplyLocalVertical(movement, y) : movement;
+        Vec3 movement = chicken.getDeltaMovement();
+        if (frame.toLocal(movement).y < 0)
+            chicken.setDeltaMovement(frame.multiplyLocalVertical(movement, VANILLA_FALL_DAMPING));
     }
 }
