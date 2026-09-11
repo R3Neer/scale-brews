@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/s06-prepared-adversarial-proof.yml'
 
-# Temporary rerun marker: S07-prepared-boat-simple-before-exported-head.
+# Temporary rerun marker: S07-deterministic-prepared-pair-suspension.
 jobs:
   prepared-proof:
     runs-on: ubuntu-24.04
