@@ -77,7 +77,7 @@ public final class S09LiveOwnMoveTests {
         var level=h.getLevel();
         var floorSupport=h.spawn(EntityTypes.COW,8,20,2);
         var wallSupport=h.spawn(EntityTypes.COW,10,20,2);
-        for(var support:new net.minecraft.world.entity.LivingEntity[]{floorSupport,wallSupport}) {
+        for(var support:java.util.List.of(floorSupport,wallSupport)) {
             support.setNoAi(true);support.setNoGravity(true);
             support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
         }
