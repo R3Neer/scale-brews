@@ -87,7 +87,7 @@ public final class AnatomyMovement {
         if(shape!=null && shape.pieces().values().stream().anyMatch(p->p.overlaps(body.getBoundingBox())))return true;
         suspended.remove(support);if(suspended.isEmpty())SUSPENDED.remove(body);return false;
     }
-    private static void suspend(Entity body,LivingEntity support) {
+    static void suspend(Entity body,LivingEntity support) {
         SUSPENDED.computeIfAbsent(body,e->entityMap()).put(support,registrationGeneration(support));
         var contact=contact(body);if(contact!=null && contact.support()==support)clear(body);
     }
@@ -221,7 +221,7 @@ public final class AnatomyMovement {
         var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),jointSampleTick,root,sample,availability);
         if(availability==GeometryProvider.Availability.UNAVAILABLE && old!=null && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)
             clearSupportContacts(support);
-        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));return endpoint;
+        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));SPATIAL.remove(support.level());return endpoint;
     }
     /**
      * A wire/provider endpoint may be queried repeatedly.  Same material serial
@@ -233,7 +233,7 @@ public final class AnatomyMovement {
         if(endpoint.availability()==GeometryProvider.Availability.UNAVAILABLE && snapshot!=null)return quarantineEndpoint(support);
         var old=FRAME_SERIALS.get(support);
         if(old==null) {
-            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));return Optional.of(endpoint);
+            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));SPATIAL.remove(support.level());return Optional.of(endpoint);
         }
         long prior=old.endpoint().frameSerial();
         if(old.invalidated()) {
@@ -246,7 +246,7 @@ public final class AnatomyMovement {
         if(endpoint.authorityTick()<old.endpoint().authorityTick() || endpoint.jointSampleTick()<old.endpoint().jointSampleTick())return quarantineEndpoint(support);
         if(endpoint.availability()==GeometryProvider.Availability.UNAVAILABLE && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)
             clearSupportContacts(support);
-        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));return Optional.of(endpoint);
+        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));SPATIAL.remove(support.level());return Optional.of(endpoint);
     }
     /** Retain the rejected serial's fence; without one, quarantine this exact local registration until rebind. */
     private static Optional<GeometryProvider.CausalEndpoint> quarantineEndpoint(LivingEntity support) {
