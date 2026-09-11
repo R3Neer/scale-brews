@@ -43,8 +43,8 @@ public final class S08PassengerOnceTests {
             h.assertTrue(Platforms.eligible(rider,support) && Platforms.eligible(bystander,support),
                 "Fixture requires both tiny bodies to be independently eligible before vanilla passenger filtering");
             h.assertTrue(rider.startRiding(support,true,true),"Fixture rider must establish an ordinary vanilla passenger relation");
-            h.assertTrue(support.getIndirectPassengers().anyMatch(entity->entity==rider),
-                "Fixture must expose rider through vanilla indirect-passenger traversal");
+            boolean indirect=false;for(var passenger:support.getIndirectPassengers())if(passenger==rider){indirect=true;break;}
+            h.assertTrue(indirect,"Fixture must expose rider through vanilla indirect-passenger traversal");
             h.assertTrue(Platforms.eligible(rider,support),
                 "Passenger must remain otherwise eligible so exclusion is proven to come from the passenger-once rule");
 
