@@ -312,8 +312,7 @@ These special lanes do not override the red ordinary S05/S07 holdouts above.
 
 The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
 
-- closing the current S05 post-mutation locality reds;
-- closing the current S07 valid-plan-conflict fail-closed red;
+- closing the current S07 rejected-batch final-contact-validity red;
 - remaining G2 tangential/multicontact/sliding/separation/chains work not yet claimed by the current sprint;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
@@ -343,3 +342,29 @@ Optional compatibility jars:
 ```
 
 The preparation harness is `tools/PrepareAnatomyProof.ps1`. Pin every external input/version used as evidence. GitHub Actions ordinary workflow covers the Gradle build/server path; client/dedicated/compatibility lanes count only when their exact snapshot/command/result is recorded here.
+
+## G2 / S07 rejected-batch contact validity reopening — 2026-09-11
+
+The earlier plan-conflict locality defect is closed, but a later adversarial holdout reopens S07 under NFR-004.
+
+Green evidence immediately before the reopening:
+
+- source repair `29d4595f38f7ff3c44f9af7ebb98512cdd16f93d` localized body/body conflicts by responsible support;
+- run `34633241588`, job `103374905847` passed **319/319 GameTests**;
+- run `34633398671`, job `103375427902` passed **320/320 GameTests**, including the cross-tick S05 locality holdout;
+- prepared proof run `34633591227`, job `103376062867` passed original-client geometry export plus the isolated prepared server runtime.
+
+New red-before-green evidence:
+
+- `S07RejectedBatchContactValidityTests.rejectedConflictMustStillReleaseRetainedFaceThatMovedAway` creates a simultaneous A/B joint batch;
+- support A is the cause of an otherwise valid body/body plan conflict;
+- the left body retains a valid contact on support B before the event;
+- B's own certified interval moves that retained floor away by `0.4`, while the batch is rejected because of A;
+- the fixture starts B at gap `0.01`, inside the `0.025` retention tolerance but outside the CCD skin, and models B as rigid translation, so it does not manufacture a `t=0` temporal contact;
+- run **`34634310744`**, job **`103378374367`**, snapshot `a48f4e6e960e5b1adf4bd937e3275e838cdb7ad3`, executed **321 GameTests**: **320 passed / 1 failed**;
+- the single failure is exactly `NFR-004 forbids preserving a retained B face that the same rejected batch certifies has moved away`;
+- all fixture preconditions passed, the individual plans were `COMPLETE`, the batch was rejected as `BACKEND_EXHAUSTED`, and no partial body displacement was applied.
+
+An earlier version of this holdout that started B at exact tangency entered `ITERATION_LIMIT` and is explicitly **not** production evidence. `a48f4e6e…` corrected the fixture before the valid red above.
+
+This reopening does **not** reopen S05 or S06. It demonstrates a distinct S07 rule: after a rejected batch, causal attribution of the conflict and final material validity of retained contacts are separate checks. A repair must preserve the existing stable-B multi-support holdout while releasing a B contact whose own certified `after` frame no longer validates it.
