@@ -1,0 +1,155 @@
+name: s05-incremental-index-hotfix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - .github/workflows/s05-incremental-index-hotfix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: patch incremental spatial maintenance
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          t=p.read_text()
+
+          field='    private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());\n'
+          insert=field+'    /** Supports whose binding/root endpoint changed after the current tick index was built. */\n    private static final Map<Level,Set<LivingEntity>> SPATIAL_DIRTY=Collections.synchronizedMap(new WeakHashMap<>());\n'
+          if t.count(field)!=1: raise SystemExit(f'SPATIAL field matches={t.count(field)}')
+          t=t.replace(field,insert,1)
+
+          # Every support-specific invalidation becomes local. Level shutdown still drops the whole index.
+          count=t.count('SPATIAL.remove(support.level())')
+          if count<4: raise SystemExit(f'expected support-specific spatial invalidations, found {count}')
+          t=t.replace('SPATIAL.remove(support.level())','markSpatialDirty(support)')
+
+          old='''    private static SpatialIndex spatial(Level level) {
+        var current=SPATIAL.get(level);
+        // Register/rebind, lifecycle barriers, accepted causal endpoints and tick rollover
+        // invalidate the cache explicitly. Reusing a same-tick index must not resample every
+        // registered provider before a local query can reach the bounded spatial kernel.
+        if(current!=null && current.tick()==level.getGameTime())return current;
+        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        return rebuildSpatial(level,providers);
+    }
+'''
+          new='''    private static SpatialIndex spatial(Level level) {
+        var current=SPATIAL.get(level);
+        if(current!=null && current.tick()==level.getGameTime()) {
+            var dirty=takeSpatialDirty(level);
+            return dirty.isEmpty()?current:refreshSpatial(level,current,dirty);
+        }
+        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        return rebuildSpatial(level,providers);
+    }
+    /** Mutation hooks record identity only; provider work is paid for the changed supports, never the world. */
+    public static void spatialMutation(LivingEntity support) {
+        if(support!=null && PROVIDERS.containsKey(support))markSpatialDirty(support);
+    }
+    private static void markSpatialDirty(LivingEntity support) {
+        if(support==null)return;
+        synchronized(SPATIAL_DIRTY) {
+            SPATIAL_DIRTY.computeIfAbsent(support.level(),ignored->Collections.newSetFromMap(new IdentityHashMap<>())).add(support);
+        }
+    }
+    private static List<LivingEntity> takeSpatialDirty(Level level) {
+        synchronized(SPATIAL_DIRTY) {
+            var dirty=SPATIAL_DIRTY.remove(level);
+            return dirty==null?List.of():List.copyOf(dirty);
+        }
+    }
+    /** Rebuild only changed entries; all unaffected bounds/frames come from the immutable current index. */
+    private static SpatialIndex refreshSpatial(Level level,SpatialIndex current,List<LivingEntity> dirty) {
+        var changed=Collections.newSetFromMap(new IdentityHashMap<LivingEntity,Boolean>());changed.addAll(dirty);
+        Map<LivingEntity,FrameStamp> frames=new IdentityHashMap<>();
+        List<MaterialBroadphase.Entry<LivingEntity>> entries=new ArrayList<>();
+        for(var entry:current.frames().entrySet()) {
+            var support=entry.getKey();if(changed.contains(support) || support.level()!=level || !PROVIDERS.containsKey(support))continue;
+            var bounds=current.broadphase().bounds(support);if(bounds==null)continue;
+            entries.add(new MaterialBroadphase.Entry<>(support,bounds));frames.put(support,entry.getValue());
+        }
+        var ordered=new ArrayList<>(dirty);ordered.sort(SUPPORT_ORDER);
+        for(var support:ordered) {
+            if(support.level()!=level)continue;
+            var provider=PROVIDERS.get(support);if(provider==null)continue;
+            var sample=currentSnapshot(support,provider).orElse(null);var frame=currentFrameStamp(support,provider);
+            if(sample==null || frame==null)continue;
+            var envelope=snapshotBounds(sample);if(envelope==null)continue;
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
+        }
+        var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
+        for(var rejected:built.rejected()) {frames.remove(rejected.key());quarantineEndpoint(rejected.key());}
+        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+        SPATIAL.put(level,index);return index;
+    }
+'''
+          if t.count(old)!=1: raise SystemExit(f'spatial method matches={t.count(old)}')
+          t=t.replace(old,new,1)
+
+          old='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+        SPATIAL.put(level,index);return index;
+    }
+    private static FrameStamp currentFrameStamp'''
+          new='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+        SPATIAL.put(level,index);SPATIAL_DIRTY.remove(level);return index;
+    }
+    private static FrameStamp currentFrameStamp'''
+          if t.count(old)!=1: raise SystemExit(f'rebuild tail matches={t.count(old)}')
+          t=t.replace(old,new,1)
+
+          old='''        METRICS.remove(level);
+        SPATIAL.remove(level);
+    }
+'''
+          new='''        METRICS.remove(level);
+        SPATIAL.remove(level);SPATIAL_DIRTY.remove(level);
+    }
+'''
+          if t.count(old)!=1: raise SystemExit(f'deactivate tail matches={t.count(old)}')
+          t=t.replace(old,new,1)
+          p.write_text(t)
+
+          m=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
+          t=m.read_text()
+          anchor='''    @Inject(method="teleportTo(DDD)V",at=@At("HEAD"))
+    private void scalebrews$teleport(double x,double y,double z,CallbackInfo ci) {
+        scalebrews$platform.clear();
+        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+    }
+'''
+          addition=anchor+'''    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
+    private void scalebrews$spatialRootMutation(double x,double y,double z,CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+    }
+'''
+          if t.count(anchor)!=1: raise SystemExit(f'teleport anchor matches={t.count(anchor)}')
+          t=t.replace(anchor,addition,1)
+          m.write_text(t)
+          PY
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java
+      - name: commit hotfix
+        shell: bash
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'ChatGPT'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java
+          git commit -m 'fix(collision): maintain broadphase entries incrementally'
+          git push origin HEAD:chatgpt-editing
