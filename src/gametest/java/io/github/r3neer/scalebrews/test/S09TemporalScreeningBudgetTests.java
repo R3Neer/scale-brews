@@ -39,6 +39,30 @@ public final class S09TemporalScreeningBudgetTests {
     }
 
     @GameTest
+    public void horizonClippingKeepsContactsInsideSimultaneousTolerance(GameTestHelper h) {
+        var body=new AABB(-1,0,-1,-.8,.2,-.8);
+        var request=new Vec3(1.5,0,0);
+        var firstBox=ConvexBox.of(new AABB(0,-2,-2,1,2,2),new Matrix4f());
+        // 7.5e-11 blocks / 1.5 blocks of body travel = 5e-11 material-time separation,
+        // deliberately inside TemporalResponse.TIME_EPS=1e-10 while remaining non-zero.
+        var nearBox=firstBox.move(new Vec3(7.5e-11,0,0));
+        var first=new ConservativeSweep.Motion(t->firstBox,0);
+        var near=new ConservativeSweep.Motion(t->nearBox,0);
+        var firstHit=ConservativeSweep.query(body,request,first,16);
+        var nearHit=ConservativeSweep.query(body,request,near,16);
+        double separation=nearHit.safeFraction()-firstHit.safeFraction();
+        h.assertTrue(firstHit.status()==ConservativeSweep.Status.CONTACT && nearHit.status()==ConservativeSweep.Status.CONTACT
+                && separation>1e-12 && separation<1e-10,
+            "Fixture must preserve two distinct contacts inside the simultaneous-time tolerance: first="+firstHit+" near="+nearHit);
+
+        var response=TemporalResponse.resolve(body,request,Map.of("a_first",first,"b_near",near),32,256);
+        var ids=java.util.Set.copyOf(response.contacts().stream().map(TemporalResponse.Contact::piece).toList());
+        h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE && ids.equals(java.util.Set.of("a_first","b_near")),
+            "A bounded earliest-contact horizon must still collect every contact inside TIME_EPS: "+response);
+        h.succeed();
+    }
+
+    @GameTest
     public void rigidHierarchyDoesNotMultiplyRootYawSpeedByDimension(GameTestHelper h) {
         var parts=List.of(
             new ModelGeometry.Part("p0",null,ModelGeometry.values(new Matrix4f().translation(.25f,0,0))),
