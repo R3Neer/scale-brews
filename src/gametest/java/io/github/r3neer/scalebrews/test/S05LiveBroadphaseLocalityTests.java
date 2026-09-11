@@ -159,6 +159,42 @@ public final class S05LiveBroadphaseLocalityTests {
         h.succeed();
     }
 
+    @GameTest
+    public void firstLocalQueryOnNextTickMustNotTriggerWorldRebuild(GameTestHelper h) {
+        var level=h.getLevel();
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        var supports=new ArrayList<LivingEntity>();
+        var farSamples=new AtomicInteger();
+        GeometryProvider farProvider=countingProvider(farSamples,1);
+
+        AnatomyMovement.activate(level);
+        addFarSupports(level,body.position(),supports,farProvider);
+        AABB local=body.getBoundingBox();
+        h.assertTrue(AnatomyMovement.spaceClear(body,local),
+            "Initial local query must materialize the bounded index before tick rollover");
+        long initialTick=level.getGameTime();
+
+        h.runAfterDelay(1,()->{
+            try {
+                h.assertTrue(level.getGameTime()>initialTick,
+                    "Fixture must execute the measured query on a later game tick");
+                // Any canonical END_LEVEL_TICK/provider-cadence maintenance that already occurred is
+                // intentionally excluded. Measure only work caused by this first local body query.
+                farSamples.set(0);
+                h.assertTrue(AnatomyMovement.spaceClear(body,local),
+                    "First local query on the next tick must remain clear");
+                h.assertTrue(farSamples.get()==0,
+                    "NFR-008/S05 forbid the first local movement/query of a new tick from rebuilding or resampling the far world; far provider samples="+farSamples.get());
+                h.succeed();
+            } finally {
+                AnatomyMovement.deactivate(level);
+                supports.forEach(net.minecraft.world.entity.Entity::discard);
+                body.discard();
+            }
+        });
+    }
+
     private static GeometryProvider countingProvider(AtomicInteger samples,long revision) {
         return entity->{
             samples.incrementAndGet();
