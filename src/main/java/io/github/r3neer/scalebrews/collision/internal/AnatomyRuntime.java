@@ -98,7 +98,7 @@ public final class AnatomyRuntime {
         reset(server,state);
     }
     private static void reset(MinecraftServer server,State state) {
-        MaterialIntervalRuntime.clear(server);
+        MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
         state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();AnatomyTransportReceipts.clear(server);
         for(var level:server.getAllLevels()){
             Platforms.anatomicalDefinitions(level,state.catalog.snapshot().profiles().values());
@@ -107,7 +107,7 @@ public final class AnatomyRuntime {
         for(var player:server.getPlayerList().getPlayers())catalog(state,player);
     }
     public static void stop(MinecraftServer server) {
-        MaterialIntervalRuntime.clear(server);
+        MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
         AnatomyTransportReceipts.clear(server);
         if(STATES.remove(server)!=null)for(var level:server.getAllLevels()){
             AnatomyMovement.deactivate(level);Platforms.clearAnatomicalDefinitions(level);
@@ -143,22 +143,31 @@ public final class AnatomyRuntime {
     public static Optional<AuthoritativePose> authoritativePose(LivingEntity entity) {
         return authoritativeFrame(entity).map(frame->new AuthoritativePose(entity.getUUID(),frame.tick(),frame.sample().inputs()));
     }
-    /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
-    public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
-        if(entity==null || handle==null)return Optional.empty();
-        var server=entity.level().getServer();if(server==null)return Optional.empty();
-        var state=STATES.get(server);if(state==null)return Optional.empty();
-        var active=state.entities.get(entity);if(active==null)return Optional.empty();
+    /**
+     * Identity-only gate for queued work. False means the handle belongs to a previous binding/lifecycle and
+     * may be discarded without invalidating the currently active support.
+     */
+    public static boolean acceptsIntervalIdentity(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
+        if(entity==null || handle==null)return false;
+        var server=entity.level().getServer();if(server==null)return false;
+        var state=STATES.get(server);if(state==null)return false;
+        var active=state.entities.get(entity);if(active==null)return false;
         var identity=handle.identity();
         var definition=active.binding().policy().anatomy().orElse(null);
-        if(definition==null || !identity.matches(entity)
-                || identity.bindingGeneration()!=active.bindingGeneration()
-                || identity.localRegistrationGeneration()!=AnatomyMovement.registrationGeneration(entity)
-                || !identity.epoch().equals(AnatomyNetworking.epoch(server))
-                || identity.revision()!=state.catalog.snapshot().revision()
-                || !identity.model().equals(definition.model())
-                || !identity.poseProvider().equals(definition.poses()))return Optional.empty();
-        return active.provider.interval(entity,handle);
+        return definition!=null && identity.matches(entity)
+            && identity.bindingGeneration()==active.bindingGeneration()
+            && identity.localRegistrationGeneration()==AnatomyMovement.registrationGeneration(entity)
+            && identity.epoch().equals(AnatomyNetworking.epoch(server))
+            && identity.revision()==state.catalog.snapshot().revision()
+            && identity.model().equals(definition.model())
+            && identity.poseProvider().equals(definition.poses());
+    }
+    /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
+    public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
+        if(!acceptsIntervalIdentity(entity,handle))return Optional.empty();
+        var state=STATES.get(entity.level().getServer());
+        var active=state==null?null:state.entities.get(entity);
+        return active==null?Optional.empty():active.provider.interval(entity,handle);
     }
     /** Canonical one-shot S06 queue for the later S07 dispatcher. */
     public static List<MaterialIntervalRuntime.Pending> pollIntervals(ServerLevel level) {
