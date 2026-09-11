@@ -322,6 +322,10 @@ public final class MaterialPhysicsRuntime {
             if(anchored.status()==AnchoredTransportPlanner.Status.COMPLETE)
                 return new Plan(body,anchored.displacement(),anchored.evaluations(),Set.of(),anchored.evidence(),Set.of());
             if(anchored.status()==AnchoredTransportPlanner.Status.NOT_APPLICABLE)return plan(body,captured,pieces);
+            if(anchored.status()==AnchoredTransportPlanner.Status.EXHAUSTED) {
+                suspendUncertainPairs(body,captured,events);
+                return null;
+            }
 
             var forbidden=retained.support();AnatomyMovement.clear(body);
             var remaining=new TreeMap<String,ConservativeSweep.Motion>();
