@@ -13,7 +13,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 /** S09 A9: a published material interval must hit a stationary body even when both endpoints are clear. */
 final class S09PreparedIntermediateContactProof {
@@ -109,7 +108,7 @@ final class S09PreparedIntermediateContactProof {
         var root1=new AnatomyMovement.RootFrame(root0.sequence()+1,root0.tick(),root0.origin(),root0.yaw()+yawDelta,root0.scale(),root0.gravity());
         var sample0=before.sample();
         var sample1=new AnatomyPoseHistory.Sample(sample0.inputs(),sample0.origin(),sample0.yaw()+yawDelta,sample0.scale(),sample0.gravity());
-        var endpoint1=new GeometryProvider.CausalEndpoint(before.endpoint().frameSerial()+1,before.authorityTick(),before.jointSampleTick(),
+        var endpoint1=new GeometryProvider.CausalEndpoint(before.endpoint().frameSerial()+1,before.authorityTick(),before.endpoint().jointSampleTick(),
             root1,sample1,GeometryProvider.Availability.AVAILABLE);
         // Snapshot content is deliberately not guessed. AnatomyRuntime.interval only accepts its revision/identity
         // here and asks the bound provider to construct the continuous motion from the two immutable samples.
