@@ -34,8 +34,7 @@ import net.minecraft.world.phys.Vec3;
 public class ScalePhysicsTests {
     @GameTest
     public void exhaustionOnlyChangesPhysicalActivity(GameTestHelper h) {
-        var p = h.makeMockServerPlayerInLevel();
-        p.setGameMode(GameType.SURVIVAL);
+        var p = h.makeMockServerPlayer(GameType.SURVIVAL);
         var food = (TestFoodAccess) p.getFoodData();
         for (var effect : java.util.List.of(ScaleEffects.GROWTH, ScaleEffects.SHRINKING)) {
             for (int level = 1; level <= 3; level++) {
@@ -91,8 +90,7 @@ public class ScalePhysicsTests {
         p.getFoodData().setSaturation(6);
         food.test$exhaustion(0);
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("combatify")) {
-            var baseline = h.makeMockServerPlayerInLevel();
-            baseline.setGameMode(GameType.SURVIVAL);
+            var baseline = h.makeMockServerPlayer(GameType.SURVIVAL);
             baseline.getAttribute(Attributes.MAX_HEALTH).setBaseValue(p.getMaxHealth());
             baseline.setHealth(p.getHealth());
             baseline.getFoodData().setFoodLevel(20);
@@ -154,7 +152,7 @@ public class ScalePhysicsTests {
 
     @GameTest
     public void pressurePlateFiltering(GameTestHelper h) {
-        var p = h.makeMockServerPlayerInLevel();
+        var p = h.makeMockServerPlayer(GameType.CREATIVE);
         BlockPos pos = h.absolutePos(new BlockPos(1, 2, 1));
         p.setPos(Vec3.atBottomCenterOf(pos));
         var plates = new net.minecraft.world.level.block.Block[]{Blocks.OAK_PRESSURE_PLATE,
