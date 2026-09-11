@@ -368,3 +368,22 @@ New red-before-green evidence:
 An earlier version of this holdout that started B at exact tangency entered `ITERATION_LIMIT` and is explicitly **not** production evidence. `a48f4e6e…` corrected the fixture before the valid red above.
 
 This reopening does **not** reopen S05 or S06. It demonstrates a distinct S07 rule: after a rejected batch, causal attribution of the conflict and final material validity of retained contacts are separate checks. A repair must preserve the existing stable-B multi-support holdout while releasing a B contact whose own certified `after` frame no longer validates it.
+
+## G2 / S07 rejected-batch contact validity repair — 2026-09-11
+
+Production repair `50dfac066248679397d463ca74e1b6cefb9f38a7` adds a body-local post-rejection retained-contact revalidation against the retained support event's certified `after` frame. It checks active identity and registration generation, revision consistency, piece, face, gap, eligibility and gravity support. It does not apply any rejected-batch displacement and does not call support-global `invalidateSupport(...)`.
+
+Ordinary candidate evidence:
+
+- run **`34635928336`**, job **`103383672978`**, snapshot `50dfac066248679397d463ca74e1b6cefb9f38a7` passed **321/321 required GameTests** and finished `BUILD SUCCESSFUL`; artifact **`10278451232`**;
+- the temporary prepared-harness trigger `faa6b1524db3f78fea2adc83fc53caf6239d49a0` changed workflow configuration only, not production/tests; its ordinary run **`34636187333`**, job **`103384539908`**, again passed **321/321 required GameTests** and produced artifact **`10278876352`**.
+
+Prepared client/server evidence on the repaired candidate:
+
+- run **`34636187384`**, job **`103384540056`** exported original client geometry successfully with `BUILD SUCCESSFUL`;
+- the generated catalog was then consumed by the isolated prepared server lane;
+- the prepared server executed **2/2 required GameTests** and both passed; that phase also finished `BUILD SUCCESSFUL`.
+
+The temporary prepared workflow was removed in `c7c297e26c3781e3270be126889f5d2f8a68930c`, restoring the ordinary workflow-only tree.
+
+This evidence closes the reproduced A12 failure and keeps the historical causal-locality holdouts green through the full 321-test suite. It does **not** by itself close S07: the sprint remains pending the independent adversarial zero-change review required by I16, and any new contractual holdout may reopen implementation work.
