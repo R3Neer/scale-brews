@@ -63,14 +63,14 @@ public final class S07MultiSupportConflictLocalizationTests {
         var rightWall=ConvexBox.of(new AABB(rightFace,-.5,-rightHalfZ-.5,rightFace+.5,rightHeight+.5,rightHalfZ+.5),new Matrix4f()).move(base);
         var floor=ConvexBox.of(new AABB(-.30-leftHalfX-.4,-.5,-leftHalfZ-.4,-.30+leftHalfX+.4,0,leftHalfZ+.4),new Matrix4f()).move(base);
         var marker0=ConvexBox.of(new AABB(-.2,.8,1.2,.2,1.2,1.6),new Matrix4f()).move(base);
-        var marker1=marker0.move(0,0,.15);
+        var marker1=marker0.move(new Vec3(0,0,.15));
 
         var leftDelta=new Vec3(.30,0,0);
         var rightDelta=new Vec3(-.30,0,0);
         var leftMotion=new ConservativeSweep.Motion(t->leftWall.move(leftDelta.scale(t)),0,leftDelta);
         var rightMotion=new ConservativeSweep.Motion(t->rightWall.move(rightDelta.scale(t)),0,rightDelta);
         var floorMotion=new ConservativeSweep.Motion(t->floor,0,Vec3.ZERO);
-        var markerMotion=new ConservativeSweep.Motion(t->marker0.move(0,0,.15*t),.15,new Vec3(0,0,.15));
+        var markerMotion=new ConservativeSweep.Motion(t->marker0.move(new Vec3(0,0,.15*t)),.15,new Vec3(0,0,.15));
         var allPieces=Map.of("a/left",leftMotion,"a/right",rightMotion,"b/floor",floorMotion,"b/marker",markerMotion);
 
         AnatomyMovement.activate(level);
