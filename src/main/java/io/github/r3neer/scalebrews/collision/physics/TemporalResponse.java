@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,SCREEN_SEGMENTS=16;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,SCREEN_DEPTH=5;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
@@ -126,35 +126,46 @@ public final class TemporalResponse {
 
     /**
      * Screen deforming motion with certified temporal windows before paying for iterative CCD.
-     * A midpoint SAT separator remains valid for the whole window when its gap exceeds the maximum
-     * material/body support advance allowed by the motion bounds. Only windows that cannot prove
-     * separation invoke ConservativeSweep, with its normal shared remaining budget.
+     * A midpoint SAT separator remains valid for its whole window when its gap exceeds the maximum
+     * material/body support advance allowed by the motion bounds. Ambiguous windows are subdivided
+     * chronologically; only a depth-bounded leaf invokes ConservativeSweep with the full shared
+     * budget still remaining. This prevents one clear high-deformation piece from monopolizing the
+     * response budget without putting an artificial per-contact cap on genuine CCD.
      */
     private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(!possible)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+        return firstWindow(body,delta,interval,0,0,1,budget);
+    }
 
-        for(int segment=0;segment<SCREEN_SEGMENTS;segment++) {
-            double from=(double)segment/SCREEN_SEGMENTS,to=(double)(segment+1)/SCREEN_SEGMENTS;
-            var sub=interval.interval(from,to);
-            AABB segmentBody=body.move(delta.scale(from));
-            Vec3 segmentDelta=delta.scale(to-from);
-            Boolean clear=certifiedClearWindow(segmentBody,segmentDelta,sub,budget);
-            if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,from,Vec3.ZERO,0);
-            if(clear)continue;
+    /** Result fractions are mapped back to the original piece interval. */
+    private static ConservativeSweep.Result firstWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,
+            int depth,double origin,double scale,Budget budget) {
+        Boolean clear=certifiedClearWindow(body,delta,interval,budget);
+        if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin,Vec3.ZERO,0);
+        if(clear)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
 
-            var result=budget.query(segmentBody,segmentDelta,sub);
-            double fraction=from+(to-from)*Math.clamp(result.safeFraction(),0,1);
+        if(depth>=SCREEN_DEPTH) {
+            var result=budget.query(body,delta,interval);
+            double fraction=origin+scale*Math.clamp(result.safeFraction(),0,1);
             var status=result.status();
-            // Every earlier window was proved clear. If this later window begins infinitesimally
-            // inside the material, that is the boundary contact of the continuous trajectory.
-            if(status==ConservativeSweep.Status.INITIAL_OVERLAP && segment>0)status=ConservativeSweep.Status.CONTACT;
-            if(status==ConservativeSweep.Status.CLEAR)continue;
+            // Every earlier sibling was certified clear, so a later leaf that starts just inside
+            // the material represents the boundary contact of the continuous trajectory.
+            if(status==ConservativeSweep.Status.INITIAL_OVERLAP && origin>TIME_EPS)
+                status=ConservativeSweep.Status.CONTACT;
             return new ConservativeSweep.Result(status,fraction,result.normal(),result.evaluations());
         }
-        return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+
+        Vec3 halfDelta=delta.scale(.5);
+        var left=firstWindow(body,halfDelta,interval.interval(0,.5),depth+1,origin,scale*.5,budget);
+        if(left.status()!=ConservativeSweep.Status.CLEAR)return left;
+        var right=firstWindow(body.move(halfDelta),halfDelta,interval.interval(.5,1),depth+1,
+            origin+scale*.5,scale*.5,budget);
+        return right.status()==ConservativeSweep.Status.CLEAR
+            ?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)
+            :right;
     }
 
     /**
