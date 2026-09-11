@@ -86,9 +86,21 @@ final class S08PreparedPermutationProof {
                 .mapToDouble(piece->piece.separation(activeBystander.getBoundingBox()).gap()).min().orElseThrow();
             h.assertTrue(nearest>.025,"Bystander must be non-causal at t=0, gap="+nearest);
 
+            // The bystander is only an A-event adversary. It must not participate in B's setup ROOT
+            // event while B falls 1.2 blocks onto A, otherwise a later C-landing failure would not
+            // isolate the intended zero-displacement candidate case.
+            boolean insideBSetupEnvelope=AnatomyMovement.queryFrame(activeB).orElseThrow().snapshot().pieces().values().stream()
+                .map(ConvexBox::bounds).map(box->box.inflate(1.2+ConservativeSweep.SKIN))
+                .anyMatch(box->box.intersects(activeBystander.getBoundingBox()));
+            h.assertTrue(!insideBSetupEnvelope,
+                "A10 fixture bystander must stay outside B's 1.2-block setup ROOT envelope");
+
             activeB.move(MoverType.SELF,new Vec3(0,-1.2,0));
-            h.assertTrue(AnatomyMovement.contact(activeB)!=null && AnatomyMovement.contact(activeB).support()==a,
-                "B must establish retained contact on A");
+            h.assertTrue(AnatomyMovement.contact(activeB)!=null && AnatomyMovement.contact(activeB).support()==a
+                    && AnatomyMovement.supported(activeB),
+                "B must establish and retain a valid contact on A before C is introduced");
+            h.assertTrue(AnatomyMovement.contact(activeBystander)==null,
+                "B setup movement must not create a bystander relation");
 
             var bTop=topBounds(activeB);
             var c=h.spawn(EntityTypes.SHEEP,8,20,2);
