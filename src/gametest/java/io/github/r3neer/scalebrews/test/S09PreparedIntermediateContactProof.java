@@ -11,6 +11,7 @@ import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.TreeMap;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -74,13 +75,27 @@ final class S09PreparedIntermediateContactProof {
             h.assertTrue(liveMotion.pieces().containsKey(chosen) && liveMotion.pieces().get(chosen).at().apply(.5).overlaps(captured),
                 "A9 live interval must preserve the certified interior hit used by the fixture; piece="+chosen);
 
-            // Kernel localization on the exact live provider motion. If one piece succeeds but the
-            // full cow manifold exhausts, the defect belongs to TemporalResponse's multi-piece
-            // transient-contact handling rather than dispatcher capture or interval preparation.
             var chosenResponse=TemporalResponse.resolve(captured,Vec3.ZERO,
                 Map.of(chosen,liveMotion.pieces().get(chosen)),32,256);
             h.assertTrue(chosenResponse.status()==TemporalResponse.Status.COMPLETE && chosenResponse.displacement().lengthSqr()>1e-10,
                 "A9 chosen live piece alone must produce a complete non-zero interior response: "+chosenResponse);
+
+            // Localize the full-manifold exhaustion in canonical piece order. Every prefix should
+            // remain bounded; an irrelevant earlier piece must not consume the entire response
+            // budget before the causal piece can even be considered.
+            var progressive=new TreeMap<String,ConservativeSweep.Motion>();
+            String failedAt=null;TemporalResponse.Result failedResponse=null;
+            for(var id:new java.util.TreeSet<>(liveMotion.pieces().keySet())) {
+                progressive.put(id,liveMotion.pieces().get(id));
+                var response=TemporalResponse.resolve(captured,Vec3.ZERO,progressive,32,256);
+                if(response.status()==TemporalResponse.Status.ITERATION_LIMIT) {
+                    failedAt=id;failedResponse=response;break;
+                }
+            }
+            h.assertTrue(failedAt==null,
+                "A9 canonical cow prefix must not exhaust before resolving the interior contact: chosen="+chosen
+                    +" failedAt="+failedAt+" prefix="+progressive.keySet()+" response="+failedResponse);
+
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
                 "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse);
