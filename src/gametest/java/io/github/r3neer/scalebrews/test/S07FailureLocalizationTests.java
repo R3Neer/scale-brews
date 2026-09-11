@@ -79,6 +79,8 @@ public final class S07FailureLocalizationTests {
                     && outcome.reason()==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED,
                 "Fixture must exercise the unresolvable material-overlap failure path: "+outcome);
 
+            h.assertTrue(AnatomyMovement.suspended(trapped,support),
+                "FR-052 requires the unresolvable body/support pair itself to be suspended instead of leaving an immediately retryable bad pair");
             h.assertTrue(AnatomyMovement.contact(safe)!=null && AnatomyMovement.supported(safe),
                 "FR-052 requires pair-local failure: an unresolvable trapped body must not invalidate another body's valid contact on the same support");
         } finally {
