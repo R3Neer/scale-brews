@@ -182,9 +182,9 @@ G2 begins only after the preceding closure. Before any G2 source change, the liv
 - `indexedSupports` fell back to adding **all** indexed support bounds when an oversized query exceeded `MAX_INDEX_CELLS`, and added the `overflow` list to every ordinary query;
 - comments in the code explicitly deferred temporal spatial envelopes and certified support-interval consumption to Q2.
 
-## G2 / S05 bounded material broadphase — CLOSED 2026-09-11
+## G2 / S05 bounded material broadphase — historical closure 2026-09-11
 
-S05 attacked only the spatial-cost/fail-closed thesis, not the still-open continuous-causality requirements FR-049..051.
+S05 initially attacked only the spatial-cost/fail-closed thesis, not the still-open continuous-causality requirements FR-049..051.
 
 Kernel commit `dbcf315a9ac00d77b43cf442bb2596030b1518c3` added `collision.physics.MaterialBroadphase<K>` with:
 
@@ -201,7 +201,6 @@ Live integration commit `541a333140543fb1df55e61b4aa78bb2f54f84d7` replaced the 
 - removed the query fallback that scanned all indexed bounds;
 - removed the global per-query `overflow` list;
 - quarantines oversized support entries until explicit rebind;
-- preserves same-tick frame validation before index reuse;
 - propagates exhausted/invalid spatial queries conservatively: `spaceClear=false`, `collide=Vec3.ZERO`, ray/sweep publish no material result;
 - keeps the broadphase input as material `AABB` so later Q2 can replace endpoint bounds with certified temporal envelopes without replacing the kernel.
 
@@ -213,18 +212,109 @@ GitHub Actions run **`34602837677`**, job **`103274063124`**:
 - artifact **`10265820434`**;
 - SHA-256 **`1573c97d70c3b254dcf6957b57c695c9004b0a37cd8acec1301b7e84cbec8f28`**.
 
-The nine registered S05 holdouts cover exact/+1 query budgets, oversized entries, far-world amplification, identity-vs-equals, insertion-order determinism, candidate saturation, runtime clearance fail-closed, runtime movement fail-closed and quarantine/rebind recovery.
+This was a valid closure of the original kernel/fail-closed scope, but later adversarial live-wrapper evidence reopened S05 under NFR-008. The historical run remains evidence for the kernel and is not erased.
 
-Final structural review on `541a333…` found no `overflow`, no `level.getAllEntities()` and no hot-query branch over all index entries. Existing temporal/spatial regression tests also remained green inside the 277/277 suite. S05 therefore closes G2 task 6 only; it does **not** claim continuous interval consumption, dispatcher integration, exactly-once causal events, full solver closure or final performance benchmark.
+## G2 adversarial campaign — current red evidence 2026-09-11
+
+### S05 live-wrapper locality reopening
+
+The reusable `MaterialBroadphase` kernel remains bounded, but the live wrapper around it exposed world-sized work in the movement/query path.
+
+`9b34ec8f909f278082a75931d014867c596f0fef` repaired the steady-state case: a repeated local query in the same tick no longer re-samples every registered provider. Subsequent holdouts then moved the adversarial boundary to **legitimate mutation hooks**.
+
+Run **`34626316654`**, job **`103352177773`**, snapshot `f06ec043ff5c5ea4936829d94e7114cf8eb1cd64`:
+
+- **308 GameTests**;
+- **306 passed / 2 failed**;
+- steady-state locality passes;
+- `S06SupportedMembershipCausalityTests` passes using `GeometryProvider.tick(...)`, including material geometry outside the support's vanilla AABB;
+- `S07BudgetFailureLocalizationTests` passes;
+- `S05LiveBroadphaseLocalityTests.firstLocalQueryAfterLegitimateRebindMustNotResampleFarWorld` fails with **128 far-provider samples** on the first local query after a supported local rebind.
+
+Run **`34626763741`**, job **`103353628494`**, snapshot `834fd694619ad899f9d238143af9af9ac4980409`:
+
+- **309 GameTests**;
+- **306 passed / 3 failed**;
+- post-rebind locality still fails with **128 far-provider samples**;
+- `firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld` also fails with **128 far-provider samples** after `captureRoot → setPos → commitRoot`, with counters reset only after the supported hook;
+- the third failure is the older direct-`setPos` legacy fixture. It is not needed for acceptance because the supported root-commit holdout independently reproduces the defect.
+
+A further holdout, `S05DirtyMutationLocalityTests.manyFarRebindsMustNotBeProcessedByUnrelatedLocalQuery`, performs 64 supported far-world rebinds, resets counters after those hooks, and then makes an unrelated local query. It is designed to reject a global dirty-list drained by the first query.
+
+Current snapshot **`91d0be66ef21f4d50c91861084e2680844b65580`**, run **`34627841257`**, job **`103357151536`**:
+
+- **311 GameTests**;
+- **306 passed / 5 failed**;
+- S05 failures include:
+  - the historical direct-`setPos` stale-index fixture;
+  - post-rebind locality: **128 far samples**;
+  - post-root-commit locality: **128 far samples**;
+  - many-far-dirty-rebind locality: **128 far samples**;
+- the fifth failure is the independent S07 plan-conflict blocker below.
+
+The contractual S05 blockers are therefore the supported rebind/root-commit/far-dirty cases. They permit eager maintenance inside mutation hooks by resetting counters afterwards; they constrain only the subsequent physical query path, matching NFR-008.
+
+A discarded adversarial test that silently mutated an internal provider from `UNAVAILABLE` to `AVAILABLE` between queries without `tick`, rebind, packet binding or callback is **not** acceptance evidence and was removed. Production providers advance through known causal hooks; requiring discovery of an invisible mutation would imply global polling and conflict with NFR-008.
+
+### S06 causal membership / identity
+
+The earlier S06 red-before-green campaign found conflicting same-serial payloads, wrong-support interval certification, `Pending` support/handle mismatch, stale binding reuse and unbounded staging. Those were repaired.
+
+`S06SupportedMembershipCausalityTests` is the valid membership holdout: availability changes through `GeometryProvider.tick(...)`, then the canonical runtime rebuild must expose the new material geometry. This test is green in the runs above. There is no active S06 adversarial blocker in the current snapshot.
+
+### S07 contact/local-failure progression
+
+The S07 campaign produced several red-before-green repairs before the current blocker:
+
+- exact `t=1` contact with zero body displacement;
+- contact provenance in a joint batch with a merely-near distractor support;
+- starting-overlap failure must suspend only the bad body/support pair and preserve a bystander;
+- same-binding reacquisition after the overlap disappears;
+- numerical budget exhaustion without initial overlap must release/suspend an old retained contact instead of leaving uncertainty authoritative.
+
+The provenance repair is green in run `34623887683`, job `103344184321`. The budget-uncertainty holdout is green in later runs, including the current `91d0be66…` baseline.
+
+### S07 current blocker: mutually incompatible valid plans
+
+`S07PlanConflictLocalizationTests.simultaneousValidPlansThatWouldOverlapMustReleaseOnlyAffectedPairs` creates two retained contacts on opposite material walls. Each candidate is first proven independently to have a complete bounded temporal plan. Those plans move the bodies toward one another and their planned final AABBs overlap. A third body has an unrelated valid contact on the same support.
+
+The fixture originally hit floating-point/coordinate artifacts because GameTest worlds can have very large absolute coordinates. Snapshot `91d0be66ef21f4d50c91861084e2680844b65580` constructs the convexes in a small local frame and translates them in double precision, so every fixture precondition reaches the intended production branch.
+
+In run **`34627841257`**, job **`103357151536`**:
+
+- both individual temporal plans are `COMPLETE`;
+- the planned simultaneous finals overlap;
+- backend returns `QUARANTINED / BACKEND_EXHAUSTED`;
+- no partial displacement is applied;
+- the test then fails exactly because the two affected retained body/support relations remain authoritative instead of being released/suspended;
+- the third bystander is retained as the locality control for the eventual fix.
+
+This is a real **NFR-004 / FR-052** blocker in the `worsensBodyOverlap(...)` failure path, distinct from the already-repaired `plan()==null` budget case.
+
+### Prepared client/server evidence during G2
+
+The isolated prepared-anatomy lane is green after the causal/binding repairs:
+
+- run **`34623128548`**, job **`103341673751`** passed original client geometry export plus the deterministic prepared pair-suspension proof;
+- run **`34624096154`**, job **`103344876628`** also passed the client export and prepared server proof.
+
+These special lanes do not override the red ordinary S05/S07 holdouts above.
+
+### Current G2 interpretation
+
+- S05 is **reopened** under NFR-008 for post-mutation live-query locality. The immutable/build-only kernel itself remains supported by its historical green evidence.
+- S06 identity/causal membership has no active blocker.
+- S07 is **reopened** under NFR-004/FR-052 for the valid-plan conflict path.
+- G2 cannot close while either S05 or S07 is red.
+- Before global G1/S04/G2 closure, `chatgpt-editing` must still be reconciled with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` is the single Scale body-gravity authority.
 
 ## Current acceptance gaps for entity collisions
 
-The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas now start at the remaining G2 scopes:
+The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
 
-- live continuous material-event consumption for root/joint/carry;
-- certified temporal envelopes and exactly-once causal interval processing;
-- multiple same-tick material contributions and ancestry;
-- full tangential retention/multicontact/sliding/separation recovery;
+- closing the current S05 post-mutation locality reds;
+- closing the current S07 valid-plan-conflict fail-closed red;
+- remaining G2 tangential/multicontact/sliding/separation/chains work not yet claimed by the current sprint;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
 - generic family engines and zero-UNRESOLVED vanilla coverage;
