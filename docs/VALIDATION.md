@@ -174,22 +174,56 @@ No further G1 implementation change was identified. **G1 is closed.**
 
 ## G2 start state — 2026-09-11
 
-G2 begins only after the preceding closure. Before any G2 source change, the live tree still has the known Q2 debt deliberately deferred from S00/G1:
+G2 begins only after the preceding closure. Before any G2 source change, the live tree still had the known Q2 debt deliberately deferred from S00/G1:
 
-- `AnatomyMovement` owns provider registration, state/history, spatial broadphase, queries, contact, root tracking and carry in one class;
-- `MaterialEventDispatcher` exists as a generic causal scheduler but is not integrated into live root/joint/carry hooks;
-- `GeometryProvider.MotionIntervalHandle`/`MotionSnapshot` exist, while current live movement still consumes causal endpoint state in several paths;
-- `indexedSupports` falls back to adding **all** indexed support bounds when an oversized query exceeds `MAX_INDEX_CELLS`, and adds the `overflow` list to every ordinary query;
-- comments in the code explicitly defer temporal spatial envelopes and certified support-interval consumption to Q2.
+- `AnatomyMovement` owned provider registration, state/history, spatial broadphase, queries, contact, root tracking and carry in one class;
+- `MaterialEventDispatcher` existed as a generic causal scheduler but was not integrated into live root/joint/carry hooks;
+- `GeometryProvider.MotionIntervalHandle`/`MotionSnapshot` existed, while live movement still consumed causal endpoint state in several paths;
+- `indexedSupports` fell back to adding **all** indexed support bounds when an oversized query exceeded `MAX_INDEX_CELLS`, and added the `overflow` list to every ordinary query;
+- comments in the code explicitly deferred temporal spatial envelopes and certified support-interval consumption to Q2.
 
-No G2 behavior is claimed by the G1 evidence above. New G2 sprints must record their own red/green evidence below as they are implemented.
+## G2 / S05 bounded material broadphase — CLOSED 2026-09-11
+
+S05 attacked only the spatial-cost/fail-closed thesis, not the still-open continuous-causality requirements FR-049..051.
+
+Kernel commit `dbcf315a9ac00d77b43cf442bb2596030b1518c3` added `collision.physics.MaterialBroadphase<K>` with:
+
+- identity-based entries/deduplication;
+- caller-supplied deterministic ordering;
+- explicit entry-cell, query-cell and candidate budgets;
+- `COMPLETE`, `BUDGET_EXHAUSTED` and `INVALID_QUERY` query outcomes;
+- entry rejection reasons;
+- `requestedCells`, `cellsVisited` and `candidatesVisited` instrumentation;
+- no global fallback and no partial candidate publication on exhaustion.
+
+Live integration commit `541a333140543fb1df55e61b4aa78bb2f54f84d7` replaced the embedded `AnatomyMovement` spatial structure:
+
+- removed the query fallback that scanned all indexed bounds;
+- removed the global per-query `overflow` list;
+- quarantines oversized support entries until explicit rebind;
+- preserves same-tick frame validation before index reuse;
+- propagates exhausted/invalid spatial queries conservatively: `spaceClear=false`, `collide=Vec3.ZERO`, ray/sweep publish no material result;
+- keeps the broadphase input as material `AABB` so later Q2 can replace endpoint bounds with certified temporal envelopes without replacing the kernel.
+
+GitHub Actions run **`34602837677`**, job **`103274063124`**:
+
+- **277 tests registered and executed**;
+- **277/277 required GameTests passed**;
+- `BUILD SUCCESSFUL in 1m 13s`;
+- artifact **`10265820434`**;
+- SHA-256 **`1573c97d70c3b254dcf6957b57c695c9004b0a37cd8acec1301b7e84cbec8f28`**.
+
+The nine registered S05 holdouts cover exact/+1 query budgets, oversized entries, far-world amplification, identity-vs-equals, insertion-order determinism, candidate saturation, runtime clearance fail-closed, runtime movement fail-closed and quarantine/rebind recovery.
+
+Final structural review on `541a333…` found no `overflow`, no `level.getAllEntities()` and no hot-query branch over all index entries. Existing temporal/spatial regression tests also remained green inside the 277/277 suite. S05 therefore closes G2 task 6 only; it does **not** claim continuous interval consumption, dispatcher integration, exactly-once causal events, full solver closure or final performance benchmark.
 
 ## Current acceptance gaps for entity collisions
 
-The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas now start at G2:
+The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas now start at the remaining G2 scopes:
 
 - live continuous material-event consumption for root/joint/carry;
-- bounded temporal broadphase and exactly-once causal interval processing;
+- certified temporal envelopes and exactly-once causal interval processing;
+- multiple same-tick material contributions and ancestry;
 - full tangential retention/multicontact/sliding/separation recovery;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
