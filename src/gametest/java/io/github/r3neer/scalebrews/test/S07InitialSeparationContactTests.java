@@ -1,11 +1,13 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import java.util.Map;
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -73,6 +75,41 @@ public final class S07InitialSeparationContactTests {
             h.assertTrue(AnatomyMovement.contact(body)==null && !body.onGround(),
                 "Initial separation alone must not fabricate a material ground anchor on a face that does not support the current gravity frame");
         } finally {
+            AnatomyMovement.clear(body);
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void initialSeparationUsesCurrentGravityFrameForSupport(GameTestHelper h) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var center=support.position();
+        var wall=ConvexBox.of(new AABB(0,-1,-1,1,1,1),new Matrix4f()).move(center);
+        GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(94,Map.of("gravity_floor",wall)));
+        AnatomyMovement.activate(level);
+        AnatomyMovement.register(support,provider);
+        AnatomyMovement.gravity(body,new GravityFrame(Direction.EAST));
+        body.setPos(center.x+.03,center.y,center.z);body.setOnGround(false);
+        try {
+            Vec3 moved=AnatomyMovement.collide(body,new Vec3(0,0,.2));
+            body.setPos(body.position().add(moved));
+            AnatomyMovement.afterMove(body);
+            h.assertTrue(moved.x< -1e-6,
+                "Fixture must separate the body toward anti-gravity WEST from the supporting wall");
+            var contact=AnatomyMovement.contact(body);
+            var surface=AnatomyMovement.surface(body);
+            h.assertTrue(contact!=null && contact.support()==support && surface!=null && body.onGround()
+                    && AnatomyMovement.gravity(body).supports(surface.normal()),
+                "Initial separation must establish support according to the current gravity frame, not a hard-coded world-Y floor");
+        } finally {
+            AnatomyMovement.gravity(body,GravityFrame.VANILLA);
             AnatomyMovement.clear(body);
             AnatomyMovement.deactivate(level);
             support.discard();body.discard();
