@@ -4,6 +4,7 @@ import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.api.AnatomyBackend;
 import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import java.lang.reflect.Modifier;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -11,6 +12,13 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 /** G1/S01 acceptance tests for the public facade/backend dependency inversion. */
 public final class S01PublicApiBoundaryTests {
+    @GameTest
+    public void backendContractIsNotPublicConsumerApi(GameTestHelper h) {
+        h.assertTrue(!Modifier.isPublic(AnatomyBackend.class.getModifiers()),
+            "Scale-owned backend wiring must not become public consumer API; consumers use AnatomyApi and registered SPIs");
+        h.succeed();
+    }
+
     @GameTest
     public void unavailableBackendFailsClosed(GameTestHelper h) {
         var backend = AnatomyBackend.unavailable();
