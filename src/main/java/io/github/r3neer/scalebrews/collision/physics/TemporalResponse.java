@@ -114,13 +114,7 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 if(certifies(body,delta,constraint,start,end))continue;
             }
-            // Once a contact is known, later pieces only need to prove whether they touch before
-            // or at that material time. Do not spend the shared budget on an irrelevant tail.
-            double horizon=Double.isFinite(earliest) && earliest>TIME_EPS?Math.clamp(earliest,0,1):1;
-            var motion=pieces.get(id).interval(start,start+(end-start)*horizon);
-            var result=firstForPiece(body,delta.scale(horizon),motion,budget);
-            if(horizon<1)result=new ConservativeSweep.Result(result.status(),
-                Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
+            var result=firstForPiece(body,delta,pieces.get(id).interval(start,end),budget);
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
             if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP)return new Search(result.status(),0,List.of());
             if(result.status()!=ConservativeSweep.Status.CONTACT)continue;
