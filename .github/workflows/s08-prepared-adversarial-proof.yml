@@ -17,6 +17,7 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S08PreparedDerivedChainProof.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S08PreparedPermutationProof.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S09PreparedIntervalContactProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S09PreparedIntermediateContactProof.java'
 
 jobs:
   prepared-proof:
