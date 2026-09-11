@@ -17,6 +17,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 /** S06/S07 adversarial holdout for same-tick causal membership changes in the live spatial index. */
@@ -35,7 +36,11 @@ public final class S06SpatialMembershipCausalityTests {
 
         long tick=level.getGameTime();
         var available=new AtomicBoolean(false);
-        var piece=ConvexBox.of(new AABB(-.5,0,-.5,.5,.5,.5),new Matrix4f()).move(support.position());
+        // FR-042 explicitly permits anatomy outside the support's vanilla AABB.  Keep the
+        // material piece well outside that box so a fallback entity envelope cannot make a
+        // stale spatial index accidentally discover the newly-AVAILABLE collider.
+        Vec3 remote=support.position().add(6,0,0);
+        var piece=ConvexBox.of(new AABB(-.5,0,-.5,.5,.5,.5),new Matrix4f()).move(remote);
         var snapshot=new GeometryProvider.Snapshot(1,Map.of("body",piece));
         var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
         var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,support.getScale(),GravityFrame.VANILLA);
@@ -58,6 +63,8 @@ public final class S06SpatialMembershipCausalityTests {
         try {
             h.assertTrue(Platforms.eligible(body,support),
                 "Fixture body must be eligible so the holdout isolates spatial membership rather than policy");
+            h.assertTrue(!support.getBoundingBox().inflate(Platforms.searchMargin(level)).intersects(piece.bounds()),
+                "Remote anatomy fixture must lie outside the vanilla support discovery envelope");
             var query=piece.bounds();
             h.assertTrue(AnatomyMovement.spaceClear(body,query),
                 "An explicitly unavailable causal endpoint must publish no collider");
@@ -70,7 +77,7 @@ public final class S06SpatialMembershipCausalityTests {
                     && provider.sample(support).isPresent(),
                 "Fixture source must have advanced to AVAILABLE in the same authority tick before any runtime consumer observes it");
             h.assertTrue(!AnatomyMovement.spaceClear(body,query),
-                "A support that becomes AVAILABLE in the same tick must enter the broadphase when spaceClear is the first runtime consumer; an index that omitted it cannot be reused vacuously");
+                "A remote anatomical piece that becomes AVAILABLE in the same tick must enter the broadphase when spaceClear is the first runtime consumer; vanilla support bounds cannot stand in for material membership");
             h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),
                 "After the spatial query, the runtime must expose the same accepted AVAILABLE causal frame");
         } finally {
