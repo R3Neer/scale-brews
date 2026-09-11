@@ -64,6 +64,9 @@ public final class AnatomyPreparedIntegrationProof {
             // Pair-local recovery must be proven geometrically, not via a block-wall fixture
             // whose absolute GameTest coordinates can accidentally leave an escape route.
             S07PreparedPairSuspensionProof.run(h);
+            // S08 must prove its causal chain through the same prepared catalog/runtime, not
+            // merely by composing isolated planner/tracker/dispatcher unit seams.
+            S08PreparedDerivedChainProof.run(h);
         }
         h.succeed();
     }
