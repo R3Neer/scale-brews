@@ -67,19 +67,20 @@ final class AnchoredTransportPlanner {
         var materialAfter=handle.after().snapshot().pieces().get(retained.piece());
         if(pieceMotion==null || materialBefore==null || materialAfter==null)return Result.release(0);
 
-        // First live certificate: unchanged joint inputs + continuous root TRS. Root yaw rotates around
-        // the support gravity up-axis, while root scale is uniform, so support-dot-up is invariant.
-        // Joint-changing intervals remain fail-closed until their own normal certificate is wired.
+        // First live certificate: unchanged joint inputs + continuous root TRS. The support's
+        // gravity determines the root-yaw axis; the body's own gravity independently determines
+        // whether the retained face is supporting. Joint-changing intervals remain fail-closed
+        // until their own face-normal certificate is wired.
         if(!handle.before().sample().inputs().equals(handle.after().sample().inputs()))return Result.release(0);
         var bodyGravity=AnatomyMovement.gravity(body);
-        if(!bodyGravity.equals(handle.before().root().gravity()) || !bodyGravity.equals(handle.after().root().gravity()))
-            return Result.release(0);
         try {
-            Vec3 up=bodyGravity.up(),normal0=materialBefore.faceNormal(surface.face()),normal1=materialAfter.faceNormal(surface.face());
-            double dot0=normal0.dot(up),dot1=normal1.dot(up);
-            if(!Double.isFinite(dot0+dot1) || Math.abs(dot0-dot1)>1e-5)return Result.release(0);
+            Vec3 bodyUp=bodyGravity.up(),supportUp=handle.before().root().gravity().up();
+            Vec3 normal0=materialBefore.faceNormal(surface.face()),normal1=materialAfter.faceNormal(surface.face());
+            double dot0=normal0.dot(bodyUp),dot1=normal1.dot(bodyUp);
+            if(!Double.isFinite(dot0+dot1))return Result.release(0);
             double normalRate=Math.abs(Math.toRadians(wrapDegrees(handle.after().root().yaw()-handle.before().root().yaw())));
-            var bounds=new BodyPath.NormalBounds(surface.face(),Math.min(dot0,dot1),normalRate);
+            double minDot=certifiedMinDot(dot0,dot1,normalRate,bodyUp,supportUp);
+            var bounds=new BodyPath.NormalBounds(surface.face(),minDot,normalRate);
             var anchor=new BodyPath.LocalAnchor(surface.face(),surface.localPoint());
             var path=BodyPath.fromMaterial(pieceMotion,anchor,captured,bodyGravity,bounds).orElse(null);
             if(path==null)return Result.release(0);
@@ -125,6 +126,17 @@ final class AnchoredTransportPlanner {
             return new Result(Status.COMPLETE,displacement,evaluations,
                 new Evidence(support,surface,handle.after().root(),materialBefore,materialAfter));
         } catch(RuntimeException rejected) {return Result.release(0);}
+    }
+
+    /**
+     * Root yaw is a rigid rotation about supportUp. If bodyUp is parallel to that axis,
+     * support dot is invariant. Otherwise |d/dt(normal·bodyUp)| is bounded by the yaw
+     * angular rate, so the endpoint Lipschitz cones provide a continuous lower bound.
+     */
+    private static double certifiedMinDot(double dot0,double dot1,double normalRate,Vec3 bodyUp,Vec3 supportUp) {
+        if(normalRate==0 || Math.abs(Math.abs(bodyUp.dot(supportUp))-1)<1e-9)return Math.min(dot0,dot1);
+        if(Math.abs(dot1-dot0)>normalRate+1e-6)throw new IllegalArgumentException("Endpoint normals contradict root-yaw rate");
+        return Math.min(Math.min(dot0,dot1),(dot0+dot1-normalRate)*.5);
     }
 
     private static double wrapDegrees(double value) {
