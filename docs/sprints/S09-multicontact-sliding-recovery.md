@@ -1,6 +1,6 @@
 # S09 — Multicontacto, sliding y recovery material
 
-Estado: **PLAN + MODELO ADVERSARIAL CONVERGIDOS / IMPLEMENTACIÓN EN REVISIÓN**. Quinto sprint de G2.
+Estado: **IMPLEMENTACIÓN EN REVISIÓN / ABIERTO POR A9 + A11**. Quinto sprint de G2.
 
 ## 1. Scope
 
@@ -52,34 +52,57 @@ Gate: **G2 — pipeline material continuo Q2**.
 3. Tras el sweep, ejecuta recovery final acotado y suspende sólo las relaciones que siguen solapando.
 4. La retención tangencial se intenta primero con `finalSupportNormal(...)`; por tanto un contacto previo no necesita aparecer otra vez en `response.contacts()` si sigue materialmente válido.
 5. Un contacto nuevo se selecciona desde hits CCD reales; sólo una corrección inicial no nula permite considerar un candidato final válido. La mera proximidad de endpoint separado no magnetiza contacto.
-6. `MaterialPhysicsRuntime.plan(...)` ejecuta `TemporalResponse` con movimiento propio cero contra motions materiales; por ello puede, en principio, detectar contacto generado exclusivamente por el intervalo del soporte.
+6. `MaterialPhysicsRuntime.plan(...)` ejecuta `TemporalResponse` con movimiento propio cero contra motions materiales; por ello puede detectar contacto generado exclusivamente por el intervalo del soporte.
 7. `MaterialPhysicsRuntime.apply(...)` sólo intenta `establish(...)` con pieces presentes en `contactPieces`, que proceden de hits CCD o overlap inicial real; no usa proximidad arbitraria.
-8. `MaterialPhysicsRuntime.Metrics` expone admitted/candidates/evaluations/quarantined/exhausted; `AnatomyMovement.SweepMetrics` expone queries/pieces/evaluations/exhausted. Hay instrumentación útil, pero S09 debe demostrar fronteras live en lugar de inferirlas por existencia de contadores.
+8. `MaterialPhysicsRuntime.Metrics` expone admitted/candidates/evaluations/quarantined/exhausted; `AnatomyMovement.SweepMetrics` expone queries/pieces/evaluations/exhausted.
 
-### Deuda demostrable
+### Estado adversarial actual
 
-- no hay prueba live equivalente al holdout kernel de contacto simultáneo/permutación;
-- no hay prueba live fuerte de retención tangencial sin hit nuevo bajo movimiento propio;
-- la prueba de squeeze existente usa un provider local/manual y documenta expresamente que falta demostrar reacquisition por **intervalo runtime publicado**;
-- wall squeeze/recovery live debe demostrar que sólo se suspende la pareja mala y que un bystander seguro sigue autoritativo;
-- falta una prueba live donde el contacto exista sólo en mitad del intervalo material y ambos endpoints estén libres;
-- las fronteras 32/256 y 128 deben quedar vinculadas a outcomes/metrics live, no sólo a kernels aislados.
+- **A1/A2 verdes:** `S09LiveOwnMoveTests.retainedContactSurvivesTangentWithoutNewHitThenReleasesPastFootprint` demuestra retención tangencial sin hit nuevo y release real al abandonar el footprint.
+- **A3 verde:** el fixture live floor+wall simultáneo, tras corregir una construcción de `ConvexBox` con coordenadas world como fixture inválido, queda estable bajo inversión de orden de registro y conserva el tangente libre.
+- **A8 verde:** `S09PreparedIntervalContactProof` se ejecuta en la lane preparada real. Un barco estacionario, separado y sin contacto previo, adquiere contacto por un único ROOT publicado del cow preparado sin llamar a own-move.
+- **A9 BLOQUEANTE:** el contacto estrictamente intermedio de un cow preparado con ambos endpoints libres agota `TemporalResponse` al combinar apenas tres piezas canónicas. La pieza causal aislada sí resuelve; el prefijo `[root/body/cube_0, root/body/cube_1, root/head/cube_0]` devuelve `ITERATION_LIMIT`, displacement cero, time cero, contacts vacíos y 256 evaluaciones. El kernel mínimo de una sola pieza también es verde. La deuda está en el barrido multipieza/budget del primer contacto, no en provider, broadphase ni dispatcher.
+- **A11 BLOQUEANTE:** `AnatomyMovement.collide` exporta como movimiento permitido el prefijo seguro de un `TemporalResponse` agotado. El holdout calibrado encuentra dinámicamente 82 decoys: kernel `ITERATION_LIMIT`, 256 evaluaciones y displacement `(1.9999999403953552,-1,0)`; el wrapper live devuelve exactamente ese prefijo en vez de fallar cerrado. El oracle endurecido exige además cero contacto y cero suspensión en exhaustion.
+
+Rojos retirados/no probatorios durante A9:
+
+- un typo de fixture `before.jointSampleTick()` fue fallo de compilación, no evidencia física;
+- una primera versión con cow scale 4 superaba deliberadamente el cap runtime de envelope 64 y fue cuarentenada antes de broadphase; se sustituyó por scale 1 y precondiciones explícitas de envelope válido.
 
 ## 3. Plan de implementación
 
 ### Checklist
 
-- [ ] I1 Construir fixtures live mínimos para own-move y material-interval usando sólo hooks productivos; no añadir seam de test que replique el solver.
-- [ ] I2 Verificar/ajustar la ruta de own-move para que un contacto previo tangencial final-válido sobreviva aunque `TemporalResponse` no produzca un hit nuevo.
-- [ ] I3 Verificar/ajustar multicontacto live: hits simultáneos deben limitar el movimiento con todas sus normales y la selección de contacto persistente debe ser canónica y estable bajo permutación.
+- [x] I1 Construir fixtures live mínimos para own-move y material-interval usando sólo hooks productivos; no añadir seam de test que replique el solver.
+- [x] I2 Verificar/ajustar la ruta de own-move para que un contacto previo tangencial final-válido sobreviva aunque `TemporalResponse` no produzca un hit nuevo.
+- [x] I3 Verificar multicontacto live inicial: floor+wall simultáneos limitan ambas normales y la respuesta no depende del orden de registro.
 - [ ] I4 Verificar/ajustar sliding live con floor+wall y al menos una gravedad no vanilla: componente normal bloqueada, tangentes preservadas y block clip respetado.
 - [ ] I5 Verificar/ajustar initial separation y final recovery live: salida segura acotada o suspensión exclusiva de la pareja irresoluble, sin teleport parcial.
-- [ ] I6 Verificar/ajustar establecimiento/reacquisition por intervalo material publicado con body estacionario; sólo un hit/overlap temporal real puede crear contacto.
-- [ ] I7 Verificar contacto material estrictamente intermedio con endpoints libres: debe influir en la respuesta física sin dejar un contacto final inventado si la pieza se retira.
-- [ ] I8 Instrumentar sólo la dimensión de budget que resulte no observable durante I2-I7; reutilizar métricas existentes cuando ya distingan el agotamiento exigido.
+- [x] I6 Verificar establecimiento/reacquisition por intervalo material publicado con body estacionario; sólo un hit/overlap temporal real puede crear contacto.
+- [ ] I7 Reparar/verificar A9: contacto material estrictamente intermedio con endpoints libres debe influir en la respuesta física sin dejar contacto final inventado.
+- [ ] I8 Reparar/verificar A11 y las demás fronteras afectadas: exhaustion observable, sin displacement parcial ni deuda lógica; no subir budgets como sustituto de la corrección.
 - [ ] I9 Auditar hot paths de S09: ningún arreglo puede introducir `level.getAllEntities()` por query/move ni resample global de providers.
 - [ ] I10 Revisión completa contra FR-043/044/047-053 y NFR-001/002/004/007/008; eliminar sólo helpers nuevos sin consumidor.
-- [ ] I11 Ejecutar suite ordinaria + cualquier lane preparada necesaria y hacer pasada final completa sin cambios de producción.
+- [ ] I11 Ejecutar suite ordinaria + lane preparada necesaria y hacer pasada final completa sin cambios de producción.
+
+### Criterios de reparación actuales
+
+**A9**
+
+- No se acepta aumentar `QUERY_BUDGET` como arreglo.
+- Debe conservarse el orden canónico y el fail-closed.
+- Las piezas que una cota conservadora demuestra incapaces de alcanzar al body no deben consumir CCD caro hasta impedir consultar la pieza causal.
+- Cualquier filtro barato nuevo debe seguir estando explícitamente acotado; no puede convertir miles de piezas en trabajo gratuito no contabilizado.
+- La pieza causal aislada debe mantener su resultado.
+- El prefijo real del cow y el manifold completo deben completar bajo el budget existente.
+- El A9 preparado final debe mover al body por el hit interior, terminar sin contacto retenido porque el endpoint está separado y dejar admitted=1, quarantine=0, exhausted=0.
+
+**A11**
+
+- `TemporalResponse` puede conservar internamente un prefijo seguro como diagnóstico; el wrapper live no puede publicarlo como movimiento permitido una vez el resultado es `ITERATION_LIMIT`.
+- Exhaustion debe seguir visible en métricas.
+- El retorno live debe ser cero en el holdout calibrado y no puede dejar contacto ni suspensión derivados del prefijo que no se aplica.
+- El corte debe ocurrir antes de recovery/selección de contacto; no basta con reemplazar el valor retornado al final.
 
 ### Revisiones del plan
 
@@ -91,7 +114,7 @@ Gate: **G2 — pipeline material continuo Q2**.
 - P6 simplicidad: no se modifica producción si el holdout demuestra que la implementación actual ya cumple.
 - P7 verificabilidad: cada I2-I8 tiene observable físico o métrico independiente.
 
-**Convergencia del plan:** una segunda pasada P1-P7 no produjo cambios. La investigación eliminó una propuesta inicial de reescribir el manifold: el kernel ya mantiene todas las constraints simultáneas; la deuda es integración live y sólo los holdouts decidirán si hace falta producción nueva.
+**Convergencia del plan:** el plan arquitectónico inicial sigue vigente. Los A9/A11 no exigen cambiar ownership: exigen corregir boundedness/consumo del kernel multipieza y la política live de exhaustion.
 
 ## 4. Modelo adversarial previo
 
@@ -173,6 +196,6 @@ S09 sólo cierra cuando:
 3. recovery resoluble e irresoluble tienen outcomes acotados y pair-local;
 4. un intervalo runtime puede establecer/reacquirir contacto sin own-move;
 5. contacto sólo intermedio se detecta sin inventar contacto final;
-6. fronteras de budget afectadas tienen outcome observable y no mutación parcial;
+6. fronteras de budget afectadas tienen outcome observable y no mutación parcial ni deuda lógica;
 7. no se introduce scan mundial ni segundo solver;
 8. suite final requerida está verde y la pasada completa posterior no produce cambios de producción.
