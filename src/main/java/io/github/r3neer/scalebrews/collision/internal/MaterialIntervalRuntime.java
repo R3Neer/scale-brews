@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
  */
 public final class MaterialIntervalRuntime {
     private MaterialIntervalRuntime() {}
+    public enum Source {ROOT,JOINT}
     private static final Map<LivingEntity,MaterialIntervalTracker> TRACKERS=
         Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,MaterialIntervalTracker>makeMap());
     private static final Map<Level,List<Pending>> PENDING=Collections.synchronizedMap(new WeakHashMap<>());
@@ -25,8 +26,8 @@ public final class MaterialIntervalRuntime {
         .thenComparingInt(p->p.handle().identity().entityId())
         .thenComparingLong(p->p.handle().materialSerial());
 
-    public record Pending(LivingEntity support,GeometryProvider.MotionIntervalHandle handle) {
-        public Pending {if(support==null || handle==null)throw new IllegalArgumentException("Invalid pending material interval");}
+    public record Pending(LivingEntity support,Source source,GeometryProvider.MotionIntervalHandle handle) {
+        public Pending {if(support==null || source==null || handle==null)throw new IllegalArgumentException("Invalid pending material interval");}
     }
     public record RootCapture(AnatomyMovement.RootFrame root,GeometryProvider.QueryFrame before) {
         public RootCapture {if(root==null)throw new IllegalArgumentException("Missing root capture");}
@@ -39,7 +40,7 @@ public final class MaterialIntervalRuntime {
     public static void commitRoot(LivingEntity support,RootCapture capture) {
         if(support==null || capture==null)return;
         AnatomyMovement.observeRoot(support,capture.root());
-        accept(support,capture.before(),AnatomyMovement.queryFrame(support).orElse(null));
+        accept(support,Source.ROOT,capture.before(),AnatomyMovement.queryFrame(support).orElse(null));
     }
 
     /** Observe one post-tick current frame. Repeated reads are no-ops; a joint advance publishes one handle. */
@@ -53,10 +54,10 @@ public final class MaterialIntervalRuntime {
             return;
         }
         if(before==null) {tracker.seed(after);return;}
-        accept(support,before,after);
+        accept(support,Source.JOINT,before,after);
     }
 
-    private static void accept(LivingEntity support,GeometryProvider.QueryFrame before,GeometryProvider.QueryFrame after) {
+    private static void accept(LivingEntity support,Source source,GeometryProvider.QueryFrame before,GeometryProvider.QueryFrame after) {
         var tracker=TRACKERS.computeIfAbsent(support,ignored->new MaterialIntervalTracker());
         if(after==null) {
             AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::cut);
@@ -67,7 +68,7 @@ public final class MaterialIntervalRuntime {
         var currentBefore=tracker.current();
         var result=tracker.accept(before,after);
         if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED) {
-            PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>()).add(new Pending(support,result.handle()));
+            PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>()).add(new Pending(support,source,result.handle()));
         } else if(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && currentBefore!=null
                 && currentBefore.identity().equals(after.identity())
                 && after.endpoint().frameSerial()>currentBefore.endpoint().frameSerial()) {
