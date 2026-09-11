@@ -115,7 +115,10 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 if(certifies(body,delta,constraint,start,end))continue;
             }
-            var result=firstForPiece(body,delta,pieces.get(id).interval(start,end),budget);
+            var interval=pieces.get(id).interval(start,end);
+            // Screening is only for unknown candidates. Once a piece is active, its relevance has
+            // already been established; re-screening it would repeatedly tax the same real contact.
+            var result=constraint==null?firstForPiece(body,delta,interval,budget):budget.query(body,delta,interval);
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
             if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP)return new Search(result.status(),0,List.of());
             if(result.status()!=ConservativeSweep.Status.CONTACT)continue;
