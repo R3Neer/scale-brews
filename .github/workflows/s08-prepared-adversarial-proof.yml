@@ -1,0 +1,35 @@
+name: s08-prepared-adversarial-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s08-prepared-adversarial-proof.yml'
+
+jobs:
+  prepared-proof:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: export original client geometry
+        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+      - name: locate exported catalog
+        id: catalog
+        shell: bash
+        run: |
+          catalog="$(find . -type d -name anatomy-export -print -quit)"
+          test -n "$catalog"
+          echo "path=$catalog" >> "$GITHUB_OUTPUT"
+          echo "Using prepared catalog at $catalog"
+      - name: run isolated S08 prepared runtime proof
+        run: ./gradlew runGameTest -PscalebrewsAnatomyPreparedSuite=true -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}'
