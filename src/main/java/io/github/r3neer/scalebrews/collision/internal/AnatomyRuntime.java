@@ -118,6 +118,16 @@ public final class AnatomyRuntime {
         var server=entity.level().getServer();
         return server!=null && STATES.containsKey(server) && AnatomyMovement.active(entity);
     }
+    /**
+     * Internal support-binding ownership, intentionally narrower than {@link #owns(net.minecraft.world.entity.Entity)}.
+     * A prepared/running session must not suppress the fixture/local fallback for a manually registered support;
+     * only a support present in the runtime's active binding table has certified material intervals to own its carry.
+     */
+    static boolean owns(LivingEntity support) {
+        var server=support.level().getServer();
+        var state=server==null?null:STATES.get(server);
+        return state!=null && state.entities.containsKey(support);
+    }
     public static boolean ready(net.minecraft.world.entity.Entity entity) {
         var server=entity.level().getServer();
         if(server==null)return false;
