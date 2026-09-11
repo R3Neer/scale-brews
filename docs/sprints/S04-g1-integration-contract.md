@@ -1,6 +1,6 @@
 # S04 — Integración estable y cierre funcional de G1
 
-Estado: **CERRADO**. Este sprint cierra G1; **G2 no se ha iniciado**.
+Estado: **CIERRE DE G1 SUPERADO POR EVIDENCIA POSTERIOR**. La implementación de S04 permanece realizada, pero G1 está reabierto por un bloqueo S01/NFR-025; el estado global vive en `ENTITY_COLLISIONS_PLAN.md`. **G2 no se ha iniciado**.
 
 ## 1. Scope
 
@@ -51,6 +51,8 @@ El snapshot adversarial `19626950569110963cd47611b245234c650f2ca0` dejó exactam
 
 Ambos se clasificaron como bugs de implementación. Ningún requisito se relajó y ningún test adversarial se eliminó.
 
+Una pasada adversarial posterior al cierre añadió un holdout estructural de NFR-025 y detectó que la primera reparación de S01 había movido `AnatomyBackend` a `collision.runtime` pero había dejado una dependencia mutua `collision.api ↔ collision.runtime`.
+
 ## 5. Implementación final de G1
 
 - [x] façade pública mínima `AnatomyApi` con backend runtime Scale-owned no público de consumer;
@@ -64,27 +66,28 @@ Ambos se clasificaron como bugs de implementación. Ningún requisito se relajó
 - [x] validación estricta de unknown fields y de referencias geometry/pose/root;
 - [x] legacy `platform` conservado sólo como motor temporal hasta G5, sin convertirlo en modelo del core nuevo.
 
-La reparación adversarial final es `3ba014dc2e19b6b700a707bd3177c55ac443328f`: mueve el contrato de backend a `collision.runtime`, actualiza ServiceLoader e introduce decode estricto de objetos canónicos y anidados.
+La primera reparación adversarial fue `3ba014dc2e19b6b700a707bd3177c55ac443328f`: movió el contrato de backend a `collision.runtime`, actualizó ServiceLoader e introdujo decode estricto de objetos canónicos y anidados. Esa reparación cerró los dos fallos observados entonces, pero el holdout posterior demostró que la frontera de paquetes todavía no había convergido respecto de NFR-025.
 
 ## 6. Test matrix final
 
-| Propiedad | Nivel | Resultado |
+| Propiedad | Nivel | Resultado vigente |
 | --- | --- | --- |
-| S01 façade/backend/fail-closed | adversarial GameTest/reflection | PASS |
+| S01 façade/backend/fail-closed | adversarial GameTest/reflection | PASS salvo ciclo de capas |
 | backend no público de consumer | adversarial GameTest/reflection | PASS |
+| `collision.api ↔ collision.runtime` sin ciclo | adversarial reflection/GameTest | **FAIL vigente** |
 | S02 registries/DTO bounds/order | adversarial GameTest | PASS |
 | engine/pose/root inexistentes | GameTest | PASS, fail-closed |
 | S03 schema/policy/legacy migration | adversarial GameTest | PASS |
 | unknown/legacy fields canónicos | adversarial GameTest | PASS, reject |
+| constructor→codec round-trip en límites máximos | adversarial GameTest | PASS |
 | filter inválido devuelve codec error | regression GameTest | PASS |
 | fixture mod API + JSON | init + GameTest/resource | PASS |
 | variant ambiguity / structural identity | adversarial GameTest | PASS |
 | ratio nextDown/exact/nextUp | GameTest | PASS |
 | body adapter invalid input/output | adversarial GameTest | PASS |
 | legacy policy bridge | regression GameTest | PASS |
-| suite histórica + nueva servidor | `./gradlew build` | **PASS, 266/266** |
-| client real + integrated + dedicated | `xvfb-run -a ./gradlew runClientGameTest` | **PASS** |
-| dedicated `allow-flight=false` | 0/100/200 ms RTT, 120 ticks cada uno | **PASS** |
+| suite servidor actual | `./gradlew build` | **267/268 PASS; 1 FAIL NFR-025** |
+| client real + integrated + dedicated | `xvfb-run -a ./gradlew runClientGameTest` | PASS histórico anterior al nuevo bloqueo; debe repetirse tras reparación common/API |
 
 ## 7. Fallos encontrados y bucles
 
@@ -98,11 +101,13 @@ La campaña adversarial paralela amplió la suite a **266 tests**. Run `34592683
 
 Para repetir la capa cliente sobre el mismo código, el trigger `23a1072ef451a14f59f707019415e1f4ac60dbab` modificó únicamente el workflow temporal. El workflow ordinario run `34593970120` volvió a quedar verde. `g1-client-proof` run `34593970131`, job `103245364717`, ejecutó `xvfb-run -a ./gradlew runClientGameTest` y terminó **success / BUILD SUCCESSFUL**. El log confirmó export original de cow/player wide/slim, 80 comparaciones por cada una, 640 comparaciones vanilla-family adicionales, `S00_CLIENT_RECEIPT_AUTHORITY PASS`, `S00_OBSERVER_AUTHORITY PASS` y dedicated `allow-flight=false` a **0/100/200 ms RTT, 120 ticks cada uno**. El workflow temporal se eliminó después; esa limpieza no cambia producción ni tests.
 
+La pasada adversarial posterior añadió `S01PublicApiBoundaryTests.publicApiAndRuntimeDoNotFormALayerCycle`. `94f2db96277f02c9e9d4903bdb02046b7878f4c2`, run `34595220211`, job `103249293688`, ejecutó 267 tests: **266 PASS y un único FAIL**, el ciclo `collision.api ↔ collision.runtime`. `be41003bbceaecd27a36dc1d13e4bef0f8bde114`, run `34595505502`, job `103250215902`, añadió el holdout S03 de round-trip máximo y ejecutó 268 tests: el nuevo holdout pasó y quedó exactamente el mismo único fallo S01.
+
 ## 8. Revisión final
 
-La pasada final recorrió las nueve tareas de G1, API/data/catalog/integration/migration, ownership, versionado/capabilities, policy/ratio, adapters, fixture init-time, engine refs, strict codecs, identidad estructural, determinismo y fronteras de gates.
+La antigua pasada final recorrió las nueve tareas de G1, API/data/catalog/integration/migration, ownership, versionado/capabilities, policy/ratio, adapters, fixture init-time, engine refs, strict codecs, identidad estructural, determinismo y fronteras de gates.
 
-Resultado:
+Conserva valor para los puntos que sí verificó:
 
 - no queda `AnatomyBackend` como tipo público en `collision.api`;
 - `CollisionBindingCatalog` valida geometry/pose/root registrados;
@@ -113,19 +118,20 @@ Resultado:
 - no se ha iniciado el pipeline material de G2;
 - responsabilidades que pertenecen a G3/G5 permanecen explícitamente diferidas.
 
-La repetición completa posterior a `3ba014dc...` no produjo cambios adicionales de producción/tests. **G1 converge y se cierra.**
+La revisión posterior invalida únicamente la afirmación de convergencia de paquetes: mover el backend a `collision.runtime` dejó un ciclo de capas de alto nivel prohibido por NFR-025. **G1 no está actualmente cerrado.**
 
 ## 9. Cierre
 
 - [x] nueve tareas G1 implementadas;
-- [x] todos los sprints S01-S04 cerrados;
-- [x] campaña adversarial paralela integrada;
-- [x] fallos adversariales reales clasificados y reparados;
-- [x] suite final servidor: 266/266;
-- [x] client/integrated/dedicated real verde;
-- [x] `VALIDATION.md` actualizado con evidencia ejecutada;
-- [x] pasada final completa sin cambios;
-- [x] G1 cerrado formalmente;
+- [x] campaña adversarial inicial integrada;
+- [x] fallos adversariales iniciales clasificados y reparados;
+- [x] strict codecs y holdout de límites máximos verdes;
+- [ ] ciclo `collision.api ↔ collision.runtime` eliminado;
+- [ ] suite servidor completa verde con los holdouts actuales;
+- [ ] client/integrated/dedicated repetido tras reparar la frontera common/API;
+- [ ] `VALIDATION.md` actualizado con la futura evidencia verde;
+- [ ] pasada final completa sin cambios;
+- [ ] G1 cerrado formalmente de nuevo;
 - [x] G2 permanece sin iniciar.
 
-Snapshot lógico final de producción/tests: `3ba014dc2e19b6b700a707bd3177c55ac443328f`. La evidencia cliente final se ejecutó sobre un trigger code-identical. El commit documental de cierre y la retirada del workflow temporal no alteran producción ni GameTests.
+El estado global vigente está en `ENTITY_COLLISIONS_PLAN.md`; la evidencia roja vigente está en `VALIDATION.md`.
