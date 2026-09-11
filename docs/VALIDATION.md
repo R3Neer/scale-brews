@@ -214,7 +214,7 @@ GitHub Actions run **`34602837677`**, job **`103274063124`**:
 
 This was a valid closure of the original kernel/fail-closed scope, but later adversarial live-wrapper evidence reopened S05 under NFR-008. The historical run remains evidence for the kernel and is not erased.
 
-## G2 adversarial campaign — current red evidence 2026-09-11
+## G2 adversarial campaign — historical red-before-green evidence 2026-09-11
 
 ### S05 live-wrapper locality reopening
 
@@ -264,7 +264,7 @@ The earlier S06 red-before-green campaign found conflicting same-serial payloads
 
 ### S07 contact/local-failure progression
 
-The S07 campaign produced several red-before-green repairs before the current blocker:
+The S07 campaign produced several red-before-green repairs before the later blockers:
 
 - exact `t=1` contact with zero body displacement;
 - contact provenance in a joint batch with a merely-near distractor support;
@@ -272,9 +272,9 @@ The S07 campaign produced several red-before-green repairs before the current bl
 - same-binding reacquisition after the overlap disappears;
 - numerical budget exhaustion without initial overlap must release/suspend an old retained contact instead of leaving uncertainty authoritative.
 
-The provenance repair is green in run `34623887683`, job `103344184321`. The budget-uncertainty holdout is green in later runs, including the current `91d0be66…` baseline.
+The provenance repair is green in run `34623887683`, job `103344184321`. The budget-uncertainty holdout is green in later runs, including the `91d0be66…` baseline.
 
-### S07 current blocker: mutually incompatible valid plans
+### S07 historical blocker: mutually incompatible valid plans
 
 `S07PlanConflictLocalizationTests.simultaneousValidPlansThatWouldOverlapMustReleaseOnlyAffectedPairs` creates two retained contacts on opposite material walls. Each candidate is first proven independently to have a complete bounded temporal plan. Those plans move the bodies toward one another and their planned final AABBs overlap. A third body has an unrelated valid contact on the same support.
 
@@ -289,7 +289,7 @@ In run **`34627841257`**, job **`103357151536`**:
 - the test then fails exactly because the two affected retained body/support relations remain authoritative instead of being released/suspended;
 - the third bystander is retained as the locality control for the eventual fix.
 
-This is a real **NFR-004 / FR-052** blocker in the `worsensBodyOverlap(...)` failure path, distinct from the already-repaired `plan()==null` budget case.
+This was a real **NFR-004 / FR-052** blocker in the `worsensBodyOverlap(...)` failure path, distinct from the already-repaired `plan()==null` budget case. It was subsequently repaired and is retained here as red-before-green history.
 
 ### Prepared client/server evidence during G2
 
@@ -298,22 +298,23 @@ The isolated prepared-anatomy lane is green after the causal/binding repairs:
 - run **`34623128548`**, job **`103341673751`** passed original client geometry export plus the deterministic prepared pair-suspension proof;
 - run **`34624096154`**, job **`103344876628`** also passed the client export and prepared server proof.
 
-These special lanes do not override the red ordinary S05/S07 holdouts above.
+These special lanes do not override red ordinary holdouts on the snapshots where those reds existed.
 
-### Current G2 interpretation
+### Historical G2 interpretation at snapshot `91d0be66…`
 
-- S05 is **reopened** under NFR-008 for post-mutation live-query locality. The immutable/build-only kernel itself remains supported by its historical green evidence.
-- S06 identity/causal membership has no active blocker.
-- S07 is **reopened** under NFR-004/FR-052 for the valid-plan conflict path.
-- G2 cannot close while either S05 or S07 is red.
-- Before global G1/S04/G2 closure, `chatgpt-editing` must still be reconciled with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` is the single Scale body-gravity authority.
+- S05 was **reopened** under NFR-008 for post-mutation live-query locality. The immutable/build-only kernel itself remained supported by its historical green evidence.
+- S06 identity/causal membership had no active blocker.
+- S07 was **reopened** under NFR-004/FR-052 for the valid-plan conflict path.
+- G2 could not close while either S05 or S07 remained red.
+
+This paragraph records the state of that historical snapshot only. Later repairs and closure evidence supersede those active-red conclusions; they are preserved rather than rewritten out of the red-before-green history.
 
 ## Current acceptance gaps for entity collisions
 
 The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
 
-- closing the current S07 rejected-batch final-contact-validity red;
-- remaining G2 tangential/multicontact/sliding/separation/chains work not yet claimed by the current sprint;
+- remaining G2 tangential/multicontact/sliding/separation/derived-carry/chains work not closed by S05-S07;
+- reconciling `chatgpt-editing` with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` is the single Scale body-gravity authority before global G2 closure;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
 - generic family engines and zero-UNRESOLVED vanilla coverage;
@@ -345,7 +346,7 @@ The preparation harness is `tools/PrepareAnatomyProof.ps1`. Pin every external i
 
 ## G2 / S07 rejected-batch contact validity reopening — 2026-09-11
 
-The earlier plan-conflict locality defect is closed, but a later adversarial holdout reopens S07 under NFR-004.
+The earlier plan-conflict locality defect is closed, but a later adversarial holdout reopened S07 under NFR-004.
 
 Green evidence immediately before the reopening:
 
@@ -369,21 +370,34 @@ An earlier version of this holdout that started B at exact tangency entered `ITE
 
 This reopening does **not** reopen S05 or S06. It demonstrates a distinct S07 rule: after a rejected batch, causal attribution of the conflict and final material validity of retained contacts are separate checks. A repair must preserve the existing stable-B multi-support holdout while releasing a B contact whose own certified `after` frame no longer validates it.
 
-## G2 / S07 rejected-batch contact validity repair — 2026-09-11
+## G2 / S07 rejected-batch contact validity repair and closure — 2026-09-11
 
 Production repair `50dfac066248679397d463ca74e1b6cefb9f38a7` adds a body-local post-rejection retained-contact revalidation against the retained support event's certified `after` frame. It checks active identity and registration generation, revision consistency, piece, face, gap, eligibility and gravity support. It does not apply any rejected-batch displacement and does not call support-global `invalidateSupport(...)`.
 
 Ordinary candidate evidence:
 
 - run **`34635928336`**, job **`103383672978`**, snapshot `50dfac066248679397d463ca74e1b6cefb9f38a7` passed **321/321 required GameTests** and finished `BUILD SUCCESSFUL`; artifact **`10278451232`**;
+- independent log inspection reconfirmed the exact checkout, all **321** registered tests, **321/321** pass marker and artifact SHA-256 **`746517246992ab17c054ff459bb97a13c3a300c1647ccaa3b5c480cb26eeaca4`**;
 - the temporary prepared-harness trigger `faa6b1524db3f78fea2adc83fc53caf6239d49a0` changed workflow configuration only, not production/tests; its ordinary run **`34636187333`**, job **`103384539908`**, again passed **321/321 required GameTests** and produced artifact **`10278876352`**.
 
 Prepared client/server evidence on the repaired candidate:
 
-- run **`34636187384`**, job **`103384540056`** exported original client geometry successfully with `BUILD SUCCESSFUL`;
-- the generated catalog was then consumed by the isolated prepared server lane;
+- run **`34636187384`**, job **`103384540056`** checked out `faa6b1524db3f78fea2adc83fc53caf6239d49a0` and exported original client geometry successfully with `BUILD SUCCESSFUL`;
+- observed client markers include cow `240 vertices / 10 pieces`, player wide/slim `144 vertices / 6 pieces`, 80 animated comparisons for each primary model and **640 additional vanilla-family comparisons**;
+- the generated catalog at `build/run/clientGameTest/anatomy-export` was then consumed by the isolated prepared server lane;
 - the prepared server executed **2/2 required GameTests** and both passed; that phase also finished `BUILD SUCCESSFUL`.
 
-The temporary prepared workflow was removed in `c7c297e26c3781e3270be126889f5d2f8a68930c`, restoring the ordinary workflow-only tree.
+The temporary prepared workflow was removed in `c7c297e26c3781e3270be126889f5d2f8a68930c`, restoring the ordinary workflow-only tree. `49158d377497b5a62aac2a20dc8dfd61006a07c8` was the stable post-cleanup tree inspected for the independent closure review; production/tests remained those of the repaired candidate.
 
-This evidence closes the reproduced A12 failure and keeps the historical causal-locality holdouts green through the full 321-test suite. It does **not** by itself close S07: the sprint remains pending the independent adversarial zero-change review required by I16, and any new contractual holdout may reopen implementation work.
+### Independent adversarial zero-change review
+
+I16 reviewed the remaining candidate surfaces without changing production or tests:
+
+- **candidate/batch exhaustion before `plan(...)`:** overflow occurs before a complete body/support relation set is available, so event/support quarantine is a conservative fail-closed result and is distinct from pair-local `BACKEND_EXHAUSTED` after complete capture;
+- **reacquisition after final-invalid release:** A12 uses `AnatomyMovement.clear(body)` rather than persistent pair suspension, clearing stale contact/surface/anchor/receipt state while permitting later valid reacquisition;
+- **multi-support order:** candidate bodies are canonicalized by UUID/id, contact piece keys are scoped by support UUID/material serial/piece and plan/contact selection uses ordered collections where order can matter; existing permutation holdouts remain green and no new event-order dependency was found in the separated causal-attribution/final-validity phases;
+- **lifecycle during capture/resolve:** `MaterialIntervalRuntime.poll(...)` and `AnatomyRuntime.acceptsIntervalIdentity(...)` fence registration/binding/epoch/revision identity before preparation, while capture/resolve runs synchronously under the dispatcher's reentrancy gate on the world thread; no mid-resolution asynchronous lifecycle seam was found.
+
+A possible anchor/carry concern was also inspected and deliberately not promoted into an S07 blocker: FR-056..060 and productive `DERIVED_CARRY` are outside this sprint's declared scope and remain G2 work.
+
+No further S07 implementation change was identified. **S07 is closed after the independent zero-change review. G2 remains open.**
