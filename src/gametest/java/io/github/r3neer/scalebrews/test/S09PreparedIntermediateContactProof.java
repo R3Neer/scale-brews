@@ -92,18 +92,22 @@ final class S09PreparedIntermediateContactProof {
                     failedAt=id;failedResponse=response;break;
                 }
             }
-            TemporalResponse.Result failedSolo256=null;ConservativeSweep.Result failedSweep4096=null;double failedMaxPointSpeed=Double.NaN;
+            TemporalResponse.Result failedSolo256=null;ConservativeSweep.Result failedSweep4096=null;
+            double failedMaxPointSpeed=Double.NaN;String failedSegments8=null,failedSegments16=null;
             if(failedAt!=null) {
                 var failedMotion=liveMotion.pieces().get(failedAt);
                 failedSolo256=TemporalResponse.resolve(captured,Vec3.ZERO,Map.of(failedAt,failedMotion),32,256);
                 failedSweep4096=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,4096);
                 failedMaxPointSpeed=failedMotion.maxPointSpeed();
+                failedSegments8=segmentDiagnostics(captured,failedMotion,8);
+                failedSegments16=segmentDiagnostics(captured,failedMotion,16);
             }
             h.assertTrue(failedAt==null,
                 "A9 canonical cow prefix must not exhaust before resolving the interior contact: chosen="+chosen
                     +" failedAt="+failedAt+" prefix="+progressive.keySet()+" response="+failedResponse
                     +" failedSolo256="+failedSolo256+" failedSweep4096="+failedSweep4096
-                    +" failedMaxPointSpeed="+failedMaxPointSpeed);
+                    +" failedMaxPointSpeed="+failedMaxPointSpeed+" segments8="+failedSegments8
+                    +" segments16="+failedSegments16);
 
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
@@ -146,6 +150,21 @@ final class S09PreparedIntermediateContactProof {
         var syntheticAfter=new GeometryProvider.QueryFrame(before.identity(),endpoint1,before.snapshot());
         var handle=new GeometryProvider.MotionIntervalHandle(before.identity(),1,before,syntheticAfter);
         return AnatomyRuntime.interval(support,handle).orElse(null);
+    }
+
+    private static String segmentDiagnostics(AABB body,ConservativeSweep.Motion motion,int segments) {
+        var result=new java.util.ArrayList<String>();
+        for(int i=0;i<segments;i++) {
+            double start=i/(double)segments,end=(i+1)/(double)segments;
+            var sub=motion.interval(start,end);var first=sub.at().apply(0);
+            boolean possible=first.bounds().inflate(sub.maxPointSpeed()+ConservativeSweep.SKIN)
+                .intersects(body.inflate(ConservativeSweep.SKIN));
+            var sweep=ConservativeSweep.query(body,Vec3.ZERO,sub,4096);
+            if(possible || sweep.evaluations()>1)
+                result.add(i+":"+start+"-"+end+"{possible="+possible+",speed="+sub.maxPointSpeed()
+                    +",status="+sweep.status()+",evals="+sweep.evaluations()+"}");
+        }
+        return result.toString();
     }
 
     private static void assertRuntimeEnvelope(GameTestHelper h,GeometryProvider.MotionSnapshot motion,String label) {
