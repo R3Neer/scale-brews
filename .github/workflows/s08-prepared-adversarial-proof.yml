@@ -10,6 +10,8 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnchoredTransportPlanner.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialIntervalRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/AnatomySeparation.java'
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S08PreparedStaticAnatomicalObstacleProof.java'
