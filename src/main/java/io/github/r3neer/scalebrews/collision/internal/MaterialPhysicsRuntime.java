@@ -232,6 +232,7 @@ public final class MaterialPhysicsRuntime {
                 var plan=plan(body,candidate.bounds(),pieces);
                 if(plan==null) {
                     suspendUncertainPairs(body,candidate.bounds(),events);
+                    revalidateRetainedContacts(candidates,events);
                     return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
@@ -244,6 +245,7 @@ public final class MaterialPhysicsRuntime {
                     suspendConflictRelation(plans.get(conflict.second()),candidates.get(conflict.second()).bounds(),
                         plans.get(conflict.first()),candidates.get(conflict.first()).bounds(),events,motions);
                 }
+                revalidateRetainedContacts(candidates,events);
                 return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
             }
             apply(plans,events);record(level,events.size(),0,evaluations,0,0);
@@ -367,6 +369,46 @@ public final class MaterialPhysicsRuntime {
                 } catch(RuntimeException rejected){uncertain=true;}
                 if(uncertain)AnatomyMovement.suspend(body,support);
             }
+        }
+        /**
+         * Rejecting a simultaneous plan does not roll material geometry back. Any retained
+         * relation whose own event has a certified after-frame must still be valid there.
+         * This is deliberately separate from conflict attribution: a stable support survives
+         * another support's conflict, while an independently stale face is released locally.
+         */
+        private void revalidateRetainedContacts(List<MaterialEventDispatcher.Candidate<Entity>> candidates,
+                List<MaterialEventDispatcher.Event<Entity>> events) {
+            for(var candidate:candidates) {
+                var body=candidate.body();var retained=AnatomyMovement.contact(body);if(retained==null)continue;
+                MaterialEventDispatcher.Event<Entity> own=null;boolean ambiguous=false;
+                for(var event:events)if(event.support()==retained.support()) {
+                    if(own!=null) {ambiguous=true;break;}
+                    own=event;
+                }
+                if(ambiguous) {AnatomyMovement.clear(body);continue;}
+                if(own!=null && own.support() instanceof LivingEntity support
+                        && !retainedContactValid(body,support,own.interval().handle().after()))
+                    AnatomyMovement.clear(body);
+            }
+        }
+        private boolean retainedContactValid(Entity body,LivingEntity support,GeometryProvider.QueryFrame after) {
+            var retained=AnatomyMovement.contact(body);var surface=AnatomyMovement.surface(body);
+            if(retained==null || retained.support()!=support || surface==null || !Platforms.eligible(body,support))return false;
+            var identity=after.identity();
+            if(!identity.matches(support)
+                    || identity.localRegistrationGeneration()!=AnatomyMovement.registrationGeneration(support)
+                    || identity.revision()!=retained.revision()
+                    || after.snapshot().revision()!=retained.revision()
+                    || !surface.support().equals(support.getUUID())
+                    || surface.revision()!=retained.revision()
+                    || !surface.piece().equals(retained.piece())
+                    || surface.face()<0 || surface.face()>5)return false;
+            var piece=after.snapshot().pieces().get(retained.piece());if(piece==null)return false;
+            var separation=piece.separation(body.getBoundingBox());
+            if(Math.abs(separation.gap())>.025)return false;
+            int face=piece.closestFace(separation.normal());
+            if(face!=surface.face())return false;
+            return AnatomyMovement.gravity(body).supports(piece.faceNormal(face));
         }
         private java.util.function.BiFunction<AABB,Vec3,Vec3> clip(Entity body) {
             return (box,delta)->Entity.collideBoundingBox(body,delta,box,level,level.getEntityCollisions(body,box.expandTowards(delta)));
