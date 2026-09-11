@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.api;
 
+import io.github.r3neer.scalebrews.collision.runtime.AnatomyBackend;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Function;

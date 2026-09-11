@@ -1,9 +1,9 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
-import io.github.r3neer.scalebrews.collision.api.AnatomyBackend;
 import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.runtime.AnatomyBackend;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.Direction;

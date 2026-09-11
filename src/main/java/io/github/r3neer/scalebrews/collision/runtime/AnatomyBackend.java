@@ -1,5 +1,8 @@
-package io.github.r3neer.scalebrews.collision.api;
+package io.github.r3neer.scalebrews.collision.runtime;
 
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.Direction;
@@ -9,12 +12,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Runtime backend used by {@link AnatomyApi}. Consumers call {@code AnatomyApi};
- * Scale supplies exactly one backend implementation through Java services.
- *
- * <p>This interface exists to invert the dependency between the stable API and
- * Scale's runtime implementation. It is not a second physics engine and must
- * not be used by consumers as an alternative entry point.</p>
+ * Scale-owned service contract behind {@link AnatomyApi}. This type is runtime
+ * wiring, not supported consumer API; external consumers use AnatomyApi and the
+ * explicit public extension SPIs.
  */
 public interface AnatomyBackend {
     default AnatomyMode mode(Entity entity) { return AnatomyMode.DISABLED; }
@@ -32,6 +32,5 @@ public interface AnatomyBackend {
         throw new IllegalStateException("Scale Brews collision backend is unavailable");
     }
 
-    /** A deliberately inert backend for API-only consumers and absent runtime services. */
     static AnatomyBackend unavailable() { return new AnatomyBackend() {}; }
 }
