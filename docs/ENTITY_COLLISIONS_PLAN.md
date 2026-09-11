@@ -49,11 +49,11 @@ Estado de tareas:
 
 Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó el modelo adversarial clean-room, inventario/clasificación de cimientos, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. El registro de ejecución está en `docs/sprints/S00-foundation-audit.md` y la evidencia realmente ejecutada en `VALIDATION.md`.
 
-Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5 y no se consideran implementados por cerrar S00. **G1 está cerrado tras S01-S04, campaña adversarial integrada y repetición final server/client/dedicated. El siguiente gate es G2, que no se ha iniciado.**
+Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5 y no se consideran implementados por cerrar S00. **G1 ha sido reabierto por una pasada adversarial posterior: el candidato conserva un ciclo de capas `collision.api ↔ collision.runtime` que viola NFR-025. G2 no se ha iniciado.**
 
 ### G1 — contrato público y data model desacoplados del legacy
 
-**Estado:** **CERRADO**. Las nueve tareas están implementadas, la campaña adversarial paralela se integró, sus dos fallos reales se repararon sin relajar requisitos, la suite final pasó **266/266 GameTests** y la capa client/integrated/dedicated se repitió verde. Evidencia exacta en `VALIDATION.md` y registro de cierre en `docs/sprints/S04-g1-integration-contract.md`.
+**Estado:** **REABIERTO**. Las nueve tareas de implementación siguen realizadas y los fallos adversariales anteriores permanecen reparados, pero una revisión posterior al cierre detectó un ciclo de dependencias de alto nivel `collision.api ↔ collision.runtime`. El holdout quedó registrado en `S01PublicApiBoundaryTests`; el snapshot `be41003bbceaecd27a36dc1d13e4bef0f8bde114` ejecutó **268 GameTests** y quedó rojo exactamente por ese único bloqueo de NFR-025. El holdout S03 de round-trip en límites máximos pasó en el mismo run. G2 no puede comenzar hasta reparar el ciclo, repetir la evidencia aplicable y obtener una pasada final completa sin cambios.
 
 **Requisitos:** FR-001..006, FR-009..013, FR-015..034, FR-072..076; NFR-019..025, NFR-034..036.
 
@@ -68,6 +68,8 @@ Tareas:
 7. [x] migrar policy de ratio/categorías/fricción y adapters de bodies al nuevo integration layer;
 8. [x] demostrar un mod fixture que registra comportamiento por API y selecciona ese comportamiento por JSON;
 9. [x] partir desde `collision.internal` las responsabilidades de catálogo/runtime/integration que ya tengan una frontera estable después de los pasos anteriores.
+
+**Bloqueante adversarial abierto:** la reparación que sacó `AnatomyBackend` de `collision.api` dejó una dependencia mutua entre `AnatomyApi` y `collision.runtime.AnatomyBackend`. El test adversarial exige eliminar ese ciclo sin relajar la frontera pública ni recuperar un backend público de consumer. Tras cualquier reparación deben repetirse la suite completa y la capa cliente requerida por tratarse de una frontera common/API.
 
 **Salida:** el core describe una entidad sin conocer su especie en Java y sin depender del motor superior antiguo; `internal` deja de ser el cajón de integración de G0 para las responsabilidades ya estabilizadas.
 
