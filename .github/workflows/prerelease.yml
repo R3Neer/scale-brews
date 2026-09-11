@@ -75,7 +75,11 @@ jobs:
         run: |
           set -euo pipefail
           set -o pipefail
-          ./gradlew build runGameTest --no-daemon --console=plain | tee server-tests.log
+          ./gradlew build runGameTest --no-daemon --console=plain 2>&1 | tee server-tests.log
+          if grep -F '[deprecation]' server-tests.log; then
+            echo '::error::Deprecated Java API usage remains.'
+            exit 1
+          fi
 
       - name: run client GameTests
         shell: bash
