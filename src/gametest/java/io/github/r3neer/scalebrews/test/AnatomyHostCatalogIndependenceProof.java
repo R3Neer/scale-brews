@@ -199,7 +199,7 @@ public final class AnatomyHostCatalogIndependenceProof implements FabricClientGa
             net.minecraft.world.entity.Entity support=client.level==null?null:client.level.getEntity(fixture.cow.get().getId());
             return support instanceof LivingEntity living && living.getUUID().equals(SUPPORT_UUID)
                 && AnatomyClientNetworking.catalog().ready() && AnatomyClientNetworking.pose(SUPPORT_UUID)!=null
-                && AnatomyClientNetworking.geometry(living,AnatomyClientNetworking.pose(SUPPORT_UUID).current().tick()).isPresent();
+                && AnatomyClientNetworking.geometry(living,AnatomyClientNetworking.pose(SUPPORT_UUID).current().jointSampleTick()).isPresent();
         },200);
     }
 
@@ -221,7 +221,7 @@ public final class AnatomyHostCatalogIndependenceProof implements FabricClientGa
         var support=client.level.getEntity(fixture.cow.get().getId());
         var pose=AnatomyClientNetworking.pose(SUPPORT_UUID);
         if(!transfer.ready() || transfer.epoch()==null || transfer.revision()!=1 || !(support instanceof LivingEntity living)
-                || pose==null || !pose.current().inputs().ordinary() || AnatomyClientNetworking.geometry(living,pose.current().tick()).isEmpty())
+                || pose==null || !pose.current().inputs().ordinary() || AnatomyClientNetworking.geometry(living,pose.current().jointSampleTick()).isEmpty())
             throw new AssertionError(label+" did not admit the original cow catalog/pose");
         if(!digest(transfer.snapshot().models(),transfer.snapshot().profiles()).equals(expectedDigest))
             throw new AssertionError(label+" geometry/profile digest differs from the immutable export bundle");
