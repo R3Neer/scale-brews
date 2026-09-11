@@ -65,14 +65,10 @@ public final class TemporalResponse {
                 return new Result(time<=TIME_EPS?Status.INITIAL_OVERLAP:Status.ITERATION_LIMIT,moved,time,contacts,budget.used);
             if(search.status()==ConservativeSweep.Status.CLEAR)
                 return new Result(Status.COMPLETE,moved.add(full.delta()),1,contacts,budget.used);
-            // q has already separated this instant. A new t=0 hit gets only a
-            // bounded certified prefix, never an endpoint-only escape or retry loop.
             double fraction=Math.clamp(search.fraction(),0,1);
             moved=moved.add(full.delta().scale(fraction));time=time+(full.end()-time)*fraction;
             for(var hit:search.hits())contacts.add(new Contact(hit.piece(),time,hit.result().normal()));
             activate(search.hits(),pieces,active);
-            // The first contact projects d through the active relative manifold.
-            // q exists only when that certified d is immediately recontacted.
             if(fraction<=TIME_EPS && Math.abs(lastContactAt-time)<=TIME_EPS) {
                 if(Math.abs(correctedAt-time)<=TIME_EPS) {
                     var prefix=certifiedPrefix(body.move(moved),requested,active,time,pieces,ids,clip,budget);
@@ -82,9 +78,6 @@ public final class TemporalResponse {
                     continue;
                 }
                 Vec3 q=separate(active.values());
-                // `moved` already includes the safe prefix to this immediate
-                // contact. q must be routed from that material contact AABB,
-                // rather than the resolve-call origin or a projected endpoint.
                 AABB contactBox=body.move(moved);
                 if(q==null || !validCorrection(contactBox,q,pieces,ids,time,clip,budget))return limit(moved,time,contacts,budget);
                 moved=moved.add(q);correctedAt=time;
@@ -104,7 +97,11 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 if(certifies(body,delta,constraint,start,end))continue;
             }
-            var result=budget.query(body,delta,pieces.get(id).interval(start,end));
+            var interval=pieces.get(id).interval(start,end);
+            Boolean possible=mayIntersect(body,delta,interval,budget);
+            if(possible==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
+            if(!possible)continue;
+            var result=budget.query(body,delta,interval);
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
             if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP)return new Search(result.status(),0,List.of());
             if(result.status()!=ConservativeSweep.Status.CONTACT)continue;
@@ -112,6 +109,21 @@ public final class TemporalResponse {
             if(Math.abs(result.safeFraction()-earliest)<=TIME_EPS)hits.add(new Hit(id,result));
         }
         return hits.isEmpty()?Search.clear():new Search(ConservativeSweep.Status.CONTACT,earliest,List.copyOf(hits));
+    }
+    /**
+     * Cheap certified broadphase for one material piece. Every material point stays within
+     * maxPointSpeed of its start over this normalized interval, while the body stays inside
+     * its translational swept AABB. A disjoint pair of those envelopes cannot produce CCD.
+     * The start-shape sample is charged to the same response budget as every other geometry read.
+     */
+    private static Boolean mayIntersect(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+        if(!budget.sample())return null;
+        var first=interval.at().apply(0);
+        double margin=interval.maxPointSpeed()+ConservativeSweep.SKIN;
+        if(first==null || !Double.isFinite(margin))throw new IllegalArgumentException("Invalid material broadphase envelope");
+        var material=first.bounds().inflate(margin);
+        var sweptBody=body.expandTowards(delta).inflate(ConservativeSweep.SKIN);
+        return material.intersects(sweptBody);
     }
     /**
      * Full-interval fixed-plane certificate for the fixed body AABB used by this
@@ -124,15 +136,11 @@ public final class TemporalResponse {
         Vec3 normal=constraint.normal();
         if(!Double.isFinite(normal.lengthSqr()) || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
         var current=constraint.motion().at().apply(start);
-        // The certificate is on n itself. A nearly parallel winning SAT axis is
-        // insufficient: on a large box it can reverse the actual n projection.
         if(minimum(body,normal)-maximum(current,normal)<ConservativeSweep.SKIN)return false;
         var interval=constraint.motion().interval(start,end);
         double maximumAdvance=minimumAdvance(body,interval,normal);
-        // No epsilon turns an insufficient projection into a certificate.
         return finalDelta.dot(normal)>=maximumAdvance;
     }
-    /** Bounded feasible half-space projection; this is not claimed to be an exact QP minimizer. */
     private static Vec3 separate(Collection<Constraint> constraints) {
         Vec3 q=Vec3.ZERO;
         for(int pass=0;pass<MAX_Q_PROJECTIONS;pass++)for(var constraint:constraints) {
@@ -145,7 +153,6 @@ public final class TemporalResponse {
         for(var constraint:constraints)if(q.dot(constraint.normal())<Q_MIN-TIME_EPS)return null;
         return q;
     }
-    /** q is a true route: full block clip and every instantaneous convex must clear it. */
     private static boolean validCorrection(AABB body,Vec3 q,Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             double time,java.util.function.BiFunction<AABB,Vec3,Vec3> clip,Budget budget) {
         Vec3 clipped=clip.apply(body,q);
@@ -159,16 +166,12 @@ public final class TemporalResponse {
         }
         return true;
     }
-    /** d projects against every active relative constraint into a bounded feasible set. */
     private static Proposal proposal(AABB body,Vec3 requested,Collection<Constraint> active,double start,double end,
             java.util.function.BiFunction<AABB,Vec3,Vec3> clip) {
         Vec3 delta=requested.scale(end-start);
         var relative=new ArrayList<RelativeConstraint>();
         for(var constraint:active) {
             var interval=constraint.motion().interval(start,end);
-            // This bounds all material advance along the contact SAT plane, not merely
-            // the chosen witness. A matching certified cardinal plane only
-            // removes normal deformation once the body is outside that plane.
             double bound=minimumAdvance(body,interval,constraint.normal());
             relative.add(new RelativeConstraint(constraint.normal(),bound));
         }
@@ -181,7 +184,6 @@ public final class TemporalResponse {
         for(var constraint:relative)if(clipped.dot(constraint.normal())<constraint.minimumAdvance()-TIME_EPS)return null;
         return new Proposal(end,clipped);
     }
-    /** Exact cardinal match and exterior AABB only: an outer plane is not a current surface. */
     private static double minimumAdvance(AABB body,ConservativeSweep.Motion interval,Vec3 normal) {
         for(var plane:interval.invariantPlanes()) {
             var direction=plane.outward();
@@ -203,11 +205,8 @@ public final class TemporalResponse {
         }
         return null;
     }
-    /** Contact hits already paid their CCD evaluation; activate only retains their constraint. */
     private static void activate(List<Hit> hits,Map<String,ConservativeSweep.Motion> pieces,Map<String,Constraint> active) {
-        for(var hit:hits) {
-            active.put(hit.piece(),new Constraint(pieces.get(hit.piece()),hit.result().normal()));
-        }
+        for(var hit:hits)active.put(hit.piece(),new Constraint(pieces.get(hit.piece()),hit.result().normal()));
     }
     private static boolean prune(AABB body,Map<String,Constraint> active,double time,Budget budget) {
         var iterator=active.entrySet().iterator();
