@@ -63,6 +63,8 @@
       "io.github.r3neer.scalebrews.test.S07RejectedBatchContactValidityTests",
       "io.github.r3neer.scalebrews.collision.internal.S08GravityIndependenceTests",
       "io.github.r3neer.scalebrews.collision.internal.S08CurvedPathObstructionTests",
+      "io.github.r3neer.scalebrews.collision.internal.S08JointAnchorTransportTests",
+      "io.github.r3neer.scalebrews.test.S08DerivedIntervalExactlyOnceTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
