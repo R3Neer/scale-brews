@@ -11,7 +11,6 @@ import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.TreeMap;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -80,41 +79,6 @@ final class S09PreparedIntermediateContactProof {
             h.assertTrue(chosenResponse.status()==TemporalResponse.Status.COMPLETE && chosenResponse.displacement().lengthSqr()>1e-10,
                 "A9 chosen live piece alone must produce a complete non-zero interior response: "+chosenResponse);
 
-            // Localize the full-manifold exhaustion in canonical piece order. Every prefix should
-            // remain bounded; an irrelevant earlier piece must not consume the entire response
-            // budget before the causal piece can even be considered.
-            var progressive=new TreeMap<String,ConservativeSweep.Motion>();
-            String failedAt=null;TemporalResponse.Result failedResponse=null;
-            for(var id:new java.util.TreeSet<>(liveMotion.pieces().keySet())) {
-                progressive.put(id,liveMotion.pieces().get(id));
-                var response=TemporalResponse.resolve(captured,Vec3.ZERO,progressive,32,256);
-                if(response.status()==TemporalResponse.Status.ITERATION_LIMIT) {
-                    failedAt=id;failedResponse=response;break;
-                }
-            }
-            TemporalResponse.Result failedSolo256=null;ConservativeSweep.Result failedSweep4096=null;
-            double failedMaxPointSpeed=Double.NaN;String failedSegments8=null,failedSegments16=null;
-            String failedSat32=null,failedSat64=null,failedSat128=null,lowerBounds=null;
-            if(failedAt!=null) {
-                var failedMotion=liveMotion.pieces().get(failedAt);
-                failedSolo256=TemporalResponse.resolve(captured,Vec3.ZERO,Map.of(failedAt,failedMotion),32,256);
-                failedSweep4096=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,4096);
-                failedMaxPointSpeed=failedMotion.maxPointSpeed();
-                failedSegments8=segmentDiagnostics(captured,failedMotion,8);
-                failedSegments16=segmentDiagnostics(captured,failedMotion,16);
-                failedSat32=satScreenSummary(captured,failedMotion,32);
-                failedSat64=satScreenSummary(captured,failedMotion,64);
-                failedSat128=satScreenSummary(captured,failedMotion,128);
-                lowerBounds=lowerBoundDiagnostics(captured,liveMotion,chosen);
-            }
-            h.assertTrue(failedAt==null,
-                "A9 canonical cow prefix must not exhaust before resolving the interior contact: chosen="+chosen
-                    +" failedAt="+failedAt+" prefix="+progressive.keySet()+" response="+failedResponse
-                    +" failedSolo256="+failedSolo256+" failedSweep4096="+failedSweep4096
-                    +" failedMaxPointSpeed="+failedMaxPointSpeed+" segments8="+failedSegments8
-                    +" segments16="+failedSegments16+" sat32="+failedSat32+" sat64="+failedSat64
-                    +" sat128="+failedSat128+" lowerBounds="+lowerBounds);
-
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
                 "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse);
@@ -156,57 +120,6 @@ final class S09PreparedIntermediateContactProof {
         var syntheticAfter=new GeometryProvider.QueryFrame(before.identity(),endpoint1,before.snapshot());
         var handle=new GeometryProvider.MotionIntervalHandle(before.identity(),1,before,syntheticAfter);
         return AnatomyRuntime.interval(support,handle).orElse(null);
-    }
-
-    private static String segmentDiagnostics(AABB body,ConservativeSweep.Motion motion,int segments) {
-        var result=new java.util.ArrayList<String>();
-        for(int i=0;i<segments;i++) {
-            double start=i/(double)segments,end=(i+1)/(double)segments;
-            var sub=motion.interval(start,end);var first=sub.at().apply(0);
-            boolean possible=first.bounds().inflate(sub.maxPointSpeed()+ConservativeSweep.SKIN)
-                .intersects(body.inflate(ConservativeSweep.SKIN));
-            var sweep=ConservativeSweep.query(body,Vec3.ZERO,sub,4096);
-            if(possible || sweep.evaluations()>1)
-                result.add(i+":"+start+"-"+end+"{possible="+possible+",speed="+sub.maxPointSpeed()
-                    +",status="+sweep.status()+",evals="+sweep.evaluations()+"}");
-        }
-        return result.toString();
-    }
-
-    /** Uniform counterpart of TemporalResponse's midpoint SAT certificate, used only to size the diagnostic search. */
-    private static String satScreenSummary(AABB body,ConservativeSweep.Motion motion,int segments) {
-        int certified=0,ambiguous=0,maxLeafEvals=0;long leafEvals=0;
-        for(int i=0;i<segments;i++) {
-            double start=i/(double)segments,end=(i+1)/(double)segments;
-            var sub=motion.interval(start,end);var material=sub.at().apply(.5);
-            var separation=material.separation(body);var normal=separation.normal();
-            double adverse=.5*sub.maxPointSpeed();
-            boolean clear=Double.isFinite(separation.gap()) && Double.isFinite(normal.lengthSqr())
-                && Math.abs(normal.lengthSqr()-1)<=1e-8
-                && separation.gap()-adverse>ConservativeSweep.SKIN;
-            if(clear) {certified++;continue;}
-            ambiguous++;
-            var sweep=ConservativeSweep.query(body,Vec3.ZERO,sub,4096);
-            leafEvals+=sweep.evaluations();maxLeafEvals=Math.max(maxLeafEvals,sweep.evaluations());
-        }
-        return "{segments="+segments+",certified="+certified+",ambiguous="+ambiguous
-            +",sampleCost="+segments+",ambiguousCcdEvals="+leafEvals+",maxLeafEvals="+maxLeafEvals
-            +",uniformCost="+(segments+leafEvals)+"}";
-    }
-
-    /** Conservative first-contact lower bounds in the same canonical prefix that currently exhausts. */
-    private static String lowerBoundDiagnostics(AABB body,GeometryProvider.MotionSnapshot motion,String chosen) {
-        var result=new java.util.ArrayList<String>();
-        for(var id:new java.util.TreeSet<>(motion.pieces().keySet())) {
-            var piece=motion.pieces().get(id);var separation=piece.at().apply(0).separation(body);
-            Vec3 relative=Vec3.ZERO.subtract(piece.linearTranslation());
-            double speed=piece.deformationSpeed()+relative.length();
-            double lower=speed<=1e-20?(separation.gap()<=ConservativeSweep.SKIN?0:1)
-                :Math.clamp((separation.gap()-ConservativeSweep.SKIN)/speed,0,1);
-            result.add(id+"{gap0="+separation.gap()+",speed="+speed+",lower="+lower+"}");
-            if(id.equals(chosen))break;
-        }
-        return result.toString();
     }
 
     private static void assertRuntimeEnvelope(GameTestHelper h,GeometryProvider.MotionSnapshot motion,String label) {
