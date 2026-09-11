@@ -150,6 +150,9 @@ public final class Platforms {
         io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.prepare(level);
         io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.tick(level);
         io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.publish(level);
+        // Provider cadence is simultaneous. Drain the canonical joint batch immediately after
+        // publication, before legacy end-of-tick carry or later world work can observe it stale.
+        io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime.drain(level);
         for(Entity e:level.getAllEntities()) noteSupport(e);
         for (Entity e : level.getAllEntities()) {
             if(AnatomyApi.ownsSharedPhysics(e)) {
