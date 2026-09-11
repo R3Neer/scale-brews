@@ -249,7 +249,8 @@ public final class MaterialPhysicsRuntime {
                     revalidateRetainedContacts(candidates,events);
                     return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
                 }
-                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent() && plan.transport()==null)
+                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent()
+                        && plan.transport()==null && plan.displacement().lengthSqr()>1e-20)
                     return batchFailure(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 plans.add(plan);evaluations+=plan.evaluations();
             }
@@ -309,7 +310,8 @@ public final class MaterialPhysicsRuntime {
                     suspendUncertainPairs(body,candidate.bounds(),events);
                     return new MaterialEventDispatcher.Resolution<>(fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED),List.of());
                 }
-                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent() && plan.transport()==null)
+                if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent()
+                        && plan.transport()==null && plan.displacement().lengthSqr()>1e-20)
                     return new MaterialEventDispatcher.Resolution<>(fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION),List.of());
                 plans.add(plan);evaluations+=plan.evaluations();
             }
