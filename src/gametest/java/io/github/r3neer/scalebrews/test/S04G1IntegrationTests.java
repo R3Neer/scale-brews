@@ -68,6 +68,21 @@ public final class S04G1IntegrationTests {
     }
 
     @GameTest
+    public void structurallyDifferentVariantSelectorsCannotCollideThroughFormatting(GameTestHelper h) {
+        var entity = Identifier.parse("minecraft:pig");
+        var embeddedDelimiter = fixtureBinding(entity, Map.of("a", "b, c=d"));
+        var twoEntries = fixtureBinding(entity, Map.of("a", "b", "c", "d"));
+        h.assertTrue(embeddedDelimiter.variant().toString().equals(twoEntries.variant().toString()),
+            "Fixture must reproduce the Map.toString collision that selector identity must ignore");
+        var catalog = new CollisionBindingCatalog(List.of(embeddedDelimiter, twoEntries));
+        h.assertTrue(catalog.resolve(entity, Map.of("a", "b, c=d")).orElseThrow().equals(embeddedDelimiter),
+            "Structural selector identity preserves an embedded-delimiter value");
+        h.assertTrue(catalog.resolve(entity, Map.of("a", "b", "c", "d")).orElseThrow().equals(twoEntries),
+            "Structural selector identity preserves the genuinely two-entry variant");
+        h.succeed();
+    }
+
+    @GameTest
     public void capabilitiesVersionTheNewG1Contract(GameTestHelper h) {
         long required = AnatomyApi.mask(AnatomyApi.Capability.ENGINE_REGISTRY,
             AnatomyApi.Capability.VERSIONED_BINDINGS, AnatomyApi.Capability.BODY_ADAPTERS);

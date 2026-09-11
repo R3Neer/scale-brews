@@ -24,22 +24,24 @@ public final class CollisionBindingCatalog {
     public static final String DIRECTORY = "scalebrews/entity_collision";
     private static final long MAX_BYTES = 2L * 1024 * 1024;
 
+    private record Selector(Identifier entity, Map<String, String> variant) {}
+
     private final Map<Identifier, List<CollisionBinding>> byEntity;
 
     public CollisionBindingCatalog(Collection<CollisionBinding> bindings) {
         if (bindings == null || bindings.size() > 4096) throw new IllegalArgumentException("Invalid collision binding catalog");
         Map<Identifier, List<CollisionBinding>> index = new TreeMap<>(Comparator.comparing(Identifier::toString));
-        var selectors = new HashSet<String>();
+        var selectors = new HashSet<Selector>();
         for (var binding : bindings) {
             if (binding == null) throw new IllegalArgumentException("Null collision binding");
             validateRegisteredEngines(binding);
-            String selector = binding.entity() + "|" + binding.variant();
-            if (!selectors.add(selector)) throw new IllegalArgumentException("Duplicate collision binding selector: " + selector);
+            var selector = new Selector(binding.entity(), binding.variant());
+            if (!selectors.add(selector)) throw new IllegalArgumentException("Duplicate collision binding selector for " + binding.entity());
             index.computeIfAbsent(binding.entity(), ignored -> new ArrayList<>()).add(binding);
         }
         index.replaceAll((entity, values) -> values.stream()
             .sorted(Comparator.<CollisionBinding>comparingInt(value -> value.variant().size()).reversed()
-                .thenComparing(value -> value.variant().toString()))
+                .thenComparing(CollisionBinding::variant, CollisionBindingCatalog::compareVariants))
             .toList());
         byEntity = Map.copyOf(index);
     }
@@ -97,6 +99,20 @@ public final class CollisionBindingCatalog {
             throw new IllegalArgumentException("Missing collision pose engine " + binding.pose().engine() + " for " + binding.entity());
         if (CollisionEngines.rootTransform(binding.rootTransform()).isEmpty())
             throw new IllegalArgumentException("Missing collision root transform provider " + binding.rootTransform() + " for " + binding.entity());
+    }
+
+    private static int compareVariants(Map<String, String> left, Map<String, String> right) {
+        var leftEntries = new TreeMap<>(left).entrySet().iterator();
+        var rightEntries = new TreeMap<>(right).entrySet().iterator();
+        while (leftEntries.hasNext() && rightEntries.hasNext()) {
+            var a = leftEntries.next();
+            var b = rightEntries.next();
+            int key = a.getKey().compareTo(b.getKey());
+            if (key != 0) return key;
+            int value = a.getValue().compareTo(b.getValue());
+            if (value != 0) return value;
+        }
+        return Integer.compare(left.size(), right.size());
     }
 
     private static boolean matches(Map<String, String> selector, Map<String, String> runtime) {
