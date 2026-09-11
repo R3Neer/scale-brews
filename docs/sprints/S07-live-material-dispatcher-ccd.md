@@ -1,10 +1,10 @@
 # S07 — Dispatcher material real y CCD de root/joints
 
-Estado: **A12 REPARADA / EVIDENCIA VERDE / PENDIENTE REVISIÓN ADVERSARIAL CERO-CAMBIOS**. Tercer sprint de G2.
+Estado: **CERRADO**. Tercer sprint de G2.
 
 Los defectos históricos de contacto, provenance, starting-overlap locality, budget exhaustion, plan-conflict locality y final-contact validity tras batch rechazado están reparados. `50dfac066248679397d463ca74e1b6cefb9f38a7` separa explícitamente dos responsabilidades que antes quedaban acopladas: atribuir qué support causó el rechazo y comprobar, aun cuando el batch no se aplique, si cada contacto retenido sigue siendo materialmente válido en el `after` certificado de su propio support.
 
-S06 ya no es un prerequisite abierto. El problema live de coste espacial quedó tratado en S05; la evidencia ordinaria y preparada reciente de S05/S06 permanece verde. No hay blocker reproducido vigente en S07 tras A12, pero el sprint no se declara cerrado hasta que el agente adversarial complete una revisión independiente cero-cambios o abra un nuevo blocker contractual.
+S06 ya no es un prerequisite abierto. El problema live de coste espacial quedó tratado en S05; la evidencia ordinaria y preparada reciente de S05/S06 permanece verde. Tras reparar A12, el agente adversarial completó la revisión independiente cero-cambios exigida por I16 sobre candidate/batch exhaustion, reacquisition tras final-invalid release, determinismo multi-support y lifecycle durante capture/resolve. No se reprodujo ningún nuevo blocker contractual, por lo que S07 queda cerrado sin cambios adicionales de producción ni tests.
 
 ## 1. Tesis y scope
 
@@ -167,16 +167,20 @@ Para repetir también la lane preparada sobre el candidato reparado se restauró
 - el servidor preparado ejecutó **2/2 required GameTests** y ambos pasaron;
 - ambas fases terminaron `BUILD SUCCESSFUL`.
 
-El workflow temporal se retiró en `c7c297e26c3781e3270be126889f5d2f8a68930c`, devolviendo la rama al árbol ordinario de workflows. **A12 queda reparada y verde; el cierre formal del sprint sigue pendiente de la revisión adversarial independiente.**
+El workflow temporal se retiró en `c7c297e26c3781e3270be126889f5d2f8a68930c`, devolviendo la rama al árbol ordinario de workflows. **A12 queda reparada y verde.**
 
-## 4. Superficies adversariales posteriores
+## 4. Revisión adversarial final cero-cambios
 
-Tras reparar A12, sólo se abrirán nuevos blockers con reproducción contractual. Permanecen candidatas a revisión:
+La revisión independiente posterior a A12 no produjo cambios de producción ni nuevos tests. Se inspeccionaron las cuatro superficies candidatas registradas al reabrir el sprint:
 
-1. candidate/batch exhaustion antes de `plan(...)`;
-2. reacquisition tras liberación por final-invalid contact;
-3. permutación multi-support con la misma causal/final-validity clasificación;
-4. lifecycle que invalida un evento durante capture/resolve.
+1. **Candidate/batch exhaustion antes de `plan(...)`:** el overflow ocurre antes de disponer de un conjunto completo de parejas certificables. El dispatcher cuarentena el evento/support de forma fail-closed; no se confunde con `BACKEND_EXHAUSTED`, cuyo candidate set sí es completo y cuya suspensión permanece body/support-local.
+2. **Reacquisition tras final-invalid release:** A12 usa `AnatomyMovement.clear(body)`, no una suspensión persistente del support. Se eliminan contact/surface/anchor/receipts stale y una relación futura materialmente válida puede adquirirse de nuevo bajo el binding vigente.
+3. **Permutación multi-support:** la captura de bodies se ordena por UUID/id, las piezas se scopean por `support UUID + materialSerial + piece`, los planes usan colecciones ordenadas donde el orden puede afectar selección y A4/A11 ya contienen holdouts de permutación. La clasificación causal de A y la validación final de B son fases separadas; no se encontró dependencia nueva del orden de eventos.
+4. **Lifecycle durante capture/resolve:** `MaterialIntervalRuntime.poll(...)` y `AnatomyRuntime.acceptsIntervalIdentity(...)` cercan binding generation, local registration generation, epoch/revision/model/pose antes de preparar el intervalo. Capture/resolve se ejecuta síncronamente en world thread con el gate de reentrancia del dispatcher; no existe una intercalación asíncrona de lifecycle que deje un evento viejo autorizado a mitad de resolución.
+
+También se revisó el posible desfase de anchor/carry tras un batch rechazado. No se abre como blocker de S07: FR-056..060 y `DERIVED_CARRY` productivo están explícitamente fuera del scope de este sprint y pertenecen al trabajo restante de G2. Esta revisión no amplía artificialmente la tesis de S07.
+
+Resultado: **cero cambios requeridos y cero blockers contractuales reproducidos. S07 queda cerrado.**
 
 ## 5. Plan actualizado
 
@@ -195,7 +199,7 @@ Tras reparar A12, sólo se abrirán nuevos blockers con reproducción contractua
 - [x] I13 Plan-conflict body-local determinista.
 - [x] I14 Multi-support causal locality: support estable no causante sobrevive.
 - [x] I15 Revalidar contactos retenidos contra el `after` de su propio evento también cuando el batch es rechazado.
-- [ ] I16 Revalidar suite ordinaria + prepared lane y realizar revisión estructural cero-cambios antes de cerrar de nuevo. **Suite ordinaria y prepared lane completadas; queda la revisión adversarial independiente cero-cambios.**
+- [x] I16 Revalidar suite ordinaria + prepared lane y realizar revisión estructural cero-cambios antes de cerrar de nuevo.
 
 ## 6. Modelo adversarial vigente
 
@@ -215,7 +219,7 @@ Además de la batería histórica:
 - multi-support stable-B locality;
 - rejected batch + non-causal support B cuyo contact final deja de ser válido — **holdout verde tras `50dfac06…`**.
 
-No hay rojo reproducido vigente. Las siguientes superficies sólo reabren el sprint si la revisión adversarial aporta un fixture contractual válido.
+No hay rojo reproducido vigente. Un hallazgo posterior sólo reabre el sprint si aporta un fixture contractual válido.
 
 ## 7. Lane preparada
 
@@ -238,4 +242,4 @@ Antes del cierre global de G2 debe reconciliarse `chatgpt-editing` con `main@398
 
 `collision.api.GravityFrame` conserva su contrato; `RootTransformProvider` sigue separado de body gravity; Scale debe cargar sin Gravity Changer y no se crea API Tiny-Mount-específica.
 
-**S07 no tiene blocker reproducido vigente tras A12. No se declara cerrado hasta completar la revisión adversarial independiente cero-cambios de I16 o, si aparece un nuevo rojo contractual, repararlo y repetir la evidencia correspondiente.**
+**S07 está cerrado. G2 continúa abierto: FR-056..060/derived carry y el resto de frentes explícitos del plan canónico no quedan cerrados por este sprint.**
