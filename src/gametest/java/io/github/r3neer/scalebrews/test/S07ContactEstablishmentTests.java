@@ -87,7 +87,9 @@ public final class S07ContactEstablishmentTests {
         Vec3 base=support.position();
         body.setPos(base.x,base.y+1.2,base.z);
         double finalTop=body.getBoundingBox().minY;
-        var afterBox=ConvexBox.of(new AABB(base.x-1,finalTop-.5,base.z-1,base.x+1,finalTop,base.z+1),new Matrix4f());
+        var approximate=ConvexBox.of(new AABB(base.x-1,finalTop-.5,base.z-1,base.x+1,finalTop,base.z+1),new Matrix4f());
+        double correction=approximate.separation(body.getBoundingBox()).gap();
+        var afterBox=approximate.move(new Vec3(0,correction,0));
         var lift=new Vec3(0,.4,0);
         var beforeBox=afterBox.move(lift.scale(-1));
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(72,Map.of("body",afterBox)));
@@ -95,8 +97,9 @@ public final class S07ContactEstablishmentTests {
         AnatomyMovement.register(support,provider);
         try {
             h.assertTrue(Platforms.eligible(body,support),"Fixture body must be eligible for the support");
-            h.assertTrue(Math.abs(afterBox.separation(body.getBoundingBox()).gap())<1e-9,
-                "Fixture support must arrive exactly at the body endpoint without penetrating it");
+            double alignedGap=afterBox.separation(body.getBoundingBox()).gap();
+            h.assertTrue(Math.abs(alignedGap)<1e-9,
+                "Fixture support must arrive at the body endpoint within the exact sweep tolerance: "+alignedGap);
             var identity=identity(level,support,72,"test:s07_exact_model","test:s07_exact_pose");
             long tick=level.getGameTime();
             var before=frame(identity,1,tick,base,beforeBox);
