@@ -1,8 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
-import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.runtime.AnatomyBackend;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,11 +13,17 @@ import net.minecraft.world.phys.Vec3;
 
 /** The sole Scale-owned implementation behind the public collision facade. */
 public final class ScaleAnatomyBackend implements AnatomyBackend {
-    @Override public AnatomyMode mode(Entity entity) {
-        return entity == null ? AnatomyMode.DISABLED : AnatomySession.mode(entity);
+    @Override public AnatomyBackend.Mode mode(Entity entity) {
+        if (entity == null) return AnatomyBackend.Mode.DISABLED;
+        return switch (AnatomySession.mode(entity)) {
+            case DISABLED -> AnatomyBackend.Mode.DISABLED;
+            case BINDING -> AnatomyBackend.Mode.BINDING;
+            case READY -> AnatomyBackend.Mode.READY;
+        };
     }
-    @Override public boolean ownsSharedPhysics(Entity entity) { return mode(entity) != AnatomyMode.DISABLED; }
-    @Override public boolean ready(Entity entity) { return mode(entity) == AnatomyMode.READY; }
+
+    private boolean ready(Entity entity) { return mode(entity) == AnatomyBackend.Mode.READY; }
+
     @Override public void clearContact(Entity entity) { if (entity != null) AnatomyMovement.clear(entity); }
     @Override public boolean supported(Entity entity) { return ready(entity) && AnatomyMovement.supported(entity); }
 
@@ -32,17 +37,25 @@ public final class ScaleAnatomyBackend implements AnatomyBackend {
         return valid(box) && ready(entity) && AnatomyMovement.spaceClear(entity, box);
     }
 
-    @Override public Optional<AnatomyApi.RayHit> raycast(Entity entity, Vec3 start, Vec3 end) {
+    @Override public Optional<AnatomyBackend.RayHit> raycast(Entity entity, Vec3 start, Vec3 end) {
         if (!finite(start) || !finite(end) || !ready(entity)) return Optional.empty();
         var hit = AnatomyMovement.raycast(entity, start, end);
-        return hit == null ? Optional.empty()
-            : Optional.of(new AnatomyApi.RayHit(hit.support(), hit.contact(), hit.position(), hit.fraction()));
+        if (hit == null) return Optional.empty();
+        var contact = hit.contact();
+        return Optional.of(new AnatomyBackend.RayHit(hit.support(),
+            new AnatomyBackend.ContactData(contact.support(), contact.revision(), contact.piece(), contact.face(),
+                contact.localPoint(), contact.normal(), contact.tick()),
+            hit.position(), hit.fraction()));
     }
 
-    @Override public boolean attachAtContact(Entity body, AnatomyApi.RayHit hit) {
-        if (body == null || hit == null || !ready(body) || hit.support().level() != body.level()
-                || !hit.support().getUUID().equals(hit.contact().support())
-                || !AnatomyMovement.confirm(body, hit.support(), hit.contact())
+    @Override public boolean attachAtContact(Entity body, AnatomyBackend.RayHit hit) {
+        SurfaceContact surface = hit == null || hit.contact() == null ? null : new SurfaceContact(
+            hit.contact().support(), hit.contact().revision(), hit.contact().piece(), hit.contact().face(),
+            hit.contact().localPoint(), hit.contact().normal(), hit.contact().tick());
+        if (body == null || hit == null || surface == null || !ready(body) || hit.support() == null
+                || hit.support().level() != body.level()
+                || !hit.support().getUUID().equals(surface.support())
+                || !AnatomyMovement.confirm(body, hit.support(), surface)
                 || !AnatomyMovement.supported(body)) {
             if (body != null) AnatomyMovement.clear(body);
             return false;
@@ -50,8 +63,8 @@ public final class ScaleAnatomyBackend implements AnatomyBackend {
         return true;
     }
 
-    @Override public GravityFrame gravity(Entity entity) {
-        return entity == null ? GravityFrame.VANILLA : AnatomyMovement.gravity(entity);
+    @Override public Direction gravity(Entity entity) {
+        return entity == null ? Direction.DOWN : AnatomyMovement.gravity(entity).down();
     }
 
     @Override public void installGravityAdapter(String owner, Function<Entity, Direction> resolver) {

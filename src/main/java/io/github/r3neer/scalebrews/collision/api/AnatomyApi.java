@@ -59,11 +59,19 @@ public final class AnatomyApi {
         return peerVersion == PROTOCOL_VERSION && (CAPABILITIES & requiredCapabilities) == requiredCapabilities;
     }
 
-    public static AnatomyMode mode(Entity entity) { return BACKEND.mode(entity); }
+    public static AnatomyMode mode(Entity entity) {
+        var mode = BACKEND.mode(entity);
+        if (mode == null) return AnatomyMode.DISABLED;
+        return switch (mode) {
+            case DISABLED -> AnatomyMode.DISABLED;
+            case BINDING -> AnatomyMode.BINDING;
+            case READY -> AnatomyMode.READY;
+        };
+    }
     /** The shared path owns this level/session, including fail-closed BINDING. */
-    public static boolean ownsSharedPhysics(Entity entity) { return BACKEND.ownsSharedPhysics(entity); }
+    public static boolean ownsSharedPhysics(Entity entity) { return mode(entity) != AnatomyMode.DISABLED; }
     /** Catalog/session data is usable for material queries. */
-    public static boolean ready(Entity entity) { return BACKEND.ready(entity); }
+    public static boolean ready(Entity entity) { return mode(entity) == AnatomyMode.READY; }
     /** Releases only Scale's transient physical contact and transport anchor. */
     public static void clearContact(Entity entity) { BACKEND.clearContact(entity); }
     public static boolean supported(Entity entity) { return BACKEND.supported(entity); }
@@ -72,19 +80,41 @@ public final class AnatomyApi {
     /** Tests configured eligible convex anatomy only; it is not a global noCollision query. */
     public static boolean spaceClear(Entity entity, AABB box) { return BACKEND.spaceClear(entity, box); }
     /** Scoped material ray query for an active body/root; callers own block raycasts and placement rules. */
-    public static Optional<RayHit> raycast(Entity entity, Vec3 start, Vec3 end) { return BACKEND.raycast(entity, start, end); }
+    public static Optional<RayHit> raycast(Entity entity, Vec3 start, Vec3 end) {
+        return BACKEND.raycast(entity, start, end).map(hit -> new RayHit(
+            hit.support(), toSurfaceContact(hit.contact()), hit.position(), hit.fraction()));
+    }
     /**
      * Establishes a Scale-owned transient anchor after the caller has created and
      * placed the body. This validates the ray support, current material face,
      * eligibility and physical support; it never bypasses block permissions or
      * invents an AABB fallback.
      */
-    public static boolean attachAtContact(Entity body, RayHit hit) { return BACKEND.attachAtContact(body, hit); }
+    public static boolean attachAtContact(Entity body, RayHit hit) {
+        if (hit == null) return BACKEND.attachAtContact(body, null);
+        return BACKEND.attachAtContact(body, new AnatomyBackend.RayHit(
+            hit.support(), toBackendContact(hit.contact()), hit.position(), hit.fraction()));
+    }
     /** The gravity owner supplies this cardinal frame; Scale does not mutate it. */
-    public static GravityFrame gravity(Entity entity) { return BACKEND.gravity(entity); }
+    public static GravityFrame gravity(Entity entity) {
+        var down = BACKEND.gravity(entity);
+        return down == null ? GravityFrame.VANILLA : new GravityFrame(down);
+    }
     /** Installs the sole external cardinal gravity reader; same-owner repeats are idempotent. */
     public static void installGravityAdapter(String owner, Function<Entity, Direction> resolver) {
         BACKEND.installGravityAdapter(owner, resolver);
+    }
+
+    private static SurfaceContact toSurfaceContact(AnatomyBackend.ContactData contact) {
+        if (contact == null) throw new IllegalArgumentException("Missing anatomical contact");
+        return new SurfaceContact(contact.support(), contact.revision(), contact.piece(), contact.face(),
+            contact.localPoint(), contact.normal(), contact.tick());
+    }
+
+    private static AnatomyBackend.ContactData toBackendContact(SurfaceContact contact) {
+        if (contact == null) return null;
+        return new AnatomyBackend.ContactData(contact.support(), contact.revision(), contact.piece(), contact.face(),
+            contact.localPoint(), contact.normal(), contact.tick());
     }
 
     public record RayHit(LivingEntity support, SurfaceContact contact, Vec3 position, double fraction) {
