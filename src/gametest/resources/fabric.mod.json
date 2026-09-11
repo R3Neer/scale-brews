@@ -8,6 +8,9 @@
     "scalebrews-test.mixins.json"
   ],
   "entrypoints": {
+    "main": [
+      "io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture"
+    ],
     "fabric-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyGeometryTests",
       "io.github.r3neer.scalebrews.test.AnatomyAnimatedSqueezingTests",
@@ -37,7 +40,11 @@
       "io.github.r3neer.scalebrews.test.S00RuntimeTests",
       "io.github.r3neer.scalebrews.test.S00ReceiptTests",
       "io.github.r3neer.scalebrews.test.S00TemporalTests",
-      "io.github.r3neer.scalebrews.test.S00LifecycleTests"
+      "io.github.r3neer.scalebrews.test.S00LifecycleTests",
+      "io.github.r3neer.scalebrews.test.S01PublicApiBoundaryTests",
+      "io.github.r3neer.scalebrews.test.S02EngineRegistryTests",
+      "io.github.r3neer.scalebrews.test.S03CanonicalCollisionDataTests",
+      "io.github.r3neer.scalebrews.test.S04G1IntegrationTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",

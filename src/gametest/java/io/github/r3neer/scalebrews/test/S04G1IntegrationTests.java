@@ -20,26 +20,26 @@ import net.minecraft.resources.Identifier;
 public final class S04G1IntegrationTests {
     @GameTest
     public void externalFixtureRegistersApiBehaviorSelectedByDatapackJson(GameTestHelper h) {
-        ExternalCollisionFixture.register();
+        h.assertTrue(CollisionEngines.geometry(ExternalCollisionFixture.GEOMETRY).isPresent()
+                && CollisionEngines.pose(ExternalCollisionFixture.POSE).isPresent()
+                && CollisionEngines.rootTransform(ExternalCollisionFixture.ROOT).isPresent()
+                && CollisionAdapters.body(ExternalCollisionFixture.BODY).isPresent(),
+            "The separate test mod must register all G1 extension behavior during initialization, before GameTests run");
         var catalog = CollisionBindingCatalog.load(h.getLevel().getServer().getResourceManager());
         var binding = catalog.resolve(Identifier.parse("minecraft:armor_stand"), Map.of("fixture", "external")).orElseThrow();
-        h.assertTrue(binding.geometry().engine().equals(ExternalCollisionFixture.GEOMETRY)
-                && CollisionEngines.geometry(binding.geometry().engine()).isPresent(),
-            "JSON geometry engine id must resolve through the public registry");
-        h.assertTrue(binding.pose().engine().equals(ExternalCollisionFixture.POSE)
-                && CollisionEngines.pose(binding.pose().engine()).isPresent(),
-            "JSON pose engine id must resolve through the public registry");
-        h.assertTrue(binding.rootTransform().equals(ExternalCollisionFixture.ROOT)
-                && CollisionEngines.rootTransform(binding.rootTransform()).isPresent(),
-            "JSON root provider id must resolve through the public registry");
+        h.assertTrue(binding.geometry().engine().equals(ExternalCollisionFixture.GEOMETRY),
+            "JSON geometry engine id must select the registered public engine");
+        h.assertTrue(binding.pose().engine().equals(ExternalCollisionFixture.POSE),
+            "JSON pose engine id must select the registered public engine");
+        h.assertTrue(binding.rootTransform().equals(ExternalCollisionFixture.ROOT),
+            "JSON root provider id must select the registered public provider");
         h.assertTrue(CollisionAdapters.body(ExternalCollisionFixture.BODY).orElseThrow().category().equals("fixture_bodies"),
-            "Fixture body adapter must register through the public API");
+            "Fixture body adapter must be visible through the public API");
         h.succeed();
     }
 
     @GameTest
     public void canonicalCatalogRejectsUnregisteredEngineReferences(GameTestHelper h) {
-        ExternalCollisionFixture.register();
         var entity = Identifier.parse("minecraft:pig");
         var base = fixtureBinding(entity, Map.of());
         var missingGeometry = new CollisionBinding(1, entity, Map.of(),
@@ -58,7 +58,6 @@ public final class S04G1IntegrationTests {
 
     @GameTest
     public void canonicalCatalogFailsClosedOnAmbiguousVariantSelection(GameTestHelper h) {
-        ExternalCollisionFixture.register();
         var entity = Identifier.parse("minecraft:pig");
         var first = fixtureBinding(entity, Map.of("coat", "brown"));
         var second = fixtureBinding(entity, Map.of("age", "adult"));

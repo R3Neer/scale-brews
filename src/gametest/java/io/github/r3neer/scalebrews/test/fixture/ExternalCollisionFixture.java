@@ -5,18 +5,20 @@ import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.BodyAdapter;
 import java.util.Map;
 import java.util.Optional;
+import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 
-/** Test-mod stand-in: registration uses only the public G1 extension surface. */
-public final class ExternalCollisionFixture {
-    private ExternalCollisionFixture() {}
-
+/** Test-mod fixture: behavior is registered during mod initialization through only the public G1 API. */
+public final class ExternalCollisionFixture implements ModInitializer {
     public static final Identifier GEOMETRY = Identifier.parse("scalebrews_test:s04_geometry");
     public static final Identifier POSE = Identifier.parse("scalebrews_test:s04_pose");
     public static final Identifier ROOT = Identifier.parse("scalebrews_test:s04_root");
     public static final Identifier BODY = Identifier.parse("scalebrews_test:s04_virtual_body");
 
-    /** GameTests share one JVM registry; make the fixture bootstrap repeat-safe without weakening registry duplicate rejection. */
+    @Override
+    public void onInitialize() { register(); }
+
+    /** Repeat-safe helper for special proof lanes that may bootstrap the test fixture explicitly. */
     public static void register() {
         if (CollisionEngines.geometry(GEOMETRY).isEmpty())
             CollisionEngines.registerGeometry(GEOMETRY, request -> Optional.empty());
