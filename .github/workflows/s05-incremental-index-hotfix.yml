@@ -1,4 +1,4 @@
-name: s05-incremental-index-hotfix
+name: s05-s07-incremental-hotfix
 
 on:
   push:
@@ -18,26 +18,154 @@ jobs:
         with:
           ref: chatgpt-editing
           fetch-depth: 0
-      - name: patch incremental spatial maintenance
+      - name: patch incremental broadphase and plan-conflict locality
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
+          def replace_once(text, old, new, label):
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label} matches={count}')
+              return text.replace(old,new,1)
+
+          # S05: make the reusable broadphase support true per-entry mutation.
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/physics/MaterialBroadphase.java')
+          t=p.read_text()
+          t=replace_once(t,
+'''    private final double cellSize;
+    private final long maxQueryCells;
+    private final int maxCandidates;
+    private final Comparator<? super K> order;
+    private final Map<Cell, List<K>> cells;
+    private final Map<K, AABB> bounds;
+
+    private MaterialBroadphase(double cellSize, long maxQueryCells, int maxCandidates,
+            Comparator<? super K> order, Map<Cell, List<K>> cells, Map<K, AABB> bounds) {
+        this.cellSize = cellSize;
+        this.maxQueryCells = maxQueryCells;
+        this.maxCandidates = maxCandidates;
+        this.order = order;
+        this.cells = cells;
+        this.bounds = bounds;
+    }
+''',
+'''    private final double cellSize;
+    private final long maxEntryCells;
+    private final long maxQueryCells;
+    private final int maxCandidates;
+    private final Comparator<? super K> order;
+    private final Map<Cell, List<K>> cells;
+    private final Map<K, AABB> bounds;
+
+    private MaterialBroadphase(double cellSize, long maxEntryCells, long maxQueryCells, int maxCandidates,
+            Comparator<? super K> order, Map<Cell, List<K>> cells, Map<K, AABB> bounds) {
+        this.cellSize = cellSize;
+        this.maxEntryCells = maxEntryCells;
+        this.maxQueryCells = maxQueryCells;
+        this.maxCandidates = maxCandidates;
+        this.order = order;
+        this.cells = cells;
+        this.bounds = bounds;
+    }
+''','broadphase fields')
+          t=replace_once(t,
+'''        for (var bucket : cells.values()) bucket.sort(order);
+        Map<Cell, List<K>> frozenCells = new HashMap<>();
+        cells.forEach((cell, bucket) -> frozenCells.put(cell, List.copyOf(bucket)));
+        return new BuildResult<>(new MaterialBroadphase<>(cellSize, maxQueryCells, maxCandidates, order,
+            Collections.unmodifiableMap(frozenCells), Collections.unmodifiableMap(bounds)), rejected);
+    }
+
+    public QueryResult<K> query(AABB query) {
+''',
+'''        for (var bucket : cells.values()) bucket.sort(order);
+        return new BuildResult<>(new MaterialBroadphase<>(cellSize, maxEntryCells, maxQueryCells, maxCandidates, order,
+            cells, bounds), rejected);
+    }
+
+    /** Replace exactly one identity entry without rebuilding or re-evaluating unrelated keys. */
+    public synchronized Rejected<K> upsert(Entry<K> entry) {
+        Objects.requireNonNull(entry, "entry");
+        remove(entry.key());
+        var range = range(entry.bounds(), cellSize);
+        if (range == null) return new Rejected<>(entry.key(), RejectionReason.INVALID_BOUNDS, 0);
+        long count = boundedCellCount(range, maxEntryCells);
+        if (count > maxEntryCells)
+            return new Rejected<>(entry.key(), RejectionReason.ENTRY_BUDGET_EXHAUSTED, count);
+        bounds.put(entry.key(), entry.bounds());
+        forEachCell(range, cell -> {
+            var bucket=cells.computeIfAbsent(cell, ignored -> new ArrayList<>());
+            bucket.add(entry.key());bucket.sort(order);
+        });
+        return null;
+    }
+
+    /** Remove one identity entry from only the cells occupied by its previous material bounds. */
+    public synchronized void remove(K key) {
+        var previous=bounds.remove(key);if(previous==null)return;
+        var range=range(previous,cellSize);if(range==null)return;
+        forEachCell(range,cell->{
+            var bucket=cells.get(cell);if(bucket==null)return;
+            bucket.removeIf(candidate->candidate==key);
+            if(bucket.isEmpty())cells.remove(cell);
+        });
+    }
+
+    public synchronized QueryResult<K> query(AABB query) {
+''','broadphase mutation methods')
+          t=t.replace('    public int size() { return bounds.size(); }\n    public int bucketCount() { return cells.size(); }\n    public AABB bounds(K key) { return bounds.get(key); }',
+'''    public synchronized int size() { return bounds.size(); }
+    public synchronized int bucketCount() { return cells.size(); }
+    public synchronized AABB bounds(K key) { return bounds.get(key); }''')
+          p.write_text(t)
+
+          # S05 live owner: update/remove only the support whose causal state changed.
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
           t=p.read_text()
-
-          field='    private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());\n'
-          insert=field+'    /** Supports whose binding/root endpoint changed after the current tick index was built. */\n    private static final Map<Level,Set<LivingEntity>> SPATIAL_DIRTY=Collections.synchronizedMap(new WeakHashMap<>());\n'
-          if t.count(field)!=1: raise SystemExit(f'SPATIAL field matches={t.count(field)}')
-          t=t.replace(field,insert,1)
-
-          # Every support-specific invalidation becomes local. Level shutdown still drops the whole index.
-          count=t.count('SPATIAL.remove(support.level())')
-          if count<4: raise SystemExit(f'expected support-specific spatial invalidations, found {count}')
-          t=t.replace('SPATIAL.remove(support.level())','markSpatialDirty(support)')
-
-          old='''    private static SpatialIndex spatial(Level level) {
+          t=t.replace('SPATIAL.remove(support.level())','removeSpatialEntry(support)')
+          t=replace_once(t,
+'''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+    }
+''',
+'''        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        refreshSpatialEntry(support);
+    }
+''','register refresh')
+          t=replace_once(t,
+'''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        DESCRIPTORS.put(support,descriptor);
+    }
+''',
+'''        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        DESCRIPTORS.put(support,descriptor);
+        refreshSpatialEntry(support);
+    }
+''','descriptor refresh')
+          t=replace_once(t,
+'''    public static synchronized Optional<GeometryProvider.QueryFrame> queryFrame(LivingEntity support){
+        var published=publishedFrame(support).orElse(null);
+        if(published==null || published.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE)return Optional.empty();
+        var cached=FRAME_SERIALS.get(support);var snapshot=cached==null?null:cached.snapshot();
+        if(snapshot==null || snapshot.revision()!=published.identity().revision())return Optional.empty();
+        return Optional.of(new GeometryProvider.QueryFrame(published.identity(),published.endpoint(),snapshot));
+    }
+''',
+'''    public static synchronized Optional<GeometryProvider.QueryFrame> queryFrame(LivingEntity support){
+        var published=publishedFrame(support).orElse(null);
+        if(published==null || published.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE){removeSpatialEntry(support);return Optional.empty();}
+        var cached=FRAME_SERIALS.get(support);var snapshot=cached==null?null:cached.snapshot();
+        if(snapshot==null || snapshot.revision()!=published.identity().revision()){removeSpatialEntry(support);return Optional.empty();}
+        var frame=new GeometryProvider.QueryFrame(published.identity(),published.endpoint(),snapshot);
+        if(!syncSpatialEntry(support,frame))return Optional.empty();
+        return Optional.of(frame);
+    }
+''','queryFrame sync')
+          t=replace_once(t,
+'''    private static SpatialIndex spatial(Level level) {
         var current=SPATIAL.get(level);
         // Register/rebind, lifecycle barriers, accepted causal endpoints and tick rollover
         // invalidate the cache explicitly. Reusing a same-tick index must not resample every
@@ -47,109 +175,134 @@ jobs:
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
         return rebuildSpatial(level,providers);
     }
-'''
-          new='''    private static SpatialIndex spatial(Level level) {
+''',
+'''    private static SpatialIndex spatial(Level level) {
         var current=SPATIAL.get(level);
-        if(current!=null && current.tick()==level.getGameTime()) {
-            var dirty=takeSpatialDirty(level);
-            return dirty.isEmpty()?current:refreshSpatial(level,current,dirty);
-        }
+        if(current!=null && current.tick()==level.getGameTime())return current;
         Map<LivingEntity,GeometryProvider> providers;
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
         return rebuildSpatial(level,providers);
     }
-    /** Mutation hooks record identity only; provider work is paid for the changed supports, never the world. */
-    public static void spatialMutation(LivingEntity support) {
-        if(support!=null && PROVIDERS.containsKey(support))markSpatialDirty(support);
+    /** Explicit mutation seam used by root/setPos hooks; it never scans unrelated providers. */
+    public static synchronized void spatialMutation(LivingEntity support) {refreshSpatialEntry(support);}
+    private static void refreshSpatialEntry(LivingEntity support) {
+        var current=SPATIAL.get(support.level());
+        if(current==null || current.tick()!=support.level().getGameTime())return;
+        var provider=PROVIDERS.get(support);
+        if(provider==null){removeSpatialEntry(support);return;}
+        if(DESCRIPTORS.containsKey(support)){queryFrame(support);return;}
+        var sample=provider.sample(support).orElse(null);
+        if(sample==null){removeSpatialEntry(support);return;}
+        var frame=new FrameStamp(null,observeRoot(support),sample.revision(),registrationGeneration(support),0);
+        syncSpatialEntry(support,sample,frame);
     }
-    private static void markSpatialDirty(LivingEntity support) {
-        if(support==null)return;
-        synchronized(SPATIAL_DIRTY) {
-            SPATIAL_DIRTY.computeIfAbsent(support.level(),ignored->Collections.newSetFromMap(new IdentityHashMap<>())).add(support);
-        }
+    private static boolean syncSpatialEntry(LivingEntity support,GeometryProvider.QueryFrame frame) {
+        var stamp=new FrameStamp(frame.identity(),frame.root(),frame.snapshot().revision(),registrationGeneration(support),frame.endpoint().frameSerial());
+        return syncSpatialEntry(support,frame.snapshot(),stamp);
     }
-    private static List<LivingEntity> takeSpatialDirty(Level level) {
-        synchronized(SPATIAL_DIRTY) {
-            var dirty=SPATIAL_DIRTY.remove(level);
-            return dirty==null?List.of():List.copyOf(dirty);
-        }
+    private static boolean syncSpatialEntry(LivingEntity support,GeometryProvider.Snapshot snapshot,FrameStamp frame) {
+        var current=SPATIAL.get(support.level());
+        if(current==null || current.tick()!=support.level().getGameTime())return true;
+        var envelope=snapshotBounds(snapshot);if(envelope==null){removeSpatialEntry(support);return true;}
+        var rejected=current.broadphase().upsert(new MaterialBroadphase.Entry<>(support,envelope));
+        if(rejected!=null){current.frames().remove(support);quarantineEndpoint(support);return false;}
+        current.frames().put(support,frame);return true;
     }
-    /** Rebuild only changed entries; all unaffected bounds/frames come from the immutable current index. */
-    private static SpatialIndex refreshSpatial(Level level,SpatialIndex current,List<LivingEntity> dirty) {
-        var changed=Collections.newSetFromMap(new IdentityHashMap<LivingEntity,Boolean>());changed.addAll(dirty);
-        Map<LivingEntity,FrameStamp> frames=new IdentityHashMap<>();
-        List<MaterialBroadphase.Entry<LivingEntity>> entries=new ArrayList<>();
-        for(var entry:current.frames().entrySet()) {
-            var support=entry.getKey();if(changed.contains(support) || support.level()!=level || !PROVIDERS.containsKey(support))continue;
-            var bounds=current.broadphase().bounds(support);if(bounds==null)continue;
-            entries.add(new MaterialBroadphase.Entry<>(support,bounds));frames.put(support,entry.getValue());
-        }
-        var ordered=new ArrayList<>(dirty);ordered.sort(SUPPORT_ORDER);
-        for(var support:ordered) {
-            if(support.level()!=level)continue;
-            var provider=PROVIDERS.get(support);if(provider==null)continue;
-            var sample=currentSnapshot(support,provider).orElse(null);var frame=currentFrameStamp(support,provider);
-            if(sample==null || frame==null)continue;
-            var envelope=snapshotBounds(sample);if(envelope==null)continue;
-            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
-        }
-        var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
-        for(var rejected:built.rejected()) {frames.remove(rejected.key());quarantineEndpoint(rejected.key());}
-        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+    private static void removeSpatialEntry(LivingEntity support) {
+        var current=SPATIAL.get(support.level());
+        if(current==null || current.tick()!=support.level().getGameTime())return;
+        current.broadphase().remove(support);current.frames().remove(support);
+    }
+''','spatial helpers')
+          t=replace_once(t,
+'''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
         SPATIAL.put(level,index);return index;
-    }
-'''
-          if t.count(old)!=1: raise SystemExit(f'spatial method matches={t.count(old)}')
-          t=t.replace(old,new,1)
-
-          old='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+''',
+'''        var index=new SpatialIndex(level.getGameTime(),built.index(),new IdentityHashMap<>(frames));
         SPATIAL.put(level,index);return index;
-    }
-    private static FrameStamp currentFrameStamp'''
-          new='''        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
-        SPATIAL.put(level,index);SPATIAL_DIRTY.remove(level);return index;
-    }
-    private static FrameStamp currentFrameStamp'''
-          if t.count(old)!=1: raise SystemExit(f'rebuild tail matches={t.count(old)}')
-          t=t.replace(old,new,1)
-
-          old='''        METRICS.remove(level);
-        SPATIAL.remove(level);
-    }
-'''
-          new='''        METRICS.remove(level);
-        SPATIAL.remove(level);SPATIAL_DIRTY.remove(level);
-    }
-'''
-          if t.count(old)!=1: raise SystemExit(f'deactivate tail matches={t.count(old)}')
-          t=t.replace(old,new,1)
+''','mutable frame map')
           p.write_text(t)
 
-          m=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
-          t=m.read_text()
+          # Direct setPos is a supported root mutation seam for legacy fixtures and vanilla callers.
+          p=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
+          t=p.read_text()
           anchor='''    @Inject(method="teleportTo(DDD)V",at=@At("HEAD"))
     private void scalebrews$teleport(double x,double y,double z,CallbackInfo ci) {
         scalebrews$platform.clear();
         if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
     }
 '''
-          addition=anchor+'''    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
+          if 'scalebrews$spatialRootMutation' not in t:
+              t=replace_once(t,anchor,anchor+'''    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
     private void scalebrews$spatialRootMutation(double x,double y,double z,CallbackInfo ci) {
         if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
     }
-'''
-          if t.count(anchor)!=1: raise SystemExit(f'teleport anchor matches={t.count(anchor)}')
-          t=t.replace(anchor,addition,1)
-          m.write_text(t)
+''','setPos hook')
+          p.write_text(t)
+
+          # S07: identify exactly which body plans conflict and suspend only those pairs.
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java')
+          t=p.read_text()
+          t=replace_once(t,
+'''            if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+''',
+'''            var conflicts=conflictingBodies(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(var candidate:candidates)if(conflicts.contains(candidate.body()))suspendUncertainPairs(candidate.body(),candidate.bounds(),events);
+                return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+''','joint plan conflict')
+          t=replace_once(t,
+'''            if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+''',
+'''            var conflicts=conflictingBodies(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(var candidate:candidates)if(conflicts.contains(candidate.body()))suspendUncertainPairs(candidate.body(),candidate.bounds(),events);
+                return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
+''','single plan conflict')
+          t=replace_once(t,
+'''        private boolean worsensBodyOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
+                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
+                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS)return true;
+            }
+            return false;
+        }
+''',
+'''        private Set<Entity> conflictingBodies(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            var conflicts=Collections.newSetFromMap(new IdentityHashMap<Entity,Boolean>());
+            for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
+                var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
+                var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS) {
+                    conflicts.add(plans.get(i).body());conflicts.add(plans.get(j).body());
+                }
+            }
+            return conflicts;
+        }
+''','conflict detector')
+          p.write_text(t)
           PY
           git diff --check
-          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java
-      - name: commit hotfix
+          git diff --stat
+      - name: commit repair
         shell: bash
         run: |
-          if git diff --quiet; then exit 0; fi
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
           git config user.name 'ChatGPT'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java
-          git commit -m 'fix(collision): maintain broadphase entries incrementally'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/physics/MaterialBroadphase.java \
+                  src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java \
+                  src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java \
+                  src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java
+          git commit -m 'fix(collision): localize broadphase mutation and plan conflicts'
           git push origin HEAD:chatgpt-editing
