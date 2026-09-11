@@ -83,15 +83,44 @@ public final class S02EngineRegistryTests {
         catch (IllegalArgumentException expected) { badGeometry = true; }
         h.assertTrue(badGeometry, "Geometry parameters use bounded canonical keys");
 
+        var tooManyParameters = new LinkedHashMap<String, String>();
+        for (int n = 0; n < 129; n++) tooManyParameters.put("p" + n, "value");
+        boolean oversizedGeometry = false;
+        try { new GeometryEngine.Request(Identifier.parse("minecraft:cow"), tooManyParameters); }
+        catch (IllegalArgumentException expected) { oversizedGeometry = true; }
+        h.assertTrue(oversizedGeometry, "Geometry request rejects more than 128 parameters");
+
+        boolean oversizedGeometryValue = false;
+        try { new GeometryEngine.Request(Identifier.parse("minecraft:cow"), Map.of("key", "x".repeat(1025))); }
+        catch (IllegalArgumentException expected) { oversizedGeometryValue = true; }
+        h.assertTrue(oversizedGeometryValue, "Geometry request rejects parameter values longer than 1024 characters");
+
         boolean badPose = false;
         try { new PoseEngine.Inputs(0, -1, 0, 0, 0, true); }
         catch (IllegalArgumentException expected) { badPose = true; }
         h.assertTrue(badPose, "Pose DTO rejects invalid motion input");
 
+        var tooManyChannels = new LinkedHashMap<String, Float>();
+        for (int n = 0; n < 65; n++) tooManyChannels.put("c" + n, (float)n);
+        boolean oversizedPose = false;
+        try { new PoseEngine.Inputs(0, 0, 0, 0, 0, true, tooManyChannels); }
+        catch (IllegalArgumentException expected) { oversizedPose = true; }
+        h.assertTrue(oversizedPose, "Pose DTO rejects more than 64 channels");
+
+        boolean badPoseChannel = false;
+        try { new PoseEngine.Inputs(0, 0, 0, 0, 0, true, Map.of("fixture", Float.NaN)); }
+        catch (IllegalArgumentException expected) { badPoseChannel = true; }
+        h.assertTrue(badPoseChannel, "Pose DTO rejects non-finite channel values");
+
         boolean badRoot = false;
         try { new RootTransformProvider.RootTransform(net.minecraft.world.phys.Vec3.ZERO, 0, 0, 0, 0, 1); }
         catch (IllegalArgumentException expected) { badRoot = true; }
         h.assertTrue(badRoot, "Root DTO rejects a degenerate rotation");
+
+        boolean badRootScale = false;
+        try { new RootTransformProvider.RootTransform(net.minecraft.world.phys.Vec3.ZERO, 0, 0, 0, 1, Float.NaN); }
+        catch (IllegalArgumentException expected) { badRootScale = true; }
+        h.assertTrue(badRootScale, "Root DTO rejects a non-finite scale");
         h.succeed();
     }
 }
