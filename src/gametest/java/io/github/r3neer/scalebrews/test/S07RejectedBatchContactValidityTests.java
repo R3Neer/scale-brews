@@ -61,7 +61,9 @@ public final class S07RejectedBatchContactValidityTests {
         double leftFace=-.30-leftHalfX,rightFace=.30+rightHalfX;
         var leftWall=ConvexBox.of(new AABB(leftFace-.5,-.5,-leftHalfZ-.5,leftFace,leftHeight+.5,leftHalfZ+.5),new Matrix4f()).move(base);
         var rightWall=ConvexBox.of(new AABB(rightFace,-.5,-rightHalfZ-.5,rightFace+.5,rightHeight+.5,rightHalfZ+.5),new Matrix4f()).move(base);
-        var floorBefore=ConvexBox.of(new AABB(-.30-leftHalfX-.4,-.5,-leftHalfZ-.4,-.30+leftHalfX+.4,0,leftHalfZ+.4),new Matrix4f()).move(base);
+        // Keep the retained floor inside the 0.025 contact tolerance but comfortably outside the 1e-6 CCD skin.
+        // This makes the pre-event relation valid without manufacturing a t=0 temporal hit when B moves away.
+        var floorBefore=ConvexBox.of(new AABB(-.30-leftHalfX-.4,-.5,-leftHalfZ-.4,-.30+leftHalfX+.4,0,leftHalfZ+.4),new Matrix4f()).move(base.add(0,-.01,0));
         var floorDelta=new Vec3(0,-.4,0);
         var floorAfter=floorBefore.move(floorDelta);
 
@@ -69,7 +71,7 @@ public final class S07RejectedBatchContactValidityTests {
         var rightDelta=new Vec3(-.30,0,0);
         var leftMotion=new ConservativeSweep.Motion(t->leftWall.move(leftDelta.scale(t)),0,leftDelta);
         var rightMotion=new ConservativeSweep.Motion(t->rightWall.move(rightDelta.scale(t)),0,rightDelta);
-        var floorMotion=new ConservativeSweep.Motion(t->floorBefore.move(floorDelta.scale(t)),.4,floorDelta);
+        var floorMotion=new ConservativeSweep.Motion(t->floorBefore.move(floorDelta.scale(t)),0,floorDelta);
         var allPieces=Map.of("a/left",leftMotion,"a/right",rightMotion,"b/floor",floorMotion);
 
         AnatomyMovement.activate(level);
