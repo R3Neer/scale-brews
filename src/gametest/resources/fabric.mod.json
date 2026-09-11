@@ -44,7 +44,8 @@
       "io.github.r3neer.scalebrews.test.S01PublicApiBoundaryTests",
       "io.github.r3neer.scalebrews.test.S02EngineRegistryTests",
       "io.github.r3neer.scalebrews.test.S03CanonicalCollisionDataTests",
-      "io.github.r3neer.scalebrews.test.S04G1IntegrationTests"
+      "io.github.r3neer.scalebrews.test.S04G1IntegrationTests",
+      "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",

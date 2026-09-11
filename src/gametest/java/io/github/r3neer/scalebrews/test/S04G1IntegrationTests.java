@@ -14,6 +14,7 @@ import io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -108,6 +109,20 @@ public final class S04G1IntegrationTests {
             "Missing body state fails closed at the integration boundary");
         h.assertTrue(BodyClassification.adaptTransport(null, new Vec3(1, 0, 0)).equals(Vec3.ZERO),
             "Missing transport body cannot manufacture passive motion");
+        h.succeed();
+    }
+
+    @GameTest
+    public void adapterCategoryIsFrozenAtRegistration(GameTestHelper h) {
+        var id = Identifier.parse("scalebrews_test:s04_mutable_category");
+        var category = new AtomicReference<>("fixture_initial");
+        CollisionAdapters.registerBody(id, new BodyAdapter() {
+            @Override public String category() { return category.get(); }
+            @Override public boolean permits(net.minecraft.world.entity.Entity body) { return true; }
+        });
+        category.set("fixture_mutated");
+        h.assertTrue(CollisionAdapters.body(id).orElseThrow().category().equals("fixture_initial"),
+            "Adapter category is validated and snapshotted at init rather than mutable runtime metadata");
         h.succeed();
     }
 

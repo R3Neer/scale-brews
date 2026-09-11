@@ -4,7 +4,10 @@ import com.mojang.serialization.JsonOps;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,22 +57,34 @@ public final class CollisionBindingCatalog {
         List<CollisionBinding> bindings = new ArrayList<>();
         long total = 0;
         for (var entry : files.entrySet()) {
-            try (var reader = entry.getValue().openAsReader()) {
-                var text = new StringBuilder();
-                char[] buffer = new char[8192];
-                int count;
-                while ((count = reader.read(buffer)) != -1) {
-                    total += count;
-                    if (total > MAX_BYTES) throw new IllegalArgumentException("Collision binding catalog exceeds size limit");
-                    text.append(buffer, 0, count);
-                }
-                var json = com.google.gson.JsonParser.parseString(text.toString());
+            try (var input = entry.getValue().open()) {
+                byte[] bytes = readBounded(input, MAX_BYTES - total);
+                total += bytes.length;
+                var json = com.google.gson.JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8));
                 bindings.add(CollisionCodecs.BINDING.parse(JsonOps.INSTANCE, json).getOrThrow());
             } catch (IOException | RuntimeException invalid) {
                 throw new IllegalArgumentException("Invalid canonical collision binding " + entry.getKey(), invalid);
             }
         }
         return new CollisionBindingCatalog(bindings);
+    }
+
+    /**
+     * Reads one resource against the remaining aggregate byte budget. Package
+     * visibility keeps the exact byte-boundary oracle testable without widening API.
+     */
+    static byte[] readBounded(InputStream input, long remainingBytes) throws IOException {
+        if (input == null || remainingBytes < 0) throw new IllegalArgumentException("Invalid collision binding byte budget");
+        var output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        long total = 0;
+        int count;
+        while ((count = input.read(buffer)) != -1) {
+            total += count;
+            if (total > remainingBytes) throw new IllegalArgumentException("Collision binding catalog exceeds size limit");
+            output.write(buffer, 0, count);
+        }
+        return output.toByteArray();
     }
 
     /**
