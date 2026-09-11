@@ -4,68 +4,91 @@ Status: **TEMPORARY — DELETE ON SUCCESS**.
 
 ## 1. Current behavior
 
-Scale `main` computes Tiny Mount movement in vanilla/world coordinates. `TinyMounts.flightVelocity` derives a world-space vector directly from rider yaw/pitch; `TinyChickenGlideMixin` modifies world-Y damping. Clinging currently patches these assumptions for non-DOWN gravity through Scale-specific compatibility mixins, including wolf pounce/landing behavior.
+Scale `main` computes several Tiny Mount mechanics in vanilla/world coordinates. `TinyMounts.flightVelocity` derives a world-space vector directly from rider yaw/pitch; `TinyChickenGlideMixin` modifies world-Y damping; wolf pounce/landing logic likewise assumes ordinary DOWN semantics in places.
 
-This is the wrong long-term ownership: the behavior describes Tiny Mount physics under an entity gravity frame and should work regardless of which mod/source produced that gravity.
+Clinging currently patches those Scale assumptions for non-DOWN gravity through three Scale-specific compatibility mixins. That does not mean Tiny Mounts are a distinct kind of mount. It means Scale-generated impulses are not yet gravity-frame aware.
 
-## 2. Relationship to `chatgpt-editing`
+Clinging's own mounted contract is already generic: it operates on a non-player `LivingEntity` root vehicle and asks only whether Gravity Changer gravity is supported. No Tiny Mount type or Scale API participates in that decision.
 
-The entity-collision branch already specifies a single-owner gravity adapter (FR-073/074) and currently contains `collision.internal.GravityFrames`. The collision architecture also states that the supported body's gravity frame is independent from support-root orientation.
+## 2. Architectural conclusion
 
-Tiny Mounts needs the same effective gravity frame but is explicitly outside the collision subsystem. Therefore the long-term service must be transversal:
+The external contract should remain:
 
 ```text
-optional gravity provider integration
+player passenger
+      ↓
+LivingEntity root vehicle
+      ↓
+Gravity Changer effective gravity
+```
+
+A Tiny Mount participates through the exact same relation as any other eligible living mount.
+
+Scale's responsibility begins only when Scale generates a mechanic-specific contribution such as flight velocity, glide damping or pounce impulse. Those contributions must be expressed in the root mount's effective gravity frame before they become world-space movement.
+
+Therefore there is no justification for:
+
+- a Tiny-Mount-specific Clinging path;
+- a Tiny capability marker consumed by Clinging;
+- old/new Scale shim negotiation;
+- a second mount transfer protocol.
+
+## 3. Relationship to `chatgpt-editing`
+
+The entity-collision branch already specifies a single-owner gravity adapter (FR-073/074) and currently contains `collision.internal.GravityFrames`. The collision architecture also states that a supported body's gravity frame is independent from support-root orientation.
+
+Scale mount mechanics need the same effective entity gravity, but remain explicitly outside the collision subsystem. Therefore the reusable frame reader/service should be transversal:
+
+```text
+optional effective-gravity integration
              ↓
    canonical Scale GravityFrame service
           ↙            ↘
-      collision       mount
+future collision     mount mechanics
 ```
 
-A separate mount registry would violate single authority. Making Clinging install the provider would preserve an unnecessary Scale→Clinging dependency.
+A separate mount registry would create two authorities. Making Clinging the provider owner would incorrectly make Scale mount correctness depend on Clinging.
 
-## 3. Proposed ownership
+The exact package/API shape must remain minimal and is provisional until implementation analysis checks Scale `main`, the pinned Gravity Changer API and the latest `chatgpt-editing` state. `chatgpt-editing` is not modified by this workstream while its other agent is executing S00.
 
-Recommended eventual package shape (names are provisional until implementation analysis confirms repository conventions):
+## 4. Generic-mount compatibility rule
 
-```text
-io.github.r3neer.scalebrews.integration.gravity
-    GravityFrame / frame transforms
-    GravityProvider registry/service
-    optional Gravity Changer adapter
+Scale should not expose a public 'native Tiny Mount gravity' capability for Clinging. Instead:
 
-io.github.r3neer.scalebrews.mount
-    TinyMounts consumes the service
-    wolf/chicken/bee mechanics consume shared transforms
-```
+- Clinging sets/owns mount gravity generically through Gravity Changer;
+- Scale reads the root mount's effective frame when generating Scale-owned mechanics;
+- ordinary Minecraft passenger/vehicle semantics remain the only mount contract between the two repos;
+- Scale's behavior is correct regardless of whether the frame came from Clinging, a Gravity Anchor, another compatible mod or another external source.
 
-The entity-collision branch, when later synchronized with `main`, should move/delegate its `GravityFrames` logic to the same service. That synchronization belongs to the other agent's canonical requirements/architecture process, not this branch editing their active S00 work.
+This is a stronger abstraction than compatibility with one Clinging release and avoids version handshakes entirely.
 
-## 4. Backward compatibility with Clinging prerelease
+## 5. Release/use consequence
 
-Clinging's next prerelease still needs to work with released Scale beta.5, which has no native capability. Therefore Clinging should retain its compatibility shims conditionally:
+Scale Brews will not be treated as a required runtime dependency of the upcoming Clinging prerelease while the larger Scale work remains incomplete. Therefore there is no need to preserve released beta.5 Tiny Mount behavior inside Clinging via transitional shims.
 
-- old Scale/native capability absent → Clinging shims apply;
-- native Scale capability present → Clinging shims are disabled.
+The two workstreams validate independently:
 
-This overlap is temporary and avoids requiring an unreleased Scale artifact for the Clinging prerelease.
+- Clinging proves generic mounted gravity without Scale;
+- Scale proves its own Tiny Mount mechanics under arbitrary effective gravity;
+- a bounded cross-repo fixture may later prove the composition, but neither production side gains a Tiny-specific contract.
 
-## 5. Transformation semantics
+## 6. Transformation semantics
 
-The mount system should distinguish:
+The mount system must distinguish:
 
-- control intent in mount-local/gravity-local coordinates;
-- newly generated impulse/velocity;
+- control intent in gravity-local coordinates;
+- newly generated Scale-owned impulse/velocity;
 - existing world momentum.
 
-Only the generated contribution is transformed by the current root frame. Existing world velocity is never reinterpreted simply because gravity changes. This is necessary to preserve Clinging's world-momentum contract and prevent double rotations.
+Only the generated contribution is transformed by the current root frame. Existing world velocity is never reinterpreted simply because gravity changes. This preserves Clinging's world-momentum contract and prevents double rotations.
 
-## 6. Iterative convergence record
+## 7. Iterative convergence record
 
 - **Pass 1:** initial idea was to copy Clinging's three Scale compatibility mixins into Scale.
-- **Pass 2 change:** rejected literal port; behavior is specified independently and common transforms should move behind a reusable mount/gravity helper.
-- **Pass 3 change:** rejected placing gravity support inside `collision`; Tiny Mounts is explicitly a separate subsystem.
-- **Pass 4 change:** rejected Clinging as the gravity-provider owner; Scale must integrate optionally with Gravity Changer so Tiny Mounts works without Clinging.
-- **Pass 5 change:** added one canonical transversal gravity provider to reconcile future collision and mount consumers and preserve FR-073.
-- **Pass 6 change:** added a native capability marker plus transitional Clinging shims so the next Clinging prerelease remains compatible with Scale beta.5.
-- **Pass 7:** full ownership/compatibility/main-vs-chatgpt-editing review produced no further changes.
+- **Pass 2 change:** rejected literal port; behavior is specified independently and common transforms should move behind a reusable gravity helper.
+- **Pass 3 change:** rejected placing gravity support inside `collision`; Tiny Mounts are explicitly a separate subsystem.
+- **Pass 4 change:** rejected Clinging as the gravity-provider owner; Scale must read effective gravity without depending on Clinging.
+- **Pass 5 change:** added one canonical transversal gravity-frame authority so future collision and mount consumers cannot disagree.
+- **Pass 6 change:** initially added a native capability marker plus transitional Clinging shims.
+- **Pass 7 change after owner review:** rejected that compatibility layer. Tiny Mounts are ordinary mounts at the contract boundary, unfinished Scale will not be a Clinging prerelease dependency, and Scale-specific mechanics must simply honor the root's effective gravity.
+- **Pass 8:** reread Clinging `MountedGravity`/`MobGravity` and the three Scale compatibility mixins. They confirm that the special handling exists only inside Scale-generated mechanics, not in Clinging's mount-selection contract. No blocker to the generic contract was found.
