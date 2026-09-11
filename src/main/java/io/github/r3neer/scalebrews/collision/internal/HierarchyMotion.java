@@ -52,10 +52,11 @@ public final class HierarchyMotion {
             }
             if(start.equals(end)) {
                 fixed=new Matrix4f(start);a=b=null;
-                // Frobenius norm safely bounds the operator norm, including shear.
-                norm=Math.sqrt(start.m00()*start.m00()+start.m01()*start.m01()+start.m02()*start.m02()
-                    +start.m10()*start.m10()+start.m11()*start.m11()+start.m12()*start.m12()
-                    +start.m20()*start.m20()+start.m21()*start.m21()+start.m22()*start.m22());
+                // ||A||_2^2 is lambda_max(A^T A). A Gershgorin row-sum bound on A^T A
+                // stays conservative for arbitrary fixed affine/sheared nodes, while unlike the
+                // Frobenius norm it does not turn every rigid identity/rotation into a fictitious
+                // sqrt(3) scale factor that compounds down a ModelPart hierarchy.
+                norm=fixedLinearNorm(start);
                 derivative=translationSpeed=0;translation=start.getTranslation(new Vector3f()).length();
             } else {
                 fixed=null;a=decompose(start);b=decompose(end);
@@ -98,6 +99,22 @@ public final class HierarchyMotion {
                 minus+=(u-v)*(u-v);plus+=(u+v)*(u+v);
             }
             return 4*Math.sqrt(minus/plus);
+        }
+        private static double fixedLinearNorm(Matrix4f m) {
+            double c00=m.m00(),c01=m.m01(),c02=m.m02();
+            double c10=m.m10(),c11=m.m11(),c12=m.m12();
+            double c20=m.m20(),c21=m.m21(),c22=m.m22();
+            double g00=c00*c00+c01*c01+c02*c02;
+            double g11=c10*c10+c11*c11+c12*c12;
+            double g22=c20*c20+c21*c21+c22*c22;
+            double g01=c00*c10+c01*c11+c02*c12;
+            double g02=c00*c20+c01*c21+c02*c22;
+            double g12=c10*c20+c11*c21+c12*c22;
+            double boundSquared=Math.max(g00+Math.abs(g01)+Math.abs(g02),
+                Math.max(g11+Math.abs(g01)+Math.abs(g12),g22+Math.abs(g02)+Math.abs(g12)));
+            if(!Double.isFinite(boundSquared) || boundSquared<=0)throw new IllegalArgumentException("Invalid fixed linear transform");
+            // Round the numerical bound outward rather than trusting the final sqrt rounding.
+            return Math.nextUp(Math.sqrt(Math.nextUp(boundSquared)));
         }
         private static double maxAbs(Vector3f v){return Math.max(Math.abs(v.x),Math.max(Math.abs(v.y),Math.abs(v.z)));}
         private static Trs decompose(Matrix4f m) {
