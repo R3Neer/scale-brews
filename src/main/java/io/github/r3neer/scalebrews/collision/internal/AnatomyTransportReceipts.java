@@ -34,10 +34,14 @@ public final class AnatomyTransportReceipts {
         public Receipt {
             if(epoch==null || catalogRevision<0 || dimension==null || bodyNetworkId<0 || body==null || trackingGeneration<1 || support==null
                     || piece==null || piece.isBlank() || face<0 || face>5 || localPoint==null || normal==null
-                    || surfaceTick<0 || contactSequence<0 || rootFrameSequence<0 || transportSequence<1 || tick<0 || bodyBefore==null || bodyAfter==null
+                    || surfaceTick<0 || contactSequence<1 || rootFrameSequence<0 || transportSequence<1 || tick<0 || bodyBefore==null || bodyAfter==null
                     || rootFrame==null || materialBefore==null || materialAfter==null || appliedDelta==null || !finite(localPoint) || !finite(normal) || !finite(bodyBefore)
                     || !finite(bodyAfter) || !finite(appliedDelta))
                 throw new IllegalArgumentException("Invalid confirmed anatomical transport receipt");
+            new SurfaceContact(support,catalogRevision,piece,face,localPoint,normal,surfaceTick);
+            if(rootFrame.sequence()!=rootFrameSequence || rootFrame.tick()>tick || surfaceTick>tick
+                    || bodyAfter.distanceToSqr(bodyBefore.add(appliedDelta))>1e-12)
+                throw new IllegalArgumentException("Contradictory confirmed anatomical transport receipt");
         }
         private static boolean finite(Vec3 value){return Double.isFinite(value.x) && Double.isFinite(value.y) && Double.isFinite(value.z);}
     }
@@ -62,6 +66,7 @@ public final class AnatomyTransportReceipts {
         for(var passenger:body.getIndirectPassengers())if(passenger instanceof ServerPlayer player)recipients.add(player);
         if(recipients.isEmpty())return;
         long tick=body.level().getGameTime();
+        if(transport.tick()!=tick || transport.rootFrameSequence()!=root.sequence() || root.tick()>tick || surface.tick()>tick)return;
         Vec3 appliedDelta=transport.appliedDelta(),after=body.position(),before=after.subtract(appliedDelta);
         for(var recipient:recipients) {
             long generation=AnatomyRuntime.trackingGeneration(recipient,body);
@@ -110,7 +115,7 @@ public final class AnatomyTransportReceipts {
         return history!=null && history.saturatedTicks.contains(tick);
     }
     public static synchronized void invalidate(Entity body) {
-        if(body==null)return;
+        if(body==null || body.level().isClientSide())return;
         var emptyRecipients=new ArrayList<ServerPlayer>();
         for(var entry:HISTORIES.entrySet()) {
             var roots=entry.getValue();roots.remove(body.getUUID());

@@ -26,7 +26,10 @@ public final class AuthorityPoseTracker {
     private final Map<LivingEntity,State> states=Collections.synchronizedMap(
         new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,State>makeMap());
     public PoseProvider.Inputs tick(LivingEntity entity,long tick,boolean supportedPose) {
-        State state=states.computeIfAbsent(entity,e->new State());
+        if(entity==null || tick<0)throw new IllegalArgumentException("Invalid authority tracker tick");
+        State state=states.get(entity);
+        if(state!=null && tick<state.tick)throw new IllegalArgumentException("Authority tracker clock cannot rewind");
+        if(state==null){state=new State();states.put(entity,state);}
         if(state.tick==tick)return state.inputs;
         Vec3 position=entity.position();
         var gravity=AnatomyMovement.gravity(entity);

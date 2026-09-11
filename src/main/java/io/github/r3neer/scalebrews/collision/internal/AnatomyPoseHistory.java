@@ -11,7 +11,11 @@ import net.minecraft.world.phys.Vec3;
 public final class AnatomyPoseHistory {
     public record Sample(PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
         public Sample(PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale){this(inputs,origin,yaw,scale,GravityFrame.VANILLA);}
-        public Sample{java.util.Objects.requireNonNull(gravity);}
+        public Sample {
+            if(inputs==null || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr())
+                    || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
+                throw new IllegalArgumentException("Invalid authoritative pose sample");
+        }
     }
     public record Segment(Sample before,Sample after,double fraction) {}
     private AnatomyPosePayload previous,current;
@@ -24,11 +28,12 @@ public final class AnatomyPoseHistory {
         return new Segment(frame(previous),frame(current),Math.clamp((tick-previous.jointSampleTick())/(current.jointSampleTick()-previous.jointSampleTick()),0,1));
     }
     public boolean accept(AnatomyPosePayload next) {
+        if(next==null)throw new IllegalArgumentException("Missing pose frame");
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
-                || !current.entity().equals(next.entity()) || current.entityId()!=next.entityId() || !current.model().equals(next.model()) || !current.provider().equals(next.provider()))
+                || !current.entity().equals(next.entity()) || current.entityId()!=next.entityId() || !current.model().equals(next.model()) || !current.provider().equals(next.provider()) || current.bindingGeneration()!=next.bindingGeneration())
                 throw new IllegalArgumentException("Pose history identity changed without reset");
-            if(next.jointSampleTick()<=current.jointSampleTick())return false;
+            if(next.jointSampleTick()<=current.jointSampleTick() || next.authorityTick()<current.authorityTick())return false;
         }
         previous=current;
         if(previous!=null && (next.origin().distanceToSqr(previous.origin())>16 || next.jointSampleTick()-previous.jointSampleTick()>20 || next.gravity()!=previous.gravity()))previous=null;

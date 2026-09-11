@@ -10,14 +10,38 @@ import org.joml.Vector3f;
 public record ConvexBox(List<Vec3> vertices) {
     private static final double EPS=1e-9;
     public ConvexBox {
+        if(vertices==null || vertices.size()!=8 || vertices.stream().anyMatch(v->v==null || !Double.isFinite(v.lengthSqr())))
+            throw new IllegalArgumentException("Eight finite vertices required");
         vertices=List.copyOf(vertices);
-        if(vertices.size()!=8 || vertices.stream().anyMatch(v->!Double.isFinite(v.lengthSqr()))) throw new IllegalArgumentException("Eight finite vertices required");
         Vec3 x=vertices.get(1).subtract(vertices.get(0)),y=vertices.get(2).subtract(vertices.get(0)),z=vertices.get(4).subtract(vertices.get(0));
-        if(Math.abs(x.dot(y.cross(z)))<1e-15) throw new IllegalArgumentException("Degenerate box");
+        double determinant=x.dot(y.cross(z));
+        if(!Double.isFinite(determinant) || Math.abs(determinant)<1e-15)
+            throw new IllegalArgumentException("Degenerate or numerically unbounded box");
+        for(Vec3 normal:List.of(x.cross(y),y.cross(z),z.cross(x))) {
+            double square=normal.lengthSqr();
+            if(!Double.isFinite(square) || square<Double.MIN_NORMAL)
+                throw new IllegalArgumentException("Numerically invalid face plane");
+        }
         for(int i=0;i<8;i++) if(vertices.get(0).add(x.scale(i&1)).add(y.scale((i>>1)&1)).add(z.scale((i>>2)&1)).distanceToSqr(vertices.get(i))>1e-10)
             throw new IllegalArgumentException("Non-affine vertices");
     }
+    /** Reject invalid physical bounds before SAT or any temporal early exit. */
+    public static void requireBounds(AABB b) {
+        if(b==null || !Double.isFinite(b.minX) || !Double.isFinite(b.minY) || !Double.isFinite(b.minZ)
+                || !Double.isFinite(b.maxX) || !Double.isFinite(b.maxY) || !Double.isFinite(b.maxZ)
+                || !(b.maxX>b.minX) || !(b.maxY>b.minY) || !(b.maxZ>b.minZ)
+                || !Double.isFinite(b.getXsize()+b.getYsize()+b.getZsize())
+                || !Double.isFinite(b.getCenter().lengthSqr()))throw new IllegalArgumentException("Invalid physical bounds");
+    }
+    private static Vec3 requireVector(Vec3 v) {
+        if(v==null || !Double.isFinite(v.lengthSqr()))throw new IllegalArgumentException("Invalid geometry vector");
+        return v;
+    }
     public static ConvexBox of(AABB b,Matrix4fc m) {
+        requireBounds(b);
+        if(m==null || Math.abs(m.m03())>1e-6 || Math.abs(m.m13())>1e-6 || Math.abs(m.m23())>1e-6 || Math.abs(m.m33()-1)>1e-6)
+            throw new IllegalArgumentException("Non-affine box transform");
+        for(float value:m.get(new float[16]))if(!Float.isFinite(value))throw new IllegalArgumentException("Invalid box transform");
         List<Vec3> points=new ArrayList<>();
         for(int i=0;i<8;i++) {
             Vector3f v=m.transformPosition((float)((i&1)==0?b.minX:b.maxX),(float)((i&2)==0?b.minY:b.maxY),(float)((i&4)==0?b.minZ:b.maxZ),new Vector3f());
@@ -30,15 +54,17 @@ public record ConvexBox(List<Vec3> vertices) {
         for(Vec3 p:vertices) {x=Math.min(x,p.x);y=Math.min(y,p.y);z=Math.min(z,p.z);X=Math.max(X,p.x);Y=Math.max(Y,p.y);Z=Math.max(Z,p.z);}
         return new AABB(x,y,z,X,Y,Z);
     }
-    public ConvexBox move(Vec3 delta) {return new ConvexBox(vertices.stream().map(v->v.add(delta)).toList());}
+    public ConvexBox move(Vec3 delta) {requireVector(delta);return new ConvexBox(vertices.stream().map(v->v.add(delta)).toList());}
     public Vec3 point(Vec3 local) {
+        requireVector(local);
         Vec3 origin=vertices.getFirst();
-        return origin.add(vertices.get(1).subtract(origin).scale(local.x)).add(vertices.get(2).subtract(origin).scale(local.y)).add(vertices.get(4).subtract(origin).scale(local.z));
+        return requireVector(origin.add(vertices.get(1).subtract(origin).scale(local.x)).add(vertices.get(2).subtract(origin).scale(local.y)).add(vertices.get(4).subtract(origin).scale(local.z)));
     }
     public Vec3 coordinates(Vec3 world) {
+        requireVector(world);
         Vec3 origin=vertices.getFirst(),x=vertices.get(1).subtract(origin),y=vertices.get(2).subtract(origin),z=vertices.get(4).subtract(origin),v=world.subtract(origin);
         double determinant=x.dot(y.cross(z));
-        return new Vec3(v.dot(y.cross(z))/determinant,v.dot(z.cross(x))/determinant,v.dot(x.cross(y))/determinant);
+        return requireVector(new Vec3(v.dot(y.cross(z))/determinant,v.dot(z.cross(x))/determinant,v.dot(x.cross(y))/determinant));
     }
     /** Faces: low/high X, low/high Y, low/high Z in immutable model-local coordinates. */
     public Vec3 faceNormal(int face) {
@@ -49,11 +75,14 @@ public record ConvexBox(List<Vec3> vertices) {
         return n.scale((face%2==0?-1:1)/Math.sqrt(n.lengthSqr()));
     }
     public int closestFace(Vec3 normal) {
+        requireVector(normal);
+        if(normal.lengthSqr()==0)throw new IllegalArgumentException("Missing normal direction");
         int best=0;double score=Double.NEGATIVE_INFINITY;
         for(int face=0;face<6;face++){double dot=faceNormal(face).dot(normal);if(dot>score){score=dot;best=face;}}
         return best;
     }
     public Vec3 facePoint(int face,Vec3 world) {
+        if(face<0 || face>5)throw new IllegalArgumentException("Invalid face");
         Vec3 p=coordinates(world);double[] c={Math.clamp(p.x,0,1),Math.clamp(p.y,0,1),Math.clamp(p.z,0,1)};
         c[face/2]=face%2;return new Vec3(c[0],c[1],c[2]);
     }
@@ -76,9 +105,19 @@ public record ConvexBox(List<Vec3> vertices) {
         List<Vec3> world=List.of(new Vec3(1,0,0),new Vec3(0,1,0),new Vec3(0,0,1));
         List<Vec3> result=new ArrayList<>(world);result.addAll(List.of(x.cross(y),y.cross(z),z.cross(x)));
         for(Vec3 edge:List.of(x,y,z))for(Vec3 axis:world)result.add(edge.cross(axis));
-        // Vec3.normalize intentionally returns ZERO for small vectors. Nearly parallel edges
-        // produced by model rotations still need a real unit SAT axis, never a zero plane.
-        return result.stream().filter(v->v.lengthSqr()>1e-20).map(v->v.scale(1/Math.sqrt(v.lengthSqr()))).toList();
+        // Direction is independent of magnitude. Scale by the largest component
+        // before normalization: neither squared underflow nor a subnormal reciprocal
+        // may discard a separating plane or create NaN escape candidates.
+        List<Vec3> normalized=new ArrayList<>();
+        for(Vec3 axis:result) {
+            double largest=Math.max(Math.abs(axis.x),Math.max(Math.abs(axis.y),Math.abs(axis.z)));
+            if(!Double.isFinite(largest))throw new IllegalArgumentException("Unbounded SAT axis");
+            if(largest>0) {
+                var scaled=new Vec3(axis.x/largest,axis.y/largest,axis.z/largest);
+                normalized.add(scaled.scale(1/Math.sqrt(scaled.lengthSqr())));
+            }
+        }
+        return List.copyOf(normalized);
     }
     private double[] interval(Vec3 axis) {
         double lo=Double.POSITIVE_INFINITY,hi=-lo;
@@ -89,6 +128,7 @@ public record ConvexBox(List<Vec3> vertices) {
         return new double[]{c-r,c+r};
     }
     public boolean overlaps(AABB body) {
+        requireBounds(body);
         for(Vec3 axis:axes()){double[] a=interval(axis),b=interval(body,axis);if(b[1]<=a[0]+EPS || b[0]>=a[1]-EPS)return false;}return true;
     }
     public record Separation(double gap,Vec3 normal) {}
@@ -104,6 +144,7 @@ public record ConvexBox(List<Vec3> vertices) {
     }
     /** Maximum separating-plane gap; a conservative lower bound on Euclidean distance. */
     public Separation separation(AABB body) {
+        requireBounds(body);
         double gap=Double.NEGATIVE_INFINITY;Vec3 normal=Vec3.ZERO;
         for(Vec3 axis:axes()) {
             double[] a=interval(axis),b=interval(body,axis);
@@ -116,7 +157,7 @@ public record ConvexBox(List<Vec3> vertices) {
     public record Hit(double fraction,Vec3 normal,boolean penetrating) {}
     /** Exact translating-AABB sweep. Temporal rotation/deformation is NOT implemented here. */
     public Hit sweep(AABB body,Vec3 movement) {
-        if(!Double.isFinite(movement.lengthSqr()))throw new IllegalArgumentException("Invalid movement");
+        requireVector(movement);
         if(overlaps(body))return new Hit(0,Vec3.ZERO,true);
         double enter=Double.NEGATIVE_INFINITY,exit=Double.POSITIVE_INFINITY;Vec3 normal=Vec3.ZERO;
         for(Vec3 axis:axes()) {

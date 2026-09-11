@@ -27,10 +27,14 @@ public record GravityFrame(Direction down) {
     }
     public double vertical(Vec3 displacement){return displacement.dot(up());}
     public Vec3 tangent(Vec3 displacement){return displacement.subtract(up().scale(vertical(displacement)));}
-    public boolean supports(Vec3 normal){return normal.dot(up())>=Math.sqrt(.5)-1e-7;}
+    public boolean supports(Vec3 normal) {
+        if(normal==null)return false;
+        double square=normal.lengthSqr();
+        return Double.isFinite(square) && square>0 && normal.dot(up())/Math.sqrt(square)>=Math.sqrt(.5)-1e-7;
+    }
     /** Clinging chooses cardinal gravity only; diagonal ties are deliberately ambiguous. */
     public static java.util.Optional<Direction> dominant(Vec3 normal) {
-        if(!Double.isFinite(normal.lengthSqr()) || normal.lengthSqr()<1e-12)return java.util.Optional.empty();
+        if(normal==null || !Double.isFinite(normal.lengthSqr()) || normal.lengthSqr()<1e-12)return java.util.Optional.empty();
         double x=Math.abs(normal.x),y=Math.abs(normal.y),z=Math.abs(normal.z),max=Math.max(x,Math.max(y,z));
         int ties=(max-x<1e-6?1:0)+(max-y<1e-6?1:0)+(max-z<1e-6?1:0);
         if(ties!=1)return java.util.Optional.empty();

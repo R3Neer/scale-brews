@@ -1,25 +1,17 @@
-# Temporary S00 transport infrastructure (SPRINT_WORKFLOW section 13).
-# Exact source trees are verified before Gradle; this runner never updates refs.
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain platforms or Java versions, and provides a first line of defence
+# against bad commits.
+
 name: build
-on:
-  push:
-    branches: [chatgpt-editing]
-permissions:
-  contents: read
+on: [pull_request, push]
+
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
     steps:
-      - name: checkout transport revision
+      - name: checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: materialize and verify complete candidate tree
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .github/s00-build.py
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
       - name: setup jdk
@@ -27,144 +19,12 @@ jobs:
         with:
           java-version: '25'
           distribution: 'microsoft'
-          cache: gradle
-      - name: record environment
-        run: |
-          java -version 2> "$RUNNER_TEMP/s00-evidence/java.txt"
-          chmod +x ./gradlew
-      - name: build and required server GameTests
-        run: |
-          set -o pipefail
-          ./gradlew build --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-evidence/server.xml" 2>&1 | tee "$RUNNER_TEMP/s00-evidence/build.log"
-      - name: real client and integrated server GameTests
-        if: always()
-        env:
-          LIBGL_ALWAYS_SOFTWARE: '1'
-        run: |
-          set -o pipefail
-          xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-evidence/client-server.xml" 2>&1 | tee "$RUNNER_TEMP/s00-evidence/client.log"
-      - name: preserve evidence even for a rejected candidate
-        if: always()
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: build
+        run: ./gradlew build
+      - name: capture build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: S00-${{ github.run_id }}
-          path: ${{ runner.temp }}/s00-evidence/
-          if-no-files-found: error
-
-  mutation:
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      max-parallel: 4
-      matrix:
-        mutation:
-          - dispatcher-reentry
-          - dispatcher-abort-clear
-          - sat-axis-cutoff
-          - sat-subnormal-reciprocal
-          - bodypath-certificate
-          - bodypath-interior-certificate
-          - plane-precopy-cap
-          - tiny-rotation-bound
-          - receipt-current-tick
-          - receipt-surface
-          - frame-binding-generation
-          - model-unknown-joint
-          - runtime-thread-owner
-          - endpoint-same-serial
-          - first-capture-quarantine
-          - registration-lifecycle-watermark
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: retain reviewed mutator outside candidate source
-        run: cp .github/s00-mutate.py "$RUNNER_TEMP/s00-mutate.py"
-      - name: materialize exact candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .github/s00-build.py
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'microsoft'
-          cache: gradle
-      - name: apply one directed mutation
-        run: |
-          chmod +x ./gradlew
-          python3 "$RUNNER_TEMP/s00-mutate.py" apply "${{ matrix.mutation }}"
-      - name: mutation must compile
-        run: |
-          set -o pipefail
-          ./gradlew compileGametestJava --console=plain 2>&1 | tee "$RUNNER_TEMP/s00-mutation/compile.log"
-      - name: exact behavioral assertion must kill mutation
-        shell: bash
-        run: |
-          set +e
-          ./gradlew runGameTest --console=plain --rerun-tasks "-PscalebrewsGameTestReport=$RUNNER_TEMP/s00-mutation/server.xml" > "$RUNNER_TEMP/s00-mutation/run.log" 2>&1
-          code=$?
-          set -e
-          tail -n 50 "$RUNNER_TEMP/s00-mutation/run.log"
-          python3 "$RUNNER_TEMP/s00-mutate.py" verify "${{ matrix.mutation }}" "$code"
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: S00-mutation-${{ matrix.mutation }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/s00-mutation/
-          if-no-files-found: warn
-
-  client-mutation:
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        mutation:
-          - client-receipt-invalidate
-          - client-carry-authority
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: retain reviewed mutator outside candidate source
-        run: cp .github/s00-mutate.py "$RUNNER_TEMP/s00-mutate.py"
-      - name: materialize exact candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .github/s00-build.py
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'microsoft'
-          cache: gradle
-      - name: apply directed client mutation
-        run: |
-          chmod +x ./gradlew
-          python3 "$RUNNER_TEMP/s00-mutate.py" apply "${{ matrix.mutation }}"
-      - name: client mutation must compile
-        run: |
-          set -o pipefail
-          ./gradlew compileGametestJava compileClientJava --console=plain 2>&1 | tee "$RUNNER_TEMP/s00-mutation/compile.log"
-      - name: exact real-client assertion must kill mutation
-        env:
-          LIBGL_ALWAYS_SOFTWARE: '1'
-        shell: bash
-        run: |
-          set +e
-          xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks > "$RUNNER_TEMP/s00-mutation/run.log" 2>&1
-          code=$?
-          set -e
-          tail -n 50 "$RUNNER_TEMP/s00-mutation/run.log"
-          python3 "$RUNNER_TEMP/s00-mutate.py" verify "${{ matrix.mutation }}" "$code"
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: S00-mutation-${{ matrix.mutation }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/s00-mutation/
-          if-no-files-found: warn
+          name: Artifacts
+          path: build/libs/

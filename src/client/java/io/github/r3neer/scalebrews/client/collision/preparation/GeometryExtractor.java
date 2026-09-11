@@ -78,7 +78,13 @@ public final class GeometryExtractor {
         if(pieces.size()>=4096)throw new IllegalArgumentException("Too many cubes");
         if(vertices.isEmpty())return;
         double[] lo={Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY},hi={-lo[0],-lo[1],-lo[2]};
-        for(double[] v:vertices)for(int i=0;i<3;i++){lo[i]=Math.min(lo[i],v[i]);hi[i]=Math.max(hi[i],v[i]);}
+        for(double[] v:vertices)for(int i=0;i<3;i++){
+            if(!Double.isFinite(v[i]))throw new IllegalArgumentException("Non-finite model vertex");
+            lo[i]=Math.min(lo[i],v[i]);hi[i]=Math.max(hi[i],v[i]);
+        }
+        // Renderer models legitimately contain zero-thickness visual quads/cubes. They are not material
+        // convex pieces, so the engine omits them rather than weakening ModelGeometry's load boundary.
+        for(int i=0;i<3;i++)if(!(hi[i]>lo[i]))return;
         pieces.add(new ModelGeometry.Piece(id,part,List.of(lo[0],lo[1],lo[2]),List.of(hi[0],hi[1],hi[2]),excluded));
     }
     private static Object field(Object owner,String name) {

@@ -34,11 +34,11 @@ public final class BodyPath {
     private final LocalAnchor anchor;
     private final AABB body;
     private final Vec3 center,up,initialOffset;
-    private final double initialGap,liftRate,residualSpeed;
+    private final double initialGap,liftRate,residualSpeed,minDot;
 
     private BodyPath(ConservativeSweep.Motion material,LocalAnchor anchor,AABB body,Vec3 up,Vec3 point0,Vec3 normal0,NormalBounds bounds) {
         this.material=material;this.anchor=anchor;this.body=body;this.center=body.getCenter();this.up=up;this.initialOffset=center.subtract(point0);
-        this.initialGap=normal0.dot(initialOffset)-halfExtent(body,normal0);
+        this.initialGap=normal0.dot(initialOffset)-halfExtent(body,normal0);this.minDot=bounds.minDotAntiGravity();
         double alpha=bounds.minDotAntiGravity(),h=Math.sqrt(square(body.getXsize()*.5)+square(body.getYsize()*.5)+square(body.getZsize()*.5));
         double radius=h+Math.abs(initialGap)+initialOffset.length(),rate=bounds.normalRateBound();
         this.liftRate=rate*(h+initialOffset.length())/alpha+radius*rate/(alpha*alpha);
@@ -49,21 +49,27 @@ public final class BodyPath {
     public static Optional<BodyPath> fromMaterial(ConservativeSweep.Motion material,LocalAnchor anchor,AABB body,GravityFrame gravity,NormalBounds bounds) {
         if(material==null || anchor==null || body==null || !finite(body) || gravity==null || bounds==null || bounds.face()!=anchor.face())
             return Optional.empty();
-        var first=material.at().apply(0);Vec3 normal=first.faceNormal(anchor.face()),up=gravity.up();
-        if(normal.dot(up)<SUPPORT)return Optional.empty();
-        try{return Optional.of(new BodyPath(material,anchor,body,up,first.point(anchor.coordinates()),normal,bounds));}
-        catch(IllegalArgumentException rejected){return Optional.empty();}
+        try {
+            var first=material.at().apply(0);if(first==null)return Optional.empty();
+            Vec3 normal=first.faceNormal(anchor.face()),up=gravity.up();double support=normal.dot(up);
+            if(!Double.isFinite(support) || support<SUPPORT || support+1e-6<bounds.minDotAntiGravity())return Optional.empty();
+            return Optional.of(new BodyPath(material,anchor,body,up,first.point(anchor.coordinates()),normal,bounds));
+        } catch(RuntimeException rejected) {return Optional.empty();}
     }
     /** Exact centre displacement; invalid provider output is rejected instead of chord-warped. */
     public Optional<Vec3> displacement(double time) {
         if(!Double.isFinite(time) || time<0 || time>1)return Optional.empty();
         if(time==0)return Optional.of(Vec3.ZERO);
-        var shape=material.at().apply(time);Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
-        if(!Double.isFinite(denominator) || denominator<SUPPORT)return Optional.empty();
-        Vec3 point=shape.point(anchor.coordinates());
-        double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
-        if(!Double.isFinite(lift))return Optional.empty();
-        return Optional.of(point.add(initialOffset).add(up.scale(lift)).subtract(center));
+        try {
+            var shape=material.at().apply(time);if(shape==null)return Optional.empty();
+            Vec3 normal=shape.faceNormal(anchor.face());double denominator=normal.dot(up);
+            if(!Double.isFinite(denominator) || denominator<SUPPORT || denominator+1e-6<minDot)return Optional.empty();
+            Vec3 point=shape.point(anchor.coordinates());
+            double lift=(halfExtent(body,normal)+initialGap-normal.dot(initialOffset))/denominator;
+            if(!Double.isFinite(lift))return Optional.empty();
+            Vec3 result=point.add(initialOffset).add(up.scale(lift)).subtract(center);
+            return Double.isFinite(result.lengthSqr())?Optional.of(result):Optional.empty();
+        } catch(RuntimeException unavailable) {return Optional.empty();}
     }
     /** Declared linear cancellation term for a rigidly translated material face. */
     public Vec3 linearTranslation(){return material.linearTranslation();}

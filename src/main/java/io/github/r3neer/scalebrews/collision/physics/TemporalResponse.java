@@ -46,6 +46,8 @@ public final class TemporalResponse {
     }
     public static Result resolve(AABB body,Vec3 requested,Map<String,ConservativeSweep.Motion> pieces,int events,int queryBudget,
             java.util.function.BiFunction<AABB,Vec3,Vec3> clip) {
+        ConvexBox.requireBounds(body);
+        if(requested==null || pieces==null)throw new IllegalArgumentException("Missing response input");
         if(events<1 || events>256 || queryBudget<1 || queryBudget>4096 || !Double.isFinite(requested.lengthSqr()) || clip==null)
             throw new IllegalArgumentException("Invalid response budget");
         var ids=new TreeSet<>(pieces.keySet());

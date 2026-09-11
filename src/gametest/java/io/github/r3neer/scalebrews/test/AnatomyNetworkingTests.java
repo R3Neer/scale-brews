@@ -149,11 +149,11 @@ public final class AnatomyNetworkingTests {
         var epoch=UUID.randomUUID();var body=UUID.randomUUID();long tick=h.getLevel().getGameTime();
         var dimension=Identifier.parse("minecraft:overworld");var support=UUID.randomUUID();
         var normal=new Vec3(0,1,0);
-        var old=new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,tick,8,support,"body",3,Vec3.ZERO,normal);
+        var old=new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,tick,8,support,"body",3,new Vec3(0,1,0),normal);
         var clear=AnatomyContactPayload.clear(epoch,1,dimension,7,body,1,2,tick+1);
         long restartedGeneration=AnatomyRuntime.nextTrackingGeneration(old.trackingGeneration());
-        var restarted=new AnatomyContactPayload(epoch,1,dimension,7,body,restartedGeneration,1,tick+2,8,support,"body",3,Vec3.ZERO,normal);
-        var delayed=new AnatomyContactPayload(epoch,1,dimension,7,body,1,3,tick+3,8,support,"body",3,Vec3.ZERO,normal);
+        var restarted=new AnatomyContactPayload(epoch,1,dimension,7,body,restartedGeneration,1,tick+2,8,support,"body",3,new Vec3(0,1,0),normal);
+        var delayed=new AnatomyContactPayload(epoch,1,dimension,7,body,1,3,tick+3,8,support,"body",3,new Vec3(0,1,0),normal);
         var inbox=new AnatomyContactInbox();
         h.assertTrue(inbox.accept(dimension,old) && inbox.pending().containsKey(body),"Initial present contact enters the pending queue");
         inbox.consume(old);
@@ -173,11 +173,11 @@ public final class AnatomyNetworkingTests {
         long first=h.getLevel().getGameTime();
         for(long elapsed=0;elapsed<=120;elapsed+=AnatomyRuntime.CONTACT_HEARTBEAT_TICKS) {
             var heartbeat=new AnatomyContactPayload(epoch,1,dimension,7,body,1,elapsed/AnatomyRuntime.CONTACT_HEARTBEAT_TICKS+1,first+elapsed,
-                8,support,"body",3,Vec3.ZERO,normal);
+                8,support,"body",3,new Vec3(0,1,0),normal);
             h.assertTrue(inbox.accept(dimension,heartbeat),"Monotonic stationary contact heartbeat is accepted");
             inbox.consume(heartbeat);inbox.prune(first+elapsed,100);
         }
-        h.assertTrue(!inbox.accept(dimension,new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,first,8,support,"body",3,Vec3.ZERO,normal)),
+        h.assertTrue(!inbox.accept(dimension,new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,first,8,support,"body",3,new Vec3(0,1,0),normal)),
             "A stale pre-heartbeat packet cannot restore a quiet contact after more than 100 ticks");
         h.succeed();
     }

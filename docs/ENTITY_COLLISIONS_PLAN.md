@@ -45,6 +45,12 @@ Estado de tareas:
 
 **Salida:** árbol comprensible y compilable, sin scaffolding conocido que sólo se pruebe a sí mismo y con el subsistema nuevo fuera de `platform.anatomy`. El feature puede seguir desactivado; G0 no afirma corrección física ni cumplimiento de G1-G9.
 
+### S00 — Foundation Audit previa a G1
+
+Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó el modelo adversarial clean-room, inventario/clasificación de cimientos, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. El registro de ejecución está en `docs/sprints/S00-foundation-audit.md` y la evidencia realmente ejecutada en `VALIDATION.md`.
+
+Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5 y no se consideran implementados por cerrar S00. **El siguiente gate sigue siendo G1; G1/S01 no se ha iniciado.**
+
 ### G1 — contrato público y data model desacoplados del legacy
 
 **Requisitos:** FR-001..006, FR-009..013, FR-015..034, FR-072..076; NFR-019..025, NFR-034..036.

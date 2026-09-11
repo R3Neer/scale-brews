@@ -87,7 +87,7 @@ public final class AnatomyCatalogTransfer {
         if(models==null)throw new IllegalArgumentException("Missing catalog object");
         Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles=new TreeMap<>();
         for(var entry:bundle.getAsJsonObject("profiles").entrySet())profiles.put(entry.getKey(),io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,entry.getValue()).getOrThrow());
-        catalog.replace(models,profiles);acceptedRevision=pendingRevision;chunks=null;
+        catalog.replaceAtRevision(pendingRevision,models,profiles);acceptedRevision=pendingRevision;chunks=null;
         return true;
     }
 }

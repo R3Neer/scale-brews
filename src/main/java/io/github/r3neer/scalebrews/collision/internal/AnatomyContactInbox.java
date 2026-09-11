@@ -36,8 +36,9 @@ public final class AnatomyContactInbox {
     }
     /** World/server ticks, never wall-clock or render frames, bound retained stale identities. */
     public void prune(long serverTick,long maxAge) {
+        if(serverTick<0 || maxAge<0)throw new IllegalArgumentException("Invalid contact retention window");
         for(var iterator=watermarks.entrySet().iterator();iterator.hasNext();) {
-            var entry=iterator.next();if(entry.getValue().tick()+maxAge<serverTick) {pending.remove(entry.getKey());iterator.remove();}
+            var entry=iterator.next();if(entry.getValue().tick()<serverTick && serverTick-entry.getValue().tick()>maxAge) {pending.remove(entry.getKey());iterator.remove();}
         }
     }
     public void clear(){watermarks.clear();pending.clear();}

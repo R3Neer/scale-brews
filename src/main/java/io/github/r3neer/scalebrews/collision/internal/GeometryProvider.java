@@ -35,6 +35,7 @@ public interface GeometryProvider {
     record CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,AnatomyPoseHistory.Sample sample,Availability availability) {
         public CausalEndpoint {
             if(frameSerial<1 || authorityTick<0 || jointSampleTick<0 || root==null || sample==null || availability==null
+                    || jointSampleTick>authorityTick || root.tick()>authorityTick
                     || !root.origin().equals(sample.origin()) || Float.compare(root.yaw(),sample.yaw())!=0
                     || Float.compare(root.scale(),sample.scale())!=0 || !root.gravity().equals(sample.gravity()))
                 throw new IllegalArgumentException("Invalid causal endpoint");
@@ -54,10 +55,17 @@ public interface GeometryProvider {
     record MotionIntervalHandle(GeometryIdentity identity,long materialSerial,QueryFrame before,QueryFrame after) {
         /** A gravity change is a lifecycle discontinuity, never a continuous material interval. */
         public MotionIntervalHandle {if(materialSerial<1 || before==null || after==null || !before.identity().equals(identity) || !after.identity().equals(identity)
-                || after.authorityTick()<before.authorityTick() || !before.root().gravity().equals(after.root().gravity()))throw new IllegalArgumentException("Invalid motion handle");}
+                || after.authorityTick()<before.authorityTick() || after.endpoint().frameSerial()<=before.endpoint().frameSerial()
+                || after.endpoint().jointSampleTick()<before.endpoint().jointSampleTick() || !before.root().gravity().equals(after.root().gravity()))throw new IllegalArgumentException("Invalid motion handle");}
     }
     record Snapshot(long revision,Map<String,ConvexBox> pieces) {
-        public Snapshot {pieces=Map.copyOf(pieces);}
+        public Snapshot {if(revision<0)throw new IllegalArgumentException("Invalid snapshot revision");pieces=validatedPieces(pieces);}
+    }
+    private static <T> Map<String,T> validatedPieces(Map<String,T> pieces) {
+        if(pieces==null || pieces.size()>4096 || pieces.entrySet().stream().anyMatch(e->e.getKey()==null
+                || e.getKey().isBlank() || e.getKey().length()>256 || e.getValue()==null))
+            throw new IllegalArgumentException("Invalid physical pieces");
+        return Map.copyOf(pieces);
     }
     Optional<Snapshot> sample(LivingEntity entity);
     /**
@@ -69,20 +77,15 @@ public interface GeometryProvider {
     /** Certified motion provenance: only the declared consecutive authority interval may be swept. */
     record MotionSnapshot(long revision,long fromTick,long toTick,Vec3 supportOriginFrom,Vec3 supportOriginTo,Map<String,ConservativeSweep.Motion> pieces) {
         public MotionSnapshot {
-            if(fromTick<0 || toTick!=fromTick+1 || supportOriginFrom==null || supportOriginTo==null
+            if(revision<0 || fromTick<0 || fromTick==Long.MAX_VALUE || toTick<0 || toTick!=fromTick+1 || supportOriginFrom==null || supportOriginTo==null
                 || !Double.isFinite(supportOriginFrom.lengthSqr()+supportOriginTo.lengthSqr()))throw new IllegalArgumentException("Invalid motion interval");
-            pieces=Map.copyOf(pieces);
+            pieces=validatedPieces(pieces);
         }
     }
-    /** Default is an explicitly static current pose, not a whole-entity bounding box. */
-    default Optional<MotionSnapshot> motion(LivingEntity entity) {
-        long to=entity.level().getGameTime();
-        if(to<1)return Optional.empty();
-        return sample(entity).map(snapshot->{
-            Map<String,ConservativeSweep.Motion> motions=new java.util.LinkedHashMap<>();
-            snapshot.pieces().forEach((id,box)->motions.put(id,new ConservativeSweep.Motion(t->box,0)));
-            return new MotionSnapshot(snapshot.revision(),to-1,to,entity.position(),entity.position(),motions);
-        });
-    }
+    /**
+     * No historical provenance is safer than invented static history. Providers
+     * that can prove a consecutive material interval must override this method.
+     */
+    default Optional<MotionSnapshot> motion(LivingEntity entity) {return Optional.empty();}
     default void tick(LivingEntity entity,long tick) {}
 }

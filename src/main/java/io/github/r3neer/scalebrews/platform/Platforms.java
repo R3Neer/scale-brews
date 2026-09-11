@@ -145,7 +145,8 @@ public final class Platforms {
         Set<Entity> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         while (ancestor != null) {
             if (ancestor == body || !seen.add(ancestor)) return false;
-            ancestor = state(ancestor).support;
+            var anatomical=AnatomyMovement.contact(ancestor);
+            ancestor=anatomical==null?state(ancestor).support:anatomical.support();
         }
         return true;
     }

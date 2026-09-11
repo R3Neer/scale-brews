@@ -24,7 +24,7 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
     }
     public AnatomyPosePayload {
         if(epoch==null || entity==null || dimension==null || model==null || provider==null || inputs==null || gravity==null || revision<0 || frameSerial<1 || authorityTick<0
-            || jointSampleTick<0 || rootFrameSequence<0 || rootFrameTick<0 || bindingGeneration<1 || entityId<0
+            || jointSampleTick<0 || jointSampleTick>authorityTick || rootFrameSequence<0 || rootFrameTick<0 || rootFrameTick>authorityTick || bindingGeneration<1 || entityId<0
             || origin==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw+scale) || scale<=0 || scale>1024)
             throw new IllegalArgumentException("Invalid anatomical pose frame");
     }

@@ -221,3 +221,46 @@ Optional compatibility JARs for supported test tasks can be supplied with:
 The collision preparation harness is `tools/PrepareAnatomyProof.ps1`. Its historical A/B/C lanes are test tooling, not separate product architectures. Use only the current flags declared by the script and pin every external JAR/input used by an evidence run.
 
 GitHub Actions performs the ordinary Gradle build/server path on Ubuntu/Java 25. Special client, dedicated latency, compatibility and preparation lanes are only evidence when their exact command/snapshot/result has been recorded here.
+
+## S00 Foundation Audit — accepted implementation snapshot — 2026-09-11
+
+S00 acceptance was executed against the exact reconstructed source tree `68244f2acbebccfd0dec607220726b9ed7e56e8a`. GitHub Actions transport commit `a5503f97a7320e416cd253357c6c8f3cb5b002e3` materialized that tree and verified its identity before running Gradle. The transport commits are CI machinery only; the logical S00 tree removes that machinery.
+
+### Final build/client/dedicated evidence
+
+GitHub Actions run `34574727529` on Microsoft Java 25.0.3 completed successfully.
+
+- The materializer printed `S00_SOURCE_TREE=68244f2acbebccfd0dec607220726b9ed7e56e8a` and validated every reviewed patch digest before execution.
+- Gradle wrapper validation passed.
+- `./gradlew build --rerun-tasks` completed with **242/242 required server GameTests** passing.
+- The real-client/integrated lane completed successfully under Xvfb/llvmpipe. It exported original Minecraft cow and player wide/slim geometry, ran 80 animated comparisons for each of those three models, and ran **640 additional vanilla-family pose comparisons**.
+- The same client lane completed the dedicated proof with `allow-flight=false` and **0 / 100 / 200 ms RTT, 120 ticks each**.
+- The real client printed `S00_CLIENT_RECEIPT_AUTHORITY PASS` and `S00_OBSERVER_AUTHORITY PASS`.
+- Evidence artifact `S00-34574727529` has SHA-256 digest `eeaf7d9b323a5f14c5cb3819385b216e15ff50f662c194ec8d3622d3ccdbd064`.
+
+### Directed mutation evidence
+
+The final mutation evidence uses exact candidate and mutated Git trees and requires the intended behavioral oracle to fail. A mutation compile error, transport error or unrelated assertion does not count as a kill.
+
+- `s00-mutation-v2` run `34574727544`: **22/22 jobs passed**. The campaign covers dispatcher reentry/abort/orphan, SAT cutoff/subnormal, body-path certificates, invariant-plane budget, tiny rotation, receipt tick/surface, frame binding generation, model unknown-joint/degenerate geometry, thread ownership, endpoint serial reuse, first-capture quarantine, lifecycle registration watermark, authoritative catalog revision, client receipt authority, client carry authority and zero-thickness extraction.
+- `s00-hierarchy-mutation` run `34574727548`: **1/1** directed unknown-joint mutation was killed by the exact hierarchy assertion.
+- `s00-suspension-mutation` run `34574727576`: **2/2** lifecycle mutations passed their kill oracles, independently proving rebind-generation invalidation and support-instance identity.
+
+Total final directed mutation result: **25/25 killed**, with no surviving mutation in the reviewed campaign.
+
+### Red-before-green lifecycle evidence
+
+Before the final suspended-pair repair, run `34545247231` materialized the hostile candidate and executed **242 server tests**. Exactly two required tests failed:
+
+- `s00lifecycle_tests_rebind_clears_suspended_pair_quarantine` because explicit support rebind retained quarantine from the retired binding;
+- `s00lifecycle_tests_replacement_support_cannot_inherit_suspended_pair_by_uuid` because a distinct support instance could inherit suspended-pair state through reused UUID.
+
+The real-client/integrated/dedicated lane on that same red server candidate remained green. The failures were classified as lifecycle/identity implementation bugs before production was changed. The final tree binds suspended-pair quarantine to weak support-instance identity plus the local registration generation, and both corresponding directed mutations are killed.
+
+Earlier attempts to construct the UUID-reuse holdout that failed to compile or failed to create the required suspended precondition are classified as **test defects** and are not evidence of a production failure.
+
+### Limits of this evidence
+
+S00 does **not** claim that G1–G5 are implemented. In particular, the public API/binding/codecs remain G1 work; `AnatomyMovement` decomposition, live `MaterialEventDispatcher` integration and removal of the oversized broadphase global fallback remain G2; canonical catalog/engine/runtime lifecycle and removal of world scans remain G3; final receipts/prediction/reconciliation/presentation remain G4; and the legacy `platform` physical motor remains scheduled for removal in G5.
+
+The S00 execution log and component classifications are in `docs/sprints/S00-foundation-audit.md`. They are process records, not additional normative requirements.

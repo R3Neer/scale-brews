@@ -21,7 +21,7 @@ public final class GeometryCatalog {
             if(e.getKey()==null || !e.getKey().matches("[a-z0-9_.-]+:[a-z0-9/._-]+"))throw new IllegalArgumentException("Invalid model resource identifier");
             var g=Objects.requireNonNull(e.getValue(),"Missing geometry");
             // Force hierarchy composition and convex validation, including accumulated transforms.
-            g.evaluate(new org.joml.Matrix4f(),Map.of(),new AnatomyFilter(0,0,0));
+            g.evaluate(ModelGeometry.matrix(g.modelTransform()),Map.of(),new AnatomyFilter(0,0,0));
             pieces+=g.pieces().size();
             if(pieces>262144)throw new IllegalArgumentException("Catalog complexity limit exceeded");
             validated.put(e.getKey(),g);

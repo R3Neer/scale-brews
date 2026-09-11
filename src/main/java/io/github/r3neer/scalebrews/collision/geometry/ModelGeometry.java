@@ -39,7 +39,9 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
         Set<String> pieceIds=new HashSet<>();
         for(Piece p:pieces) {
             if(p.id==null || p.id.isBlank() || p.id.length()>256 || !pieceIds.add(p.id) || !ids.contains(p.part) || p.min.size()!=3 || p.max.size()!=3)throw new IllegalArgumentException("Invalid piece");
-            for(int i=0;i<3;i++)if(!Double.isFinite(p.min.get(i)) || !Double.isFinite(p.max.get(i)) || Math.abs(p.min.get(i))>1024 || Math.abs(p.max.get(i))>1024 || p.min.get(i)>p.max.get(i))throw new IllegalArgumentException("Invalid bounds");
+            for(int i=0;i<3;i++)if(!Double.isFinite(p.min.get(i)) || !Double.isFinite(p.max.get(i)) || Math.abs(p.min.get(i))>1024 || Math.abs(p.max.get(i))>1024 || p.min.get(i)>=p.max.get(i))throw new IllegalArgumentException("Invalid bounds");
+            double volume=(p.max.get(0)-p.min.get(0))*(p.max.get(1)-p.min.get(1))*(p.max.get(2)-p.min.get(2));
+            if(!Double.isFinite(volume) || volume<=0)throw new IllegalArgumentException("Degenerate piece volume");
         }
     }
     public static List<Float> values(Matrix4f matrix) {
@@ -48,11 +50,23 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
     public static Matrix4f matrix(List<Float> values) {
         float[] f=new float[16];for(int i=0;i<16;i++)f[i]=values.get(i);return new Matrix4f().set(f);
     }
+    private static Matrix4f validTransform(Matrix4f matrix) {
+        if(matrix==null)throw new IllegalArgumentException("Missing model transform");
+        for(float value:matrix.get(new float[16]))if(!Float.isFinite(value))throw new IllegalArgumentException("Non-finite model transform");
+        if(Math.abs(matrix.m03())>1e-6 || Math.abs(matrix.m13())>1e-6 || Math.abs(matrix.m23())>1e-6 || Math.abs(matrix.m33()-1)>1e-6
+                || !Float.isFinite(matrix.determinant()) || Math.abs(matrix.determinant())<1e-12)
+            throw new IllegalArgumentException("Non-affine/degenerate model transform");
+        return matrix;
+    }
     public Map<String,Matrix4f> transforms(Map<String,Matrix4f> replacements) {
+        if(replacements==null)throw new IllegalArgumentException("Missing joint replacements");
+        Set<String> ids=new HashSet<>();for(Part part:parts)ids.add(part.id);
+        if(!ids.containsAll(replacements.keySet()))throw new IllegalArgumentException("Unknown model joint");
+        replacements.values().forEach(ModelGeometry::validTransform);
         Map<String,Matrix4f> world=new LinkedHashMap<>();
         for(Part p:parts) {
             Matrix4f local=replacements.containsKey(p.id)?new Matrix4f(replacements.get(p.id)):matrix(p.transform);
-            world.put(p.id,p.parent==null?local:new Matrix4f(world.get(p.parent)).mul(local));
+            world.put(p.id,validTransform(p.parent==null?local:new Matrix4f(world.get(p.parent)).mul(local)));
         }
         return world;
     }
@@ -71,6 +85,7 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
         return Collections.unmodifiableMap(report);
     }
     public Map<String,ConvexBox> evaluate(Matrix4f root,Map<String,Matrix4f> replacements,AnatomyFilter filter) {
+        validTransform(root);
         var world=transforms(replacements);var decisions=filterReport(filter);
         Map<String,ConvexBox> result=new LinkedHashMap<>();
         for(Piece p:pieces)if(decisions.get(p.id).equals("retained"))

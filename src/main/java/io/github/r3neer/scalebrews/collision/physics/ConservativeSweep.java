@@ -33,6 +33,9 @@ public final class ConservativeSweep {
         public Motion(DoubleFunction<ConvexBox> at,double deformationSpeed,Vec3 linearTranslation){this(at,deformationSpeed,linearTranslation,java.util.List.of());}
         public Motion(DoubleFunction<ConvexBox> at,double maxPointSpeed){this(at,maxPointSpeed,Vec3.ZERO);}
         public Motion {
+            if(invariantPlanes==null || invariantPlanes.size()>6)throw new IllegalArgumentException("Invalid invariant plane count");
+            var directions=java.util.EnumSet.noneOf(net.minecraft.core.Direction.class);
+            for(var plane:invariantPlanes)if(plane==null || !directions.add(plane.outward()))throw new IllegalArgumentException("Duplicate or missing invariant plane direction");
             invariantPlanes=java.util.List.copyOf(invariantPlanes);
             if(at==null || !Double.isFinite(deformationSpeed) || deformationSpeed<0 || linearTranslation==null || !Double.isFinite(linearTranslation.lengthSqr()))throw new IllegalArgumentException("Invalid motion bound");
         }
@@ -44,6 +47,8 @@ public final class ConservativeSweep {
         }
     }
     public static Result query(AABB body,Vec3 displacement,Motion motion,int maxIterations) {
+        ConvexBox.requireBounds(body);
+        if(displacement==null || motion==null)throw new IllegalArgumentException("Missing sweep input");
         if(maxIterations<1 || maxIterations>4096 || !Double.isFinite(displacement.lengthSqr()))throw new IllegalArgumentException("Invalid sweep budget/movement");
         var relative=displacement.subtract(motion.linearTranslation());
         // A provider-certified invariant projection separates the entire trajectories,

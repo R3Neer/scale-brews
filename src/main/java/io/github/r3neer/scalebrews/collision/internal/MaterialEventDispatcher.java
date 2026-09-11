@@ -68,7 +68,11 @@ public final class MaterialEventDispatcher<E> {
     public record BatchResolution<E>(List<Outcome> outcomes,List<DerivedCarry<E>> derived) {
         public BatchResolution {outcomes=List.copyOf(outcomes);derived=List.copyOf(derived);}
     }
-    /** World adapters implement spatial capture and certified path resolution; no partial candidate prefix is legal. */
+    /**
+     * World adapters implement spatial capture and certified path resolution; no partial candidate prefix is legal.
+     * Capture is read-only. Resolve must return an outcome after applying a prefix; it must not throw post-mutation.
+     * Quarantine is notification only and must not submit new material work to this dispatcher.
+     */
     public interface Backend<E> {
         Candidates<E> capture(Event<E> event,int maximumBodies);
         Candidates<E> captureJointBatch(List<Event<E>> events,int maximumBodies);
@@ -84,6 +88,7 @@ public final class MaterialEventDispatcher<E> {
     private final Function<E,Object> identity;
     private final Deque<Pending<E>> queue=new ArrayDeque<>();
     private boolean draining;
+    private boolean notifyingQuarantine;
     private int admittedEvents;
     private long sequence;
 
@@ -102,7 +107,7 @@ public final class MaterialEventDispatcher<E> {
         for(int index=0;index<changed.size();index++) {
             var event=changed.get(index);Object key=key(event.support());events.add(new Event<>(new EventId(batch,index),event.support(),Source.JOINT_BATCH,event.interval(),Set.of(key)));
         }
-        if(draining) {
+        if(draining || notifyingQuarantine) {
             var outcomes=new ArrayList<Outcome>();for(var event:events)outcomes.add(quarantine(event,Reason.GATE_VIOLATION,backend));return List.copyOf(outcomes);
         }
         if(events.size()>maximumEvents) {
@@ -112,7 +117,7 @@ public final class MaterialEventDispatcher<E> {
     }
     private Outcome submit(Event<E> event,Backend<E> backend) {
         Objects.requireNonNull(backend);
-        if(draining)return quarantine(event,Reason.GATE_VIOLATION,backend);
+        if(draining || notifyingQuarantine)return quarantine(event,Reason.GATE_VIOLATION,backend);
         queue.addLast(new One<>(event));return drainUntil(List.of(event),backend).getFirst();
     }
     private List<Outcome> drainUntil(List<Event<E>> requested,Backend<E> backend) {
@@ -129,32 +134,39 @@ public final class MaterialEventDispatcher<E> {
                 }
             }
         } catch(RuntimeException failure) {
-            abortQueued(backend);throw failure;
-        } finally {draining=false;admittedEvents=0;}
+            abortQueued(backend,failure);throw failure;
+        } finally {queue.clear();draining=false;admittedEvents=0;}
         var outcomes=new ArrayList<Outcome>();for(var event:requested)outcomes.add(results.getOrDefault(event.id(),Outcome.quarantined(Reason.BACKEND_FAILURE)));return List.copyOf(outcomes);
     }
     private void resolveOne(Event<E> event,Backend<E> backend,java.util.Map<EventId,Outcome> results) {
-        try {
-            var captured=backend.capture(event,maximumBodies);
-            if(captured==null || captured.overflow() || captured.bodies().size()>maximumBodies) {results.put(event.id(),quarantine(event,Reason.CANDIDATE_LIMIT,backend));return;}
-            var resolution=backend.resolve(event,captured.bodies());
-            if(resolution==null) {results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));return;}
-            results.put(event.id(),enqueueDerived(event,resolution,backend));
-        } catch(BackendCaptureFailure failure) {results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));}
+        var captured=backend.capture(event,maximumBodies);
+        if(captured==null || captured.overflow() || captured.bodies().size()>maximumBodies) {results.put(event.id(),quarantine(event,Reason.CANDIDATE_LIMIT,backend));return;}
+        var resolution=backend.resolve(event,captured.bodies());
+        if(resolution==null) {results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));return;}
+        results.put(event.id(),enqueueDerived(event,resolution,backend));
     }
     private void resolveJoint(List<Event<E>> events,Backend<E> backend,java.util.Map<EventId,Outcome> results) {
-        try {
-            var captured=backend.captureJointBatch(events,maximumBodies);
-            if(captured==null || captured.overflow() || captured.bodies().size()>maximumBodies) {for(var event:events)results.put(event.id(),quarantine(event,Reason.CANDIDATE_LIMIT,backend));return;}
-            var resolution=backend.resolveJointBatch(events,captured.bodies());
-            if(resolution==null || resolution.outcomes().size()!=events.size()) {for(var event:events)results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));return;}
-            for(int i=0;i<events.size();i++)results.put(events.get(i).id(),resolution.outcomes().get(i));
-            for(var carry:resolution.derived()) {
-                var parent=events.stream().filter(event->event.id().equals(carry.parent())).findFirst().orElse(null);
-                if(parent==null) {for(var event:events)quarantine(event,Reason.INVALID_DERIVATION,backend);}
-                else results.put(parent.id(),enqueueDerived(parent,new Resolution<>(results.get(parent.id()),List.of(carry)),backend));
+        var captured=backend.captureJointBatch(events,maximumBodies);
+        if(captured==null || captured.overflow() || captured.bodies().size()>maximumBodies) {for(var event:events)results.put(event.id(),quarantine(event,Reason.CANDIDATE_LIMIT,backend));return;}
+        var resolution=backend.resolveJointBatch(events,captured.bodies());
+        if(resolution==null || resolution.outcomes().size()!=events.size()) {for(var event:events)results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));return;}
+        for(int i=0;i<events.size();i++)results.put(events.get(i).id(),resolution.outcomes().get(i));
+        var parents=new java.util.LinkedHashMap<EventId,Event<E>>();for(var event:events)parents.put(event.id(),event);
+        if(resolution.derived().stream().anyMatch(carry->!parents.containsKey(carry.parent()))) {
+            // A malformed simultaneous result invalidates the whole not-yet-enqueued
+            // derivative set. Original prefixes may already be physical, so preserve
+            // their truthful fraction while refusing every derived continuation.
+            for(var event:events) {
+                quarantine(event,Reason.INVALID_DERIVATION,backend);
+                var outcome=results.get(event.id());
+                if(outcome.status()==Status.APPLIED_PREFIX)results.put(event.id(),Outcome.applied(outcome.safeFraction(),Reason.INVALID_DERIVATION));
             }
-        } catch(BackendCaptureFailure failure) {for(var event:events)results.put(event.id(),quarantine(event,Reason.BACKEND_FAILURE,backend));}
+            return;
+        }
+        for(var carry:resolution.derived()) {
+            var parent=parents.get(carry.parent());
+            results.put(parent.id(),enqueueDerived(parent,new Resolution<>(results.get(parent.id()),List.of(carry)),backend));
+        }
     }
     private Outcome enqueueDerived(Event<E> parent,Resolution<E> resolution,Backend<E> backend) {
         if(resolution.outcome().status()!=Status.APPLIED_PREFIX) {
@@ -179,7 +191,12 @@ public final class MaterialEventDispatcher<E> {
     }
     private Outcome quarantine(Event<E> event,Reason reason,Backend<E> backend) {
         var outcome=Outcome.quarantined(reason);
+        // A rejected operation can itself originate in this callback. Report
+        // its outcome to that caller, but never recurse into another callback.
+        if(notifyingQuarantine)return outcome;
+        notifyingQuarantine=true;
         try {backend.quarantine(event,reason);} catch(RuntimeException failure) {throw new IllegalStateException("Material quarantine callback failed for "+event.id(),failure);}
+        finally {notifyingQuarantine=false;}
         return outcome;
     }
     private void quarantineChild(Event<E> parent,DerivedCarry<E> carry,Reason reason,Backend<E> backend) {
@@ -187,18 +204,21 @@ public final class MaterialEventDispatcher<E> {
         quarantine(child,reason,backend);
     }
     private int countQueuedEvents() {int total=0;for(var pending:queue)total+=pending instanceof One<?>?1:((Joint<?>)pending).events().size();return total;}
-    private void abortQueued(Backend<E> backend) {
+    private void abortQueued(Backend<E> backend,RuntimeException primaryFailure) {
         while(!queue.isEmpty()) {
             var pending=queue.removeFirst();
             if(pending instanceof One<?> raw) {
-                @SuppressWarnings("unchecked") var one=(One<E>)raw;quarantine(one.event(),Reason.BACKEND_FAILURE,backend);
+                @SuppressWarnings("unchecked") var one=(One<E>)raw;abortEvent(one.event(),backend,primaryFailure);
             } else {
-                @SuppressWarnings("unchecked") var joint=(Joint<E>)pending;for(var event:joint.events())quarantine(event,Reason.BACKEND_FAILURE,backend);
+                @SuppressWarnings("unchecked") var joint=(Joint<E>)pending;
+                for(var event:joint.events())abortEvent(event,backend,primaryFailure);
             }
         }
     }
-    /** Capture is read-only. Resolve must return an Outcome even after applying a prefix; it must not throw post-mutation. */
-    private static final class BackendCaptureFailure extends RuntimeException {private BackendCaptureFailure(RuntimeException cause){super(cause);}}
+    private void abortEvent(Event<E> event,Backend<E> backend,RuntimeException primaryFailure) {
+        try {quarantine(event,Reason.BACKEND_FAILURE,backend);}
+        catch(RuntimeException cleanupFailure) {primaryFailure.addSuppressed(cleanupFailure);}
+    }
     private long nextSequence(){return sequence=Math.incrementExact(sequence);}
     private Object key(E entity){return Objects.requireNonNull(identity.apply(entity));}
     private static boolean finite(AABB box) {

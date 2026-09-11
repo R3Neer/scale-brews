@@ -53,6 +53,15 @@ public final class WorldAnatomyCatalog {
         return replace(models,profiles);
     }
     public synchronized Snapshot replace(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
+        return replaceValidated(Math.incrementExact(current.revision()),models,profiles);
+    }
+    /** Client-side publication seam: the packet revision is the authority identity, not a local counter. */
+    synchronized Snapshot replaceAtRevision(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
+        if(revision<0)throw new IllegalArgumentException("Negative catalog revision");
+        return replaceValidated(revision,models,profiles);
+    }
+    private Snapshot replaceValidated(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
+        Objects.requireNonNull(models,"models");Objects.requireNonNull(profiles,"profiles");
         if(profiles.size()>4096)throw new IllegalArgumentException("Too many anatomical profiles");
         List<String> references=new ArrayList<>();Map<Identifier,Binding> bindings=new HashMap<>();Set<Identifier> species=new HashSet<>();
         for(var entry:new TreeMap<>(profiles).entrySet()) {
@@ -73,7 +82,7 @@ public final class WorldAnatomyCatalog {
         }
         var validated=new GeometryCatalog().replace(models,references);
         AnatomyCatalogTransfer.serializedBundle(validated.models(),profiles); // Reject unsendable bundles before committing server state.
-        Snapshot next=new Snapshot(Math.incrementExact(current.revision()),validated.models(),bindings,profiles);
+        Snapshot next=new Snapshot(revision,validated.models(),bindings,profiles);
         current=next;
         return next;
     }

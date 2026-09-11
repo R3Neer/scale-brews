@@ -15,12 +15,14 @@ public final class AnatomyFrameHistory {
     public AnatomyPosePayload current(){return current;}
     public void clear(){current=null;}
     public boolean accept(AnatomyPosePayload next) {
+        if(next==null)throw new IllegalArgumentException("Missing causal frame");
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
                     || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
                     || !current.provider().equals(next.provider()) || current.bindingGeneration()!=next.bindingGeneration())
                 throw new IllegalArgumentException("Causal frame identity changed without rebind");
-            if(next.frameSerial()<=current.frameSerial())return false;
+            if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
+                    || next.jointSampleTick()<current.jointSampleTick())return false;
         }
         current=next;
         return true;

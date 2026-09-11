@@ -51,7 +51,9 @@ public final class ModelGeometryProvider implements GeometryProvider {
     private record Cached(Key key,Optional<Snapshot> snapshot) {}
     public ModelGeometryProvider(ModelGeometry geometry,PoseProvider poses,AnatomyFilter filter,long revision) {
         this.geometry=Objects.requireNonNull(geometry);this.poses=Objects.requireNonNull(poses);
-        this.filter=Objects.requireNonNull(filter);this.revision=revision;
+        this.filter=Objects.requireNonNull(filter);
+        if(revision<0)throw new IllegalArgumentException("Invalid geometry revision");
+        this.revision=revision;
     }
     public void pose(LivingEntity entity,PoseProvider.Inputs input){channels.put(entity,input);}
     public Optional<PoseProvider.Inputs> inputs(LivingEntity entity){return Optional.ofNullable(channels.get(entity));}
@@ -59,7 +61,9 @@ public final class ModelGeometryProvider implements GeometryProvider {
         poseEligibility=Objects.requireNonNull(eligibility);return this;
     }
     public void tick(LivingEntity entity,long tick) {
+        if(entity==null || tick<0)throw new IllegalArgumentException("Invalid authority tick");
         var previous=tickFrames.get(entity);
+        if(previous!=null && tick<previous.tick())throw new IllegalArgumentException("Authority clock cannot rewind");
         if(previous!=null && previous.tick()==tick)return;
         if(poseEligibility!=null && !entity.level().isClientSide())
             pose(entity,authority.tick(entity,tick,poseEligibility.test(entity)));
@@ -115,9 +119,11 @@ public final class ModelGeometryProvider implements GeometryProvider {
         }
         if(trajectory.fraction!=segment.fraction()) {
             trajectory.fraction=segment.fraction();
-            trajectory.sample=trajectory.motion.map(motion->{
-                evaluations++;return new Snapshot(revision,motion.evaluate(segment.fraction()).pieces());
-            });
+            try {
+                trajectory.sample=trajectory.motion.map(motion->{
+                    evaluations++;return new Snapshot(revision,motion.evaluate(segment.fraction()).pieces());
+                });
+            } catch(RuntimeException rejectedGeometry) {trajectory.sample=Optional.empty();}
         }
         return trajectory.sample;
     }
@@ -131,7 +137,8 @@ public final class ModelGeometryProvider implements GeometryProvider {
         if(transforms.isEmpty())return Optional.empty();
         Matrix4f root=sample.gravity().matrix().rotateY((float)Math.toRadians(180-sample.yaw())).scale(sample.scale());
         evaluations++;
-        return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,sample.origin(),sample.origin(),filter).evaluate(1));
+        try {return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,sample.origin(),sample.origin(),filter).evaluate(1));}
+        catch(RuntimeException rejectedGeometry) {return Optional.empty();}
     }
     /** The physical interpolation is joint TRS between authoritative endpoint poses, not matrix lerp. */
     public Optional<HierarchyMotion> motionBetween(AnatomyPoseHistory.Sample before,AnatomyPoseHistory.Sample after) {
@@ -147,7 +154,8 @@ public final class ModelGeometryProvider implements GeometryProvider {
         if(a.isEmpty() || b.isEmpty())return Optional.empty();
         Matrix4f rootA=before.gravity().matrix().rotateY((float)Math.toRadians(180-before.yaw())).scale(before.scale());
         Matrix4f rootB=after.gravity().matrix().rotateY((float)Math.toRadians(180-after.yaw())).scale(after.scale());
-        return Optional.of(HierarchyMotion.withRootTrs(geometry,a.get(),b.get(),rootA,rootB,before.origin(),after.origin(),filter));
+        try {return Optional.of(HierarchyMotion.withRootTrs(geometry,a.get(),b.get(),rootA,rootB,before.origin(),after.origin(),filter));}
+        catch(RuntimeException unsupportedInterval) {return Optional.empty();}
     }
     public Optional<Snapshot> sample(LivingEntity entity) {
         var inputs=channels.get(entity);
@@ -171,8 +179,10 @@ public final class ModelGeometryProvider implements GeometryProvider {
             Matrix4f root=frame.gravity().matrix().rotateY((float)Math.toRadians(180-frame.yaw()))
                 .scale(scale).mul(ModelGeometry.matrix(geometry.modelTransform()));
             Map<String,ConvexBox> pieces=new LinkedHashMap<>();
-            geometry.evaluate(root,transforms.get(),filter).forEach((id,box)->pieces.put(id,box.move(frame.origin())));
-            snapshot=Optional.of(new Snapshot(revision,pieces));evaluations++;
+            try {
+                geometry.evaluate(root,transforms.get(),filter).forEach((id,box)->pieces.put(id,box.move(frame.origin())));
+                snapshot=Optional.of(new Snapshot(revision,pieces));evaluations++;
+            } catch(RuntimeException rejectedGeometry) {snapshot=Optional.empty();}
         }
         cache.put(entity,new Cached(key,snapshot));
         return snapshot;
@@ -188,11 +198,14 @@ public final class ModelGeometryProvider implements GeometryProvider {
     }
     /** Standalone proof has no support identity; runtime callers retain per-support endpoints. */
     private Optional<Map<String,Matrix4f>> evaluateJoints(PoseProvider.Inputs inputs) {
-        var evaluated=poses.evaluate(geometry,inputs).map(transforms->{
+        jointEvaluations++;
+        try {
+            var evaluated=poses.evaluate(geometry,inputs);
+            if(evaluated==null || evaluated.isEmpty())return Optional.empty();
             Map<String,Matrix4f> copy=new LinkedHashMap<>();
-            transforms.forEach((id,matrix)->copy.put(id,new Matrix4f(matrix)));
-            return Collections.unmodifiableMap(copy);
-        });
-        jointEvaluations++;return evaluated;
+            evaluated.get().forEach((id,matrix)->copy.put(id,new Matrix4f(matrix)));
+            geometry.transforms(copy); // Validate known joints and complete hierarchy before caching.
+            return Optional.of(Collections.unmodifiableMap(copy));
+        } catch(RuntimeException rejectedPose) {return Optional.empty();}
     }
 }

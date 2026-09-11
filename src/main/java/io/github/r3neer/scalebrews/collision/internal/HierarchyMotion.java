@@ -62,8 +62,9 @@ public final class HierarchyMotion {
                 if(a.scale.x*b.scale.x<=0 || a.scale.y*b.scale.y<=0 || a.scale.z*b.scale.z<=0)
                     throw new IllegalArgumentException("Scale crosses a degenerate transform");
                 norm=Math.max(maxAbs(a.scale),maxAbs(b.scale));
-                double angle=2*Math.acos(Math.clamp(Math.abs(a.rotation.dot(b.rotation)),0,1));
-                derivative=angle*norm+maxAbs(new Vector3f(b.scale).sub(a.scale));
+                // acos(float dot) can erase a real small rotation. The double
+                // chord ratio bounds slerp and its near-angle nlerp branch.
+                derivative=rotationSpeed(a.rotation,b.rotation)*norm+maxAbs(new Vector3f(b.scale).sub(a.scale));
                 translation=Math.max(a.translation.length(),b.translation.length());
                 translationSpeed=a.translation.distance(b.translation);
             }
@@ -86,6 +87,17 @@ public final class HierarchyMotion {
             var relative=new Quaternionf(b.rotation).mul(new Quaternionf(a.rotation).conjugate());
             if(axis!=0 && relative.x!=0 || axis!=1 && relative.y!=0 || axis!=2 && relative.z!=0)return null;
             return new Vector3f(normal).rotate(new Quaternionf(a.rotation).conjugate()).mul(a.scale);
+        }
+        private static double rotationSpeed(Quaternionf a,Quaternionf b) {
+            double[] x={a.x,a.y,a.z,a.w},y={b.x,b.y,b.z,b.w};
+            double nx=0,ny=0,dot=0;
+            for(int i=0;i<4;i++){nx+=x[i]*x[i];ny+=y[i]*y[i];dot+=x[i]*y[i];}
+            double sign=dot<0?-1:1,minus=0,plus=0;
+            for(int i=0;i<4;i++) {
+                double u=x[i]/Math.sqrt(nx),v=sign*y[i]/Math.sqrt(ny);
+                minus+=(u-v)*(u-v);plus+=(u+v)*(u+v);
+            }
+            return 4*Math.sqrt(minus/plus);
         }
         private static double maxAbs(Vector3f v){return Math.max(Math.abs(v.x),Math.max(Math.abs(v.y),Math.abs(v.z)));}
         private static Trs decompose(Matrix4f m) {
@@ -127,6 +139,10 @@ public final class HierarchyMotion {
     private HierarchyMotion(ModelGeometry model,Map<String,Matrix4f> before,Map<String,Matrix4f> after,
             Matrix4f rootBefore,Matrix4f rootAfter,Matrix4f modelTransform,Vec3 originBefore,Vec3 originAfter,AnatomyFilter filter) {
         this.model=Objects.requireNonNull(model);this.originBefore=Objects.requireNonNull(originBefore);this.originAfter=Objects.requireNonNull(originAfter);
+        Objects.requireNonNull(before);Objects.requireNonNull(after);
+        var knownParts=new HashSet<String>();for(var part:model.parts())knownParts.add(part.id());
+        if(!knownParts.containsAll(before.keySet()) || !knownParts.containsAll(after.keySet()))
+            throw new IllegalArgumentException("Unknown motion joint");
         this.root=new Node(rootBefore,rootAfter);this.staticModel=new Node(modelTransform,modelTransform);
         boolean includeStaticModel=!modelTransform.equals(new Matrix4f());
         Map<String,List<Node>> builtPaths=new LinkedHashMap<>();Map<String,Node> builtLocals=new LinkedHashMap<>();
