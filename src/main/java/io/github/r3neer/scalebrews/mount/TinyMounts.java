@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.mount;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.integration.gravity.GravityFrames;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.entity.event.v1.effect.ServerMobEffectEvents;
 import net.minecraft.core.Registry;
@@ -158,12 +159,17 @@ public final class TinyMounts {
         return InteractionResult.FAIL;
     }
 
+    /**
+     * Generates a new rider-directed flight velocity in the root mount's current gravity frame.
+     * Existing world momentum is not consumed or reinterpreted by this helper.
+     */
     public static Vec3 flightVelocity(Player player, TinyMountDefinition definition) {
         double pitch = Math.toRadians(Math.clamp(player.getXRot(), -definition.maxPitch(), definition.maxPitch()));
         double yaw = Math.toRadians(player.getYRot());
         double speed = definition.speed();
-        return new Vec3(-Math.sin(yaw) * Math.cos(pitch) * speed,
+        Vec3 local = new Vec3(-Math.sin(yaw) * Math.cos(pitch) * speed,
                 Math.clamp(-Math.sin(pitch) * speed, -definition.maxVerticalSpeed(), definition.maxVerticalSpeed()),
                 Math.cos(yaw) * Math.cos(pitch) * speed);
+        return GravityFrames.frame(player.getRootVehicle()).toWorld(local);
     }
 }
