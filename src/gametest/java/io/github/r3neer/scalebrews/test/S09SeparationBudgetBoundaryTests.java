@@ -136,9 +136,12 @@ public final class S09SeparationBudgetBoundaryTests {
     }
 
     private static Map<String,ConvexBox> slabs(AABB body,Vec3 origin,int count) {
-        double minX=body.minX-origin.x,maxX=body.maxX-origin.x;
-        double minY=body.minY-origin.y,maxY=body.maxY-origin.y;
-        double minZ=body.minZ-origin.z,maxZ=body.maxZ-origin.z;
+        // Build in entity-local coordinates without subtracting enormous GameTest world
+        // coordinates. The mock player's position is X/Z center and Y feet, so dimensions are
+        // sufficient and make the exact queue boundary invariant under common translation.
+        double minX=-body.getXsize()*.5,maxX=body.getXsize()*.5;
+        double minY=0,maxY=body.getYsize();
+        double minZ=-body.getZsize()*.5,maxZ=body.getZsize()*.5;
         var result=new TreeMap<String,ConvexBox>();
         for(int i=0;i<count;i++) {
             double right=minX+.02+i*.001;
@@ -149,9 +152,9 @@ public final class S09SeparationBudgetBoundaryTests {
     }
 
     private static ConvexBox bystander(AABB body,Vec3 origin) {
-        double minX=body.minX-origin.x,maxX=body.maxX-origin.x;
-        double minY=body.minY-origin.y,maxY=body.maxY-origin.y;
-        double maxZ=body.maxZ-origin.z;
+        double minX=-body.getXsize()*.5,maxX=body.getXsize()*.5;
+        double minY=0,maxY=body.getYsize();
+        double maxZ=body.getZsize()*.5;
         return ConvexBox.of(new AABB(minX-.2,minY-.2,maxZ+.20,maxX+.4,maxY+.2,maxZ+.30),new Matrix4f()).move(origin);
     }
 }
