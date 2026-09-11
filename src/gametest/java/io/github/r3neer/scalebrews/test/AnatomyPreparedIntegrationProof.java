@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -40,7 +41,7 @@ public final class AnatomyPreparedIntegrationProof {
                 h.assertTrue(AnatomyApi.mode(probe)==AnatomyMode.READY && AnatomyApi.ownsSharedPhysics(probe),
                     "Prepared catalog makes the shared mode ready for a body without requiring that body to be a support binding");
             } finally {probe.discard();}
-            staleBindingGenerationCannotCertifyInterval(h);
+            staleBindingIdentityCannotCertifyInterval(h);
             // The helpers retain their production route: actual Entity.move,
             // mixins, core queries and material contacts.  They do not start,
             // stop or otherwise simulate the session.
@@ -60,26 +61,42 @@ public final class AnatomyPreparedIntegrationProof {
     }
 
     /**
-     * A causal handle can belong to the same live entity while belonging to a different
-     * binding generation. Physical entity identity is necessary but not sufficient.
+     * Physical entity identity is necessary but not sufficient.  A stale interval
+     * from another binding epoch/generation/model/pose/revision must never be
+     * certified merely because it still names the same live entity instance.
      */
-    private static void staleBindingGenerationCannotCertifyInterval(GameTestHelper h) {
+    private static void staleBindingIdentityCannotCertifyInterval(GameTestHelper h) {
         var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,1,20,1);
         try {
             AnatomyRuntime.prepare(h.getLevel());
             AnatomyMovement.tick(h.getLevel());
             var current=AnatomyMovement.queryFrame(support).orElseThrow();
             var live=current.identity();
-            var stale=new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
-                live.model(),live.poseProvider(),Math.incrementExact(live.bindingGeneration()),live.localRegistrationGeneration());
-            var endpoint=current.endpoint();
-            var before=new GeometryProvider.QueryFrame(stale,endpoint,current.snapshot());
-            var afterEndpoint=new GeometryProvider.CausalEndpoint(Math.incrementExact(endpoint.frameSerial()),endpoint.authorityTick(),
-                endpoint.jointSampleTick(),endpoint.root(),endpoint.sample(),endpoint.availability());
-            var after=new GeometryProvider.QueryFrame(stale,afterEndpoint,current.snapshot());
-            var handle=new GeometryProvider.MotionIntervalHandle(stale,1,before,after);
-            h.assertTrue(AnatomyRuntime.interval(support,handle).isEmpty(),
-                "Prepared runtime must reject an interval from another binding generation even when dimension, UUID, entity id and revision still match");
+            var staleIdentities=List.of(
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
+                    live.model(),live.poseProvider(),Math.incrementExact(live.bindingGeneration()),live.localRegistrationGeneration()),
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
+                    live.model(),live.poseProvider(),live.bindingGeneration(),Math.incrementExact(live.localRegistrationGeneration())),
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),UUID.randomUUID(),live.revision(),
+                    live.model(),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration()),
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
+                    Identifier.parse("test:stale_model"),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration()),
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
+                    live.model(),Identifier.parse("test:stale_pose"),live.bindingGeneration(),live.localRegistrationGeneration()),
+                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),Math.incrementExact(live.revision()),
+                    live.model(),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration())
+            );
+            for(var stale:staleIdentities) {
+                var snapshot=new GeometryProvider.Snapshot(stale.revision(),current.snapshot().pieces());
+                var endpoint=current.endpoint();
+                var before=new GeometryProvider.QueryFrame(stale,endpoint,snapshot);
+                var afterEndpoint=new GeometryProvider.CausalEndpoint(Math.incrementExact(endpoint.frameSerial()),endpoint.authorityTick(),
+                    endpoint.jointSampleTick(),endpoint.root(),endpoint.sample(),endpoint.availability());
+                var after=new GeometryProvider.QueryFrame(stale,afterEndpoint,snapshot);
+                var handle=new GeometryProvider.MotionIntervalHandle(stale,1,before,after);
+                h.assertTrue(AnatomyRuntime.interval(support,handle).isEmpty(),
+                    "Prepared runtime must reject stale binding identity axis: "+stale);
+            }
         } finally {support.discard();}
     }
 
