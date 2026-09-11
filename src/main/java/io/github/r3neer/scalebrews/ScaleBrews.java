@@ -26,6 +26,7 @@ public class ScaleBrews implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
+		io.github.r3neer.scalebrews.integration.gravity.GravityFrames.initialize();
 		ScaleEffects.initialize();
 		io.github.r3neer.scalebrews.loot.ScaleLoot.initialize();
 		io.github.r3neer.scalebrews.platform.Platforms.initialize();
