@@ -39,6 +39,15 @@ public final class S07PlanConflictLocalizationTests {
 
     @GameTest
     public void simultaneousValidPlansThatWouldOverlapMustReleaseOnlyAffectedPairs(GameTestHelper h) throws Exception {
+        runPlanConflict(h,false);
+    }
+
+    @GameTest
+    public void reversedCandidateOrderMustReleaseTheSameAffectedPairs(GameTestHelper h) throws Exception {
+        runPlanConflict(h,true);
+    }
+
+    private static void runPlanConflict(GameTestHelper h,boolean reverseCandidates) throws Exception {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
@@ -114,15 +123,16 @@ public final class S07PlanConflictLocalizationTests {
 
             var prepared=prepared(support,leftWall,rightWall,leftMotion,rightMotion);
             Vec3 leftBefore=leftBody.position(),rightBefore=rightBody.position(),safeBefore=safe.position();
-            var outcome=resolve(level,support,prepared,List.of(leftBody,rightBody));
+            var candidates=reverseCandidates?List.<Entity>of(rightBody,leftBody):List.<Entity>of(leftBody,rightBody);
+            var outcome=resolve(level,support,prepared,candidates);
             h.assertTrue(outcome.status()==MaterialEventDispatcher.Status.QUARANTINED
                     && outcome.reason()==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED,
-                "Mutually incompatible plans must fail closed as explicit BACKEND_EXHAUSTED: "+outcome);
+                "Mutually incompatible plans must fail closed as explicit BACKEND_EXHAUSTED regardless of candidate order: "+outcome);
             h.assertTrue(leftBody.position().equals(leftBefore) && rightBody.position().equals(rightBefore) && safe.position().equals(safeBefore),
                 "Rejected simultaneous plans must not apply partial displacement");
 
             h.assertTrue(!AnatomyMovement.supported(leftBody) && !AnatomyMovement.supported(rightBody),
-                "NFR-004 requires both unresolved retained body/support relations to be released or suspended after a plan-conflict exhaustion");
+                "NFR-001/002/004 require the same two unresolved retained relations to be released or suspended after a plan-conflict exhaustion; reverseCandidates="+reverseCandidates);
             h.assertTrue(AnatomyMovement.contact(safe)!=null && AnatomyMovement.supported(safe),
                 "A third body not involved in the conflicting candidate set must retain its valid contact on the same support");
         } finally {
