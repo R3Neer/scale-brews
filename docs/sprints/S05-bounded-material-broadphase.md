@@ -14,16 +14,17 @@ S05 no afirma todavía FR-049..051 ni la resolución material completa de S07.
 
 El kernel `MaterialBroadphase` es local y `9b34ec8f909f278082a75931d014867c596f0fef` ya eliminó el sondeo global del **steady state**: una segunda query local dentro del mismo tick reutiliza `SPATIAL` sin re-samplear todos los providers.
 
-El blocker vigente es ahora más preciso: **una invalidación legítima local sigue difiriendo un rebuild global a la siguiente query física**. Hay dos reproducciones contractuales independientes:
+El blocker vigente es ahora más preciso: **una invalidación legítima local sigue difiriendo trabajo global a la siguiente query física**. Hay tres reproducciones contractuales complementarias:
 
-1. `S05LiveBroadphaseLocalityTests.firstLocalQueryAfterLegitimateRebindMustNotResampleFarWorld` materializa un índice con 64 soportes lejanos, hace un `register(...)`/rebind explícito de un único soporte local, resetea el contador *después* del hook y ejecuta la primera query local posterior. Esa query provoca **128 samples lejanos**.
-2. `S05LiveBroadphaseLocalityTests.firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld` usa un `ModelGeometryProvider` causal, materializa el índice, ejecuta la ruta soportada `MaterialIntervalRuntime.captureRoot → support.setPos → commitRoot`, resetea el contador *después* del hook y consulta la anatomía en la nueva posición. La primera query posterior vuelve a provocar **128 samples lejanos**.
+1. `S05LiveBroadphaseLocalityTests.firstLocalQueryAfterLegitimateRebindMustNotResampleFarWorld`: un rebind local explícito hace que la siguiente query local samplee dos veces a cada uno de 64 providers lejanos, **128 samples**.
+2. `S05LiveBroadphaseLocalityTests.firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld`: la ruta soportada `captureRoot → setPos → commitRoot` de un único soporte local produce de nuevo **128 samples lejanos** en la primera query posterior.
+3. `S05DirtyMutationLocalityTests.manyFarRebindsMustNotBeProcessedByUnrelatedLocalQuery`: 64 rebinds lejanos se realizan mediante hooks soportados, el contador se resetea después de todos ellos, y una query física local en otra región no puede convertirse en el consumidor que drene/samplee esos 64 cambios. La implementación actual vuelve a producir **128 samples lejanos**.
 
-Ambos tests permiten mantenimiento eager dentro del hook causal: el contador se resetea después del rebind/commit. Lo que NFR-008 prohíbe es trasladar trabajo O(todos los soportes) a la siguiente movement/query local de cada body.
+Los tests permiten mantenimiento eager dentro de los hooks causales: los contadores se resetean después de rebind/commit. Lo que NFR-008 prohíbe es trasladar trabajo O(todos los soportes) a una movement/query local no relacionada.
 
 El holdout S06 de un provider que mutaba internamente `UNAVAILABLE → AVAILABLE` entre dos queries **sin `tick`, rebind, packet-binding ni callback causal** se retiró como no contractual. Se sustituyó por `S06SupportedMembershipCausalityTests`, donde el cambio ocurre dentro de `GeometryProvider.tick`; ese escenario productivo, incluida una pieza material seis bloques fuera del AABB vanilla, pasa en los runs actuales.
 
-El test histórico `AnatomyGeometryTests.spatialIndexRebuildsWhenProviderMovesWithinTick`, que hace `support.setPos(...)` directamente sobre un provider fixture legacy, sigue rojo, pero ya no se necesita para justificar S05: el nuevo holdout `captureRoot → commitRoot` demuestra el mismo problema usando una frontera causal soportada y evita cualquier discusión sobre mutaciones invisibles.
+El test histórico `AnatomyGeometryTests.spatialIndexRebuildsWhenProviderMovesWithinTick`, que hace `support.setPos(...)` directamente sobre un provider fixture legacy, sigue rojo, pero ya no se necesita para justificar S05: los holdouts de rebind y root-commit soportados demuestran el defecto sin ambigüedad.
 
 ## 2. Estado inicial
 
@@ -42,6 +43,7 @@ Ese comportamiento contradecía NFR-007/008 y hacía que el coste dependiera del
 - El kernel acepta bounds materiales desacoplados del provider.
 - **La reutilización live estable no puede convertir una query local en polling de todos los providers registrados.**
 - **Una invalidación local productiva tampoco puede diferir un rebuild global repetible a la primera query de cada body.**
+- **Una query local no puede drenar una cola global de soportes dirty que están fuera de su región.**
 - Los cambios productivos de geometría/membresía llegan por `GeometryProvider.tick`, register/rebind, root commit, endpoint acceptance o lifecycle hooks; esos puntos pueden actualizar/incrementar el índice sin sondeo global por query.
 - Un test no puede exigir discovery de una mutación interna clandestina de un provider y simultáneamente usar eso para justificar polling global.
 
@@ -58,7 +60,8 @@ Ese comportamiento contradecía NFR-007/008 y hacía que el coste dependiera del
 - [x] I9 Suite histórica y revisión estructural del kernel.
 - [x] I10 Hacer local la reutilización steady-state del índice live: una query local repetida no re-samplea soportes lejanos.
 - [ ] I11 Hacer local también la invalidación/update bajo **hooks productivos legítimos**; rebind y root commit de un soporte no pueden convertir la siguiente query local en rebuild global.
-- [ ] I12 Suite completa + revisión final cero-cambios antes de cerrar.
+- [ ] I12 Asegurar que acumulación de dirty supports lejanos no se drena desde una query no relacionada; el mantenimiento debe ser eager en el hook o espacialmente particionado.
+- [ ] I13 Suite completa + revisión final cero-cambios antes de cerrar.
 
 ## 5. Modelo adversarial
 
@@ -76,9 +79,10 @@ Ese comportamiento contradecía NFR-007/008 y hacía que el coste dependiera del
 12. **live steady-state locality**: segunda query local no re-samplea 64 supports lejanos — reparado por `9b34ec8f…`;
 13. **post-rebind locality**: rebind local explícito y primera query posterior no pueden re-samplear soportes lejanos — rojo actual, 128 samples;
 14. **post-root-commit locality**: `captureRoot → commitRoot` local y primera query posterior no pueden re-samplear soportes lejanos — rojo actual, 128 samples;
-15. **membership soportada**: `GeometryProvider.tick` publica `UNAVAILABLE → AVAILABLE` y el rebuild canónico indexa una pieza remota fuera del AABB vanilla — verde actual.
+15. **far-dirty locality**: 64 rebinds lejanos no pueden ser drenados por una query física local ajena — rojo actual, 128 samples;
+16. **membership soportada**: `GeometryProvider.tick` publica `UNAVAILABLE → AVAILABLE` y el rebuild canónico indexa una pieza remota fuera del AABB vanilla — verde actual.
 
-## 6. Implementación histórica y candidato actual
+## 6. Implementación histórica y candidatos
 
 ### `MaterialBroadphase<K>`
 
@@ -104,7 +108,21 @@ Añadido por `dbcf315a9ac00d77b43cf442bb2596030b1518c3`.
 - `rebuildSpatial` vuelve a indexar sólo geometría material disponible;
 - desapareció también la llamada `union(...)` que impedía compilar el candidato anterior.
 
-La reparación cierra steady-state, pero no I11: invalidaciones legítimas siguen eliminando `SPATIAL` completo y la primera query posterior reconstruye todos los providers del nivel.
+La reparación cierra steady-state, pero no I11/I12: invalidaciones legítimas siguen eliminando `SPATIAL` completo y la primera query posterior reconstruye todos los providers del nivel.
+
+### Candidato incremental no aceptable aún
+
+`dddf8e3bac56d92a9c65c5aac5e2dee53c01447a` añadió un workflow temporal para proponer `SPATIAL_DIRTY` + `refreshSpatial(...)`. Ese workflow no ha aterrizado ningún source commit y sus runs actuales fallan antes de ejecutar jobs.
+
+Además, el diseño propuesto **no satisface por sí mismo I12**: `takeSpatialDirty(level)` vacía todo el conjunto dirty del nivel y `refreshSpatial(...)` itera/samplea todos esos supports. Con 64 rebinds lejanos, la primera query local seguiría procesando los 64 cambios aunque estén fuera de su región. `S05DirtyMutationLocalityTests` existe precisamente para impedir ese desplazamiento del coste.
+
+Una reparación aceptable necesita una de estas propiedades arquitectónicas equivalentes:
+
+- mantenimiento eager/acotado dentro del hook que conoce el soporte cambiado; o
+- dirty state espacialmente particionado por celdas/región y consumido sólo por queries relevantes; o
+- un índice con mutación incremental por entrada que no reconstruya/reevalúe providers no afectados.
+
+No basta una cola dirty global drenada por la primera query.
 
 ## 7. Evidencia ejecutada
 
@@ -127,7 +145,7 @@ Run **`34624970288`**, job **`103347750374`**, sobre `311aee5…`:
 
 ### Candidato steady-state compilable + invalidación adversarial
 
-Run **`34626316654`**, job **`103352177773`**, sobre `f06ec043ff5c5ea4936829d94e7114cf8eb1cd64`, que contiene `9b34ec8f…` más el holdout post-rebind:
+Run **`34626316654`**, job **`103352177773`**, sobre `f06ec043ff5c5ea4936829d94e7114cf8eb1cd64`:
 
 - 308 GameTests;
 - 306 pasaron / 2 fallaron;
@@ -140,14 +158,25 @@ Run **`34626316654`**, job **`103352177773`**, sobre `f06ec043ff5c5ea4936829d94e
 
 Run **`34626763741`**, job **`103353628494`**, sobre `834fd694619ad899f9d238143af9af9ac4980409`:
 
-- **309 GameTests registrados y ejecutados**;
-- **306 pasaron / 3 fallaron**;
+- 309 GameTests;
+- 306 pasaron / 3 fallaron;
 - fallo S05 post-rebind: **128 samples lejanos**;
 - fallo S05 post-root-commit: **128 samples lejanos**;
-- tercer rojo: test histórico de `support.setPos(...)` directo sobre provider legacy; queda fuera de la aceptación porque el root-commit contractual ya reproduce el defecto sin ambigüedad;
-- el resto de la suite, incluidos S06 supported membership y S07 budget uncertainty, permanece verde.
+- tercer rojo: test histórico de `support.setPos(...)` directo sobre provider legacy; queda fuera de la aceptación porque el root-commit contractual ya reproduce el defecto sin ambigüedad.
 
-Por tanto, I10 queda cerrada y I11 permanece abierta con dos reproducciones contractuales distintas que llegan a la aserción de locality.
+### Far dirty supports + S07 independiente
+
+Run **`34627841257`**, job **`103357151536`**, sobre `91d0be66ef21f4d50c91861084e2680844b65580`:
+
+- **311 GameTests** ejecutados;
+- **306 pasaron / 5 fallaron**;
+- S05 post-rebind: **128 samples lejanos**;
+- S05 post-root-commit: **128 samples lejanos**;
+- S05 far-dirty rebinds: **128 samples lejanos**;
+- test histórico `setPos` directo sigue rojo pero no es necesario para la aceptación;
+- el quinto rojo es un blocker independiente S07/NFR-004 de plan-conflict, documentado en S07.
+
+Por tanto, I10 queda cerrada; I11 e I12 permanecen abiertas con reproducciones contractuales que llegan a la aserción de locality.
 
 ## 8. Estado de cierre
 
@@ -160,9 +189,10 @@ Por tanto, I10 queda cerrada y I11 permanece abierta con dos reproducciones cont
 - [x] locality steady-state de la wrapper live probada;
 - [ ] locality tras rebind productivo probada;
 - [ ] locality tras root commit productivo probada;
+- [ ] far-dirty locality probada;
 - [x] membership productiva `provider.tick` con anatomía remota probada;
 - [ ] suite completa verde;
 - [ ] pasada estructural final sin cambios;
 - [ ] S05 cerrado.
 
-S05 queda **reabierto** exclusivamente por la locality post-invalidation contractual de NFR-008; el antiguo holdout S06 clandestino no forma parte de su aceptación.
+S05 queda **reabierto** por locality post-invalidation y far-dirty contractual de NFR-008; el antiguo holdout S06 clandestino no forma parte de su aceptación.
