@@ -621,8 +621,9 @@ public final class AnatomyMovement {
         else for(var entry:motions.entrySet())if(entry.getValue().at().apply(1).overlaps(finalBox))
             suspend(body,identities.get(entry.getKey()).entity);
         // A tangential own move or a bounded initial separation can produce no new hit at all.
-        // Preserve the prior support first, then prefer actual sweep contacts, then fall back to
-        // the first deterministic candidate that is genuinely supporting the post-recovery box.
+        // Preserve the prior support first, then prefer actual sweep contacts. Only when the
+        // initial separation actually moved the body may a final-valid candidate establish
+        // a new anchor; mere proximity to a separated endpoint must never magnetize contact.
         Vec3 retained=existing==null?null:finalSupportNormal(body,existing.support(),existing.piece(),existing.revision(),finalBox);
         if(retained!=null)setContact(body,existing.support(),existing.piece(),existing.revision(),retained);
         else {
@@ -634,7 +635,7 @@ public final class AnatomyMovement {
                 if(normal==null)continue;
                 setContact(body,candidate.entity,candidate.id,candidate.revision,normal);selected=true;break;
             }
-            if(!selected)for(var entry:motions.entrySet()) {
+            if(!selected && correction.lengthSqr()>1e-20)for(var entry:motions.entrySet()) {
                 var candidate=identities.get(entry.getKey());
                 if(candidate==null)continue;
                 Vec3 normal=finalSupportNormal(body,candidate.entity,candidate.id,candidate.revision,finalBox);
