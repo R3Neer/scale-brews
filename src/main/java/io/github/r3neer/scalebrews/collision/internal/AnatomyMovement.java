@@ -620,15 +620,22 @@ public final class AnatomyMovement {
         if(recovery.separated()) {moved=moved.add(recovery.displacement());finalBox=box.move(moved);}
         else for(var entry:motions.entrySet())if(entry.getValue().at().apply(1).overlaps(finalBox))
             suspend(body,identities.get(entry.getKey()).entity);
-        // A tangential own move can produce no new hit at all. Preserve the prior
-        // material support only after validating it against the post-recovery box;
-        // otherwise choose the first stable new supporting event that is also final-valid.
+        // A tangential own move or a bounded initial separation can produce no new hit at all.
+        // Preserve the prior support first, then prefer actual sweep contacts, then fall back to
+        // the first deterministic candidate that is genuinely supporting the post-recovery box.
         Vec3 retained=existing==null?null:finalSupportNormal(body,existing.support(),existing.piece(),existing.revision(),finalBox);
         if(retained!=null)setContact(body,existing.support(),existing.piece(),existing.revision(),retained);
         else {
             boolean selected=false;
             for(var hit:response.contacts()) {
                 var candidate=identities.get(hit.piece());
+                if(candidate==null)continue;
+                Vec3 normal=finalSupportNormal(body,candidate.entity,candidate.id,candidate.revision,finalBox);
+                if(normal==null)continue;
+                setContact(body,candidate.entity,candidate.id,candidate.revision,normal);selected=true;break;
+            }
+            if(!selected)for(var entry:motions.entrySet()) {
+                var candidate=identities.get(entry.getKey());
                 if(candidate==null)continue;
                 Vec3 normal=finalSupportNormal(body,candidate.entity,candidate.id,candidate.revision,finalBox);
                 if(normal==null)continue;
