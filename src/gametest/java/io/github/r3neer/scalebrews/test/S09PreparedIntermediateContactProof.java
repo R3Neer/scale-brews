@@ -1,0 +1,133 @@
+package io.github.r3neer.scalebrews.test;
+
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
+import io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime;
+import io.github.r3neer.scalebrews.platform.Platforms;
+import java.util.Comparator;
+import java.util.Map;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+/** S09 A9: a published material interval must hit a stationary body even when both endpoints are clear. */
+final class S09PreparedIntermediateContactProof {
+    private S09PreparedIntermediateContactProof() {}
+
+    static void run(GameTestHelper h) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,20,20,20);
+        support.setNoAi(true);support.setNoGravity(true);
+        support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+        var body=h.spawn(EntityTypes.SHEEP,24,20,20);
+        body.setNoAi(true);body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.08);body.refreshDimensions();
+        try {
+            Platforms.tick(level);
+            var before=AnatomyMovement.queryFrame(support).orElseThrow();
+            h.assertTrue(AnatomyRuntime.authoritativeFrame(support).isPresent(),
+                "A9 requires a live prepared cow binding");
+            h.assertTrue(AnatomyRuntime.authoritativeFrame(body).isEmpty(),
+                "A9 body must not itself be an active prepared support binding");
+            h.assertTrue(Platforms.eligible(body,support),
+                "A9 body must be a real material candidate for the prepared cow");
+            h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
+                "A9 baseline must start with no pending material work");
+
+            float yawDelta=120f;
+            var certified=hypotheticalRootMotion(support,before,yawDelta);
+            h.assertTrue(certified!=null && !certified.pieces().isEmpty(),
+                "A9 fixture requires a certified root-yaw material trajectory");
+
+            String chosen=null;AABB chosenMid=null;
+            for(var entry:certified.pieces().entrySet().stream()
+                    .sorted(Comparator.comparing(Map.Entry<String,?>::getKey)).toList()) {
+                var mid=entry.getValue().at().apply(.5);
+                var center=mid.bounds().getCenter();
+                body.setPos(center.x,center.y-body.getBbHeight()*.5,center.z);
+                var candidate=body.getBoundingBox();
+                if(!mid.overlaps(candidate))continue;
+                if(!endpointClear(certified,candidate,0) || !endpointClear(certified,candidate,1))continue;
+                double gap0=minGap(certified,candidate,0),gap1=minGap(certified,candidate,1);
+                if(gap0<=.05 || gap1<=.05)continue;
+                chosen=entry.getKey();chosenMid=mid.bounds();break;
+            }
+            h.assertTrue(chosen!=null,
+                "A9 fixture must find a real cow piece whose certified yaw path crosses the tiny stationary body only inside the interval");
+            var captured=body.getBoundingBox();
+            h.assertTrue(AnatomyMovement.contact(body)==null && AnatomyMovement.surface(body)==null,
+                "A9 body must begin with no retained contact");
+            h.assertTrue(endpointClear(certified,captured,0) && endpointClear(certified,captured,1),
+                "A9 body must be clear of every support piece at both certified endpoints");
+            h.assertTrue(certified.pieces().get(chosen).at().apply(.5).overlaps(captured),
+                "A9 selected piece must really intersect the stationary body at t=.5; piece="+chosen+" mid="+chosenMid);
+
+            var bodyBefore=body.position();
+            var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+            var capture=MaterialIntervalRuntime.captureRoot(support);
+            h.assertTrue(capture.before()!=null && capture.before().identity().equals(before.identity()),
+                "A9 live root capture must preserve the prepared binding identity");
+            support.yBodyRot=capture.root().yaw()+yawDelta;
+            MaterialIntervalRuntime.commitRoot(support,capture);
+            MaterialPhysicsRuntime.drain(level);
+
+            var metricsAfter=MaterialPhysicsRuntime.metrics(level);
+            var applied=body.position().subtract(bodyBefore);
+            h.assertTrue(applied.lengthSqr()>1e-10,
+                "FR-049 requires an intermediate-only material hit to affect the stationary body; displacement="+applied);
+            h.assertTrue(metricsAfter.admitted()-metricsBefore.admitted()==1
+                    && metricsAfter.quarantined()==metricsBefore.quarantined()
+                    && metricsAfter.exhausted()==metricsBefore.exhausted(),
+                "A9 must be resolved by one clean published material interval: before="+metricsBefore+" after="+metricsAfter);
+            h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
+                "A9 synchronous root drain must leave no material debt");
+            h.assertTrue(AnatomyMovement.contact(body)==null && AnatomyMovement.surface(body)==null,
+                "An intermediate-only hit must not invent a retained endpoint contact after the piece has moved away");
+            var after=AnatomyMovement.queryFrame(support).orElseThrow();
+            h.assertTrue(after.snapshot().pieces().values().stream().noneMatch(piece->piece.overlaps(body.getBoundingBox())),
+                "A9 response must finish non-penetrating against the actual endpoint geometry");
+        } finally {
+            AnatomyMovement.clear(body);
+            MaterialIntervalRuntime.clear(level);
+            MaterialPhysicsRuntime.clear(level);
+            support.discard();body.discard();
+        }
+    }
+
+    /**
+     * Fixture-only placement oracle. The live provider itself certifies the hypothetical root segment;
+     * no pending interval is published and the returned motion is not used to resolve physics.
+     */
+    private static GeometryProvider.MotionSnapshot hypotheticalRootMotion(net.minecraft.world.entity.LivingEntity support,
+            GeometryProvider.QueryFrame before,float yawDelta) {
+        var root0=before.root();
+        var root1=new AnatomyMovement.RootFrame(root0.sequence()+1,root0.tick(),root0.origin(),root0.yaw()+yawDelta,root0.scale(),root0.gravity());
+        var sample0=before.sample();
+        var sample1=new AnatomyPoseHistory.Sample(sample0.inputs(),sample0.origin(),sample0.yaw()+yawDelta,sample0.scale(),sample0.gravity());
+        var endpoint1=new GeometryProvider.CausalEndpoint(before.endpoint().frameSerial()+1,before.authorityTick(),before.jointSampleTick(),
+            root1,sample1,GeometryProvider.Availability.AVAILABLE);
+        // Snapshot content is deliberately not guessed. AnatomyRuntime.interval only accepts its revision/identity
+        // here and asks the bound provider to construct the continuous motion from the two immutable samples.
+        var syntheticAfter=new GeometryProvider.QueryFrame(before.identity(),endpoint1,before.snapshot());
+        var handle=new GeometryProvider.MotionIntervalHandle(before.identity(),1,before,syntheticAfter);
+        return AnatomyRuntime.interval(support,handle).orElse(null);
+    }
+
+    private static boolean endpointClear(GeometryProvider.MotionSnapshot motion,AABB body,double t) {
+        try {
+            for(var piece:motion.pieces().values())if(piece.at().apply(t).overlaps(body))return false;
+            return true;
+        } catch(RuntimeException rejected){return false;}
+    }
+
+    private static double minGap(GeometryProvider.MotionSnapshot motion,AABB body,double t) {
+        double gap=Double.POSITIVE_INFINITY;
+        for(var piece:motion.pieces().values())gap=Math.min(gap,piece.at().apply(t).separation(body).gap());
+        return gap;
+    }
+}
