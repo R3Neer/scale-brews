@@ -3,14 +3,16 @@ package io.github.r3neer.scalebrews.collision.migration;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
+import io.github.r3neer.scalebrews.platform.PlatformPolicy;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
- * One-way decoder for the released PlatformDefinition shape. It never turns a
- * legacy top plane into anatomical geometry and never creates a fallback engine.
+ * One-way decoder for released platform data. Legacy top planes remain explicit
+ * one-sided migration records and never become anatomical collision geometry.
  */
 public final class LegacyCollisionData {
     private LegacyCollisionData() {}
@@ -38,7 +40,7 @@ public final class LegacyCollisionData {
         if (anatomy == planes) throw new IllegalArgumentException("Legacy definition must contain anatomy xor planes");
         if (anatomy) {
             var old = source.anatomy().orElseThrow();
-            var patch = new CollisionPolicy.Patch(Optional.of(source.enabled()), source.maxRatio(), Optional.of(source.friction()));
+            var patch = profilePolicy(source);
             var binding = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, source.entity(), Map.of(),
                 new CollisionBinding.Geometry(PRECOMPUTED_GEOMETRY, old.model(), Map.of(), old.filter()),
                 new CollisionBinding.Pose(LEGACY_POSE_PROVIDER, Map.of("provider", old.poses().toString()), java.util.Set.of()),
@@ -48,5 +50,24 @@ public final class LegacyCollisionData {
         var decoded = source.surfaces().stream().map(surface -> new Plane(surface.id(), surface.x(), surface.y(), surface.z(),
             surface.width(), surface.depth(), surface.visual().map(visual -> new Visual(visual.part(), visual.x(), visual.y(), visual.z())))).toList();
         return new Decoded(Optional.empty(), Optional.of(new LegacyPlanes(source.entity(), source.enabled(), source.friction(), source.maxRatio(), decoded)));
+    }
+
+    /** Preserve released policy semantics without importing automatic_top into the canonical model. */
+    public static CollisionPolicy policy(PlatformPolicy source) {
+        if (source == null) return CollisionPolicy.DEFAULT;
+        Map<String, CollisionPolicy.Patch> categories = new LinkedHashMap<>();
+        source.bodies().forEach((category, enabled) -> categories.put(category,
+            new CollisionPolicy.Patch(Optional.of(enabled), Optional.empty(), Optional.empty())));
+        Map<Identifier, CollisionPolicy.Patch> supports = new LinkedHashMap<>();
+        source.supports().forEach((support, enabled) -> supports.put(support,
+            new CollisionPolicy.Patch(Optional.of(enabled), Optional.empty(), Optional.empty())));
+        return new CollisionPolicy(CollisionPolicy.SCHEMA_VERSION,
+            new CollisionPolicy.Rule(source.enabled(), source.maxWidthRatio(), .6), categories, supports);
+    }
+
+    /** Legacy enabled=true means inherit; explicit false still disables at the most-specific layer. */
+    public static CollisionPolicy.Patch profilePolicy(PlatformDefinition source) {
+        return new CollisionPolicy.Patch(source.enabled() ? Optional.empty() : Optional.of(false),
+            source.maxRatio(), Optional.of(source.friction()));
     }
 }

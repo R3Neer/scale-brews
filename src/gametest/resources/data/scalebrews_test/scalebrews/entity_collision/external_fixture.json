@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "entity": "minecraft:armor_stand",
+  "variant": {
+    "fixture": "external"
+  },
+  "geometry": {
+    "engine": "scalebrews_test:s04_geometry",
+    "model": "scalebrews_test:s04_model",
+    "parameters": {
+      "technology": "external_fixture"
+    }
+  },
+  "pose": {
+    "engine": "scalebrews_test:s04_pose",
+    "channels": ["walk", "head_yaw"]
+  },
+  "root_transform": "scalebrews_test:s04_root",
+  "policy": {
+    "max_width_ratio": 0.9,
+    "friction": 0.55
+  },
+  "excluded_states": ["sleeping"]
+}

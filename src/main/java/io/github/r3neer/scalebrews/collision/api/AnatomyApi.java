@@ -16,8 +16,10 @@ import net.minecraft.world.phys.Vec3;
 public final class AnatomyApi {
     private AnatomyApi() {}
 
-    /** Increment only for an incompatible public API change. */
-    public static final int PROTOCOL_VERSION = 2;
+    /** Increment only for an incompatible public API/wire contract change. */
+    public static final int PROTOCOL_VERSION = 3;
+    /** Canonical collision binding/policy data schema understood by this API generation. */
+    public static final int DATA_SCHEMA_VERSION = 1;
 
     public enum Capability {
         CONTACTS,
@@ -25,11 +27,15 @@ public final class AnatomyApi {
         RAYCAST,
         GRAVITY_FRAME,
         ROOT_TRANSPORT,
-        SERVER_AUTHORITY
+        SERVER_AUTHORITY,
+        ENGINE_REGISTRY,
+        VERSIONED_BINDINGS,
+        BODY_ADAPTERS
     }
 
     private static final long CAPABILITIES = mask(Capability.CONTACTS, Capability.CLEARANCE, Capability.RAYCAST,
-        Capability.GRAVITY_FRAME, Capability.ROOT_TRANSPORT, Capability.SERVER_AUTHORITY);
+        Capability.GRAVITY_FRAME, Capability.ROOT_TRANSPORT, Capability.SERVER_AUTHORITY,
+        Capability.ENGINE_REGISTRY, Capability.VERSIONED_BINDINGS, Capability.BODY_ADAPTERS);
     private static final AnatomyBackend BACKEND = loadBackend();
 
     private static AnatomyBackend loadBackend() {

@@ -1,6 +1,13 @@
 package io.github.r3neer.scalebrews.platform;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
+import io.github.r3neer.scalebrews.collision.api.spi.BodyAdapter;
+import io.github.r3neer.scalebrews.collision.integration.BodyClassification;
+import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Registry;
@@ -9,16 +16,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.animal.camel.Camel;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.item.FallingBlockEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
-import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.level.Level;
 import java.util.*;
-import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
-import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 
 public final class Platforms {
     public static final ResourceKey<Registry<PlatformDefinition>> DEFINITIONS = ResourceKey.createRegistryKey(ScaleBrews.id("entity_platform"));
@@ -26,13 +25,11 @@ public final class Platforms {
     public static final ResourceKey<Registry<io.github.r3neer.scalebrews.collision.geometry.ModelGeometry>> GEOMETRIES = ResourceKey.createRegistryKey(ScaleBrews.id("entity_geometry"));
     public static final ResourceKey<PlatformPolicy> DEFAULT = ResourceKey.create(POLICIES, ScaleBrews.id("default"));
     private static final Map<Registry<PlatformDefinition>, Map<Identifier, PlatformDefinition>> INDEX = Collections.synchronizedMap(new WeakHashMap<>());
-    public interface PhysicalAdapter {
-        String category();
-        boolean permits(Entity body);
-        /** Special motion implementations may restrict a requested carry before collision resolution. */
-        default net.minecraft.world.phys.Vec3 transport(Entity body,net.minecraft.world.phys.Vec3 requested) { return requested; }
-    }
-    private static final Map<Identifier, PhysicalAdapter> ADAPTERS = new HashMap<>();
+
+    /** @deprecated Register {@link BodyAdapter} through {@link CollisionAdapters}. */
+    @Deprecated
+    public interface PhysicalAdapter extends BodyAdapter {}
+
     private static final Map<Level,Double> MARGINS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Entity,PlatformDefinition> AUTOMATIC=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Level,Map<Identifier,PlatformDefinition>> ANATOMICAL_DEFINITIONS=Collections.synchronizedMap(new WeakHashMap<>());
@@ -42,7 +39,9 @@ public final class Platforms {
         ANATOMICAL_DEFINITIONS.put(level,Map.copyOf(indexed));
     }
     public static void clearAnatomicalDefinitions(Level level){ANATOMICAL_DEFINITIONS.remove(level);}
-    public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { ADAPTERS.put(type, adapter); }
+    /** @deprecated Use {@link CollisionAdapters#registerBody(Identifier, BodyAdapter)}. */
+    @Deprecated
+    public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { CollisionAdapters.registerBody(type, adapter); }
     private Platforms() {}
     public static void initialize() {
         io.github.r3neer.scalebrews.collision.internal.AnatomyNetworking.initialize();
@@ -111,36 +110,18 @@ public final class Platforms {
         });
     }
     public static net.minecraft.world.phys.Vec3 adaptTransport(Entity body,net.minecraft.world.phys.Vec3 requested) {
-        var adapter=ADAPTERS.get(BuiltInRegistries.ENTITY_TYPE.getKey(body.getType()));
-        return adapter==null?requested:adapter.transport(body,requested);
+        return BodyClassification.adaptTransport(body,requested);
     }
-    public static String category(Entity e) {
-        if(e instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
-        var adapter = ADAPTERS.get(BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()));
-        if (adapter != null) return adapter.permits(e) ? adapter.category() : null;
-        if (e instanceof Player) return "players";
-        if (e instanceof Mob) return "mobs";
-        if (e instanceof AbstractBoat) return "boats";
-        if (e instanceof AbstractMinecart cart) return cart.isOnRails() ? null : "minecarts";
-        if (e instanceof ItemEntity) return "items";
-        if (e instanceof FallingBlockEntity) return "falling_blocks";
-        return null;
-    }
-    public static boolean ordinary(Entity e) {
-        if (!e.isAlive() || e.noPhysics || e.isSpectator() || e.isPassenger()) return false;
-        if (e instanceof LivingEntity l && (l.isSleeping() || l.isFallFlying() || l.isSwimming() || l.isBaby())) return false;
-        if (e instanceof Player p && p.getAbilities().flying) return false;
-        if (e instanceof Camel c && c.isCamelSitting()) return false;
-        if (e instanceof net.minecraft.world.entity.animal.feline.Cat cat
-                && (cat.isInSittingPose() || cat.isLying())) return false;
-        return true;
-    }
+    public static String category(Entity e) { return BodyClassification.category(e); }
+    public static boolean ordinary(Entity e) { return BodyClassification.ordinary(e); }
     public static boolean eligible(Entity body, LivingEntity support) {
         if (body == support || body.level() != support.level() || !ordinary(body) || !ordinary(support)) return false;
-        var p = policy(body.level()); var category = category(body);
-        var d = definition(support);
+        var legacyPolicy = policy(body.level());
+        var definition = definition(support);
+        var category = category(body);
         double ratio = body.getBbWidth() / (double)support.getBbWidth();
-        if (!PlatformEligibility.allows(p,d,category,ratio)) return false;
+        if (definition == null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
+                LegacyCollisionData.profilePolicy(definition), category, definition.entity(), ratio)) return false;
         Entity ancestor = support;
         Set<Entity> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         while (ancestor != null) {
@@ -160,8 +141,10 @@ public final class Platforms {
         return state(e).support;
     }
     public static double friction(Entity e, double original) {
-        var support=support(e);var definition=support==null?null:definition(support);
-        return definition==null?original:definition.friction();
+        var support=support(e);var definition=support==null?null:definition(support);var category=category(e);
+        if(definition==null || category==null)return original;
+        return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),LegacyCollisionData.profilePolicy(definition),
+            category,definition.entity()).friction();
     }
     public static void tick(ServerLevel level) {
         io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime.prepare(level);
