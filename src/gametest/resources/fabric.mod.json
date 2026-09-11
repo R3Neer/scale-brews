@@ -71,6 +71,7 @@
       "io.github.r3neer.scalebrews.test.S08PassengerOnceTests",
       "io.github.r3neer.scalebrews.test.S08DerivedRebindTests",
       "io.github.r3neer.scalebrews.collision.internal.S08ObstacleOverflowTests",
+      "io.github.r3neer.scalebrews.test.S09LiveOwnMoveTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
