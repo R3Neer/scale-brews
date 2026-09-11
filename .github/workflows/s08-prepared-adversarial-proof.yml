@@ -5,6 +5,10 @@ on:
     branches: [chatgpt-editing]
     paths:
       - '.github/workflows/s08-prepared-adversarial-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialIntervalRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java'
 
 jobs:
   prepared-proof:
