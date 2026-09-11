@@ -49,13 +49,14 @@ public final class S08GravityIndependenceTests {
             var separation=wallBefore.separation(captured);
             int face=wallBefore.closestFace(separation.normal());
             Vec3 normal=wallBefore.faceNormal(face);
+            h.assertTrue(Math.abs(separation.gap())<=1e-8,"Fixture wall must start in retained-contact range: "+separation.gap());
             h.assertTrue(bodyGravity.supports(normal),"Fixture wall must support the body's lateral gravity");
             Vec3 local=wallBefore.facePoint(face,captured.getCenter());
             var initialSurface=new SurfaceContact(support.getUUID(),revision,"wall",face,local,normal,level.getGameTime());
             h.assertTrue(AnatomyMovement.confirm(body,support,initialSurface),"Fixture must establish a valid lateral retained contact");
-            AnatomyMovement.afterMove(body);
             var retainedSurface=AnatomyMovement.surface(body);
-            h.assertTrue(retainedSurface!=null && AnatomyMovement.supported(body),"Retained lateral contact must be valid before transport");
+            h.assertTrue(retainedSurface!=null && AnatomyMovement.contact(body)!=null,
+                "Fixture must retain the explicitly certified lateral face before planner execution");
 
             long tick=level.getGameTime();
             long registration=AnatomyMovement.registrationGeneration(support);
