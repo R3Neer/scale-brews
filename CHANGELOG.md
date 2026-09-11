@@ -14,6 +14,7 @@ This prerelease adds optional effective-gravity support to Scale-owned Tiny Moun
 
 - Run both server and real-client GameTests in ordinary GitHub Actions CI. Client assertions execute headlessly under Xvfb; screenshots/logs are retained as workflow artifacts for inspection.
 - Add a guarded prerelease workflow that validates the exact release tree, checks packaged metadata and test-class exclusion, calculates the regular-JAR SHA-256 and creates the GitHub prerelease only after all gates pass.
+- Maintenance refresh: migrate stable GameTests away from the deprecated `makeMockServerPlayerInLevel()` helper while preserving connected-player semantics, remove remaining direct Java deprecation warnings, reject future deprecation regressions in CI, and verify refreshed prerelease tags/assets against the exact validated commit and JAR SHA-256.
 
 ### Development prototype - anatomical geometry (not active gameplay)
 

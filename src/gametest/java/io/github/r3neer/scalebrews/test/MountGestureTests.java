@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class MountGestureTests {
     @GameTest public void anyItemMountsAndSameWolfCanBeRemounted(GameTestHelper h) {
-        var player=h.makeMockServerPlayerInLevel();
+        var player=h.makeMockServerPlayer(GameType.CREATIVE);
         player.getAttribute(Attributes.SCALE).setBaseValue(.52);
         var wolf=h.spawn(EntityTypes.WOLF,2,2,2);wolf.tame(player);wolf.setNoAi(true);
         for(boolean saddled:new boolean[]{false,true}) {
