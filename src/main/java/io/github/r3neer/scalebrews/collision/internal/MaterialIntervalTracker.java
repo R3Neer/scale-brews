@@ -39,11 +39,10 @@ public final class MaterialIntervalTracker {
         }
         if (last != null && last.before().equals(before) && last.after().equals(after))
             return Result.of(Outcome.REPLAY);
-        long currentSerial = current == null ? -1 : current.endpoint().frameSerial();
+        if (current == null || !current.equals(before))
+            return Result.of(Outcome.GAP_OR_STALE);
         long beforeSerial = before.endpoint().frameSerial();
         long afterSerial = after.endpoint().frameSerial();
-        if (beforeSerial != currentSerial)
-            return Result.of(Outcome.GAP_OR_STALE);
         if (afterSerial == beforeSerial)
             return Result.of(Outcome.UNCHANGED);
         if (beforeSerial == Long.MAX_VALUE || afterSerial != beforeSerial + 1 || after.authorityTick() < before.authorityTick()
