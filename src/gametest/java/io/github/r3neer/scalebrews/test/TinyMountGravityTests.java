@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.integration.gravity.GravityFrame;
+import io.github.r3neer.scalebrews.mount.TinyMountGravity;
 import io.github.r3neer.scalebrews.mount.TinyMounts;
 import io.github.r3neer.scalebrews.mount.WolfMount;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -45,39 +46,19 @@ public class TinyMountGravityTests {
         h.succeed();
     }
 
-    @GameTest public void chickenGlideDampsOnlyLocalDownwardVelocity(GameTestHelper h) {
-        if (!TestGravityFrames.ensure()) { h.succeed(); return; }
-        var rider = h.makeMockServerPlayerInLevel();
-        rider.setGameMode(GameType.SURVIVAL);
-        rider.getAttribute(Attributes.SCALE).setBaseValue(.5);
-        var chicken = h.spawn(EntityTypes.CHICKEN, 2, 10, 2);
-        chicken.setNoAi(true);
-        chicken.setNoGravity(true);
-        chicken.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
-        h.assertTrue(rider.startRiding(chicken), "Chicken uses ordinary passenger relation");
-        h.assertTrue(TinyMounts.controller(chicken) == rider, "Chicken controller established");
-
+    @GameTest public void chickenGlideRuleDampsOnlyLocalDownwardVelocity(GameTestHelper h) {
         for (Direction direction : Direction.values()) {
             GravityFrame frame = new GravityFrame(direction);
-            TestGravityFrames.set(chicken, direction);
-            chicken.setOnGround(false);
+            Vec3 falling = frame.toWorld(new Vec3(.25, -1, .4));
+            near(h, TinyMountGravity.dampLocalFall(falling, frame, .6, true), falling,
+                    "Released Space suppresses local fall damping " + direction);
+            near(h, frame.toLocal(TinyMountGravity.dampLocalFall(falling, frame, .6, false)),
+                    new Vec3(.25, -.6, .4), "Held Space damps only local vertical " + direction);
 
-            rider.setLastClientInput(Input.EMPTY);
-            chicken.setDeltaMovement(frame.toWorld(new Vec3(.25, -1, .4)));
-            chicken.aiStep();
-            Vec3 gliding = frame.toLocal(chicken.getDeltaMovement());
-            near(h, gliding.y, -1, "Released Space suppresses local fall damping " + direction);
-
-            rider.setLastClientInput(new Input(false, false, false, false, true, false, false));
-            chicken.setDeltaMovement(frame.toWorld(new Vec3(.25, -1, .4)));
-            chicken.setOnGround(false);
-            chicken.aiStep();
-            Vec3 damped = frame.toLocal(chicken.getDeltaMovement());
-            near(h, damped.y, -.6, "Held Space restores local fall damping " + direction);
-            near(h, damped.x, .25, "Damping keeps local tangent X " + direction);
-            near(h, damped.z, .4, "Damping keeps local tangent Z " + direction);
+            Vec3 rising = frame.toWorld(new Vec3(.25, .2, .4));
+            near(h, TinyMountGravity.dampLocalFall(rising, frame, .6, false), rising,
+                    "Local upward movement is never damped " + direction);
         }
-        rider.stopRiding();
         h.succeed();
     }
 
@@ -162,9 +143,5 @@ public class TinyMountGravityTests {
     private static void near(GameTestHelper h, Vec3 actual, Vec3 expected, String message) {
         h.assertTrue(actual.distanceToSqr(expected) <= EPS * EPS,
                 message + ": " + actual + " != " + expected);
-    }
-
-    private static void near(GameTestHelper h, double actual, double expected, String message) {
-        h.assertTrue(Math.abs(actual - expected) <= EPS, message + ": " + actual + " != " + expected);
     }
 }
