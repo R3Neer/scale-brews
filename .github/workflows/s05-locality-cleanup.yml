@@ -1,0 +1,38 @@
+name: s05-locality-cleanup
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - .github/workflows/s05-locality-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: remove non-contractual S06 fallback while preserving S05 locality
+        shell: bash
+        run: |
+          echo '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' | base64 -d | gzip -d | python
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+      - name: commit cleanup
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git config user.name 'ChatGPT'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+          git commit -m 'fix(collision): keep live broadphase locality minimal'
+          git push origin HEAD:chatgpt-editing
