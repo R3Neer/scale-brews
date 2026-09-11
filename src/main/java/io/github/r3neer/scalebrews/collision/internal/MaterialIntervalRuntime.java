@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
@@ -46,6 +47,32 @@ public final class MaterialIntervalRuntime {
         if(support==null || capture==null)return;
         AnatomyMovement.observeRoot(support,capture.root());
         accept(support,Source.ROOT,capture.before(),AnatomyMovement.queryFrame(support).orElse(null));
+    }
+
+    /**
+     * S08 causal child seam. Advance the same S06 tracker as a real root mutation but do not
+     * publish into the root/joint pending queue: the caller already owns the parent event and
+     * must return this handle as DERIVED_CARRY so ancestry/cycle/depth stay intact.
+     */
+    public static Optional<GeometryProvider.MotionIntervalHandle> deriveRoot(LivingEntity support,RootCapture capture) {
+        if(support==null || capture==null || capture.before()==null)return Optional.empty();
+        AnatomyMovement.observeRoot(support,capture.root());
+        var after=AnatomyMovement.queryFrame(support).orElse(null);
+        var tracker=TRACKERS.computeIfAbsent(support,ignored->new MaterialIntervalTracker());
+        if(after==null) {
+            AnatomyMovement.publishedFrame(support).ifPresentOrElse(frame->tracker.cut(frame.identity()),tracker::cut);
+            return Optional.empty();
+        }
+        if(tracker.current()==null)tracker.seed(capture.before());
+        var currentBefore=tracker.current();
+        var result=tracker.accept(capture.before(),after);
+        if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED)return Optional.of(result.handle());
+        if(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && currentBefore!=null
+                && currentBefore.equals(capture.before())
+                && currentBefore.identity().equals(after.identity())
+                && after.endpoint().frameSerial()>currentBefore.endpoint().frameSerial())
+            tracker.seed(after);
+        return Optional.empty();
     }
 
     /** Observe one post-tick current frame. Repeated reads are no-ops; a joint advance publishes one handle. */
