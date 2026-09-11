@@ -202,7 +202,11 @@ public final class MaterialPhysicsRuntime {
         private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
             var entities=new ArrayList<Entity>(Math.min(maximumBodies+1,256));
             level.getEntities(EntityTypeTest.forClass(Entity.class),envelope,body->{
-                if(body.isRemoved() || supports.stream().anyMatch(s->s==body))return false;
+                if(body.isRemoved())return false;
+                for(var support:supports) {
+                    if(support==body)return false;
+                    for(var passenger:support.getIndirectPassengers())if(passenger==body)return false;
+                }
                 for(var support:supports)if(Platforms.eligible(body,support))return true;
                 return false;
             },entities,maximumBodies+1);
