@@ -2,7 +2,6 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -19,12 +18,12 @@ public final class MaterialIntervalRuntime {
     public enum Source {ROOT,JOINT}
     private static final Map<LivingEntity,MaterialIntervalTracker> TRACKERS=
         Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,MaterialIntervalTracker>makeMap());
+    /**
+     * Insertion order is causal for root mutations. Joint observations are appended by
+     * AnatomyRuntime.publish in its explicit UUID/entity-id canonical order, because
+     * that cadence is simultaneous rather than causally ordered.
+     */
     private static final Map<Level,List<Pending>> PENDING=Collections.synchronizedMap(new WeakHashMap<>());
-    private static final Comparator<Pending> ORDER=Comparator
-        .comparingLong((Pending p)->p.handle().after().authorityTick())
-        .thenComparing(p->p.handle().identity().support())
-        .thenComparingInt(p->p.handle().identity().entityId())
-        .thenComparingLong(p->p.handle().materialSerial());
 
     public record Pending(LivingEntity support,Source source,GeometryProvider.MotionIntervalHandle handle) {
         public Pending {if(support==null || source==null || handle==null)throw new IllegalArgumentException("Invalid pending material interval");}
@@ -85,11 +84,10 @@ public final class MaterialIntervalRuntime {
         PENDING.computeIfPresent(support.level(),(level,list)->{list.removeIf(p->p.support()==support);return list.isEmpty()?null:list;});
     }
 
-    /** Canonical one-shot queue seam for S07. */
+    /** One-shot queue seam for S07. Root order is causal; joint subgroups are already canonical. */
     public static List<Pending> poll(Level level) {
         var list=PENDING.remove(level);
-        if(list==null || list.isEmpty())return List.of();
-        var copy=new ArrayList<>(list);copy.sort(ORDER);return List.copyOf(copy);
+        return list==null || list.isEmpty()?List.of():List.copyOf(list);
     }
 
     public static void clear(Level level) {
