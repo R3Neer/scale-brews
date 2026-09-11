@@ -57,6 +57,40 @@ public final class S05ExternalScaleBroadphaseTests {
     }
 
     @GameTest
+    public void externalScaleShrinkMustRemoveOldRemoteMaterialBoundsInSameTick(GameTestHelper h) {
+        var level=h.getLevel();
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);support.yBodyRot=0;
+        support.getAttribute(Attributes.SCALE).setBaseValue(2);support.refreshDimensions();
+
+        var fixture=fixture(support,"external_shrink",43);
+        AnatomyMovement.activate(level);
+        try {
+            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            AnatomyMovement.tick(level);
+            var before=sample(fixture,support,0,2);
+            h.assertTrue(!AnatomyMovement.spaceClear(body,before),
+                "Scale-2 material bounds must be present before the external shrink");
+
+            support.getAttribute(Attributes.SCALE).setBaseValue(1);support.refreshDimensions();
+            var after=sample(fixture,support,0,1);
+            h.assertTrue(!before.inflate(.5).intersects(after),
+                "Shrink fixture must move anatomy out of the previous broadphase region: before="+before+" after="+after);
+            h.assertTrue(AnatomyMovement.spaceClear(body,before),
+                "FR-011/NFR-004 require same-tick shrink to remove the old material bounds instead of leaving a stale collider");
+            h.assertTrue(!AnatomyMovement.spaceClear(body,after),
+                "The shrunken material bounds must remain discoverable after the old entry is removed");
+        } finally {
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void publishedRootYawMustKeepUpdatedSupportDiscoverable(GameTestHelper h) {
         var level=h.getLevel();
         var body=h.makeMockServerPlayerInLevel();
