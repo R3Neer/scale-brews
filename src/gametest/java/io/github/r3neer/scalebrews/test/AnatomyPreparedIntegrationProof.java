@@ -82,6 +82,10 @@ public final class AnatomyPreparedIntegrationProof {
             // material interval. This distinguishes dispatcher contact establishment from an
             // own-movement path that merely happens to land on the new endpoint.
             S09PreparedIntervalContactProof.run(h);
+            // S09 A10: the inverse of A8. A real ROOT interval may end inside the wider retention
+            // tolerance while remaining outside CCD skin for the whole interval. Nearness alone
+            // must not create movement or a new material relation.
+            S09PreparedIntervalContactProof.nearEndpointWithoutTemporalContact(h);
             // S09 A9: both endpoint frames are clear. Only the certified interior trajectory
             // intersects the stationary body, so the event must affect it without retaining a
             // contact after the moving piece has withdrawn again.
