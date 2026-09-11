@@ -4,10 +4,12 @@ import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
@@ -33,7 +35,10 @@ public final class S09SeparationBudgetBoundaryTests {
         var bystander=h.spawn(EntityTypes.COW,supportX,20,10);
         for(var support:java.util.List.of(culprit,bystander)) {
             support.setNoAi(true);support.setNoGravity(true);
-            support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+            // The support entities are identity/policy anchors, not extra walls in the recovery
+            // puzzle. A tiny body is already well below the default .85 width-ratio limit, so
+            // scale 1 keeps them eligible without letting their vanilla AABBs obstruct live clip.
+            support.getAttribute(Attributes.SCALE).setBaseValue(1);support.refreshDimensions();
         }
         var body=h.makeMockServerPlayerInLevel();
         body.setNoGravity(true);
@@ -76,6 +81,29 @@ public final class S09SeparationBudgetBoundaryTests {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,culprit)
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,bystander),
                 "A12 live fixture requires both culprit and non-causal bystander to be eligible indexed supports");
+
+            // Kernel precondition with the exact production block/entity clip. This prevents a
+            // vanilla support AABB or structure block from turning a valid identity-clip boundary
+            // into a different puzzle before AnatomyMovement even gets a chance to resolve it.
+            var livePieces=new ArrayList<ConvexBox>(slabs.values());livePieces.add(bystanderPiece);
+            java.util.function.BiFunction<AABB,Vec3,Vec3> liveClip=(bounds,delta)->
+                Entity.collideBoundingBox(body,delta,bounds,level,level.getEntityCollisions(body,bounds.expandTowards(delta)));
+            if(mustRecover) {
+                var below=AnatomySeparation.resolve(captured,livePieces,4,127,liveClip);
+                var exactLive=AnatomySeparation.resolve(captured,livePieces,4,128,liveClip);
+                h.assertTrue(!below.separated() && below.candidates()==127
+                        && exactLive.separated() && exactLive.candidates()==128 && exactLive.displacement().x>0,
+                    "A12 candidate-128 control must remain exact under the same block/entity clip used by production: below="
+                        +below+" exact="+exactLive+" slabs="+slabCount);
+            } else {
+                var cappedLive=AnatomySeparation.resolve(captured,livePieces,4,128,liveClip);
+                var plusOneLive=AnatomySeparation.resolve(captured,livePieces,4,129,liveClip);
+                h.assertTrue(!cappedLive.separated() && cappedLive.candidates()==128
+                        && plusOneLive.separated() && plusOneLive.candidates()==129 && plusOneLive.displacement().x>0,
+                    "A12 candidate-129 control must remain exact under the same block/entity clip used by production: capped="
+                        +cappedLive+" plusOne="+plusOneLive+" slabs="+slabCount);
+            }
+
             var beforeMetrics=AnatomyMovement.sweepMetrics(level);var before=body.position();
             // Candidate 128 clears by exactly the separation skin. A small outward own-move keeps
             // this case focused on the 128-candidate recovery boundary instead of immediately
@@ -90,7 +118,7 @@ public final class S09SeparationBudgetBoundaryTests {
                 "A12 must exercise one live own-move query, not only the isolated separation kernel");
 
             if(mustRecover) {
-                var exact=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
+                var exact=AnatomySeparation.resolve(captured,livePieces,4,128,liveClip);
                 Vec3 expected=exact.displacement().add(requested);
                 h.assertTrue(allowed.distanceToSqr(expected)<1e-12,
                     "Candidate 128 must be exported as the complete bounded correction before the outward own-move: kernel="
