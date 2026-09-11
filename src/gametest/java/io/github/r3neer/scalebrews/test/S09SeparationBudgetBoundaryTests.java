@@ -18,8 +18,10 @@ import org.joml.Matrix4f;
 public final class S09SeparationBudgetBoundaryTests {
     @GameTest
     public void exactBoundaryRecoversButCandidate129FailsClosedAndPairLocal(GameTestHelper h) {
-        runCase(h,127,true,8,6,2);
-        runCase(h,128,false,24,6,18);
+        // ZERO is candidate 1, each nested slab contributes one next +X boundary candidate,
+        // and the first fully clear state is therefore slabCount+2 rather than slabCount+1.
+        runCase(h,126,true,8,6,2);
+        runCase(h,127,false,24,6,18);
         h.succeed();
     }
 
@@ -41,8 +43,7 @@ public final class S09SeparationBudgetBoundaryTests {
         var bystanderPiece=bystander(captured,origin);
 
         // Kernel calibration is exact rather than inferred from live behavior. Every nested slab
-        // contributes exactly one short +X escape before the final clear state; all other exits
-        // are deliberately farther away. ZERO itself is candidate 1.
+        // contributes one short +X boundary before the final clear state; ZERO itself is candidate 1.
         if(mustRecover) {
             var oneShort=AnatomySeparation.resolve(captured,slabs.values(),4,127,(box,delta)->delta);
             var exact=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
@@ -105,11 +106,6 @@ public final class S09SeparationBudgetBoundaryTests {
         }
     }
 
-    /**
-     * Nested asymmetric slabs. The only short escape from slab i is +X to
-     * body.minX + 0.02 + i*0.001; -X/Y/Z exits are all >0.5 blocks. Therefore the
-     * priority queue inspects ZERO, then exactly one new +X offset per slab.
-     */
     private static Map<String,ConvexBox> slabs(AABB body,Vec3 origin,int count) {
         double minX=body.minX-origin.x,maxX=body.maxX-origin.x;
         double minY=body.minY-origin.y,maxY=body.maxY-origin.y;
