@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,BROADPHASE_SEGMENTS=8;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
@@ -111,11 +111,7 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 if(certifies(body,delta,constraint,start,end))continue;
             }
-            var interval=pieces.get(id).interval(start,end);
-            Boolean possible=mayIntersect(body,delta,interval,budget);
-            if(possible==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
-            if(!possible)continue;
-            var result=budget.query(body,delta,interval);
+            var result=firstForPiece(body,delta,pieces.get(id).interval(start,end),budget);
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
             if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP)return new Search(result.status(),0,List.of());
             if(result.status()!=ConservativeSweep.Status.CONTACT)continue;
@@ -126,8 +122,38 @@ public final class TemporalResponse {
     }
 
     /**
-     * Certified piece-level broadphase. Every material point stays within maxPointSpeed of the
-     * interval-start convex, and the translating body stays inside expandTowards(delta).
+     * Search one piece without allowing a loose full-interval deformation bound to monopolize the
+     * shared response budget. A whole-interval envelope rejects the common distant case in one
+     * sample. Otherwise eight time-aligned subinterval envelopes are certified independently and
+     * only the windows that can actually reach the body's matching swept AABB pay for CCD.
+     */
+    private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+        Boolean possible=mayIntersect(body,delta,interval,budget);
+        if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
+        if(!possible)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+        for(int segment=0;segment<BROADPHASE_SEGMENTS;segment++) {
+            double from=(double)segment/BROADPHASE_SEGMENTS,to=(double)(segment+1)/BROADPHASE_SEGMENTS;
+            var sub=interval.interval(from,to);
+            AABB segmentBody=body.move(delta.scale(from));
+            Vec3 segmentDelta=delta.scale(to-from);
+            possible=mayIntersect(segmentBody,segmentDelta,sub,budget);
+            if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,from,Vec3.ZERO,0);
+            if(!possible)continue;
+            var result=budget.query(segmentBody,segmentDelta,sub);
+            double fraction=from+(to-from)*Math.clamp(result.safeFraction(),0,1);
+            if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP && segment>0)
+                return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,fraction,result.normal(),result.evaluations());
+            if(result.status()==ConservativeSweep.Status.CONTACT || result.status()==ConservativeSweep.Status.INITIAL_OVERLAP
+                    || result.status()==ConservativeSweep.Status.ITERATION_LIMIT)
+                return new ConservativeSweep.Result(result.status(),fraction,result.normal(),result.evaluations());
+        }
+        return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+    }
+
+    /**
+     * Certified envelope for one time-aligned material/body window. Every material point stays
+     * within maxPointSpeed of the window-start convex, and the body remains inside its matching
+     * translational swept AABB. Geometry sampling is charged to the same shared response budget.
      */
     private static Boolean mayIntersect(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(!budget.sample())return null;
