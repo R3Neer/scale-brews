@@ -20,6 +20,8 @@ public final class CollisionCodecs {
         ? DataResult.success(value) : DataResult.error(() -> "Unsupported collision policy schema " + value));
     private static final Codec<Double> FINITE_NONNEGATIVE = Codec.DOUBLE.validate(value -> Double.isFinite(value) && value >= 0
         ? DataResult.success(value) : DataResult.error(() -> "Expected finite non-negative number"));
+    private static final Codec<Double> FINITE = Codec.DOUBLE.validate(value -> Double.isFinite(value)
+        ? DataResult.success(value) : DataResult.error(() -> "Expected finite number"));
     private static final Codec<Double> RATIO = Codec.DOUBLE.validate(value -> Double.isFinite(value) && value > 0 && value <= 1024
         ? DataResult.success(value) : DataResult.error(() -> "Invalid max width ratio"));
     private static final Codec<Double> FRICTION = Codec.DOUBLE.validate(value -> Double.isFinite(value) && value >= 0 && value <= 1
@@ -34,13 +36,22 @@ public final class CollisionCodecs {
         ? DataResult.success(values) : DataResult.error(() -> "Duplicate canonical value"))
         .xmap(values -> Set.copyOf(new TreeSet<>(values)), values -> values.stream().sorted().toList());
 
-    public static final Codec<AnatomyFilter> FILTER = RecordCodecBuilder.create(i -> i.group(
-        FINITE_NONNEGATIVE.optionalFieldOf("min_thickness", AnatomyFilter.DEFAULT.minThickness()).forGetter(AnatomyFilter::minThickness),
-        Codec.DOUBLE.optionalFieldOf("min_aspect", AnatomyFilter.DEFAULT.minAspect()).forGetter(AnatomyFilter::minAspect),
-        Codec.DOUBLE.optionalFieldOf("min_volume_ratio", AnatomyFilter.DEFAULT.minVolumeRatio()).forGetter(AnatomyFilter::minVolumeRatio),
-        STRING_SET.optionalFieldOf("include", Set.of()).forGetter(AnatomyFilter::include),
-        STRING_SET.optionalFieldOf("exclude", Set.of()).forGetter(AnatomyFilter::exclude)
-    ).apply(i, AnatomyFilter::new));
+    private record FilterData(double thickness, double aspect, double volume, Set<String> include, Set<String> exclude) {}
+    private static final Codec<FilterData> FILTER_DATA = RecordCodecBuilder.create(i -> i.group(
+        FINITE_NONNEGATIVE.optionalFieldOf("min_thickness", AnatomyFilter.DEFAULT.minThickness()).forGetter(FilterData::thickness),
+        FINITE.optionalFieldOf("min_aspect", AnatomyFilter.DEFAULT.minAspect()).forGetter(FilterData::aspect),
+        FINITE.optionalFieldOf("min_volume_ratio", AnatomyFilter.DEFAULT.minVolumeRatio()).forGetter(FilterData::volume),
+        STRING_SET.optionalFieldOf("include", Set.of()).forGetter(FilterData::include),
+        STRING_SET.optionalFieldOf("exclude", Set.of()).forGetter(FilterData::exclude)
+    ).apply(i, FilterData::new));
+
+    public static final Codec<AnatomyFilter> FILTER = FILTER_DATA.comapFlatMap(data -> {
+        try {
+            return DataResult.success(new AnatomyFilter(data.thickness(), data.aspect(), data.volume(), data.include(), data.exclude()));
+        } catch (IllegalArgumentException invalid) {
+            return DataResult.error(invalid::getMessage);
+        }
+    }, filter -> new FilterData(filter.minThickness(), filter.minAspect(), filter.minVolumeRatio(), filter.include(), filter.exclude()));
 
     public static final Codec<CollisionPolicy.Patch> POLICY_PATCH = RecordCodecBuilder.create(i -> i.group(
         Codec.BOOL.optionalFieldOf("enabled").forGetter(CollisionPolicy.Patch::enabled),
