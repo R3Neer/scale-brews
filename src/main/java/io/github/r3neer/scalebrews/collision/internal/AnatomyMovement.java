@@ -544,10 +544,9 @@ public final class AnatomyMovement {
     }
     private static SpatialIndex spatial(Level level) {
         var current=SPATIAL.get(level);
-        // Endpoint acceptance, register/rebind, lifecycle barriers and tick rollover all
-        // invalidate this cache explicitly. Do not globally resample every registered
-        // support on each local query: unavailable bindings remain locally discoverable
-        // through their fallback support envelope in rebuildSpatial.
+        // Register/rebind, lifecycle barriers, accepted causal endpoints and tick rollover
+        // invalidate the cache explicitly. Reusing a same-tick index must not resample every
+        // registered provider before a local query can reach the bounded spatial kernel.
         if(current!=null && current.tick()==level.getGameTime())return current;
         Map<LivingEntity,GeometryProvider> providers;
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
@@ -558,20 +557,10 @@ public final class AnatomyMovement {
         List<MaterialBroadphase.Entry<LivingEntity>> entries=new ArrayList<>();
         for(var entry:providers.entrySet()) {
             var support=entry.getKey();if(support.level()!=level)continue;
-            var frame=currentFrameStamp(support,entry.getValue());if(frame==null)continue;
-            frames.put(support,frame);
-            // Even an UNAVAILABLE binding gets a local discovery envelope. It is not
-            // collision geometry: candidates() still asks currentSnapshot before adding
-            // any convex. This lets the first nearby query observe UNAVAILABLE->AVAILABLE
-            // without polling far-world providers, while available anatomy keeps its full
-            // geometry envelope (including pieces outside the vanilla support AABB).
-            AABB envelope=support.getBoundingBox();
-            var sample=currentSnapshot(support,entry.getValue()).orElse(null);
-            if(sample!=null) {
-                var geometry=snapshotBounds(sample);
-                if(geometry!=null)envelope=union(envelope,geometry);
-            }
-            entries.add(new MaterialBroadphase.Entry<>(support,envelope));
+            var sample=currentSnapshot(support,entry.getValue()).orElse(null);var frame=currentFrameStamp(support,entry.getValue());
+            if(sample==null || frame==null)continue;
+            AABB envelope=snapshotBounds(sample);if(envelope==null)continue;
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
         }
         var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
         for(var rejected:built.rejected()) {
@@ -583,16 +572,9 @@ public final class AnatomyMovement {
     }
     private static FrameStamp currentFrameStamp(LivingEntity support,GeometryProvider provider) {
         if(provider==null)return null;
-        if(DESCRIPTORS.containsKey(support)) {
-            var published=publishedFrame(support).orElse(null);
-            return published==null?null:new FrameStamp(published.identity(),published.endpoint().root(),published.identity().revision(),
-                registrationGeneration(support),published.endpoint().frameSerial());
-        }
+        if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(frame->new FrameStamp(frame.identity(),frame.root(),frame.snapshot().revision(),registrationGeneration(support),frame.endpoint().frameSerial())).orElse(null);
         var sample=provider.sample(support).orElse(null);
-        // Legacy fixture bindings have no causal UNAVAILABLE endpoint. Keep an explicit
-        // local membership stamp anyway so an empty sample still receives the fallback
-        // discovery envelope and can become visible without a global rescan.
-        return new FrameStamp(null,observeRoot(support),sample==null?-1:sample.revision(),registrationGeneration(support),0);
+        return sample==null?null:new FrameStamp(null,observeRoot(support),sample.revision(),registrationGeneration(support),0);
     }
     /** The current S05 caller supplies instantaneous convex bounds; later Q2 stages may supply certified interval envelopes. */
     private static AABB snapshotBounds(GeometryProvider.Snapshot current) {
