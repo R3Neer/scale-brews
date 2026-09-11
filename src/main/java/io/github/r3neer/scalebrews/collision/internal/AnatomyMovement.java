@@ -5,6 +5,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
+import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 
@@ -64,13 +65,14 @@ public final class AnatomyMovement {
                 throw new IllegalArgumentException("Invalid transport window");
         }
     }
-    /** Geometry broadphase is indexed from actual convex bounds, never support AABBs. */
-    private record Cell(int x,int y,int z) {}
     /** Production frames seal causal identity plus full material serial; legacy fixtures retain root/revision only. */
     private record FrameStamp(GeometryProvider.GeometryIdentity identity,RootFrame root,long revision,long registration,long frameSerial) {}
-    private record SpatialIndex(long tick,Map<Cell,List<LivingEntity>> cells,List<LivingEntity> overflow,Map<LivingEntity,AABB> bounds,Map<LivingEntity,FrameStamp> frames) {}
+    /** Q2 broadphase state keeps causal-frame validation separate from the reusable spatial kernel. */
+    private record SpatialIndex(long tick,MaterialBroadphase<LivingEntity> broadphase,Map<LivingEntity,FrameStamp> frames) {}
     private static final double CELL_SIZE=4;
     private static final long MAX_INDEX_CELLS=4096;
+    private static final int MAX_INDEX_CANDIDATES=4096;
+    private static final Comparator<LivingEntity> SUPPORT_ORDER=Comparator.comparing((LivingEntity e)->e.getUUID()).thenComparingInt(Entity::getId);
     private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());
     public static boolean suspended(Entity body,LivingEntity support) {
         var suspended=SUSPENDED.get(body);
@@ -256,6 +258,7 @@ public final class AnatomyMovement {
     }
     /** Instantaneous query geometry. A descriptor must have a causal endpoint; fixture-only legacy bindings retain sample(). */
     private static Optional<GeometryProvider.Snapshot> currentSnapshot(LivingEntity support,GeometryProvider provider) {
+        if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registrationGeneration(support)))return Optional.empty();
         if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(GeometryProvider.QueryFrame::snapshot);
         return provider==null?Optional.empty():provider.sample(support);
     }
@@ -360,7 +363,9 @@ public final class AnatomyMovement {
         return a!=null && a.support()==second || b!=null && b.support()==first;
     }
     public static boolean spaceClear(Entity body,AABB box) {
-        for(var candidate:candidates(body,box))if(candidate.box.overlaps(box))return false;
+        var query=candidates(body,box);
+        if(!query.complete())return false;
+        for(var candidate:query.candidates())if(candidate.box.overlaps(box))return false;
         return true;
     }
     public static void tick(Level level) {
@@ -467,12 +472,17 @@ public final class AnatomyMovement {
             invalidateBody(entry.getKey(),false);
     }
     private record Candidate(LivingEntity entity,String id,long revision,ConvexBox box) {}
+    private record CandidateQuery(MaterialBroadphase.QueryStatus status,List<Candidate> candidates) {
+        private boolean complete(){return status==MaterialBroadphase.QueryStatus.COMPLETE;}
+    }
     public record SweepContact(LivingEntity support,String piece,long revision,ConservativeSweep.Result result) {}
     /** Dedicated temporal query, deliberately separate from navigation and vanilla noCollision. */
     public static SweepContact sweep(Entity body,Vec3 displacement,int iterations) {
         if(!active(body))return null;
         AABB swept=body.getBoundingBox().expandTowards(displacement);
-        var supports=new ArrayList<>(indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())+4)));
+        var supportQuery=indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())+4));
+        if(!supportQuery.complete()){recordSweep(body.level(),0,0,1);return null;}
+        var supports=new ArrayList<>(supportQuery.candidates());
         supports.sort(Comparator.comparingInt(Entity::getId));
         SweepContact best=null;
         int queried=0,evaluations=0,exhausted=0;
@@ -499,8 +509,10 @@ public final class AnatomyMovement {
     public record Selection(LivingEntity support,SurfaceContact contact,Vec3 position,double fraction) {}
     public static Selection raycast(Entity observer,Vec3 start,Vec3 end) {
         if(!active(observer))return null;
+        var query=candidates(observer,new AABB(start,end).inflate(.001));
+        if(!query.complete())return null;
         Selection best=null;
-        for(var candidate:candidates(observer,new AABB(start,end).inflate(.001))) {
+        for(var candidate:query.candidates()) {
             var hit=candidate.box.raycast(start,end);
             if(hit==null || best!=null && hit.fraction()>=best.fraction()-1e-9)continue;
             var contact=new SurfaceContact(candidate.entity.getUUID(),candidate.revision,candidate.id,hit.face(),hit.localPoint(),hit.normal(),observer.level().getGameTime());
@@ -508,44 +520,27 @@ public final class AnatomyMovement {
         }
         return best;
     }
-    private static List<Candidate> candidates(Entity body,AABB swept) {
+    private static CandidateQuery candidates(Entity body,AABB swept) {
         List<Candidate> result=new ArrayList<>();
-        for(var support:indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())))) {
+        var supportQuery=indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())));
+        if(!supportQuery.complete())return new CandidateQuery(supportQuery.status(),List.of());
+        for(var support:supportQuery.candidates()) {
             GeometryProvider provider=PROVIDERS.get(support);
             if(provider==null)continue;
             currentSnapshot(support,provider).ifPresent(snapshot->snapshot.pieces().forEach((id,box)->{
                 if(box.bounds().inflate(.001).intersects(swept))result.add(new Candidate(support,id,snapshot.revision(),box));
             }));
         }
-        result.sort(Comparator.comparingInt((Candidate c)->c.entity.getId()).thenComparing(Candidate::id));
-        return result;
+        result.sort(Comparator.comparingInt((Candidate c)->c.entity.getId()).thenComparing(c->c.entity.getUUID()).thenComparing(Candidate::id));
+        return new CandidateQuery(MaterialBroadphase.QueryStatus.COMPLETE,result);
     }
-    private static List<LivingEntity> indexedSupports(Entity body,AABB query) {
-        var index=spatial(body.level());var seen=Collections.newSetFromMap(new IdentityHashMap<LivingEntity,Boolean>());
-        int minX=cell(query.minX),maxX=cell(query.maxX),minY=cell(query.minY),maxY=cell(query.maxY),minZ=cell(query.minZ),maxZ=cell(query.maxZ);
-        // Movement requests are bounded by vanilla, but an invalid/extreme caller must not
-        // turn a spatial lookup into an unbounded cell walk or silently miss a limb.
-        long cellCount=cellCount(minX,maxX,minY,maxY,minZ,maxZ);
-        if(cellCount>MAX_INDEX_CELLS)seen.addAll(index.bounds().keySet());
-        else for(long x=minX;x<=maxX;x++)for(long y=minY;y<=maxY;y++)for(long z=minZ;z<=maxZ;z++)
-            seen.addAll(index.cells().getOrDefault(new Cell((int)x,(int)y,(int)z),List.of()));
-        seen.addAll(index.overflow());
+    private static MaterialBroadphase.QueryResult<LivingEntity> indexedSupports(Entity body,AABB query) {
+        var raw=spatial(body.level()).broadphase().query(query);
+        if(!raw.complete())return raw;
         var result=new ArrayList<LivingEntity>();
-        for(var support:seen)if(support.level()==body.level() && Platforms.eligible(body,support) && !suspended(body,support)
-                && index.bounds().getOrDefault(support,new AABB(0,0,0,0,0,0)).intersects(query))result.add(support);
-        result.sort(Comparator.comparingInt(Entity::getId));return result;
-    }
-    private static int cell(double coordinate) {
-        if(!Double.isFinite(coordinate))return coordinate<0?Integer.MIN_VALUE:Integer.MAX_VALUE;
-        double value=Math.floor(coordinate/CELL_SIZE);
-        if(value<=Integer.MIN_VALUE)return Integer.MIN_VALUE;
-        if(value>=Integer.MAX_VALUE)return Integer.MAX_VALUE;
-        return (int)value;
-    }
-    private static long cellCount(int minX,int maxX,int minY,int maxY,int minZ,int maxZ) {
-        long x=(long)maxX-minX+1,y=(long)maxY-minY+1,z=(long)maxZ-minZ+1;
-        if(x<=0 || y<=0 || z<=0 || x>MAX_INDEX_CELLS || y>MAX_INDEX_CELLS || z>MAX_INDEX_CELLS)return Long.MAX_VALUE;
-        if(x>MAX_INDEX_CELLS/y || x*y>MAX_INDEX_CELLS/z)return Long.MAX_VALUE;return x*y*z;
+        for(var support:raw.candidates())if(support.level()==body.level() && Platforms.eligible(body,support) && !suspended(body,support))result.add(support);
+        result.sort(SUPPORT_ORDER);
+        return new MaterialBroadphase.QueryResult<>(raw.status(),result,raw.requestedCells(),raw.cellsVisited(),raw.candidatesVisited());
     }
     private static SpatialIndex spatial(Level level) {
         var current=SPATIAL.get(level);
@@ -558,21 +553,22 @@ public final class AnatomyMovement {
         return rebuildSpatial(level,providers);
     }
     private static SpatialIndex rebuildSpatial(Level level,Map<LivingEntity,GeometryProvider> providers) {
-        Map<LivingEntity,AABB> bounds=new IdentityHashMap<>();Map<LivingEntity,FrameStamp> frames=new IdentityHashMap<>();Map<Cell,List<LivingEntity>> cells=new HashMap<>();List<LivingEntity> overflow=new ArrayList<>();
+        Map<LivingEntity,FrameStamp> frames=new IdentityHashMap<>();
+        List<MaterialBroadphase.Entry<LivingEntity>> entries=new ArrayList<>();
         for(var entry:providers.entrySet()) {
             var support=entry.getKey();if(support.level()!=level)continue;
             var sample=currentSnapshot(support,entry.getValue()).orElse(null);var frame=currentFrameStamp(support,entry.getValue());
             if(sample==null || frame==null)continue;
             AABB envelope=snapshotBounds(sample);if(envelope==null)continue;
-            bounds.put(support,envelope);frames.put(support,frame);
-            int minX=cell(envelope.minX),maxX=cell(envelope.maxX),minY=cell(envelope.minY),maxY=cell(envelope.maxY),minZ=cell(envelope.minZ),maxZ=cell(envelope.maxZ);
-            if(cellCount(minX,maxX,minY,maxY,minZ,maxZ)>MAX_INDEX_CELLS){overflow.add(support);continue;}
-            for(long x=minX;x<=maxX;x++)for(long y=minY;y<=maxY;y++)for(long z=minZ;z<=maxZ;z++)
-                cells.computeIfAbsent(new Cell((int)x,(int)y,(int)z),ignored->new ArrayList<>()).add(support);
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
         }
-        cells.replaceAll((ignored,entries)->List.copyOf(entries));
-        var index=new SpatialIndex(level.getGameTime(),Map.copyOf(cells),List.copyOf(overflow),
-            Collections.unmodifiableMap(new IdentityHashMap<>(bounds)),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));SPATIAL.put(level,index);return index;
+        var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
+        for(var rejected:built.rejected()) {
+            frames.remove(rejected.key());
+            quarantineEndpoint(rejected.key());
+        }
+        var index=new SpatialIndex(level.getGameTime(),built.index(),Collections.unmodifiableMap(new IdentityHashMap<>(frames)));
+        SPATIAL.put(level,index);return index;
     }
     private static FrameStamp currentFrameStamp(LivingEntity support,GeometryProvider provider) {
         if(provider==null)return null;
@@ -580,7 +576,7 @@ public final class AnatomyMovement {
         var sample=provider.sample(support).orElse(null);
         return sample==null?null:new FrameStamp(null,observeRoot(support),sample.revision(),registrationGeneration(support),0);
     }
-    /** The Q1 index contains only the instantaneous convex endpoint. Temporal envelopes belong to Q2 intervals. */
+    /** The current S05 caller supplies instantaneous convex bounds; later Q2 stages may supply certified interval envelopes. */
     private static AABB snapshotBounds(GeometryProvider.Snapshot current) {
         return current.pieces().values().stream().map(ConvexBox::bounds).reduce((a,b)->new AABB(Math.min(a.minX,b.minX),Math.min(a.minY,b.minY),Math.min(a.minZ,b.minZ),Math.max(a.maxX,b.maxX),Math.max(a.maxY,b.maxY),Math.max(a.maxZ,b.maxZ))).orElse(null);
     }
@@ -595,7 +591,9 @@ public final class AnatomyMovement {
         AABB box=body.getBoundingBox();
         var existing=contact(body);
         Map<String,ConservativeSweep.Motion> motions=new TreeMap<>();Map<String,Candidate> identities=new HashMap<>();
-        for(var support:indexedSupports(body,box.expandTowards(requested).inflate(Platforms.searchMargin(body.level())+4))) {
+        var supportQuery=indexedSupports(body,box.expandTowards(requested).inflate(Platforms.searchMargin(body.level())+4));
+        if(!supportQuery.complete()){clear(body);return Vec3.ZERO;}
+        for(var support:supportQuery.candidates()) {
             var provider=PROVIDERS.get(support);
             // Own Entity.move is swept against the current causal endpoint only.  A
             // certified support interval is deliberately not consumed here: Q2

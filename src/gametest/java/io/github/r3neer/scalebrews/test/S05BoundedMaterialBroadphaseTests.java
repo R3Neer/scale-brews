@@ -1,12 +1,18 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
 
 /** G2/S05 holdouts for local, explicitly bounded material broadphase work. */
 public final class S05BoundedMaterialBroadphaseTests {
@@ -98,6 +104,63 @@ public final class S05BoundedMaterialBroadphaseTests {
             "Candidate saturation needs the same explicit fail-closed outcome as cell saturation");
         h.assertTrue(query.candidates().isEmpty() && query.candidatesVisited() == 3,
             "A saturated query must not leak a misleading partial candidate list");
+        h.succeed();
+    }
+
+    @GameTest
+    public void runtimeClearanceFailsClosedWhenBroadphaseBudgetExhausts(GameTestHelper h) {
+        var body = h.makeMockServerPlayerInLevel();
+        AnatomyMovement.activate(h.getLevel());
+        try {
+            var pathological = new AABB(-1000, -1000, -1000, 1000, 1000, 1000);
+            h.assertTrue(!AnatomyMovement.spaceClear(body, pathological),
+                "Clearance must fail closed when its material broadphase budget is exhausted");
+        } finally {
+            AnatomyMovement.deactivate(h.getLevel());
+            body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void runtimeMovementBlocksWhenBroadphaseBudgetExhausts(GameTestHelper h) {
+        var body = h.makeMockServerPlayerInLevel();
+        AnatomyMovement.activate(h.getLevel());
+        try {
+            var requested = new Vec3(100000, 0, 0);
+            h.assertTrue(AnatomyMovement.collide(body, requested).equals(Vec3.ZERO),
+                "Physical movement must not interpret broadphase exhaustion as an empty world");
+        } finally {
+            AnatomyMovement.deactivate(h.getLevel());
+            body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void oversizedRuntimeSupportQuarantinesUntilExplicitRebind(GameTestHelper h) {
+        var support = h.spawn(net.minecraft.world.entity.EntityTypes.COW, 2, 20, 2);
+        var body = h.makeMockServerPlayerInLevel();
+        support.setNoAi(true);
+        support.setNoGravity(true);
+        GeometryProvider huge = entity -> java.util.Optional.of(new GeometryProvider.Snapshot(1, Map.of("body",
+            ConvexBox.of(new AABB(-100, -100, -100, 100, 100, 100), new Matrix4f()).move(entity.position()))));
+        GeometryProvider small = entity -> java.util.Optional.of(new GeometryProvider.Snapshot(2, Map.of("body",
+            ConvexBox.of(new AABB(-.5, -.5, -.5, .5, .5, .5), new Matrix4f()).move(entity.position()))));
+        AnatomyMovement.activate(h.getLevel());
+        AnatomyMovement.register(support, huge);
+        try {
+            AnatomyMovement.spaceClear(body, body.getBoundingBox()); // materializes the index and rejects the huge entry
+            h.assertTrue(!AnatomyMovement.replacesPair(body, support),
+                "A support rejected by the entry budget must remain locally quarantined");
+            AnatomyMovement.register(support, small);
+            h.assertTrue(AnatomyMovement.replacesPair(body, support),
+                "Explicit rebind with bounded material must clear the local quarantine");
+        } finally {
+            AnatomyMovement.deactivate(h.getLevel());
+            support.discard();
+            body.discard();
+        }
         h.succeed();
     }
 
