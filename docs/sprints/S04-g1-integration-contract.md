@@ -1,6 +1,6 @@
 # S04 — Integración estable y cierre funcional de G1
 
-Estado: **implementación y CI real verificadas; pendiente de campaña adversarial paralela y revisión final del gate G1**.
+Estado: **implementación y CI real verificadas; pendiente de campaña adversarial paralela y revisión final cero-cambios del gate G1**.
 
 ## 1. Scope
 
@@ -28,15 +28,19 @@ Tras S03, `collision.api` ya no dependía de `internal`, existían SPIs público
 - [x] eliminar el codec de filter duplicado de `collision.internal` delegándolo al codec canónico;
 - [x] registrar S01-S04 como entrypoints GameTest para que la evidencia ejecute realmente la suite nueva;
 - [x] fijar la frontera de ratio exactamente en `<`, `==` y `>` sin epsilon permisivo;
-- [x] emitir warning deduplicado al migrar surfaces legacy a planos unilaterales.
+- [x] emitir warning deduplicado al migrar surfaces legacy a planos unilaterales;
+- [x] rechazar keys nulas de support policy antes de canonical ordering;
+- [x] usar identidad estructural para variant selectors, sin `Map.toString()` como key accidental;
+- [x] conservar orden canónico en parámetros, snapshots de bindings, registries de engines y adapters;
+- [x] hacer fail-closed la frontera de body adapters ante body/request/output inválidos.
 
-P1 rechazó reemplazar `WorldAnatomyCatalog`: el plan asigna literalmente esa sustitución a G3. P2 mantuvo `automatic_top` sólo en el motor legacy que G5 retirará, pero lo excluyó de `CollisionPolicy` y de toda descripción canónica. P3 detectó que traducir `enabled=true` legacy a un profile override reactivaría un support deshabilitado globalmente; la migración lo representa como inherit y sólo conserva `false` explícito. P4 reservó selección ambigua de variantes como fail-closed. P5 detectó que el índice canónico no verificaba IDs de engine/provider y añadió rechazo explícito. P6 detectó que S01-S04 compilaban pero no figuraban en `fabric-gametest`; se corrigió el manifest y el fixture externo pasó a entrypoint `main`. P7 detectó que el `+1e-7` histórico contradecía la frontera literal FR-009 y lo retiró; también añadió el warning requerido por FR-023. La pasada siguiente no cambió el scope de G1.
+P1 rechazó reemplazar `WorldAnatomyCatalog`: el plan asigna literalmente esa sustitución a G3. P2 mantuvo `automatic_top` sólo en el motor legacy que G5 retirará, pero lo excluyó de `CollisionPolicy` y de toda descripción canónica. P3 detectó que traducir `enabled=true` legacy a un profile override reactivaría un support deshabilitado globalmente; la migración lo representa como inherit y sólo conserva `false` explícito. P4 reservó selección ambigua de variantes como fail-closed. P5 detectó que el índice canónico no verificaba IDs de engine/provider y añadió rechazo explícito. P6 detectó que S01-S04 compilaban pero no figuraban en `fabric-gametest`; se corrigió el manifest y el fixture externo pasó a entrypoint `main`. P7 detectó que el `+1e-7` histórico contradecía la frontera literal FR-009 y lo retiró; también añadió el warning requerido por FR-023. P8 encontró validación de support policy posterior al sort, colisión de identidad de selectors basada en representación textual y pérdida de orden canónico al exponer snapshots. P9 endureció los outputs de body adapters para que datos ausentes/no finitos no fabriquen transporte. La pasada siguiente no amplió el scope de G1.
 
 ## 4. Modelo adversarial
 
 La campaña adversarial completa está delegada al agente paralelo indicado por el propietario; cualquier test nuevo que aterrice en `chatgpt-editing` se integra en el sprint y un fallo obliga a reabrir la fase correspondiente.
 
-Invariantes ya cubiertos por la implementación/test base: adapter duplicado/categoría inválida, binding JSON con engine id externo, engine/provider ausente, selector variante ambiguo, peer protocol v2, ratio inmediatamente debajo/exacto/inmediatamente encima, support/category disable legacy y exclusión de `automatic_surfaces` del modelo canónico.
+Invariantes ya cubiertos por la implementación/test base: adapter duplicado/categoría inválida, binding JSON con engine id externo, engine/provider ausente, selector variante ambiguo, selector estructural con valores que contienen delimitadores, peer protocol v2, ratio inmediatamente debajo/exacto/inmediatamente encima, support/category disable legacy, ausencia de `automatic_surfaces` en el modelo canónico, canonical ordering y fail-closed en entradas/outputs de adapters.
 
 ## 5. Implementación
 
@@ -51,21 +55,27 @@ Invariantes ya cubiertos por la implementación/test base: adapter duplicado/cat
 - [x] codec filter interno deduplicado con error de decode fail-closed;
 - [x] referencias de geometry/pose/root validadas contra registries públicos;
 - [x] manifest del test mod incluye S01, S02, S03 y S04;
-- [x] ratio canónico exacto y warning de planos legacy.
+- [x] ratio canónico exacto y warning de planos legacy;
+- [x] validación/canonicalización determinista de policy, selectors, engine requests y snapshots;
+- [x] integración de body adapters acotada y fail-closed.
 
 ## 6. Test matrix
 
 | Propiedad | Nivel | Resultado ejecutado |
 | --- | --- | --- |
 | S01 backend/fachada | GameTest/reflection | PASS |
-| S02 registries/DTO bounds | GameTest | PASS |
+| S02 registries/DTO bounds/order | GameTest | PASS |
 | S03 schema/policy/legacy migration | GameTest | PASS |
 | fixture de mod API + JSON | init + GameTest/resource | PASS |
 | engine/pose/root inexistentes rechazados | GameTest | PASS |
 | variant ambiguity fail-closed | GameTest | PASS |
+| selectors estructuralmente distintos aunque `toString()` colisione | GameTest | PASS |
 | protocol/capabilities | GameTest | PASS |
 | ratio `nextDown / exact / nextUp` para profile y default 0.85 | GameTest | PASS |
 | filter inválido devuelve error de codec, no excepción fuera del parse | regresión GameTest | PASS |
+| support policy null rechazada antes de ordenar | GameTest | PASS |
+| orden canónico de requests/catalog/registries | GameTest | PASS |
+| adapter/body inválido no fabrica movimiento | GameTest | PASS |
 | warning de plano legacy | runtime log | OBSERVADO |
 | suite histórica | `./gradlew build` | PASS |
 
@@ -79,21 +89,27 @@ Una auditoría de evidencia reveló que los runs S01-S03 y el primer S04 manten�
 
 El primer intento del run `34584717556` falló durante configuración de Loom por descarga de Minecraft, antes de compilación. Se clasificó como **entorno/evidencia** y se repitió exactamente el mismo snapshot. El intento 2/job `103216390687` ejecutó **256/256 required GameTests** y quedó verde.
 
-La revisión de gate posterior detectó dos requisitos demasiado laxos: FR-023 exigía warning al migrar un plano legacy y FR-009 exige frontera `< / == / >` exacta. `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` añadió warning deduplicado y eliminó el epsilon de ratio. GitHub Actions run `34585112975`, job `103217403352`, volvió a ejecutar **256/256 required GameTests**; el log muestra expresamente el warning de migración para `minecraft:cow`.
+La revisión de gate posterior detectó dos requisitos demasiado laxos: FR-023 exigía warning al migrar un plano legacy y FR-009 exige frontera `< / == / >` exacta. `1a19ec31cdaeb8c0d98cc86b327adb1661e09632` añadió warning deduplicado y eliminó el epsilon de ratio. GitHub Actions run `34585112975`, job `103217403352`, volvió a ejecutar **256/256 required GameTests**.
+
+`f51580ff13f9f932cd6651955099fc6d5d0ad8c5` hizo explícito el rechazo de support keys nulas antes del ordenado canónico; run `34585899279`, job `103219909691`, pasó **257/257**. `86d8ec139fb96ceaad19aa3a0937637c899224b2` sustituyó la identidad textual de variant selectors por identidad estructural. `8728e7a9375e5ace0a6996576517bc1f6792fec2` conservó orden canónico en request/catalog snapshots.
+
+El candidato no adversarial más reciente `d6a17d5207c9eefd13b5b31dfb35ede578679f2a` añadió canonical ordering a snapshots de registries y fail-closed a la frontera de body adapters. GitHub Actions run `34586795093`, job `103222758920`, ejecutó **262/262 required GameTests** y terminó `BUILD SUCCESSFUL`; el log mantiene el warning legacy. Artifact `10193962302`, SHA-256 `a104ddc7bc0a9b6d3027460c6e70df3b2f606b4a14e2c736bd14582bea3f6074`.
 
 ## 8. Revisión final
 
-La revisión no adversarial del gate ha recorrido las nueve tareas de G1, separación API/data/catalog/integration/migration, ownership, versión/capabilities, ratio/policy, adapters, fixture init-time y fronteras G2/G3/G5. No se ha iniciado G2. Queda ejecutar/integrar la campaña adversarial paralela y, si modifica cualquier cosa, repetir CI y esta revisión desde el principio.
+La revisión no adversarial del gate ha recorrido las nueve tareas de G1, separación API/data/catalog/integration/migration, ownership, versionado/capabilities, ratio/policy, adapters, fixture init-time, identidad estructural, determinismo de colecciones y fronteras G2/G3/G5. La comparación contra el cierre S00 mantiene cambios exclusivamente en G1 y sus tests/documentos; no se ha modificado `AnatomyMovement` ni se ha iniciado Q2.
+
+Esta revisión todavía **no es la pasada final de cierre**, porque la campaña adversarial paralela encargada por el propietario aún puede introducir tests o cambios. Si modifica cualquier cosa, se repiten CI y revisión completa desde el principio.
 
 ## 9. Cierre
 
 - [x] implementación de las nueve tareas G1;
-- [x] CI G1 realmente registrada verde: 256/256;
-- [x] fallos encontrados clasificados y reparados;
-- [x] revisión no adversarial completa sin cambios posteriores al último fix;
+- [x] CI G1 realmente registrada verde: 262/262 en el candidato actual;
+- [x] fallos no adversariales encontrados, clasificados y reparados;
+- [x] revisión no adversarial completa del candidato actual;
 - [ ] campaña adversarial paralela integrada o sin fallos pendientes;
-- [ ] pasada final completa posterior a esa campaña;
+- [ ] pasada final completa posterior a esa campaña con cero cambios;
 - [ ] fuentes canónicas `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md` cerradas para G1;
 - [ ] G1 cerrado formalmente.
 
-Evidencia vigente de implementación: `1a19ec31cdaeb8c0d98cc86b327adb1661e09632`, GitHub Actions run `34585112975`, job `103217403352`, **256/256 required GameTests passed**. Artifact `10193275290`, SHA-256 `bf62d346858f722fd1a639779ff9c36a9897a676dcd9cd27e166195d4a8f0494`.
+Evidencia vigente de implementación: `d6a17d5207c9eefd13b5b31dfb35ede578679f2a`, GitHub Actions run `34586795093`, job `103222758920`, **262/262 required GameTests passed**. Artifact `10193962302`, SHA-256 `a104ddc7bc0a9b6d3027460c6e70df3b2f606b4a14e2c736bd14582bea3f6074`.
