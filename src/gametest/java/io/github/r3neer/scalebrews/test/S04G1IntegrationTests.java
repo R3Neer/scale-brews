@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.phys.Vec3;
 
 /** Final G1 integration/fixture acceptance without crossing into G2/G3 runtime lifecycle. */
@@ -109,6 +110,24 @@ public final class S04G1IntegrationTests {
             "Missing body state fails closed at the integration boundary");
         h.assertTrue(BodyClassification.adaptTransport(null, new Vec3(1, 0, 0)).equals(Vec3.ZERO),
             "Missing transport body cannot manufacture passive motion");
+
+        var armorStandId = Identifier.parse("minecraft:armor_stand");
+        CollisionAdapters.registerBody(armorStandId, new BodyAdapter() {
+            @Override public String category() { return "fixture_invalid_output"; }
+            @Override public boolean permits(net.minecraft.world.entity.Entity body) { return true; }
+            @Override public Vec3 transport(net.minecraft.world.entity.Entity body, Vec3 requested) {
+                return new Vec3(Double.NaN, 0, 0);
+            }
+        });
+        var body = h.spawn(EntityTypes.ARMOR_STAND, 2, 2, 2);
+        try {
+            h.assertTrue("fixture_invalid_output".equals(BodyClassification.category(body)),
+                "Runtime classification must resolve a registered adapter by the actual entity type id");
+            h.assertTrue(BodyClassification.adaptTransport(body, new Vec3(1, 0, 0)).equals(Vec3.ZERO),
+                "A registered adapter cannot inject non-finite transport into collision integration");
+        } finally {
+            body.discard();
+        }
         h.succeed();
     }
 
@@ -152,7 +171,7 @@ public final class S04G1IntegrationTests {
         h.assertTrue(CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, Math.nextDown(.85)),
             "Immediately below default 0.85 ratio is eligible");
         h.assertTrue(CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, .85),
-            "Exact default 0.85 ratio is eligible");
+            "Exact default 0.85 ratio boundary is eligible");
         h.assertTrue(!CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, Math.nextUp(.85)),
             "Immediately above default 0.85 ratio is rejected");
         h.succeed();
