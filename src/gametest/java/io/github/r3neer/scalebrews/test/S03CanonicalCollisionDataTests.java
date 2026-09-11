@@ -163,10 +163,12 @@ public final class S03CanonicalCollisionDataTests {
     }
 
     private static <T> void assertCodecError(GameTestHelper h, Codec<T> codec, JsonElement json, String message) {
+        final boolean rejected;
         try {
-            h.assertTrue(codec.parse(JsonOps.INSTANCE, json).result().isEmpty(), message);
+            rejected = codec.parse(JsonOps.INSTANCE, json).result().isEmpty();
         } catch (RuntimeException escaped) {
             throw new AssertionError(message + "; exception escaped codec: " + escaped, escaped);
         }
+        h.assertTrue(rejected, message);
     }
 }
