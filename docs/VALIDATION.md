@@ -401,3 +401,34 @@ I16 reviewed the remaining candidate surfaces without changing production or tes
 A possible anchor/carry concern was also inspected and deliberately not promoted into an S07 blocker: FR-056..060 and productive `DERIVED_CARRY` are outside this sprint's declared scope and remain G2 work.
 
 No further S07 implementation change was identified. **S07 is closed after the independent zero-change review. G2 remains open.**
+
+## G2 / S08 continuous anchor transport and derived chains — closure 2026-09-11
+
+S08 closed the retained-contact carry and derived-chain slice of G2: material anchors follow certified continuous trajectories, obstruction is checked over the path, passive transport updates receipts/passengers once, and an actively bound transported support emits a causally parented `DERIVED_CARRY` rather than a second opportunistic root event.
+
+### Ownership red-before-green
+
+Prepared run **`34645201815`**, job `103414197619`, snapshot `0f4f4ec99b0e6168bf93d542bc953e6967710fca`, exported original client geometry successfully but failed the prepared server proof at `anatomicalRootTransportOncePrepared`: a manually registered support inside an otherwise prepared session lost its legacy fallback because the S08 fence treated session ownership as support ownership.
+
+Production repair **`fc4ef518bbb8b357d8f3ee062d15caf4493e4f7c`** narrowed the internal `LivingEntity` ownership query to runtime-active bindings while preserving the public session-level meaning of `AnatomyRuntime.owns(Entity)`. Prepared run **`34645613492`** then passed both the manual fallback regression and the real prepared A→B→C chain.
+
+A later experimental holdout demanding immediate legacy carry after direct `setPos` on an active runtime binding was withdrawn before closure: that binding can publish the mutation at its material cadence, and forcing an additional immediate fallback could violate FR-050/051 by double consumption. It is not acceptance evidence.
+
+### A10 permutation / active bystander red-before-green
+
+The final holdout runs the same prepared A→B→C chain under two registration orders while a tiny active cow lies inside A's conservative material envelope but outside A's material, outside the B→C setup envelope and on the side from which A moves away. It is therefore an eligible broadphase candidate but intentionally non-causal.
+
+After correcting an earlier contaminated fixture placement, prepared run **`34647526137`**, snapshot `8d28f3f8d26ec9abcceb921295e29f5090387294`, reached all fixture preconditions and failed only when A moved: B stayed at `(0,0,0)` instead of receiving the expected `(+0.2,0,0)`. The live backend was classifying every active `LivingEntity` candidate without `plan.transport()` as `INVALID_DERIVATION`, even when its planned displacement was exactly zero. The stationary bystander therefore aborted the causal chain.
+
+Production repair **`0a6914ba355021b0e0e8c29a32eee0a32cb0adbc`** keeps the invalid-derivation fence for **non-zero** active movement without certified transport, but lets a zero-displacement active bystander remain a harmless candidate. This preserves fail-closed provenance for actual derived motion without inventing a ROOT contribution for stationary geometry.
+
+### Final S08 evidence
+
+Both final lanes executed against the same production snapshot `0a6914ba355021b0e0e8c29a32eee0a32cb0adbc`:
+
+- ordinary run **`34647905669`**, job `103422980830`: `build` completed successfully; artifact **`10282667053`**, SHA-256 **`99e91b2e8093ee65737dbdd00784f7d924590c8ac526ef04032f1d70dadc3c24`**;
+- prepared adversarial run **`34647905593`**, job **`103422980690`**: original client geometry export succeeded, catalog location succeeded and the isolated prepared server proof completed successfully, including the A10 bystander-first/chain-first permutations.
+
+The final source review found live consumers for the S08 ownership/planner/transport path: the narrow runtime ownership fence is consumed by legacy `carry`, `MaterialPhysicsRuntime` consumes `AnchoredTransportPlanner`, applied certified carry records through `recordCertifiedTransport(...)`, and an actively transported support produces `MaterialIntervalRuntime.deriveRoot(...)` plus `derivedInterval(...)`. No S08 production helper/state without a real consumer was identified.
+
+**S08 is closed. G2 remains open** for tangential retention, multicontact/sliding, recovery/wall-squeeze/intermediate-only contact and remaining budget observability, tracked in the canonical plan.
