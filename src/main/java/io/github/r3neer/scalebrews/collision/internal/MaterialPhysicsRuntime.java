@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -29,7 +28,7 @@ public final class MaterialPhysicsRuntime {
     private static final int MAX_BODIES=128,MAX_DEPTH=16,MAX_EVENTS=512;
     private static final int RESPONSE_EVENTS=32,QUERY_BUDGET=256,SEPARATION_BUDGET=128;
     private static final double MAX_ENVELOPE_SPAN=64,MAX_SEPARATION=4;
-    private static final Map<ServerLevel,MaterialEventDispatcher<LivingEntity>> DISPATCHERS=
+    private static final Map<ServerLevel,MaterialEventDispatcher<Entity>> DISPATCHERS=
         Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<ServerLevel,Metrics> METRICS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Comparator<Entity> BODY_ORDER=Comparator.comparing(Entity::getUUID).thenComparingInt(Entity::getId);
@@ -59,7 +58,7 @@ public final class MaterialPhysicsRuntime {
             } else prepared.add(value);
         }
         if(prepared.isEmpty())return;
-        var dispatcher=DISPATCHERS.computeIfAbsent(level,ignored->new MaterialEventDispatcher<>(MAX_BODIES,MAX_DEPTH,MAX_EVENTS,LivingEntity::getUUID));
+        var dispatcher=DISPATCHERS.computeIfAbsent(level,ignored->new MaterialEventDispatcher<>(MAX_BODIES,MAX_DEPTH,MAX_EVENTS,Entity::getUUID));
         var backend=new Backend(level,prepared);
         for(int index=0;index<prepared.size();) {
             var first=prepared.get(index);
@@ -69,7 +68,7 @@ public final class MaterialPhysicsRuntime {
                 continue;
             }
             long tick=first.pending().handle().after().authorityTick();
-            var group=new ArrayList<MaterialEventDispatcher.JointInput<LivingEntity>>();
+            var group=new ArrayList<MaterialEventDispatcher.JointInput<Entity>>();
             while(index<prepared.size()) {
                 var next=prepared.get(index);
                 if(next.pending().source()!=MaterialIntervalRuntime.Source.JOINT
@@ -106,22 +105,26 @@ public final class MaterialPhysicsRuntime {
         return finite(envelope)?envelope:null;
     }
 
-    private static final class Backend implements MaterialEventDispatcher.Backend<LivingEntity> {
+    private static final class Backend implements MaterialEventDispatcher.Backend<Entity> {
         private final ServerLevel level;
         private final Map<GeometryProvider.MotionIntervalHandle,Prepared> prepared=new IdentityHashMap<>();
         Backend(ServerLevel level,List<Prepared> values){this.level=level;for(var value:values)prepared.put(value.pending().handle(),value);}
 
-        @Override public MaterialEventDispatcher.Candidates<LivingEntity> capture(MaterialEventDispatcher.Event<LivingEntity> event,int maximumBodies) {
-            return capture(event.interval().envelope(),List.of(event.support()),maximumBodies);
+        @Override public MaterialEventDispatcher.Candidates<Entity> capture(MaterialEventDispatcher.Event<Entity> event,int maximumBodies) {
+            if(!(event.support() instanceof LivingEntity support))return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+            return capture(event.interval().envelope(),List.of(support),maximumBodies);
         }
-        @Override public MaterialEventDispatcher.Candidates<LivingEntity> captureJointBatch(List<MaterialEventDispatcher.Event<LivingEntity>> events,int maximumBodies) {
+        @Override public MaterialEventDispatcher.Candidates<Entity> captureJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,int maximumBodies) {
             AABB envelope=null;var supports=new ArrayList<LivingEntity>();
-            for(var event:events){envelope=envelope==null?event.interval().envelope():union(envelope,event.interval().envelope());supports.add(event.support());}
+            for(var event:events){
+                if(!(event.support() instanceof LivingEntity support))return new MaterialEventDispatcher.Candidates<>(List.of(),true);
+                envelope=envelope==null?event.interval().envelope():union(envelope,event.interval().envelope());supports.add(support);
+            }
             if(!finite(envelope) || envelope.getXsize()>MAX_ENVELOPE_SPAN || envelope.getYsize()>MAX_ENVELOPE_SPAN || envelope.getZsize()>MAX_ENVELOPE_SPAN)
                 return new MaterialEventDispatcher.Candidates<>(List.of(),true);
             return capture(envelope,supports,maximumBodies);
         }
-        private MaterialEventDispatcher.Candidates<LivingEntity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
+        private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
             var entities=level.getEntitiesOfClass(Entity.class,envelope,body->{
                 if(body.isRemoved() || supports.stream().anyMatch(s->s==body))return false;
                 for(var support:supports)if(Platforms.eligible(body,support))return true;
@@ -129,39 +132,40 @@ public final class MaterialPhysicsRuntime {
             });
             entities.sort(BODY_ORDER);
             if(entities.size()>maximumBodies)return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-            var result=new ArrayList<MaterialEventDispatcher.Candidate<LivingEntity>>();
+            var result=new ArrayList<MaterialEventDispatcher.Candidate<Entity>>();
             for(var body:entities)result.add(new MaterialEventDispatcher.Candidate<>(body,body.getBoundingBox()));
             record(level,0,result.size(),0,0,0);
             return new MaterialEventDispatcher.Candidates<>(result,false);
         }
 
-        @Override public MaterialEventDispatcher.Resolution<LivingEntity> resolve(MaterialEventDispatcher.Event<LivingEntity> event,
-                List<MaterialEventDispatcher.Candidate<LivingEntity>> candidates) {
+        @Override public MaterialEventDispatcher.Resolution<Entity> resolve(MaterialEventDispatcher.Event<Entity> event,
+                List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             var motion=motion(event.interval().handle());
             if(motion==null)return new MaterialEventDispatcher.Resolution<>(MaterialEventDispatcher.Outcome.quarantined(MaterialEventDispatcher.Reason.BACKEND_FAILURE),List.of());
-            var outcome=resolveAll(event.support(),motion,candidates);
+            var outcome=resolveAll(motion,candidates);
             return new MaterialEventDispatcher.Resolution<>(outcome,List.of());
         }
-        @Override public MaterialEventDispatcher.BatchResolution<LivingEntity> resolveJointBatch(List<MaterialEventDispatcher.Event<LivingEntity>> events,
-                List<MaterialEventDispatcher.Candidate<LivingEntity>> candidates) {
+        @Override public MaterialEventDispatcher.BatchResolution<Entity> resolveJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,
+                List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             // Simultaneous joint supports share one capture but keep independent certified trajectories.
             // Compute/apply them in the canonical event order supplied by S06 publish.
             var outcomes=new ArrayList<MaterialEventDispatcher.Outcome>();
             for(var event:events) {
                 var motion=motion(event.interval().handle());
                 outcomes.add(motion==null?MaterialEventDispatcher.Outcome.quarantined(MaterialEventDispatcher.Reason.BACKEND_FAILURE)
-                    :resolveAll(event.support(),motion,candidates));
+                    :resolveAll(motion,candidates));
             }
             return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
         }
-        @Override public void quarantine(MaterialEventDispatcher.Event<LivingEntity> event,MaterialEventDispatcher.Reason reason) {
-            AnatomyMovement.invalidateSupport(event.support());record(level,0,0,0,1,reason==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED?1:0);
+        @Override public void quarantine(MaterialEventDispatcher.Event<Entity> event,MaterialEventDispatcher.Reason reason) {
+            if(event.support() instanceof LivingEntity support)AnatomyMovement.invalidateSupport(support);
+            record(level,0,0,0,1,reason==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED?1:0);
         }
         private GeometryProvider.MotionSnapshot motion(GeometryProvider.MotionIntervalHandle handle) {
             var value=prepared.get(handle);return value==null?null:value.motion();
         }
-        private MaterialEventDispatcher.Outcome resolveAll(LivingEntity support,GeometryProvider.MotionSnapshot motion,
-                List<MaterialEventDispatcher.Candidate<LivingEntity>> candidates) {
+        private MaterialEventDispatcher.Outcome resolveAll(GeometryProvider.MotionSnapshot motion,
+                List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             var plans=new ArrayList<Plan>();int evaluations=0;
             for(var candidate:candidates) {
                 var body=candidate.body();
@@ -204,7 +208,7 @@ public final class MaterialPhysicsRuntime {
         private java.util.function.BiFunction<AABB,Vec3,Vec3> clip(Entity body) {
             return (box,delta)->Entity.collideBoundingBox(body,delta,box,level,level.getEntityCollisions(body,box.expandTowards(delta)));
         }
-        private boolean finalOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<LivingEntity>> candidates) {
+        private boolean finalOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
                 var a=candidates.get(i).bounds().move(plans.get(i).displacement());
                 var b=candidates.get(j).bounds().move(plans.get(j).displacement());
