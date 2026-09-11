@@ -47,6 +47,7 @@
       "io.github.r3neer.scalebrews.test.S04G1IntegrationTests",
       "io.github.r3neer.scalebrews.test.S05BoundedMaterialBroadphaseTests",
       "io.github.r3neer.scalebrews.test.S06MaterialIntervalIdentityTests",
+      "io.github.r3neer.scalebrews.test.S06SpatialMembershipCausalityTests",
       "io.github.r3neer.scalebrews.test.S07LiveMaterialRuntimeTests",
       "io.github.r3neer.scalebrews.test.S07ContactEstablishmentTests",
       "io.github.r3neer.scalebrews.test.S07MaterialBoundaryTests",
