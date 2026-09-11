@@ -17,7 +17,129 @@ jobs:
         with:
           ref: chatgpt-editing
           fetch-depth: 0
-      - name: synchronize S05 S06 S07 closure records
+      - name: synchronize closure records
         shell: bash
         run: |
-          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpkZWYgb25jZSh0ZXh0LCBvbGQsIG5ldywgbGFiZWwpOgogICAgbiA9IHRleHQuY291bnQob2xkKQogICAgaWYgbiAhPSAxOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZiJ7bGFiZWx9OiBleHBlY3RlZCAxIG1hdGNoLCBnb3Qge259IikKICAgIHJldHVybiB0ZXh0LnJlcGxhY2Uob2xkLCBuZXcsIDEpCgojIFMwNQpwID0gUGF0aCgiZG9jcy9zcHJpbnRzL1MwNS1ib3VuZGVkLW1hdGVyaWFsLWJyb2FkcGhhc2UubWQiKQp0ID0gcC5yZWFkX3RleHQoKQp0ID0gb25jZSh0LAogICAgIkVzdGFkbzogKipSRUFCSUVSVE8gUE9SIEVWSURFTkNJQSBBRFZFUlNBUklBTCBERSBMT0NBTElRZIExJVkUqKi4gUHJpbWVyIHNwcmludCBkZSBHMi4iLAogICAgIkVzdGFkbzogKipDRVJSQURPKiouIFByaW1lciBzcHJpbnQgZGUgRzIuIExhIHJlYXBlcnR1cmEgYWR2ZXJzYXJpYWwgZGUgbG9jYWxpdHkgbGl2ZSBRdWVkw7MgcmVwYXJhZGEsIHJlYXRhY2FkYSB5IGNlcnJhZGEgY29uIHVuYSBwYXNhZGEgY29tcGxldGEgc2luIGNhbWJpb3MgZGUgcHJvZHVjY2nDs24uIiwKICAgICJTMDUgc3RhdHVzIikKdCA9IG9uY2UodCwgIiMjIyBCbG9ja2VyIGFkdmVyc2FyaWFsIHZpZ2VudGUiLCAiIyMjIEhpc3RvcmlhIGFkdmVyc2FyaWFsIGRlIHJlYXBlcnR1cmEgKGNlcnJhZGEpIiwgIlMwNSBibG9ja2VyIGhlYWRpbmciKQp0ID0gb25jZSh0LAogICAgIkVsIGJsb2NrZXIgdmlnZW50ZSBlc3TDgSBlbiBsYSBpbnRlZ3JhY2nDs24gbGl2ZTogKip1bmEgaW52YWxpZGFjacOzbiBsZWfDrXRpbWEgbG9jYWwgc2lndWUgZGlmaXJpZW5kbyB0cmFiYWpvIGdsb2JhbCBhIGxhIHNpZ3VpZW50ZSBxdWVyeSBmw61zaWNhKiouIEhheSB0cmVzIHJlcHJvZHVjY2lvbmVzIGNvbnRyYWN0dWFsZXMgY29tcGxlbWVudGFyaWFzOiIsCiAgICAiRWwgYmxvY2tlciBxdWUgcmVhYnJpw7MgUzA1IGVzdHV2byBlbiBsYSBpbnRlZ3JhY2nDs24gbGl2ZTogKip1bmEgaW52YWxpZGFjacOzbiBsZWfDrXRpbWEgbG9jYWwgZGlmZXLDrWEgdHJhYmFqbyBnbG9iYWwgYSBsYSBzaWd1aWVudGUgcXVlcnkgZsOtc2ljYSoqLiBRdWVkw7MgcmVwcm9kdWNpZG8gcG9yIHRyZXMgY29udHJhdG9zIGNvbXBsZW1lbnRhcmlvczoiLAogICAgIlMwNSBibG9ja2VyIGludHJvIikKdCA9IG9uY2UodCwKICAgICItIFsgXSBJMTEgQ2FibGVhciBlc2EgbXV0YWNpw7NuIGluY3JlbWVudGFsIGEgKipob29rcyBwcm9kdWN0aXZvcyBsZWfDrXRpbW9zKio7IHJlYmluZCB5IHJvb3QgY29tbWl0IGRlIHVuIHNvcG9ydGUgbm8gcHVlZGVuIGNvbnZlcnRpciBsYSBzaWd1aWVudGUgcXVlcnkgbG9jYWwgZW4gcmVidWlsZCBnbG9iYWwuIiwKICAgICItIFt4XSBJMTEgQ2FibGVhciBlc2EgbXV0YWNpw7NuIGluY3JlbWVudGFsIGEgKipob29rcyBwcm9kdWN0aXZvcyBsZWfDrXRpbW9zKio7IHJlYmluZCB5IHJvb3QgY29tbWl0IGRlIHVuIHNvcG9ydGUgbm8gY29udmllcnRlbiBsYSBzaWd1aWVudGUgcXVlcnkgbG9jYWwgZW4gcmVidWlsZCBnbG9iYWwuIiwKICAgICJTMDUgSTExIikKdCA9IG9uY2UodCwKICAgICItIFsgXSBJMTIgQXNlZ3VyYXIgcXVlIGFjdW11bGFjacOzbiBkZSBkaXJ0eSBzdXBwb3J0cyBsZWphbm9zIG5vIHNlIGRyZW5hIGRlc2RlIHVuYSBxdWVyeSBubyByZWxhY2lvbmFkYTsgZWwgbWFudGVuaW1pZW50byBkZWJlIHNlciBlYWdlciBlbiBlbCBob29rIG8gZXNwYWNpYWxtZW50ZSBwYXJ0aWNpb25hZG8uIiwKICAgICItIFt4XSBJMTIgQXNlZ3VyYXIgcXVlIGFjdW11bGFjacOzbiBkZSBkaXJ0eSBzdXBwb3J0cyBsZWphbm9zIG5vIHNlIGRyZW5hIGRlc2RlIHVuYSBxdWVyeSBubyByZWxhY2lvbmFkYTsgZWwgbWFudGVuaW1pZW50byBlcyBwb3Igc29wb3J0ZSBkZXNkZSBob29rcyBjYXVzYWxlcyB5IG5vIGV4aXN0ZSBkcmVuYWplIGdsb2JhbCBkZXNkZSBsYSBxdWVyeS4iLAogICAgIlMwNSBJMTIiKQp0ID0gb25jZSh0LAogICAgIi0gWyBdIEkxMyBTdWl0ZSBjb21wbGV0YSArIHJldmlzacOzbiBmaW5hbCBjZXJvLWNhbWJpb3MgYW50ZXMgZGUgY2VycmFyLiIsCiAgICAiLSBbeF0gSTEzIFN1aXRlIGNvbXBsZXRhICsgcmV2aXNpw7NuIGZpbmFsIGNlcm8tY2FtYmlvcyBhbnRlcyBkZSBjZXJyYXIuIiwKICAgICJTMDUgSTEzIikKdCA9IG9uY2UodCwKICAgICIxNS4gKipwb3N0LXJlYmluZCBsb2NhbGl0eSoqOiByZWJpbmQgbG9jYWwgZXhwbMOtY2l0byB5IHByaW1lcmEgcXVlcnkgcG9zdGVyaW9yIG5vIHB1ZWRlbiByZS1zYW1wbGVhciBzb3BvcnRlcyBsZWphbm9zIOKAlCByb2pvIGFjdHVhbCwgMTI4IHNhbXBsZXM7IiwKICAgICIxNS4gKipwb3N0LXJlYmluZCBsb2NhbGl0eSoqOiByZWJpbmQgbG9jYWwgZXhwbMOtY2l0byB5IHByaW1lcmEgcXVlcnkgcG9zdGVyaW9yIG5vIHB1ZWRlbiByZS1zYW1wbGVhciBzb3BvcnRlcyBsZWphbm9zIOKAlCByb2pvIGhpc3TDs3JpY28gZGUgMTI4IHNhbXBsZXMsIHZlcmRlIHRyYXMgZWwgd2lyaW5nIGluY3JlbWVudGFsOyIsCiAgICAiUzA1IG1vZGVsMTUiKQp0ID0gb25jZSh0LAogICAgIjE2LiAqKnBvc3Qtcm9vdC1jb21taXQgbG9jYWxpdHkqKjogYGNhcHR1cmVSb290IOKGkiBjb21taXRSb290YCBsb2NhbCB5IHByaW1lcmEgcXVlcnkgcG9zdGVyaW9yIG5vIHB1ZWRlbiByZS1zYW1wbGVhciBzb3BvcnRlcyBsZWphbm9zIOKAlCByb2pvIGFjdHVhbCwgMTI4IHNhbXBsZXM7IiwKICAgICIxNi4gKipwb3N0LXJvb3QtY29tbWl0IGxvY2FsaXR5Kio6IGBjYXB0dXJlUm9vdCDihpIgY29tbWl0Um9vdGAgbG9jYWwgeSBwcmltZXJhIHF1ZXJ5IHBvc3RlcmlvciBubyBwdWVkZW4gcmUtc2FtcGxlYXIgc29wb3J0ZXMgbGVqYW5vcyDigJQgcm9qbyBoaXN0w7NyaWNvIGRlIDEyOCBzYW1wbGVzLCB2ZXJkZSB0cmFzIGVsIHdpcmluZyBpbmNyZW1lbnRhbDsiLAogICAgIlMwNSBtb2RlbDE2IikKdCA9IG9uY2UodCwKICAgICIxNy4gKipmYXItZGlydHkgbG9jYWxpdHkqKjogNjQgcmViaW5kcyBsZWphbm9zIG5vIHB1ZWRlbiBzZXIgZHJlbmFkb3MgcG9yIHVuYSBxdWVyeSBmw61zaWNhIGxvY2FsIGFqZW5hIOKAlCByb2pvIGFjdHVhbCwgMTI4IHNhbXBsZXM7IiwKICAgICIxNy4gKipmYXItZGlydHkgbG9jYWxpdHkqKjogNjQgcmViaW5kcyBsZWphbm9zIG5vIHB1ZWRlbiBzZXIgZHJlbmFkb3MgcG9yIHVuYSBxdWVyeSBmw61zaWNhIGxvY2FsIGFqZW5hIOKAlCByb2pvIGhpc3TDs3JpY28gZGUgMTI4IHNhbXBsZXMsIHZlcmRlIHNpbiBjb2xhIGRpcnR5IGdsb2JhbDsiLAogICAgIlMwNSBtb2RlbDE3IikKdCA9IG9uY2UodCwKICAgICJQb3IgdGFudG8sIGVsIGtlcm5lbCBpbmNyZW1lbnRhbCBlc3TDoSB2YWxpZGFkbyBwcm92aXNpb25hbG1lbnRlOyBJMTEgZSBJMTIgcGVybWFuZWNlbiBhYmllcnRhcyBoYXN0YSBxdWUgZWwgcnVudGltZSBsbyB1c2UgZGVzZGUgbG9zIGhvb2tzIGNhdXNhbGVzIHNpbiByZWNvbnN0cnVjY2lvbmVzIGdsb2JhbGVzLiIsCiAgICAiUG9yIHRhbnRvLCBlbCBrZXJuZWwgaW5jcmVtZW50YWwgcXVlZMOzIHZhbGlkYWRvIHkgbG9zIGhvb2tzIGxpdmUgcG9zdGVyaW9yZXMgY2VycmFyb24gSTExL0kxMiBzaW4gcmVjb25zdHJ1Y2Npb25lcyBnbG9iYWxlcy4iLAogICAgIlMwNSBwcm92aXNpb25hbCBjbG9zZSIpCnQgPSBvbmNlKHQsCiAgICAiLSBbIF0gbG9jYWxpdHkgdHJhcyByZWJpbmQgcHJvZHVjdGl2byBwcm9iYWRhO1xuLSBbIF0gbG9jYWxpdHkgdHJhcyByb290IGNvbW1pdCBwcm9kdWN0aXZvIHByb2JhZGE7XG4tIFsgXSBmYXItZGlydHkgbG9jYWxpdHkgcHJvYmFkYTtcbpC?
+          cat > /tmp/close_docs.py <<'PY'
+          from pathlib import Path
+          import re
+
+          def sub1(text, pattern, repl, label, flags=0):
+              text2, n = re.subn(pattern, repl, text, count=1, flags=flags)
+              if n != 1:
+                  raise SystemExit(f"{label}: expected 1 match, got {n}")
+              return text2
+
+          p=Path("docs/sprints/S05-bounded-material-broadphase.md"); t=p.read_text()
+          t=sub1(t,r"^Estado: .*?Primer sprint de G2\.$","Estado: **CERRADO**. Primer sprint de G2. La reapertura adversarial de locality live quedó reparada, reatacada y cerrada con una pasada completa sin cambios de producción.","S05 status",re.M)
+          t=t.replace("### Blocker adversarial vigente","### Historia adversarial de reapertura (cerrada)",1)
+          t=sub1(t,r"^El blocker vigente está en la integración live:.*$","El blocker que reabrió S05 estuvo en la integración live: una invalidación local legítima difería trabajo global a la siguiente query física. Los tres contratos de rebind/root-commit/far-dirty se conservan abajo como evidencia roja histórica.","S05 blocker",re.M)
+          for i in (11,12,13): t=t.replace(f"- [ ] I{i}",f"- [x] I{i}",1)
+          if t.count("— rojo actual, 128 samples") != 3: raise SystemExit("S05 expected three historical 128-sample markers")
+          t=t.replace("— rojo actual, 128 samples","— rojo histórico, 128 samples")
+          t=sub1(t,r"^Por tanto, el kernel incremental está validado provisionalmente;.*$","Por tanto, el kernel incremental y su wiring live quedan validados; I11/I12 están cerradas sin reconstrucciones globales desde queries locales.","S05 provisional",re.M)
+          t=sub1(t,r"## 8\. Estado de cierre\n.*\Z",'''## 8. Estado de cierre
+
+- [x] fallback global y `overflow` eliminados;
+- [x] budgets/fail-closed/cuarentena del kernel;
+- [x] mutación incremental por identidad y rechazo fail-closed;
+- [x] locality steady-state, post-rebind, post-root-commit y far-dirty;
+- [x] membership productiva `provider.tick` con anatomía remota;
+- [x] grow/shrink externo y root yaw (`publishedFrame` y mutación directa same-tick);
+- [x] primera query local cross-tick sin rebuild mundial;
+- [x] suite completa y pasada adversarial final sin cambios de producción.
+
+### Reparación final
+
+`0c19fd260d35f415b67e0aa29d407f26e2ea74b5` conectó `MaterialBroadphase.upsert/remove` al owner live por soporte. `29d4595f38f7ff3c44f9af7ebb98512cdd16f93d` añadió un envelope coarse root-centered conservador frente a yaw/gravity rotations; la geometría exacta sigue revalidándose desde el frame causal.
+
+El ataque final `b02dab01b7a4a53ddcefb76369fbbcb407eb1724` añadió el holdout cross-tick y pasó sin cambios de producción, constituyendo la pasada de convergencia cero-cambios.
+
+Evidencia ordinaria final: run **`34633398671`**, job **`103375427902`**, **320/320 required GameTests**, `BUILD SUCCESSFUL`; artifact **`10276658160`**, SHA-256 **`ea4f9237f0760b10fa4c622b7f55988d7d4f710dfa5d6acf3368a17b939824b3`**.
+
+Evidencia preparada compartida con S07: run **`34633591227`**, job **`103376062867`**, export cliente real de cow/player wide/player slim, 80 comparaciones animadas por fixture, **640 vanilla-family** adicionales y servidor aislado **2/2**.
+
+**S05 queda cerrado.** Esto cierra la tesis espacial/local del sprint, no G2 completo.
+''',"S05 close",re.S)
+          p.write_text(t)
+
+          p=Path("docs/sprints/S07-live-material-dispatcher-ccd.md"); t=p.read_text()
+          t=sub1(t,r"^Estado: .*?$","Estado: **CERRADO**. Tercer sprint de G2. La reapertura por plan-conflict locality quedó reparada con atribución causal body+support y cerrada tras permutaciones, bystander, multi-support, suite ordinaria y prueba preparada.","S07 status",re.M)
+          t=sub1(t,r"^- \*\*La ruta `worsensBodyOverlap\(plans,candidates\)`.*$","- La antigua salida `worsensBodyOverlap(plans,candidates)` quedó sustituida por detección explícita de pares conflictivos y suspensión causal body+support; no queda blocker activo en esa salida.","S07 bullet",re.M)
+          t=t.replace("## 4. Blocker vigente — planes individualmente válidos pero mutuamente incompatibles","## 4. Historia del blocker cerrado — planes individualmente válidos pero mutuamente incompatibles",1)
+          for i in (13,14,15): t=t.replace(f"- [ ] I{i}",f"- [x] I{i}",1)
+          t=t.replace("30. conflictivo `worsensBodyOverlap` con relaciones previas — **rojo válido actual**.","30. conflictivo `worsensBodyOverlap` con relaciones previas — **verde tras localización pair-local determinista**;\n31. multi-support: conflicto causado por A no suspende el contacto estable del mismo body con B — **verde**.",1)
+          t=sub1(t,r"## 8\. Lane preparada\n.*?(?=## 9\. Relación con S05)",'''## 8. Lane preparada
+
+La prueba preparada final está verde en run **`34633591227`**, job **`103376062867`**. El cliente exportó cow/player wide/player slim, pasó 80 comparaciones animadas por fixture y **640 vanilla-family** adicionales. El catálogo exportado alimentó después el servidor aislado, que pasó **2/2 required prepared GameTests**. Ambos Gradle terminaron `BUILD SUCCESSFUL`.
+
+''',"S07 prepared",re.S)
+          t=sub1(t,r"^S05 está reabierto por una violación separada de NFR-008:.*$","S05 está cerrado por separado bajo NFR-008. Sus holdouts de broadphase locality pertenecen a S05, no a S07.","S07 relation",re.M)
+          t=sub1(t,r"\*\*S07 permanece reabierto por el plan-conflict.*\Z",'''### Reparación final y evidencia
+
+`0c19fd260d35f415b67e0aa29d407f26e2ea74b5` localizó los bodies cuyos planes finales empeoran el overlap, preservando bystanders y sin aplicar desplazamientos rechazados. `29d4595f38f7ff3c44f9af7ebb98512cdd16f93d` refinó la cuarentena hasta causalidad **body+support**: replanifica contrafactualmente sin el support retenido y sólo suspende esa relación si retirarla elimina el conflicto real. Un contacto estable con B sobrevive cuando el desplazamiento incompatible lo causa A.
+
+La suite final cubre ambos órdenes de candidatos, bystander en el mismo envelope y multi-support. Evidencia ordinaria: run **`34633398671`**, job **`103375427902`**, **320/320 required GameTests**; artifact **`10276658160`**, SHA-256 **`ea4f9237f0760b10fa4c622b7f55988d7d4f710dfa5d6acf3368a17b939824b3`**. Evidencia preparada: run **`34633591227`**, job **`103376062867`**, cliente/export verde y servidor preparado **2/2**.
+
+El holdout adversarial cross-tick posterior no exigió cambios de producción, por lo que la revisión final convergió sin nuevas modificaciones de S07.
+
+**S07 queda cerrado.** No cierra FR-056..060, G7, prediction/reconciliation ni G2 global. La reconciliación de gravedad con `main` sigue siendo obligatoria antes del cierre de G2.
+''',"S07 close",re.S)
+          p.write_text(t)
+
+          p=Path("docs/ENTITY_COLLISIONS_PLAN.md"); t=p.read_text()
+          t=t.replace("**Estado:** **ABIERTO / en ejecución**. S05 está cerrado; el siguiente frente es causalidad material continua. G2 se implementa por sprints pequeños según `ENTITY_COLLISIONS_SPRINT_WORKFLOW.md` y no se declara cerrado por una refactorización parcial.","**Estado:** **ABIERTO / en ejecución**. S05, S06 y S07 están cerrados con evidencia ordinaria/adversarial. G2 sigue abierto por transporte derivado/chains, semánticas físicas restantes, partición de ownership y la reconciliación obligatoria de gravedad con `main`. G2 se implementa por sprints pequeños según `ENTITY_COLLISIONS_SPRINT_WORKFLOW.md`.",1)
+          t=sub1(t,r"\*\*S05 cerrado:\*\*.*?\n\n\*\*Siguiente frente:\*\*.*?\n\n",'''**S05 cerrado:** broadphase acotado + mantenimiento live incremental/local. La reapertura NFR-008 cubrió rebind/root/far-dirty, grow/shrink, yaw y cross-tick. Run final `34633398671`, job `103375427902`: **320/320**.
+
+**S06 cerrado:** identidad causal de intervalos, `materialSerial`, replay/gap/discontinuity y certificación desde endpoints sellados. Run `34612764313`, job `103307096858`: **284/284**.
+
+**S07 cerrado:** dispatcher ROOT/JOINT real + CCD continuo + fail-closed localizado hasta body+support. Comparte el run final **320/320** y la lane preparada cliente→catálogo→servidor `34633591227` / `103376062867`, **2/2** prepared server tests.
+
+**Siguiente frente:** completar derived carry/chains y ancestry end-to-end, multicontacto/sliding/separation pendiente, reducir ownership monolítico de `AnatomyMovement` y revisar budgets/orquestadores. **Antes de cerrar G2** se debe reconciliar con `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` y dejar `integration.gravity.GravityFrames` como única autoridad transversal de body gravity.
+
+''',"PLAN G2",re.S)
+          p.write_text(t)
+
+          p=Path("docs/VALIDATION.md"); t=p.read_text()
+          t=t.replace("## G2 adversarial campaign — current red evidence 2026-09-11","## G2 adversarial campaign — historical red-before-green evidence and closure 2026-09-11",1)
+          t=t.replace("### S07 current blocker: mutually incompatible valid plans","### S07 historical blocker: mutually incompatible valid plans",1)
+          needle="`S06SupportedMembershipCausalityTests` is the valid membership holdout: availability changes through `GeometryProvider.tick(...)`, then the canonical runtime rebuild must expose the new material geometry. This test is green in the runs above. There is no active S06 adversarial blocker in the current snapshot."
+          if t.count(needle)!=1: raise SystemExit("VALIDATION S06 anchor")
+          t=t.replace(needle,needle+"\n\nS06 closure evidence: run **`34612764313`**, job **`103307096858`**, **284/284 required GameTests**; artifact **`10268749377`**, SHA-256 **`6944ffc9c3ac9d204c6a9739dd1f3fc3d58b9b231e6ccd9d50190ad9fad975db`**.",1)
+          t=sub1(t,r"### Prepared client/server evidence during G2\n.*?(?=### Current G2 interpretation)",'''### Final S05/S07 repair, ordinary and prepared evidence
+
+`0c19fd260d35f415b67e0aa29d407f26e2ea74b5` wired per-support live broadphase maintenance and initial pair-local conflict handling. `29d4595f38f7ff3c44f9af7ebb98512cdd16f93d` made coarse membership conservative across yaw/gravity rotation and refined S07 quarantine to causal **body+support** attribution.
+
+Final ordinary run **`34633398671`**, job **`103375427902`**, snapshot `b02dab01b7a4a53ddcefb76369fbbcb407eb1724`: **320/320 required GameTests**, `BUILD SUCCESSFUL`; artifact **`10276658160`**, SHA-256 **`ea4f9237f0760b10fa4c622b7f55988d7d4f710dfa5d6acf3368a17b939824b3`**.
+
+The final adversarial addition was the cross-tick locality holdout in `b02dab01…`; it passed immediately and required **zero production changes**, satisfying the mandatory no-change pass.
+
+Prepared run **`34633591227`**, job **`103376062867`** exported real cow/player geometry, passed 80 animated comparisons per fixture plus **640 vanilla-family** comparisons, and then passed the isolated server suite **2/2**. Both Gradle invocations ended `BUILD SUCCESSFUL`.
+
+Headless flite/ALSA/X11/profile-service warnings were environmental only. Temporary patch/proof workflows were removed afterwards.
+
+''',"VALIDATION evidence",re.S)
+          t=sub1(t,r"### Current G2 interpretation\n.*?(?=## Current acceptance gaps for entity collisions)",'''### Current G2 interpretation
+
+- S05 bounded/live broadphase locality is **closed**.
+- S06 material interval identity/causal membership is **closed**.
+- S07 root/joint live dispatcher + CCD/failure-locality is **closed**.
+- G2 remains **open** for derived carry/chains, remaining contact/sliding semantics, ownership partitioning and other canonical work not claimed by S05-S07.
+- Before G2 closure, `chatgpt-editing` must still be reconciled with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `integration.gravity.GravityFrames` is the single Scale body-gravity authority.
+
+''',"VALIDATION interpretation",re.S)
+          t=t.replace("- closing the current S05 post-mutation locality reds;\n- closing the current S07 valid-plan-conflict fail-closed red;\n- remaining G2 tangential/multicontact/sliding/separation/chains work not yet claimed by the current sprint;","- remaining G2 derived-carry/chains and tangential/multicontact/sliding/separation work not claimed by the closed S05-S07 sprints;\n- final G2 ownership partitioning and gravity-authority reconciliation with `main`;",1)
+          p.write_text(t)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin chatgpt-editing
+            git checkout --detach origin/chatgpt-editing
+            python /tmp/close_docs.py
+            git diff --check
+            git add docs/sprints/S05-bounded-material-broadphase.md docs/sprints/S07-live-material-dispatcher-ccd.md docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+            git commit -m 'docs(collision): close S05 S06 S07 evidence'
+            if git push origin HEAD:chatgpt-editing; then exit 0; fi
+          done
+          exit 1
