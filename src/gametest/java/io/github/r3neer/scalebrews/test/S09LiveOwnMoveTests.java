@@ -1,11 +1,14 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import java.util.Map;
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -129,6 +132,87 @@ public final class S09LiveOwnMoveTests {
             floorSupport.discard();wallSupport.discard();body.discard();
         }
         h.succeed();
+    }
+
+    @GameTest
+    public void lateralGravitySlidingUsesBodyFrameInsteadOfWorldY(GameTestHelper h) {
+        Vec3 east=lateralGravityScenario(h,Direction.EAST);
+        Vec3 west=lateralGravityScenario(h,Direction.WEST);
+        h.assertTrue(east.distanceToSqr(west)<1e-12,
+            "Mirroring gravity EAST/WEST must preserve the relative tangent response: east="+east+" west="+west);
+        h.assertTrue(Math.abs(east.x)<1e-8 && Math.abs(east.y-.35)<1e-8 && Math.abs(east.z-.20)<2e-4,
+            "Lateral-gravity support must preserve free world-Y tangent while the new Z wall clips only its own normal: "+east);
+        h.succeed();
+    }
+
+    private static Vec3 lateralGravityScenario(GameTestHelper h,Direction down) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        body.setPos(h.absoluteVec(new Vec3(8,22,6)));
+        var box=body.getBoundingBox();var origin=body.position();
+        double minX=box.minX-origin.x,maxX=box.maxX-origin.x;
+        double minY=box.minY-origin.y,maxY=box.maxY-origin.y;
+        double minZ=box.minZ-origin.z,maxZ=box.maxZ-origin.z;
+        var localSupport=down==Direction.EAST
+            ?new AABB(maxX,minY-1,minZ-1,maxX+.2,maxY+1,maxZ+2)
+            :new AABB(minX-.2,minY-1,minZ-1,minX,maxY+1,maxZ+2);
+        var supportFace=ConvexBox.of(localSupport,new Matrix4f()).move(origin);
+        double wallGap=.20;
+        var wall=ConvexBox.of(new AABB(minX-1,minY-1,maxZ+wallGap,maxX+1,maxY+1,maxZ+wallGap+.2),new Matrix4f()).move(origin);
+        long revision=down==Direction.EAST?114:115;
+        GeometryProvider provider=ignored->Optional.of(new GeometryProvider.Snapshot(revision,Map.of("support",supportFace,"wall",wall)));
+        var frame=new GravityFrame(down);
+
+        AnatomyMovement.activate(level);
+        AnatomyMovement.register(support,provider);
+        AnatomyMovement.gravity(body,frame);
+        try {
+            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
+                "A5 lateral support must be a real live candidate");
+            var separation=supportFace.separation(box);
+            int face=supportFace.closestFace(separation.normal());
+            Vec3 normal=supportFace.faceNormal(face);
+            h.assertTrue(Math.abs(separation.gap())<1e-8 && frame.supports(normal),
+                "A5 fixture must begin exactly on a gravity-supporting lateral face: down="+down+" separation="+separation);
+            Vec3 local=supportFace.facePoint(face,box.getCenter());
+            h.assertTrue(AnatomyMovement.confirm(body,support,
+                    new SurfaceContact(support.getUUID(),revision,"support",face,local,normal,level.getGameTime())),
+                "A5 fixture must establish the lateral retained contact through the public material identity");
+            AnatomyMovement.afterMove(body);
+            var initial=AnatomyMovement.contact(body);
+            h.assertTrue(initial!=null && initial.piece().equals("support") && AnatomyMovement.supported(body),
+                "A5 lateral support must be authoritative before tangent sliding");
+            long sequence=initial.sequence();
+
+            var request=new Vec3(0,.35,.60);
+            Vec3 moved=AnatomyMovement.collide(body,request);
+            body.setPos(body.position().add(moved));
+            AnatomyMovement.afterMove(body);
+            var retained=AnatomyMovement.contact(body);
+            h.assertTrue(Math.abs(moved.x)<1e-8 && Math.abs(moved.y-request.y)<1e-8
+                    && Math.abs(moved.z-wallGap)<2e-4,
+                "A5 must project in the lateral-gravity tangent plane, not treat world Y as vertical: down="+down
+                    +" request="+request+" actual="+moved);
+            h.assertTrue(!supportFace.overlaps(body.getBoundingBox()) && !wall.overlaps(body.getBoundingBox()),
+                "Lateral sliding must finish non-penetrating against both the retained support and new wall");
+            h.assertTrue(retained!=null && retained.support()==support && retained.piece().equals("support")
+                    && retained.sequence()==sequence && frame.supports(retained.normal()),
+                "A tangent world-Y component and a new wall hit must not churn the lateral retained support: down="+down+" contact="+retained);
+            var surface=AnatomyMovement.surface(body);
+            h.assertTrue(surface!=null && surface.piece().equals("support") && surface.support().equals(support.getUUID()),
+                "A5 persistent public surface identity must remain on the lateral support face");
+            return moved;
+        } finally {
+            AnatomyMovement.clear(body);
+            AnatomyMovement.gravity(body,GravityFrame.VANILLA);
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+        }
     }
 
     @GameTest
