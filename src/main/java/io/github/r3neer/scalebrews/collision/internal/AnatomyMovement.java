@@ -735,11 +735,36 @@ public final class AnatomyMovement {
         body.setOnGround(true);
         body.verticalCollisionBelow=true;
     }
+    /** Record one displacement already certified/applied by the S08 material dispatcher. */
+    static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,
+            Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
+        var contact=contact(body);
+        if(body==null || support==null || surface==null || root==null || applied==null || materialBefore==null || materialAfter==null
+                || contact==null || contact.support()!=support || !surface.support().equals(support.getUUID())
+                || contact.revision()!=surface.revision() || !contact.piece().equals(surface.piece())
+                || !Double.isFinite(applied.lengthSqr()))return false;
+        if(applied.lengthSqr()<=1e-20)return true;
+        positionPassengers(body);
+        if(body instanceof net.minecraft.server.level.ServerPlayer player)
+            ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,applied);
+        for(var passenger:body.getIndirectPassengers())
+            if(passenger instanceof net.minecraft.server.level.ServerPlayer player)
+                ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,applied);
+        var before=TRANSPORT.get(body);long tick=body.level().getGameTime();
+        var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
+            before!=null && before.tick()==tick?before.displacement().add(applied):applied,applied);
+        TRANSPORT.put(body,transport);rememberTransport(body,transport);
+        AnatomyTransportReceipts.record(body,contact,surface,root,transport,materialBefore,materialAfter);
+        return true;
+    }
     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
     private static void carry(Entity body,Set<Entity> visiting) {
         if(!simulates(body))return;
         var c=contact(body);var anchor=ANCHORS.get(body);
         if(c==null || anchor==null)return;
+        // Server runtime material intervals own carry. Keeping this endpoint path active in
+        // parallel would double-apply ROOT/JOINT work before the causal dispatcher drains it.
+        if(!body.level().isClientSide() && AnatomyRuntime.owns(c.support()))return;
         if(!visiting.add(body) || !Platforms.eligible(body,c.support)
             || !gravity(body).equals(anchor.bodyGravity) || !gravity(c.support).equals(anchor.supportGravity)){clear(body);return;}
         try {

@@ -44,8 +44,18 @@ public final class MaterialPhysicsRuntime {
     private record Prepared(MaterialIntervalRuntime.Pending pending,MaterialEventDispatcher.MaterialInterval interval,
             GeometryProvider.MotionSnapshot motion) {}
     /** Contact pieces are scoped keys from real CCD hits or actual t=0 overlap recovery, never endpoint proximity. */
-    private record Plan(Entity body,Vec3 displacement,int evaluations,Set<String> contactPieces) {
-        private Plan {contactPieces=Set.copyOf(contactPieces);}
+    private record Plan(Entity body,Vec3 displacement,int evaluations,Set<String> contactPieces,
+            AnchoredTransportPlanner.Evidence transport,Set<LivingEntity> forbiddenSupports) {
+        private Plan {
+            contactPieces=Set.copyOf(contactPieces);forbiddenSupports=Set.copyOf(forbiddenSupports);
+        }
+        private Plan(Entity body,Vec3 displacement,int evaluations,Set<String> contactPieces) {
+            this(body,displacement,evaluations,contactPieces,null,Set.of());
+        }
+        private Plan withForbidden(LivingEntity support) {
+            var forbidden=new java.util.LinkedHashSet<>(forbiddenSupports);forbidden.add(support);
+            return new Plan(body,displacement,evaluations,contactPieces,transport,forbidden);
+        }
     }
 
     public static Metrics metrics(ServerLevel level) {
@@ -205,7 +215,7 @@ public final class MaterialPhysicsRuntime {
             var motion=motion(event.interval().handle());
             if(motion==null)return new MaterialEventDispatcher.Resolution<>(fail(List.of(event),MaterialEventDispatcher.Reason.BACKEND_FAILURE),List.of());
             var pieces=scopedPieces(event,motion);
-            var outcome=resolveAll(List.of(event),pieces,candidates);
+            var outcome=resolveAll(List.of(event),pieces,Map.of(event.interval().handle(),motion),candidates);
             return new MaterialEventDispatcher.Resolution<>(outcome,List.of());
         }
         @Override public MaterialEventDispatcher.BatchResolution<Entity> resolveJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,
@@ -228,8 +238,7 @@ public final class MaterialPhysicsRuntime {
                     for(var entry:scoped.entrySet())if(pieces.put(entry.getKey(),entry.getValue())!=null)
                         return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_FAILURE);
                 }
-                if(pieces.isEmpty()) {plans.add(new Plan(body,Vec3.ZERO,0,Set.of()));continue;}
-                var plan=plan(body,candidate.bounds(),pieces);
+                var plan=planCandidate(body,candidate.bounds(),events,motions,pieces);
                 if(plan==null) {
                     suspendUncertainPairs(body,candidate.bounds(),events);
                     revalidateRetainedContacts(candidates,events);
@@ -271,13 +280,15 @@ public final class MaterialPhysicsRuntime {
             return event.support().getUUID()+"/"+event.interval().handle().materialSerial()+"/";
         }
         private MaterialEventDispatcher.Outcome resolveAll(List<MaterialEventDispatcher.Event<Entity>> events,
-                Map<String,ConservativeSweep.Motion> pieces,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+                Map<String,ConservativeSweep.Motion> pieces,
+                Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> motions,
+                List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             var plans=new ArrayList<Plan>();int evaluations=0;
             for(var candidate:candidates) {
                 var body=candidate.body();
                 if(body instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent())
                     return fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
-                var plan=plan(body,candidate.bounds(),pieces);
+                var plan=planCandidate(body,candidate.bounds(),events,motions,pieces);
                 if(plan==null) {
                     suspendUncertainPairs(body,candidate.bounds(),events);
                     return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
@@ -291,6 +302,22 @@ public final class MaterialPhysicsRuntime {
             }
             apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             return MaterialEventDispatcher.Outcome.applied(1);
+        }
+        private Plan planCandidate(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events,
+                Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> motions,
+                Map<String,ConservativeSweep.Motion> pieces) {
+            var retained=AnatomyMovement.contact(body);
+            var anchored=AnchoredTransportPlanner.plan(level,body,captured,events,motions,clip(body));
+            if(anchored.status()==AnchoredTransportPlanner.Status.COMPLETE)
+                return new Plan(body,anchored.displacement(),anchored.evaluations(),Set.of(),anchored.evidence(),Set.of());
+            LivingEntity forbidden=null;
+            if(anchored.status()==AnchoredTransportPlanner.Status.RELEASE && retained!=null) {
+                forbidden=retained.support();AnatomyMovement.clear(body);
+            }
+            if(pieces.isEmpty())return new Plan(body,Vec3.ZERO,anchored.evaluations(),Set.of(),null,
+                forbidden==null?Set.of():Set.of(forbidden));
+            var planned=plan(body,captured,pieces);
+            return planned==null || forbidden==null?planned:planned.withForbidden(forbidden);
         }
         private Plan plan(Entity body,AABB captured,Map<String,ConservativeSweep.Motion> pieces) {
             if(pieces.isEmpty())return new Plan(body,Vec3.ZERO,0,Set.of());
@@ -426,11 +453,20 @@ public final class MaterialPhysicsRuntime {
         }
         private void apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
             for(var plan:plans) {
-                if(plan.displacement().lengthSqr()>1e-20)plan.body().setPos(plan.body().position().add(plan.displacement()));
+                if(plan.displacement().lengthSqr()>1e-20) {
+                    plan.body().setPos(plan.body().position().add(plan.displacement()));
+                    if(plan.transport()!=null) {
+                        var evidence=plan.transport();
+                        if(!AnatomyMovement.recordCertifiedTransport(plan.body(),evidence.support(),evidence.surface(),evidence.root(),
+                                plan.displacement(),evidence.materialBefore(),evidence.materialAfter()))
+                            AnatomyMovement.clear(plan.body());
+                    }
+                }
                 AnatomyMovement.afterMove(plan.body());
                 if(AnatomyMovement.contact(plan.body())!=null)continue;
                 for(var event:events) {
-                    if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support))continue;
+                    if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support)
+                            || plan.forbiddenSupports().contains(support))continue;
                     var allowed=contactPieces(event,plan.contactPieces());if(allowed.isEmpty())continue;
                     if(establish(plan.body(),support,event.interval().handle().after(),allowed))break;
                 }
