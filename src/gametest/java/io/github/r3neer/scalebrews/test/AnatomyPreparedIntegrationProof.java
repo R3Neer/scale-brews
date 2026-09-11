@@ -74,6 +74,10 @@ public final class AnatomyPreparedIntegrationProof {
             // material envelope. Reversing whether it or B receives the earlier runtime binding
             // generation must not poison, reorder or add a DERIVED_CARRY to the real chain.
             S08PreparedPermutationProof.run(h);
+            // FR-057 must also see a stationary anatomical support outside A's event batch.
+            // Its vanilla pair is intentionally suppressed because the anatomy core owns it;
+            // the replacement geometry therefore has to remain a continuous path obstacle.
+            io.github.r3neer.scalebrews.collision.internal.S08PreparedStaticAnatomicalObstacleProof.run(h);
             // S09 A8: a body that never calls own-move must still be acquired by a real published
             // material interval. This distinguishes dispatcher contact establishment from an
             // own-movement path that merely happens to land on the new endpoint.
