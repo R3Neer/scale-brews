@@ -137,21 +137,31 @@ public final class S03CanonicalCollisionDataTests {
     @GameTest
     public void legacyDecoderSeparatesAnatomyFromOneSidedPlanes(GameTestHelper h) {
         var entity = Identifier.parse("minecraft:cow");
-        var anatomy = new PlatformDefinition(entity, true, .6, Optional.of(.75), List.of(),
-            Optional.of(new AnatomyDefinition(Identifier.parse("minecraft:cow"), Identifier.parse("scalebrews:quadruped"), AnatomyFilter.DEFAULT)));
+        var anatomyDefinition = new AnatomyDefinition(Identifier.parse("minecraft:cow"), Identifier.parse("scalebrews:quadruped"), AnatomyFilter.DEFAULT);
+        var anatomy = new PlatformDefinition(entity, true, .6, Optional.of(.75), List.of(), Optional.of(anatomyDefinition));
         var decodedAnatomy = LegacyCollisionData.decode(anatomy);
         h.assertTrue(decodedAnatomy.binding().isPresent() && decodedAnatomy.legacyPlanes().isEmpty(),
             "Legacy anatomy migrates to canonical binding only");
         h.assertTrue(decodedAnatomy.binding().orElseThrow().geometry().engine().equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY),
             "Migration selects a named compatibility engine instead of inferring a model technology");
 
-        var plane = new PlatformDefinition(entity, true, .6, Optional.empty(),
-            List.of(new PlatformDefinition.Surface("back", 0, 1.25, 0, .75, 1.0, Optional.empty())), Optional.empty());
+        var surface = new PlatformDefinition.Surface("back", 0, 1.25, 0, .75, 1.0, Optional.empty());
+        var plane = new PlatformDefinition(entity, true, .6, Optional.empty(), List.of(surface), Optional.empty());
         var decodedPlane = LegacyCollisionData.decode(plane);
         h.assertTrue(decodedPlane.binding().isEmpty() && decodedPlane.legacyPlanes().isPresent(),
             "Legacy plane data must stay an explicit one-sided plane migration record, never anatomy");
         h.assertTrue(decodedPlane.legacyPlanes().orElseThrow().planes().getFirst().id().equals("back"),
             "Legacy plane decoder preserves explicit authored surfaces");
+
+        boolean neitherRejected = false;
+        try { LegacyCollisionData.decode(new PlatformDefinition(entity, true, .6, Optional.empty(), List.of(), Optional.empty())); }
+        catch (IllegalArgumentException expected) { neitherRejected = true; }
+        h.assertTrue(neitherRejected, "Legacy migration rejects a profile with neither anatomy nor explicit planes");
+
+        boolean bothRejected = false;
+        try { LegacyCollisionData.decode(new PlatformDefinition(entity, true, .6, Optional.of(.75), List.of(surface), Optional.of(anatomyDefinition))); }
+        catch (IllegalArgumentException expected) { bothRejected = true; }
+        h.assertTrue(bothRejected, "Legacy migration rejects anatomy and one-sided planes being assigned dual semantics in one profile");
         h.succeed();
     }
 
