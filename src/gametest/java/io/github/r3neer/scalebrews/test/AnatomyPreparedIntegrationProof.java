@@ -70,6 +70,10 @@ public final class AnatomyPreparedIntegrationProof {
             // carry through the same prepared catalog/runtime. This complements, rather than
             // replaces, the I6 fallback-boundary proof above.
             S08PreparedDerivedChainProof.run(h);
+            // A10 adversarial permutation: an active but non-causal cow sits inside the same
+            // material envelope. Reversing whether it or B receives the earlier runtime binding
+            // generation must not poison, reorder or add a DERIVED_CARRY to the real chain.
+            S08PreparedPermutationProof.run(h);
         }
         h.succeed();
     }
