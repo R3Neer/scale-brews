@@ -1,12 +1,12 @@
 name: s00-finalize
 on:
   push:
-    branches: [chatgpt-editing]
+    branches:
+      - chatgpt-editing
 permissions:
   contents: write
 jobs:
   finalize:
-    if: ${{ github.event.head_commit.message == 'ci: materialize S00 logical closeout' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
