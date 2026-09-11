@@ -1,13 +1,19 @@
 package io.github.r3neer.scalebrews.platform;
 
-/** Pure policy decision, shared by live eligibility and decoded-datapack tests. */
+import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
+
+/**
+ * @deprecated Legacy compatibility facade. Eligibility policy is owned by
+ * {@link CollisionRules}; this class preserves old regression callers only.
+ */
+@Deprecated
 public final class PlatformEligibility {
     private PlatformEligibility() {}
-    public static boolean allows(PlatformPolicy policy,PlatformDefinition profile,String category,double widthRatio) {
-        return policy.enabled() && profile!=null && profile.enabled() && category!=null
-            && policy.bodies().getOrDefault(category,true)
-            && policy.supports().getOrDefault(profile.entity(),true)
-            && Double.isFinite(widthRatio) && widthRatio>0
-            && widthRatio<=profile.maxRatio().orElse(policy.maxWidthRatio())+1e-7;
+
+    public static boolean allows(PlatformPolicy policy, PlatformDefinition profile, String category, double widthRatio) {
+        if (profile == null) return false;
+        return CollisionRules.allows(LegacyCollisionData.policy(policy), LegacyCollisionData.profilePolicy(profile),
+            category, profile.entity(), widthRatio);
     }
 }
