@@ -1,12 +1,16 @@
 # S07 — Dispatcher material real y CCD de root/joints
 
-Estado: **PLANIFICADO / PRE-IMPLEMENTACIÓN**. Tercer sprint de G2.
+Estado: **PLANIFICADO / PRE-IMPLEMENTACIÓN / BLOQUEADO por S06 reabierto**. Tercer sprint de G2. El plan puede seguir revisándose, pero no debe comenzar implementación mientras los holdouts adversariales de S06 en `466c666f…` sigan rojos.
 
 ## 1. Tesis y scope
 
 Al terminar S07, **cada intervalo material root/joint que S06 publique será drenado una única vez por `MaterialEventDispatcher` y resuelto de forma continua contra cuerpos candidatos locales usando la trayectoria certificada del handle, sin inventar endpoints ni depender del orden de mapas**.
 
 Requisitos primarios: FR-049, FR-050 y FR-051. Requisitos de apoyo: FR-043, FR-048, FR-052, FR-053; NFR-001, NFR-002, NFR-004, NFR-007, NFR-008, NFR-015, NFR-017, NFR-033.
+
+### Dependencia bloqueante actual
+
+S07 consume directamente `MotionIntervalHandle`/`Pending` producidos por S06. La campaña adversarial posterior al cierre provisional de S06 demostró tres contradicciones de identidad: payload distinto reutilizando `frameSerial`, certificación de un handle con otro soporte y `Pending` con soporte distinto al de la `GeometryIdentity`. Hasta que esos casos estén reparados y toda la suite vuelva a verde, S07 no puede considerar confiable su input causal.
 
 ### Exclusiones explícitas
 
@@ -21,13 +25,13 @@ S07 no cierra todavía:
 
 ## 2. Estado actual investigado
 
-- S06 cerró `MaterialIntervalTracker` + `MaterialIntervalRuntime`: root mutations y joint updates producen `MotionIntervalHandle` con `materialSerial` monotónico, replay/gap/lifecycle fences y una cola canónica one-shot.
+- S06 implementó `MaterialIntervalTracker` + `MaterialIntervalRuntime`, pero su cierre provisional quedó reabierto por la campaña `466c666f…`; por tanto root/joint handles aún no son una frontera confiable para producción S07.
 - `AnatomyRuntime.pollIntervals(ServerLevel)` existe, pero ningún caller de producción la drena todavía.
-- `AnatomyRuntime.interval(entity, handle)` certifica `MotionSnapshot` desde los dos endpoints capturados mediante el provider activo.
+- `AnatomyRuntime.interval(entity, handle)` certifica `MotionSnapshot` desde los dos endpoints capturados mediante el provider activo, pero S06 debe reforzar primero la correspondencia entre `entity` y `handle.identity()`.
 - `MaterialEventDispatcher` ya implementa queue caps, reentrancy gate, joint batches, candidate limits, ancestry/cycle/depth limits y separación entre captura y resolución.
 - Sus tests actuales son de backend falso; todavía no demuestran world query ni solver real.
 - `Platforms.tick` ejecuta `prepare → AnatomyMovement.tick → AnatomyRuntime.publish`; por tanto el primer punto en que el batch S06 está completo es inmediatamente después de `publish`.
-- `AnatomyMovement.sweep`/`collide` contienen kernels históricos útiles, pero la ruta de movimiento propio consume principalmente endpoint actual. S07 no debe rededucir history desde ahí: el `MotionIntervalHandle` de S06 es la autoridad temporal.
+- `AnatomyMovement.sweep`/`collide` contienen kernels históricos útiles, pero la ruta de movimiento propio consume principalmente endpoint actual. S07 no debe rededucir history desde ahí: el `MotionIntervalHandle` de S06 será la autoridad temporal cuando S06 vuelva a estar verde.
 - El broadphase de S05 indexa soportes materiales, no cuerpos. Para un evento material entrante, el backend debe usar una consulta espacial local/bounded del mundo sobre el envelope certificado, nunca `level.getAllEntities()` por evento.
 
 ## 3. Estado objetivo
@@ -38,7 +42,7 @@ S07 no cierra todavía:
 - Cada handle se convierte en `MaterialEventDispatcher.MaterialInterval` sólo si el provider certifica `MotionSnapshot` y se puede construir un envelope temporal finito/acotado.
 - El backend captura cuerpos locales dentro de ese envelope con cap explícito y orden determinista.
 - El resolver hace CCD cuerpo-estático frente a pieza-material-en-movimiento usando la trayectoria certificada y aplica sólo un prefijo seguro.
-- Replay no llega dos veces al resolver porque S06 ya lo fencea; S07 añade holdout de integración que cuenta resoluciones reales.
+- Replay no llega dos veces al resolver porque S06 lo fencea; S07 añade holdout de integración que cuenta resoluciones reales.
 - Fallo de certificación, envelope, candidate budget, solver budget o lifecycle produce outcome conservador/local, no fallback endpoint ni scan mundial.
 
 ## 4. Invariantes
@@ -88,6 +92,8 @@ S07 no cierra todavía:
 18. **NaN/extreme trajectory**: certificación/envelope inválidos se rechazan antes de mutar mundo.
 19. **derived carry trap**: S07 no debe comenzar accidentalmente FR-057..060; ningún outcome root/joint genera chain work de producción.
 20. **third-party regression**: cuerpos/supports no elegibles mantienen física vanilla y no entran al dispatcher material.
+21. **pre-dispatch queue saturation**: el staging S06→S07 debe tener un bound/outcome explícito; el límite interno del dispatcher no sirve si la cola previa puede crecer sin cap.
+22. **source/batch provenance**: un `List<Pending>` ordenado no basta para distinguir causalmente root de joint batch; la fuente/simultaneidad debe viajar desde S06 o quedar determinada por metadata causal, nunca por estado vivo posterior.
 
 ## 7. Revisión iterativa del plan
 
@@ -103,7 +109,7 @@ El dispatcher conserva scheduling; S06 conserva serial/fence; provider conserva 
 
 ### P3 — código real y orden temporal
 
-`Platforms.tick` sitúa `publish` después de `AnatomyMovement.tick`, así que el drain puede ocurrir inmediatamente después sin adivinar un tick futuro. La consulta de cuerpos debe ser espacial/local y acotada, no `getAllEntities()`. **Sin cambios.**
+`Platforms.tick` sitúa `publish` después de `AnatomyMovement.tick`, así que el drain puede ocurrir inmediatamente después sin adivinar un tick futuro. La consulta de cuerpos debe ser espacial/local y acotada, no `getAllEntities()`. La revisión adversarial posterior añade dos condiciones que el plan original no explicitaba: la staging queue previa al dispatcher también debe estar acotada y la clasificación root/joint no puede inferirse desde estado vivo porque `Pending` actual no transporta source/batch. **Plan actualizado; esta pasada debe repetirse tras reparar S06.**
 
 ### P4 — errores y fail-closed
 
@@ -113,14 +119,15 @@ Faltas de certificación/envelope/candidatos/budget/lifecycle tienen outcomes ex
 
 No hace falta integrar receipts, red, prediction ni chains para demostrar la tesis. `DerivedCarry` se conserva en dispatcher como capacidad futura pero producción S07 no la emite. **Sin cambios.**
 
-El plan converge tras una pasada completa P1–P5 sin modificaciones.
+El plan ya no se considera listo para implementación mientras S06 esté rojo. Tras la reparación S06 debe repetirse P1–P5 sobre la frontera causal final y obtener una pasada completa sin cambios antes de empezar I1.
 
 ## 8. Criterio de cierre
 
 S07 se cierra sólo cuando:
 
-- la cola S06 se drena una sola vez desde el hook real;
-- root/joint events reales pasan por `MaterialEventDispatcher`;
+- S06 está nuevamente cerrado y verde con sus holdouts adversariales;
+- la cola S06 se drena una sola vez desde el hook real y está acotada de forma explícita antes del dispatcher;
+- root/joint events reales llegan al `MaterialEventDispatcher` con provenance suficiente para no rededucir source/simultaneidad desde estado vivo;
 - un contacto sólo intermedio es detectado con trayectoria certificada;
 - replay/same-tick/batches/budgets/lifecycle tienen holdouts registrados y verdes;
 - no existe fallback a endpoint-only ni scan mundial en el hot event path;
