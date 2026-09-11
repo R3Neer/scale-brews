@@ -112,8 +112,11 @@ public final class S07PlanConflictLocalizationTests {
             // the backend may reject the pair together is the simultaneous final body/body overlap.
             var leftPlan=resolveIndividually(level,leftBody,leftBox,pieces);
             var rightPlan=resolveIndividually(level,rightBody,rightBox,pieces);
+            var safePlan=resolveIndividually(level,safe,safeBox,pieces);
             h.assertTrue(leftPlan.status()==TemporalResponse.Status.COMPLETE && rightPlan.status()==TemporalResponse.Status.COMPLETE,
-                "Each candidate must have a complete bounded temporal plan before the batch conflict: left="+leftPlan+" right="+rightPlan);
+                "Each conflicting candidate must have a complete bounded temporal plan before the batch conflict: left="+leftPlan+" right="+rightPlan);
+            h.assertTrue(safePlan.status()==TemporalResponse.Status.COMPLETE && safePlan.displacement().lengthSqr()<1e-20,
+                "The bystander must be a real candidate with a complete non-conflicting zero-displacement plan: "+safePlan);
             h.assertTrue(leftPlan.displacement().x>.25 && rightPlan.displacement().x<-.25,
                 "Fixture plans must move the bodies toward one another: left="+leftPlan.displacement()+" right="+rightPlan.displacement());
             var finalLeft=leftBox.move(leftPlan.displacement());
@@ -121,9 +124,11 @@ public final class S07PlanConflictLocalizationTests {
             h.assertTrue(overlapVolume(finalLeft,finalRight)>1e-12,
                 "Fixture plans must be individually valid but mutually incompatible at the final instant");
 
-            var prepared=prepared(support,leftWall,rightWall,leftMotion,rightMotion);
+            // The envelope is deliberately conservative enough to capture the remote bystander too.
+            // It has no conflicting material plan, so fail-closed localization must preserve it.
+            var prepared=prepared(support,leftWall,rightWall,leftMotion,rightMotion,safeBox);
             Vec3 leftBefore=leftBody.position(),rightBefore=rightBody.position(),safeBefore=safe.position();
-            var candidates=reverseCandidates?List.<Entity>of(rightBody,leftBody):List.<Entity>of(leftBody,rightBody);
+            var candidates=reverseCandidates?List.<Entity>of(safe,rightBody,leftBody):List.<Entity>of(leftBody,rightBody,safe);
             var outcome=resolve(level,support,prepared,candidates);
             h.assertTrue(outcome.status()==MaterialEventDispatcher.Status.QUARANTINED
                     && outcome.reason()==MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED,
@@ -134,7 +139,7 @@ public final class S07PlanConflictLocalizationTests {
             h.assertTrue(!AnatomyMovement.supported(leftBody) && !AnatomyMovement.supported(rightBody),
                 "NFR-001/002/004 require the same two unresolved retained relations to be released or suspended after a plan-conflict exhaustion; reverseCandidates="+reverseCandidates);
             h.assertTrue(AnatomyMovement.contact(safe)!=null && AnatomyMovement.supported(safe),
-                "A third body not involved in the conflicting candidate set must retain its valid contact on the same support");
+                "A non-conflicting candidate in the same conservative envelope must retain its valid contact on the same support");
         } finally {
             AnatomyMovement.clear(leftBody);AnatomyMovement.clear(rightBody);AnatomyMovement.clear(safe);
             AnatomyMovement.gravity(leftBody,GravityFrame.VANILLA);AnatomyMovement.gravity(rightBody,GravityFrame.VANILLA);
@@ -168,7 +173,7 @@ public final class S07PlanConflictLocalizationTests {
     }
 
     private static Object prepared(LivingEntity support,ConvexBox left,ConvexBox right,
-            ConservativeSweep.Motion leftMotion,ConservativeSweep.Motion rightMotion) throws Exception {
+            ConservativeSweep.Motion leftMotion,ConservativeSweep.Motion rightMotion,AABB conservativeExtra) throws Exception {
         long tick=support.level().getGameTime();
         long registration=AnatomyMovement.registrationGeneration(support);
         var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),98,
@@ -186,8 +191,8 @@ public final class S07PlanConflictLocalizationTests {
             new GeometryProvider.CausalEndpoint(2,tick,tick,afterRoot,afterSample,GeometryProvider.Availability.AVAILABLE),
             new GeometryProvider.Snapshot(98,afterPieces));
         var handle=new GeometryProvider.MotionIntervalHandle(identity,1,before,after);
-        AABB envelope=union(union(left.bounds(),leftMotion.at().apply(1).bounds()),union(right.bounds(),rightMotion.at().apply(1).bounds()))
-            .inflate(ConservativeSweep.SKIN);
+        AABB movingEnvelope=union(union(left.bounds(),leftMotion.at().apply(1).bounds()),union(right.bounds(),rightMotion.at().apply(1).bounds()));
+        AABB envelope=union(movingEnvelope,conservativeExtra).inflate(ConservativeSweep.SKIN);
         var interval=new MaterialEventDispatcher.MaterialInterval(handle,envelope);
         var pending=new MaterialIntervalRuntime.Pending(support,MaterialIntervalRuntime.Source.JOINT,handle);
         var motion=new GeometryProvider.MotionSnapshot(98,tick,tick,support.position(),support.position(),Map.of("left",leftMotion,"right",rightMotion));
