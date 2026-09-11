@@ -1,92 +1,106 @@
 # S01 — Frontera pública y backend explícito
 
-Estado: **REABIERTO por evidencia adversarial posterior**. El estado global de G1 vive en `ENTITY_COLLISIONS_PLAN.md`.
+Estado: **CERRADO de nuevo tras reapertura adversarial**. El estado global de G1 vive en `ENTITY_COLLISIONS_PLAN.md`.
 
 ## 1. Scope
 
 S01 pertenece a G1 y tiene una sola tesis: `collision.api` no conoce implementación interna; una implementación Scale-owned queda detrás de un backend explícito y la ausencia de backend falla cerrada.
 
-Quedan fuera el binding/policy canónico, registries de engines, codecs versionados, migración de planos legacy y body adapters. También quedan fuera G2+: división de `AnatomyMovement`, pipeline Q2, catálogo/lifecycle final y prediction/reconciliation.
+Quedan fuera binding/policy canónico, registries de engines, codecs versionados, migración de planos legacy y body adapters. También quedan fuera G2+: división de `AnatomyMovement`, pipeline Q2, catálogo/lifecycle final y prediction/reconciliation.
 
 Contribuye directamente a FR-001..004 y FR-072..074, y a NFR-021, NFR-025 y NFR-034.
 
-## 2. Estado inicial e investigación
+## 2. Estado inicial e invariantes
 
-S00 clasificó `AnatomyApi` como REWORK porque importaba `AnatomyMovement`, `AnatomySession` y `GravityFrames`. La fachada pública dependía de la implementación que debía ocultar. `AnatomySession` conservaba la semántica DISABLED/BINDING/READY y `AnatomyMovement` seguía siendo el owner temporal de contacto/query/carry hasta G2.
+S00 clasificó `AnatomyApi` como REWORK porque importaba owners físicos internos. `AnatomySession` conservaba DISABLED/BINDING/READY y `AnatomyMovement` seguía siendo el owner temporal de contacto/query/carry hasta G2.
 
-Invariantes conservados: `BINDING` fail-closed, owner físico único Scale, backend sin estado físico propio, semántica de `GravityFrame`/`AnatomyMode` intacta y motor legacy no retirado antes de G5.
+Invariantes: `BINDING` fail-closed, owner físico único Scale, backend sin estado físico propio, semántica pública de `GravityFrame`/`AnatomyMode` estable y motor legacy no retirado antes de G5.
 
 ## 3. Plan de implementación
 
-- [x] I1 Introducir un contrato de backend mínimo con las operaciones ya expuestas por `AnatomyApi`.
-- [x] I2 Proporcionar un backend inerte fail-closed cuando el runtime Scale no esté disponible.
+- [x] I1 Introducir un contrato backend mínimo para las operaciones de `AnatomyApi`.
+- [x] I2 Proporcionar backend inerte fail-closed cuando el runtime Scale no esté disponible.
 - [x] I3 Implementar un único backend Scale-owned que delegue en owners existentes sin duplicar estado.
 - [x] I4 Descubrir el backend mediante Java services y rechazar cardinalidad distinta de uno.
 - [x] I5 Reescribir `AnatomyApi` sin dependencias de `collision.internal`.
-- [x] I6 Añadir tests de fail-closed, unicidad y frontera pública.
+- [x] I6 Mantener el contrato backend fuera de la superficie pública de consumer.
+- [x] I7 Eliminar cualquier ciclo de alto nivel `collision.api ↔ collision.runtime`.
+- [x] I8 Ejecutar holdouts, suite servidor y cliente real tras la reparación common/API.
 
-P1 sustituyó un posible `installBackend` público por service discovery. P2 dejó el backend stateless. P3 descartó adelantar responsabilidades de G2/G3. La siguiente revisión no cambió el plan.
+Las revisiones descartaron un `installBackend` público y evitaron adelantar responsabilidades de G2/G3. El último cambio de plan fue puramente correctivo: el backend runtime debía usar tipos neutrales y dejar la traducción a DTOs públicos en la façade.
 
 ## 4. Modelo adversarial
 
-La base cubrió backend único/ausente/duplicado, DISABLED/BINDING/READY y gravity adapter presente/ausente. El holdout inicial inspeccionó por reflexión las firmas de `AnatomyApi` para impedir fugas de `collision.internal`.
+La base cubre backend ausente/único/duplicado, DISABLED/BINDING/READY, gravity adapter y ausencia de imports `collision.internal` en la façade.
 
-La campaña adversarial paralela amplió la frontera: no basta con que `AnatomyApi` no importe internals; el **contrato del backend tampoco puede ser API pública de consumer**.
+La campaña adversarial amplió dos fronteras:
 
-Una pasada posterior al cierre añadió un holdout estructural de NFR-025: mover el contrato fuera de `collision.api` tampoco basta si `collision.api` y una capa de alto nivel como `collision.runtime` quedan dependiendo mutuamente.
+1. el contrato backend no puede ser API pública de consumer;
+2. moverlo a `collision.runtime` tampoco basta si `api` y `runtime` se referencian mutuamente.
 
-## 5. Implementación
+El holdout `S01PublicApiBoundaryTests.publicApiAndRuntimeDoNotFormALayerCycle` inspecciona las firmas de `AnatomyApi`, localiza tipos `collision.runtime` alcanzados desde la API y exige que ninguno dependa a su vez de tipos `collision.api`.
 
-- [x] `AnatomyApi` como façade pública mínima.
-- [x] contrato backend fail-closed fuera de la superficie pública de consumer.
-- [x] `ScaleAnatomyBackend` como implementación Scale-owned única.
-- [x] service descriptor correspondiente al contrato runtime.
-- [x] tests S01 registrados y ejecutados.
+## 5. Implementación final
 
-La implementación inicial colocó `AnatomyBackend` en `collision.api`. Eso satisfacía la inversión de dependencias de `AnatomyApi`, pero no el requisito más fuerte de mantener el backend como wiring interno/runtime.
+- [x] `AnatomyApi` conserva la façade pública mínima y el ServiceLoader.
+- [x] `collision.runtime.AnatomyBackend` es wiring Scale-owned, no API pública de consumer.
+- [x] `AnatomyBackend` ya no referencia `AnatomyMode`, `GravityFrame`, `SurfaceContact` ni `AnatomyApi.RayHit`.
+- [x] el contrato runtime usa únicamente tipos neutrales/JDK/Minecraft más `Mode`, `ContactData` y `RayHit` internos al propio contrato.
+- [x] `AnatomyApi` convierte explícitamente esos datos neutrales a los DTOs públicos y viceversa en el borde.
+- [x] `ScaleAnatomyBackend` adapta owners internos al contrato neutral sin adquirir estado físico propio.
+- [x] el descriptor ServiceLoader continúa apuntando a una única implementación Scale-owned.
 
-La primera reparación movió el contrato a `collision.runtime`. Una revisión posterior comprobó que `AnatomyApi` referencia ese contrato y el contrato runtime referencia a su vez tipos de `collision.api`, por lo que quedó un ciclo de capas todavía incompatible con NFR-025.
+La reparación definitiva es `a09c881a6a526bb735fe9e5f9f4a26d74325e615` (`fix(collision): break api runtime layer cycle`). La dirección de dependencias queda `collision.api → collision.runtime`; `collision.runtime` ya no depende de `collision.api`.
 
-## 6. Test matrix
+## 6. Test matrix vigente
 
-| Ataque / propiedad | Nivel | Resultado vigente |
+| Ataque / propiedad | Nivel | Resultado |
 | --- | --- | --- |
-| backend ausente falla cerrado | GameTest | PASS histórico |
-| provider único / duplicado | GameTest | PASS histórico |
+| backend ausente falla cerrado | GameTest | PASS |
+| provider único / duplicado | GameTest | PASS |
 | façade pública sin `collision.internal` | reflection/GameTest | PASS |
-| backend contract no es API pública de consumer | adversarial reflection/GameTest | PASS tras primera reparación |
-| `collision.api` ↔ `collision.runtime` sin ciclo de alto nivel | adversarial reflection/GameTest | **FAIL vigente** |
-| suite servidor completa | `./gradlew build` | **267/268 PASS; 1 FAIL vigente** |
-| client/integrated/dedicated | `runClientGameTest` | PASS histórico anterior al nuevo bloqueo; debe repetirse tras reparación common/API |
+| backend contract no es API pública de consumer | adversarial reflection/GameTest | PASS |
+| `collision.api` ↔ `collision.runtime` sin ciclo | adversarial reflection/GameTest | **PASS** |
+| holdout S03 constructor→codec en límites máximos | adversarial GameTest | PASS |
+| suite servidor completa | `./gradlew build` | **268/268 PASS** |
+| client/integrated/dedicated | `xvfb-run -a ./gradlew runClientGameTest` | **PASS** |
 
-## 7. Fallos encontrados y bucles
+## 7. Red-before-green y reparación
 
-El candidato inicial `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd` pasó run `34582769682`, pero S01 todavía no estaba registrado como entrypoint GameTest. Ese verde demuestra build/regresión, no sus aserciones. Tras registrar S01-S04, snapshots posteriores ejecutaron la suite real.
+El candidato inicial de S01 pasó builds en los que sus GameTests todavía no estaban registrados; esa evidencia se conserva sólo como build/regresión.
 
-La campaña adversarial sobre `19626950569110963cd47611b245234c650f2ca0` produjo un fallo real en run `34592683287`, job `103241351742`: `S01PublicApiBoundaryTests.backendContractIsNotPublicConsumerApi` encontró `io.github.r3neer.scalebrews.collision.api.AnatomyBackend` público. Se clasificó como **bug de implementación**, no como defecto del test o del requisito.
+La campaña adversarial sobre `19626950569110963cd47611b245234c650f2ca0` encontró primero que `AnatomyBackend` seguía dentro de `collision.api`. `3ba014dc2e19b6b700a707bd3177c55ac443328f` lo movió a `collision.runtime`, reparando aquella fuga de superficie.
 
-`3ba014dc2e19b6b700a707bd3177c55ac443328f` movió el contrato a `collision.runtime.AnatomyBackend`, actualizó `AnatomyApi`, `ScaleAnatomyBackend` y el descriptor ServiceLoader, y eliminó el tipo `collision.api.AnatomyBackend`. Esa reparación pasó la suite disponible entonces.
+Una pasada posterior añadió el holdout de ciclo. `94f2db96277f02c9e9d4903bdb02046b7878f4c2`, run `34595220211`, job `103249293688`, ejecutó 267 GameTests: 266 pasaron y falló únicamente el ciclo de NFR-025. `be41003bbceaecd27a36dc1d13e4bef0f8bde114` añadió además el holdout S03 de round-trip máximo; run `34595505502`, job `103250215902`, ejecutó 268 tests y volvió a fallar sólo S01.
 
-La revisión adversarial posterior añadió `publicApiAndRuntimeDoNotFormALayerCycle`. El snapshot `94f2db96277f02c9e9d4903bdb02046b7878f4c2` ejecutó 267 GameTests en run `34595220211`, job `103249293688`: **266 pasaron y sólo falló** ese nuevo holdout, señalando `collision.api ↔ collision.runtime` a través de `collision.runtime.AnatomyBackend`. `be41003bbceaecd27a36dc1d13e4bef0f8bde114` añadió además el holdout S03 de límites; run `34595505502`, job `103250215902`, ejecutó 268 tests y volvió a dejar exactamente el mismo único fallo S01.
+`a09c881a6a526bb735fe9e5f9f4a26d74325e615` sustituyó las referencias runtime→API por DTOs neutrales del backend. GitHub Actions run `34600301662`, job `103265686046`, ejecutó **268/268 required GameTests passed** y terminó `BUILD SUCCESSFUL`. Artifact `10264495705`, SHA-256 `8676c2ddc0099ac0a34d647c426539b88b323fee53d9ccab552e34630f9534b4`.
 
-El fallo vigente se clasifica como **bug de arquitectura/implementación de la frontera S01 respecto de NFR-025**. No se relaja el test ni se adelanta G2.
+La prueba cliente se ejecutó sobre código de producción/test idéntico mediante el workflow temporal del commit `5d725ae700c812f7864a22dc0459b9617f52e822`. Run `34600577409`, job `103266578934`, terminó `BUILD SUCCESSFUL`: export/pose original de cow y player wide/slim, 640 comparaciones vanilla-family adicionales, `S00_CLIENT_RECEIPT_AUTHORITY PASS`, `S00_OBSERVER_AUTHORITY PASS` y dedicated a **0/100/200 ms RTT, 120 ticks cada uno**. El workflow temporal se retiró en `1c591578f2fac8406bd69fa81dd08000b19b5b7e` sin cambiar producción ni tests.
 
 ## 8. Revisión final
 
-La antigua pasada de cierre verificó façade, service loading, ownership, fail-closed, gravedad y superficie pública, pero no detectó la dependencia mutua creada al mover el backend a `collision.runtime`. El nuevo holdout invalida esa convergencia para NFR-025.
+La revisión posterior a la prueba cliente verificó:
 
-La revisión podrá cerrarse de nuevo sólo después de que una reparación elimine el ciclo, la suite completa vuelva a verde, se repita la evidencia cliente/integrated/dedicated aplicable por tratarse de una frontera common/API y una pasada completa posterior no produzca cambios.
+- el holdout adversarial no fue modificado ni relajado;
+- `AnatomyBackend` no contiene referencias a `collision.api`;
+- la façade sigue traduciendo a sus DTOs públicos sin exponer implementación;
+- la semántica fail-closed y el único owner físico no cambian;
+- ningún código G2 fue adelantado durante la reparación;
+- el workflow temporal fue retirado.
+
+No apareció otro cambio de implementación para S01. **S01 converge y queda cerrado de nuevo.**
 
 ## 9. Cierre
 
 - [x] implementación original del scope;
 - [x] tests S01 realmente registrados;
-- [x] campaña adversarial inicial integrada;
+- [x] campañas adversariales integradas;
 - [x] backend retirado de `collision.api`;
-- [ ] ciclo `collision.api ↔ collision.runtime` eliminado;
-- [ ] suite servidor final verde con los holdouts actuales;
-- [ ] client/integrated/dedicated repetido tras la reparación common/API;
-- [ ] revisión final posterior sin cambios;
-- [ ] S01 cerrado de nuevo.
+- [x] ciclo `collision.api ↔ collision.runtime` eliminado;
+- [x] suite servidor final 268/268;
+- [x] client/integrated/dedicated repetido tras la reparación common/API;
+- [x] workflow temporal retirado;
+- [x] revisión final posterior sin cambios;
+- [x] S01 cerrado de nuevo.
 
-La evidencia roja vigente y el estado global se registran respectivamente en `VALIDATION.md` y `ENTITY_COLLISIONS_PLAN.md`.
+La evidencia exacta vive en `VALIDATION.md`.
