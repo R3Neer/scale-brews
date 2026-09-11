@@ -71,56 +71,58 @@ final class S08PreparedPermutationProof {
                     "Fixture must really register B before bystander: B="+bGeneration+" bystander="+bystanderGeneration);
             }
 
+            final LivingEntity activeB=b;
+            final LivingEntity activeBystander=bystander;
             var rootDelta=new Vec3(.2,0,0);
             boolean inEnvelope=AnatomyMovement.queryFrame(a).orElseThrow().snapshot().pieces().values().stream()
                 .map(ConvexBox::bounds).map(box->box.inflate(rootDelta.length()+ConservativeSweep.SKIN))
-                .anyMatch(box->box.intersects(bystander.getBoundingBox()));
-            h.assertTrue(inEnvelope && Platforms.eligible(bystander,a),
+                .anyMatch(box->box.intersects(activeBystander.getBoundingBox()));
+            h.assertTrue(inEnvelope && Platforms.eligible(activeBystander,a),
                 "Non-causal bystander must be a real eligible candidate inside A's material envelope");
             h.assertTrue(AnatomyMovement.queryFrame(a).orElseThrow().snapshot().pieces().values().stream()
-                    .noneMatch(piece->piece.overlaps(bystander.getBoundingBox())),
+                    .noneMatch(piece->piece.overlaps(activeBystander.getBoundingBox())),
                 "Bystander must begin outside A's material rather than as overlap/recovery");
             double nearest=AnatomyMovement.queryFrame(a).orElseThrow().snapshot().pieces().values().stream()
-                .mapToDouble(piece->piece.separation(bystander.getBoundingBox()).gap()).min().orElseThrow();
+                .mapToDouble(piece->piece.separation(activeBystander.getBoundingBox()).gap()).min().orElseThrow();
             h.assertTrue(nearest>.025,"Bystander must be non-causal at t=0, gap="+nearest);
 
-            b.move(MoverType.SELF,new Vec3(0,-1.2,0));
-            h.assertTrue(AnatomyMovement.contact(b)!=null && AnatomyMovement.contact(b).support()==a,
+            activeB.move(MoverType.SELF,new Vec3(0,-1.2,0));
+            h.assertTrue(AnatomyMovement.contact(activeB)!=null && AnatomyMovement.contact(activeB).support()==a,
                 "B must establish retained contact on A");
 
-            var bTop=topBounds(b);
+            var bTop=topBounds(activeB);
             var c=h.spawn(EntityTypes.SHEEP,8,20,2);
             c.setNoAi(true);c.setNoGravity(true);
             c.getAttribute(Attributes.SCALE).setBaseValue(.12);c.refreshDimensions();
             c.setPos(bTop.getCenter().x,bTop.maxY+.35,bTop.getCenter().z);
             try {
                 c.move(MoverType.SELF,new Vec3(0,-.7,0));
-                h.assertTrue(AnatomyMovement.contact(c)!=null && AnatomyMovement.contact(c).support()==b,
+                h.assertTrue(AnatomyMovement.contact(c)!=null && AnatomyMovement.contact(c).support()==activeB,
                     "C must establish retained contact on B");
-                h.assertTrue(AnatomyMovement.contact(bystander)==null,
+                h.assertTrue(AnatomyMovement.contact(activeBystander)==null,
                     "Bystander must have no retained relation before the chain move");
 
                 Platforms.tick(level);
                 h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),"A10 baseline must leave no pending material debt");
-                h.assertTrue(AnatomyMovement.contact(b)!=null && AnatomyMovement.contact(c)!=null
-                        && AnatomyMovement.contact(bystander)==null,
+                h.assertTrue(AnatomyMovement.contact(activeB)!=null && AnatomyMovement.contact(c)!=null
+                        && AnatomyMovement.contact(activeBystander)==null,
                     "Baseline cadence must preserve only the causal A -> B -> C relations");
 
-                Vec3 beforeB=b.position(),beforeC=c.position(),beforeBystander=bystander.position();
+                Vec3 beforeB=activeB.position(),beforeC=c.position(),beforeBystander=activeBystander.position();
                 var metricsBefore=MaterialPhysicsRuntime.metrics(level);
                 a.move(MoverType.SELF,rootDelta);
                 var metricsAfter=MaterialPhysicsRuntime.metrics(level);
 
-                Vec3 bDelta=b.position().subtract(beforeB);
+                Vec3 bDelta=activeB.position().subtract(beforeB);
                 Vec3 cDelta=c.position().subtract(beforeC);
-                Vec3 bystanderDelta=bystander.position().subtract(beforeBystander);
+                Vec3 bystanderDelta=activeBystander.position().subtract(beforeBystander);
                 assertSame(h,bDelta,rootDelta,"Causal B carry must survive the active bystander");
                 assertSame(h,cDelta,rootDelta,"Derived C carry must survive the active bystander");
                 h.assertTrue(bystanderDelta.lengthSqr()<1e-20,
                     "Non-causal active bystander must remain stationary: "+bystanderDelta);
-                h.assertTrue(AnatomyMovement.contact(b)!=null && AnatomyMovement.contact(b).support()==a
-                        && AnatomyMovement.contact(c)!=null && AnatomyMovement.contact(c).support()==b
-                        && AnatomyMovement.contact(bystander)==null,
+                h.assertTrue(AnatomyMovement.contact(activeB)!=null && AnatomyMovement.contact(activeB).support()==a
+                        && AnatomyMovement.contact(c)!=null && AnatomyMovement.contact(c).support()==activeB
+                        && AnatomyMovement.contact(activeBystander)==null,
                     "Bystander presence must not alter retained causal relations");
                 long admitted=metricsAfter.admitted()-metricsBefore.admitted();
                 long quarantined=metricsAfter.quarantined()-metricsBefore.quarantined();
