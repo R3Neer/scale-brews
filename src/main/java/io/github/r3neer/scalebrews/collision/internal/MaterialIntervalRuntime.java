@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 public final class MaterialIntervalRuntime {
     private MaterialIntervalRuntime() {}
     public enum Source {ROOT,JOINT}
+    public static final int MAX_PENDING_INTERVALS=512;
     private static final Map<LivingEntity,MaterialIntervalTracker> TRACKERS=
         Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,MaterialIntervalTracker>makeMap());
     /**
@@ -24,6 +25,8 @@ public final class MaterialIntervalRuntime {
      * that cadence is simultaneous rather than causally ordered.
      */
     private static final Map<Level,List<Pending>> PENDING=Collections.synchronizedMap(new WeakHashMap<>());
+    /** Sticky until the consumer observes it; overflow never becomes an invisible dropped event. */
+    private static final Map<Level,Boolean> SATURATED=Collections.synchronizedMap(new WeakHashMap<>());
 
     public record Pending(LivingEntity support,Source source,GeometryProvider.MotionIntervalHandle handle) {
         public Pending {
@@ -70,7 +73,16 @@ public final class MaterialIntervalRuntime {
         var currentBefore=tracker.current();
         var result=tracker.accept(before,after);
         if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED) {
-            PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>()).add(new Pending(support,source,result.handle()));
+            var queue=PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>());
+            if(queue.size()>=MAX_PENDING_INTERVALS) {
+                // This material serial is intentionally consumed but cannot be applied. Cut continuity
+                // so a later frame cannot sweep across the missing work, and release only this support.
+                SATURATED.put(support.level(),Boolean.TRUE);
+                tracker.cut(after.identity());
+                AnatomyMovement.invalidateSupport(support);
+                return;
+            }
+            queue.add(new Pending(support,source,result.handle()));
         } else if(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && currentBefore!=null
                 && currentBefore.equals(before)
                 && currentBefore.identity().equals(after.identity())
@@ -94,9 +106,12 @@ public final class MaterialIntervalRuntime {
         return list==null || list.isEmpty()?List.of():List.copyOf(list);
     }
 
+    /** One-shot overflow signal paired with the queue seam; S07 records it as explicit exhaustion. */
+    public static boolean consumeSaturation(Level level) {return SATURATED.remove(level)!=null;}
+
     public static void clear(Level level) {
         TRACKERS.keySet().removeIf(entity->entity.level()==level);
-        PENDING.remove(level);
+        PENDING.remove(level);SATURATED.remove(level);
     }
 
     public static void clear(MinecraftServer server) {
