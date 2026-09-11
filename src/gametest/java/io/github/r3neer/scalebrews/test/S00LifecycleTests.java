@@ -70,9 +70,11 @@ public final class S00LifecycleTests {
         try {
             var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();
             AnatomyMovement.register(entity,provider,descriptor(1));
+            int callsAfterRegister=provider.endpointCalls;
             provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));
             AnatomyMovement.queryFrame(entity);
-            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==1,"Reentrant provider query evaluated or published a second endpoint");
+            check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==callsAfterRegister+1,
+                "Reentrant provider query evaluated or published a second endpoint beyond the outer capture");
         }finally{AnatomyMovement.deactivate(h.getLevel());entity.discard();}h.succeed();
     }
     @GameTest public void validReadOnlyProviderQueriesRetainIdentity(GameTestHelper h) {
