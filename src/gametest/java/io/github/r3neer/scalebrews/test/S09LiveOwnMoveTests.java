@@ -63,6 +63,75 @@ public final class S09LiveOwnMoveTests {
     }
 
     @GameTest
+    public void retainedFloorComposesWithNewWallContactWithoutLosingAnchor(GameTestHelper h) {
+        var level=h.getLevel();
+        var floorSupport=h.spawn(EntityTypes.COW,14,20,2);
+        var wallSupport=h.spawn(EntityTypes.COW,16,20,2);
+        for(var support:java.util.List.of(floorSupport,wallSupport)) {
+            support.setNoAi(true);support.setNoGravity(true);
+            support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+        }
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        body.setPos(h.absoluteVec(new Vec3(15,22,6)));
+        var start=body.getBoundingBox();double landingGap=.5,wallGap=.2;
+        double floorTop=start.minY-landingGap;
+
+        // Keep the real support entities out of the fixture geometry. The providers own these
+        // material pieces, while the cows merely supply independently identifiable supports.
+        double floorMinX=start.minX-2,floorMinZ=start.minZ-2;
+        double floorWidth=start.getXsize()+4,floorDepth=start.getZsize()+4;
+        var floor=ConvexBox.of(new AABB(0,0,0,floorWidth,.2,floorDepth),new Matrix4f())
+            .move(new Vec3(floorMinX,floorTop-.2,floorMinZ));
+        double wallX=start.maxX+wallGap,wallMinY=start.minY-2,wallMinZ=start.minZ-2;
+        double wallHeight=start.getYsize()+4,wallDepth=start.getZsize()+4;
+        var wall=ConvexBox.of(new AABB(0,0,0,.2,wallHeight,wallDepth),new Matrix4f())
+            .move(new Vec3(wallX,wallMinY,wallMinZ));
+
+        GeometryProvider floorProvider=ignored->Optional.of(new GeometryProvider.Snapshot(112,Map.of("floor",floor)));
+        GeometryProvider wallProvider=ignored->Optional.of(new GeometryProvider.Snapshot(113,Map.of("wall",wall)));
+        AnatomyMovement.activate(level);
+        AnatomyMovement.register(floorSupport,floorProvider);
+        AnatomyMovement.register(wallSupport,wallProvider);
+        try {
+            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,floorSupport)
+                    && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,wallSupport),
+                "Retained-plus-new fixture requires both supports to be real live candidates");
+            Vec3 landing=AnatomyMovement.collide(body,new Vec3(0,-1,0));
+            body.setPos(body.position().add(landing));
+            AnatomyMovement.afterMove(body);
+            var initial=AnatomyMovement.contact(body);
+            h.assertTrue(initial!=null && initial.support()==floorSupport,
+                "Fixture must retain the floor before introducing the new wall constraint");
+            long sequence=initial.sequence();double y=body.getY();
+
+            var request=new Vec3(.6,0,.25);
+            Vec3 moved=AnatomyMovement.collide(body,request);
+            body.setPos(body.position().add(moved));
+            AnatomyMovement.afterMove(body);
+            var retained=AnatomyMovement.contact(body);
+            h.assertTrue(Math.abs(moved.x-wallGap)<2e-4 && Math.abs(moved.y)<1e-8
+                    && Math.abs(moved.z-request.z)<1e-8,
+                "A newly encountered wall must clip only its normal while the retained floor preserves free tangent motion: request="
+                    +request+" actual="+moved);
+            h.assertTrue(!wall.overlaps(body.getBoundingBox()) && !floor.overlaps(body.getBoundingBox()),
+                "Composed retained+new response must finish non-penetrating against both pieces");
+            h.assertTrue(retained!=null && retained.support()==floorSupport && retained.sequence()==sequence
+                    && Math.abs(body.getY()-y)<1e-8,
+                "A new side-wall hit must not replace or churn the still-valid retained floor contact");
+            var surface=AnatomyMovement.surface(body);
+            h.assertTrue(surface!=null && surface.support().equals(floorSupport.getUUID()) && surface.piece().equals("floor"),
+                "The persistent material anchor must remain on the floor after composing the new wall constraint");
+        } finally {
+            AnatomyMovement.clear(body);
+            AnatomyMovement.deactivate(level);
+            floorSupport.discard();wallSupport.discard();body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void simultaneousFloorAndWallConstraintsIgnoreRegistrationOrder(GameTestHelper h) {
         Vec3 floorFirst=cornerScenario(h,true);
         Vec3 wallFirst=cornerScenario(h,false);
