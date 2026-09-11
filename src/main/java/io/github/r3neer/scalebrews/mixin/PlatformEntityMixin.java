@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.github.r3neer.scalebrews.platform.*;
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.*;
@@ -18,27 +19,27 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     @Inject(method="teleport",at=@At("HEAD"))
     private void scalebrews$transition(net.minecraft.world.level.portal.TeleportTransition transition,CallbackInfoReturnable<Entity> cir) {
         scalebrews$platform.clear();
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.invalidateRoot(living);
+        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
     }
     @Inject(method="teleportTo(DDD)V",at=@At("HEAD"))
     private void scalebrews$teleport(double x,double y,double z,CallbackInfo ci) {
         scalebrews$platform.clear();
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.invalidateRoot(living);
+        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
     }
     @Inject(method="remove",at=@At("HEAD"))
     private void scalebrews$remove(Entity.RemovalReason reason,CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.invalidateRoot(living);
+        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
     }
     @WrapMethod(method="move")
     private void scalebrews$move(MoverType type, Vec3 delta, Operation<Void> original) {
         Entity self=(Entity)(Object)this;
-        var root=self instanceof LivingEntity living && AnatomyApi.ready(living)?AnatomyMovement.captureRoot(living):null;
+        var root=self instanceof LivingEntity living && AnatomyApi.ready(living)?MaterialIntervalRuntime.captureRoot(living):null;
         PlatformPhysics.carry(self);
         var before=self instanceof LivingEntity living ? PlatformGeometry.frame(living) : null;
         Entity previous=PlatformPhysics.enter(self);
         try {
             original.call(type,delta);
-            if(self instanceof LivingEntity living && root!=null)AnatomyMovement.observeRoot(living,root);
+            if(self instanceof LivingEntity living && root!=null)MaterialIntervalRuntime.commitRoot(living,root);
             PlatformPhysics.afterMove(self);
             if(before!=null) PlatformPhysics.movedSupport((LivingEntity)self,before);
         }

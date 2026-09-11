@@ -5,14 +5,17 @@ import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalTracker;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -75,6 +78,82 @@ public final class S06MaterialIntervalIdentityTests {
         h.assertTrue(tracker.accept(a,b).outcome()==MaterialIntervalTracker.Outcome.DISCONTINUITY,
             "Gravity lifecycle change must not become a continuous material interval");
         h.succeed();
+    }
+
+    @GameTest public void runtimeRootCapturePublishesSameTickHandleExactlyOnce(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var provider=endpointProvider(5,e->INPUTS);
+        AnatomyMovement.activate(h.getLevel());
+        AnatomyMovement.register(support,provider,descriptor(5));
+        try {
+            MaterialIntervalRuntime.observe(support);
+            h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),"Initial observation only seeds the fence");
+            var capture=MaterialIntervalRuntime.captureRoot(support);
+            support.setPos(support.position().add(.1,0,0));
+            MaterialIntervalRuntime.commitRoot(support,capture);
+            var pending=MaterialIntervalRuntime.poll(h.getLevel());
+            h.assertTrue(pending.size()==1 && pending.getFirst().support()==support
+                    && pending.getFirst().handle().materialSerial()==1
+                    && pending.getFirst().handle().before().authorityTick()==pending.getFirst().handle().after().authorityTick(),
+                "A synchronous same-tick root mutation must publish one fenced handle");
+            h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),"Poll is one-shot and cannot replay queued work");
+            var unchanged=MaterialIntervalRuntime.captureRoot(support);
+            MaterialIntervalRuntime.commitRoot(support,unchanged);
+            h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),"Unchanged root cannot create a phantom interval");
+        } finally {MaterialIntervalRuntime.clear(h.getLevel());AnatomyMovement.deactivate(h.getLevel());support.discard();}
+        h.succeed();
+    }
+
+    @GameTest public void jointObservationAndLifecycleBarrierDoNotInventHistory(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var joint=new float[]{0};
+        var provider=endpointProvider(6,e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])));
+        AnatomyMovement.activate(h.getLevel());
+        AnatomyMovement.register(support,provider,descriptor(6));
+        try {
+            MaterialIntervalRuntime.observe(support);
+            joint[0]=1;
+            MaterialIntervalRuntime.observe(support);
+            var first=MaterialIntervalRuntime.poll(h.getLevel());
+            h.assertTrue(first.size()==1 && first.getFirst().handle().materialSerial()==1,
+                "A new joint sample on the same root publishes one causal interval");
+            joint[0]=2;
+            MaterialIntervalRuntime.observe(support);
+            MaterialIntervalRuntime.invalidate(support);
+            h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),
+                "Lifecycle invalidation removes pending work that could cross the barrier");
+            joint[0]=3;
+            MaterialIntervalRuntime.observe(support);
+            h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),
+                "First valid frame after a barrier seeds continuity instead of sweeping through the gap");
+        } finally {MaterialIntervalRuntime.clear(h.getLevel());AnatomyMovement.deactivate(h.getLevel());support.discard();}
+        h.succeed();
+    }
+
+    private static GeometryProvider endpointProvider(long revision,Function<net.minecraft.world.entity.LivingEntity,PoseProvider.Inputs> inputs) {
+        return new GeometryProvider() {
+            private AnatomyMovement.RootFrame previous;
+            private PoseProvider.Inputs previousInputs;
+            private long serial;
+            @Override public Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity entity) {
+                return Optional.of(new Snapshot(revision,Map.of("body",ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(entity.position()))));
+            }
+            @Override public Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
+                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
+                boolean sameRoot=previous!=null && previous.origin().equals(observed.origin()) && previous.yaw()==observed.yaw()
+                    && previous.scale()==observed.scale() && previous.gravity().equals(observed.gravity());
+                if(!sameRoot)previous=observed;
+                var now=inputs.apply(entity);
+                if(previousInputs==null || !previousInputs.equals(now) || !sameRoot)serial++;
+                previousInputs=now;
+                var root=previous;var sample=new AnatomyPoseHistory.Sample(now,root.origin(),root.yaw(),root.scale(),root.gravity());
+                return Optional.of(new CausalEndpoint(serial,entity.level().getGameTime(),entity.level().getGameTime(),root,sample,Availability.AVAILABLE));
+            }
+        };
+    }
+
+    private static GeometryProvider.GeometryIdentityDescriptor descriptor(long revision) {
+        return new GeometryProvider.GeometryIdentityDescriptor(UUID.randomUUID(),revision,Identifier.parse("test:s06_model"),Identifier.parse("test:s06_pose"),1);
     }
 
     private static GeometryProvider.GeometryIdentity identity(GameTestHelper h,UUID support,long revision,long generation) {

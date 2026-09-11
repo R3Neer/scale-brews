@@ -98,6 +98,7 @@ public final class AnatomyRuntime {
         reset(server,state);
     }
     private static void reset(MinecraftServer server,State state) {
+        MaterialIntervalRuntime.clear(server);
         state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();AnatomyTransportReceipts.clear(server);
         for(var level:server.getAllLevels()){
             Platforms.anatomicalDefinitions(level,state.catalog.snapshot().profiles().values());
@@ -106,6 +107,7 @@ public final class AnatomyRuntime {
         for(var player:server.getPlayerList().getPlayers())catalog(state,player);
     }
     public static void stop(MinecraftServer server) {
+        MaterialIntervalRuntime.clear(server);
         AnatomyTransportReceipts.clear(server);
         if(STATES.remove(server)!=null)for(var level:server.getAllLevels()){
             AnatomyMovement.deactivate(level);Platforms.clearAnatomicalDefinitions(level);
@@ -141,6 +143,18 @@ public final class AnatomyRuntime {
     public static Optional<AuthoritativePose> authoritativePose(LivingEntity entity) {
         return authoritativeFrame(entity).map(frame->new AuthoritativePose(entity.getUUID(),frame.tick(),frame.sample().inputs()));
     }
+    /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
+    public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
+        if(entity==null || handle==null)return Optional.empty();
+        var server=entity.level().getServer();if(server==null)return Optional.empty();
+        var state=STATES.get(server);if(state==null)return Optional.empty();
+        var active=state.entities.get(entity);if(active==null)return Optional.empty();
+        return active.provider.interval(entity,handle);
+    }
+    /** Canonical one-shot S06 queue for the later S07 dispatcher. */
+    public static List<MaterialIntervalRuntime.Pending> pollIntervals(ServerLevel level) {
+        return MaterialIntervalRuntime.poll(level);
+    }
     /** Called before the shared core's once-per-level pose/carry tick, never from render queries. */
     public static void prepare(ServerLevel level) {
         var state=STATES.get(level.getServer());if(state==null)return;
@@ -160,7 +174,10 @@ public final class AnatomyRuntime {
     }
     public static void publish(ServerLevel level) {
         var state=STATES.get(level.getServer());if(state==null)return;
-        for(var entity:List.copyOf(state.entities.keySet()))if(entity.level()==level && entity.isAlive()) {
+        var activeEntities=new ArrayList<>(state.entities.keySet());
+        activeEntities.sort(Comparator.comparing((LivingEntity e)->e.getUUID()).thenComparingInt(LivingEntity::getId));
+        for(var entity:activeEntities)if(entity.level()==level && entity.isAlive()) {
+            MaterialIntervalRuntime.observe(entity);
             var players=new HashSet<>(PlayerLookup.tracking(entity));
             if(entity instanceof ServerPlayer player)players.add(player);
             for(var player:players)send(entity,player);
