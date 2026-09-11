@@ -21,7 +21,7 @@ public class TinyMountGravityTests {
 
     @GameTest public void beeFlightUsesRootGravityForAllSixFrames(GameTestHelper h) {
         if (!TestGravityFrames.ensure()) { h.succeed(); return; }
-        var rider = h.makeMockServerPlayer(GameType.SURVIVAL);
+        var rider = (net.minecraft.server.level.ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
         rider.getAttribute(Attributes.SCALE).setBaseValue(.5);
         var bee = h.spawn(EntityTypes.BEE, 2, 3, 2);
         bee.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
@@ -64,7 +64,7 @@ public class TinyMountGravityTests {
     @GameTest public void wolfPounceAndLandingUseCurrentRootFrame(GameTestHelper h) {
         if (!TestGravityFrames.ensure()) { h.succeed(); return; }
         for (Direction direction : Direction.values()) {
-            var rider = h.makeMockServerPlayer(GameType.SURVIVAL);
+            var rider = (net.minecraft.server.level.ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
             rider.getAttribute(Attributes.SCALE).setBaseValue(.76);
             var wolf = h.spawn(EntityTypes.WOLF, 2, 15, 2);
             wolf.tame(rider);
@@ -105,7 +105,7 @@ public class TinyMountGravityTests {
 
     @GameTest public void frameChangeAffectsOnlySubsequentGeneratedPounce(GameTestHelper h) {
         if (!TestGravityFrames.ensure()) { h.succeed(); return; }
-        var rider = h.makeMockServerPlayer(GameType.SURVIVAL);
+        var rider = (net.minecraft.server.level.ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
         rider.getAttribute(Attributes.SCALE).setBaseValue(.76);
         var wolf = h.spawn(EntityTypes.WOLF, 2, 20, 2);
         wolf.tame(rider);
