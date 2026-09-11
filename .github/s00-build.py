@@ -18,8 +18,10 @@ patches = [
     ('hierarchy-repair.patch', pathlib.Path('.github/s00-hierarchy-repair.patch').read_bytes(), spec.get('hierarchy_repair_patch_sha256', hashlib.sha256(b'').hexdigest())),
     ('suspension-reuse-holdout.patch', pathlib.Path('.github/s00-suspension-reuse-holdout.patch').read_bytes(), spec.get('suspension_holdout_patch_sha256', hashlib.sha256(b'').hexdigest())),
 ]
-for _, data, expected in patches:
-    assert hashlib.sha256(data).hexdigest() == expected
+for name, data, expected in patches:
+    actual_hash=hashlib.sha256(data).hexdigest()
+    print('S00_PATCH_HASH',name,actual_hash,expected)
+    assert actual_hash == expected,(name,actual_hash,expected)
 assert all(re.fullmatch('[0-9a-f]{40}', spec[key]) for key in ('base', 'target'))
 assert pathlib.Path('.github/s00-candidate-tree').read_text().strip() == spec['base']
 
