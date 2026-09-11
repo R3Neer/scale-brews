@@ -1,6 +1,6 @@
 # S04 — Integración estable y cierre funcional de G1
 
-Estado: **implementación y CI real verificadas; pendiente de campaña adversarial paralela y revisión final cero-cambios del gate G1**.
+Estado: **implementación, servidor y cliente real verificados; pendiente de campaña adversarial paralela y revisión final cero-cambios del gate G1**.
 
 ## 1. Scope
 
@@ -32,15 +32,16 @@ Tras S03, `collision.api` ya no dependía de `internal`, existían SPIs público
 - [x] rechazar keys nulas de support policy antes de canonical ordering;
 - [x] usar identidad estructural para variant selectors, sin `Map.toString()` como key accidental;
 - [x] conservar orden canónico en parámetros, snapshots de bindings, registries de engines y adapters;
-- [x] hacer fail-closed la frontera de body adapters ante body/request/output inválidos.
+- [x] hacer fail-closed la frontera de body adapters ante body/request/output inválidos;
+- [x] convertir `PlatformEligibility` en fachada legacy sin semántica propia, delegando al mismo `CollisionRules` canónico.
 
-P1 rechazó reemplazar `WorldAnatomyCatalog`: el plan asigna literalmente esa sustitución a G3. P2 mantuvo `automatic_top` sólo en el motor legacy que G5 retirará, pero lo excluyó de `CollisionPolicy` y de toda descripción canónica. P3 detectó que traducir `enabled=true` legacy a un profile override reactivaría un support deshabilitado globalmente; la migración lo representa como inherit y sólo conserva `false` explícito. P4 reservó selección ambigua de variantes como fail-closed. P5 detectó que el índice canónico no verificaba IDs de engine/provider y añadió rechazo explícito. P6 detectó que S01-S04 compilaban pero no figuraban en `fabric-gametest`; se corrigió el manifest y el fixture externo pasó a entrypoint `main`. P7 detectó que el `+1e-7` histórico contradecía la frontera literal FR-009 y lo retiró; también añadió el warning requerido por FR-023. P8 encontró validación de support policy posterior al sort, colisión de identidad de selectors basada en representación textual y pérdida de orden canónico al exponer snapshots. P9 endureció los outputs de body adapters para que datos ausentes/no finitos no fabriquen transporte. La pasada siguiente no amplió el scope de G1.
+P1 rechazó reemplazar `WorldAnatomyCatalog`: el plan asigna literalmente esa sustitución a G3. P2 mantuvo `automatic_top` sólo en el motor legacy que G5 retirará, pero lo excluyó de `CollisionPolicy` y de toda descripción canónica. P3 detectó que traducir `enabled=true` legacy a un profile override reactivaría un support deshabilitado globalmente; la migración lo representa como inherit y sólo conserva `false` explícito. P4 reservó selección ambigua de variantes como fail-closed. P5 detectó que el índice canónico no verificaba IDs de engine/provider y añadió rechazo explícito. P6 detectó que S01-S04 compilaban pero no figuraban en `fabric-gametest`; se corrigió el manifest y el fixture externo pasó a entrypoint `main`. P7 detectó que el `+1e-7` histórico contradecía la frontera literal FR-009 y lo retiró; también añadió el warning requerido por FR-023. P8 encontró validación de support policy posterior al sort, colisión de identidad de selectors basada en representación textual y pérdida de orden canónico al exponer snapshots. P9 endureció los outputs de body adapters para que datos ausentes/no finitos no fabriquen transporte. P10 detectó que `PlatformEligibility`, aunque ya no era ruta viva, conservaba una segunda implementación legacy del ratio y la convirtió en bridge puro al policy canónico para preservar sus regression callers sin mantener doble semántica. La pasada siguiente no amplió el scope de G1.
 
 ## 4. Modelo adversarial
 
 La campaña adversarial completa está delegada al agente paralelo indicado por el propietario; cualquier test nuevo que aterrice en `chatgpt-editing` se integra en el sprint y un fallo obliga a reabrir la fase correspondiente.
 
-Invariantes ya cubiertos por la implementación/test base: adapter duplicado/categoría inválida, binding JSON con engine id externo, engine/provider ausente, selector variante ambiguo, selector estructural con valores que contienen delimitadores, peer protocol v2, ratio inmediatamente debajo/exacto/inmediatamente encima, support/category disable legacy, ausencia de `automatic_surfaces` en el modelo canónico, canonical ordering y fail-closed en entradas/outputs de adapters.
+Invariantes ya cubiertos por la implementación/test base: adapter duplicado/categoría inválida, binding JSON con engine id externo, engine/provider ausente, selector variante ambiguo, selector estructural con valores que contienen delimitadores, peer protocol v2, ratio inmediatamente debajo/exacto/inmediatamente encima, support/category disable legacy, ausencia de `automatic_surfaces` en el modelo canónico, canonical ordering y fail-closed en entradas/outputs de adapters. El owner de gravedad no se volvió a duplicar en S04: `GravityFrames` ya había sido clasificado TRUSTED en S00 con ownership/idempotencia y seis frames cubiertos.
 
 ## 5. Implementación
 
@@ -50,6 +51,7 @@ Invariantes ya cubiertos por la implementación/test base: adapter duplicado/cat
 - [x] `collision.catalog.CollisionBindingCatalog`;
 - [x] bridge de policy legacy en `LegacyCollisionData`;
 - [x] `Platforms` delega adapters/category/ordinary/ratio/friction a las fronteras nuevas;
+- [x] `PlatformEligibility` queda sólo como fachada deprecated hacia `CollisionRules`, sin un segundo criterio de elegibilidad;
 - [x] API protocol v3/data schema v1 y capabilities G1;
 - [x] test-mod fixture de inicialización + datapack JSON;
 - [x] codec filter interno deduplicado con error de decode fail-closed;
@@ -76,8 +78,10 @@ Invariantes ya cubiertos por la implementación/test base: adapter duplicado/cat
 | support policy null rechazada antes de ordenar | GameTest | PASS |
 | orden canónico de requests/catalog/registries | GameTest | PASS |
 | adapter/body inválido no fabrica movimiento | GameTest | PASS |
+| legacy `PlatformEligibility` usa el mismo policy canónico | regresión GameTest vía callers históricos | PASS |
 | warning de plano legacy | runtime log | OBSERVADO |
-| suite histórica | `./gradlew build` | PASS |
+| suite histórica servidor | `./gradlew build` | PASS, 262/262 |
+| cliente real + integrated + dedicated | `xvfb-run -a ./gradlew runClientGameTest` | PASS |
 
 ## 7. Fallos/bucles
 
@@ -93,23 +97,28 @@ La revisión de gate posterior detectó dos requisitos demasiado laxos: FR-023 e
 
 `f51580ff13f9f932cd6651955099fc6d5d0ad8c5` hizo explícito el rechazo de support keys nulas antes del ordenado canónico; run `34585899279`, job `103219909691`, pasó **257/257**. `86d8ec139fb96ceaad19aa3a0937637c899224b2` sustituyó la identidad textual de variant selectors por identidad estructural. `8728e7a9375e5ace0a6996576517bc1f6792fec2` conservó orden canónico en request/catalog snapshots.
 
-El candidato no adversarial más reciente `d6a17d5207c9eefd13b5b31dfb35ede578679f2a` añadió canonical ordering a snapshots de registries y fail-closed a la frontera de body adapters. GitHub Actions run `34586795093`, job `103222758920`, ejecutó **262/262 required GameTests** y terminó `BUILD SUCCESSFUL`; el log mantiene el warning legacy. Artifact `10193962302`, SHA-256 `a104ddc7bc0a9b6d3027460c6e70df3b2f606b4a14e2c736bd14582bea3f6074`.
+`d6a17d5207c9eefd13b5b31dfb35ede578679f2a` añadió canonical ordering a snapshots de registries y fail-closed a la frontera de body adapters. GitHub Actions run `34586795093`, job `103222758920`, ejecutó **262/262 required GameTests** y terminó `BUILD SUCCESSFUL`.
+
+La pasada final no adversarial detectó después que `PlatformEligibility` seguía compilado como segundo evaluador legacy con su antiguo epsilon, aunque la ruta viva ya usaba `CollisionRules`. `7ddfe8a09a6375d8470b3b20c66e5a1e2a0f2460` lo convirtió en bridge deprecated sin lógica propia. GitHub Actions run `34588025491`, job `103226623446`, mantuvo **262/262 required GameTests**. Artifact `10194451880`, SHA-256 `fd47a68a48a771add9a223d600beae7fc3a2f23e8de7e411245423539ed85ba2`.
+
+Para no aceptar un cambio de frontera compartida sólo con servidor, se creó un workflow temporal autocontenido y se ejecutó sobre el snapshot exacto `b1d7c3b204412119d2c5ee708d3784f231a7db76`. En ese mismo commit, el workflow ordinario run `34588346710`, job `103227629075`, volvió a pasar **262/262 required GameTests**, con artifact `10194580575` y SHA-256 `3f0fa9bb4c344eab80452d7eba9235253acb158677c6a544a9acabf0d8ee99da`. El workflow `g1-client-proof` run `34588346767`, job `103227629118`, ejecutó `xvfb-run -a ./gradlew runClientGameTest` y terminó **success**: arrancó cliente real/integrated server, exportó geometría original de cow y player wide/slim, completó las comparaciones de pose del harness, imprimió las pruebas de autoridad client receipt/observer y completó el dedicated proof con `allow-flight=false` a **0/100/200 ms RTT**. Los avisos de ALSA/narrador/servicios HTTP del runner no fueron causa de fallo. El workflow temporal se retiró después en `3da3f569749ad8f5bbc87e99c03a58d6da2dc9fc`; esa retirada es sólo CI y no cambia producción ni tests.
 
 ## 8. Revisión final
 
-La revisión no adversarial del gate ha recorrido las nueve tareas de G1, separación API/data/catalog/integration/migration, ownership, versionado/capabilities, ratio/policy, adapters, fixture init-time, identidad estructural, determinismo de colecciones y fronteras G2/G3/G5. La comparación contra el cierre S00 mantiene cambios exclusivamente en G1 y sus tests/documentos; no se ha modificado `AnatomyMovement` ni se ha iniciado Q2.
+La revisión no adversarial del gate ha recorrido las nueve tareas de G1, separación API/data/catalog/integration/migration, ownership, versionado/capabilities, ratio/policy, adapters, fixture init-time, identidad estructural, determinismo de colecciones y fronteras G2/G3/G5. La comparación contra el cierre S00 mantiene cambios exclusivamente en G1 y sus tests/documentos; no se ha modificado `AnatomyMovement` ni se ha iniciado Q2. La lectura literal de requisitos confirmó además que FR-073 no requería nueva mutación global: `GravityFrames` ya estaba aceptado como TRUSTED en S00 con owner único/idempotente y seis frames cubiertos.
 
 Esta revisión todavía **no es la pasada final de cierre**, porque la campaña adversarial paralela encargada por el propietario aún puede introducir tests o cambios. Si modifica cualquier cosa, se repiten CI y revisión completa desde el principio.
 
 ## 9. Cierre
 
 - [x] implementación de las nueve tareas G1;
-- [x] CI G1 realmente registrada verde: 262/262 en el candidato actual;
+- [x] CI servidor G1 realmente registrada verde: 262/262;
+- [x] client/integrated/dedicated real verde sobre el mismo snapshot de código;
 - [x] fallos no adversariales encontrados, clasificados y reparados;
 - [x] revisión no adversarial completa del candidato actual;
 - [ ] campaña adversarial paralela integrada o sin fallos pendientes;
 - [ ] pasada final completa posterior a esa campaña con cero cambios;
-- [ ] fuentes canónicas `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md` cerradas para G1;
+- [ ] `VALIDATION.md` cerrado para G1;
 - [ ] G1 cerrado formalmente.
 
-Evidencia vigente de implementación: `d6a17d5207c9eefd13b5b31dfb35ede578679f2a`, GitHub Actions run `34586795093`, job `103222758920`, **262/262 required GameTests passed**. Artifact `10193962302`, SHA-256 `a104ddc7bc0a9b6d3027460c6e70df3b2f606b4a14e2c736bd14582bea3f6074`.
+Evidencia vigente no adversarial: snapshot `b1d7c3b204412119d2c5ee708d3784f231a7db76`; server run `34588346710` / job `103227629075`, **262/262**; client proof run `34588346767` / job `103227629118`, **success**. La cabeza posterior `3da3f569749ad8f5bbc87e99c03a58d6da2dc9fc` sólo elimina el workflow temporal y no altera código de producción ni tests.
