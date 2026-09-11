@@ -17,6 +17,14 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+      - name: reject deprecated 26.2 GameTest player helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n 'makeMockServerPlayerInLevel' -- src/gametest; then
+            echo '::error::Deprecated GameTestHelper.makeMockServerPlayerInLevel usage remains.'
+            exit 1
+          fi
       - name: build and run server GameTests
         run: ./gradlew build runGameTest --no-daemon --console=plain
       - name: run client GameTests
