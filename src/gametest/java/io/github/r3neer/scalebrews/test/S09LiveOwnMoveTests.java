@@ -87,8 +87,18 @@ public final class S09LiveOwnMoveTests {
         body.setPos(h.absoluteVec(new Vec3(9,22,6)));
         var box=body.getBoundingBox();double gap=.2;
         double floorTop=box.minY-gap,wallX=box.maxX+gap;
-        var floor=ConvexBox.of(new AABB(box.minX-2,floorTop-.2,box.minZ-2,box.maxX+2,floorTop,box.maxZ+2),new Matrix4f());
-        var wall=ConvexBox.of(new AABB(wallX,box.minY-2,box.minZ-2,wallX+.2,box.maxY+2,box.maxZ+2),new Matrix4f());
+
+        // ConvexBox.of validates a model-local box. GameTest absolute coordinates can be millions
+        // of blocks from origin, so build bounded local cuboids and translate them into world space.
+        double floorMinX=box.minX-2,floorMinZ=box.minZ-2;
+        double floorWidth=box.getXsize()+4,floorDepth=box.getZsize()+4;
+        var floor=ConvexBox.of(new AABB(0,0,0,floorWidth,.2,floorDepth),new Matrix4f())
+            .move(new Vec3(floorMinX,floorTop-.2,floorMinZ));
+        double wallMinY=box.minY-2,wallMinZ=box.minZ-2;
+        double wallHeight=box.getYsize()+4,wallDepth=box.getZsize()+4;
+        var wall=ConvexBox.of(new AABB(0,0,0,.2,wallHeight,wallDepth),new Matrix4f())
+            .move(new Vec3(wallX,wallMinY,wallMinZ));
+
         GeometryProvider floorProvider=ignored->Optional.of(new GeometryProvider.Snapshot(110,Map.of("floor",floor)));
         GeometryProvider wallProvider=ignored->Optional.of(new GeometryProvider.Snapshot(111,Map.of("wall",wall)));
         AnatomyMovement.activate(level);
