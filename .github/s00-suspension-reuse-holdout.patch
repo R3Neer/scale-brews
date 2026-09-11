@@ -1,24 +1,41 @@
 diff --git a/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java b/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
-index 086a5cd..83ab884 100644
+index 086a5cd..6d6605c 100644
 --- a/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
 +++ b/src/gametest/java/io/github/r3neer/scalebrews/test/S00LifecycleTests.java
-@@ -142,6 +142,28 @@ public final class S00LifecycleTests {
+@@ -142,6 +142,45 @@ public final class S00LifecycleTests {
              check(AnatomyMovement.queryFrame(entity).isPresent(),"Fresh local registration failed after lifecycle replacement");
          }finally{AnatomyMovement.deactivate(h.getLevel());entity.discard();}h.succeed();
      }
++    private static void forceSuspendedForLifecycleFixture(Entity body,LivingEntity support) {
++        // State setup only. Reachability through blocked separation is covered by the squeezing/recovery tests.
++        try {
++            var method=AnatomyMovement.class.getDeclaredMethod("suspend",Entity.class,LivingEntity.class);
++            method.setAccessible(true);method.invoke(null,body,support);
++        }catch(ReflectiveOperationException failure){throw new AssertionError("Could not seed pair quarantine fixture",failure);}
++    }
++    @GameTest public void rebindClearsSuspendedPairQuarantine(GameTestHelper h) {
++        var support=cow(h);var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);AnatomyMovement.activate(h.getLevel());
++        try {
++            body.setPos(support.position());
++            var enclosing=box(new AABB(-.35,-.35,-.35,.35,.35,.35)).move(support.position());
++            GeometryProvider provider=e->Optional.of(new GeometryProvider.Snapshot(1,Map.of("piece",enclosing)));
++            AnatomyMovement.register(support,provider);forceSuspendedForLifecycleFixture(body,support);
++            check(AnatomyMovement.suspended(body,support),"Fixture did not seed an overlapping suspended pair");
++            AnatomyMovement.register(support,provider);
++            check(!AnatomyMovement.suspended(body,support),"Explicit support rebind retained quarantine from the retired binding");
++        }finally{AnatomyMovement.deactivate(h.getLevel());support.discard();body.discard();}
++        h.succeed();
++    }
 +    @GameTest public void replacementSupportCannotInheritSuspendedPairByUuid(GameTestHelper h) {
-+        var support=cow(h);var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-+        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
-+        AnatomyMovement.activate(h.getLevel());
++        var support=cow(h);var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);AnatomyMovement.activate(h.getLevel());
 +        Mob replacement=null;
 +        try {
 +            body.setPos(support.position());
 +            var enclosing=box(new AABB(-.35,-.35,-.35,.35,.35,.35)).move(support.position());
-+            for(int x=0;x<=4;x++)for(int y=18;y<=22;y++)for(int z=0;z<=4;z++)h.setBlock(new net.minecraft.core.BlockPos(x,y,z),net.minecraft.world.level.block.Blocks.STONE);
 +            AnatomyMovement.register(support,e->Optional.of(new GeometryProvider.Snapshot(1,Map.of("piece",enclosing))));
-+            AnatomyMovement.collide(body,new Vec3(.01,0,0));
-+            check(AnatomyMovement.suspended(body,support),"Fixture did not suspend the original unresolvable pair");
-+            var uuid=support.getUUID();support.discard();
++            forceSuspendedForLifecycleFixture(body,support);
++            check(AnatomyMovement.suspended(body,support),"Fixture did not seed original support quarantine");
++            var uuid=support.getUUID();
 +            replacement=EntityTypes.COW.create(h.getLevel(),EntitySpawnReason.COMMAND);
 +            check(replacement!=null,"Could not construct replacement support");
 +            replacement.setUUID(uuid);replacement.setNoAi(true);replacement.setNoGravity(true);replacement.setPos(body.position());
