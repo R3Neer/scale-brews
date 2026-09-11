@@ -46,9 +46,10 @@ public final class S08PreparedStaticAnatomicalObstacleProof {
                 .orElseThrow();
 
             // The body is deliberately spawned only after B is prepared so it is not itself a
-            // runtime support binding. The session still owns its collision path as a body.
-            var body=h.makeMockServerPlayerInLevel();
-            body.setNoGravity(true);
+            // runtime support binding. A normal living fixture avoids the prepared-session player
+            // handshake, which is unrelated to this physical holdout.
+            var body=h.spawn(EntityTypes.SHEEP,14,20,2);
+            body.setNoAi(true);body.setNoGravity(true);
             body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
 
             // A is a manual support inside the prepared session. Its synthetic rigid floor makes
