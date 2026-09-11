@@ -26,7 +26,7 @@ final class AnchoredTransportPlanner {
     private static final int QUERY_BUDGET=256,MAX_STATIC_OBSTACLES=256;
     private static final double MAX_ENVELOPE_SPAN=64,OVERLAP_EPS=1e-8;
 
-    enum Status {NOT_APPLICABLE,COMPLETE,RELEASE}
+    enum Status {NOT_APPLICABLE,COMPLETE,RELEASE,EXHAUSTED}
     record Evidence(MaterialEventDispatcher.EventId parent,LivingEntity support,SurfaceContact surface,
             AnatomyMovement.RootFrame root,ConvexBox materialBefore,ConvexBox materialAfter) {
         Evidence {
@@ -42,6 +42,7 @@ final class AnchoredTransportPlanner {
         }
         static Result none(){return new Result(Status.NOT_APPLICABLE,Vec3.ZERO,0,null);}
         static Result release(int evaluations){return new Result(Status.RELEASE,Vec3.ZERO,evaluations,null);}
+        static Result exhausted(int evaluations){return new Result(Status.EXHAUSTED,Vec3.ZERO,evaluations,null);}
     }
 
     static Result plan(ServerLevel level,Entity body,AABB captured,
@@ -94,20 +95,23 @@ final class AnchoredTransportPlanner {
                 for(var entry:eventMotion.pieces().entrySet()) {
                     if(eventSupport==support && entry.getKey().equals(retained.piece()))continue;
                     var relative=path.relative(entry.getValue()).orElse(null);if(relative==null)return Result.release(evaluations);
-                    var hit=ConservativeSweep.query(captured,Vec3.ZERO,relative,QUERY_BUDGET);evaluations+=hit.evaluations();
+                    int remaining=QUERY_BUDGET-evaluations;if(remaining<=0)return Result.exhausted(evaluations);
+                    var hit=ConservativeSweep.query(captured,Vec3.ZERO,relative,remaining);evaluations+=hit.evaluations();
+                    if(hit.status()==ConservativeSweep.Status.ITERATION_LIMIT)return Result.exhausted(evaluations);
                     if(hit.status()!=ConservativeSweep.Status.CLEAR)return Result.release(evaluations);
                 }
             }
 
             int obstacles=0;
             for(var shape:level.getBlockCollisions(body,envelope))for(var box:shape.toAabbs()) {
-                if(++obstacles>MAX_STATIC_OBSTACLES)return Result.release(evaluations);
+                if(++obstacles>MAX_STATIC_OBSTACLES)return Result.exhausted(evaluations);
                 ConvexBox obstacle=ConvexBox.of(box,new Matrix4f());
                 if(obstacle.overlaps(captured))return Result.release(evaluations);
-                if(obstacle.separation(captured).gap()<=ConservativeSweep.SKIN)continue;
                 var staticMotion=new ConservativeSweep.Motion(t->obstacle,0,Vec3.ZERO);
                 var relative=path.relative(staticMotion).orElse(null);if(relative==null)return Result.release(evaluations);
-                var hit=ConservativeSweep.query(captured,Vec3.ZERO,relative,QUERY_BUDGET);evaluations+=hit.evaluations();
+                int remaining=QUERY_BUDGET-evaluations;if(remaining<=0)return Result.exhausted(evaluations);
+                var hit=ConservativeSweep.query(captured,Vec3.ZERO,relative,remaining);evaluations+=hit.evaluations();
+                if(hit.status()==ConservativeSweep.Status.ITERATION_LIMIT)return Result.exhausted(evaluations);
                 if(hit.status()!=ConservativeSweep.Status.CLEAR)return Result.release(evaluations);
             }
 
