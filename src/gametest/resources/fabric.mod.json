@@ -74,6 +74,7 @@
       "io.github.r3neer.scalebrews.test.S09LiveOwnMoveTests",
       "io.github.r3neer.scalebrews.test.S09IntermediateTemporalResponseTests",
       "io.github.r3neer.scalebrews.test.S09OwnMoveBudgetBoundaryTests",
+      "io.github.r3neer.scalebrews.test.S09A12CalibrationDiagnostics",
       "io.github.r3neer.scalebrews.test.S09SeparationBudgetBoundaryTests",
       "io.github.r3neer.scalebrews.test.S09SeparationTranslationPrecisionTests",
       "io.github.r3neer.scalebrews.test.S09TranslationMetamorphismTests",
