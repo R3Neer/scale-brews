@@ -42,20 +42,27 @@ public final class S08PassengerOnceTests {
         try {
             h.assertTrue(Platforms.eligible(rider,support) && Platforms.eligible(bystander,support),
                 "Fixture requires both tiny bodies to be independently eligible before vanilla passenger filtering");
-            h.assertTrue(rider.startRiding(support,true,true),"Fixture rider must establish an ordinary vanilla passenger relation");
-            boolean indirect=false;for(var passenger:support.getIndirectPassengers())if(passenger==rider){indirect=true;break;}
-            h.assertTrue(indirect,"Fixture must expose rider through vanilla indirect-passenger traversal");
-            h.assertTrue(Platforms.eligible(rider,support),
-                "Passenger must remain otherwise eligible so exclusion is proven to come from the passenger-once rule");
-
             var interval=interval(support);
             var event=new MaterialEventDispatcher.Event<Entity>(new MaterialEventDispatcher.EventId(1,0),support,
                 MaterialEventDispatcher.Source.ROOT_MUTATION,interval,Set.of(support.getUUID()));
-            var captured=capture(level,event,16);
-            h.assertTrue(captured.bodies().stream().noneMatch(candidate->candidate.body()==rider),
+            var beforeRide=capture(level,event,16);
+            h.assertTrue(beforeRide.bodies().stream().anyMatch(candidate->candidate.body()==rider)
+                    && beforeRide.bodies().stream().anyMatch(candidate->candidate.body()==bystander),
+                "Before mounting, both eligible nearby bodies must be ordinary anatomical candidates");
+
+            h.assertTrue(rider.startRiding(support,true,true),"Fixture rider must establish an ordinary vanilla passenger relation");
+            boolean indirect=false;for(var passenger:support.getIndirectPassengers())if(passenger==rider){indirect=true;break;}
+            h.assertTrue(indirect,"Fixture must expose rider through vanilla indirect-passenger traversal");
+            var whileMounted=capture(level,event,16);
+            h.assertTrue(whileMounted.bodies().stream().noneMatch(candidate->candidate.body()==rider),
                 "A vanilla passenger of the moving root must not receive an independent anatomical carry candidate");
-            h.assertTrue(captured.bodies().stream().anyMatch(candidate->candidate.body()==bystander),
-                "Control bystander must still be captured, proving the query did not simply reject every nearby body");
+            h.assertTrue(whileMounted.bodies().stream().anyMatch(candidate->candidate.body()==bystander),
+                "Mounting one body must not suppress an unrelated eligible bystander in the same envelope");
+
+            rider.stopRiding();
+            var afterDismount=capture(level,event,16);
+            h.assertTrue(afterDismount.bodies().stream().anyMatch(candidate->candidate.body()==rider),
+                "After the vanilla passenger relation ends, the same otherwise-eligible body must become a candidate again");
         } finally {
             rider.stopRiding();support.discard();rider.discard();bystander.discard();MaterialPhysicsRuntime.clear(level);
         }
