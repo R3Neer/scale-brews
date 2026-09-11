@@ -67,6 +67,7 @@
       "io.github.r3neer.scalebrews.test.S08DerivedIntervalExactlyOnceTests",
       "io.github.r3neer.scalebrews.test.S08RejectedDerivedIntervalNoDebtTests",
       "io.github.r3neer.scalebrews.collision.internal.S08PassiveTransportStateTests",
+      "io.github.r3neer.scalebrews.test.S08DerivedChainCausalityTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
