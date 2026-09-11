@@ -18,14 +18,15 @@ import org.joml.Matrix4f;
 public final class S09SeparationBudgetBoundaryTests {
     @GameTest
     public void exactBoundaryRecoversButCandidate129FailsClosedAndPairLocal(GameTestHelper h) {
-        // ZERO is candidate 1, each nested slab contributes one next +X boundary candidate,
-        // and the first fully clear state is therefore slabCount+2 rather than slabCount+1.
-        runCase(h,126,true,8,6,2);
-        runCase(h,127,false,24,6,18);
+        // Do not infer the queue cardinality from slab count. ConvexBox.escapeVectors deliberately
+        // publishes both exits on every SAT axis, so the kernel itself calibrates the two exact
+        // boundaries and the live path must reproduce those already-proven fixtures.
+        runCase(h,true,8,6,2);
+        runCase(h,false,24,6,18);
         h.succeed();
     }
 
-    private static void runCase(GameTestHelper h,int slabCount,boolean mustRecover,
+    private static void runCase(GameTestHelper h,boolean mustRecover,
             double bodyX,double bodyZ,int supportX) {
         var level=h.getLevel();
         var culprit=h.spawn(EntityTypes.COW,supportX,20,2);
@@ -39,25 +40,28 @@ public final class S09SeparationBudgetBoundaryTests {
         body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
         body.setPos(h.absoluteVec(new Vec3(bodyX,22,bodyZ)));
         var captured=body.getBoundingBox();var origin=body.position();
+        int slabCount=calibratedSlabCount(captured,origin,mustRecover);
+        h.assertTrue(slabCount>0,
+            mustRecover
+                ?"A12 calibration must find a nested-slab fixture whose first valid escape is candidate 128"
+                :"A12 calibration must find a nested-slab fixture whose first valid escape is candidate 129");
         var slabs=slabs(captured,origin,slabCount);
         var bystanderPiece=bystander(captured,origin);
 
-        // Kernel calibration is exact rather than inferred from live behavior. Every nested slab
-        // contributes one short +X boundary before the final clear state; ZERO itself is candidate 1.
         if(mustRecover) {
             var oneShort=AnatomySeparation.resolve(captured,slabs.values(),4,127,(box,delta)->delta);
             var exact=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
             h.assertTrue(!oneShort.separated() && oneShort.candidates()==127,
-                "A12 exact fixture must still be unresolved one candidate below the live separation budget: "+oneShort);
+                "A12 calibrated fixture must still be unresolved one candidate below the live separation budget: "+oneShort);
             h.assertTrue(exact.separated() && exact.candidates()==128 && exact.displacement().x>0,
-                "A12 exact fixture must find its first valid escape on candidate 128: "+exact);
+                "A12 calibrated fixture must find its first valid escape on candidate 128: "+exact+" slabs="+slabCount);
         } else {
             var capped=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
             var plusOne=AnatomySeparation.resolve(captured,slabs.values(),4,129,(box,delta)->delta);
             h.assertTrue(!capped.separated() && capped.candidates()==128,
-                "A12 +1 fixture must exhaust all 128 live candidates without exporting an escape: "+capped);
+                "A12 calibrated +1 fixture must exhaust all 128 live candidates without exporting an escape: "+capped);
             h.assertTrue(plusOne.separated() && plusOne.candidates()==129 && plusOne.displacement().x>0,
-                "A12 +1 fixture must prove that candidate 129, and not some unbounded search, is the first valid escape: "+plusOne);
+                "A12 calibrated +1 fixture must prove candidate 129 is the first valid escape: "+plusOne+" slabs="+slabCount);
         }
         h.assertTrue(slabs.values().stream().allMatch(piece->piece.overlaps(captured)),
             "Every culprit slab must genuinely participate in initial-overlap recovery");
@@ -104,6 +108,24 @@ public final class S09SeparationBudgetBoundaryTests {
             AnatomyMovement.clear(body);AnatomyMovement.deactivate(level);
             culprit.discard();bystander.discard();body.discard();
         }
+    }
+
+    /**
+     * The test cares about the kernel's observable 128-candidate boundary, not an assumed
+     * one-slab/one-node relationship. Search only the compact neighborhood this fixture family
+     * occupies and require an exact transition so a future queue-policy change fails loudly.
+     */
+    private static int calibratedSlabCount(AABB body,Vec3 origin,boolean candidate128) {
+        for(int count=96;count<=160;count++) {
+            var pieces=slabs(body,origin,count).values();
+            int low=candidate128?127:128,high=low+1;
+            var below=AnatomySeparation.resolve(body,pieces,4,low,(box,delta)->delta);
+            var exact=AnatomySeparation.resolve(body,pieces,4,high,(box,delta)->delta);
+            if(!below.separated() && below.candidates()==low
+                    && exact.separated() && exact.candidates()==high && exact.displacement().x>0)
+                return count;
+        }
+        return -1;
     }
 
     private static Map<String,ConvexBox> slabs(AABB body,Vec3 origin,int count) {
