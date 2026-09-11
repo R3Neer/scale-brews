@@ -231,7 +231,7 @@ public final class MaterialPhysicsRuntime {
                 if(pieces.isEmpty()) {plans.add(new Plan(body,Vec3.ZERO,0,Set.of()));continue;}
                 var plan=plan(body,candidate.bounds(),pieces);
                 if(plan==null) {
-                    suspendInitialOverlapPairs(body,candidate.bounds(),events);
+                    suspendUncertainPairs(body,candidate.bounds(),events);
                     return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
@@ -268,7 +268,7 @@ public final class MaterialPhysicsRuntime {
                     return fail(events,MaterialEventDispatcher.Reason.INVALID_DERIVATION);
                 var plan=plan(body,candidate.bounds(),pieces);
                 if(plan==null) {
-                    suspendInitialOverlapPairs(body,candidate.bounds(),events);
+                    suspendUncertainPairs(body,candidate.bounds(),events);
                     return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
@@ -310,15 +310,20 @@ public final class MaterialPhysicsRuntime {
         private void addContacts(Set<String> evidence,TemporalResponse.Result response) {
             for(var contact:response.contacts())evidence.add(contact.piece());
         }
-        private void suspendInitialOverlapPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
+        private void suspendUncertainPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
+            var retained=AnatomyMovement.contact(body);
             for(var event:events) {
                 if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(body,support))continue;
-                var motion=motion(event.interval().handle());if(motion==null)continue;
-                boolean overlaps=false;
-                try {
-                    for(var piece:motion.pieces().values())if(piece.at().apply(0).overlaps(captured)){overlaps=true;break;}
-                } catch(RuntimeException rejected){continue;}
-                if(overlaps)AnatomyMovement.suspend(body,support);
+                // A solver failure makes an already-retained relation non-authoritative even
+                // when the body began separated. Initial overlaps have no prior contact, so
+                // retain the existing overlap test for that recovery path. In both cases the
+                // quarantine is body/support-local; unrelated bodies on the support survive.
+                boolean uncertain=retained!=null && retained.support()==support;
+                var motion=motion(event.interval().handle());
+                if(!uncertain && motion!=null)try {
+                    for(var piece:motion.pieces().values())if(piece.at().apply(0).overlaps(captured)){uncertain=true;break;}
+                } catch(RuntimeException rejected){uncertain=true;}
+                if(uncertain)AnatomyMovement.suspend(body,support);
             }
         }
         private java.util.function.BiFunction<AABB,Vec3,Vec3> clip(Entity body) {
