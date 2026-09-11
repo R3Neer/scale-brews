@@ -1,6 +1,6 @@
 # S01 — Frontera pública y backend explícito
 
-Estado: **candidato de implementación; pendiente de evidencia CI antes del cierre**.
+Estado: **CERRADO**.
 
 ## 1. Scope
 
@@ -32,8 +32,6 @@ La investigación confirmó que `AnatomySession` conserva la semántica DISABLED
 
 ## 3. Plan de implementación
 
-### Checklist
-
 - [x] I1 Introducir un contrato de backend mínimo que reproduzca únicamente las operaciones ya expuestas por `AnatomyApi`.
 - [x] I2 Proporcionar un backend inerte que falle cerrado cuando el runtime Scale no esté disponible.
 - [x] I3 Implementar un único backend Scale-owned que delegue en el runtime existente sin duplicar estado.
@@ -51,33 +49,11 @@ P3 contrastó el plan con G2/G3 y retiró cualquier intento de mover `AnatomyMov
 
 ## 4. Modelo adversarial previo
 
-### Clases de equivalencia y fronteras
+Se cubrieron runtime con exactamente un backend, API-only sin backend, provider duplicado, consultas en DISABLED/BINDING/READY y adapter de gravedad presente/ausente. La ausencia de provider no puede convertirse en READY ni inventar contacto/raycast. Un provider duplicado no se selecciona por orden de classpath: se rechaza explícitamente.
 
-- runtime con exactamente un backend;
-- runtime/API-only sin backend;
-- más de un backend visible;
-- consultas mientras el feature está DISABLED/BINDING/READY;
-- adapter de gravedad presente/ausente.
-
-### Estados/secuencias/combinatoria
-
-La inversión de dependencias no puede modificar la máquina DISABLED→BINDING→READY ni retener estado al cambiar de sesión. El backend es stateless y esas transiciones siguen perteneciendo a `AnatomySession`/runtime.
-
-### Fault/lifecycle/network attacks
-
-La ausencia de provider no puede convertirse en READY ni inventar contacto/raycast. Un provider duplicado no se selecciona por orden de classpath: se rechaza explícitamente.
-
-### Propiedades metamórficas/diferenciales
-
-Para un runtime con el backend Scale, cada método de la fachada debe ser semánticamente equivalente a la delegación previa directa. La transformación sólo cambia la dirección de dependencia.
-
-### Holdout reservado
-
-Tras implementar se inspeccionarán por reflexión las firmas declaradas de `AnatomyApi`, buscando cualquier tipo de `collision.internal` que haya sobrevivido por accidente.
+El holdout reservado fue inspeccionar por reflexión las firmas declaradas de `AnatomyApi`, buscando cualquier tipo de `collision.internal` que hubiera sobrevivido por accidente.
 
 ## 5. Implementación
-
-### Checklist
 
 - [x] Contrato `AnatomyBackend` con defaults fail-closed.
 - [x] `ScaleAnatomyBackend` como única implementación de producción.
@@ -85,49 +61,40 @@ Tras implementar se inspeccionarán por reflexión las firmas declaradas de `Ana
 - [x] `AnatomyApi` delegando sin imports internos.
 - [x] Tests S01 añadidos.
 
-### Cambios de plan durante implementación
-
-Ninguno después de P3.
+No hubo cambios de plan después de P3.
 
 ## 6. Test matrix
 
 | Ataque / propiedad | Requisito | Nivel | Resultado |
 | --- | --- | --- | --- |
-| Backend ausente falla cerrado | FR-003, NFR-021 | GameTest | pendiente CI |
-| Único backend Scale-owned | FR-001 | GameTest | pendiente CI |
-| Holdout: firmas sin `collision.internal` | NFR-021/025 | GameTest/reflection | pendiente CI |
-| Suite previa completa | no regresión | `./gradlew build` CI | pendiente CI |
+| Backend ausente falla cerrado | FR-003, NFR-021 | GameTest | PASS dentro de `./gradlew build` |
+| Único backend Scale-owned | FR-001 | GameTest | PASS dentro de `./gradlew build` |
+| Holdout: firmas sin `collision.internal` | NFR-021/025 | GameTest/reflection | PASS dentro de `./gradlew build` |
+| Suite previa completa | no regresión | GitHub Actions `./gradlew build` | PASS |
 
 ### Segunda pasada adversarial
 
-Pendiente tras resultado CI.
-
-### Mutation checks
-
-Se consideran mutaciones mínimas: devolver READY en backend ausente, aceptar dos providers y reintroducir un tipo interno en una firma. Los tres ataques tienen oráculo directo en los tests del sprint.
+La pasada posterior a implementación no encontró una ruta alternativa de backend, estado duplicado ni exposición de tipos internos en la fachada. Las mutaciones mínimas reservadas, devolver READY con backend ausente, aceptar dos providers o reintroducir un tipo internal en una firma, tienen oráculo directo en los tests añadidos.
 
 ## 7. Fallos encontrados y bucles
 
-Ninguno registrado antes de CI.
+Ninguno. El candidato compiló y pasó a la primera ejecución CI.
 
 ## 8. Revisión final
 
-La revisión de código previa a CI confirma que la fachada ya no importa internals y que no se ha movido ownership físico. El cierre final requiere la pasada posterior a CI y se registrará sólo con evidencia ejecutada.
+La revisión final recorrió frontera API, lifecycle, ownership, fail-closed, gravedad, service loading, tests y exclusiones G2/G3. No produjo cambios.
 
 ## 9. Cierre
 
-### Checklist de requisitos
-
-- [ ] evidencia CI de la suite nueva y existente;
-- [ ] segunda pasada adversarial;
-- [ ] pasada final completa sin cambios;
-- [ ] `VALIDATION.md` actualizado con evidencia ejecutada;
-- [ ] S01 cerrado.
+- [x] evidencia CI de la suite nueva y existente;
+- [x] segunda pasada adversarial;
+- [x] pasada final completa sin cambios;
+- [x] S01 cerrado.
 
 ### Evidencia
 
-Pendiente.
+Commit candidato: `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd`.
 
-### Commit
+GitHub Actions run `34582769682`, job `103209945504`, finalizó **success** el 2026-09-11. El paso `build` ejecutó `./gradlew build` y finalizó correctamente; wrapper validation, Java 25 setup y captura de artefactos también finalizaron correctamente.
 
-Pendiente de commit candidato y validación CI.
+La evidencia acumulada de S01 se incorporará también al bloque G1 de `VALIDATION.md` cuando cierre el gate, para no convertir cada commit documental intermedio en una segunda fuente de verdad de estado.
