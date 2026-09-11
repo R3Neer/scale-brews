@@ -254,8 +254,7 @@ public class AnatomyAnimatedSqueezingTests {
     }
 
     private static ServerPlayer smallServerPlayer(GameTestHelper h) {
-        var player = h.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        var player = (ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);
         player.refreshDimensions();
         return player;
