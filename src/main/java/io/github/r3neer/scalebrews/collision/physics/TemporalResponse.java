@@ -19,13 +19,17 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
         ConservativeSweep.Result query(AABB body,Vec3 delta,ConservativeSweep.Motion motion) {
+            return query(body,delta,motion,remaining);
+        }
+        ConservativeSweep.Result query(AABB body,Vec3 delta,ConservativeSweep.Motion motion,int localLimit) {
             if(remaining<1)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
-            var result=ConservativeSweep.query(body,delta,motion,remaining);
+            int allowance=Math.min(remaining,Math.max(1,localLimit));
+            var result=ConservativeSweep.query(body,delta,motion,allowance);
             remaining-=result.evaluations();used+=result.evaluations();return result;
         }
         /** Geometry sampled outside ConservativeSweep still consumes this response budget. */
@@ -129,13 +133,14 @@ public final class TemporalResponse {
     }
 
     /**
-     * First try to certify the complete material trajectory as clear by covering time with fixed SAT
-     * separators. Every screening sample must buy a real certified interval; no depth-only internal
-     * nodes are charged and discarded. If a sample reaches contact skin, exact CCD receives the full
-     * interval with the remaining shared budget so genuine contacts keep their normal precision.
+     * Cheap CCD is cheaper than screening for many ordinary pieces. Probe first with a deliberately
+     * small local allowance: a conclusive CLEAR/contact is final, while a local ITERATION_LIMIT only
+     * means "not cheap" and falls through to the certified temporal screen with the shared remainder.
      */
     private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
+        var probe=budget.query(body,delta,interval,PROBE_QUERY_BUDGET);
+        if(probe.status()!=ConservativeSweep.Status.ITERATION_LIMIT || budget.exhausted())return probe;
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(!possible)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
