@@ -52,10 +52,12 @@ public final class AnatomyPreparedIntegrationProof {
             // stop or otherwise simulate the session.
             AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h);
             AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h);
-            // anatomicalRootTransportOncePrepared is intentionally not part of this lane: that
-            // fixture directly invokes the legacy AnatomyMovement.carry endpoint. S08 fences that
-            // endpoint while a prepared runtime owns the support, so using it here would test the
-            // superseded owner rather than the production material-interval dispatcher.
+            // S08 I6 boundary proof. This support is registered manually inside an otherwise
+            // prepared server session; it is not an AnatomyRuntime active binding and setPos
+            // therefore creates no certified ROOT/JOINT interval for the dispatcher to own.
+            // The legacy endpoint carry remains the required fallback until a material interval
+            // actually exists. Session-level ownership must not suppress this relation.
+            AnatomyGeometryTests.anatomicalRootTransportOncePrepared(h);
             AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h);
             AnatomyGeometryTests.exportedCowActualMovementPrepared(h);
             AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
@@ -65,8 +67,8 @@ public final class AnatomyPreparedIntegrationProof {
             // whose absolute GameTest coordinates can accidentally leave an escape route.
             S07PreparedPairSuspensionProof.run(h);
             // S08 proves ROOT ownership, synchronous dispatcher drain and A -> B -> C derived
-            // carry through the same prepared catalog/runtime. This is the live replacement for
-            // the legacy direct-carry fixture deliberately excluded above.
+            // carry through the same prepared catalog/runtime. This complements, rather than
+            // replaces, the I6 fallback-boundary proof above.
             S08PreparedDerivedChainProof.run(h);
         }
         h.succeed();
