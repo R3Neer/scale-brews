@@ -1,6 +1,6 @@
 # S03 — Data model, policy y decoder legacy canónicos
 
-Estado: **candidato de implementación; pendiente de CI**.
+Estado: **CERRADO**.
 
 ## 1. Scope
 
@@ -39,23 +39,29 @@ Ataques: schema desconocido, key legacy inyectada, variant/params inválidos, po
 
 | Propiedad | Nivel | Resultado |
 | --- | --- | --- |
-| binding v1 roundtrip | GameTest | pendiente CI |
-| unknown schema rejected | GameTest | pendiente CI |
-| policy precedence | GameTest | pendiente CI |
-| legacy anatomy/plane separation | GameTest | pendiente CI |
-| suite previa | `./gradlew build` | pendiente CI |
+| binding v1 roundtrip | GameTest | PASS dentro de `./gradlew build` |
+| unknown schema rejected | GameTest | PASS |
+| policy precedence | GameTest | PASS |
+| legacy anatomy/plane separation | GameTest | PASS |
+| suite previa | GitHub Actions `./gradlew build` | PASS |
+
+La segunda pasada adversarial confirmó que el binding canónico no contiene claves legacy, las versiones desconocidas fallan cerradas y la migración de planos no crea anatomía. Las mutaciones reservadas tienen oráculos directos en la suite.
 
 ## 7. Fallos/bucles
 
-Pendiente de CI.
+Ninguno. El candidato pasó a la primera ejecución CI.
 
 ## 8. Revisión final
 
-Pendiente tras CI.
+Se revisaron schema/versioning, determinismo, precedencia, bounded data, dual-semantics y exclusiones de G2/G3. La pasada completa posterior a CI no produjo cambios.
 
 ## 9. Cierre
 
-- [ ] CI verde;
-- [ ] segunda pasada adversarial;
-- [ ] revisión completa sin cambios;
-- [ ] S03 cerrado.
+- [x] CI verde;
+- [x] segunda pasada adversarial;
+- [x] revisión completa sin cambios;
+- [x] S03 cerrado.
+
+Commit candidato: `94d5c6eabfaf6c17cb8a22e8b604dc11af9367fb`.
+
+GitHub Actions run `34583393180` finalizó **success** el 2026-09-11. La suite normal `./gradlew build` pasó con Java 25. La evidencia acumulada se consolidará en `VALIDATION.md` al cierre de G1.
