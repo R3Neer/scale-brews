@@ -236,7 +236,11 @@ public final class MaterialPhysicsRuntime {
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
             }
-            if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            var conflicts=bodyOverlapConflicts(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
+                return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
             apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             var outcomes=new ArrayList<MaterialEventDispatcher.Outcome>(events.size());
             for(int i=0;i<events.size();i++)outcomes.add(MaterialEventDispatcher.Outcome.applied(1));
@@ -273,7 +277,11 @@ public final class MaterialPhysicsRuntime {
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
             }
-            if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            var conflicts=bodyOverlapConflicts(plans,candidates);
+            if(!conflicts.isEmpty()) {
+                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
+                return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
+            }
             apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             return MaterialEventDispatcher.Outcome.applied(1);
         }
@@ -376,13 +384,14 @@ public final class MaterialPhysicsRuntime {
             }
             return false;
         }
-        private boolean worsensBodyOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+        private Set<Integer> bodyOverlapConflicts(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            var conflicts=new TreeSet<Integer>();
             for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
                 var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
                 var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
-                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS)return true;
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS) {conflicts.add(i);conflicts.add(j);}
             }
-            return false;
+            return conflicts;
         }
     }
 

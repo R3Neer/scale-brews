@@ -32,6 +32,14 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     private void scalebrews$remove(Entity.RemovalReason reason,CallbackInfo ci) {
         if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
     }
+    @Inject(method="setPos(DDD)V",at=@At("RETURN"))
+    private void scalebrews$spatialSetPos(double x,double y,double z,CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+    }
+    @Inject(method="refreshDimensions",at=@At("RETURN"))
+    private void scalebrews$spatialDimensions(CallbackInfo ci) {
+        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+    }
     @WrapMethod(method="move")
     private void scalebrews$move(MoverType type, Vec3 delta, Operation<Void> original) {
         Entity self=(Entity)(Object)this;
