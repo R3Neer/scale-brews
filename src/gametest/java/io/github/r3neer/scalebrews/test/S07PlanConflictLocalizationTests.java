@@ -58,12 +58,19 @@ public final class S07PlanConflictLocalizationTests {
         var rightBox=rightBody.getBoundingBox();
         var safeBox=safe.getBoundingBox();
 
-        var leftWall=ConvexBox.of(new AABB(leftBox.minX-.5,leftBox.minY-.5,leftBox.minZ-.5,
-            leftBox.minX,leftBox.maxY+.5,leftBox.maxZ+.5),new Matrix4f());
-        var rightWall=ConvexBox.of(new AABB(rightBox.maxX,rightBox.minY-.5,rightBox.minZ-.5,
-            rightBox.maxX+.5,rightBox.maxY+.5,rightBox.maxZ+.5),new Matrix4f());
-        var safeFloor=ConvexBox.of(new AABB(safeBox.minX-.5,safeBox.minY-.5,safeBox.minZ-.5,
-            safeBox.maxX+.5,safeBox.minY,safeBox.maxZ+.5),new Matrix4f());
+        // ConvexBox.of routes coordinates through JOML floats. GameTest worlds can sit at very
+        // large absolute X/Z, where sub-block world coordinates collapse at float precision.
+        // Build exact fixture geometry in a small local frame and translate in double afterwards.
+        double leftHalfX=leftBox.getXsize()*.5,leftHalfZ=leftBox.getZsize()*.5,leftHeight=leftBox.getYsize();
+        double rightHalfX=rightBox.getXsize()*.5,rightHalfZ=rightBox.getZsize()*.5,rightHeight=rightBox.getYsize();
+        double safeHalfX=safeBox.getXsize()*.5,safeHalfZ=safeBox.getZsize()*.5;
+        double leftFace=-.30-leftHalfX,rightFace=.30+rightHalfX;
+        var leftWall=ConvexBox.of(new AABB(leftFace-.5,-.5,-leftHalfZ-.5,
+            leftFace,leftHeight+.5,leftHalfZ+.5),new Matrix4f()).move(base);
+        var rightWall=ConvexBox.of(new AABB(rightFace,-.5,-rightHalfZ-.5,
+            rightFace+.5,rightHeight+.5,rightHalfZ+.5),new Matrix4f()).move(base);
+        var safeFloor=ConvexBox.of(new AABB(-safeHalfX-.5,-.5,8-safeHalfZ-.5,
+            safeHalfX+.5,0,8+safeHalfZ+.5),new Matrix4f()).move(base);
         var leftDelta=new Vec3(.30,0,0);
         var rightDelta=new Vec3(-.30,0,0);
         var leftMotion=new ConservativeSweep.Motion(t->leftWall.move(leftDelta.scale(t)),0,leftDelta);
