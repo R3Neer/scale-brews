@@ -96,23 +96,23 @@ public final class AnatomyLivePoseAcceptanceTests {
                 var packet=history.current();
                 var oldest=samples.peekFirst();var newest=samples.peekLast();
                 if(oldest==null || newest==null)throw new AssertionError("Runtime did not publish an END-level authority frame");
-                if(packet.tick()<oldest.serverTick() || packet.tick()>newest.serverTick())throw new AssertionError(
-                    "Client pose tick "+packet.tick()+" exceeds bounded authority window "
+                if(packet.jointSampleTick()<oldest.serverTick() || packet.jointSampleTick()>newest.serverTick())throw new AssertionError(
+                    "Client pose tick "+packet.jointSampleTick()+" exceeds bounded authority window "
                         +oldest.serverTick()+".."+newest.serverTick());
                 var authority=samples.stream().filter(sample->sample.entity().equals(cow.getUUID())
-                    && sample.serverTick()==packet.tick()).findFirst().orElseThrow();
+                    && sample.serverTick()==packet.jointSampleTick()).findFirst().orElseThrow();
                 if(!packet.inputs().equals(authority.inputs()))throw new AssertionError(
                     "Client pose payload differs from exact runtime frame "+authority.serverTick());
-                var segment=history.segment(packet.tick());
+                var segment=history.segment(packet.jointSampleTick());
                 if(!segment.after().inputs().equals(packet.inputs()))throw new AssertionError(
-                    "Client history current endpoint differs from packet "+packet.tick());
+                    "Client history current endpoint differs from packet "+packet.jointSampleTick());
                 var render0=renderInputs(cow,0);var renderHalf=renderInputs(cow,.5f);var render1=renderInputs(cow,1);
                 System.out.println("ANATOMY_LIVE_CLOCK minecraft:cow authorityFrames="+samples.stream()
-                    .map(frame->frame.serverTick()+":"+frame.inputs()).toList()+" packet="+packet.tick()+":"+packet.inputs()
+                    .map(frame->frame.serverTick()+":"+frame.inputs()).toList()+" packet="+packet.jointSampleTick()+":"+packet.inputs()
                     +" historyFraction="+segment.fraction()+" historyBefore="+segment.before().inputs()+" historyAfter="+segment.after().inputs()
                     +" entityTick="+cow.tickCount+" head="+cow.yHeadRotO+"->"+cow.yHeadRot+" body="+cow.yBodyRotO+"->"+cow.yBodyRot
                     +" renderer0="+render0+" rendererHalf="+renderHalf+" renderer1="+render1);
-                // `history.segment(packet.tick())` declares the current authority
+                // `history.segment(packet.jointSampleTick())` declares the current authority
                 // endpoint. Partial=1 is therefore the assertion target; partial
                 // 0/.5 above are diagnostics, not samples searched for a pass.
                 compareRenderer(cow,packet.inputs(),1);
