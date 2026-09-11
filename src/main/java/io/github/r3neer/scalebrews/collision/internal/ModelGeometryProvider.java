@@ -86,6 +86,17 @@ public final class ModelGeometryProvider implements GeometryProvider {
         return Optional.empty();
     }
     /**
+     * Certifies exactly the two captured frames carried by the handle. The entity
+     * is only an identity cache key for joint endpoints; its live root/TRS is never read.
+     */
+    @Override public Optional<MotionSnapshot> interval(LivingEntity entity,MotionIntervalHandle handle) {
+        if(entity==null || handle==null || handle.identity().revision()!=revision
+                || handle.before().snapshot().revision()!=revision || handle.after().snapshot().revision()!=revision)
+            return Optional.empty();
+        return motionBetween(entity,handle.before().sample(),handle.after().sample()).map(m->new MotionSnapshot(revision,
+            handle.before().authorityTick(),handle.after().authorityTick(),handle.before().root().origin(),handle.after().root().origin(),m.pieces()));
+    }
+    /**
      * Last server authority frame for this bound support. Reading it never
      * samples joints, advances the tracker, or substitutes render state.
      */

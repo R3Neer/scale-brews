@@ -74,17 +74,21 @@ public interface GeometryProvider {
      * entity position, render animation, or local game time.
      */
     default Optional<CausalEndpoint> causalEndpoint(LivingEntity entity) {return Optional.empty();}
-    /** Certified motion provenance: only the declared consecutive authority interval may be swept. */
+    /** Certified motion provenance. Same-tick material advances are valid; rewinds are not. */
     record MotionSnapshot(long revision,long fromTick,long toTick,Vec3 supportOriginFrom,Vec3 supportOriginTo,Map<String,ConservativeSweep.Motion> pieces) {
         public MotionSnapshot {
-            if(revision<0 || fromTick<0 || fromTick==Long.MAX_VALUE || toTick<0 || toTick!=fromTick+1 || supportOriginFrom==null || supportOriginTo==null
+            if(revision<0 || fromTick<0 || toTick<fromTick || supportOriginFrom==null || supportOriginTo==null
                 || !Double.isFinite(supportOriginFrom.lengthSqr()+supportOriginTo.lengthSqr()))throw new IllegalArgumentException("Invalid motion interval");
             pieces=validatedPieces(pieces);
         }
     }
     /**
-     * No historical provenance is safer than invented static history. Providers
-     * that can prove a consecutive material interval must override this method.
+     * Certify motion from an already accepted causal handle. Providers must derive
+     * only from handle.before()/after(); no later live entity state may repair history.
+     */
+    default Optional<MotionSnapshot> interval(LivingEntity entity,MotionIntervalHandle handle) {return Optional.empty();}
+    /**
+     * Legacy tick->tick provenance seam. S06+ runtime paths prefer interval(entity, handle).
      */
     default Optional<MotionSnapshot> motion(LivingEntity entity) {return Optional.empty();}
     default void tick(LivingEntity entity,long tick) {}
