@@ -76,6 +76,21 @@ public final class S06MaterialIntervalIdentityTests {
         h.succeed();
     }
 
+    @GameTest public void conflictingBeforeWithCurrentSerialCannotAdvance(GameTestHelper h) {
+        var tracker = new MaterialIntervalTracker();
+        var id = identity(h, UUID.randomUUID(), 2, 1);
+        var accepted = frame(id,7,30,30,Vec3.ZERO,GravityFrame.VANILLA);
+        var forgedBefore = frame(id,7,30,30,new Vec3(.25,0,0),GravityFrame.VANILLA);
+        var after = frame(id,8,30,30,new Vec3(.5,0,0),GravityFrame.VANILLA);
+        tracker.seed(accepted);
+        var result = tracker.accept(forgedBefore,after);
+        h.assertTrue(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && result.handle()==null,
+            "Matching the current serial is insufficient: before must equal the exact accepted causal frame");
+        h.assertTrue(tracker.current().equals(accepted) && tracker.materialSerial()==0,
+            "A forged same-serial before must not replace current history or allocate material identity");
+        h.succeed();
+    }
+
     @GameTest public void sameTickMotionSnapshotIsValidButRewindIsRejected(GameTestHelper h) {
         var box = ConvexBox.of(new AABB(0,0,0,1,1,1),new Matrix4f());
         var motion = new io.github.r3neer.scalebrews.collision.physics.ConservativeSweep.Motion(t->box,0);
@@ -197,6 +212,42 @@ public final class S06MaterialIntervalIdentityTests {
             h.assertTrue(provider.interval(second,handle).isEmpty(),
                 "A provider must not certify support A's causal handle while invoked for support B");
         } finally {first.discard();second.discard();}
+        h.succeed();
+    }
+
+    @GameTest public void partialSupportIdentityMatchesCannotCertifyOrQueue(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var model=new ModelGeometry(2,"test:s06_partial_identity","1",
+            java.util.List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.5d,-.5d,-.5d),java.util.List.of(.5d,.5d,.5d),null)),
+            ModelGeometry.values(new Matrix4f()));
+        var provider=new ModelGeometryProvider(model,(geometry,inputs)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,9);
+        var correct=identity(h,support,9,1);
+        var wrongId=new GeometryProvider.GeometryIdentity(correct.dimension(),correct.support(),support.getId()+1,correct.epoch(),
+            correct.revision(),correct.model(),correct.poseProvider(),correct.bindingGeneration(),correct.localRegistrationGeneration());
+        var otherDimension=correct.dimension().equals(net.minecraft.world.level.Level.NETHER)
+            ?net.minecraft.world.level.Level.OVERWORLD:net.minecraft.world.level.Level.NETHER;
+        var wrongDimension=new GeometryProvider.GeometryIdentity(otherDimension,correct.support(),correct.entityId(),correct.epoch(),
+            correct.revision(),correct.model(),correct.poseProvider(),correct.bindingGeneration(),correct.localRegistrationGeneration());
+        var wrongIdHandle=new GeometryProvider.MotionIntervalHandle(wrongId,1,
+            frame(wrongId,1,80,80,support.position(),GravityFrame.VANILLA),
+            frame(wrongId,2,80,80,support.position().add(.25,0,0),GravityFrame.VANILLA));
+        var wrongDimensionHandle=new GeometryProvider.MotionIntervalHandle(wrongDimension,1,
+            frame(wrongDimension,1,80,80,support.position(),GravityFrame.VANILLA),
+            frame(wrongDimension,2,80,80,support.position().add(.25,0,0),GravityFrame.VANILLA));
+        boolean pendingWrongId=false,pendingWrongDimension=false;
+        try {new MaterialIntervalRuntime.Pending(support,MaterialIntervalRuntime.Source.ROOT,wrongIdHandle);}
+        catch(IllegalArgumentException expected){pendingWrongId=true;}
+        try {new MaterialIntervalRuntime.Pending(support,MaterialIntervalRuntime.Source.ROOT,wrongDimensionHandle);}
+        catch(IllegalArgumentException expected){pendingWrongDimension=true;}
+        try {
+            h.assertTrue(provider.interval(support,wrongIdHandle).isEmpty(),
+                "Matching UUID alone cannot certify a handle with the wrong entity/network id");
+            h.assertTrue(provider.interval(support,wrongDimensionHandle).isEmpty(),
+                "Matching UUID/id cannot certify a handle from another dimension");
+            h.assertTrue(pendingWrongId && pendingWrongDimension,
+                "Pending must validate dimension and entity id independently, not merely support UUID");
+        } finally {support.discard();}
         h.succeed();
     }
 
