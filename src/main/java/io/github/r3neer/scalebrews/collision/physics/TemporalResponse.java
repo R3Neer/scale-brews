@@ -19,13 +19,18 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,BROADPHASE_SEGMENTS=8;
+    private static final double TARGET_WINDOW_DEFORMATION=.5;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,TARGET_WINDOW_DEPTH=5,MAX_WINDOW_DEPTH=8,LOCAL_QUERY_BUDGET=24;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
         ConservativeSweep.Result query(AABB body,Vec3 delta,ConservativeSweep.Motion motion) {
+            return query(body,delta,motion,remaining);
+        }
+        ConservativeSweep.Result query(AABB body,Vec3 delta,ConservativeSweep.Motion motion,int localLimit) {
             if(remaining<1)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
-            var result=ConservativeSweep.query(body,delta,motion,remaining);
+            int allowance=Math.min(remaining,Math.max(1,localLimit));
+            var result=ConservativeSweep.query(body,delta,motion,allowance);
             remaining-=result.evaluations();used+=result.evaluations();return result;
         }
         /** Geometry sampled outside ConservativeSweep still consumes this response budget. */
@@ -122,32 +127,60 @@ public final class TemporalResponse {
     }
 
     /**
-     * Search one piece without allowing a loose full-interval deformation bound to monopolize the
-     * shared response budget. A whole-interval envelope rejects the common distant case in one
-     * sample. Otherwise eight time-aligned subinterval envelopes are certified independently and
-     * only the windows that can actually reach the body's matching swept AABB pay for CCD.
+     * A loose deformation bound can make a physically clear piece consume almost the entire shared
+     * response budget. First reject the whole interval by a certified envelope. If it still can
+     * reach the body, recursively split only the possible temporal windows until the deformation
+     * bound is small enough for a capped CCD query. A local cap is not a global failure: an
+     * unresolved window is refined further while the shared budget still has evidence left to buy.
      */
     private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(!possible)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
-        for(int segment=0;segment<BROADPHASE_SEGMENTS;segment++) {
-            double from=(double)segment/BROADPHASE_SEGMENTS,to=(double)(segment+1)/BROADPHASE_SEGMENTS;
-            var sub=interval.interval(from,to);
-            AABB segmentBody=body.move(delta.scale(from));
-            Vec3 segmentDelta=delta.scale(to-from);
-            possible=mayIntersect(segmentBody,segmentDelta,sub,budget);
-            if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,from,Vec3.ZERO,0);
-            if(!possible)continue;
-            var result=budget.query(segmentBody,segmentDelta,sub);
-            double fraction=from+(to-from)*Math.clamp(result.safeFraction(),0,1);
-            if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP && segment>0)
-                return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,fraction,result.normal(),result.evaluations());
-            if(result.status()==ConservativeSweep.Status.CONTACT || result.status()==ConservativeSweep.Status.INITIAL_OVERLAP
-                    || result.status()==ConservativeSweep.Status.ITERATION_LIMIT)
-                return new ConservativeSweep.Result(result.status(),fraction,result.normal(),result.evaluations());
+        return firstPossibleWindow(body,delta,interval,0,0,1,budget);
+    }
+
+    /** Result safeFraction is always expressed in the original piece interval, not this child window. */
+    private static ConservativeSweep.Result firstPossibleWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,
+            int depth,double origin,double scale,Budget budget) {
+        boolean shouldSplit=depth<TARGET_WINDOW_DEPTH && interval.deformationSpeed()>TARGET_WINDOW_DEFORMATION;
+        if(!shouldSplit) {
+            var result=budget.query(body,delta,interval,LOCAL_QUERY_BUDGET);
+            if(result.status()!=ConservativeSweep.Status.ITERATION_LIMIT || budget.exhausted() || depth>=MAX_WINDOW_DEPTH)
+                return mapWindowResult(result,origin,scale);
+            // Exhausting a local allowance proves only that this window is still too coarse.
+            // Preserve the global budget and refine this one branch instead of quarantining the event.
+        }
+        if(depth>=MAX_WINDOW_DEPTH)
+            return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin,Vec3.ZERO,0);
+
+        var halfDelta=delta.scale(.5);
+        var left=interval.interval(0,.5);
+        Boolean possible=mayIntersect(body,halfDelta,left,budget);
+        if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin,Vec3.ZERO,0);
+        if(possible) {
+            var hit=firstPossibleWindow(body,halfDelta,left,depth+1,origin,scale*.5,budget);
+            if(hit.status()!=ConservativeSweep.Status.CLEAR)return hit;
+        }
+
+        var right=interval.interval(.5,1);
+        AABB rightBody=body.move(halfDelta);
+        possible=mayIntersect(rightBody,halfDelta,right,budget);
+        if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin+scale*.5,Vec3.ZERO,0);
+        if(possible) {
+            var hit=firstPossibleWindow(rightBody,halfDelta,right,depth+1,origin+scale*.5,scale*.5,budget);
+            if(hit.status()!=ConservativeSweep.Status.CLEAR)return hit;
         }
         return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+    }
+
+    private static ConservativeSweep.Result mapWindowResult(ConservativeSweep.Result result,double origin,double scale) {
+        double fraction=origin+scale*Math.clamp(result.safeFraction(),0,1);
+        var status=result.status();
+        // Chronological left windows were already certified clear, so an overlap at a later child
+        // start is the boundary contact of this continuous trajectory, not a global initial overlap.
+        if(status==ConservativeSweep.Status.INITIAL_OVERLAP && origin>TIME_EPS)status=ConservativeSweep.Status.CONTACT;
+        return new ConservativeSweep.Result(status,fraction,result.normal(),result.evaluations());
     }
 
     /**
