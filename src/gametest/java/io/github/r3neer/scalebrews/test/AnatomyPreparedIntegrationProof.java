@@ -52,10 +52,10 @@ public final class AnatomyPreparedIntegrationProof {
             // stop or otherwise simulate the session.
             AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h);
             AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h);
-            // Run the simple occupied-boat control before exported player geometry. If this
-            // passes while the next scenario fails, the defect is geometry/provider-specific,
-            // not a generic prepared-ownership or boat-body failure.
-            AnatomyGeometryTests.anatomicalRootTransportOncePrepared(h);
+            // anatomicalRootTransportOncePrepared is intentionally not part of this lane: that
+            // fixture directly invokes the legacy AnatomyMovement.carry endpoint. S08 fences that
+            // endpoint while a prepared runtime owns the support, so using it here would test the
+            // superseded owner rather than the production material-interval dispatcher.
             AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h);
             AnatomyGeometryTests.exportedCowActualMovementPrepared(h);
             AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
@@ -64,8 +64,9 @@ public final class AnatomyPreparedIntegrationProof {
             // Pair-local recovery must be proven geometrically, not via a block-wall fixture
             // whose absolute GameTest coordinates can accidentally leave an escape route.
             S07PreparedPairSuspensionProof.run(h);
-            // S08 must prove its causal chain through the same prepared catalog/runtime, not
-            // merely by composing isolated planner/tracker/dispatcher unit seams.
+            // S08 proves ROOT ownership, synchronous dispatcher drain and A -> B -> C derived
+            // carry through the same prepared catalog/runtime. This is the live replacement for
+            // the legacy direct-carry fixture deliberately excluded above.
             S08PreparedDerivedChainProof.run(h);
         }
         h.succeed();
