@@ -102,7 +102,7 @@ public final class AnatomyMovement {
             snapshot=provider.sample(support).orElse(null);if(snapshot==null)return;
             frame=new FrameStamp(null,observeRoot(support),snapshot.revision(),registrationGeneration(support),0);
         }
-        var envelope=snapshotBounds(snapshot);if(envelope==null)return;
+        var envelope=spatialEnvelope(snapshot,frame.root());if(envelope==null)return;
         var rejected=index.broadphase().upsert(new MaterialBroadphase.Entry<>(support,envelope));
         if(rejected!=null) {
             index.frames().remove(support);clearSupportContacts(support);
@@ -604,7 +604,7 @@ public final class AnatomyMovement {
             var support=entry.getKey();if(support.level()!=level)continue;
             var sample=currentSnapshot(support,entry.getValue()).orElse(null);var frame=currentFrameStamp(support,entry.getValue());
             if(sample==null || frame==null)continue;
-            AABB envelope=snapshotBounds(sample);if(envelope==null)continue;
+            AABB envelope=spatialEnvelope(sample,frame.root());if(envelope==null)continue;
             entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
         }
         var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
@@ -624,6 +624,23 @@ public final class AnatomyMovement {
     /** The current S05 caller supplies instantaneous convex bounds; later Q2 stages may supply certified interval envelopes. */
     private static AABB snapshotBounds(GeometryProvider.Snapshot current) {
         return current.pieces().values().stream().map(ConvexBox::bounds).reduce((a,b)->new AABB(Math.min(a.minX,b.minX),Math.min(a.minY,b.minY),Math.min(a.minZ,b.minZ),Math.max(a.maxX,b.maxX),Math.max(a.maxY,b.maxY),Math.max(a.maxZ,b.maxZ))).orElse(null);
+    }
+    /**
+     * Coarse membership must survive root yaw/gravity rotations that can happen without a setter hook.
+     * Every rotated point preserves its Euclidean distance from the captured root, so the root-centered
+     * cube enclosing the snapshot's farthest AABB corner is conservative for any subsequent rotation.
+     * Exact convexes are still revalidated from the causal frame after the broadphase returns the support.
+     */
+    private static AABB spatialEnvelope(GeometryProvider.Snapshot current,RootFrame root) {
+        var bounds=snapshotBounds(current);if(bounds==null || root==null)return null;
+        var origin=root.origin();
+        double dx=Math.max(Math.abs(bounds.minX-origin.x),Math.abs(bounds.maxX-origin.x));
+        double dy=Math.max(Math.abs(bounds.minY-origin.y),Math.abs(bounds.maxY-origin.y));
+        double dz=Math.max(Math.abs(bounds.minZ-origin.z),Math.abs(bounds.maxZ-origin.z));
+        double radius=Math.sqrt(dx*dx+dy*dy+dz*dz)+ConservativeSweep.SKIN;
+        if(!Double.isFinite(radius))return null;
+        return new AABB(origin.x-radius,origin.y-radius,origin.z-radius,
+            origin.x+radius,origin.y+radius,origin.z+radius);
     }
     public static boolean replacesPair(Entity body,Entity other) {
         if(!(other instanceof LivingEntity support) || !Platforms.eligible(body,support))return false;

@@ -236,9 +236,14 @@ public final class MaterialPhysicsRuntime {
                 }
                 plans.add(plan);evaluations+=plan.evaluations();
             }
-            var conflicts=bodyOverlapConflicts(plans,candidates);
+            var conflicts=bodyOverlapPairs(plans,candidates);
             if(!conflicts.isEmpty()) {
-                for(int index:conflicts)suspendUncertainPairs(plans.get(index).body(),candidates.get(index).bounds(),events);
+                for(var conflict:conflicts) {
+                    suspendConflictRelation(plans.get(conflict.first()),candidates.get(conflict.first()).bounds(),
+                        plans.get(conflict.second()),candidates.get(conflict.second()).bounds(),events,motions);
+                    suspendConflictRelation(plans.get(conflict.second()),candidates.get(conflict.second()).bounds(),
+                        plans.get(conflict.first()),candidates.get(conflict.first()).bounds(),events,motions);
+                }
                 return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
             }
             apply(plans,events);record(level,events.size(),0,evaluations,0,0);
@@ -318,6 +323,35 @@ public final class MaterialPhysicsRuntime {
         private void addContacts(Set<String> evidence,TemporalResponse.Result response) {
             for(var contact:response.contacts())evidence.add(contact.piece());
         }
+        /**
+         * A successful pairwise-plan conflict has stronger provenance than a generic solver exhaustion.
+         * Re-plan this body without its retained support. Only when that removal eliminates the actual
+         * body/body overlap conflict is the retained relation causally implicated and suspended.
+         */
+        private void suspendConflictRelation(Plan full,AABB captured,Plan other,AABB otherCaptured,
+                List<MaterialEventDispatcher.Event<Entity>> events,
+                Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> motions) {
+            var retained=AnatomyMovement.contact(full.body());if(retained==null)return;
+            boolean participates=false;var without=new TreeMap<String,ConservativeSweep.Motion>();
+            for(var event:events) {
+                if(!(event.support() instanceof LivingEntity support))continue;
+                if(support==retained.support()) {participates=true;continue;}
+                if(!Platforms.eligible(full.body(),support))continue;
+                var motion=motions.get(event.interval().handle());
+                if(motion==null) {AnatomyMovement.suspend(full.body(),retained.support());return;}
+                for(var entry:scopedPieces(event,motion).entrySet())
+                    if(without.put(entry.getKey(),entry.getValue())!=null) {
+                        AnatomyMovement.suspend(full.body(),retained.support());return;
+                    }
+            }
+            if(!participates)return;
+            var alternate=plan(full.body(),captured,without);
+            if(alternate==null) {AnatomyMovement.suspend(full.body(),retained.support());return;}
+            double before=overlapVolume(captured,otherCaptured);
+            double alternateOverlap=overlapVolume(captured.move(alternate.displacement()),
+                otherCaptured.move(other.displacement()));
+            if(alternateOverlap<=before+OVERLAP_EPS)AnatomyMovement.suspend(full.body(),retained.support());
+        }
         private void suspendUncertainPairs(Entity body,AABB captured,List<MaterialEventDispatcher.Event<Entity>> events) {
             var retained=AnatomyMovement.contact(body);
             for(var event:events) {
@@ -384,12 +418,21 @@ public final class MaterialPhysicsRuntime {
             }
             return false;
         }
-        private Set<Integer> bodyOverlapConflicts(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
-            var conflicts=new TreeSet<Integer>();
+        private record BodyConflict(int first,int second) {}
+        private List<BodyConflict> bodyOverlapPairs(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            var conflicts=new ArrayList<BodyConflict>();
             for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
                 var beforeA=candidates.get(i).bounds();var beforeB=candidates.get(j).bounds();
                 var afterA=beforeA.move(plans.get(i).displacement());var afterB=beforeB.move(plans.get(j).displacement());
-                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS) {conflicts.add(i);conflicts.add(j);}
+                if(overlapVolume(afterA,afterB)>overlapVolume(beforeA,beforeB)+OVERLAP_EPS)
+                    conflicts.add(new BodyConflict(i,j));
+            }
+            return List.copyOf(conflicts);
+        }
+        private Set<Integer> bodyOverlapConflicts(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
+            var conflicts=new TreeSet<Integer>();
+            for(var conflict:bodyOverlapPairs(plans,candidates)) {
+                conflicts.add(conflict.first());conflicts.add(conflict.second());
             }
             return conflicts;
         }
