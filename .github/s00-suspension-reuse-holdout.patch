@@ -10,7 +10,7 @@ index 086a5cd..83ab884 100644
 +        var support=cow(h);var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
 +        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
 +        AnatomyMovement.activate(h.getLevel());
-+        LivingEntity replacement=null;
++        Mob replacement=null;
 +        try {
 +            body.setPos(support.position());
 +            var enclosing=box(new AABB(-.35,-.35,-.35,.35,.35,.35)).move(support.position());
