@@ -91,6 +91,41 @@ public final class S05ExternalScaleBroadphaseTests {
     }
 
     @GameTest
+    public void sameTickRootYawMustExposeNewRemoteMaterialBoundsWithoutManualPublication(GameTestHelper h) {
+        var level=h.getLevel();
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);support.yBodyRot=0;
+        support.getAttribute(Attributes.SCALE).setBaseValue(1);support.refreshDimensions();
+
+        var fixture=fixture(support,"same_tick_yaw",44);
+        AnatomyMovement.activate(level);
+        try {
+            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            AnatomyMovement.tick(level);
+            var before=sample(fixture,support,0,1);
+            h.assertTrue(!AnatomyMovement.spaceClear(body,before),
+                "Yaw-0 material bounds must be indexed before the same-tick root rotation");
+
+            // Yaw is a first-class RootFrame component (FR-030/FR-049), not provider-private state.
+            // A living support may rotate during its normal tick; a later body query in that same tick
+            // must not depend on an explicit networking/publication read to discover the rotated anatomy.
+            support.yBodyRot=90;
+            var after=sample(fixture,support,90,1);
+            h.assertTrue(!before.inflate(.5).intersects(after),
+                "Yaw fixture must move remote anatomy outside the previous indexed region: before="+before+" after="+after);
+            h.assertTrue(!AnatomyMovement.spaceClear(body,after),
+                "FR-030/FR-042/FR-049 require same-tick root yaw to expose new material bounds before any manual publishedFrame/tick observation");
+        } finally {
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void publishedRootYawMustKeepUpdatedSupportDiscoverable(GameTestHelper h) {
         var level=h.getLevel();
         var body=h.makeMockServerPlayerInLevel();
