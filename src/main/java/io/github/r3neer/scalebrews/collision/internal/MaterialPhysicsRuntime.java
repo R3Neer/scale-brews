@@ -298,9 +298,10 @@ public final class MaterialPhysicsRuntime {
         }
         private void apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
             for(var plan:plans) {
-                if(plan.displacement().lengthSqr()>1e-20)plan.body().setPos(plan.body().position().add(plan.displacement()));
+                boolean moved=plan.displacement().lengthSqr()>1e-20;
+                if(moved)plan.body().setPos(plan.body().position().add(plan.displacement()));
                 AnatomyMovement.afterMove(plan.body());
-                if(AnatomyMovement.contact(plan.body())!=null)continue;
+                if(AnatomyMovement.contact(plan.body())!=null || !moved)continue;
                 for(var event:events) {
                     if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support))continue;
                     if(establish(plan.body(),support,event.interval().handle().after()))break;
