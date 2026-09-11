@@ -116,28 +116,28 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 if(packet.gravity()!=net.minecraft.core.Direction.EAST)throw new AssertionError("Gravity frame did not survive actual pose network transfer");
                 var geometry=models.get("minecraft:player_wide");
                 var evaluator=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),AnatomyFilter.DEFAULT,packet.revision());
-                var frame=history.sample(packet.tick());
+                var frame=history.sample(packet.jointSampleTick());
                 var result=evaluator.sampleAt(client.player,frame).orElseThrow();
                 var root=new GravityFrame(packet.gravity()).matrix().rotateY((float)Math.toRadians(180-packet.yaw())).scale(packet.scale()).mul(ModelGeometry.matrix(geometry.modelTransform()));
                 Map<String,ConvexBox> expected=new LinkedHashMap<>();
                 geometry.evaluate(root,new PlayerWalkingPose().evaluate(geometry,sentPose).orElseThrow(),AnatomyFilter.DEFAULT)
                     .forEach((id,box)->expected.put(id,box.move(packet.origin())));
                 compare(result.pieces(),expected,"network pose world geometry");
-                var shared=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,packet.tick()).orElseThrow();
+                var shared=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(client.player,packet.jointSampleTick()).orElseThrow();
                 compare(shared.pieces(),expected,"shared client geometry query");
                 for(int query=0;query<100;query++)evaluator.sampleAt(client.player,frame);
                 if(evaluator.evaluations()!=1)throw new AssertionError("Observer queries recomputed identical geometry");
                 var nextInputs=new PoseProvider.Inputs(2,.8f,13,-170,-20,true);
                 var next=new AnatomyPosePayload(packet.epoch(),packet.revision(),packet.dimension(),packet.entityId(),packet.entity(),packet.model(),packet.provider(),
-                    packet.tick()+1,nextInputs,packet.origin().add(.1,.05,0),packet.yaw()+10,packet.scale()*1.05f,packet.gravity());
+                    packet.jointSampleTick()+1,nextInputs,packet.origin().add(.1,.05,0),packet.yaw()+10,packet.scale()*1.05f,packet.gravity());
                 var interpolation=new AnatomyPoseHistory();interpolation.accept(packet);interpolation.accept(next);
-                var segment=interpolation.segment(packet.tick()+.5);
+                var segment=interpolation.segment(packet.jointSampleTick()+.5);
                 var trajectory=evaluator.motionBetween(segment.before(),segment.after()).orElseThrow();
                 Map<String,ConvexBox> midpoint=new LinkedHashMap<>();trajectory.pieces().forEach((id,motion)->midpoint.put(id,motion.at().apply(.5)));
-                var sampled=evaluator.sampleInterpolated(client.player,interpolation,packet.tick()+.5).orElseThrow();
+                var sampled=evaluator.sampleInterpolated(client.player,interpolation,packet.jointSampleTick()+.5).orElseThrow();
                 compare(sampled.pieces(),midpoint,"presentation follows physical joint trajectory");
                 long count=evaluator.evaluations();
-                for(int query=0;query<100;query++)evaluator.sampleInterpolated(client.player,interpolation,packet.tick()+.5);
+                for(int query=0;query<100;query++)evaluator.sampleInterpolated(client.player,interpolation,packet.jointSampleTick()+.5);
                 if(evaluator.evaluations()!=count)throw new AssertionError("Interpolated geometry is not shared across queries");
                 System.out.println("ANATOMY_NETWORK authoritative pose round trip passed");
             });
@@ -208,9 +208,9 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 var catalog=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.catalog();
                 if(entity==null || catalog.revision()<=1 || catalog.snapshot().profiles().size()!=1 || io.github.r3neer.scalebrews.platform.Platforms.definition(entity)==null || io.github.r3neer.scalebrews.platform.Platforms.definition(entity).anatomy().isEmpty())
                     throw new AssertionError("Runtime catalog did not atomically replace earlier geometry-only session with species bindings");
-                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().tick()).isEmpty())
+                if(entity==null || io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().jointSampleTick()).isEmpty())
                     throw new AssertionError("Automatically received pose did not reconstruct geometry");
-                var shape=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().tick()).orElseThrow();
+                var shape=io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.geometry(entity,history.current().jointSampleTick()).orElseThrow();
                 var center=shape.pieces().values().iterator().next().bounds().getCenter();
                 var occupied=new net.minecraft.world.phys.AABB(center.subtract(.005,.005,.005),center.add(.005,.005,.005));runtimeOccupied.set(occupied);
                 if(!AnatomyMovement.active(client.player) || AnatomyMovement.spaceClear(client.player,occupied))
