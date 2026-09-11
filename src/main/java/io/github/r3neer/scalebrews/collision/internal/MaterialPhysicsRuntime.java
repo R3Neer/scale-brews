@@ -15,6 +15,7 @@ import java.util.WeakHashMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -47,6 +48,7 @@ public final class MaterialPhysicsRuntime {
      * synchronously after commitRoot; END_LEVEL_TICK invokes it after publish for the joint batch.
      */
     public static void drain(ServerLevel level) {
+        if(MaterialIntervalRuntime.consumeSaturation(level))record(level,0,0,0,1,1);
         var pending=MaterialIntervalRuntime.poll(level);
         if(pending.isEmpty())return;
         var prepared=new ArrayList<Prepared>();
@@ -125,14 +127,15 @@ public final class MaterialPhysicsRuntime {
             return capture(envelope,supports,maximumBodies);
         }
         private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
-            var entities=level.getEntitiesOfClass(Entity.class,envelope,body->{
+            var entities=new ArrayList<Entity>(Math.min(maximumBodies+1,256));
+            level.getEntities(EntityTypeTest.forClass(Entity.class),envelope,body->{
                 if(body.isRemoved() || supports.stream().anyMatch(s->s==body))return false;
                 for(var support:supports)if(Platforms.eligible(body,support))return true;
                 return false;
-            });
-            entities.sort(BODY_ORDER);
+            },entities,maximumBodies+1);
             if(entities.size()>maximumBodies)return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-            var result=new ArrayList<MaterialEventDispatcher.Candidate<Entity>>();
+            entities.sort(BODY_ORDER);
+            var result=new ArrayList<MaterialEventDispatcher.Candidate<Entity>>(entities.size());
             for(var body:entities)result.add(new MaterialEventDispatcher.Candidate<>(body,body.getBoundingBox()));
             record(level,0,result.size(),0,0,0);
             return new MaterialEventDispatcher.Candidates<>(result,false);
