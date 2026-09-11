@@ -33,9 +33,14 @@ public final class AnatomyPreparedIntegrationProof {
     public void preparedCatalogRoutesAllRealEntityMoveScenarios(GameTestHelper h) throws IOException {
         var catalog=requiredCatalog();
         var cow=catalog.cow();
-        var profile=new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),
+        var player=catalog.player();
+        var cowProfile=new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),
             Optional.of(new AnatomyDefinition(Identifier.parse(cow.source()),Identifier.parse("scalebrews:static"),AnatomyFilter.DEFAULT)));
-        try(var session=AnatomyPreparedSession.start(h.getLevel().getServer(),Map.of(cow.source(),cow),Map.of("scalebrews:prepared_proof_cow",profile))) {
+        var playerProfile=new PlatformDefinition(Identifier.parse("minecraft:player"),true,.6,Optional.empty(),List.of(),
+            Optional.of(new AnatomyDefinition(Identifier.parse(player.source()),Identifier.parse("scalebrews:player_walking"),AnatomyFilter.DEFAULT)));
+        try(var session=AnatomyPreparedSession.start(h.getLevel().getServer(),
+                Map.of(cow.source(),cow,player.source(),player),
+                Map.of("scalebrews:prepared_proof_cow",cowProfile,"scalebrews:prepared_proof_player",playerProfile))) {
             var probe=h.spawn(net.minecraft.world.entity.EntityTypes.COW,0,20,0);
             try {
                 h.assertTrue(AnatomyApi.mode(probe)==AnatomyMode.READY && AnatomyApi.ownsSharedPhysics(probe),
