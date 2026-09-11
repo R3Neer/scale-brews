@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -51,8 +52,9 @@ public final class S07FailureLocalizationTests {
         var trap=ConvexBox.of(new AABB(-5,-5,-5,5,5,5),new Matrix4f()).move(center);
         Vec3 safeOrigin=center.add(8,0,0);
         var floor=ConvexBox.of(new AABB(-1,-.5,-1,1,0,1),new Matrix4f()).move(safeOrigin);
+        var liveSnapshot=new AtomicReference<>(new GeometryProvider.Snapshot(96,Map.of("floor",floor,"trap",trap)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,entity->Optional.of(new GeometryProvider.Snapshot(96,Map.of("floor",floor,"trap",trap))));
+        AnatomyMovement.register(support,entity->Optional.of(liveSnapshot.get()));
         trapped.setPos(center);
         safe.setPos(safeOrigin);
 
@@ -83,6 +85,14 @@ public final class S07FailureLocalizationTests {
                 "FR-052 requires the unresolvable body/support pair itself to be suspended instead of leaving an immediately retryable bad pair");
             h.assertTrue(AnatomyMovement.contact(safe)!=null && AnatomyMovement.supported(safe),
                 "FR-052 requires pair-local failure: an unresolvable trapped body must not invalidate another body's valid contact on the same support");
+
+            // End only the bad pair's overlap without rebind or registration-generation change.
+            // Suspension must be self-releasing from current geometry, not a sticky quarantine.
+            liveSnapshot.set(new GeometryProvider.Snapshot(96,Map.of("floor",floor,"trap",trap.move(new Vec3(30,0,0)))));
+            h.assertTrue(!AnatomyMovement.suspended(trapped,support),
+                "Pair-local suspension must release when the actual overlap disappears within the same binding; no explicit rebind should be required");
+            h.assertTrue(AnatomyMovement.contact(safe)!=null && AnatomyMovement.supported(safe),
+                "Releasing the failed pair must not disturb the bystander's independent material contact");
         } finally {
             AnatomyMovement.clear(trapped);AnatomyMovement.clear(safe);
             AnatomyMovement.deactivate(level);
