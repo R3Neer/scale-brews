@@ -75,6 +75,7 @@
       "io.github.r3neer.scalebrews.test.S09IntermediateTemporalResponseTests",
       "io.github.r3neer.scalebrews.test.S09OwnMoveBudgetBoundaryTests",
       "io.github.r3neer.scalebrews.test.S09BatchSqueezeLocalizationTests",
+      "io.github.r3neer.scalebrews.test.S09SeparationBudgetBoundaryTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
