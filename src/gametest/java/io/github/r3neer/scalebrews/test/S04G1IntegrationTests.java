@@ -3,10 +3,12 @@ package io.github.r3neer.scalebrews.test;
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
 import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
+import io.github.r3neer.scalebrews.collision.api.spi.BodyAdapter;
 import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.integration.BodyClassification;
 import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
 import io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 /** Final G1 integration/fixture acceptance without crossing into G2/G3 runtime lifecycle. */
 public final class S04G1IntegrationTests {
@@ -93,6 +96,22 @@ public final class S04G1IntegrationTests {
     }
 
     @GameTest
+    public void adapterSnapshotsAreCanonicalAndInvalidRuntimeOutputFailsClosed(GameTestHelper h) {
+        var z = Identifier.parse("scalebrews_test:s04_adapter_z");
+        var a = Identifier.parse("scalebrews_test:s04_adapter_a");
+        CollisionAdapters.registerBody(z, fixedAdapter("zeta"));
+        CollisionAdapters.registerBody(a, fixedAdapter("alpha"));
+        var keys = List.copyOf(CollisionAdapters.bodySnapshot().keySet());
+        h.assertTrue(keys.indexOf(a) >= 0 && keys.indexOf(z) >= 0 && keys.indexOf(a) < keys.indexOf(z),
+            "Body adapter snapshot order is canonical rather than registration-order dependent");
+        h.assertTrue(BodyClassification.category(null) == null && !BodyClassification.ordinary(null),
+            "Missing body state fails closed at the integration boundary");
+        h.assertTrue(BodyClassification.adaptTransport(null, new Vec3(1, 0, 0)).equals(Vec3.ZERO),
+            "Missing transport body cannot manufacture passive motion");
+        h.succeed();
+    }
+
+    @GameTest
     public void capabilitiesVersionTheNewG1Contract(GameTestHelper h) {
         long required = AnatomyApi.mask(AnatomyApi.Capability.ENGINE_REGISTRY,
             AnatomyApi.Capability.VERSIONED_BINDINGS, AnatomyApi.Capability.BODY_ADAPTERS);
@@ -122,6 +141,13 @@ public final class S04G1IntegrationTests {
         h.assertTrue(!CollisionRules.allows(CollisionPolicy.DEFAULT, CollisionPolicy.Patch.EMPTY, "players", support, Math.nextUp(.85)),
             "Immediately above default 0.85 ratio is rejected");
         h.succeed();
+    }
+
+    private static BodyAdapter fixedAdapter(String category) {
+        return new BodyAdapter() {
+            @Override public String category() { return category; }
+            @Override public boolean permits(net.minecraft.world.entity.Entity body) { return true; }
+        };
     }
 
     private static boolean rejected(CollisionBinding binding) {

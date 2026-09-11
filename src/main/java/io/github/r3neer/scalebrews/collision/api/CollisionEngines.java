@@ -3,10 +3,13 @@ package io.github.r3neer.scalebrews.collision.api;
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -36,14 +39,20 @@ public final class CollisionEngines {
     public static synchronized Optional<PoseEngine> pose(Identifier id) { return Optional.ofNullable(POSE.get(id)); }
     public static synchronized Optional<RootTransformProvider> rootTransform(Identifier id) { return Optional.ofNullable(ROOTS.get(id)); }
 
-    public static synchronized Map<Identifier, GeometryEngine> geometrySnapshot() { return Map.copyOf(GEOMETRY); }
-    public static synchronized Map<Identifier, PoseEngine> poseSnapshot() { return Map.copyOf(POSE); }
-    public static synchronized Map<Identifier, RootTransformProvider> rootTransformSnapshot() { return Map.copyOf(ROOTS); }
+    public static synchronized Map<Identifier, GeometryEngine> geometrySnapshot() { return snapshot(GEOMETRY); }
+    public static synchronized Map<Identifier, PoseEngine> poseSnapshot() { return snapshot(POSE); }
+    public static synchronized Map<Identifier, RootTransformProvider> rootTransformSnapshot() { return snapshot(ROOTS); }
 
     private static <T> void register(Map<Identifier, T> registry, Identifier id, T value, String kind) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(value, "value");
         if (registry.putIfAbsent(id, value) != null)
             throw new IllegalArgumentException("Duplicate collision " + kind + " engine/provider: " + id);
+    }
+
+    private static <T> Map<Identifier, T> snapshot(Map<Identifier, T> registry) {
+        var sorted = new TreeMap<Identifier, T>(Comparator.comparing(Identifier::toString));
+        sorted.putAll(registry);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(sorted));
     }
 }

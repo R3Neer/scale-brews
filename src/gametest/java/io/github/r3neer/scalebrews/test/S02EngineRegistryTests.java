@@ -50,6 +50,18 @@ public final class S02EngineRegistryTests {
     }
 
     @GameTest
+    public void engineSnapshotsHaveCanonicalIdOrder(GameTestHelper h) {
+        var z = Identifier.parse("scalebrews_test:s02_snapshot_z");
+        var a = Identifier.parse("scalebrews_test:s02_snapshot_a");
+        CollisionEngines.registerGeometry(z, request -> Optional.empty());
+        CollisionEngines.registerGeometry(a, request -> Optional.empty());
+        var keys = List.copyOf(CollisionEngines.geometrySnapshot().keySet());
+        h.assertTrue(keys.indexOf(a) >= 0 && keys.indexOf(z) >= 0 && keys.indexOf(a) < keys.indexOf(z),
+            "Engine snapshot order is canonical rather than registration-order dependent");
+        h.succeed();
+    }
+
+    @GameTest
     public void geometryRequestKeepsCanonicalParameterOrder(GameTestHelper h) {
         var source = new LinkedHashMap<String, String>();
         source.put("zeta", "2");

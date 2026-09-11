@@ -18,9 +18,13 @@ public final class BodyClassification {
     private BodyClassification() {}
 
     public static String category(Entity entity) {
-        if (entity instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
+        if (entity == null || entity instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
         var adapter = CollisionAdapters.body(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())).orElse(null);
-        if (adapter != null) return adapter.permits(entity) ? adapter.category() : null;
+        if (adapter != null) {
+            if (!adapter.permits(entity)) return null;
+            var category = adapter.category();
+            return category != null && category.matches("[a-z0-9_.-]{1,64}") ? category : null;
+        }
         if (entity instanceof Player) return "players";
         if (entity instanceof Mob) return "mobs";
         if (entity instanceof AbstractBoat) return "boats";
@@ -31,7 +35,7 @@ public final class BodyClassification {
     }
 
     public static boolean ordinary(Entity entity) {
-        if (!entity.isAlive() || entity.noPhysics || entity.isSpectator() || entity.isPassenger()) return false;
+        if (entity == null || !entity.isAlive() || entity.noPhysics || entity.isSpectator() || entity.isPassenger()) return false;
         if (entity instanceof LivingEntity living && (living.isSleeping() || living.isFallFlying() || living.isSwimming() || living.isBaby())) return false;
         if (entity instanceof Player player && player.getAbilities().flying) return false;
         if (entity instanceof Camel camel && camel.isCamelSitting()) return false;
@@ -40,7 +44,10 @@ public final class BodyClassification {
     }
 
     public static Vec3 adaptTransport(Entity body, Vec3 requested) {
+        if (body == null || requested == null || !Double.isFinite(requested.lengthSqr())) return Vec3.ZERO;
         var adapter = CollisionAdapters.body(BuiltInRegistries.ENTITY_TYPE.getKey(body.getType())).orElse(null);
-        return adapter == null ? requested : adapter.transport(body, requested);
+        if (adapter == null) return requested;
+        var adapted = adapter.transport(body, requested);
+        return adapted != null && Double.isFinite(adapted.lengthSqr()) ? adapted : Vec3.ZERO;
     }
 }
