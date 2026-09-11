@@ -63,10 +63,16 @@ public final class S06SpatialMembershipCausalityTests {
                 "An explicitly unavailable causal endpoint must publish no collider");
 
             available.set(true);
-            h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),
-                "Fixture must prove the same registered provider advanced to AVAILABLE in the same authority tick");
+            // Do NOT call AnatomyMovement.queryFrame here: accepting the endpoint through that
+            // route is itself allowed to invalidate the spatial cache.  The broadphase query below
+            // must be able to discover that an omitted registered provider changed membership.
+            h.assertTrue(provider.causalEndpoint(support).orElseThrow().availability()==GeometryProvider.Availability.AVAILABLE
+                    && provider.sample(support).isPresent(),
+                "Fixture source must have advanced to AVAILABLE in the same authority tick before any runtime consumer observes it");
             h.assertTrue(!AnatomyMovement.spaceClear(body,query),
-                "A support that becomes AVAILABLE in the same tick must enter the broadphase immediately; an index that omitted it cannot be reused vacuously");
+                "A support that becomes AVAILABLE in the same tick must enter the broadphase when spaceClear is the first runtime consumer; an index that omitted it cannot be reused vacuously");
+            h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),
+                "After the spatial query, the runtime must expose the same accepted AVAILABLE causal frame");
         } finally {
             AnatomyMovement.deactivate(level);
             support.discard();
