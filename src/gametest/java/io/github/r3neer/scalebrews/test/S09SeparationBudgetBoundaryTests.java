@@ -51,18 +51,19 @@ public final class S09SeparationBudgetBoundaryTests {
                 ?"A12 calibration must find a nested-slab fixture whose first valid escape is candidate 128"
                 :"A12 calibration must find a nested-slab fixture whose first valid escape is candidate 129");
         var slabs=slabs(captured,origin,slabCount);
+        var orderedSlabs=orderedSlabs(slabs);
         var bystanderPiece=bystander(captured,origin);
 
         if(mustRecover) {
-            var oneShort=AnatomySeparation.resolve(captured,slabs.values(),4,127,(box,delta)->delta);
-            var exact=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
+            var oneShort=AnatomySeparation.resolve(captured,orderedSlabs,4,127,(box,delta)->delta);
+            var exact=AnatomySeparation.resolve(captured,orderedSlabs,4,128,(box,delta)->delta);
             h.assertTrue(!oneShort.separated() && oneShort.candidates()==127,
                 "A12 calibrated fixture must still be unresolved one candidate below the live separation budget: "+oneShort);
             h.assertTrue(exact.separated() && exact.candidates()==128 && exact.displacement().x>0,
                 "A12 calibrated fixture must find its first valid escape on candidate 128: "+exact+" slabs="+slabCount);
         } else {
-            var capped=AnatomySeparation.resolve(captured,slabs.values(),4,128,(box,delta)->delta);
-            var plusOne=AnatomySeparation.resolve(captured,slabs.values(),4,129,(box,delta)->delta);
+            var capped=AnatomySeparation.resolve(captured,orderedSlabs,4,128,(box,delta)->delta);
+            var plusOne=AnatomySeparation.resolve(captured,orderedSlabs,4,129,(box,delta)->delta);
             h.assertTrue(!capped.separated() && capped.candidates()==128,
                 "A12 calibrated +1 fixture must exhaust all 128 live candidates without exporting an escape: "+capped);
             h.assertTrue(plusOne.separated() && plusOne.candidates()==129 && plusOne.displacement().x>0,
@@ -82,10 +83,11 @@ public final class S09SeparationBudgetBoundaryTests {
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,bystander),
                 "A12 live fixture requires both culprit and non-causal bystander to be eligible indexed supports");
 
-            // Kernel precondition with the exact production block/entity clip. This prevents a
-            // vanilla support AABB or structure block from turning a valid identity-clip boundary
-            // into a different puzzle before AnatomyMovement even gets a chance to resolve it.
-            var livePieces=new ArrayList<ConvexBox>(slabs.values());livePieces.add(bystanderPiece);
+            // Production inserts candidate geometry into a TreeMap keyed by scoped piece id. The
+            // culprit was spawned first, so its zero-padded support-id prefix sorts before the
+            // bystander, and its slab ids sort lexically. Mirror that order exactly: Map.copyOf
+            // intentionally promises no encounter order, which matters at an exact node budget.
+            var livePieces=new ArrayList<ConvexBox>(orderedSlabs);livePieces.add(bystanderPiece);
             java.util.function.BiFunction<AABB,Vec3,Vec3> liveClip=(bounds,delta)->
                 Entity.collideBoundingBox(body,delta,bounds,level,level.getEntityCollisions(body,bounds.expandTowards(delta)));
             if(mustRecover) {
@@ -93,14 +95,14 @@ public final class S09SeparationBudgetBoundaryTests {
                 var exactLive=AnatomySeparation.resolve(captured,livePieces,4,128,liveClip);
                 h.assertTrue(!below.separated() && below.candidates()==127
                         && exactLive.separated() && exactLive.candidates()==128 && exactLive.displacement().x>0,
-                    "A12 candidate-128 control must remain exact under the same block/entity clip used by production: below="
+                    "A12 candidate-128 control must remain exact under canonical piece order and the same live clip: below="
                         +below+" exact="+exactLive+" slabs="+slabCount);
             } else {
                 var cappedLive=AnatomySeparation.resolve(captured,livePieces,4,128,liveClip);
                 var plusOneLive=AnatomySeparation.resolve(captured,livePieces,4,129,liveClip);
                 h.assertTrue(!cappedLive.separated() && cappedLive.candidates()==128
                         && plusOneLive.separated() && plusOneLive.candidates()==129 && plusOneLive.displacement().x>0,
-                    "A12 candidate-129 control must remain exact under the same block/entity clip used by production: capped="
+                    "A12 candidate-129 control must remain exact under canonical piece order and the same live clip: capped="
                         +cappedLive+" plusOne="+plusOneLive+" slabs="+slabCount);
             }
 
@@ -147,12 +149,12 @@ public final class S09SeparationBudgetBoundaryTests {
 
     /**
      * The test cares about the kernel's observable 128-candidate boundary, not an assumed
-     * one-slab/one-node relationship. Search the complete compact fixture family and require
-     * an exact transition so future queue-policy changes fail loudly without hard-coding internals.
+     * one-slab/one-node relationship. Search the compact fixture family in the same canonical
+     * piece-id order used by production, then require an exact transition.
      */
     private static int calibratedSlabCount(AABB body,Vec3 origin,boolean candidate128) {
         for(int count=1;count<=192;count++) {
-            var pieces=slabs(body,origin,count).values();
+            var pieces=orderedSlabs(slabs(body,origin,count));
             int low=candidate128?127:128,high=low+1;
             var below=AnatomySeparation.resolve(body,pieces,4,low,(box,delta)->delta);
             var exact=AnatomySeparation.resolve(body,pieces,4,high,(box,delta)->delta);
@@ -161,6 +163,10 @@ public final class S09SeparationBudgetBoundaryTests {
                 return count;
         }
         return -1;
+    }
+
+    private static java.util.List<ConvexBox> orderedSlabs(Map<String,ConvexBox> slabs) {
+        return java.util.List.copyOf(new TreeMap<>(slabs).values());
     }
 
     private static Map<String,ConvexBox> slabs(AABB body,Vec3 origin,int count) {
