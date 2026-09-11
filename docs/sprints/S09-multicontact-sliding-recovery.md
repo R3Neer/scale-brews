@@ -1,6 +1,6 @@
 # S09 — Multicontacto, sliding y recovery material
 
-Estado: **IMPLEMENTACIÓN COMPLETA / PASADA FINAL EN CURSO**. Quinto sprint de G2.
+Estado: **COMPLETADO**. Quinto sprint de G2.
 
 ## 1. Scope
 
@@ -65,7 +65,7 @@ Gate: **G2 — pipeline material continuo Q2**.
 - **A8 verde:** `S09PreparedIntervalContactProof` demuestra en la lane preparada real que un body estacionario puede adquirir contacto por un ROOT publicado sin own-move auxiliar.
 - **A9 verde:** `S09PreparedIntermediateContactProof` demuestra con catálogo real de cow que una pieza puede tocar sólo en `0<t<1`, desplazar al body, terminar con ambos endpoints libres, no inventar contacto final y dejar `admitted=1`, `quarantined=0`, `exhausted=0` bajo el budget existente.
 - **A10 verde:** endpoint cercano sin contacto temporal no magnetiza relación.
-- **A11 verde:** exhaustion conserva el prefijo seguro sólo como diagnóstico del kernel; la frontera live devuelve cero desplazamiento y cero contactos/deuda lógica, manteniendo exhaustion observable en métricas.
+- **A11 verde:** exhaustion conserva el prefijo seguro sólo como diagnóstico del kernel; la frontera live devuelve cero desplazamiento y cero contactos/deuda lógica, manteniendo exhaustion observable en métricas. El holdout final fija además la frontera real: `N-1` decoys completa dentro de 256 y `N` agota exactamente el budget.
 - **A12 verde:** la frontera exacta de `AnatomySeparation` quedó estabilizada canonicalizando/deduplicando candidatos antes de encolarlos; candidate 128 y `+1` se distinguen sin crecimiento artificial de duplicados.
 - **Holdout de screening verde:** un motion CLEAR con cota deformante floja que consume cientos de evaluaciones en CCD directo completa bajo 256 mediante screening certificado; los CLEAR baratos usan primero un probe CCD acotado.
 - **Holdout de tolerancia simultánea verde:** dos contactos distintos separados por menos de `TIME_EPS` siguen recogidos ambos.
@@ -95,7 +95,7 @@ Rojos retirados/no probatorios durante la revisión:
 - [x] I8 Reparar/verificar A11 y las demás fronteras afectadas: exhaustion observable, sin displacement parcial ni deuda lógica; budgets normativos permanecen en 32/256 y 128.
 - [x] I9 Auditar hot paths de S09: no hay `level.getAllEntities()` por query/move ni resample global de providers; la captura live sigue acotada por envelope y `maximumBodies`.
 - [x] I10 Revisión completa contra FR-043/044/047-053 y NFR-001/002/004/007/008; se eliminaron los diagnósticos temporales de A9 y no se creó segundo solver/owner.
-- [ ] I11 Ejecutar suite ordinaria + lane preparada sobre la versión limpia y hacer pasada final completa sin cambios de producción.
+- [x] I11 Ejecutar suite ordinaria + lane preparada sobre la versión limpia y hacer pasada final completa sin cambios de producción.
 
 ### Reparaciones aplicadas
 
@@ -114,6 +114,7 @@ Rojos retirados/no probatorios durante la revisión:
 - El overload puro de `TemporalResponse` puede conservar un prefijo seguro para diagnóstico.
 - El overload live con `clip` convierte `ITERATION_LIMIT` en displacement cero y contacts vacíos antes de recovery/selección persistente.
 - Exhaustion sigue contabilizado en métricas y el holdout calibrado no deja contacto ni suspensión derivados de un movimiento que no se aplica.
+- La calibración final exige una frontera exacta monotónica: una pieza menos completa por debajo de 256 y la siguiente agota exactamente 256.
 
 **A12 / recovery acotado**
 
@@ -206,17 +207,24 @@ Repetir A3/A7 con orden de registro invertido y tras una traslación común gran
 - No apareció doble ownership ni fue necesario cambiar arquitectura.
 - Fallos previos al oracle físico se separaron de regresiones físicas antes de modificar código.
 
-## 6. Criterio de cierre
+## 6. Evidencia de cierre
 
-S09 sólo cierra cuando:
+- `05e8ad9c90bc4c9f09a5d47d49e929c8a080b628`: versión sin diagnósticos temporales A9; `build` **verde** y `s08-prepared-adversarial-proof` **verde**.
+- `80fc63386dc0ae5faf10ce28f4658aa2d24c5fec`: último endurecimiento adversarial A11, sólo test; fija que `N-1` completa y `N` agota exactamente.
+- `09ea491f6517d90f81842ecee7ae14cc0e946e99`: documentación/revisión final encima del holdout A11; `build` **verde**.
+- Entre la pasada prepared limpia y el cierre no hubo cambios de producción, sólo el endurecimiento de test A11 y documentación.
 
-1. retención tangencial y release al abandonar footprint están demostrados live;
-2. multicontacto simultáneo/sliding son deterministas y respetan todas las constraints relevantes;
-3. recovery resoluble e irresoluble tienen outcomes acotados y pair-local;
-4. un intervalo runtime puede establecer/reacquirir contacto sin own-move;
-5. contacto sólo intermedio se detecta sin inventar contacto final;
-6. fronteras de budget afectadas tienen outcome observable y no mutación parcial ni deuda lógica;
-7. no se introduce scan mundial ni segundo solver;
-8. suite final requerida está verde y la pasada completa posterior no produce cambios de producción.
+## 7. Criterio de cierre
 
-Los puntos 1-7 están demostrados. El punto 8 queda pendiente únicamente de la ejecución final sobre la versión ya limpiada de diagnósticos; no queda ningún blocker funcional conocido.
+S09 cierra con:
+
+1. retención tangencial y release al abandonar footprint demostrados live;
+2. multicontacto simultáneo/sliding deterministas y respetando todas las constraints relevantes;
+3. recovery resoluble e irresoluble con outcomes acotados y pair-local;
+4. establecimiento/reacquisition por intervalo runtime sin own-move;
+5. contacto sólo intermedio detectado sin inventar contacto final;
+6. fronteras de budget con outcome observable, sin mutación parcial ni deuda lógica;
+7. ausencia de scan mundial y de segundo solver;
+8. suite ordinaria final verde, lane preparada final verde y pasada posterior sin cambios de producción.
+
+**S09 COMPLETADO.**
