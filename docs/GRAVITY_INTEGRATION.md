@@ -34,4 +34,6 @@ That collision work also needs an effective body gravity frame. When its develop
 
 The gravity-frame suite covers all six cardinal frames, DOWN equivalence, inverse local/world transforms, rider/root frame separation, frame changes between actions, pre-existing momentum preservation, bee flight, chicken glide and wolf pounce/landing. The normal CI runs both server and real client GameTests so these regressions remain part of ordinary repository validation.
 
+On 2026-09-11, GitHub Actions run `34586367431` completed successfully on Ubuntu/Java 25. The server lane ran all **130 required GameTests** and the real client GameTest lane also completed successfully. Gravity Changer was not present in that run, so the same evidence verifies that the optional integration does not become a hard runtime dependency and that the vanilla-DOWN fallback remains valid. The six-frame provider behavior itself is exercised through the test provider without creating a production Clinging dependency.
+
 This is bounded integration evidence, not a claim that every gravity mod is compatible. Gravity Changer is the concrete optional provider currently recognized by Scale Brews.
