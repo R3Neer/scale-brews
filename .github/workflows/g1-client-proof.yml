@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/g1-client-proof.yml'
 
+# Final G1 client proof trigger. Production and tests are unchanged.
 jobs:
   client-proof:
     runs-on: ubuntu-24.04
