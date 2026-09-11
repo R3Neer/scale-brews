@@ -1,6 +1,6 @@
 # S08 — Transporte anclado continuo y cadenas derivadas
 
-Estado: **IMPLEMENTACIÓN AVANZADA / ABIERTO POR FRONTERA TEMPORAL DE OWNERSHIP I6**. Cuarto sprint de G2.
+Estado: **IMPLEMENTACIÓN AVANZADA / I6 CERRADO / REVISIÓN ADVERSARIAL ABIERTA**. Cuarto sprint de G2.
 
 ## 1. Tesis del sprint
 
@@ -51,8 +51,8 @@ NFR: NFR-001, NFR-002, NFR-004, NFR-007, NFR-008, NFR-015, NFR-017, NFR-025 y NF
 5. `MaterialPhysicsRuntime` integra el carry anclado continuo dentro de ROOT/JOINT, actualiza el contacto certificado y, si el body transportado es soporte material activo, deriva su before→after sin reinyectarlo como ROOT/JOINT huérfano.
 6. `MaterialIntervalRuntime.deriveRoot(...)` conserva la continuidad S06 y deja la contribución derivada bajo ownership del evento padre, sin deuda pendiente.
 7. `recordCertifiedTransport(...)` preserva pasajeros y baseline de player; FR-061 tiene holdout que verifica velocidad, `fallDistance`, exhaustion y estadísticas vanilla de walk/sprint/swim/fall.
-8. La frontera I6 **no está cerrada**: `AnatomyMovement.carry(...)` suprime actualmente el fallback server-side cuando `AnatomyRuntime.owns(support)` es true, pero `owns(...)` expresa sesión/capacidad del nivel, no la existencia de un intervalo material certificado para ese support/causa.
-9. La lane preparada demuestra el defecto: un support registrado manualmente dentro de una sesión preparada, movido con `setPos` y sin ROOT/JOINT certificado, pierde el fallback endpoint aunque ningún dispatcher haya consumido su movimiento.
+8. I6 quedó reparado en `fc4ef518bbb8b357d8f3ee062d15caf4493e4f7c`: el fence de carry legacy ya no usa la mera sesión/nivel, sino el conjunto de supports realmente gestionados por la tabla activa del runtime. Un support registrado manualmente dentro de una sesión preparada conserva fallback; un binding activo queda bajo la cadencia material ROOT/JOINT/DERIVED del runtime.
+9. La lane preparada posterior pasa tanto la regresión de fallback manual como la cadena física A→B→C con geometría exportada real, admitiendo exactamente ROOT(A)+DERIVED(B) y sin deuda ni replay legacy.
 
 ### Estado objetivo
 
@@ -62,7 +62,7 @@ NFR: NFR-001, NFR-002, NFR-004, NFR-007, NFR-008, NFR-015, NFR-017, NFR-025 y NF
 - Sólo se aplica el endpoint del path si todo el intervalo está certificado libre; una obstrucción no aplica prefijo especulativo ni genera deuda.
 - El carry aplicado a una entidad que también posee geometría material produce una contribución `DERIVED_CARRY` hija del evento causante.
 - Dispatcher, no recursión oportunista del tick, ordena base→dependientes y corta ciclos/profundidad/event budget.
-- El antiguo `AnatomyMovement.carry` deja de ser un segundo motor de carry **sólo** cuando una contribución material concreta posee esa causa; la mera existencia de una sesión preparada no basta para suprimir fallback.
+- El antiguo `AnatomyMovement.carry` deja de ser un segundo motor de carry para supports poseídos por la cadencia material del runtime; los supports locales/manuales que no pueden publicar esa cadencia conservan el fallback.
 
 ### Deuda que permanece fuera
 
@@ -78,11 +78,11 @@ NFR: NFR-001, NFR-002, NFR-004, NFR-007, NFR-008, NFR-015, NFR-017, NFR-025 y NF
 - [x] I3 Integrar ese transporte en la planificación de `MaterialPhysicsRuntime` antes de aplicar un batch: el body transportado recibe el desplazamiento exacto `path.displacement(1)`, no el chord endpoint calculado por `AnatomyMovement.carry`.
 - [x] I4 Mantener atomicidad del batch: ninguna ruta de carry aplica desplazamiento si otra parte necesaria del mismo plan queda sin certificar.
 - [x] I5 Tras aplicar un carry, actualizar contacto/ancla/receipt mediante una única ruta y preservar baseline vanilla de server-player y passenger positioning sin contabilizar movimiento voluntario.
-- [ ] I6 **BLOCKER ACTUAL:** suprimir el carry endpoint paralelo sólo para intervalos/contribuciones realmente poseídos o consumidos por el dispatcher; conservar fallback legacy donde todavía no existe intervalo material certificado. `AnatomyRuntime.owns(support)` es demasiado amplio porque representa sesión/capacidad del nivel.
+- [x] I6 Suprimir el carry endpoint paralelo para supports bajo ownership material del runtime y conservar fallback legacy para supports manuales/locales sin una fuente material de la sesión. La regresión preparada manual y el A→B→C real quedan verdes tras `fc4ef518...`.
 - [x] I7 Si el body movido es soporte material activo, certificar su before→after como intervalo derivado y devolver `DerivedCarry` con el `EventId` padre; no reinyectarlo como ROOT/JOINT huérfano.
 - [x] I8 Hacer que `DERIVED_CARRY` use el mismo capture/resolve live y que ancestry/depth/cycle/event budgets del dispatcher gobiernen cadenas A→B→C.
 - [x] I9 Garantizar que pasajeros vanilla de una raíz transportada no entren como candidatos de carry anatómico independiente para la misma contribución.
-- [ ] I10 Completar GameTests de orden/permutación live y la evidencia preparada A→B→C; arco, obstrucción, no-debt, cadena scheduler, ciclo/depth/event budget, stale/rebind, overflow, passive-state y passenger candidate-once ya tienen cobertura.
+- [ ] I10 Completar el GameTest adversarial de orden/permutación live con bystander no causal. Arco, obstrucción, no-debt, cadena scheduler, cadena preparada real, ciclo/depth/event budget, stale/rebind, overflow, passive-state y passenger candidate-once ya tienen cobertura.
 - [ ] I11 Revisar el diff completo contra FR-056..061 y eliminar helpers o estado endpoint que hayan quedado sin consumidor real.
 - [ ] I12 Ejecutar suite ordinaria y lane preparada final; después realizar una pasada completa sin cambios de producción antes de cierre.
 
@@ -95,7 +95,7 @@ NFR: NFR-001, NFR-002, NFR-004, NFR-007, NFR-008, NFR-015, NFR-017, NFR-025 y NF
 - P5 regresiones: no sustituye todavía semánticas especiales de G5 ni prediction G4.
 - P6 simplicidad/verificabilidad: cada paso tiene observable físico o causal; no se añade scheduler alternativo.
 
-**Convergencia de plan:** una segunda pasada completa P1-P6 no produjo cambios. La implementación posterior abrió I6 por una frontera temporal más amplia que la convergida; esto no cambia requisitos, sólo mantiene abierta la implementación.
+**Convergencia de plan:** una segunda pasada completa P1-P6 no produjo cambios. La implementación abrió después I6 por un fence demasiado amplio; `fc4ef518...` lo estrechó a bindings activos del runtime y la evidencia preparada posterior cerró la regresión sin cambiar requisitos.
 
 ## 5. Modelo adversarial previo
 
@@ -123,6 +123,8 @@ ROOT y JOINT, o dos intervalos materiales serializados, mueven el mismo anchor. 
 
 A mueve B y B soporta C. B se mueve una vez por A; el intervalo derivado de B mueve C después. C no puede observar el endpoint nuevo de B antes de la contribución que lo causa.
 
+**Estado:** verde también en runtime preparado real. La prueba exige desplazamientos exactos, `admitted +2`, cero quarantine/exhaustion adicional, cero deuda pendiente y cero replay legacy.
+
 ### A7 — ciclo A↔B
 
 Dos entidades se retienen mutuamente. La cadena se corta por ancestry/cycle fence dentro de budgets; no recursión infinita, stack overflow ni invalidación mundial.
@@ -139,6 +141,8 @@ Una raíz transportada lleva passenger vanilla. El passenger sigue el movimiento
 
 Cambiar registration/candidate order no cambia posiciones finales, relaciones retenidas ni ancestry aceptada.
 
+**Estado:** pendiente de holdout live con bystander no causal.
+
 ### A11 — stale/rebind durante derivación
 
 Si el support derivado cambia generation/revision antes de certificarse, no se fabrica un `DERIVED_CARRY` sobre una identidad vieja.
@@ -151,11 +155,13 @@ Demasiados obstáculos o envelope no acotable deben producir fail-closed local. 
 
 **Estado:** verde en la frontera estática. `S08ObstacleOverflowTests` demuestra `256 -> COMPLETE/evaluations=256` y `257 -> EXHAUSTED/evaluations=256`, sin mover el body.
 
-### A13 — ownership temporal demasiado amplio
+### A13 — ownership de fallback bajo sesión preparada
 
-Una sesión preparada está activa, pero el support concreto se registró manualmente y se mueve mediante una ruta que no produce un intervalo ROOT/JOINT certificado. La existencia de la sesión no autoriza a silenciar el fallback endpoint: si ningún evento material posee esa causa, el body debe conservar la ruta legacy.
+Una sesión preparada está activa, pero el support concreto se registró manualmente y no pertenece a la tabla activa de bindings del runtime. La existencia de la sesión no autoriza a silenciar el fallback endpoint porque ese support no puede publicar la contribución material de la sesión.
 
-**Estado:** **ROJO VÁLIDO / BLOCKER I6.** La implementación usa `AnatomyRuntime.owns(c.support())` como fence de `AnatomyMovement.carry`. Ese predicado expresa sesión/capacidad del nivel y suprime también supports sin contribución material certificada. La lane preparada restaurada falla exactamente en ese caso antes de alcanzar el holdout A→B→C live.
+**Estado:** **CERRADO** por `fc4ef518...`. `AnatomyRuntime.owns(LivingEntity)` distingue el binding activo del mero nivel preparado. La lane preparada vuelve a pasar la regresión manual y, en la misma ejecución, alcanza y supera la cadena A→B→C live.
+
+**Oráculo retirado:** se ensayó después una condición más fuerte que exigía fallback inmediato tras `setPos` directo de un binding activo mientras aún no había trabajo pendiente. Se retiró en `a24788bd...`: un binding activo puede publicar esa mutación como JOINT en la cadencia del runtime, de modo que forzar además carry legacy inmediato podría violar FR-050/051 por doble consumo. Ese ensayo no constituye evidencia ni requisito.
 
 ### Holdouts reservados
 
@@ -175,21 +181,24 @@ El implementador conoce las propiedades, no los fixtures exactos, de:
 | blocked carry sin deuda | FR-057/058 | GameTest | verde |
 | derived root exactly-once | FR-050/051 | GameTest | verde y registrado |
 | A→B→C ancestry scheduler | FR-059 | GameTest sintético | verde |
-| A→B→C runtime preparado real | FR-050/059 | lane preparada | pendiente; A13 bloquea antes de ejecutarlo |
+| A→B→C runtime preparado real | FR-050/059 | lane preparada | **verde** |
 | ciclo/depth/event budget | FR-059, NFR-007 | GameTest/kernel | verde |
 | passenger candidate once | FR-060 | GameTest | verde |
 | passive velocity/fall/stats/exhaustion | FR-061 | GameTest | verde |
 | permutación/bystander | NFR-001/002/004 | GameTest preparado/live | pendiente |
 | stale identity / rebind derivado | NFR-017 | GameTest | verde |
 | overflow estático 256/257 | NFR-004/007/008 | GameTest | verde |
-| I6 fallback sin intervalo certificado bajo sesión preparada | FR-050/I6 | lane preparada | **rojo válido** |
+| I6 fallback de support manual bajo sesión preparada | FR-050/I6 | lane preparada | **verde** |
 
 ### Evidencia ejecutada relevante
 
 - `34643829554`: suite ordinaria verde tras endurecer FR-061 con exhaustion y stats vanilla.
 - `34644514029`: A11 stale/rebind verde.
 - `34645057205`, job `103413723609`: **332/332** GameTests verdes, incluido A12 `256/257`.
-- `34645201815`, job `103414197619`, snapshot `0f4f4ec99b0e6168bf93d542bc953e6967710fca`: exportación cliente original verde; lane preparada server **roja** con 1/2 required tests fallando en `AnatomyGeometryTests.anatomicalRootTransportOncePrepared`, mensaje `Material contact follows translation and rotation on tick 0`. El holdout preparado A→B→C no llega a ejecutarse.
+- `34645201815`, job `103414197619`, snapshot `0f4f4ec99b0e6168bf93d542bc953e6967710fca`: exportación cliente original verde; lane preparada server **roja** con 1/2 required tests fallando en la regresión manual de fallback.
+- reparación `fc4ef518bbb8b357d8f3ee062d15caf4493e4f7c`: fence legacy estrechado a support realmente presente en la tabla activa del runtime.
+- `34645613496`: suite ordinaria verde sobre `fc4ef518...`.
+- `34645613492`, job `103415549654`: lane preparada verde sobre `fc4ef518...`; export original cow/player/familias verde y servidor **2/2 required GameTests**. Esta ejecución demuestra que la regresión manual queda reparada y que el holdout A→B→C preparado real se ejecuta hasta completar.
 
 ## 7. Criterio de cierre
 
@@ -201,6 +210,7 @@ S08 sólo puede cerrarse si:
 4. una cadena material derivada conserva ancestry, orden y exactly-once;
 5. ciclos/profundidad/event budget fallan localmente;
 6. passenger transport ocurre una vez;
-7. **I6 distingue ownership material concreto de mera sesión preparada y el fallback sin intervalo certificado vuelve a quedar verde**;
-8. suites afectadas y lane preparada quedan verdes y la segunda pasada adversarial no fuerza cambios de requisitos;
-9. una pasada completa posterior no produce cambios de producción.
+7. I6 conserva fallback para supports sin ownership material de runtime y evita motor paralelo en bindings activos;
+8. permutación/bystander live queda demostrada;
+9. suites afectadas y lane preparada final quedan verdes y la segunda pasada adversarial no fuerza cambios de requisitos;
+10. una pasada completa posterior no produce cambios de producción.
