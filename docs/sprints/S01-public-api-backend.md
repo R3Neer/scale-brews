@@ -1,6 +1,6 @@
 # S01 — Frontera pública y backend explícito
 
-Estado: **CERRADO**.
+Estado: **REABIERTO por evidencia adversarial posterior**. El estado global de G1 vive en `ENTITY_COLLISIONS_PLAN.md`.
 
 ## 1. Scope
 
@@ -33,6 +33,8 @@ La base cubrió backend único/ausente/duplicado, DISABLED/BINDING/READY y gravi
 
 La campaña adversarial paralela amplió la frontera: no basta con que `AnatomyApi` no importe internals; el **contrato del backend tampoco puede ser API pública de consumer**.
 
+Una pasada posterior al cierre añadió un holdout estructural de NFR-025: mover el contrato fuera de `collision.api` tampoco basta si `collision.api` y una capa de alto nivel como `collision.runtime` quedan dependiendo mutuamente.
+
 ## 5. Implementación
 
 - [x] `AnatomyApi` como façade pública mínima.
@@ -43,38 +45,48 @@ La campaña adversarial paralela amplió la frontera: no basta con que `AnatomyA
 
 La implementación inicial colocó `AnatomyBackend` en `collision.api`. Eso satisfacía la inversión de dependencias de `AnatomyApi`, pero no el requisito más fuerte de mantener el backend como wiring interno/runtime.
 
+La primera reparación movió el contrato a `collision.runtime`. Una revisión posterior comprobó que `AnatomyApi` referencia ese contrato y el contrato runtime referencia a su vez tipos de `collision.api`, por lo que quedó un ciclo de capas todavía incompatible con NFR-025.
+
 ## 6. Test matrix
 
-| Ataque / propiedad | Nivel | Resultado final |
+| Ataque / propiedad | Nivel | Resultado vigente |
 | --- | --- | --- |
-| backend ausente falla cerrado | GameTest | PASS |
-| provider único / duplicado | GameTest | PASS |
+| backend ausente falla cerrado | GameTest | PASS histórico |
+| provider único / duplicado | GameTest | PASS histórico |
 | façade pública sin `collision.internal` | reflection/GameTest | PASS |
-| backend contract no es API pública de consumer | adversarial reflection/GameTest | PASS tras reparación |
-| suite servidor completa | `./gradlew build` | PASS, 266/266 |
-| client/integrated/dedicated | `runClientGameTest` | PASS |
+| backend contract no es API pública de consumer | adversarial reflection/GameTest | PASS tras primera reparación |
+| `collision.api` ↔ `collision.runtime` sin ciclo de alto nivel | adversarial reflection/GameTest | **FAIL vigente** |
+| suite servidor completa | `./gradlew build` | **267/268 PASS; 1 FAIL vigente** |
+| client/integrated/dedicated | `runClientGameTest` | PASS histórico anterior al nuevo bloqueo; debe repetirse tras reparación common/API |
 
 ## 7. Fallos encontrados y bucles
 
 El candidato inicial `f87e4e1d406fb7c58bf1df80d3b8f8cd831806dd` pasó run `34582769682`, pero S01 todavía no estaba registrado como entrypoint GameTest. Ese verde demuestra build/regresión, no sus aserciones. Tras registrar S01-S04, snapshots posteriores ejecutaron la suite real.
 
-La campaña adversarial final sobre `19626950569110963cd47611b245234c650f2ca0` produjo un fallo real en run `34592683287`, job `103241351742`: `S01PublicApiBoundaryTests.backendContractIsNotPublicConsumerApi` encontró `io.github.r3neer.scalebrews.collision.api.AnatomyBackend` público. Se clasificó como **bug de implementación**, no como defecto del test o del requisito.
+La campaña adversarial sobre `19626950569110963cd47611b245234c650f2ca0` produjo un fallo real en run `34592683287`, job `103241351742`: `S01PublicApiBoundaryTests.backendContractIsNotPublicConsumerApi` encontró `io.github.r3neer.scalebrews.collision.api.AnatomyBackend` público. Se clasificó como **bug de implementación**, no como defecto del test o del requisito.
 
-`3ba014dc2e19b6b700a707bd3177c55ac443328f` movió el contrato a `collision.runtime.AnatomyBackend`, actualizó `AnatomyApi`, `ScaleAnatomyBackend` y el descriptor ServiceLoader, y eliminó el tipo `collision.api.AnatomyBackend`.
+`3ba014dc2e19b6b700a707bd3177c55ac443328f` movió el contrato a `collision.runtime.AnatomyBackend`, actualizó `AnatomyApi`, `ScaleAnatomyBackend` y el descriptor ServiceLoader, y eliminó el tipo `collision.api.AnatomyBackend`. Esa reparación pasó la suite disponible entonces.
+
+La revisión adversarial posterior añadió `publicApiAndRuntimeDoNotFormALayerCycle`. El snapshot `94f2db96277f02c9e9d4903bdb02046b7878f4c2` ejecutó 267 GameTests en run `34595220211`, job `103249293688`: **266 pasaron y sólo falló** ese nuevo holdout, señalando `collision.api ↔ collision.runtime` a través de `collision.runtime.AnatomyBackend`. `be41003bbceaecd27a36dc1d13e4bef0f8bde114` añadió además el holdout S03 de límites; run `34595505502`, job `103250215902`, ejecutó 268 tests y volvió a dejar exactamente el mismo único fallo S01.
+
+El fallo vigente se clasifica como **bug de arquitectura/implementación de la frontera S01 respecto de NFR-025**. No se relaja el test ni se adelanta G2.
 
 ## 8. Revisión final
 
-La pasada posterior a la campaña revisó façade, service loading, ownership, fail-closed, gravedad y superficie de tipos. El backend Scale queda fuera de `collision.api`; no se creó un segundo ledger/solver y no se tocaron responsabilidades Q2. La repetición completa no produjo cambios adicionales de S01.
+La antigua pasada de cierre verificó façade, service loading, ownership, fail-closed, gravedad y superficie pública, pero no detectó la dependencia mutua creada al mover el backend a `collision.runtime`. El nuevo holdout invalida esa convergencia para NFR-025.
+
+La revisión podrá cerrarse de nuevo sólo después de que una reparación elimine el ciclo, la suite completa vuelva a verde, se repita la evidencia cliente/integrated/dedicated aplicable por tratarse de una frontera common/API y una pasada completa posterior no produzca cambios.
 
 ## 9. Cierre
 
-- [x] implementación del scope;
+- [x] implementación original del scope;
 - [x] tests S01 realmente registrados;
-- [x] campaña adversarial integrada;
-- [x] fallo adversarial clasificado y reparado;
-- [x] suite final servidor verde;
-- [x] client/integrated/dedicated final verde;
-- [x] revisión final posterior a la campaña sin cambios;
-- [x] S01 cerrado.
+- [x] campaña adversarial inicial integrada;
+- [x] backend retirado de `collision.api`;
+- [ ] ciclo `collision.api ↔ collision.runtime` eliminado;
+- [ ] suite servidor final verde con los holdouts actuales;
+- [ ] client/integrated/dedicated repetido tras la reparación common/API;
+- [ ] revisión final posterior sin cambios;
+- [ ] S01 cerrado de nuevo.
 
-Evidencia final compartida de G1: implementación/test `3ba014dc2e19b6b700a707bd3177c55ac443328f`; GitHub Actions run `34593762577`, job `103244714934`, **266/266 required GameTests passed**. El trigger code-identical `23a1072ef451a14f59f707019415e1f4ac60dbab` repitió build y ejecutó client/integrated/dedicated en run `34593970131`, job `103245364717`, con conclusión **success**.
+La evidencia roja vigente y el estado global se registran respectivamente en `VALIDATION.md` y `ENTITY_COLLISIONS_PLAN.md`.
