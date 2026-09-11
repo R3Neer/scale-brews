@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -22,7 +23,7 @@ public final class S05LiveBroadphaseLocalityTests {
         var level=h.getLevel();
         var body=h.makeMockServerPlayerInLevel();
         body.setNoGravity(true);
-        var supports=new ArrayList<net.minecraft.world.entity.animal.Cow>();
+        var supports=new ArrayList<LivingEntity>();
         var samples=new AtomicInteger();
         GeometryProvider farProvider=entity->{
             samples.incrementAndGet();
