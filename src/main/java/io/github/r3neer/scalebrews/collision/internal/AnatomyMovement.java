@@ -516,9 +516,9 @@ public final class AnatomyMovement {
             // last applied segment for the next pose sample to remove passive motion exactly once.
             invalidateBody(entry.getKey(),false);
     }
-    private record Candidate(LivingEntity entity,String id,long revision,ConvexBox box) {}
-    private record CandidateQuery(MaterialBroadphase.QueryStatus status,List<Candidate> candidates) {
-        private boolean complete(){return status==MaterialBroadphase.QueryStatus.COMPLETE;}
+    static record Candidate(LivingEntity entity,String id,long revision,ConvexBox box) {}
+    static record CandidateQuery(MaterialBroadphase.QueryStatus status,List<Candidate> candidates) {
+        boolean complete(){return status==MaterialBroadphase.QueryStatus.COMPLETE;}
     }
     public record SweepContact(LivingEntity support,String piece,long revision,ConservativeSweep.Result result) {}
     /** Dedicated temporal query, deliberately separate from navigation and vanilla noCollision. */
@@ -565,7 +565,7 @@ public final class AnatomyMovement {
         }
         return best;
     }
-    private static CandidateQuery candidates(Entity body,AABB swept) {
+    static CandidateQuery candidates(Entity body,AABB swept) {
         List<Candidate> result=new ArrayList<>();
         var supportQuery=indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())));
         if(!supportQuery.complete())return new CandidateQuery(supportQuery.status(),List.of());
