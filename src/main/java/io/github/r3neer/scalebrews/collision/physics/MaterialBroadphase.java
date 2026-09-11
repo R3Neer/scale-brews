@@ -13,9 +13,8 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * Bounded spatial index over material bounds. The index owns no world/provider
- * lifecycle: callers supply immutable bounds for the material state being
- * queried, which lets later Q2 stages replace endpoint bounds with certified
- * interval envelopes without changing the broadphase contract.
+ * lifecycle: callers supply material bounds and may replace one identity entry
+ * when an explicit runtime mutation hook advances that support.
  */
 public final class MaterialBroadphase<K> {
     public enum QueryStatus { COMPLETE, BUDGET_EXHAUSTED, INVALID_QUERY }
@@ -61,15 +60,17 @@ public final class MaterialBroadphase<K> {
     private record Range(long minX, long maxX, long minY, long maxY, long minZ, long maxZ) {}
 
     private final double cellSize;
+    private final long maxEntryCells;
     private final long maxQueryCells;
     private final int maxCandidates;
     private final Comparator<? super K> order;
     private final Map<Cell, List<K>> cells;
     private final Map<K, AABB> bounds;
 
-    private MaterialBroadphase(double cellSize, long maxQueryCells, int maxCandidates,
+    private MaterialBroadphase(double cellSize, long maxEntryCells, long maxQueryCells, int maxCandidates,
             Comparator<? super K> order, Map<Cell, List<K>> cells, Map<K, AABB> bounds) {
         this.cellSize = cellSize;
+        this.maxEntryCells = maxEntryCells;
         this.maxQueryCells = maxQueryCells;
         this.maxCandidates = maxCandidates;
         this.order = order;
@@ -105,13 +106,44 @@ public final class MaterialBroadphase<K> {
         }
 
         for (var bucket : cells.values()) bucket.sort(order);
-        Map<Cell, List<K>> frozenCells = new HashMap<>();
-        cells.forEach((cell, bucket) -> frozenCells.put(cell, List.copyOf(bucket)));
-        return new BuildResult<>(new MaterialBroadphase<>(cellSize, maxQueryCells, maxCandidates, order,
-            Collections.unmodifiableMap(frozenCells), Collections.unmodifiableMap(bounds)), rejected);
+        return new BuildResult<>(new MaterialBroadphase<>(cellSize, maxEntryCells, maxQueryCells, maxCandidates,
+            order, cells, bounds), rejected);
     }
 
-    public QueryResult<K> query(AABB query) {
+    /** Replace one identity entry without rebuilding or evaluating unrelated entries. */
+    public synchronized Rejected<K> upsert(Entry<K> entry) {
+        Objects.requireNonNull(entry, "entry");
+        remove(entry.key());
+        var range = range(entry.bounds(), cellSize);
+        if (range == null)
+            return new Rejected<>(entry.key(), RejectionReason.INVALID_BOUNDS, 0);
+        long count = boundedCellCount(range, maxEntryCells);
+        if (count > maxEntryCells)
+            return new Rejected<>(entry.key(), RejectionReason.ENTRY_BUDGET_EXHAUSTED, count);
+        bounds.put(entry.key(), entry.bounds());
+        forEachCell(range, cell -> {
+            var bucket = cells.computeIfAbsent(cell, ignored -> new ArrayList<>());
+            bucket.add(entry.key());
+            bucket.sort(order);
+        });
+        return null;
+    }
+
+    /** Remove one identity entry from only the cells occupied by its previous bounds. */
+    public synchronized void remove(K key) {
+        var previous = bounds.remove(key);
+        if (previous == null) return;
+        var range = range(previous, cellSize);
+        if (range == null) return;
+        forEachCell(range, cell -> {
+            var bucket = cells.get(cell);
+            if (bucket == null) return;
+            bucket.removeIf(candidate -> candidate == key);
+            if (bucket.isEmpty()) cells.remove(cell);
+        });
+    }
+
+    public synchronized QueryResult<K> query(AABB query) {
         var range = range(query, cellSize);
         if (range == null) return new QueryResult<>(QueryStatus.INVALID_QUERY, List.of(), 0, 0, 0);
         long requested = boundedCellCount(range, maxQueryCells);
@@ -143,9 +175,9 @@ public final class MaterialBroadphase<K> {
         return new QueryResult<>(QueryStatus.COMPLETE, matches, requested, visitedCells[0], candidatesVisited[0]);
     }
 
-    public int size() { return bounds.size(); }
-    public int bucketCount() { return cells.size(); }
-    public AABB bounds(K key) { return bounds.get(key); }
+    public synchronized int size() { return bounds.size(); }
+    public synchronized int bucketCount() { return cells.size(); }
+    public synchronized AABB bounds(K key) { return bounds.get(key); }
 
     private static Range range(AABB box, double cellSize) {
         if (box == null || !finite(box.minX) || !finite(box.minY) || !finite(box.minZ)
