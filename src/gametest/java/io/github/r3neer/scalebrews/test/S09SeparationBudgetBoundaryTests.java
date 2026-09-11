@@ -19,7 +19,7 @@ public final class S09SeparationBudgetBoundaryTests {
     @GameTest
     public void exactBoundaryRecoversButCandidate129FailsClosedAndPairLocal(GameTestHelper h) {
         // Do not infer the queue cardinality from slab count. ConvexBox.escapeVectors deliberately
-        // publishes both exits on every SAT axis, so the kernel itself calibrates the two exact
+        // publishes several SAT exits per overlap, so the kernel itself calibrates the two exact
         // boundaries and the live path must reproduce those already-proven fixtures.
         runCase(h,true,8,6,2);
         runCase(h,false,24,6,18);
@@ -112,11 +112,11 @@ public final class S09SeparationBudgetBoundaryTests {
 
     /**
      * The test cares about the kernel's observable 128-candidate boundary, not an assumed
-     * one-slab/one-node relationship. Search only the compact neighborhood this fixture family
-     * occupies and require an exact transition so a future queue-policy change fails loudly.
+     * one-slab/one-node relationship. Search the complete compact fixture family and require
+     * an exact transition so future queue-policy changes fail loudly without hard-coding internals.
      */
     private static int calibratedSlabCount(AABB body,Vec3 origin,boolean candidate128) {
-        for(int count=96;count<=160;count++) {
+        for(int count=1;count<=192;count++) {
             var pieces=slabs(body,origin,count).values();
             int low=candidate128?127:128,high=low+1;
             var below=AnatomySeparation.resolve(body,pieces,4,low,(box,delta)->delta);
