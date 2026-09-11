@@ -83,6 +83,52 @@ public final class S05BoundedMaterialBroadphaseTests {
     }
 
     @GameTest
+    public void incrementalUpsertMovesOnlyTargetIdentityAndDoesNotDuplicate(GameTestHelper h) {
+        var first = entry(1, box(0, 0, 0, .9, .9, .9));
+        var alias = entry(2, box(0, 0, 0, .9, .9, .9));
+        h.assertTrue(first.key() != alias.key() && first.key().equals(alias.key()),
+            "Fixture must use identity-distinct keys that alias under equals");
+        var index = build(List.of(first, alias), 8, 8, 32).index();
+
+        var movedBounds = box(4, 0, 0, 4.9, .9, .9);
+        var rejected = index.upsert(new MaterialBroadphase.Entry<>(first.key(), movedBounds));
+        h.assertTrue(rejected == null, "Bounded incremental move must be accepted");
+        var oldCell = index.query(first.bounds());
+        var newCell = index.query(movedBounds);
+        h.assertTrue(oldCell.complete() && oldCell.candidates().size() == 1 && oldCell.candidates().getFirst() == alias.key(),
+            "Moving one identity must not remove or move an equals-alias entry");
+        h.assertTrue(newCell.complete() && newCell.candidates().size() == 1 && newCell.candidates().getFirst() == first.key(),
+            "Moved identity must appear only at its new material bounds");
+
+        rejected = index.upsert(first);
+        h.assertTrue(rejected == null, "Moving the same identity back must remain bounded");
+        var restored = index.query(first.bounds());
+        h.assertTrue(restored.complete() && restored.candidates().size() == 2
+                && restored.candidates().get(0) == first.key() && restored.candidates().get(1) == alias.key(),
+            "Repeated upsert must neither duplicate the key nor change deterministic candidate order");
+        h.assertTrue(index.size() == 2, "Repeated upsert must preserve exact identity cardinality");
+        h.succeed();
+    }
+
+    @GameTest
+    public void rejectedIncrementalUpsertCannotLeaveStalePreviousCollider(GameTestHelper h) {
+        var original = entry(1, box(0, 0, 0, .9, .9, .9));
+        var index = build(List.of(original), 8, 8, 32).index();
+        var huge = new MaterialBroadphase.Entry<>(original.key(), box(0, 0, 0, 2.1, 1.9, 1.9));
+
+        var rejected = index.upsert(huge);
+        h.assertTrue(rejected != null && rejected.key() == original.key()
+                && rejected.reason() == MaterialBroadphase.RejectionReason.ENTRY_BUDGET_EXHAUSTED,
+            "Oversized replacement must return an explicit rejection for the same identity");
+        var staleRegion = index.query(original.bounds());
+        h.assertTrue(staleRegion.complete() && staleRegion.candidates().isEmpty(),
+            "Fail-closed incremental rejection must remove the previous collider instead of leaving stale geometry");
+        h.assertTrue(index.size() == 0 && index.bucketCount() == 0,
+            "Rejected replacement must leave no residual identity or occupied bucket");
+        h.succeed();
+    }
+
+    @GameTest
     public void insertionOrderCannotChangeCandidateOrder(GameTestHelper h) {
         var first = entry(1, box(0, 0, 0, .9, .9, .9));
         var second = entry(2, box(0, 0, 0, .9, .9, .9));
