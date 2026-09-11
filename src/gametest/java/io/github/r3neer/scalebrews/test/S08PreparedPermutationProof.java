@@ -46,7 +46,7 @@ final class S08PreparedPermutationProof {
 
             long bGeneration,bystanderGeneration;
             if(bystanderFirst) {
-                bystander=spawnBystander(h,top);
+                bystander=spawnBystander(h,a);
                 Platforms.tick(level);
                 h.assertTrue(AnatomyRuntime.authoritativeFrame(bystander).isPresent(),"Bystander-first permutation must register the bystander");
                 bystanderGeneration=AnatomyMovement.queryFrame(bystander).orElseThrow().identity().bindingGeneration();
@@ -63,7 +63,7 @@ final class S08PreparedPermutationProof {
                 h.assertTrue(AnatomyRuntime.authoritativeFrame(b).isPresent(),"Chain-first permutation must register B first");
                 bGeneration=AnatomyMovement.queryFrame(b).orElseThrow().identity().bindingGeneration();
 
-                bystander=spawnBystander(h,top);
+                bystander=spawnBystander(h,a);
                 Platforms.tick(level);
                 h.assertTrue(AnatomyRuntime.authoritativeFrame(bystander).isPresent(),"Chain-first permutation must then register the bystander");
                 bystanderGeneration=AnatomyMovement.queryFrame(bystander).orElseThrow().identity().bindingGeneration();
@@ -148,12 +148,24 @@ final class S08PreparedPermutationProof {
         return b;
     }
 
-    private static LivingEntity spawnBystander(GameTestHelper h,AABB top) {
+    /**
+     * Put the bystander just outside A's global -X material boundary. The +X ROOT motion therefore
+     * moves every A piece away from it, while the 0.05 gap still places its tiny body inside the
+     * conservative 0.2-block interval envelope. It is a real broadphase candidate but cannot be a
+     * causal contact, and it stays well away from the top-centred B -> C chain.
+     */
+    private static LivingEntity spawnBystander(GameTestHelper h,LivingEntity a) {
         var bystander=h.spawn(EntityTypes.COW,7,20,2);
         bystander.setNoAi(true);bystander.setNoGravity(true);
         bystander.getAttribute(Attributes.SCALE).setBaseValue(.08);bystander.refreshDimensions();
-        double lateral=Math.min(.5,Math.max(.25,top.getXsize()*.25));
-        bystander.setPos(top.getCenter().x+lateral,top.maxY+.08,top.getCenter().z);
+        var side=AnatomyMovement.queryFrame(a).orElseThrow().snapshot().pieces().values().stream()
+            .map(ConvexBox::bounds)
+            .min(Comparator.comparingDouble((AABB box)->box.minX))
+            .orElseThrow();
+        double gap=.05;
+        double halfWidth=bystander.getBoundingBox().getXsize()*.5;
+        double height=bystander.getBoundingBox().getYsize();
+        bystander.setPos(side.minX-gap-halfWidth,side.getCenter().y-height*.5,side.getCenter().z);
         return bystander;
     }
 
