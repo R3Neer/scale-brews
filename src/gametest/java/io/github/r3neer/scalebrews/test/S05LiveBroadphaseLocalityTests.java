@@ -16,7 +16,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** S05/NFR-008 holdout for locality of the live broadphase wrapper, not only its reusable kernel. */
+/** S05/NFR-008 holdouts for locality of the live broadphase wrapper, not only its reusable kernel. */
 public final class S05LiveBroadphaseLocalityTests {
     @GameTest
     public void localQueryMustNotResampleEveryFarWorldSupport(GameTestHelper h) {
@@ -25,24 +25,12 @@ public final class S05LiveBroadphaseLocalityTests {
         body.setNoGravity(true);
         var supports=new ArrayList<LivingEntity>();
         var samples=new AtomicInteger();
-        GeometryProvider farProvider=entity->{
-            samples.incrementAndGet();
-            var box=ConvexBox.of(new AABB(-.25,-.25,-.25,.25,.25,.25),new Matrix4f()).move(entity.position());
-            return Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",box)));
-        };
+        GeometryProvider farProvider=countingProvider(samples,1);
 
         AnatomyMovement.activate(level);
         try {
             Vec3 origin=body.position();
-            for(int i=0;i<64;i++) {
-                var support=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
-                if(support==null)throw new IllegalStateException("Cow fixture could not be created");
-                support.setNoAi(true);support.setNoGravity(true);
-                support.setPos(origin.add(1000+i*8,0,0));
-                level.addFreshEntity(support);
-                supports.add(support);
-                AnatomyMovement.register(support,farProvider);
-            }
+            addFarSupports(level,origin,supports,farProvider);
 
             AABB local=body.getBoundingBox();
             h.assertTrue(AnatomyMovement.spaceClear(body,local),
@@ -59,5 +47,70 @@ public final class S05LiveBroadphaseLocalityTests {
             body.discard();
         }
         h.succeed();
+    }
+
+    @GameTest
+    public void firstLocalQueryAfterLegitimateRebindMustNotResampleFarWorld(GameTestHelper h) {
+        var level=h.getLevel();
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        var supports=new ArrayList<LivingEntity>();
+        var farSamples=new AtomicInteger();
+        GeometryProvider farProvider=countingProvider(farSamples,1);
+
+        var localSupport=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
+        if(localSupport==null)throw new IllegalStateException("Local cow fixture could not be created");
+        localSupport.setNoAi(true);localSupport.setNoGravity(true);
+        localSupport.setPos(body.position().add(3,0,0));
+        level.addFreshEntity(localSupport);
+        supports.add(localSupport);
+        GeometryProvider localA=countingProvider(new AtomicInteger(),2);
+        GeometryProvider localB=countingProvider(new AtomicInteger(),3);
+
+        AnatomyMovement.activate(level);
+        try {
+            addFarSupports(level,body.position(),supports,farProvider);
+            AnatomyMovement.register(localSupport,localA);
+            AABB localQuery=body.getBoundingBox();
+            h.assertTrue(AnatomyMovement.spaceClear(body,localQuery),
+                "Initial local query must materialize the world index before the rebind");
+
+            // Rebind is an explicit supported mutation hook. It may do maintenance itself.
+            // Reset after the hook: this test constrains the next physical query, not the
+            // implementation strategy or cost chosen inside the mutation callback.
+            AnatomyMovement.register(localSupport,localB);
+            farSamples.set(0);
+
+            h.assertTrue(AnatomyMovement.spaceClear(body,localQuery),
+                "First local query after a legitimate local rebind must remain clear");
+            h.assertTrue(farSamples.get()==0,
+                "NFR-008 forbids deferring a world-wide provider rescan onto the next movement/query after a local rebind; far provider samples="+farSamples.get());
+        } finally {
+            AnatomyMovement.deactivate(level);
+            supports.forEach(net.minecraft.world.entity.Entity::discard);
+            body.discard();
+        }
+        h.succeed();
+    }
+
+    private static GeometryProvider countingProvider(AtomicInteger samples,long revision) {
+        return entity->{
+            samples.incrementAndGet();
+            var box=ConvexBox.of(new AABB(-.25,-.25,-.25,.25,.25,.25),new Matrix4f()).move(entity.position());
+            return Optional.of(new GeometryProvider.Snapshot(revision,Map.of("body",box)));
+        };
+    }
+
+    private static void addFarSupports(net.minecraft.server.level.ServerLevel level,Vec3 origin,
+            ArrayList<LivingEntity> supports,GeometryProvider provider) {
+        for(int i=0;i<64;i++) {
+            var support=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
+            if(support==null)throw new IllegalStateException("Cow fixture could not be created");
+            support.setNoAi(true);support.setNoGravity(true);
+            support.setPos(origin.add(1000+i*8,0,0));
+            level.addFreshEntity(support);
+            supports.add(support);
+            AnatomyMovement.register(support,provider);
+        }
     }
 }
