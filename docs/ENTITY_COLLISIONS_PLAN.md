@@ -72,7 +72,7 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 
 ### G2 — pipeline material continuo Q2
 
-**Estado:** **ABIERTO / en ejecución**. S05, S06, S07 y S08 están cerrados. Broadphase, identidad causal de intervalos, dispatcher live ROOT/JOINT y transporte anclado/DERIVED_CARRY ya tienen evidencia; el siguiente frente es S09: multicontacto, sliding, retención tangencial y recovery material live. G2 no se declara cerrado mientras queden esos comportamientos, wall squeeze/contacto sólo intermedio y la instrumentación de budgets pendiente.
+**Estado:** **ABIERTO / en ejecución**. S05, S06, S07 y S08 están cerrados. Broadphase, identidad causal de intervalos, dispatcher live ROOT/JOINT y transporte anclado/DERIVED_CARRY ya tienen evidencia; el frente activo es S09: multicontacto, sliding, retención tangencial y recovery material live. G2 no se declara cerrado mientras queden esos comportamientos, wall squeeze/contacto sólo intermedio y la instrumentación de budgets pendiente.
 
 **Requisitos:** FR-042..063; NFR-001..004, NFR-007..008, NFR-014..018, NFR-033.
 
@@ -82,7 +82,7 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 4. [x] procesar varias contribuciones del mismo tick exactamente una vez cada una y mantener ancestry;
 5. [ ] cerrar tangential retention, multicontacto, sliding y separation recovery;
 6. [x] impedir que broadphase oversized degrade a scan mundial en hot path: kernel `MaterialBroadphase` acotado, fail-closed y cuarentena local, cerrado en S05;
-7. [ ] probar cadenas, obstrucción, wall squeeze, huecos y contacto que sólo existe en mitad del intervalo; cadenas/obstrucción están cerradas por S08, pero los casos wall-squeeze/huecos/intermedio siguen abiertos;
+7. [ ] probar cadenas, obstrucción, wall squeeze, huecos y contacto que sólo existe en mitad del intervalo; cadenas/obstrucción están cerradas por S08, incluidos obstáculos vanilla y anatómicos fuera del batch, pero los casos wall-squeeze/huecos/intermedio siguen abiertos;
 8. [ ] fijar e instrumentar budgets de sweep/eventos;
 9. [ ] mover fuera de `collision.internal` tipos físicos/orquestadores sólo cuando queden realmente desacoplados al cerrar Q2.
 
@@ -92,9 +92,11 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 
 **S07 cerrado:** el dispatcher consume intervalos live ROOT/JOINT, agrupa batches simultáneos, usa CCD temporal, localiza fallos por relación y revalida contactos retenidos tras batches rechazados. La campaña adversarial cerró overflow, provenance, contacto exacto, initial separation y conflictos multi-support.
 
-**S08 cerrado:** carry retenido usa trayectoria anclada certificada, obstrucción continua, receipts/passengers y cadenas `DERIVED_CARRY` base→dependientes. La última campaña adversarial encontró y reparó el rechazo incorrecto de un bystander activo estacionario; ordinary run `34647905669` y prepared run `34647905593` quedaron verdes sobre `0a6914ba355021b0e0e8c29a32eee0a32cb0adbc`.
+**S08 cerrado tras reapertura adversarial tardía:** carry retenido usa trayectoria anclada certificada, obstrucción continua, receipts/passengers y cadenas `DERIVED_CARRY` base→dependientes. Después del cierre provisional sobre `0a6914ba...`, holdouts posteriores demostraron dos huecos FR-057: una entidad vanilla sólo en mitad de un arco y un soporte anatómico estacionario fuera del batch cuya AABB vanilla estaba suprimida. El cierre vigente es `4abe57cd30441761e667f8a56fa233f2a9d709e8`: ordinary run `34651958772` verde, artefacto `10284575580` SHA-256 `9439f0806924e8a35c85c6fa6f3d4b7d46152f10baeb37422bde779ff9a14818`; prepared run `34651958909`, job `103435928454`, export original verde y servidor **2/2**. La revisión posterior no produjo cambios de producción.
 
-**Siguiente frente:** S09 debe cerrar la física de contacto múltiple en integración live: retención tangencial sin nuevo hit, sliding con normales activas, contactos simultáneos deterministas, recovery/separation acotado, wall squeeze local, reacquisition por intervalo publicado y contacto que existe sólo en mitad del intervalo. Debe además convertir los budgets relevantes en observables suficientes para demostrar sus fronteras sin introducir scans globales.
+**S09 en ejecución:** los primeros holdouts live de retención tangencial y floor+wall simultáneo ya pasan, y el preparado `S09PreparedIntervalContactProof` demuestra reacquisition de un body estacionario desde un ROOT publicado. Eso es evidencia parcial del sprint, no cierre: quedan los ataques de recovery/localidad, wall squeeze/intermedio y budgets/observabilidad.
+
+**Siguiente frente:** completar S09 sobre la física de contacto múltiple en integración live: sliding con normales activas, contactos simultáneos deterministas, recovery/separation acotado y local, wall squeeze, contacto que existe sólo en mitad del intervalo y fronteras de budget observables sin introducir scans globales.
 
 **Salida:** física material correcta en server single-player/dedicated sin depender todavía de predicción bajo latencia.
 
@@ -232,9 +234,9 @@ G1 se ejecutó en S01-S04. Dos campañas adversariales reabrieron implementació
 
 S05 abrió G2 con una tesis aislada: eliminar el fallback global del broadphase sin adelantar causalidad continua. El kernel y su integración viva cerraron con 277/277 y una pasada estructural sin cambios.
 
-S06 fijó identidad/continuidad material y exactly-once; S07 conectó esos intervalos al dispatcher live y cerró CCD/fallo local; S08 añadió carry anclado continuo y cadenas derivadas. Las campañas adversariales de estos sprints corrigieron defectos de implementación sin alterar el orden ni los requisitos del gate.
+S06 fijó identidad/continuidad material y exactly-once; S07 conectó esos intervalos al dispatcher live y cerró CCD/fallo local; S08 añadió carry anclado continuo y cadenas derivadas. La reapertura tardía de S08 añadió dos restricciones importantes sin cambiar requisitos: las entidades vanilla deben barrerse a lo largo del `BodyPath`, y los soportes anatómicos estacionarios fuera del batch siguen siendo obstáculos mediante el broadphase material aunque su AABB vanilla esté suprimida. El cierre vigente de S08 es `4abe57cd...`.
 
-Tras S08, las tareas 2-4 y 6 de G2 tienen cierre suficiente; 5, 7 y 8 concentran el siguiente frente físico y 1/9 siguen siendo limpieza arquitectónica posterior a que las fronteras Q2 sean estables.
+Tras S08, las tareas 2-4 y 6 de G2 tienen cierre suficiente; 5, 7 y 8 concentran el frente físico activo y 1/9 siguen siendo limpieza arquitectónica posterior a que las fronteras Q2 sean estables. S09 ya ha empezado con pruebas live/prepared antes de introducir cambios de producción innecesarios.
 
 G2 continúa con el mismo patrón: sprint pequeño, modelo adversarial previo, implementación, suite, revisión y una pasada final sin cambios antes de marcar cada scope como cerrado.
 
