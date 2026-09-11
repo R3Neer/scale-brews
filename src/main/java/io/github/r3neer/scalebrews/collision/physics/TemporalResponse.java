@@ -36,15 +36,28 @@ public final class TemporalResponse {
     private record Search(ConservativeSweep.Status status,double fraction,List<Hit> hits) {
         static Search clear(){return new Search(ConservativeSweep.Status.CLEAR,1,List.of());}
     }
-    /** An active material plane, never a chosen carry vector. */
     private record Constraint(ConservativeSweep.Motion motion,Vec3 normal) {}
     private record RelativeConstraint(Vec3 normal,double minimumAdvance) {}
     private record Proposal(double end,Vec3 delta) {}
 
+    /** Pure/kernel view retains the certified prefix on exhaustion for diagnosis and composition tests. */
     public static Result resolve(AABB body,Vec3 requested,Map<String,ConservativeSweep.Motion> pieces,int events,int queryBudget) {
-        return resolve(body,requested,pieces,events,queryBudget,(box,delta)->delta);
+        return resolveRaw(body,requested,pieces,events,queryBudget,(box,delta)->delta);
     }
+
+    /**
+     * Live integration boundary. An incomplete temporal solve may report a certified prefix internally,
+     * but callers that can mutate world state must not export that prefix or contacts derived from it.
+     */
     public static Result resolve(AABB body,Vec3 requested,Map<String,ConservativeSweep.Motion> pieces,int events,int queryBudget,
+            java.util.function.BiFunction<AABB,Vec3,Vec3> clip) {
+        var result=resolveRaw(body,requested,pieces,events,queryBudget,clip);
+        return result.status()==Status.ITERATION_LIMIT
+            ?new Result(Status.ITERATION_LIMIT,Vec3.ZERO,result.time(),List.of(),result.evaluations())
+            :result;
+    }
+
+    private static Result resolveRaw(AABB body,Vec3 requested,Map<String,ConservativeSweep.Motion> pieces,int events,int queryBudget,
             java.util.function.BiFunction<AABB,Vec3,Vec3> clip) {
         ConvexBox.requireBounds(body);
         if(requested==null || pieces==null)throw new IllegalArgumentException("Missing response input");
@@ -88,6 +101,7 @@ public final class TemporalResponse {
         }
         return limit(moved,time,contacts,budget);
     }
+
     private static Search first(AABB body,Vec3 delta,Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             Map<String,Constraint> active,double start,double end,Budget budget) {
         double earliest=Double.POSITIVE_INFINITY;List<Hit> hits=new ArrayList<>();
@@ -110,11 +124,10 @@ public final class TemporalResponse {
         }
         return hits.isEmpty()?Search.clear():new Search(ConservativeSweep.Status.CONTACT,earliest,List.copyOf(hits));
     }
+
     /**
-     * Cheap certified broadphase for one material piece. Every material point stays within
-     * maxPointSpeed of its start over this normalized interval, while the body stays inside
-     * its translational swept AABB. A disjoint pair of those envelopes cannot produce CCD.
-     * The start-shape sample is charged to the same response budget as every other geometry read.
+     * Certified piece-level broadphase. Every material point stays within maxPointSpeed of the
+     * interval-start convex, and the translating body stays inside expandTowards(delta).
      */
     private static Boolean mayIntersect(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(!budget.sample())return null;
@@ -125,13 +138,7 @@ public final class TemporalResponse {
         var sweptBody=body.expandTowards(delta).inflate(ConservativeSweep.SKIN);
         return material.intersects(sweptBody);
     }
-    /**
-     * Full-interval fixed-plane certificate for the fixed body AABB used by this
-     * resolve call. It is valid only for an actual SAT separator of the whole
-     * current box; every other piece remains CCD-reswept. An exactly matching
-     * certified cardinal plane excludes deformation on its own normal; otherwise
-     * the conservative deformationSpeed bound remains in force.
-     */
+
     private static boolean certifies(AABB body,Vec3 finalDelta,Constraint constraint,double start,double end) {
         Vec3 normal=constraint.normal();
         if(!Double.isFinite(normal.lengthSqr()) || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
@@ -141,6 +148,7 @@ public final class TemporalResponse {
         double maximumAdvance=minimumAdvance(body,interval,normal);
         return finalDelta.dot(normal)>=maximumAdvance;
     }
+
     private static Vec3 separate(Collection<Constraint> constraints) {
         Vec3 q=Vec3.ZERO;
         for(int pass=0;pass<MAX_Q_PROJECTIONS;pass++)for(var constraint:constraints) {
@@ -153,6 +161,7 @@ public final class TemporalResponse {
         for(var constraint:constraints)if(q.dot(constraint.normal())<Q_MIN-TIME_EPS)return null;
         return q;
     }
+
     private static boolean validCorrection(AABB body,Vec3 q,Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             double time,java.util.function.BiFunction<AABB,Vec3,Vec3> clip,Budget budget) {
         Vec3 clipped=clip.apply(body,q);
@@ -166,6 +175,7 @@ public final class TemporalResponse {
         }
         return true;
     }
+
     private static Proposal proposal(AABB body,Vec3 requested,Collection<Constraint> active,double start,double end,
             java.util.function.BiFunction<AABB,Vec3,Vec3> clip) {
         Vec3 delta=requested.scale(end-start);
@@ -184,6 +194,7 @@ public final class TemporalResponse {
         for(var constraint:relative)if(clipped.dot(constraint.normal())<constraint.minimumAdvance()-TIME_EPS)return null;
         return new Proposal(end,clipped);
     }
+
     private static double minimumAdvance(AABB body,ConservativeSweep.Motion interval,Vec3 normal) {
         for(var plane:interval.invariantPlanes()) {
             var direction=plane.outward();
@@ -193,6 +204,7 @@ public final class TemporalResponse {
         }
         return interval.deformationSpeed()+interval.linearTranslation().dot(normal);
     }
+
     private static Proposal certifiedPrefix(AABB body,Vec3 requested,Map<String,Constraint> active,double start,
             Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             java.util.function.BiFunction<AABB,Vec3,Vec3> clip,Budget budget) {
@@ -205,9 +217,11 @@ public final class TemporalResponse {
         }
         return null;
     }
+
     private static void activate(List<Hit> hits,Map<String,ConservativeSweep.Motion> pieces,Map<String,Constraint> active) {
         for(var hit:hits)active.put(hit.piece(),new Constraint(pieces.get(hit.piece()),hit.result().normal()));
     }
+
     private static boolean prune(AABB body,Map<String,Constraint> active,double time,Budget budget) {
         var iterator=active.entrySet().iterator();
         while(iterator.hasNext()) {
@@ -217,16 +231,19 @@ public final class TemporalResponse {
         }
         return true;
     }
+
     private static double minimum(AABB body,Vec3 normal) {
         double center=body.getCenter().dot(normal);
         double radius=(body.getXsize()*Math.abs(normal.x)+body.getYsize()*Math.abs(normal.y)+body.getZsize()*Math.abs(normal.z))*.5;
         return center-radius;
     }
+
     private static double maximum(ConvexBox body,Vec3 normal) {
         double maximum=Double.NEGATIVE_INFINITY;
         for(var vertex:body.vertices())maximum=Math.max(maximum,vertex.dot(normal));
         return maximum;
     }
+
     private static Result limit(Vec3 moved,double time,List<Contact> contacts,Budget budget) {
         return new Result(Status.ITERATION_LIMIT,moved,time,contacts,budget.used);
     }
