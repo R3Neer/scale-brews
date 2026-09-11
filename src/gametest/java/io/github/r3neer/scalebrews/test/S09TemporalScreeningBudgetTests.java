@@ -17,7 +17,7 @@ import org.joml.Matrix4f;
 /** S09 A9/A11: screening may reduce CCD work, never turn a within-budget clear sweep into exhaustion. */
 public final class S09TemporalScreeningBudgetTests {
     @GameTest
-    public void screeningCannotCostMoreThanTheClearSweepItReplaces(GameTestHelper h) {
+    public void screeningCannotExhaustWhenDirectClearFitsSameBudget(GameTestHelper h) {
         var body=new AABB(-.05,-.05,-.05,.05,.05,.05);
         // Keep the actual geometry static and clear by ~0.064 blocks, but use a valid loose
         // deformation bound near the prepared cow's historical 13-16 block/tick bounds. This
