@@ -46,7 +46,7 @@ Estado: **cerrado**.
 
 ### S00 — Foundation Audit previa a G1
 
-Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó modelo adversarial clean-room, inventario/clasificación, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. Registro: `docs/sprints/S00-foundation-audit.md`; evidencia: `VALIDATION.md`.
+Estado: **cerrado**. El prerreisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó modelo adversarial clean-room, inventario/clasificación, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. Registro: `docs/sprints/S00-foundation-audit.md`; evidencia: `VALIDATION.md`.
 
 Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5. La reapertura adversarial posterior de G1 fue reparada y revalidada; **G1 está cerrado de nuevo y G2 es el primer gate abierto**.
 
@@ -72,7 +72,7 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 
 ### G2 — pipeline material continuo Q2
 
-**Estado:** **ABIERTO / en ejecución desde el cierre de G1**. Se implementará por sprints pequeños según `ENTITY_COLLISIONS_SPRINT_WORKFLOW.md`; no se declarará cerrado por una refactorización parcial.
+**Estado:** **ABIERTO / en ejecución**. S05 está cerrado; el siguiente frente es causalidad material continua. G2 se implementa por sprints pequeños según `ENTITY_COLLISIONS_SPRINT_WORKFLOW.md` y no se declara cerrado por una refactorización parcial.
 
 **Requisitos:** FR-042..063; NFR-001..004, NFR-007..008, NFR-014..018, NFR-033.
 
@@ -81,12 +81,14 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 3. [ ] usar `MotionIntervalHandle`/trayectoria certificada para traslación, yaw, scale y joints, no sólo endpoint actual;
 4. [ ] procesar varias contribuciones del mismo tick exactamente una vez cada una y mantener ancestry;
 5. [ ] cerrar tangential retention, multicontacto, sliding y separation recovery;
-6. [ ] impedir que broadphase oversized degrade a scan mundial en hot path: fallback acotado o cuarentena;
+6. [x] impedir que broadphase oversized degrade a scan mundial en hot path: kernel `MaterialBroadphase` acotado, fail-closed y cuarentena local, cerrado en S05;
 7. [ ] probar cadenas, obstrucción, wall squeeze, huecos y contacto que sólo existe en mitad del intervalo;
 8. [ ] fijar e instrumentar budgets de sweep/eventos;
 9. [ ] mover fuera de `collision.internal` tipos físicos/orquestadores sólo cuando queden realmente desacoplados al cerrar Q2.
 
-**Primer frente:** aislar y acotar el broadphase material, eliminando el fallback de scan global y estableciendo la costura para envelopes temporales certificados antes de conectar el dispatcher vivo. El sprint concreto y su adversarial model viven en `docs/sprints/`.
+**S05 cerrado:** `MaterialBroadphase<K>` quedó extraído a `collision.physics`; desaparecieron el fallback `all bounds` y `overflow` del hot query; entry/query/candidate budgets tienen outcomes explícitos; runtime propaga agotamiento de forma conservadora. Run `34602837677`, job `103274063124`: **277/277 required GameTests passed**. Evidencia completa en `docs/sprints/S05-bounded-material-broadphase.md` y `VALIDATION.md`.
+
+**Siguiente frente:** integrar causalmente los intervalos materiales reales con `MaterialEventDispatcher` y `MotionIntervalHandle`, empezando por root/joint y garantías exactly-once antes de extender transport chains. El sprint concreto debe fijar su modelo adversarial antes de tocar producción.
 
 **Salida:** física material correcta en server single-player/dedicated sin depender todavía de predicción bajo latencia.
 
@@ -222,10 +224,12 @@ P1-P9 consolidaron dependencias FR/NFR, separaron core/VP26, colocaron Q2 antes 
 
 G1 se ejecutó en S01-S04. Dos campañas adversariales reabrieron implementación, no requisitos: primero backend público/codec permisivo; después ciclo `api ↔ runtime`. Ambas fueron reparadas sin cambiar orden de gates. La evidencia final 268/268 + client/dedicated cerró G1 de nuevo.
 
-G2 se ejecutará con el mismo patrón: sprint pequeño, modelo adversarial previo, implementación, suite, revisión y una pasada final sin cambios antes de marcar cada scope como cerrado.
+S05 abrió G2 con una tesis aislada: eliminar el fallback global del broadphase sin adelantar causalidad continua. El kernel y su integración viva cerraron con 277/277 y una pasada estructural sin cambios; por tanto sólo la tarea 6 de G2 se marca completa. El resto del gate sigue abierto.
+
+G2 continúa con el mismo patrón: sprint pequeño, modelo adversarial previo, implementación, suite, revisión y una pasada final sin cambios antes de marcar cada scope como cerrado.
 
 ### Revisión del código
 
-El inventario y revisiones destructivas de G0 fijaron qué conservar/eliminar. G1 dejó fronteras públicas/data estables y confirmó que las responsabilidades Q2 permanecían sin adelantar dentro de `AnatomyMovement`/dispatcher. La primera revisión de G2 parte de ese árbol y debe extraer ownership sólo cuando reduzca acoplamiento real, no para producir paquetes decorativos.
+El inventario y revisiones destructivas de G0 fijaron qué conservar/eliminar. G1 dejó fronteras públicas/data estables. S05 extrajo una frontera física real (`MaterialBroadphase`) y eliminó dos fallbacks globales sin fingir que `AnatomyMovement` ya está completamente particionado. El siguiente corte sólo se hará donde dispatcher/interval ownership produzca otra frontera verificable.
 
 Cualquier cambio de requisitos o implementación vuelve a ejecutar una pasada completa; si esa pasada cambia plan o clasificación, se repite hasta obtener una pasada sin cambios.
