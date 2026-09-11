@@ -6,8 +6,11 @@ import io.github.r3neer.scalebrews.collision.physics.BodyPath;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.platform.PlatformPhysics;
 import io.github.r3neer.scalebrews.platform.Platforms;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -98,8 +101,10 @@ final class AnchoredTransportPlanner {
                 return Result.release(0);
 
             int evaluations=0;
+            Set<LivingEntity> eventSupports=Collections.newSetFromMap(new IdentityHashMap<>());
             for(var event:events) {
                 if(!(event.support() instanceof LivingEntity eventSupport) || !Platforms.eligible(body,eventSupport))continue;
+                eventSupports.add(eventSupport);
                 var eventMotion=motions.get(event.interval().handle());if(eventMotion==null)return Result.release(evaluations);
                 for(var entry:eventMotion.pieces().entrySet()) {
                     if(eventSupport==support && entry.getKey().equals(retained.piece()))continue;
@@ -112,6 +117,21 @@ final class AnchoredTransportPlanner {
             }
 
             int obstacles=0;
+            // Anatomical supports without an event in this batch remain physical obstacles.
+            // Query the existing bounded material broadphase, not vanilla AABBs: PlatformPhysics
+            // deliberately suppresses those AABBs for replacement pairs, and anatomical pieces
+            // may also extend outside them. Supports already represented by an event are excluded
+            // here because their certified interval was checked above.
+            var materialCandidates=AnatomyMovement.candidates(body,envelope);
+            if(!materialCandidates.complete())return Result.exhausted(evaluations);
+            for(var candidate:materialCandidates.candidates()) {
+                if(eventSupports.contains(candidate.entity()))continue;
+                if(++obstacles>MAX_STATIC_OBSTACLES)return Result.exhausted(evaluations);
+                var checked=checkStaticObstacle(path,captured,candidate.box(),evaluations);evaluations=checked.evaluations();
+                if(checked.status()==ObstacleStatus.EXHAUSTED)return Result.exhausted(evaluations);
+                if(checked.status()==ObstacleStatus.RELEASE)return Result.release(evaluations);
+            }
+
             for(var shape:level.getBlockCollisions(body,envelope))for(var box:shape.toAabbs()) {
                 if(++obstacles>MAX_STATIC_OBSTACLES)return Result.exhausted(evaluations);
                 var checked=checkStaticObstacle(path,captured,box,evaluations);evaluations=checked.evaluations();
@@ -119,9 +139,8 @@ final class AnchoredTransportPlanner {
                 if(checked.status()==ObstacleStatus.RELEASE)return Result.release(evaluations);
             }
 
-            // Entity collisions must be checked along the same certified body path as blocks.
-            // Endpoint-only collideBoundingBox is insufficient for a curved anchor trajectory:
-            // an entity can occupy only the middle of the arc while the straight chord is clear.
+            // Ordinary entity collisions must be checked along the same certified body path as blocks.
+            // Anatomical replacement pairs were handled above because their vanilla AABBs are suppressed.
             List<VoxelShape> entityShapes;
             Entity previous=PlatformPhysics.enter(body);
             try {entityShapes=List.copyOf(level.getEntityCollisions(body,envelope));}
@@ -141,9 +160,8 @@ final class AnchoredTransportPlanner {
         } catch(RuntimeException rejected) {return Result.release(0);}
     }
 
-    /** One static world AABB checked continuously in the body's certified path frame. */
-    private static ObstacleCheck checkStaticObstacle(BodyPath path,AABB captured,AABB box,int evaluations) {
-        var obstacle=axisAligned(box);
+    /** One static anatomical convex checked continuously in the body's certified path frame. */
+    private static ObstacleCheck checkStaticObstacle(BodyPath path,AABB captured,ConvexBox obstacle,int evaluations) {
         if(obstacle.overlaps(captured))return new ObstacleCheck(ObstacleStatus.RELEASE,evaluations);
         var staticMotion=new ConservativeSweep.Motion(t->obstacle,0,Vec3.ZERO);
         var relative=path.relative(staticMotion).orElse(null);
@@ -154,6 +172,11 @@ final class AnchoredTransportPlanner {
         int total=evaluations+hit.evaluations();
         if(hit.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new ObstacleCheck(ObstacleStatus.EXHAUSTED,total);
         return new ObstacleCheck(hit.status()==ConservativeSweep.Status.CLEAR?ObstacleStatus.CLEAR:ObstacleStatus.RELEASE,total);
+    }
+
+    /** One static world AABB checked continuously in the body's certified path frame. */
+    private static ObstacleCheck checkStaticObstacle(BodyPath path,AABB captured,AABB box,int evaluations) {
+        return checkStaticObstacle(path,captured,axisAligned(box),evaluations);
     }
 
     /** Build an axis-aligned convex directly in double world coordinates; identity Matrix4f would round large worlds to float. */
