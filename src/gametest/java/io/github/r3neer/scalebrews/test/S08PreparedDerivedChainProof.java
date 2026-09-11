@@ -22,6 +22,62 @@ public final class S08PreparedDerivedChainProof {
     private S08PreparedDerivedChainProof() {}
 
     static void run(GameTestHelper h) {
+        activeBindingWithoutMaterialIntervalKeepsLegacyFallback(h);
+        derivedChainRunsExactlyOnce(h);
+    }
+
+    /**
+     * I6 is a temporal ownership boundary, not merely a binding boundary. A live prepared support
+     * can mutate through the supported setPos/spatialMutation hook without creating a ROOT interval:
+     * until S06 actually publishes a certified contribution, the legacy endpoint path remains the
+     * only owner capable of preserving the retained contact.
+     */
+    private static void activeBindingWithoutMaterialIntervalKeepsLegacyFallback(GameTestHelper h) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,10,20,10);
+        support.setNoAi(true);support.setNoGravity(true);
+        support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
+        try {
+            Platforms.tick(level);
+            h.assertTrue(AnatomyRuntime.authoritativeFrame(support).isPresent(),
+                "I6 fixture requires a genuinely active prepared runtime binding");
+            var top=topBounds(support);
+            var body=h.spawn(EntityTypes.SHEEP,11,20,10);
+            body.setNoAi(true);body.setNoGravity(true);
+            body.getAttribute(Attributes.SCALE).setBaseValue(.12);body.refreshDimensions();
+            body.setPos(top.getCenter().x,top.maxY+.45,top.getCenter().z);
+            try {
+                body.move(MoverType.SELF,new Vec3(0,-.9,0));
+                h.assertTrue(AnatomyMovement.contact(body)!=null && AnatomyMovement.contact(body).support()==support,
+                    "I6 fixture body must retain the active prepared support before external root mutation");
+
+                // Establish the S06 baseline while the support is still stationary.
+                Platforms.tick(level);
+                h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
+                    "Stationary baseline must leave no material contribution pending");
+                h.assertTrue(AnatomyMovement.contact(body)!=null && AnatomyMovement.contact(body).support()==support,
+                    "Baseline cadence must preserve the retained relation");
+
+                var before=body.position();
+                var delta=new Vec3(.2,0,0);
+                // Deliberately bypass Entity.move. The production setPos mixin updates the support's
+                // live root/spatial frame, but it does not capture/commit a ROOT interval.
+                support.setPos(support.position().add(delta));
+                h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
+                    "Direct active-binding setPos must not magically fabricate a dispatcher-owned ROOT/JOINT interval");
+
+                AnatomyMovement.carry(body);
+                assertDelta(h,before,body.position(),delta,
+                    "Without a certified material interval, I6 requires legacy carry fallback even for an active runtime binding");
+                h.assertTrue(AnatomyMovement.contact(body)!=null && AnatomyMovement.contact(body).support()==support,
+                    "Fallback carry must preserve the valid retained relation");
+                h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
+                    "Legacy fallback must not invent duplicate material debt");
+            } finally {body.discard();}
+        } finally {support.discard();}
+    }
+
+    private static void derivedChainRunsExactlyOnce(GameTestHelper h) {
         var level=h.getLevel();
         var a=h.spawn(EntityTypes.COW,2,20,2);
         a.setNoAi(true);a.setNoGravity(true);
