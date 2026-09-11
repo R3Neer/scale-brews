@@ -44,7 +44,7 @@ public final class MaterialIntervalTracker {
         long beforeSerial = before.endpoint().frameSerial();
         long afterSerial = after.endpoint().frameSerial();
         if (afterSerial == beforeSerial)
-            return Result.of(Outcome.UNCHANGED);
+            return Result.of(after.equals(before) ? Outcome.UNCHANGED : Outcome.GAP_OR_STALE);
         if (beforeSerial == Long.MAX_VALUE || afterSerial != beforeSerial + 1 || after.authorityTick() < before.authorityTick()
                 || after.endpoint().jointSampleTick() < before.endpoint().jointSampleTick())
             return Result.of(Outcome.GAP_OR_STALE);
