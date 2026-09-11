@@ -57,13 +57,18 @@ jobs:
             echo "::error::Refusing prerelease for invalid/non-prerelease version: $version"
             exit 1
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null 2>&1; then
-            echo "::error::Tag v${version} already exists"
-            exit 1
-          fi
 
           echo "release_sha=${release_sha}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: reject deprecated 26.2 GameTest player helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n 'makeMockServerPlayerInLevel' -- src/gametest; then
+            echo '::error::Deprecated GameTestHelper.makeMockServerPlayerInLevel usage remains.'
+            exit 1
+          fi
 
       - name: build and run server GameTests
         shell: bash
@@ -127,7 +132,7 @@ jobs:
           REGULAR_SHA: ${{ steps.package.outputs.regular_sha }}
         run: python .github/scripts/compose-prerelease-notes.py
 
-      - name: create GitHub prerelease
+      - name: publish or refresh GitHub prerelease
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -135,16 +140,65 @@ jobs:
           RELEASE_SHA: ${{ steps.prep.outputs.release_sha }}
           REGULAR: ${{ steps.package.outputs.regular }}
           SOURCES: ${{ steps.package.outputs.sources }}
+          REGULAR_SHA: ${{ steps.package.outputs.regular_sha }}
         run: |
           set -euo pipefail
-          gh release create "v${VERSION}" \
-            "$REGULAR" \
-            "$SOURCES" \
+          tag="v${VERSION}"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            is_prerelease="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq '.isPrerelease')"
+            if [[ "$is_prerelease" != "true" ]]; then
+              echo "::error::Refusing to retarget non-prerelease ${tag}"
+              exit 1
+            fi
+
+            git tag -f "$tag" "$RELEASE_SHA"
+            git push origin "refs/tags/${tag}" --force
+
+            gh release edit "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$RELEASE_SHA" \
+              --title "Scale Brews ${VERSION}" \
+              --notes-file release-notes.md \
+              --prerelease
+
+            gh release upload "$tag" \
+              "$REGULAR" \
+              "$SOURCES" \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+              echo "::error::Tag ${tag} exists without a GitHub release; refusing ambiguous replacement."
+              exit 1
+            fi
+
+            gh release create "$tag" \
+              "$REGULAR" \
+              "$SOURCES" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$RELEASE_SHA" \
+              --title "Scale Brews ${VERSION}" \
+              --notes-file release-notes.md \
+              --prerelease
+          fi
+
+          remote_tag_sha="$(git ls-remote origin "refs/tags/${tag}" | awk '{print $1}')"
+          if [[ "$remote_tag_sha" != "$RELEASE_SHA" ]]; then
+            echo "::error::Published tag ${tag} points to ${remote_tag_sha}, expected ${RELEASE_SHA}"
+            exit 1
+          fi
+
+          verify_dir="$(mktemp -d)"
+          gh release download "$tag" \
             --repo "$GITHUB_REPOSITORY" \
-            --target "$RELEASE_SHA" \
-            --title "Scale Brews ${VERSION}" \
-            --notes-file release-notes.md \
-            --prerelease
+            --pattern "scalebrews-${VERSION}.jar" \
+            --dir "$verify_dir"
+          published_sha="$(sha256sum "$verify_dir/scalebrews-${VERSION}.jar" | awk '{print $1}')"
+          if [[ "$published_sha" != "$REGULAR_SHA" ]]; then
+            echo "::error::Published JAR SHA-256 ${published_sha} != built JAR ${REGULAR_SHA}"
+            exit 1
+          fi
 
       - name: capture prerelease artifacts and diagnostics
         if: always()
