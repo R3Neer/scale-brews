@@ -34,8 +34,10 @@ public final class S08GravityIndependenceTests {
         Vec3 base=support.position().add(0,1,0);
         body.setPos(base.add(.30,0,0));
         AABB captured=body.getBoundingBox();
-        var wallBefore=ConvexBox.of(new AABB(captured.maxX,captured.minY-.5,captured.minZ-.5,
-            captured.maxX+.5,captured.maxY+.5,captured.maxZ+.5),new Matrix4f());
+        // Build the tiny convex in a small local frame, then translate in double precision.
+        // GameTest worlds can sit near 1e7 coordinates, where Matrix4f would quantize sub-block dimensions away.
+        var wallLocal=ConvexBox.of(new AABB(0,0,0,.5,captured.getYsize()+1,captured.getZsize()+1),new Matrix4f());
+        var wallBefore=wallLocal.move(new Vec3(captured.maxX,captured.minY-.5,captured.minZ-.5));
         Vec3 delta=new Vec3(0,0,.20);
         var wallAfter=wallBefore.move(delta);
         var wallMotion=new ConservativeSweep.Motion(t->wallBefore.move(delta.scale(t)),0,delta);
