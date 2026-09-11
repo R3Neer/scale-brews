@@ -1,111 +1,111 @@
 # S06 — Identidad causal de intervalos materiales
 
-Estado: **REABIERTO por evidencia adversarial posterior**. Segundo sprint de G2. La implementación original alcanzó un cierre provisional verde en `2e8aee0…`, pero el holdout independiente `466c666f…` demostró tres defectos de identidad causal. S07 puede conservar su plan de pre-implementación, pero su implementación depende de reparar y revalidar S06.
+Estado: **REABIERTO por evidencia adversarial de membresía espacial causal**. Segundo sprint de G2. La identidad/replay de intervalos que motivó la reapertura anterior ha sido reparada y revalidada, incluido stale binding en la lane preparada. Sin embargo, un holdout posterior demuestra que un soporte puede avanzar de `UNAVAILABLE` a `AVAILABLE` dentro del mismo authority tick y quedar fuera del broadphase por reutilización de un índice que lo había omitido.
 
 ## 1. Tesis y scope
 
-S06 tiene una tesis única: **cada cambio material aceptado de un soporte debe producir un intervalo certificado con identidad monotónica propia del binding, y esa identidad debe permitir distinguir avance, replay, gap/stale y varias contribuciones dentro del mismo tick antes de entrar al resolver físico**.
+S06 tiene una tesis única: **cada cambio material aceptado de un soporte debe producir un estado causal monotónico del binding, y todas las fronteras que consumen ese estado deben distinguir correctamente avance, replay, gap/stale, unavailable y varias contribuciones dentro del mismo tick**.
 
 Requisitos primarios: FR-049, FR-050, FR-051 y FR-055. Requisitos de apoyo: NFR-001, NFR-002, NFR-004, NFR-007, NFR-015, NFR-017 y NFR-018.
 
-S06 no resuelve todavía cuerpos contra el intervalo ni integra derived carry: `MaterialEventDispatcher` sigue siendo el scheduler de S07. Tampoco cierra sliding/multicontacto/separation recovery, chains o receipts de transporte.
+La resolución física de cuerpos contra intervalos pertenece a S07. S06 sí es responsable de que availability/identity/frame serial no puedan dejar a consumidores posteriores trabajando con una membresía causal vieja o incompleta.
 
-## 2. Estado inicial
-
-- `GeometryProvider.MotionIntervalHandle` ya unía dos `QueryFrame` bajo una `GeometryIdentity` y un `materialSerial`, pero nadie poseía todavía la asignación/replay fence de ese serial en runtime.
-- `MaterialEventDispatcher.EventId` era un contador del scheduler. Reingerir el mismo `MotionIntervalHandle` creaba otro `EventId`; por sí solo no demostraba FR-050.
-- `ModelGeometryProvider.motion()` conservaba un único intervalo tick→tick y `MotionSnapshot` exigía `toTick == fromTick + 1`; eso no podía representar dos root mutations materiales durante el mismo tick.
-- `PlatformEntityMixin.move` ya capturaba y observaba root antes/después, pero sólo como `RootFrame`; no retenía el `QueryFrame` material anterior.
-- `AnatomyMovement.tick` avanzaba providers a 20 Hz, pero no publicaba un batch de handles para las mutaciones de joints detectadas en esa cadencia.
-
-## 3. Invariantes
+## 2. Invariantes
 
 - `materialSerial` es monotónico dentro de una `GeometryIdentity`/binding y se reinicia sólo cuando cambia esa identidad causal.
-- Un intervalo válido conecta exactamente el frame material actualmente aceptado con un frame posterior del mismo identity; nunca reconstruye un before desde estado vivo posterior.
+- Un intervalo válido conecta exactamente el frame material actualmente aceptado con un frame posterior del mismo identity; nunca reconstruye un `before` desde estado vivo posterior.
 - Misma authority tick es legal si frame serial/root/joints avanzan: el reloj de Minecraft no colapsa dos mutaciones causales distintas.
 - Replay exacto no ejecuta trabajo físico de nuevo.
-- Un gap/out-of-order no se rellena inventando historia; produce `GAP_OR_STALE` y sólo puede reanclar conservadoramente sin publicar el tramo perdido.
-- **Un mismo `frameSerial` no puede identificar dos payloads causales distintos.** Reutilizar el serial con root/sample/snapshot diferente debe fallar cerrado.
-- **La entidad soporte usada para certificar o encolar un intervalo debe coincidir con `GeometryIdentity` en dimensión, UUID y network/entity id.** No basta con que revisión/modelo coincidan.
+- Un gap/out-of-order no se rellena inventando historia; produce barrera/reanchor conservador sin publicar el tramo perdido.
+- Un mismo `frameSerial` no puede identificar dos payloads causales distintos.
+- La entidad soporte usada para certificar o encolar un intervalo debe coincidir con `GeometryIdentity` y con el binding activo completo, no sólo UUID/revisión.
 - unavailable, cambio de gravity, cambio de binding/epoch/revision, teleport/rebind y rewind son barreras, no intervalos continuos.
+- Un soporte causal que cambia de `UNAVAILABLE` a `AVAILABLE` dentro del mismo tick debe aparecer inmediatamente en cualquier índice/query que represente el estado actual. La ausencia anterior no es un frame válido que pueda cachearse por omisión.
 - El tracker no posee entidades ni geometría; sólo identidad/serial/fence y se limpia por lifecycle.
 - La captura root del mixin sigue siendo síncrona en world thread.
 
-## 4. Implementación y estado actual
+## 3. Implementación y estado actual
 
-- [x] I1 Añadir `MaterialIntervalTracker` con outcomes `ADVANCED`, `UNCHANGED`, `REPLAY`, `GAP_OR_STALE`, `DISCONTINUITY` y serial material monotónico.
-- [ ] I2 Garantizar que identidad + frame serial identifican un único payload causal; el holdout adversarial demuestra que un payload distinto con el mismo serial se acepta actualmente como `UNCHANGED`.
-- [x] I3 Permitir `MotionSnapshot` con `toTick == fromTick` y tiempos no decrecientes, manteniendo prohibidos rewinds/non-finite data.
-- [x] I4 Añadir `GeometryProvider.interval(entity, handle)` fail-closed por defecto.
-- [ ] I5 Hacer que `ModelGeometryProvider.interval` rechace handles cuya identidad no corresponda a la entidad soporte suministrada, además de derivar exclusivamente de `before/after`.
-- [x] I6 Añadir captura/commit root explícita mediante `MaterialIntervalRuntime.RootCapture`, conservando el `QueryFrame` before y produciendo el intervalo después del root mutation.
-- [x] I7 Observar frames post-tick de joints desde `AnatomyRuntime.publish`, ordenando soportes por UUID/id para no depender del orden de weak/identity maps.
-- [ ] I8 Reforzar la frontera runtime para que un `Pending` no pueda emparejar un soporte con un handle de otra identidad.
-- [x] I9 Exponer cola canónica one-shot `MaterialIntervalRuntime.poll` y `AnatomyRuntime.pollIntervals` para que S07 conecte el dispatcher sin rededucir identidad.
-- [x] I10 Mantener registrados los siete holdouts originales y los tres holdouts adversariales posteriores.
-- [ ] I11 Repetir suite completa y revisión estructural final después de las reparaciones; una nueva pasada cero-cambios es obligatoria antes de volver a cerrar S06.
+- [x] I1 `MaterialIntervalTracker` distingue `ADVANCED`, `UNCHANGED`, `REPLAY`, `GAP_OR_STALE` y `DISCONTINUITY` con serial material monotónico.
+- [x] I2 Identidad + frame serial identifican un único payload causal; reuse conflictivo falla cerrado.
+- [x] I3 `MotionSnapshot` admite contribuciones same-tick con tiempo no decreciente y sigue rechazando rewinds/non-finite.
+- [x] I4 `GeometryProvider.interval(entity, handle)` es fail-closed por defecto.
+- [x] I5 `ModelGeometryProvider.interval` deriva sólo de `before/after` y rechaza support/identity ajenos.
+- [x] I6 Root capture/commit conserva `QueryFrame before` y produce el frame posterior sin reconstrucción live.
+- [x] I7 Joint cadence publica handles deterministas y conserva varias contribuciones reales del mismo tick.
+- [x] I8 `Pending` valida support ↔ handle y la certificación runtime valida dimensión, UUID, entity id y binding activo completo.
+- [x] I9 La cola canónica one-shot expone provenance ROOT/JOINT sin rededucir causalidad.
+- [x] I10 Staging previo al dispatcher está acotado (`MAX_PENDING_INTERVALS=512`) y la saturación es explícita/fail-closed.
+- [x] I11 Los holdouts anteriores de replay, payload conflictivo, wrong-support y stale binding permanecen cubiertos; la lane preparada dejó de fallar por esos ejes.
+- [ ] I12 Corregir invalidación/membresía del `SpatialIndex` para que un provider registrado que era `UNAVAILABLE` y pasa a `AVAILABLE` en el mismo tick no pueda quedar omitido por reutilización vacua de `current.frames()`.
+- [ ] I13 Repetir suite ordinaria + lane preparada y hacer revisión estructural cero-cambios antes de volver a cerrar S06.
 
-## 5. Modelo adversarial y resultado previo
+## 4. Historia adversarial de identidad ya reparada
 
-1. **same-tick double root**: frameSerial 1→2→3 en el mismo tick genera materialSerial 1 y 2.
-2. **exact replay**: repetir before/after devuelve `REPLAY` y no incrementa serial.
-3. **stale/out-of-order**: un before anterior al accepted no genera nuevo intervalo.
-4. **gap**: saltar un frame devuelve `GAP_OR_STALE`; la reanudación no publica historia fabricada.
-5. **identity reuse**: nueva binding identity inicia otro stream y no hereda replay fence.
-6. **gravity discontinuity**: cambio de gravity frame no genera intervalo continuo.
-7. **unavailable/lifecycle barrier**: corta continuidad; el siguiente frame válido sólo la vuelve a sembrar.
-8. **root+joints same tick**: contribuciones causales distintas conservan seriales propios.
-9. **joint batch permutation**: el batch debe conservar simultaneidad y orden canónico al exponerse a S07.
-10. **provider live-state trap**: mover, rotar y escalar la entidad después de capturar el handle no cambia el motion certificado por `ModelGeometryProvider.interval`.
-11. **rebind/teleport**: las barreras invalidan pending work que no puede cruzar lifecycle.
-12. **serial overflow**: incremento usa `Math.incrementExact`; frame serial máximo no se convierte en wraparound ambiguo.
+El cierre provisional histórico en `2e8aee0…` quedó invalidado por `466c666f…`, que añadió tres holdouts: payload distinto con el mismo `frameSerial`, `ModelGeometryProvider.interval(B, handleDeA)` y `Pending(B, handleDeA)`. El run `34613126182`, job `103308317180`, falló exactamente esos tres casos.
 
-Durante la revisión previa apareció un defecto antes de la campaña final: una versión intermedia del runtime podía reanclar silenciosamente un `before` adelantado y convertir un gap en un avance. `f1d6290b598733459654b3df20808161074c78f7` lo corrigió: un gap nunca publica intervalo; como máximo reancla en el `after` como barrera conservadora. También se fijó que un serial ya asignado a pending work y luego invalidado por lifecycle no se reutiliza.
+La reparación posterior endureció serial/payload, support identity y pending identity. Una campaña adicional encontró stale binding con la misma entidad física: dimensión, UUID y entity id seguían coincidiendo pero `bindingGeneration`/epoch/model/pose/revision pertenecían a otra realidad causal. La lane preparada reprodujo el fallo y la implementación pasó a validar la identidad activa completa. Los reruns posteriores dejaron de fallar por stale binding.
 
-## 6. Cierre provisional histórico
+También se cerraron dos defectos secundarios de la frontera S06:
 
-Snapshot de cierre provisional: `2e8aee0fa679705673f60ecfc38f6088f3c6bfff` (`test(collision): register S06 material interval holdouts`).
+- un gap adelantado no puede convertirse silenciosamente en `ADVANCED`; sólo puede cortar continuidad y reanclar de forma conservadora;
+- la staging queue ya no es ilimitada: tiene bound explícito, saturación observable y no reutiliza seriales invalidados.
 
-GitHub Actions run `34612764313`, job `103307096858`:
+Estos fallos son historia cerrada, no blockers actuales.
 
-- **284 tests registrados y ejecutados**;
-- **284/284 required GameTests passed**;
-- `BUILD SUCCESSFUL in 1m 25s`;
-- artifact `10268749377`;
-- artifact SHA-256 `6944ffc9c3ac9d204c6a9739dd1f3fc3d58b9b231e6ccd9d50190ad9fad975db`.
+## 5. Nueva reapertura — membresía espacial same-tick
 
-Esa evidencia sigue siendo histórica y válida para los casos que ejecutó, pero ya no demuestra el cierre actual de S06.
+Holdout adversarial añadido en:
 
-## 7. Reapertura adversarial posterior
+- `335b148312fab6937fbe06ac3153257405b4b0fb` — `S06SpatialMembershipCausalityTests`;
+- `2d4a73ae462e176e5bc6c9ee3c9b0acb38c2de06` — registro del test.
 
-Commit adversarial **`466c666f948d839e5a4d437d45674448b6d82631`** añadió tres holdouts sin modificar producción:
+El escenario usa una **frontera causal real**, no un provider legacy de conveniencia:
 
-1. `conflictingPayloadCannotReuseFrameSerial`: mismo `GeometryIdentity` y mismo `frameSerial`, pero payload/root distinto, debe fallar cerrado en vez de convertirse en `UNCHANGED`.
-2. `providerRejectsHandleBelongingToAnotherSupport`: `ModelGeometryProvider.interval(B, handleDeA)` no puede certificar el movimiento de A usando B como key/runtime support.
-3. `pendingCannotPairHandleWithDifferentSupport`: la cola runtime no puede representar `Pending(B, handleDeA)`.
+1. se registra un soporte con `GeometryIdentityDescriptor` y un provider que publica `frameSerial=1`, mismo authority tick, `UNAVAILABLE`, sin snapshot;
+2. `AnatomyMovement.spaceClear(...)` materializa el spatial index mientras ese soporte está legítimamente ausente;
+3. sin rebind y sin avanzar el tick, el mismo provider publica `frameSerial=2`, `AVAILABLE`, con snapshot convexo válido;
+4. `AnatomyMovement.queryFrame(support)` está presente, demostrando que la transición causal sí fue aceptada;
+5. una segunda `spaceClear(...)` debería ver el collider nuevo, pero reutiliza el índice que lo omitió y devuelve mundo libre.
 
-GitHub Actions run **`34613126182`**, job **`103308317180`** ejecutó **287 tests**:
+Evidencia: GitHub Actions run **`34622750287`**, job **`103340432608`**, sobre `2d4a73ae…`:
 
-- **284 pasaron**;
-- fallaron **exactamente esos tres holdouts**;
-- no hubo fallo de compilación ni regresión ajena;
-- `runGameTest` terminó con los tres fallos de identidad esperados.
+- **304 GameTests ejecutados**;
+- el test falla exactamente en la segunda query con: `A support that becomes AVAILABLE in the same tick must enter the broadphase immediately; an index that omitted it cannot be reused vacuously`;
+- la precondición `queryFrame(support).isPresent()` pasa antes del fallo;
+- no hay rebind, cambio de tick ni incertidumbre de fixture que expliquen la omisión.
 
-Clasificación: **bugs de implementación S06**, no defectos de los tests ni cambio de requisitos. La tesis de identidad causal exige que serial, soporte e identidad no puedan contradecirse silenciosamente.
+La causa estructural visible es que `AnatomyMovement.spatial(level)` valida sólo `current.frames().entrySet()`. Un soporte que no estaba en `frames` cuando era unavailable no participa en `allMatch`, por lo que el índice vacío/incompleto puede considerarse vigente aunque la membresía actual haya cambiado.
 
-## 8. Revisión adicional abierta
+Clasificación: **bug causal de frontera S06/S05**, con impacto físico S07. No invalida el kernel acotado de S05, pero sí invalida la suposición de que el índice live representa siempre el conjunto causal actual.
 
-Además de reparar los tres fallos demostrados, la siguiente revisión S06 debe verificar antes del cierre:
+## 6. Criterio de reparación aceptable
 
-- que la staging queue previa al dispatcher tenga el tratamiento acotado exigido por NFR-007 o que su límite/ownership se cierre explícitamente en la frontera S07 sin dejar una cola causal potencialmente ilimitada;
-- que la promesa de “joint batch” no sea sólo un `List<Pending>` ordenado: S07 necesita distinguir simultaneidad/source sin rededucir causalidad desde estado vivo;
-- que ninguna validación nueva se limite a UUID y omita dimensión, entity id o binding identity cuando esos ejes ya existen en `GeometryIdentity`;
-- que los tres tests adversariales permanezcan intactos después de la reparación.
+No basta con limpiar `SPATIAL` desde un único callsite oportunista. La reparación debe hacer verdadera una de estas propiedades equivalentes para todos los caminos causales soportados:
 
-## 9. Reconciliación obligatoria antes de cerrar G2
+- el cache key/validation del índice representa también la **membresía completa** de providers/bindings actuales, incluidos soportes antes omitidos; o
+- toda transición que pueda cambiar si un soporte pertenece al índice invalida el índice de forma garantizada antes de una query posterior.
+
+Debe conservar:
+
+- weak/identity semantics de entidad;
+- ausencia de escaneo global por query;
+- determinismo del orden;
+- fail-closed ante unavailable/quarantine/budget;
+- mismo-tick root/joint/availability semantics.
+
+El holdout `S06SpatialMembershipCausalityTests` debe permanecer intacto tras la reparación.
+
+## 7. Relación con S07
+
+S07 puede seguir implementándose en paralelo, pero **no puede cerrarse** mientras el broadphase live pueda omitir un collider causalmente disponible. La resolución CCD más exquisita del mundo sirve de decoración si el candidato nunca entra en la consulta.
+
+Los blockers físicos actuales de S07 se documentan en `S07-live-material-dispatcher-ccd.md`; no deben mezclarse con este defecto de identidad/membresía.
+
+## 8. Reconciliación obligatoria antes de cerrar G2
 
 `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` contiene el workstream de gravedad de Tiny Mounts. G2 no podrá considerarse cerrado hasta reconciliar `chatgpt-editing` con ese main y revalidar server+client.
 
 La reconciliación debe dejar `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como única autoridad transversal Scale para leer gravedad efectiva. `collision.internal.GravityFrames` deberá desaparecer como autoridad duplicada o quedar únicamente como delegación transitoria sin ownership propio. `collision.api.GravityFrame` conserva el tipo/contrato de frame de Entity Collisions; `RootTransformProvider` conserva la separación conceptual entre root transform y body gravity. No se introducirá ninguna API Tiny-Mount-específica y G7/Clinging no se adelanta.
 
-**S06 permanece reabierto. La implementación de S07 queda bloqueada hasta reparar y revalidar esta frontera causal; su plan puede conservarse como trabajo preparatorio.**
+**S06 permanece reabierto exclusivamente por la membresía espacial causal same-tick demostrada. Los defectos anteriores de identidad/replay/binding se consideran reparados hasta que nueva evidencia los contradiga.**
