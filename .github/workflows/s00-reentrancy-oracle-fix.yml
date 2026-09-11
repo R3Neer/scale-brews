@@ -30,7 +30,7 @@ jobs:
             provider.onEndpoint=()->nested.add(AnatomyMovement.queryFrame(entity));
             AnatomyMovement.queryFrame(entity);
             check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==1,"Reentrant provider query evaluated or published a second endpoint");
-'''
+          '''
           new='''            var provider=new Provider(entity,1,0);var nested=new ArrayList<Optional<GeometryProvider.QueryFrame>>();
             AnatomyMovement.register(entity,provider,descriptor(1));
             int callsAfterRegister=provider.endpointCalls;
@@ -38,7 +38,7 @@ jobs:
             AnatomyMovement.queryFrame(entity);
             check(nested.size()==1 && nested.getFirst().isEmpty() && provider.endpointCalls==callsAfterRegister+1,
                 "Reentrant provider query evaluated or published a second endpoint beyond the outer capture");
-'''
+          '''
           if t.count(old)!=1:
               raise SystemExit(f'expected one S00 reentrancy oracle, found {t.count(old)}')
           p.write_text(t.replace(old,new,1))
