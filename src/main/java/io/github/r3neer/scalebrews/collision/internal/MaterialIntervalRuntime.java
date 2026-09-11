@@ -26,7 +26,10 @@ public final class MaterialIntervalRuntime {
     private static final Map<Level,List<Pending>> PENDING=Collections.synchronizedMap(new WeakHashMap<>());
 
     public record Pending(LivingEntity support,Source source,GeometryProvider.MotionIntervalHandle handle) {
-        public Pending {if(support==null || source==null || handle==null)throw new IllegalArgumentException("Invalid pending material interval");}
+        public Pending {
+            if(support==null || source==null || handle==null || !handle.identity().matches(support))
+                throw new IllegalArgumentException("Invalid pending material interval");
+        }
     }
     public record RootCapture(AnatomyMovement.RootFrame root,GeometryProvider.QueryFrame before) {
         public RootCapture {if(root==null)throw new IllegalArgumentException("Missing root capture");}
@@ -69,9 +72,10 @@ public final class MaterialIntervalRuntime {
         if(result.outcome()==MaterialIntervalTracker.Outcome.ADVANCED) {
             PENDING.computeIfAbsent(support.level(),ignored->new ArrayList<>()).add(new Pending(support,source,result.handle()));
         } else if(result.outcome()==MaterialIntervalTracker.Outcome.GAP_OR_STALE && currentBefore!=null
+                && currentBefore.equals(before)
                 && currentBefore.identity().equals(after.identity())
                 && after.endpoint().frameSerial()>currentBefore.endpoint().frameSerial()) {
-            // Explicitly resynchronise after a detected gap without publishing fabricated history.
+            // Explicitly resynchronise after a real serial gap without accepting a conflicting same-serial before.
             tracker.seed(after);
         }
     }
