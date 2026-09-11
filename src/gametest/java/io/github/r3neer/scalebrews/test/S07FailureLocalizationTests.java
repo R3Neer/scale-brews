@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
-import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -26,7 +25,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -47,7 +45,10 @@ public final class S07FailureLocalizationTests {
         safe.getAttribute(Attributes.SCALE).setBaseValue(.2);safe.refreshDimensions();
 
         Vec3 center=support.position();
-        var trap=ConvexBox.of(new AABB(-.35,-.35,-.35,.35,.35,.35),new Matrix4f()).move(center);
+        // Separation recovery is hard-capped at four blocks.  Enclose the trapped body
+        // more deeply than that so BACKEND_EXHAUSTED is deterministic and does not
+        // depend on block clipping, GameTest coordinate transforms or search order.
+        var trap=ConvexBox.of(new AABB(-5,-5,-5,5,5,5),new Matrix4f()).move(center);
         Vec3 safeOrigin=center.add(8,0,0);
         var floor=ConvexBox.of(new AABB(-1,-.5,-1,1,0,1),new Matrix4f()).move(safeOrigin);
         AnatomyMovement.activate(level);
@@ -70,10 +71,6 @@ public final class S07FailureLocalizationTests {
             AnatomyMovement.afterMove(safe);
             h.assertTrue(AnatomyMovement.supported(safe),
                 "Fixture bystander contact must be materially valid before the unrelated failure");
-
-            // Deny every bounded separation candidate for the trapped pair with actual world collision.
-            for(int x=0;x<=4;x++)for(int y=18;y<=22;y++)for(int z=0;z<=4;z++)
-                h.setBlock(new BlockPos(x,y,z),Blocks.STONE);
 
             var afterTrap=trap.move(new Vec3(.1,0,0));
             var prepared=prepared(support,trap,afterTrap);
