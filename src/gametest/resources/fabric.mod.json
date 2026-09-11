@@ -51,6 +51,7 @@
       "io.github.r3neer.scalebrews.test.S07ContactEstablishmentTests",
       "io.github.r3neer.scalebrews.test.S07MaterialBoundaryTests",
       "io.github.r3neer.scalebrews.test.S07InitialSeparationContactTests",
+      "io.github.r3neer.scalebrews.test.S07FailureLocalizationTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
