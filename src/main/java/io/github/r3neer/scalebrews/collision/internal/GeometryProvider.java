@@ -24,6 +24,10 @@ public interface GeometryProvider {
     record GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
             Identifier model,Identifier poseProvider,long bindingGeneration,long localRegistrationGeneration) {
         public GeometryIdentity {if(dimension==null || support==null || entityId<0 || epoch==null || revision<0 || model==null || poseProvider==null || bindingGeneration<1 || localRegistrationGeneration<1)throw new IllegalArgumentException("Invalid geometry identity");}
+        /** Exact live support instance coordinates required before a handle can be certified or queued. */
+        public boolean matches(LivingEntity entity) {
+            return entity!=null && dimension.equals(entity.level().dimension()) && support.equals(entity.getUUID()) && entityId==entity.getId();
+        }
     }
     /**
      * A sampled causal endpoint.  The provider (or a server-side adapter) owns the
