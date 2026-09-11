@@ -22,7 +22,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** FR-057 holdout: initial tangency cannot exempt a later curved-path block collision from CCD. */
+/** FR-057 holdouts: endpoint chords cannot replace certified-path collision against blocks or entities. */
 public final class S08CurvedPathObstructionTests {
     private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
 
@@ -86,33 +86,10 @@ public final class S08CurvedPathObstructionTests {
                 "Control requires the certified anchor arc to enter the block at an intermediate time");
             h.assertTrue(!blockBox.intersects(captured.move(endpoint)),"Control endpoint must be clear of the block");
 
-            long tick=level.getGameTime();
-            long registration=AnatomyMovement.registrationGeneration(support);
-            var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
-                Identifier.parse("test:s08_curved_block"),Identifier.parse("test:s08_curved_block_pose"),1,registration);
-            var beforeRoot=new AnatomyMovement.RootFrame(1,tick,pivot,0,1,GravityFrame.VANILLA);
-            var afterRoot=new AnatomyMovement.RootFrame(2,tick,pivot,180,1,GravityFrame.VANILLA);
-            var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,0,1,GravityFrame.VANILLA);
-            var afterSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,180,1,GravityFrame.VANILLA);
-            var before=new GeometryProvider.QueryFrame(identity,
-                new GeometryProvider.CausalEndpoint(1,tick,tick,beforeRoot,beforeSample,GeometryProvider.Availability.AVAILABLE),
-                new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore)));
-            var after=new GeometryProvider.QueryFrame(identity,
-                new GeometryProvider.CausalEndpoint(2,tick,tick,afterRoot,afterSample,GeometryProvider.Availability.AVAILABLE),
-                new GeometryProvider.Snapshot(revision,Map.of("floor",floorAfter)));
-            var handle=new GeometryProvider.MotionIntervalHandle(identity,1,before,after);
-            var motion=new GeometryProvider.MotionSnapshot(revision,tick,tick,pivot,pivot,Map.of("floor",floorMotion));
-            var envelope=floorBefore.bounds().inflate(maxRadius*2+1);
-            var interval=new MaterialEventDispatcher.MaterialInterval(handle,envelope);
-            var event=new MaterialEventDispatcher.Event<net.minecraft.world.entity.Entity>(
-                new MaterialEventDispatcher.EventId(1,0),support,MaterialEventDispatcher.Source.ROOT_MUTATION,interval,Set.of(support.getUUID()));
-
-            var result=AnchoredTransportPlanner.plan(level,body,captured,List.of(event),Map.of(handle,motion),(box,requested)->{
-                Entity entered=PlatformPhysics.enter(body);
-                try {
-                    return Entity.collideBoundingBox(body,requested,box,level,level.getEntityCollisions(body,box.expandTowards(requested)));
-                } finally {PlatformPhysics.exit(entered);}
-            });
+            var event=event(level,support,captured,pivot,floorBefore,floorAfter,floorMotion,revision,"curved_block");
+            var handle=event.interval().handle();
+            var motion=new GeometryProvider.MotionSnapshot(revision,level.getGameTime(),level.getGameTime(),pivot,pivot,Map.of("floor",floorMotion));
+            var result=AnchoredTransportPlanner.plan(level,body,captured,List.of(event),Map.of(handle,motion),(box,requested)->clip(level,body,box,requested));
             h.assertTrue(result.status()==AnchoredTransportPlanner.Status.RELEASE,
                 "FR-057 requires continuous obstruction to reject an arc even when its initial gap is <= SKIN and endpoint chord is clear: "+result.status());
         } finally {
@@ -122,6 +99,117 @@ public final class S08CurvedPathObstructionTests {
             h.setBlock(blockRelative,Blocks.AIR);
         }
         h.succeed();
+    }
+
+    @GameTest
+    public void solidEntityInMiddleOfArcMustNotBeReducedToEndpointChord(GameTestHelper h) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
+        var obstacle=h.spawn(EntityTypes.SHULKER,6,40,4);
+        obstacle.setNoAi(true);obstacle.setNoGravity(true);
+        try {
+            Vec3 cell=h.absoluteVec(new Vec3(6,40,4));
+            obstacle.setPos(cell.x+.5,cell.y,cell.z+.5);
+            AABB obstacleBox=obstacle.getBoundingBox();
+            h.assertTrue(obstacleBox.getXsize()>.5 && obstacleBox.getZsize()>.5,
+                "Fixture entity must expose a solid-sized collision box: "+obstacleBox);
+
+            double halfWidth=body.getBoundingBox().getXsize()*.5;
+            double initialGap=ConservativeSweep.SKIN*.5;
+            Vec3 start=new Vec3(obstacleBox.getCenter().x,obstacleBox.minY,obstacleBox.minZ-halfWidth-initialGap);
+            body.setPos(start);
+            AABB captured=body.getBoundingBox();
+            Vec3 pivot=new Vec3(start.x-2,start.y,start.z);
+            double floorHalf=.01;
+            var floorLocal=ConvexBox.of(new AABB(0,0,0,floorHalf*2,.20,floorHalf*2),new Matrix4f());
+            var floorBefore=floorLocal.move(new Vec3(start.x-floorHalf,captured.minY-.20,start.z-floorHalf));
+            var floorAfter=rotateY(floorBefore,pivot,Math.PI);
+            double maxRadius=floorBefore.vertices().stream().mapToDouble(v->Math.hypot(v.x-pivot.x,v.z-pivot.z)).max().orElseThrow();
+            var floorMotion=new ConservativeSweep.Motion(t->rotateY(floorBefore,pivot,Math.PI*t),maxRadius*Math.PI,Vec3.ZERO);
+            long revision=210;
+
+            AnatomyMovement.activate(level);
+            AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
+            try {
+                var floorSeparation=floorBefore.separation(captured);
+                int face=floorBefore.closestFace(floorSeparation.normal());
+                Vec3 normal=floorBefore.faceNormal(face);
+                h.assertTrue(GravityFrame.VANILLA.supports(normal),"Fixture floor must support vanilla gravity");
+                Vec3 local=floorBefore.facePoint(face,captured.getCenter());
+                h.assertTrue(AnatomyMovement.confirm(body,support,
+                    new SurfaceContact(support.getUUID(),revision,"floor",face,local,normal,level.getGameTime())),
+                    "Fixture must establish retained floor contact");
+
+                h.assertTrue(!obstacleBox.intersects(captured),"Fixture body must start outside the solid entity");
+                double initialEntityGap=obstacleBox.minZ-captured.maxZ;
+                h.assertTrue(initialEntityGap>0 && initialEntityGap<=ConservativeSweep.SKIN,
+                    "Entity fixture must start separated but inside CCD skin: "+initialEntityGap);
+
+                Vec3 endpoint=new Vec3(-4,0,0);
+                Vec3 chordAllowed=clip(level,body,captured,endpoint);
+                h.assertTrue(chordAllowed.distanceToSqr(endpoint)<1e-10,
+                    "Control requires the straight endpoint chord to remain entity-clear: "+chordAllowed);
+
+                double midT=.05,angle=Math.PI*midT;
+                Vec3 midDisplacement=new Vec3(2*Math.cos(angle)-2,0,2*Math.sin(angle));
+                h.assertTrue(obstacleBox.intersects(captured.move(midDisplacement)),
+                    "Control requires the certified anchor arc to enter the entity at an intermediate time");
+                h.assertTrue(!obstacleBox.intersects(captured.move(endpoint)),
+                    "Control endpoint must be clear of the entity");
+                Vec3 midAllowed=clip(level,body,captured,midDisplacement);
+                h.assertTrue(midAllowed.distanceToSqr(midDisplacement)>1e-10,
+                    "Control entity must be an applicable vanilla collision obstacle at the intermediate arc point: allowed="+midAllowed);
+
+                var event=event(level,support,captured,pivot,floorBefore,floorAfter,floorMotion,revision,"curved_entity");
+                var handle=event.interval().handle();
+                var motion=new GeometryProvider.MotionSnapshot(revision,level.getGameTime(),level.getGameTime(),pivot,pivot,Map.of("floor",floorMotion));
+                var result=AnchoredTransportPlanner.plan(level,body,captured,List.of(event),Map.of(handle,motion),(box,requested)->clip(level,body,box,requested));
+                h.assertTrue(result.status()==AnchoredTransportPlanner.Status.RELEASE,
+                    "FR-057 requires continuous entity obstruction to reject an arc even when the endpoint chord is clear: "+result.status());
+            } finally {
+                AnatomyMovement.clear(body);
+                AnatomyMovement.deactivate(level);
+            }
+        } finally {
+            support.discard();body.discard();obstacle.discard();
+        }
+        h.succeed();
+    }
+
+    private static MaterialEventDispatcher.Event<net.minecraft.world.entity.Entity> event(
+            net.minecraft.server.level.ServerLevel level,net.minecraft.world.entity.LivingEntity support,AABB captured,Vec3 pivot,
+            ConvexBox floorBefore,ConvexBox floorAfter,ConservativeSweep.Motion floorMotion,long revision,String suffix) {
+        long tick=level.getGameTime();
+        long registration=AnatomyMovement.registrationGeneration(support);
+        var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
+            Identifier.parse("test:s08_"+suffix),Identifier.parse("test:s08_"+suffix+"_pose"),1,registration);
+        var beforeRoot=new AnatomyMovement.RootFrame(1,tick,pivot,0,1,GravityFrame.VANILLA);
+        var afterRoot=new AnatomyMovement.RootFrame(2,tick,pivot,180,1,GravityFrame.VANILLA);
+        var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,0,1,GravityFrame.VANILLA);
+        var afterSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,180,1,GravityFrame.VANILLA);
+        var before=new GeometryProvider.QueryFrame(identity,
+            new GeometryProvider.CausalEndpoint(1,tick,tick,beforeRoot,beforeSample,GeometryProvider.Availability.AVAILABLE),
+            new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore)));
+        var after=new GeometryProvider.QueryFrame(identity,
+            new GeometryProvider.CausalEndpoint(2,tick,tick,afterRoot,afterSample,GeometryProvider.Availability.AVAILABLE),
+            new GeometryProvider.Snapshot(revision,Map.of("floor",floorAfter)));
+        var handle=new GeometryProvider.MotionIntervalHandle(identity,1,before,after);
+        double maxRadius=floorBefore.vertices().stream().mapToDouble(v->Math.hypot(v.x-pivot.x,v.z-pivot.z)).max().orElseThrow();
+        var envelope=floorBefore.bounds().inflate(maxRadius*2+1);
+        var interval=new MaterialEventDispatcher.MaterialInterval(handle,envelope);
+        return new MaterialEventDispatcher.Event<>(new MaterialEventDispatcher.EventId(1,0),support,
+            MaterialEventDispatcher.Source.ROOT_MUTATION,interval,Set.of(support.getUUID()));
+    }
+
+    private static Vec3 clip(net.minecraft.server.level.ServerLevel level,Entity body,AABB box,Vec3 requested) {
+        Entity entered=PlatformPhysics.enter(body);
+        try {
+            return Entity.collideBoundingBox(body,requested,box,level,level.getEntityCollisions(body,box.expandTowards(requested)));
+        } finally {PlatformPhysics.exit(entered);}
     }
 
     private static ConvexBox rotateY(ConvexBox box,Vec3 pivot,double radians) {
