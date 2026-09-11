@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   prerelease:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-prerelease]')
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-prerelease]') }}
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
@@ -159,44 +159,53 @@ jobs:
 
           notes = f"""# Scale Brews {version}
 
-{intro}
+          {intro}
 
-## Explore first
+          ## Explore first
 
-The [README](https://github.com/R3Neer/scale-brews#readme) gives a few things to
-try, with real in-game screenshots. Exact recipes, balance, mounts and world rules
-live in the spoiler-rich [player guide](https://github.com/R3Neer/scale-brews/blob/main/docs/GUIDE.md).
+          The [README](https://github.com/R3Neer/scale-brews#readme) gives a few things to
+          try, with real in-game screenshots. Exact recipes, balance, mounts and world rules
+          live in the spoiler-rich [player guide](https://github.com/R3Neer/scale-brews/blob/main/docs/GUIDE.md).
 
-## Changes since the previous prerelease
+          ## Changes since the previous prerelease
 
-{changes}
+          {changes}
 
-## Installation
+          ## Installation
 
-Use `scalebrews-{version}.jar`, not the sources JAR. Requires Java 25,
-Minecraft {props['minecraft_version']}, Fabric Loader {props['loader_version']}+ and
-Fabric API {props['fabric_api_version']} or newer for Minecraft {props['minecraft_version']}.
-Install on both client and server. Back up worlds before updating.
+          Use `scalebrews-{version}.jar`, not the sources JAR. Requires Java 25,
+          Minecraft {props['minecraft_version']}, Fabric Loader {props['loader_version']}+ and
+          Fabric API {props['fabric_api_version']} or newer for Minecraft {props['minecraft_version']}.
+          Install on both client and server. Back up worlds before updating.
 
-## Validation and limits
+          ## Validation and limits
 
-The exact source snapshot `{sha[:7]}` passed build, all **{server_tests} required server GameTests**
-and the full real-client GameTest suite in this prerelease workflow on Ubuntu/Java 25.
-The packaged regular JAR was also checked for the expected mod version and for leaked
-GameTest classes.
+          The exact source snapshot `{sha[:7]}` passed build, all **{server_tests} required server GameTests**
+          and the full real-client GameTest suite in this prerelease workflow on Ubuntu/Java 25.
+          The packaged regular JAR was also checked for the expected mod version and for leaked
+          GameTest classes.
 
-Gravity Changer remains optional and is not bundled in the base release lane. Six-frame
-Tiny Mount behavior is covered by the gravity-frame regression fixtures; absence of a
-gravity provider retains vanilla-DOWN behavior.
+          Gravity Changer remains optional and is not bundled in the base release lane. Six-frame
+          Tiny Mount behavior is covered by the gravity-frame regression fixtures; absence of a
+          gravity provider retains vanilla-DOWN behavior.
 
-**All-direction anatomical collisions and the shared Clinging physics remain unfinished
-and disabled in normal gameplay.** Prototype code is included, but the existing
-upper-surface living-platform system remains the released behavior.
+          **All-direction anatomical collisions and the shared Clinging physics remain unfinished
+          and disabled in normal gameplay.** Prototype code is included, but the existing
+          upper-surface living-platform system remains the released behavior.
 
-Regular JAR SHA-256:
-`{regular_sha}`
-"""
-          Path("release-notes.md").write_text(notes, encoding="utf-8")
+          Regular JAR SHA-256:
+          `{regular_sha}`
+          """
+          lines = notes.splitlines()
+          normalized = []
+          for index, line in enumerate(lines):
+              if index == 0:
+                  normalized.append(line)
+              elif line.startswith("          "):
+                  normalized.append(line[10:])
+              else:
+                  normalized.append(line)
+          Path("release-notes.md").write_text("\n".join(normalized).rstrip() + "\n", encoding="utf-8")
           PY
 
       - name: create GitHub prerelease
