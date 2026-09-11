@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
@@ -13,6 +14,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.WeakHashMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -228,7 +230,7 @@ public final class MaterialPhysicsRuntime {
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             if(worsensBodyOverlap(plans,candidates))return batchFailure(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-            apply(plans);record(level,events.size(),0,evaluations,0,0);
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             var outcomes=new ArrayList<MaterialEventDispatcher.Outcome>(events.size());
             for(int i=0;i<events.size();i++)outcomes.add(MaterialEventDispatcher.Outcome.applied(1));
             return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
@@ -252,7 +254,7 @@ public final class MaterialPhysicsRuntime {
                 plans.add(plan);evaluations+=plan.evaluations();
             }
             if(worsensBodyOverlap(plans,candidates))return fail(events,MaterialEventDispatcher.Reason.BACKEND_EXHAUSTED);
-            apply(plans);record(level,events.size(),0,evaluations,0,0);
+            apply(plans,events);record(level,events.size(),0,evaluations,0,0);
             return MaterialEventDispatcher.Outcome.applied(1);
         }
         private Plan plan(Entity body,AABB captured,Map<String,ConservativeSweep.Motion> pieces) {
@@ -294,8 +296,34 @@ public final class MaterialPhysicsRuntime {
             for(int i=0;i<events.size();i++)outcomes.add(outcome);
             return new MaterialEventDispatcher.BatchResolution<>(outcomes,List.of());
         }
-        private void apply(List<Plan> plans) {
-            for(var plan:plans)if(plan.displacement().lengthSqr()>1e-20)plan.body().setPos(plan.body().position().add(plan.displacement()));
+        private void apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
+            for(var plan:plans) {
+                if(plan.displacement().lengthSqr()>1e-20)plan.body().setPos(plan.body().position().add(plan.displacement()));
+                AnatomyMovement.afterMove(plan.body());
+                if(AnatomyMovement.contact(plan.body())!=null)continue;
+                for(var event:events) {
+                    if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support))continue;
+                    if(establish(plan.body(),support,event.interval().handle().after()))break;
+                }
+            }
+        }
+        private boolean establish(Entity body,LivingEntity support,GeometryProvider.QueryFrame after) {
+            var identity=after.identity();
+            if(!identity.matches(support) || identity.localRegistrationGeneration()!=AnatomyMovement.registrationGeneration(support))return false;
+            for(var id:new TreeSet<>(after.snapshot().pieces().keySet())) {
+                var piece=after.snapshot().pieces().get(id);var separation=piece.separation(body.getBoundingBox());
+                if(Math.abs(separation.gap())>.025)continue;
+                int face=piece.closestFace(separation.normal());var normal=piece.faceNormal(face);
+                if(!AnatomyMovement.gravity(body).supports(normal))continue;
+                Vec3 local=piece.facePoint(face,body.getBoundingBox().getCenter());
+                SurfaceContact contact;
+                try {contact=new SurfaceContact(support.getUUID(),identity.revision(),id,face,local,normal,after.authorityTick());}
+                catch(RuntimeException rejected){continue;}
+                if(AnatomyMovement.confirm(body,support,contact)) {
+                    body.setOnGround(true);body.verticalCollisionBelow=true;return true;
+                }
+            }
+            return false;
         }
         private boolean worsensBodyOverlap(List<Plan> plans,List<MaterialEventDispatcher.Candidate<Entity>> candidates) {
             for(int i=0;i<plans.size();i++)for(int j=i+1;j<plans.size();j++) {
