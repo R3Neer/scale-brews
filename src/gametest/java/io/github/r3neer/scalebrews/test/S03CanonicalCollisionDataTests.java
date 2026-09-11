@@ -1,5 +1,9 @@
 package io.github.r3neer.scalebrews.test;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
@@ -21,10 +25,7 @@ import net.minecraft.resources.Identifier;
 public final class S03CanonicalCollisionDataTests {
     @GameTest
     public void canonicalBindingRoundTripsWithoutLegacyPlaneSemantics(GameTestHelper h) {
-        var binding = new CollisionBinding(1, Identifier.parse("minecraft:cow"), Map.of("coat", "brown"),
-            new CollisionBinding.Geometry(Identifier.parse("fixture:model_part"), Identifier.parse("minecraft:cow"), Map.of("family", "cow"), AnatomyFilter.DEFAULT),
-            new CollisionBinding.Pose(Identifier.parse("fixture:keyframes"), Map.of(), Set.of("walk", "head_yaw")),
-            Identifier.parse("fixture:entity_root"), CollisionPolicy.Patch.EMPTY, Set.of("sleeping"));
+        var binding = fixtureBinding();
         var json = CollisionCodecs.BINDING.encodeStart(JsonOps.INSTANCE, binding).getOrThrow();
         var object = json.getAsJsonObject();
         h.assertTrue(object.get("schema_version").getAsInt() == 1, "Binding schema version must be explicit");
@@ -33,6 +34,48 @@ public final class S03CanonicalCollisionDataTests {
         h.assertTrue(decoded.equals(binding), "Canonical binding codec must round-trip deterministically");
         object.addProperty("schema_version", 99);
         h.assertTrue(CollisionCodecs.BINDING.parse(JsonOps.INSTANCE, object).result().isEmpty(), "Unknown schema versions fail closed");
+        h.succeed();
+    }
+
+    @GameTest
+    public void oversizedCanonicalCollectionsReturnCodecErrors(GameTestHelper h) {
+        JsonObject base = CollisionCodecs.BINDING.encodeStart(JsonOps.INSTANCE, fixtureBinding()).getOrThrow().getAsJsonObject();
+
+        var oversizedVariant = base.deepCopy();
+        var variants = new JsonObject();
+        for (int n = 0; n < 33; n++) variants.addProperty("v" + n, "value");
+        oversizedVariant.add("variant", variants);
+        assertCodecError(h, CollisionCodecs.BINDING, oversizedVariant, "33 variant selectors must be a codec error, not a constructor exception");
+
+        var oversizedChannels = base.deepCopy();
+        var channels = new JsonArray();
+        for (int n = 0; n < 65; n++) channels.add("channel" + n);
+        oversizedChannels.getAsJsonObject("pose").add("channels", channels);
+        assertCodecError(h, CollisionCodecs.BINDING, oversizedChannels, "65 pose channels must fail through DataResult");
+
+        var oversizedStates = base.deepCopy();
+        var states = new JsonArray();
+        for (int n = 0; n < 65; n++) states.add("state" + n);
+        oversizedStates.add("excluded_states", states);
+        assertCodecError(h, CollisionCodecs.BINDING, oversizedStates, "65 excluded states must fail through DataResult");
+
+        JsonObject policy = CollisionCodecs.POLICY.encodeStart(JsonOps.INSTANCE, CollisionPolicy.DEFAULT).getOrThrow().getAsJsonObject();
+        var categories = new JsonObject();
+        for (int n = 0; n < 257; n++) categories.add("category" + n, new JsonObject());
+        var oversizedCategories = policy.deepCopy();
+        oversizedCategories.add("categories", categories);
+        assertCodecError(h, CollisionCodecs.POLICY, oversizedCategories, "257 category policies must fail through DataResult");
+
+        var supports = new JsonObject();
+        for (int n = 0; n < 4097; n++) supports.add("fixture:support_" + n, new JsonObject());
+        var oversizedSupports = policy.deepCopy();
+        oversizedSupports.add("supports", supports);
+        assertCodecError(h, CollisionCodecs.POLICY, oversizedSupports, "4097 support policies must fail through DataResult");
+
+        var modelIdFilter = new AnatomyFilter(.01, .01, .00001, Set.of("root/left:piece detail"), Set.of("gear#overlay"));
+        var encodedFilter = CollisionCodecs.FILTER.encodeStart(JsonOps.INSTANCE, modelIdFilter).getOrThrow();
+        h.assertTrue(CollisionCodecs.FILTER.parse(JsonOps.INSTANCE, encodedFilter).getOrThrow().equals(modelIdFilter),
+            "Filter codec must preserve the ModelGeometry id domain rather than canonical-key syntax");
         h.succeed();
     }
 
@@ -82,5 +125,20 @@ public final class S03CanonicalCollisionDataTests {
         h.assertTrue(decodedPlane.legacyPlanes().orElseThrow().planes().getFirst().id().equals("back"),
             "Legacy plane decoder preserves explicit authored surfaces");
         h.succeed();
+    }
+
+    private static CollisionBinding fixtureBinding() {
+        return new CollisionBinding(1, Identifier.parse("minecraft:cow"), Map.of("coat", "brown"),
+            new CollisionBinding.Geometry(Identifier.parse("fixture:model_part"), Identifier.parse("minecraft:cow"), Map.of("family", "cow"), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(Identifier.parse("fixture:keyframes"), Map.of(), Set.of("walk", "head_yaw")),
+            Identifier.parse("fixture:entity_root"), CollisionPolicy.Patch.EMPTY, Set.of("sleeping"));
+    }
+
+    private static <T> void assertCodecError(GameTestHelper h, Codec<T> codec, JsonElement json, String message) {
+        try {
+            h.assertTrue(codec.parse(JsonOps.INSTANCE, json).result().isEmpty(), message);
+        } catch (RuntimeException escaped) {
+            throw new AssertionError(message + "; exception escaped codec: " + escaped, escaped);
+        }
     }
 }
