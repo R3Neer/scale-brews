@@ -177,7 +177,7 @@ public final class MaterialPhysicsRuntime {
 
         @Override public MaterialEventDispatcher.Candidates<Entity> capture(MaterialEventDispatcher.Event<Entity> event,int maximumBodies) {
             if(!(event.support() instanceof LivingEntity support))return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-            return capture(event.interval().envelope(),List.of(support),maximumBodies);
+            return capture(event.interval().envelope(),List.of(support),event.ancestry(),maximumBodies);
         }
         @Override public MaterialEventDispatcher.Candidates<Entity> captureJointBatch(List<MaterialEventDispatcher.Event<Entity>> events,int maximumBodies) {
             var seen=Collections.newSetFromMap(new IdentityHashMap<Entity,Boolean>());
@@ -188,7 +188,7 @@ public final class MaterialPhysicsRuntime {
                 var envelope=event.interval().envelope();
                 if(envelope.getXsize()>MAX_ENVELOPE_SPAN || envelope.getYsize()>MAX_ENVELOPE_SPAN || envelope.getZsize()>MAX_ENVELOPE_SPAN)
                     return new MaterialEventDispatcher.Candidates<>(List.of(),true);
-                var local=capture(envelope,List.of(support),maximumBodies);
+                var local=capture(envelope,List.of(support),event.ancestry(),maximumBodies);
                 if(local.overflow())return new MaterialEventDispatcher.Candidates<>(List.of(),true);
                 for(var candidate:local.bodies())if(seen.add(candidate.body())) {
                     combined.add(candidate);
@@ -199,10 +199,10 @@ public final class MaterialPhysicsRuntime {
                 .thenComparingInt(c->c.body().getId()));
             return new MaterialEventDispatcher.Candidates<>(combined,false);
         }
-        private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,int maximumBodies) {
+        private MaterialEventDispatcher.Candidates<Entity> capture(AABB envelope,List<LivingEntity> supports,Set<Object> ancestry,int maximumBodies) {
             var entities=new ArrayList<Entity>(Math.min(maximumBodies+1,256));
             level.getEntities(EntityTypeTest.forClass(Entity.class),envelope,body->{
-                if(body.isRemoved())return false;
+                if(body.isRemoved() || ancestry.contains(body.getUUID()))return false;
                 for(var support:supports) {
                     if(support==body)return false;
                     for(var passenger:support.getIndirectPassengers())if(passenger==body)return false;
