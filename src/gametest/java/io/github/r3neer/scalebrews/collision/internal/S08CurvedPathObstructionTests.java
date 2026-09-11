@@ -1,0 +1,133 @@
+package io.github.r3neer.scalebrews.collision.internal;
+
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
+import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+
+/** FR-057 holdout: initial tangency cannot exempt a later curved-path block collision from CCD. */
+public final class S08CurvedPathObstructionTests {
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+
+    @GameTest
+    public void initiallyTangentBlockMustStillBlockLaterAnchorArc(GameTestHelper h) {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
+
+        var blockRelative=new BlockPos(6,40,4);
+        h.setBlock(blockRelative,Blocks.STONE);
+        Vec3 blockMin=h.absoluteVec(new Vec3(blockRelative.getX(),blockRelative.getY(),blockRelative.getZ()));
+        var blockBox=new AABB(blockMin.x,blockMin.y,blockMin.z,blockMin.x+1,blockMin.y+1,blockMin.z+1);
+        double halfWidth=body.getBoundingBox().getXsize()*.5;
+        double initialGap=ConservativeSweep.SKIN*.5;
+        Vec3 start=h.absoluteVec(new Vec3(6.5,40,4-halfWidth-initialGap));
+        body.setPos(start);
+        AABB captured=body.getBoundingBox();
+        Vec3 pivot=new Vec3(start.x-2,start.y,start.z);
+        double floorHalf=.01;
+        var floorBefore=ConvexBox.of(new AABB(start.x-floorHalf,captured.minY-.20,start.z-floorHalf,
+            start.x+floorHalf,captured.minY,start.z+floorHalf),new Matrix4f());
+        var floorAfter=rotateY(floorBefore,pivot,Math.PI);
+        double maxRadius=floorBefore.vertices().stream().mapToDouble(v->Math.hypot(v.x-pivot.x,v.z-pivot.z)).max().orElseThrow();
+        var floorMotion=new ConservativeSweep.Motion(t->rotateY(floorBefore,pivot,Math.PI*t),maxRadius*Math.PI,Vec3.ZERO);
+        long revision=209;
+
+        AnatomyMovement.activate(level);
+        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
+        try {
+            var floorSeparation=floorBefore.separation(captured);
+            int face=floorBefore.closestFace(floorSeparation.normal());
+            Vec3 normal=floorBefore.faceNormal(face);
+            h.assertTrue(GravityFrame.VANILLA.supports(normal),"Fixture floor must support vanilla gravity");
+            Vec3 local=floorBefore.facePoint(face,captured.getCenter());
+            var initialSurface=new SurfaceContact(support.getUUID(),revision,"floor",face,local,normal,level.getGameTime());
+            h.assertTrue(AnatomyMovement.confirm(body,support,initialSurface),"Fixture must establish retained floor contact");
+
+            var obstacle=ConvexBox.of(blockBox,new Matrix4f());
+            double gap=obstacle.separation(captured).gap();
+            h.assertTrue(gap>0 && gap<=ConservativeSweep.SKIN,
+                "Fixture block must start separated but inside CCD skin: "+gap);
+            h.assertTrue(!blockBox.intersects(captured),"Fixture must not begin overlapping the block");
+
+            Vec3 endpoint=new Vec3(-4,0,0);
+            Entity previous=PlatformPhysics.enter(body);Vec3 chordAllowed;
+            try {
+                chordAllowed=Entity.collideBoundingBox(body,endpoint,captured,level,
+                    level.getEntityCollisions(body,captured.expandTowards(endpoint)));
+            } finally {PlatformPhysics.exit(previous);}
+            h.assertTrue(chordAllowed.distanceToSqr(endpoint)<1e-10,
+                "Control requires the straight endpoint chord to remain vanilla-clear: "+chordAllowed);
+
+            double midT=.05,angle=Math.PI*midT;
+            Vec3 midDisplacement=new Vec3(2*Math.cos(angle)-2,0,2*Math.sin(angle));
+            h.assertTrue(blockBox.intersects(captured.move(midDisplacement)),
+                "Control requires the certified anchor arc to enter the block at an intermediate time");
+            h.assertTrue(!blockBox.intersects(captured.move(endpoint)),"Control endpoint must be clear of the block");
+
+            long tick=level.getGameTime();
+            long registration=AnatomyMovement.registrationGeneration(support);
+            var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
+                Identifier.parse("test:s08_curved_block"),Identifier.parse("test:s08_curved_block_pose"),1,registration);
+            var beforeRoot=new AnatomyMovement.RootFrame(1,tick,pivot,0,1,GravityFrame.VANILLA);
+            var afterRoot=new AnatomyMovement.RootFrame(2,tick,pivot,180,1,GravityFrame.VANILLA);
+            var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,0,1,GravityFrame.VANILLA);
+            var afterSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,180,1,GravityFrame.VANILLA);
+            var before=new GeometryProvider.QueryFrame(identity,
+                new GeometryProvider.CausalEndpoint(1,tick,tick,beforeRoot,beforeSample,GeometryProvider.Availability.AVAILABLE),
+                new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore)));
+            var after=new GeometryProvider.QueryFrame(identity,
+                new GeometryProvider.CausalEndpoint(2,tick,tick,afterRoot,afterSample,GeometryProvider.Availability.AVAILABLE),
+                new GeometryProvider.Snapshot(revision,Map.of("floor",floorAfter)));
+            var handle=new GeometryProvider.MotionIntervalHandle(identity,1,before,after);
+            var motion=new GeometryProvider.MotionSnapshot(revision,tick,tick,pivot,pivot,Map.of("floor",floorMotion));
+            var envelope=floorBefore.bounds().inflate(maxRadius*2+1);
+            var interval=new MaterialEventDispatcher.MaterialInterval(handle,envelope);
+            var event=new MaterialEventDispatcher.Event<net.minecraft.world.entity.Entity>(
+                new MaterialEventDispatcher.EventId(1,0),support,MaterialEventDispatcher.Source.ROOT_MUTATION,interval,Set.of(support.getUUID()));
+
+            var result=AnchoredTransportPlanner.plan(level,body,captured,List.of(event),Map.of(handle,motion),(box,requested)->{
+                Entity entered=PlatformPhysics.enter(body);
+                try {
+                    return Entity.collideBoundingBox(body,requested,box,level,level.getEntityCollisions(body,box.expandTowards(requested)));
+                } finally {PlatformPhysics.exit(entered);}
+            });
+            h.assertTrue(result.status()==AnchoredTransportPlanner.Status.RELEASE,
+                "FR-057 requires continuous obstruction to reject an arc even when its initial gap is <= SKIN and endpoint chord is clear: "+result.status());
+        } finally {
+            AnatomyMovement.clear(body);
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+            h.setBlock(blockRelative,Blocks.AIR);
+        }
+        h.succeed();
+    }
+
+    private static ConvexBox rotateY(ConvexBox box,Vec3 pivot,double radians) {
+        double sin=Math.sin(radians),cos=Math.cos(radians);
+        return new ConvexBox(box.vertices().stream().map(v->{
+            double x=v.x-pivot.x,z=v.z-pivot.z;
+            return new Vec3(pivot.x+x*cos-z*sin,v.y,pivot.z+x*sin+z*cos);
+        }).toList());
+    }
+}
