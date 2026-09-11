@@ -1,10 +1,10 @@
 # S07 — Dispatcher material real y CCD de root/joints
 
-Estado: **IMPLEMENTACIÓN AVANZADA / REABIERTO POR VALIDEZ DE CONTACTO TRAS BATCH RECHAZADO**. Tercer sprint de G2.
+Estado: **A12 REPARADA / EVIDENCIA VERDE / PENDIENTE REVISIÓN ADVERSARIAL CERO-CAMBIOS**. Tercer sprint de G2.
 
-Los defectos históricos de contacto, provenance, starting-overlap locality, budget exhaustion y plan-conflict locality están reparados. El blocker adversarial vigente es posterior: un batch conjunto puede rechazarse correctamente por un conflicto causado por un support A y, aun así, conservar como autoritativo un contacto previo con support B aunque el propio intervalo material de B certifique que su cara final se ha alejado del body.
+Los defectos históricos de contacto, provenance, starting-overlap locality, budget exhaustion, plan-conflict locality y final-contact validity tras batch rechazado están reparados. `50dfac066248679397d463ca74e1b6cefb9f38a7` separa explícitamente dos responsabilidades que antes quedaban acopladas: atribuir qué support causó el rechazo y comprobar, aun cuando el batch no se aplique, si cada contacto retenido sigue siendo materialmente válido en el `after` certificado de su propio support.
 
-S06 ya no es un prerequisite abierto. El problema live de coste espacial quedó tratado en S05; la evidencia ordinaria y preparada reciente de S05/S06 permanece verde. Esta reapertura es exclusivamente S07/NFR-004.
+S06 ya no es un prerequisite abierto. El problema live de coste espacial quedó tratado en S05; la evidencia ordinaria y preparada reciente de S05/S06 permanece verde. No hay blocker reproducido vigente en S07 tras A12, pero el sprint no se declara cerrado hasta que el agente adversarial complete una revisión independiente cero-cambios o abra un nuevo blocker contractual.
 
 ## 1. Tesis y scope
 
@@ -34,7 +34,8 @@ S07 no cierra todavía FR-056..060, prediction/reconciliation/receipts ni G7/Cli
 - `BACKEND_EXHAUSTED` no invalida automáticamente todo el support.
 - `suspendUncertainPairs(...)` localiza solver/budget uncertainty por body/support.
 - `29d4595f38f7ff3c44f9af7ebb98512cdd16f93d` localiza conflictos body-body mediante `BodyConflict` y, para un contacto retenido, replantea el conflicto sin los eventos de ese support para decidir si **ese support causó el conflicto**.
-- Esa causal attribution es correcta para preservar un support B estable cuando support A causa el rechazo, pero no basta para comprobar si la cara retenida de B sigue siendo válida en el `after` de su propio evento.
+- `50dfac066248679397d463ca74e1b6cefb9f38a7` añade una segunda fase independiente en los caminos de rechazo: `revalidateRetainedContacts(...)` comprueba identidad activa, registration generation, revision, piece, face, gap y gravity frame contra el `after` del propio evento retenido.
+- Esa revalidación es body-local: libera la relación concreta con `AnatomyMovement.clear(body)` y no usa `invalidateSupport(...)` global ni aplica desplazamiento parcial del batch rechazado.
 
 ## 3. Historia adversarial cerrada
 
@@ -92,11 +93,11 @@ Evidencia posterior:
 - run `34633398671`, job `103375427902`: **320/320 GameTests verdes** tras el holdout cross-tick S05;
 - prepared proof run `34633591227`, job `103376062867`: cliente exportado + runtime preparado verdes.
 
-Estas evidencias cierran el plan-conflict causal anterior, pero no prueban la nueva superficie A12.
+Estas evidencias cierran el plan-conflict causal anterior, pero no probaban la nueva superficie A12.
 
-## 4. Blocker vigente — contacto retenido materialmente inválido tras batch rechazado
+### A12 — contacto retenido materialmente inválido tras batch rechazado
 
-`S07RejectedBatchContactValidityTests.rejectedConflictMustStillReleaseRetainedFaceThatMovedAway` separa dos preguntas que el runtime actual trata como una sola:
+`S07RejectedBatchContactValidityTests.rejectedConflictMustStillReleaseRetainedFaceThatMovedAway` separó dos preguntas que el runtime trataba como una sola:
 
 1. **qué support causó el conflicto que obliga a rechazar el batch**;
 2. **qué contactos retenidos siguen siendo materialmente válidos en el `after` certificado de sus propios eventos**.
@@ -113,7 +114,7 @@ El escenario contiene:
 - el batch se rechaza como `QUARANTINED / BACKEND_EXHAUSTED` y no aplica desplazamiento parcial;
 - el `after` de B deja su floor a más de `0.2` del body.
 
-### Evidencia roja válida
+#### Evidencia roja válida
 
 GitHub Actions run **`34634310744`**, job **`103378374367`**, sobre `a48f4e6e960e5b1adf4bd937e3275e838cdb7ad3`:
 
@@ -126,34 +127,49 @@ GitHub Actions run **`34634310744`**, job **`103378374367`**, sobre `a48f4e6e960
 
 El run anterior del mismo test no cuenta como evidencia de producción porque el fixture exact-tangent entraba en `ITERATION_LIMIT`; `a48f4e6e…` lo saneó antes de obtener el rojo anterior.
 
-### Causa estructural
+#### Causa estructural
 
-La reparación `29d4595f…` hace correctamente causal attribution del conflicto:
+La reparación `29d4595f…` hacía correctamente causal attribution del conflicto:
 
 - si eliminar los eventos del support retenido elimina el body-body conflict, esa relación se suspende;
 - si el conflicto persiste sin ese support, la relación se conserva.
 
-Eso responde quién **causó** el rechazo, pero no valida la relación conservada contra el `after` del evento del support retenido. En el caso A/B:
+Eso respondía quién **causó** el rechazo, pero no validaba la relación conservada contra el `after` del evento del support retenido. En el caso A/B:
 
-- A sigue causando el conflicto aunque B se elimine del replanning;
-- por eso B no se suspende;
-- como el batch completo fue rechazado, `apply(...)` no ejecuta la revalidación/establishment normal;
-- el contacto previo B queda almacenado aunque el intervalo B certifique que la cara final se alejó.
+- A seguía causando el conflicto aunque B se eliminase del replanning;
+- por eso B no se suspendía;
+- como el batch completo era rechazado, `apply(...)` no ejecutaba la revalidación/establishment normal;
+- el contacto previo B quedaba almacenado aunque el intervalo B certificase que la cara final se había alejado.
 
-### Criterio de reparación aceptable
+#### Reparación
 
-Una reparación válida debe mantener simultáneamente:
+`50dfac066248679397d463ca74e1b6cefb9f38a7` mantiene separadas causal attribution y final material validity:
 
-- **causal locality:** el test estable-B anterior sigue preservando B cuando A causa el conflicto;
-- **final material validity:** si el `after` certificado de B ya no valida pieza/cara/gap/gravity/identity del contacto retenido, B se libera aunque no haya causado el conflicto;
-- ningún desplazamiento parcial de un batch rechazado;
-- ningún `invalidateSupport(...)` global;
-- determinismo respecto al orden de candidates/events;
-- reacquisition posterior sólo por una relación material nuevamente válida.
+- los caminos de `BACKEND_EXHAUSTED` por `plan()==null` y por body/body conflict ejecutan una revalidación posterior de contactos retenidos;
+- para el support retenido se usa exactamente el `after` certificado de su evento del batch;
+- se comprueban binding/identity activos, registration generation, revision del frame/contact/surface, piece, face, gap `<= 0.025`, eligibility y gravity frame;
+- un contacto inválido se libera localmente con `AnatomyMovement.clear(body)`;
+- un support B estable que no causó el conflicto y cuya cara sigue siendo válida permanece retenido;
+- no se ejecuta ningún desplazamiento parcial ni invalidación global del support.
 
-No es aceptable simplemente suspender todos los supports del batch: eso volvería rojo `S07MultiSupportConflictLocalizationTests`.
+#### Evidencia verde del candidato reparado
 
-## 5. Superficies adversariales posteriores
+GitHub Actions run **`34635928336`**, job **`103383672978`**, sobre `50dfac066248679397d463ca74e1b6cefb9f38a7`:
+
+- **321/321 required GameTests pasaron**;
+- `BUILD SUCCESSFUL`;
+- artifact `10278451232`.
+
+Para repetir también la lane preparada sobre el candidato reparado se restauró temporalmente el mismo harness de prueba, sin cambios de producción/tests, en `faa6b1524db3f78fea2adc83fc53caf6239d49a0`:
+
+- el build ordinario asociado, run **`34636187333`**, job **`103384539908`**, volvió a pasar **321/321 required GameTests**; artifact `10278876352`;
+- prepared proof run **`34636187384`**, job **`103384540056`**, completó la exportación cliente de geometría original y luego el runtime preparado servidor;
+- el servidor preparado ejecutó **2/2 required GameTests** y ambos pasaron;
+- ambas fases terminaron `BUILD SUCCESSFUL`.
+
+El workflow temporal se retiró en `c7c297e26c3781e3270be126889f5d2f8a68930c`, devolviendo la rama al árbol ordinario de workflows. **A12 queda reparada y verde; el cierre formal del sprint sigue pendiente de la revisión adversarial independiente.**
+
+## 4. Superficies adversariales posteriores
 
 Tras reparar A12, sólo se abrirán nuevos blockers con reproducción contractual. Permanecen candidatas a revisión:
 
@@ -162,7 +178,7 @@ Tras reparar A12, sólo se abrirán nuevos blockers con reproducción contractua
 3. permutación multi-support con la misma causal/final-validity clasificación;
 4. lifecycle que invalida un evento durante capture/resolve.
 
-## 6. Plan actualizado
+## 5. Plan actualizado
 
 - [x] I1 Wiring root/joint real y one-shot drain.
 - [x] I2 Provenance ROOT/JOINT + material serial.
@@ -178,10 +194,10 @@ Tras reparar A12, sólo se abrirán nuevos blockers con reproducción contractua
 - [x] I12 Budget exhaustion sin initial overlap libera/suspende la relación incierta y conserva terceros.
 - [x] I13 Plan-conflict body-local determinista.
 - [x] I14 Multi-support causal locality: support estable no causante sobrevive.
-- [ ] I15 Revalidar contactos retenidos contra el `after` de su propio evento también cuando el batch es rechazado.
-- [ ] I16 Revalidar suite ordinaria + prepared lane y realizar revisión estructural cero-cambios antes de cerrar de nuevo.
+- [x] I15 Revalidar contactos retenidos contra el `after` de su propio evento también cuando el batch es rechazado.
+- [ ] I16 Revalidar suite ordinaria + prepared lane y realizar revisión estructural cero-cambios antes de cerrar de nuevo. **Suite ordinaria y prepared lane completadas; queda la revisión adversarial independiente cero-cambios.**
 
-## 7. Modelo adversarial vigente
+## 6. Modelo adversarial vigente
 
 Además de la batería histórica:
 
@@ -197,26 +213,29 @@ Además de la batería histórica:
 - pair recovery same-binding;
 - plan-conflict two orders + safe candidate;
 - multi-support stable-B locality;
-- **rejected batch + non-causal support B cuyo contact final deja de ser válido — rojo vigente.**
+- rejected batch + non-causal support B cuyo contact final deja de ser válido — **holdout verde tras `50dfac06…`**.
 
-## 8. Lane preparada
+No hay rojo reproducido vigente. Las siguientes superficies sólo reabren el sprint si la revisión adversarial aporta un fixture contractual válido.
 
-La lane preparada más reciente sobre el candidato previo al nuevo holdout está verde:
+## 7. Lane preparada
 
-- run **`34633591227`**, job **`103376062867`**;
-- export cliente de geometría original completado;
-- runtime preparado servidor completado.
+La lane preparada más reciente sobre el candidato reparado está verde:
 
-No hay blocker preparado activo. El blocker vigente está demostrado por la suite ordinaria de 321 tests y debe repararse antes de repetir la lane preparada para cierre.
+- run **`34636187384`**, job **`103384540056`**;
+- export cliente de geometría original completado con `BUILD SUCCESSFUL`;
+- catálogo preparado localizado y consumido por el servidor;
+- runtime preparado servidor: **2/2 required GameTests verdes**, `BUILD SUCCESSFUL`.
 
-## 9. Relación con S05 y S06
+El harness fue temporal y se retiró en `c7c297e26c3781e3270be126889f5d2f8a68930c`. No hay blocker preparado activo.
 
-S05/S06 no se reabren por este fallo. Sus holdouts recientes permanecen verdes, incluido locality steady/post-mutation/cross-tick y causal membership soportada. El rojo actual pertenece exclusivamente a S07/NFR-004.
+## 8. Relación con S05 y S06
 
-## 10. Reconciliación con `main`
+S05/S06 no se reabren por A12. Sus holdouts recientes permanecen verdes, incluido locality steady/post-mutation/cross-tick y causal membership soportada. La reparación A12 pertenece exclusivamente a S07/NFR-004.
+
+## 9. Reconciliación con `main`
 
 Antes del cierre global de G2 debe reconciliarse `chatgpt-editing` con `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` y dejar `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como única autoridad transversal de body gravity.
 
 `collision.api.GravityFrame` conserva su contrato; `RootTransformProvider` sigue separado de body gravity; Scale debe cargar sin Gravity Changer y no se crea API Tiny-Mount-específica.
 
-**S07 queda REABIERTO por A12. No se declara cerrado hasta reparar final-contact validity en batches rechazados, mantener verdes los holdouts de causal locality y repetir suite ordinaria + prepared lane sobre el mismo candidato.**
+**S07 no tiene blocker reproducido vigente tras A12. No se declara cerrado hasta completar la revisión adversarial independiente cero-cambios de I16 o, si aparece un nuevo rojo contractual, repararlo y repetir la evidencia correspondiente.**
