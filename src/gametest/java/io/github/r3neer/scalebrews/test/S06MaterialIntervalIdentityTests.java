@@ -110,9 +110,10 @@ public final class S06MaterialIntervalIdentityTests {
             MaterialIntervalRuntime.commitRoot(support,capture);
             var pending=MaterialIntervalRuntime.poll(h.getLevel());
             h.assertTrue(pending.size()==1 && pending.getFirst().support()==support
+                    && pending.getFirst().source()==MaterialIntervalRuntime.Source.ROOT
                     && pending.getFirst().handle().materialSerial()==1
                     && pending.getFirst().handle().before().authorityTick()==pending.getFirst().handle().after().authorityTick(),
-                "A synchronous same-tick root mutation must publish one fenced handle");
+                "A synchronous same-tick root mutation must publish one fenced ROOT handle");
             h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),"Poll is one-shot and cannot replay queued work");
             var unchanged=MaterialIntervalRuntime.captureRoot(support);
             MaterialIntervalRuntime.commitRoot(support,unchanged);
@@ -132,8 +133,9 @@ public final class S06MaterialIntervalIdentityTests {
             joint[0]=1;
             MaterialIntervalRuntime.observe(support);
             var first=MaterialIntervalRuntime.poll(h.getLevel());
-            h.assertTrue(first.size()==1 && first.getFirst().handle().materialSerial()==1,
-                "A new joint sample on the same root publishes one causal interval");
+            h.assertTrue(first.size()==1 && first.getFirst().source()==MaterialIntervalRuntime.Source.JOINT
+                    && first.getFirst().handle().materialSerial()==1,
+                "A new joint sample on the same root publishes one causal JOINT interval");
             joint[0]=2;
             MaterialIntervalRuntime.observe(support); // allocates serial 2, but the lifecycle barrier cancels its pending work
             MaterialIntervalRuntime.invalidate(support);
@@ -146,7 +148,8 @@ public final class S06MaterialIntervalIdentityTests {
             joint[0]=4;
             MaterialIntervalRuntime.observe(support);
             var resumed=MaterialIntervalRuntime.poll(h.getLevel());
-            h.assertTrue(resumed.size()==1 && resumed.getFirst().handle().materialSerial()==3,
+            h.assertTrue(resumed.size()==1 && resumed.getFirst().source()==MaterialIntervalRuntime.Source.JOINT
+                    && resumed.getFirst().handle().materialSerial()==3,
                 "Same-binding barrier must not recycle a previously allocated material serial");
         } finally {MaterialIntervalRuntime.clear(h.getLevel());AnatomyMovement.deactivate(h.getLevel());support.discard();}
         h.succeed();
@@ -205,7 +208,7 @@ public final class S06MaterialIntervalIdentityTests {
         var after=frame(id,2,70,70,first.position().add(.25,0,0),GravityFrame.VANILLA);
         var handle=new GeometryProvider.MotionIntervalHandle(id,1,before,after);
         boolean rejected=false;
-        try {new MaterialIntervalRuntime.Pending(second,handle);}
+        try {new MaterialIntervalRuntime.Pending(second,MaterialIntervalRuntime.Source.ROOT,handle);}
         catch(IllegalArgumentException expected){rejected=true;}
         try {
             h.assertTrue(rejected,
