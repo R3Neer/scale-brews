@@ -83,6 +83,13 @@ public final class S09SeparationBudgetBoundaryTests {
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,bystander),
                 "A12 live fixture requires both culprit and non-causal bystander to be eligible indexed supports");
 
+            // Prove the culprit is actually reachable through the live spatial index before using
+            // collide(). This ray crosses only the nested slabs; the bystander lives outside z=0.
+            double midY=origin.y+body.getBbHeight()*.5;
+            var indexed=AnatomyMovement.raycast(body,new Vec3(origin.x-1,midY,origin.z),new Vec3(origin.x+1,midY,origin.z));
+            h.assertTrue(indexed!=null && indexed.support()==culprit,
+                "A12 culprit must be present in the same live spatial index used by own-move; selection="+indexed);
+
             // Production inserts candidate geometry into a TreeMap keyed by scoped piece id. The
             // culprit was spawned first, so its zero-padded support-id prefix sorts before the
             // bystander, and its slab ids sort lexically. Mirror that order exactly: Map.copyOf
@@ -114,6 +121,8 @@ public final class S09SeparationBudgetBoundaryTests {
             Vec3 requested=mustRecover?new Vec3(.05,0,0):Vec3.ZERO;
             Vec3 allowed=AnatomyMovement.collide(body,requested);
             var afterMetrics=AnatomyMovement.sweepMetrics(level);
+            boolean culpritSuspended=AnatomyMovement.suspended(body,culprit);
+            boolean bystanderSuspended=AnatomyMovement.suspended(body,bystander);
             h.assertTrue(body.position().equals(before),
                 "AnatomyMovement.collide must remain query-only at the separation boundary");
             h.assertTrue(afterMetrics.queries()-beforeMetrics.queries()==1,
@@ -124,19 +133,21 @@ public final class S09SeparationBudgetBoundaryTests {
                 Vec3 expected=exact.displacement().add(requested);
                 h.assertTrue(allowed.distanceToSqr(expected)<1e-12,
                     "Candidate 128 must be exported as the complete bounded correction before the outward own-move: kernel="
-                        +exact+" requested="+requested+" live="+allowed+" metrics="+afterMetrics);
+                        +exact+" requested="+requested+" live="+allowed+" metrics="+afterMetrics
+                        +" culpritSuspended="+culpritSuspended+" bystanderSuspended="+bystanderSuspended
+                        +" indexed="+indexed);
                 h.assertTrue(slabs.values().stream().noneMatch(piece->piece.overlaps(captured.move(allowed))),
                     "Exact-budget recovery plus outward motion must finish clear of every culprit slab");
-                h.assertTrue(!AnatomyMovement.suspended(body,culprit) && !AnatomyMovement.suspended(body,bystander),
+                h.assertTrue(!culpritSuspended && !bystanderSuspended,
                     "A successful candidate-128 recovery must suspend neither the culprit nor the non-causal bystander");
                 h.assertTrue(afterMetrics.pieces()-beforeMetrics.pieces()==slabCount+1,
                     "Exact live response must retain all culprit pieces plus the non-causal bystander after recovery");
             } else {
                 h.assertTrue(allowed.lengthSqr()<1e-20,
                     "Candidate 129 is outside the live budget: own-move must fail closed rather than teleport to an unsearched escape, got "+allowed);
-                h.assertTrue(AnatomyMovement.suspended(body,culprit),
+                h.assertTrue(culpritSuspended,
                     "The still-overlapping culprit pair must be suspended when candidate 129 is required");
-                h.assertTrue(!AnatomyMovement.suspended(body,bystander),
+                h.assertTrue(!bystanderSuspended,
                     "Budget exhaustion must not suspend the non-overlapping bystander support");
                 h.assertTrue(afterMetrics.pieces()-beforeMetrics.pieces()==1,
                     "After localized recovery exhaustion only the non-causal bystander motion should remain in the live response");
