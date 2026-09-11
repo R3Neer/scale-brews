@@ -46,6 +46,10 @@ public final class S09OwnMoveBudgetBoundaryTests {
             "A11 fixture must dynamically find a budget boundary reached after a non-zero certified prefix");
         h.assertTrue(kernel.evaluations()==256 && kernel.displacement().lengthSqr()>1e-8,
             "A11 kernel control must consume the exact 256 budget after physical progress: "+kernel);
+        var inside=TemporalResponse.resolve(captured,requested,motions(geometry(captured,origin,calibrated-1)),32,256);
+        h.assertTrue(inside.status()==TemporalResponse.Status.COMPLETE && inside.evaluations()<256,
+            "A11 boundary must be real: removing exactly one monotonic decoy must complete inside the same budget before the +1 case exhausts; inside="
+                +inside+" exhausted="+kernel+" decoys="+calibrated);
 
         final Map<String,ConvexBox> snapshotPieces=geometry;
         AnatomyMovement.activate(level);
