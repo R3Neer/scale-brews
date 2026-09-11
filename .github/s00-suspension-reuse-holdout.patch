@@ -48,3 +48,43 @@ index 086a5cd..6d6605c 100644
      @GameTest public void defaultMotionAbsenceDoesNotSampleCurrentGeometry(GameTestHelper h) {
          var entity=cow(h);
          try {
+
+diff --git a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+index 919288a..e94aab3 100644
+--- a/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
++++ b/src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+@@ -45,7 +45,7 @@ public final class AnatomyMovement {
+     /** Changes only at an explicit physical lifecycle discontinuity, never on a contact release. */
+     private static final Map<Entity,Long> TRANSPORT_GENERATIONS=entityMap();
+     private static final Map<Entity,SurfaceContact> SURFACES=entityMap();
+-    private static final Map<Entity,Set<UUID>> SUSPENDED=entityMap();
++    private static final Map<Entity,Map<LivingEntity,Long>> SUSPENDED=entityMap();
+     /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
+     public record RootFrame(long sequence,long tick,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
+         public RootFrame {
+@@ -74,16 +74,21 @@ public final class AnatomyMovement {
+     private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());
+     public static boolean suspended(Entity body,LivingEntity support) {
+         var suspended=SUSPENDED.get(body);
+-        if(suspended==null || !suspended.contains(support.getUUID()))return false;
++        if(suspended==null)return false;
++        var generation=suspended.get(support);
++        if(generation==null || generation.longValue()!=registrationGeneration(support)) {
++            if(generation!=null)suspended.remove(support);
++            if(suspended.isEmpty())SUSPENDED.remove(body);
++            return false;
++        }
+         var provider=PROVIDERS.get(support);var shape=currentSnapshot(support,provider).orElse(null);
+         if(shape!=null && shape.pieces().values().stream().anyMatch(p->p.overlaps(body.getBoundingBox())))return true;
+-        suspended.remove(support.getUUID());if(suspended.isEmpty())SUSPENDED.remove(body);return false;
++        suspended.remove(support);if(suspended.isEmpty())SUSPENDED.remove(body);return false;
+     }
+     private static void suspend(Entity body,LivingEntity support) {
+-        SUSPENDED.computeIfAbsent(body,e->ConcurrentHashMapHolder.newSet()).add(support.getUUID());
++        SUSPENDED.computeIfAbsent(body,e->entityMap()).put(support,registrationGeneration(support));
+         var contact=contact(body);if(contact!=null && contact.support()==support)clear(body);
+     }
+-    private static final class ConcurrentHashMapHolder {static Set<UUID> newSet(){return java.util.concurrent.ConcurrentHashMap.newKeySet();}}
+     public record SweepMetrics(long tick,long queries,long pieces,long evaluations,long exhausted) {}
+     private static final Map<Level,SweepMetrics> METRICS=Collections.synchronizedMap(new WeakHashMap<>());
+     public static SweepMetrics sweepMetrics(Level level){return METRICS.getOrDefault(level,new SweepMetrics(level.getGameTime(),0,0,0,0));}
