@@ -75,6 +75,54 @@ public final class S07ContactEstablishmentTests {
     }
 
     @GameTest
+    public void exactEndpointCcdContactMustAnchorEvenWithZeroBodyDisplacement(GameTestHelper h) throws Exception {
+        var level=h.getLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockServerPlayerInLevel();
+        body.setNoGravity(true);
+        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.1);
+        body.refreshDimensions();
+
+        Vec3 base=support.position();
+        body.setPos(base.x,base.y+1.2,base.z);
+        double finalTop=body.getBoundingBox().minY;
+        var afterBox=ConvexBox.of(new AABB(base.x-1,finalTop-.5,base.z-1,base.x+1,finalTop,base.z+1),new Matrix4f());
+        var lift=new Vec3(0,.4,0);
+        var beforeBox=afterBox.move(lift.scale(-1));
+        GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(72,Map.of("body",afterBox)));
+        AnatomyMovement.activate(level);
+        AnatomyMovement.register(support,provider);
+        try {
+            h.assertTrue(Platforms.eligible(body,support),"Fixture body must be eligible for the support");
+            h.assertTrue(Math.abs(afterBox.separation(body.getBoundingBox()).gap())<1e-9,
+                "Fixture support must arrive exactly at the body endpoint without penetrating it");
+            var identity=identity(level,support,72,"test:s07_exact_model","test:s07_exact_pose");
+            long tick=level.getGameTime();
+            var before=frame(identity,1,tick,base,beforeBox);
+            var after=frame(identity,2,tick,base.add(lift),afterBox);
+            var handle=new GeometryProvider.MotionIntervalHandle(identity,1,before,after);
+            var moving=new ConservativeSweep.Motion(t->beforeBox.move(lift.scale(t)),0,lift);
+            var motion=new GeometryProvider.MotionSnapshot(72,tick,tick,base,base.add(lift),Map.of("body",moving));
+            var envelope=union(beforeBox.bounds(),afterBox.bounds()).inflate(ConservativeSweep.SKIN);
+            Vec3 beforePosition=body.position();
+            var resolution=resolve(level,support,handle,motion,envelope,body);
+            h.assertTrue(resolution.outcome().status()==MaterialEventDispatcher.Status.APPLIED_PREFIX,
+                "Endpoint contact must be a successful material event");
+            h.assertTrue(body.position().distanceToSqr(beforePosition)<1e-18 && Math.abs(resolution.appliedY())<1e-12,
+                "Exact endpoint contact must not manufacture body displacement when none is needed");
+            var contact=AnatomyMovement.contact(body);
+            h.assertTrue(contact!=null && contact.support()==support,
+                "A real CCD contact at t=1 must establish the anchor even when the body's net displacement is zero");
+        } finally {
+            AnatomyMovement.clear(body);
+            AnatomyMovement.deactivate(level);
+            support.discard();body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void nearbyMovingSupportMustNotMagnetizeContactWithoutCcdHit(GameTestHelper h) throws Exception {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);
