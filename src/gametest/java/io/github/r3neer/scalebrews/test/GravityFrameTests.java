@@ -38,19 +38,22 @@ public class GravityFrameTests {
     }
 
     @GameTest public void providerOwnershipIsSingleAndDefaultIsDown(GameTestHelper h) {
-        String owner = GravityFrames.owner();
         var pig = h.spawn(EntityTypes.PIG, 1, 2, 1);
-        if (owner == null) {
-            h.assertTrue(GravityFrames.direction(pig) == Direction.DOWN, "No provider defaults to DOWN");
-            GravityFrames.install("scalebrews-test", entity -> Direction.DOWN);
-            h.assertTrue("scalebrews-test".equals(GravityFrames.owner()), "First provider owns gravity service");
-            GravityFrames.install("scalebrews-test", entity -> Direction.UP);
+        String initialOwner = GravityFrames.owner();
+        if (initialOwner == null) h.assertTrue(GravityFrames.direction(pig) == Direction.DOWN, "No provider defaults to DOWN");
+
+        if (initialOwner == null || TestGravityFrames.OWNER.equals(initialOwner)) {
+            h.assertTrue(TestGravityFrames.ensure(), "Test provider installs when no real provider owns service");
+            TestGravityFrames.set(pig, Direction.DOWN);
+            h.assertTrue(TestGravityFrames.OWNER.equals(GravityFrames.owner()), "Test provider owns gravity service");
+            GravityFrames.install(TestGravityFrames.OWNER, entity -> Direction.UP);
             h.assertTrue(GravityFrames.direction(pig) == Direction.DOWN,
                     "Same-owner reinstall is idempotent and does not replace resolver");
         } else {
-            GravityFrames.install(owner, entity -> Direction.UP);
-            h.assertTrue(owner.equals(GravityFrames.owner()), "Existing owner remains installed");
+            GravityFrames.install(initialOwner, entity -> Direction.UP);
+            h.assertTrue(initialOwner.equals(GravityFrames.owner()), "Existing real owner remains installed");
         }
+
         boolean rejected = false;
         try {
             GravityFrames.install("conflicting-test-owner", entity -> Direction.UP);
