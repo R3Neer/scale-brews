@@ -79,7 +79,11 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 }catch(java.io.IOException e){throw new RuntimeException(e);}
                 return result;
             });
-            world.getServer().runOnServer(server->AnatomyNetworking.sendCatalog(server.getPlayerList().getPlayers().getFirst(),1,models));
+            world.getServer().runOnServer(server->{
+                var epoch=AnatomyNetworking.epoch(server);
+                AnatomyNetworking.acceptCatalogRevision(server,1);
+                AnatomyNetworking.sendCatalog(server.getPlayerList().getPlayers().getFirst(),AnatomyCatalogTransfer.encode(epoch,1,models));
+            });
             context.waitTicks(10);
             context.runOnClient(client->{
                 var received=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.catalog();
