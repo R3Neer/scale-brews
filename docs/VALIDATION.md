@@ -313,7 +313,7 @@ This paragraph records the state of that historical snapshot only. Later repairs
 
 The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
 
-- remaining G2 tangential/multicontact/sliding/separation/derived-carry/chains work not closed by S05-S07;
+- remaining G2 architectural partition/ownership work in tasks 1 and 9, beginning with S10's passive transport ledger/cursor extraction; S05-S09 have closed the physical Q2 scope they owned;
 - reconciling `chatgpt-editing` with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` is the single Scale body-gravity authority before global G2 closure;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
@@ -431,4 +431,43 @@ Both final lanes executed against the same production snapshot `0a6914ba355021b0
 
 The final source review found live consumers for the S08 ownership/planner/transport path: the narrow runtime ownership fence is consumed by legacy `carry`, `MaterialPhysicsRuntime` consumes `AnchoredTransportPlanner`, applied certified carry records through `recordCertifiedTransport(...)`, and an actively transported support produces `MaterialIntervalRuntime.deriveRoot(...)` plus `derivedInterval(...)`. No S08 production helper/state without a real consumer was identified.
 
-**S08 is closed. G2 remains open** for tangential retention, multicontact/sliding, recovery/wall-squeeze/intermediate-only contact and remaining budget observability, tracked in the canonical plan.
+At this S08 snapshot, **G2 remained open** for tangential retention, multicontact/sliding, recovery/wall-squeeze/intermediate-only contact and remaining budget observability. The S09 closure below supersedes that active-gap statement while preserving it as historical state.
+
+## G2 / S09 multicontact, sliding and recovery — closure 2026-09-12
+
+S09 closed the remaining physical Q2 slice owned by G2 tasks 5, 7 and 8: gravity-relative tangential retention/sliding, deterministic multi-contact response, bounded initial-separation recovery, pair-local wall-squeeze failure, strictly intermediate temporal contact and explicit budget boundaries. It did not close G2's architectural partition/ownership tasks 1 and 9.
+
+### Recovery frontier red-before-green
+
+The exact recovery-budget holdout initially could not calibrate a 128/129 boundary: nested separation paths generated thousands of numerically distinct `Vec3` offsets for the same physical candidate because raw floating-point sums were used as queue identity.
+
+`dd2299c74a678fbc392bb780745b5ba7bb38d361` canonicalized recovery candidates on a `1e-8` grid before enqueue, 100× finer than the `1e-6` escape skin. Diagnostic evidence changed the pathological family from `>4096` explored states to a linear physical frontier: 120 slabs → 121 candidates, …, 127 → 128 and 128 → 129. `S09SeparationBudgetBoundaryTests` retains the permanent exact-boundary/live-clip assertions; the temporary calibration diagnostic was removed in `dbc2a9aabebe092b6dfd54c8b8b222a6490b76f8`.
+
+### Prepared intermediate-contact red-before-green
+
+The real prepared cow A9 holdout uses a 120° root-yaw interval with both endpoints clear and a tiny stationary body intersected only in the interior. Earlier temporal screening exhausted the contractual 256-evaluation budget even when direct CCD could complete inside that budget.
+
+The repair sequence tightened rigid hierarchy speed bounds without weakening conservatism, added adversarial sampling that checks the bound over 1000 steps × 8 vertices, and made `TemporalResponse` probe cheap direct CCD queries before paying for broader certified screening. No response budget was raised. The cleaned production snapshot `05e8ad9c90bc4c9f09a5d47d49e929c8a080b628` preserves the physical A9 assertions without the exploratory diagnostic payload.
+
+### Clean ordinary and prepared evidence
+
+Ordinary workflow run **`34659541784`**, job **`103458981698`**, on the cleaned production snapshot completed successfully.
+
+Prepared adversarial run **`34659541774`**, job **`103458981680`**:
+
+- original client extraction succeeded;
+- cow export: **240 vertices / 10 pieces**;
+- player wide/slim: **144 vertices / 6 pieces** each;
+- primary animated-pose comparisons and **640 additional vanilla-family comparisons** succeeded;
+- the isolated prepared server suite executed **2/2 required GameTests** and both passed;
+- the real A9 strictly-intermediate cow contact completed within the unchanged 256-evaluation response budget.
+
+### Exact budget edge and final-review evidence
+
+`80fc63386dc0ae5faf10ce28f4658aa2d24c5fec` hardened A11 so the own-move boundary is an exact N-1/N oracle: N-1 completes below budget and N exhausts exactly at 256, with live fail-closed zero displacement/contact/debt on exhaustion. Its ordinary CI run completed successfully.
+
+A later final-review pass found no production defect but did find misleading executable documentation: the method formerly named `screeningCannotCostMoreThanTheClearSweepItReplaces` did not assert a strict cost ordering; it asserted the normative property that screening cannot turn a direct CLEAR fitting the same budget into exhaustion. `2aca10ef37c8fdbde85a26e9a4a5c0067189eb0e` renamed it to `screeningCannotExhaustWhenDirectClearFitsSameBudget` without changing its oracle or production. Run **`34659926225`** completed successfully.
+
+No production code changed after the cleaned prepared proof `05e8ad9…`; subsequent changes were boundary-test hardening, test naming and documentation/CI trigger bookkeeping. Hot-path inspection found bounded local entity queries rather than world scans, and the prepared workflow was extended so future `HierarchyMotion` changes trigger the real-geometry lane.
+
+**S09 is closed. G2 remains open only for the architectural partition/ownership work tracked as tasks 1 and 9 in the canonical plan; S10 is the active first extraction.**
