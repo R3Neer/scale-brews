@@ -100,8 +100,12 @@ public final class AnatomyRuntime {
     private static void reset(MinecraftServer server,State state) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
         state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();AnatomyTransportReceipts.clear(server);
+        var snapshot=state.catalog.snapshot();
+        AnatomyNetworking.acceptCatalogRevision(server,snapshot.revision());
+        // Materialize the immutable packet list now so the first player does no catalog preparation work.
+        state.catalog.preparedPackets(AnatomyNetworking.epoch(server));
         for(var level:server.getAllLevels()){
-            Platforms.anatomicalDefinitions(level,state.catalog.snapshot().profiles().values());
+            Platforms.anatomicalDefinitions(level,snapshot.profiles().values());
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepare(level);
         }
         for(var player:server.getPlayerList().getPlayers())catalog(state,player);
@@ -266,7 +270,8 @@ public final class AnatomyRuntime {
         }
         var snapshot=state.catalog.snapshot();
         if(!Objects.equals(state.sent.get(player),snapshot.revision())) {
-            AnatomyNetworking.sendCatalog(player,snapshot.revision(),snapshot.models(),snapshot.profiles());state.sent.put(player,snapshot.revision());
+            AnatomyNetworking.sendCatalog(player,state.catalog.preparedPackets(AnatomyNetworking.epoch(player.level().getServer())));
+            state.sent.put(player,snapshot.revision());
         }
         return true;
     }
