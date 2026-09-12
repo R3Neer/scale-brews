@@ -9,8 +9,11 @@ import io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.platform.Platforms;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -80,8 +83,33 @@ final class S09PreparedIntermediateContactProof {
                 "A9 chosen live piece alone must produce a complete non-zero interior response: "+chosenResponse);
 
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
+            String manifoldDiagnostics="";
+            if(manifoldResponse.status()==TemporalResponse.Status.ITERATION_LIMIT) {
+                var progressive=new TreeMap<String,ConservativeSweep.Motion>();
+                var prefix=new ArrayList<String>();
+                String failedAt=null;TemporalResponse.Result failedResponse=null;
+                for(var id:new TreeSet<>(liveMotion.pieces().keySet())) {
+                    progressive.put(id,liveMotion.pieces().get(id));
+                    var response=TemporalResponse.resolve(captured,Vec3.ZERO,progressive,32,256);
+                    prefix.add(id+"{status="+response.status()+",evals="+response.evaluations()+",time="+response.time()
+                        +",contacts="+response.contacts().size()+"}");
+                    if(response.status()==TemporalResponse.Status.ITERATION_LIMIT) {
+                        failedAt=id;failedResponse=response;break;
+                    }
+                }
+                if(failedAt!=null) {
+                    var failedMotion=liveMotion.pieces().get(failedAt);
+                    var failedSolo=TemporalResponse.resolve(captured,Vec3.ZERO,Map.of(failedAt,failedMotion),32,256);
+                    var sweep8=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,8);
+                    var sweep256=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,256);
+                    var sweep4096=ConservativeSweep.query(captured,Vec3.ZERO,failedMotion,4096);
+                    manifoldDiagnostics=" prefix="+prefix+" failedAt="+failedAt+" failedResponse="+failedResponse
+                        +" failedSolo="+failedSolo+" sweep8="+sweep8+" sweep256="+sweep256+" sweep4096="+sweep4096
+                        +" maxPointSpeed="+failedMotion.maxPointSpeed()+" bodyCenter="+captured.getCenter();
+                } else manifoldDiagnostics=" prefix="+prefix+" noPrefixFailure=true bodyCenter="+captured.getCenter();
+            }
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
-                "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse);
+                "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse+manifoldDiagnostics);
 
             MaterialPhysicsRuntime.drain(level);
 
