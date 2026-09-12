@@ -80,7 +80,7 @@ public final class TransportLedgerTests {
         TransportLedger.invalidate(body,true);body.discard();h.succeed();
     }
 
-    @GameTest
+    @GameTest(maxTicks=TransportLedger.HISTORY_TICKS+10)
     public void historyTtlExpiresOldPrefixWithoutErasingCurrentWatermark(GameTestHelper h) {
         Entity body=body(h);long tick=h.getLevel().getGameTime();
         TransportLedger.record(body,transport(tick,1,.125,.125));
