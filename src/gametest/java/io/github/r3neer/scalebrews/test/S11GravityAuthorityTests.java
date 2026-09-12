@@ -43,15 +43,15 @@ public final class S11GravityAuthorityTests {
     public void vanillaFallbackIsSharedByApiAndPipeline(GameTestHelper h) {
         var body = h.spawn(EntityTypes.ARMOR_STAND, 1, 2, 1);
         try {
-            AnatomyMovement.gravity(body, GravityFrame.VANILLA);
+            GravityFrames.clearOverrideForTests(body);
             h.assertTrue(GravityFrames.frame(body).equals(GravityFrame.VANILLA),
-                "Without a per-entity test override, the shared authority must resolve vanilla DOWN in this fixture");
+                "Without a provider-specific non-DOWN value or test override, shared gravity must resolve vanilla DOWN in this fixture");
             h.assertTrue(AnatomyMovement.gravity(body).equals(GravityFrames.frame(body)),
                 "The collision pipeline must read the shared gravity authority");
             h.assertTrue(AnatomyApi.gravity(body).equals(GravityFrames.frame(body)),
                 "The public API and collision pipeline must expose the same effective gravity frame");
         } finally {
-            AnatomyMovement.gravity(body, GravityFrame.VANILLA);
+            GravityFrames.clearOverrideForTests(body);
             body.discard();
         }
         h.succeed();
@@ -64,7 +64,7 @@ public final class S11GravityAuthorityTests {
         try {
             for (Direction direction : Direction.values()) {
                 var frame = new GravityFrame(direction);
-                AnatomyMovement.gravity(body, frame);
+                GravityFrames.overrideForTests(body, frame);
                 var shared = GravityFrames.frame(body);
                 h.assertTrue(shared.down() == direction,
                     "Shared authority lost cardinal gravity direction " + direction);
@@ -76,7 +76,7 @@ public final class S11GravityAuthorityTests {
                     "Gravity frame must recognize its own up normal as supporting for " + direction);
             }
         } finally {
-            AnatomyMovement.gravity(body, GravityFrame.VANILLA);
+            GravityFrames.clearOverrideForTests(body);
             body.discard();
         }
         h.succeed();
@@ -106,6 +106,27 @@ public final class S11GravityAuthorityTests {
             }
             h.assertTrue(rejected, "A competing gravity owner must fail explicitly");
         } finally {
+            body.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void clearingLocalOverrideCannotResetGlobalOwner(GameTestHelper h) {
+        var body = h.spawn(EntityTypes.ARMOR_STAND, 4, 2, 4);
+        try {
+            String ownerBefore = GravityFrames.owner();
+            Direction baseline = GravityFrames.direction(body);
+            Direction override = baseline == Direction.UP ? Direction.DOWN : Direction.UP;
+            GravityFrames.overrideForTests(body, new GravityFrame(override));
+            h.assertTrue(GravityFrames.direction(body) == override,
+                "The development seam must override only this entity's effective frame");
+            GravityFrames.clearOverrideForTests(body);
+            h.assertTrue(GravityFrames.direction(body) == baseline
+                    && java.util.Objects.equals(GravityFrames.owner(), ownerBefore),
+                "Clearing a local GameTest override must restore provider/fallback gravity without resetting global ownership");
+        } finally {
+            GravityFrames.clearOverrideForTests(body);
             body.discard();
         }
         h.succeed();

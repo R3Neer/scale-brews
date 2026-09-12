@@ -93,9 +93,14 @@ public final class GravityFrames {
         if (!FabricLoader.getInstance().isDevelopmentEnvironment())
             throw new IllegalStateException("Per-entity gravity overrides are available only in development/GameTest");
         Objects.requireNonNull(entity, "entity");
-        Objects.requireNonNull(frame, "frame");
-        if (GravityFrame.VANILLA.equals(frame)) TEST_OVERRIDES.remove(entity);
-        else TEST_OVERRIDES.put(entity, frame);
+        TEST_OVERRIDES.put(entity, Objects.requireNonNull(frame, "frame"));
+    }
+
+    /** Clears exactly one development/GameTest override without changing the global provider. */
+    public static void clearOverrideForTests(Entity entity) {
+        if (!FabricLoader.getInstance().isDevelopmentEnvironment())
+            throw new IllegalStateException("Per-entity gravity overrides are available only in development/GameTest");
+        TEST_OVERRIDES.remove(Objects.requireNonNull(entity, "entity"));
     }
 
     /** Lifecycle cleanup for the development seam; never resets or replaces the global provider. */
