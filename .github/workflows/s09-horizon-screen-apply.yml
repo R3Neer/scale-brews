@@ -22,16 +22,32 @@ jobs:
         with:
           java-version: '25'
           distribution: microsoft
-      - name: apply bounded-horizon certificate
+      - name: reuse midpoint samples as clear certificates
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java')
           s=p.read_text()
-          old="            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);\n"
-          new="            ConservativeSweep.Result result;\n            if(constraint==null && horizon<1) {\n                Boolean clear=certifiedClearWindow(body,queryDelta,interval,budget);\n                if(clear==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                result=clear?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)\n                    :firstForPiece(body,queryDelta,interval,budget);\n            } else result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);\n"
-          if s.count(old)!=1: raise SystemExit(f'expected one target statement, found {s.count(old)}')
+
+          old='''        var ordered=new ArrayList<String>(ids);\n        if(!active.isEmpty()) {'''
+          new='''        var ordered=new ArrayList<String>(ids);\n        var midpointCleared=new HashSet<String>();\n        if(!active.isEmpty()) {'''
+          if s.count(old)!=1: raise SystemExit(f'ordered target count={s.count(old)}')
+          s=s.replace(old,new)
+
+          old='''            AABB midpointBody=body.move(delta.scale(.5));\n            var midpointOverlap=new HashMap<String,Boolean>();\n            for(var id:ordered) {\n                if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                var material=pieces.get(id).interval(start,end).at().apply(.5);\n                if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                midpointOverlap.put(id,material.overlaps(midpointBody));\n            }\n            ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));'''
+          new='''            AABB midpointBody=body.move(delta.scale(.5));\n            var midpointOverlap=new HashMap<String,Boolean>();\n            for(var id:ordered) {\n                if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                var interval=pieces.get(id).interval(start,end);\n                var material=interval.at().apply(.5);\n                if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                if(certifiedClearMidpoint(body,delta,interval,material))midpointCleared.add(id);\n                midpointOverlap.put(id,material.overlaps(midpointBody));\n            }\n            ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));'''
+          if s.count(old)!=1: raise SystemExit(f'midpoint target count={s.count(old)}')
+          s=s.replace(old,new)
+
+          old='''        for(var id:ordered) {\n            var constraint=active.get(id);'''
+          new='''        for(var id:ordered) {\n            if(midpointCleared.contains(id))continue;\n            var constraint=active.get(id);'''
+          if s.count(old)!=1: raise SystemExit(f'loop target count={s.count(old)}')
+          s=s.replace(old,new)
+
+          old='''    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {\n        if(!budget.sample())return null;\n        var material=interval.at().apply(.5);\n        if(material==null)return false;\n        AABB sampledBody=body.move(delta.scale(.5));\n        var separation=material.separation(sampledBody);\n        Vec3 normal=separation.normal();\n        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())\n                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;\n        Vec3 relative=delta.subtract(interval.linearTranslation());\n        double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));\n        if(!Double.isFinite(rate) || rate<0)return false;\n        double adverse=.5*rate;\n        return separation.gap()-adverse>ConservativeSweep.contactClearance(sampledBody,material);\n    }'''
+          new='''    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {\n        if(!budget.sample())return null;\n        var material=interval.at().apply(.5);\n        if(material==null)return false;\n        return certifiedClearMidpoint(body,delta,interval,material);\n    }\n\n    /** Reuse an already budgeted midpoint sample; this helper itself consumes no evaluation. */\n    private static boolean certifiedClearMidpoint(AABB body,Vec3 delta,ConservativeSweep.Motion interval,ConvexBox material) {\n        AABB sampledBody=body.move(delta.scale(.5));\n        var separation=material.separation(sampledBody);\n        Vec3 normal=separation.normal();\n        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())\n                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;\n        Vec3 relative=delta.subtract(interval.linearTranslation());\n        double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));\n        if(!Double.isFinite(rate) || rate<0)return false;\n        double adverse=.5*rate;\n        return separation.gap()-adverse>ConservativeSweep.contactClearance(sampledBody,material);\n    }'''
+          if s.count(old)!=1: raise SystemExit(f'certificate target count={s.count(old)}')
           p.write_text(s.replace(old,new))
           PY
           git diff --check
@@ -57,5 +73,5 @@ jobs:
           git config user.name 'ChatGPT'
           git config user.email 'chatgpt@users.noreply.github.com'
           git add src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
-          git commit -m 'fix(s09): screen bounded horizons before full probe'
+          git commit -m 'fix(s09): reuse midpoint samples as clear certificates'
           git push origin HEAD:chatgpt-editing
