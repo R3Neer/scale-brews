@@ -29,6 +29,7 @@ Además, `ScaleAnatomyBackend.gravity(...)` delegaba en `AnatomyMovement.gravity
 - `ScaleAnatomyBackend.gravity(...)` y `AnatomyMovement.gravity(...)` observan la misma autoridad compartida.
 - `collision.internal.GravityFrames` se eliminó de producción.
 - La gravedad sintética por entidad usada por GameTest se conserva como seam explícito dentro de la propia autoridad compartida y está bloqueada fuera de `isDevelopmentEnvironment()`; no constituye una segunda autoridad de producción.
+- Un override de test puede representar cualquiera de las seis direcciones, incluido `DOWN`; limpiar un override es una operación explícita distinta y nunca resetea el proveedor global.
 - `deactivate(Level)` solo limpia los overrides de test asociados al nivel y nunca resetea ni sustituye el proveedor global.
 - El fixture legado de `AnatomyGeometryTests` usa un puente **solo en `src/gametest`** que no posee estado y delega al servicio compartido.
 
@@ -52,9 +53,11 @@ Además, `ScaleAnatomyBackend.gravity(...)` delegaba en `AnatomyMovement.gravity
 - [x] Mover la inyección de gravedad sintética de GameTest a un seam explícito de desarrollo sin crear una segunda autoridad de producción.
 - [x] Añadir holdouts verdes para vanilla, seis direcciones cardinales, ownership de proveedor y coincidencia API/pipeline.
 - [x] Reejecutar los holdouts de S08/S09 que ejercitan gravedad lateral y transporte continuo dentro de la suite ordinaria completa.
-- [x] Ejecutar CI ordinario y prepared adversarial sobre la migración relevante.
+- [x] Ejecutar CI ordinario y prepared adversarial sobre el estado final de la autoridad compartida.
 - [x] Revisar adversarialmente la semántica de reinstalación del mismo owner: el resolver original queda inmutable.
-- [x] Dejar S11 listo para reflejarse en `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md`; G2 sigue abierto por las tareas arquitectónicas 1 y 9.
+- [x] Separar explícitamente `overrideForTests(..., DOWN)` de `clearOverrideForTests(...)`, de modo que DOWN pueda probarse incluso si el proveedor global resuelve otra dirección.
+- [x] Hacer que cambios futuros en `integration.gravity.GravityFrames` activen automáticamente la lane prepared real-geometry.
+- [x] Registrar evidencia final y dejar S11 listo para reflejarse en `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md`; G2 sigue abierto por las tareas arquitectónicas 1 y 9.
 
 ## Holdouts adversariales
 
@@ -76,15 +79,15 @@ Existe `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como serv
 
 ### A5 — vanilla seguro — VERDE
 
-Sin override de fixture, la resolución de la prueba es `Direction.DOWN` / `GravityFrame.VANILLA`.
+Sin override de fixture ni proveedor no-DOWN, la resolución es `Direction.DOWN` / `GravityFrame.VANILLA`.
 
 ### A6 — seis direcciones cardinales — VERDE
 
-Los seis `Direction.values()` atraviesan la misma autoridad, conservan `toLocal(toWorld(v)) == v` dentro de tolerancia y mantienen `supports(up())`.
+Los seis `Direction.values()` atraviesan la misma autoridad, incluido un `DOWN` inyectado explícitamente por el seam de test. Conservan `toLocal(toWorld(v)) == v` dentro de tolerancia y mantienen `supports(up())`.
 
 ### A7 — ownership exclusivo e inmutable — VERDE
 
-Un owner competidor produce `IllegalStateException`. Reinstalar el mismo owner conserva tanto el owner como el resolver original; el holdout final usa un resolver contradictorio y verifica que no lo sustituye.
+Un owner competidor produce `IllegalStateException`. Reinstalar el mismo owner conserva tanto el owner como el resolver original; el holdout usa un resolver contradictorio y verifica que no lo sustituye.
 
 ### A8 — independencia body/support preservada — VERDE
 
@@ -94,9 +97,9 @@ La suite final incluye `S08GravityIndependenceTests`, por lo que una gravedad co
 
 La suite final incluye `S09LiveOwnMoveTests` y el resto de S09; los casos de gravedad lateral siguen verdes y no reaparece una suposición global de `DOWN`.
 
-### A10 — lifecycle sin estado fantasma — VERDE
+### A10 — lifecycle/test cleanup sin estado fantasma — VERDE
 
-`AnatomyMovement.deactivate(Level)` limpia el seam de test del nivel mediante la autoridad compartida, pero no rebobina ni reemplaza el proveedor global.
+El seam de test limpia un override por entidad de forma explícita y restaura la gravedad del proveedor/fallback sin cambiar `owner()`. `AnatomyMovement.deactivate(Level)` limpia únicamente overrides de test del nivel; el proveedor global no se rebobina ni se reemplaza.
 
 ## Evidencia roja
 
@@ -120,51 +123,73 @@ La migración se repartió en cambios pequeños para evitar mezclar física con 
 - `a3c2879d8017a9abcfdca0e5335b7cbe77d1f5bc` — añade `integration.gravity.GravityFrames` con proveedor único, owner, fallback vanilla, Gravity Changer y seam de desarrollo;
 - `5d13c1ea2d60b1a201849c3a79accbb46e1b588b` — inicializa la autoridad compartida antes que los subsistemas consumidores;
 - `105ae43876783cb9e19c8708ba72f01083d520b7` — enruta `ScaleAnatomyBackend` y el adaptador público a la autoridad compartida;
-- `e1cc8d3d51fc689a7934cbaf3a3ab490856ab899` — elimina el ownership local de `AnatomyMovement`; el diff de esa clase fue de solo **4 líneas añadidas / 4 eliminadas**, sin churn de CCD/carry;
+- `e1cc8d3d51fc689a7934cbaf3a3ab490856ab899` — elimina el ownership local de `AnatomyMovement`, sin churn de CCD/carry;
 - `ee8f6309199936741df0000d7219fef4b31cb798` — elimina `collision.internal.GravityFrames` de producción;
-- `1e7cbade4656a41223e4e00aa1af52bbed438cbd` — añade un puente de fixture solo en `src/gametest` para el antiguo `AnatomyGeometryTests`; no posee estado y delega a la autoridad compartida.
+- `1e7cbade4656a41223e4e00aa1af52bbed438cbd` — añade un puente de fixture solo en `src/gametest` para el antiguo `AnatomyGeometryTests`; no posee estado y delega a la autoridad compartida;
+- `a4c406c8638e63d4daeee56cb7450b01fdf562c2` — refuerza A7 probando que reinstalar el mismo owner tampoco puede cambiar el resolver;
+- `474c678a3c73137ec9719cbad788b6d8dc61950b` — corrige el seam de pruebas: `DOWN` deja de significar implícitamente “borrar override”, añade `clearOverrideForTests(...)` y fija A10;
+- `52770bc04d2945f800bf06f78c7e4e33f5bcc6f0` — añade la autoridad compartida de gravedad a los triggers de la lane prepared.
 
-El primer build tras eliminar la clase interna encontró precisamente ese consumidor de test legado. Fue un fallo de compilación del fixture, no de la autoridad de producción, y se corrigió migrando el fixture sin reintroducir ningún owner de producción.
+### Reapertura posterior al primer cierre
 
-## Evidencia verde
+El cierre provisional sobre `a4c406c...` se reabrió durante la revisión adversarial. Se detectó que `overrideForTests(entity, GravityFrame.VANILLA)` eliminaba el override en lugar de representar explícitamente `DOWN`. Con un proveedor global no-DOWN, el fixture no habría podido probar las seis direcciones de forma independiente del proveedor.
 
-### Suite ordinaria final
+La corrección `474c678...` separa dos operaciones que antes estaban sobrecargadas:
 
-El último refuerzo adversarial es `a4c406c8638e63d4daeee56cb7450b01fdf562c2` (`test(s11): prove same-owner resolver is immutable`), que añade la propiedad de que reinstalar el mismo owner tampoco puede cambiar el resolver.
+1. `overrideForTests(entity, frame)` fija cualquier frame cardinal, incluido vanilla/DOWN;
+2. `clearOverrideForTests(entity)` elimina exclusivamente el override local.
 
-GitHub Actions run **`34690905310`**, job **`103545830375`**:
+El cambio no altera la semántica física de producción ni el ownership global. La revisión también detectó que la lane prepared no se disparaba ante cambios del nuevo owner; `52770bc...` corrigió el filtro de paths.
 
-- checkout exacto `a4c406c8638e63d4daeee56cb7450b01fdf562c2`;
-- **364 tests registrados y ejecutados**;
-- **364/364 required GameTests passed**;
-- `BUILD SUCCESSFUL in 1m 25s`;
-- artifact **`10297312748`**, 896653 bytes;
-- SHA-256 **`f2448b38dd3f4a3519093e18548f442892d3252496ee98a8fec450c1188c0420`**.
+## Evidencia verde final
 
-Esta suite incluye los seis holdouts actuales de S11, `S08GravityIndependenceTests`, `S09LiveOwnMoveTests` y el resto de regresiones ordinarias S05-S10.
+Snapshot probado: **`52770bc04d2945f800bf06f78c7e4e33f5bcc6f0`**.
 
-### Prepared adversarial
+### Suite ordinaria
 
-El cambio de producción que modifica directamente la resolución de gravedad en `AnatomyMovement`, `e1cc8d3d51fc689a7934cbaf3a3ab490856ab899`, activó el workflow prepared por su path filter.
+GitHub Actions run **`34691237169`**, job **`103546736147`**:
 
-Prepared run **`34690517107`** terminó **success**, por lo que el cambio de ownership en el pipeline no rompió la prueba prepared de geometría/servidor. Los commits posteriores de S11 son eliminación de la clase duplicada, integración/test-fixture y holdouts; no alteran CCD/carry.
+- checkout exacto `52770bc04d2945f800bf06f78c7e4e33f5bcc6f0`;
+- **365/365 required GameTests passed**;
+- `BUILD SUCCESSFUL in 1m 3s`;
+- artifact **`10297365579`**;
+- SHA-256 **`1dc9b7587cef827a4b0f74ed839b58bea3045f49369e743caaf02fa5691ddeae`**.
+
+La suite incluye los holdouts S11 finales, `S08GravityIndependenceTests`, `S09LiveOwnMoveTests` y el resto de regresiones ordinarias S05-S10.
+
+### Prepared adversarial real-geometry
+
+GitHub Actions run **`34691237142`**, job **`103546736010`**, sobre el mismo snapshot `52770bc...`:
+
+- export cliente original completado correctamente;
+- `minecraft:cow`: **240 vertices / 10 pieces**, 80 comparaciones de pose;
+- **640** comparaciones adicionales de familias vanilla;
+- `minecraft:player_wide`: **144 vertices / 6 pieces**, 80 comparaciones de pose;
+- `minecraft:player_slim`: **144 vertices / 6 pieces**, 80 comparaciones de pose;
+- el servidor prepared ejecutó **2/2 required GameTests passed**;
+- export cliente: `BUILD SUCCESSFUL in 1m 37s`;
+- suite prepared servidor: `BUILD SUCCESSFUL in 17s`.
+
+Los avisos de narrator/ALSA/X11/autenticación del runner fueron no fatales y no afectaron la exportación ni los oracles.
 
 ## Revisión final
 
-La revisión posterior al verde no encontró una segunda autoridad de producción:
+La revisión posterior al verde no encuentra una segunda autoridad de producción:
 
 - el servicio compartido posee la elección efectiva de gravedad;
 - `collision.api.GravityFrame` conserva únicamente la representación/transformación física;
 - `ScaleAnatomyBackend` no vuelve a crear estado de gravedad;
 - `AnatomyMovement` no posee un almacén de gravedad;
-- el override por entidad queda restringido al entorno de desarrollo/GameTest dentro de la misma autoridad;
+- el override por entidad queda restringido al entorno de desarrollo/GameTest dentro de la misma autoridad y tiene cleanup explícito;
 - el puente legado vive solo en source-set de test y no almacena estado;
-- un owner no puede sustituir a otro ni cambiar silenciosamente su resolver mediante reinstalación.
+- un owner no puede sustituir a otro ni cambiar silenciosamente su resolver mediante reinstalación;
+- lifecycle/cleanup de tests no rebobina el proveedor global;
+- cualquier cambio futuro en la autoridad compartida activa la prueba prepared de geometría real.
 
-No se identificó ningún cambio adicional de S11 tras esta revisión.
+No se identifica ningún cambio adicional de producción para S11 tras esta revisión.
 
 ## Cierre
 
-**S11 está CERRADO.** La reconciliación requerida por `main@39824dd…` queda resuelta: `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` es la autoridad compartida de gravedad que consume Entity Collisions.
+**S11 está CERRADO.** `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` es la autoridad compartida de gravedad que consumen Entity Collisions y la API pública, y el cierre final está validado sobre `52770bc...` en las lanes ordinaria y prepared.
 
 Este cierre **no cierra G2**. Permanecen las tareas arquitectónicas de partición/ownership de G2, especialmente la división del estado/orquestación todavía concentrado en `AnatomyMovement` y la retirada/migración de tipos físicos u orquestadores que siguen en `collision.internal` cuando sus fronteras estén estabilizadas.
