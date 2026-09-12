@@ -8,6 +8,7 @@ import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
+import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
 
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.*;
@@ -40,11 +41,6 @@ public final class AnatomyMovement {
     private static final Map<Entity,Contact> CONTACTS=entityMap();
     private static final Map<Entity,Long> CONTACT_SEQUENCES=entityMap();
     private static final Map<Entity,Anchor> ANCHORS=entityMap();
-    private static final Map<Entity,SupportTransport> TRANSPORT=entityMap();
-    /** Applied segments survive a contact release until the pose sampler consumes them. */
-    private static final Map<Entity,TransportHistory> TRANSPORT_HISTORY=entityMap();
-    /** Changes only at an explicit physical lifecycle discontinuity, never on a contact release. */
-    private static final Map<Entity,Long> TRANSPORT_GENERATIONS=entityMap();
     private static final Map<Entity,SurfaceContact> SURFACES=entityMap();
     private static final Map<Entity,Map<LivingEntity,Long>> SUSPENDED=entityMap();
     /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
@@ -56,15 +52,6 @@ public final class AnatomyMovement {
     }
     private static final class RootHistory {final ArrayDeque<RootFrame> frames=new ArrayDeque<>();}
     private static final Map<LivingEntity,RootHistory> ROOTS=entityMap();
-    private static final int TRANSPORT_HISTORY_TICKS=40,TRANSPORT_HISTORY_ENTRIES=64;
-    private static final class TransportHistory {final ArrayDeque<SupportTransport> entries=new ArrayDeque<>();}
-    /** Package-private cursor result for AuthorityPoseTracker; never a wire/API DTO. */
-    static record TransportWindow(boolean contiguous,long latestSequence,Vec3 appliedDelta) {
-        TransportWindow {
-            if(latestSequence<0 || appliedDelta==null || !Double.isFinite(appliedDelta.lengthSqr()))
-                throw new IllegalArgumentException("Invalid transport window");
-        }
-    }
     /** Production frames seal causal identity plus full material serial; legacy fixtures retain root/revision only. */
     private record FrameStamp(GeometryProvider.GeometryIdentity identity,RootFrame root,long revision,long registration,long frameSerial) {}
     /** Q2 broadphase state keeps causal-frame validation separate from the reusable spatial kernel. */
@@ -317,47 +304,16 @@ public final class AnatomyMovement {
         AnatomyTransportReceipts.invalidate(body);
     }
     public static synchronized SurfaceContact surface(Entity body){return SURFACES.get(body);}
-    public static synchronized SupportTransport transport(Entity body){return TRANSPORT.get(body);}
-    /** Internal lifecycle identity paired with the cursor; it is not protocol state. */
-    static synchronized long transportGeneration(Entity body){return TRANSPORT_GENERATIONS.getOrDefault(body,0L);}
-    /**
-     * Returns every real passive contribution strictly after {@code consumedSequence} when the
-     * bounded identity history can prove there is no missing serial. A released contact does not
-     * erase this history: its already-applied delta may still sit between two pose samples.
-     */
-    static synchronized TransportWindow transportSince(Entity body,long consumedSequence) {
-        if(consumedSequence<0)throw new IllegalArgumentException("Invalid consumed transport sequence");
-        var current=TRANSPORT.get(body);
-        long latest=current==null?0:current.sequence();
-        var history=TRANSPORT_HISTORY.get(body);
-        if(history!=null)pruneTransport(history,body.level().getGameTime());
-        if(consumedSequence==latest)return new TransportWindow(true,latest,Vec3.ZERO);
-        if(consumedSequence>latest)return new TransportWindow(false,latest,Vec3.ZERO);
-        if(history==null || history.entries.isEmpty())return new TransportWindow(false,latest,Vec3.ZERO);
-        long expected=consumedSequence+1;Vec3 applied=Vec3.ZERO;
-        for(var transport:history.entries)if(transport.sequence()>consumedSequence) {
-            if(transport.sequence()!=expected)return new TransportWindow(false,latest,Vec3.ZERO);
-            applied=applied.add(transport.appliedDelta());expected++;
-        }
-        return expected==latest+1?new TransportWindow(true,latest,applied):new TransportWindow(false,latest,Vec3.ZERO);
-    }
-    private static synchronized void rememberTransport(Entity body,SupportTransport transport) {
-        var history=TRANSPORT_HISTORY.computeIfAbsent(body,ignored->new TransportHistory());
-        var last=history.entries.peekLast();
-        if(last!=null && transport.sequence()<=last.sequence())history.entries.clear();
-        history.entries.addLast(transport);pruneTransport(history,body.level().getGameTime());
-        while(history.entries.size()>TRANSPORT_HISTORY_ENTRIES)history.entries.removeFirst();
-    }
-    private static void pruneTransport(TransportHistory history,long tick) {
-        while(history.entries.peekFirst()!=null && history.entries.peekFirst().tick()<tick-TRANSPORT_HISTORY_TICKS+1)
-            history.entries.removeFirst();
-    }
-    private static void forgetTransport(Entity body) {TRANSPORT.remove(body);TRANSPORT_HISTORY.remove(body);}
+    /** Transitional façade while callers migrate to the runtime ledger. */
+    public static synchronized SupportTransport transport(Entity body){return TransportLedger.current(body);}
+    /** Transitional lifecycle façade paired with the transport cursor. */
+    static synchronized long transportGeneration(Entity body){return TransportLedger.generation(body);}
+    /** Transitional cursor façade; the ledger is the sole state owner. */
+    static synchronized TransportLedger.Window transportSince(Entity body,long consumedSequence){return TransportLedger.since(body,consumedSequence);}
     /** A teleport/removal invalidates a body's own anchor but may retain already-applied carry. */
     private static void invalidateBody(Entity body,boolean discardTransport) {
         clear(body);
-        TRANSPORT_GENERATIONS.merge(body,1L,Long::sum);
-        if(discardTransport)forgetTransport(body);
+        TransportLedger.invalidate(body,discardTransport);
     }
     public static synchronized boolean confirm(Entity body,LivingEntity support,SurfaceContact surface) {
         if(!active(body) || surface==null || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
@@ -439,9 +395,8 @@ public final class AnatomyMovement {
         FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
         GRAVITY.keySet().removeIf(e->e.level()==level);CONTACTS.keySet().removeIf(e->e.level()==level);
         CONTACT_SEQUENCES.keySet().removeIf(e->e.level()==level);ROOTS.keySet().removeIf(e->e.level()==level);
-        ANCHORS.keySet().removeIf(e->e.level()==level);TRANSPORT.keySet().removeIf(e->e.level()==level);
-        TRANSPORT_HISTORY.keySet().removeIf(e->e.level()==level);
-        TRANSPORT_GENERATIONS.keySet().removeIf(e->e.level()==level);
+        ANCHORS.keySet().removeIf(e->e.level()==level);
+        TransportLedger.deactivate(level);
         SURFACES.keySet().removeIf(e->e.level()==level);
         SUSPENDED.keySet().removeIf(e->e.level()==level);
         METRICS.remove(level);
@@ -750,10 +705,10 @@ public final class AnatomyMovement {
         for(var passenger:body.getIndirectPassengers())
             if(passenger instanceof net.minecraft.server.level.ServerPlayer player)
                 ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,applied);
-        var before=TRANSPORT.get(body);long tick=body.level().getGameTime();
+        var before=TransportLedger.current(body);long tick=body.level().getGameTime();
         var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
             before!=null && before.tick()==tick?before.displacement().add(applied):applied,applied);
-        TRANSPORT.put(body,transport);rememberTransport(body,transport);
+        TransportLedger.record(body,transport);
         AnatomyTransportReceipts.record(body,contact,surface,root,transport,materialBefore,materialAfter);
         return true;
     }
@@ -791,11 +746,10 @@ public final class AnatomyMovement {
                 for(var passenger:body.getIndirectPassengers())
                     if(passenger instanceof net.minecraft.server.level.ServerPlayer player)
                         ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,allowed);
-                var before=TRANSPORT.get(body);long tick=body.level().getGameTime();
+                var before=TransportLedger.current(body);long tick=body.level().getGameTime();
                 var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
                     before!=null && before.tick()==tick?before.displacement().add(allowed):allowed,allowed);
-                TRANSPORT.put(body,transport);
-                rememberTransport(body,transport);
+                TransportLedger.record(body,transport);
                 AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore,piece);
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
             }
