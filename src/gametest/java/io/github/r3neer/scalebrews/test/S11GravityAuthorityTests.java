@@ -84,21 +84,30 @@ public final class S11GravityAuthorityTests {
 
     @GameTest
     public void publicAdapterInstallationHasOneOwner(GameTestHelper h) {
-        String installed = GravityFrames.owner();
-        String owner = installed == null ? "scalebrews_test:s11" : installed;
-        AnatomyApi.installGravityAdapter(owner, ignored -> Direction.DOWN);
-        h.assertTrue(owner.equals(GravityFrames.owner()),
-            "Public collision adapter installation must terminate at the shared Scale gravity owner");
-        AnatomyApi.installGravityAdapter(owner, ignored -> Direction.UP);
-        h.assertTrue(owner.equals(GravityFrames.owner()),
-            "Reinstalling the same owner must be idempotent rather than replacing authority");
-        boolean rejected = false;
+        var body = h.spawn(EntityTypes.ARMOR_STAND, 3, 2, 3);
         try {
-            AnatomyApi.installGravityAdapter(owner + ":competitor", ignored -> Direction.UP);
-        } catch (IllegalStateException expected) {
-            rejected = true;
+            String installed = GravityFrames.owner();
+            String owner = installed == null ? "scalebrews_test:s11" : installed;
+            AnatomyApi.installGravityAdapter(owner, ignored -> Direction.DOWN);
+            h.assertTrue(owner.equals(GravityFrames.owner()),
+                "Public collision adapter installation must terminate at the shared Scale gravity owner");
+
+            Direction before = GravityFrames.direction(body);
+            Direction contradictory = before == Direction.UP ? Direction.DOWN : Direction.UP;
+            AnatomyApi.installGravityAdapter(owner, ignored -> contradictory);
+            h.assertTrue(owner.equals(GravityFrames.owner()) && GravityFrames.direction(body) == before,
+                "Reinstalling the same owner must be a full no-op and must not replace its resolver");
+
+            boolean rejected = false;
+            try {
+                AnatomyApi.installGravityAdapter(owner + ":competitor", ignored -> Direction.UP);
+            } catch (IllegalStateException expected) {
+                rejected = true;
+            }
+            h.assertTrue(rejected, "A competing gravity owner must fail explicitly");
+        } finally {
+            body.discard();
         }
-        h.assertTrue(rejected, "A competing gravity owner must fail explicitly");
         h.succeed();
     }
 
