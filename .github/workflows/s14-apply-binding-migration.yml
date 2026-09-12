@@ -54,7 +54,9 @@ jobs:
           PY
           git diff --check
       - name: build migrated tree
-        run: ./gradlew build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build
       - name: commit and push migrated source
         shell: bash
         run: |
