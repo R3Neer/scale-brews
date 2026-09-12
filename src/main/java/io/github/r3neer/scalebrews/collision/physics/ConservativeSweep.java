@@ -61,24 +61,32 @@ public final class ConservativeSweep {
         }
         double speed=motion.deformationSpeed()+relative.length(),t=0;
         if(!Double.isFinite(speed))throw new IllegalArgumentException("Unbounded motion");
-        final double skin=SKIN;
         Vec3 normal=Vec3.ZERO;
         for(int iteration=1;iteration<=maxIterations;iteration++) {
             var material=motion.at().apply(t);
             var movedBody=body.move(displacement.scale(t));
             var separation=material.separation(movedBody);
-            double tolerance=numericalGapTolerance(movedBody,material);
+            double clearance=contactClearance(movedBody,material);
             normal=separation.normal();
-            if(separation.gap()<-skin-tolerance && t==0)return new Result(Status.INITIAL_OVERLAP,0,normal,iteration);
-            if(separation.gap()<=skin+tolerance)return new Result(Status.CONTACT,t,normal,iteration);
+            if(separation.gap()<-clearance && t==0)return new Result(Status.INITIAL_OVERLAP,0,normal,iteration);
+            if(separation.gap()<=clearance)return new Result(Status.CONTACT,t,normal,iteration);
             if(speed==0 || t>=1)return new Result(Status.CLEAR,1,Vec3.ZERO,iteration);
-            double step=(separation.gap()-skin-tolerance)/speed;
+            double step=(separation.gap()-clearance)/speed;
             if(step>1-t)return new Result(Status.CLEAR,1,Vec3.ZERO,iteration);
             if(step<1e-12)return new Result(Status.CONTACT,t,normal,iteration);
             t+=step;
         }
         // This is NOT success: callers must stop here and record the exhausted budget.
         return new Result(Status.ITERATION_LIMIT,t,normal,maxIterations);
+    }
+
+    /**
+     * CCD and every temporal clearance certificate must agree on the same world-coordinate band.
+     * The base skin is physical/numerical policy; the extra ulp term only compensates representation
+     * error at large coordinates and is never allowed to grow beyond one quarter of SKIN.
+     */
+    static double contactClearance(AABB body,ConvexBox material) {
+        return SKIN+numericalGapTolerance(body,material);
     }
 
     /**
