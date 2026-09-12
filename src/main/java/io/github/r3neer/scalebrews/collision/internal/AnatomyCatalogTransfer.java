@@ -41,17 +41,53 @@ public final class AnatomyCatalogTransfer {
         try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));}
         catch(java.security.NoSuchAlgorithmException e){throw new IllegalStateException(e);}
     }
+
+    /**
+     * Immutable serialization/hash/fragmentation result for one accepted catalog revision.
+     * Packet materialization is cached per epoch+revision; fragment arrays remain private and payloads clone them.
+     */
+    static final class PreparedBundle {
+        private final int totalBytes;
+        private final String digest;
+        private final List<byte[]> fragments;
+        private UUID packetEpoch;
+        private long packetRevision=Long.MIN_VALUE;
+        private List<AnatomyCatalogPayload> packets;
+
+        private PreparedBundle(byte[] bytes) {
+            Objects.requireNonNull(bytes,"bytes");
+            if(bytes.length<1 || bytes.length>AnatomyCatalogPayload.MAX_BYTES)throw new IllegalArgumentException("Invalid prepared catalog size");
+            totalBytes=bytes.length;digest=hash(bytes);
+            int count=(bytes.length+AnatomyCatalogPayload.CHUNK-1)/AnatomyCatalogPayload.CHUNK;
+            var split=new ArrayList<byte[]>(count);
+            for(int index=0;index<count;index++)split.add(Arrays.copyOfRange(bytes,index*AnatomyCatalogPayload.CHUNK,
+                Math.min(bytes.length,(index+1)*AnatomyCatalogPayload.CHUNK)));
+            fragments=List.copyOf(split);
+        }
+
+        synchronized List<AnatomyCatalogPayload> packets(UUID epoch,long revision) {
+            Objects.requireNonNull(epoch,"epoch");
+            if(revision<0)throw new IllegalArgumentException("Negative catalog revision");
+            if(packets!=null && epoch.equals(packetEpoch) && revision==packetRevision)return packets;
+            var built=new ArrayList<AnatomyCatalogPayload>(fragments.size());
+            for(int index=0;index<fragments.size();index++)built.add(new AnatomyCatalogPayload(epoch,AnatomyApi.PROTOCOL_VERSION,
+                AnatomyApi.capabilities(),revision,index,fragments.size(),totalBytes,digest,fragments.get(index)));
+            packetEpoch=epoch;packetRevision=revision;packets=List.copyOf(built);return packets;
+        }
+    }
+
+    static PreparedBundle prepareBundle(Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
+        return new PreparedBundle(serializedBundle(models,profiles));
+    }
+
     public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models) {
         return encode(epoch,revision,models,Map.of());
     }
+    /** Fixture/convenience encoder. Production publication uses the prepared bundle owned by WorldAnatomyCatalog. */
     public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
-        new WorldAnatomyCatalog().replace(models,profiles);
-        byte[] bytes=serializedBundle(models,profiles);
-        int count=(bytes.length+AnatomyCatalogPayload.CHUNK-1)/AnatomyCatalogPayload.CHUNK;String digest=hash(bytes);
-        List<AnatomyCatalogPayload> result=new ArrayList<>();
-        for(int index=0;index<count;index++)result.add(new AnatomyCatalogPayload(epoch,AnatomyApi.PROTOCOL_VERSION,AnatomyApi.capabilities(),revision,index,count,bytes.length,digest,
-            Arrays.copyOfRange(bytes,index*AnatomyCatalogPayload.CHUNK,Math.min(bytes.length,(index+1)*AnatomyCatalogPayload.CHUNK))));
-        return List.copyOf(result);
+        var validation=new WorldAnatomyCatalog();
+        validation.replaceAtRevision(revision,models,profiles);
+        return validation.preparedPackets(epoch);
     }
     static byte[] serializedBundle(Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
         var bundle=new com.google.gson.JsonObject();bundle.add("models",new Gson().toJsonTree(new TreeMap<>(models)));
