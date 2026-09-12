@@ -1,11 +1,13 @@
 package io.github.r3neer.scalebrews.collision.runtime;
 
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /** Direct S10 holdouts for the extracted passive-transport identity ledger. */
@@ -96,6 +98,51 @@ public final class TransportLedgerTests {
         });
     }
 
+    @GameTest(maxTicks=TransportLedger.HISTORY_TICKS+10)
+    public void historyTtlRetainsTheExactLastProvableTick(GameTestHelper h) {
+        Entity body=body(h);long tick=h.getLevel().getGameTime();
+        TransportLedger.record(body,transport(tick,1,.125,.125));
+        h.runAfterDelay(TransportLedger.HISTORY_TICKS-1,()->{
+            try {
+                var boundary=TransportLedger.since(body,0);
+                h.assertTrue(boundary.contiguous() && boundary.latestSequence()==1
+                        && close(boundary.appliedDelta(),new Vec3(.125,0,0)),
+                    "The final tick inside the 40-tick history window must remain exactly provable: "+boundary);
+                TransportLedger.invalidate(body,true);body.discard();h.succeed();
+            } catch(Throwable failure) {TransportLedger.invalidate(body,true);body.discard();throw failure;}
+        });
+    }
+
+    @GameTest
+    public void ordinaryContactReleaseBetweenContributionsPreservesLedgerContinuity(GameTestHelper h) {
+        Entity body=body(h);long tick=h.getLevel().getGameTime();
+        TransportLedger.record(body,transport(tick,1,.10,.10));
+        AnatomyMovement.clear(body);
+        TransportLedger.record(body,transport(tick,2,.30,.20));
+        var window=TransportLedger.since(body,0);
+        h.assertTrue(window.contiguous() && window.latestSequence()==2
+                && close(window.appliedDelta(),new Vec3(.30,0,0)),
+            "Ordinary contact release must not erase passive transport already applied between pose samples: "+window);
+        TransportLedger.invalidate(body,true);body.discard();h.succeed();
+    }
+
+    @GameTest
+    public void deactivatingOneLevelCannotEraseAnotherLevelsLedger(GameTestHelper h) {
+        var server=h.getLevel().getServer();var otherLevel=server.getLevel(Level.NETHER);
+        h.assertTrue(otherLevel!=null && otherLevel!=h.getLevel(),"S10 holdout requires a second server level");
+        Entity local=body(h);Entity other=body(otherLevel,h);long tick=h.getLevel().getGameTime();
+        TransportLedger.record(local,transport(tick,1,.10,.10));
+        TransportLedger.record(other,transport(otherLevel.getGameTime(),1,.40,.40));
+
+        TransportLedger.deactivate(h.getLevel());
+        h.assertTrue(TransportLedger.current(local)==null && TransportLedger.generation(local)==0,
+            "Deactivating a level must remove ledger state owned by that level lifecycle");
+        h.assertTrue(TransportLedger.current(other)!=null && TransportLedger.current(other).sequence()==1
+                && close(TransportLedger.current(other).appliedDelta(),new Vec3(.40,0,0)),
+            "Deactivating one level must not erase the independent ledger of another level");
+        TransportLedger.invalidate(other,true);local.discard();other.discard();h.succeed();
+    }
+
     @GameTest
     public void sameNetworkIdDoesNotAliasLedgerState(GameTestHelper h) {
         Entity first=body(h),second=body(h);second.setId(first.getId());
@@ -114,7 +161,11 @@ public final class TransportLedgerTests {
     }
 
     private static Entity body(GameTestHelper h) {
-        var body=EntityTypes.COW.create(h.getLevel(),EntitySpawnReason.COMMAND);
+        return body(h.getLevel(),h);
+    }
+
+    private static Entity body(Level level,GameTestHelper h) {
+        var body=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
         h.assertTrue(body!=null,"S10 fixture requires a creatable entity");
         return body;
     }
