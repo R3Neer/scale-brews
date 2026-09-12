@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,SCREEN_DEPTH=8;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,MIDPOINT_CONTACT_PROBE_BUDGET=80,SCREEN_DEPTH=8;
     private static final int MIDPOINT_ORDER_MIN_PIECES=4,MIDPOINT_ORDER_MAX_PIECES=64;
     private static final class Budget {
         private int remaining,used;
@@ -115,6 +115,7 @@ public final class TemporalResponse {
             Map<String,Constraint> active,double start,double end,Budget budget) {
         double earliest=Double.POSITIVE_INFINITY;List<Hit> hits=new ArrayList<>();
         var ordered=new ArrayList<String>(ids);
+        var midpointOverlapping=new HashSet<String>();
         if(!active.isEmpty()) {
             // Once a manifold is active, query it first. A zero-time recontact immediately bounds the
             // horizon for every unrelated piece instead of paying for whole-interval clearance first.
@@ -130,7 +131,9 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 var material=pieces.get(id).interval(start,end).at().apply(.5);
                 if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
-                midpointOverlap.put(id,material.overlaps(midpointBody));
+                boolean overlaps=material.overlaps(midpointBody);
+                midpointOverlap.put(id,overlaps);
+                if(overlaps)midpointOverlapping.add(id);
             }
             ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));
         }
@@ -148,7 +151,9 @@ public final class TemporalResponse {
             Vec3 queryDelta=delta.scale(horizon);
             // Screening is only for unknown candidates. Once a piece is active, its relevance has
             // already been established; re-screening it would repeatedly tax the same real contact.
-            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);
+            int probeBudget=!Double.isFinite(earliest) && midpointOverlapping.contains(id)
+                ?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
+            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget,probeBudget):budget.query(body,queryDelta,interval);
             if(horizon<1)result=new ConservativeSweep.Result(result.status(),
                 Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
@@ -167,9 +172,9 @@ public final class TemporalResponse {
      * be certified fully clear is then narrowed chronologically before exact CCD spends the shared
      * remainder, so a real interior contact does not restart from the whole tick.
      */
-    private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+    private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget,int probeBudget) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
-        var probe=budget.query(body,delta,interval,PROBE_QUERY_BUDGET);
+        var probe=budget.query(body,delta,interval,probeBudget);
         if(probe.status()!=ConservativeSweep.Status.ITERATION_LIMIT || budget.exhausted())return probe;
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
