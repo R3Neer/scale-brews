@@ -16,7 +16,7 @@ Root history sigue ligado a `GeometryProvider.CausalEndpoint` y a la futura gene
 
 El índice espacial sí tenía una frontera estable porque ya delegaba la estructura bounded a `MaterialBroadphase<LivingEntity>` y podía recibir entries/envelopes ya validados sin conocer providers, root, gravedad, contactos ni solver.
 
-La auditoría detectó además metadata muerta: `FrameStamp` se almacenaba en `SpatialIndex.frames` y se mantenía junto a la membresía, pero nunca se consultaba para aceptar una query. La revalidación causal real ocurría después mediante `currentSnapshot/queryFrame`. S13 eliminó esa metadata en vez de trasladarla.
+La auditoría detectó además metadata muerta: `FrameStamp` se almacenaba en `SpatialIndex.frames` y se mantenía junto a la membresía, pero nunca se consultaba para aceptar una query. La revalidación causal real ocurría después mediante `currentSnapshot/queryFrame`. S13 eliminó esa metadata en vez de trasladarla. Al hacerlo también desapareció un segundo sample legacy que existía únicamente para construir ese stamp muerto.
 
 ## Frontera arquitectónica final
 
@@ -35,11 +35,13 @@ No consulta `GeometryProvider`, no llama `AnatomyMovement`, no construye `RootFr
 
 Dirección única demostrada: `AnatomyMovement -> AnatomySpatialIndex`.
 
-## Semántica preservada
+## Semántica final
 
 - Mismo tick: upsert/remove local modifica sólo el support afectado y no remuestrea providers no relacionados.
 - Cambio de tick: `AnatomyMovement` suministra un batch de entries causalmente válidas y el owner reemplaza el índice del nivel.
-- Overflow/rechazo: nunca degrada a scan mundial; el owner devuelve rejected supports y `AnatomyMovement` conserva cuarentena/contact cleanup.
+- Índice instalado más viejo que el caller: `queryIfCurrent` devuelve `null` para exigir rebuild causal.
+- Caller más viejo que un índice ya instalado: devuelve outcome incompleto con candidatos vacíos; nunca consume membresía futura ni convierte incertidumbre de lifecycle en excepción.
+- Overflow/rechazo: nunca degrada a scan mundial; el owner devuelve rejected/exhaustion y `AnatomyMovement` conserva cuarentena/contact cleanup.
 - Query: el owner devuelve candidatos bounded; elegibilidad y suspensión siguen fuera.
 - Lifecycle: `deactivate(level)` borra sólo el índice del nivel objetivo.
 - `FrameStamp`, `SpatialIndex.frames` y `currentFrameStamp` desaparecieron sin sustituto.
@@ -54,11 +56,11 @@ Dirección única demostrada: `AnatomyMovement -> AnatomySpatialIndex`.
 - [x] Eliminar `FrameStamp`, `SpatialIndex.frames` y `currentFrameStamp` sin sustituto.
 - [x] Mantener snapshot/root/envelope y política de rejected/quarantine en `AnatomyMovement`.
 - [x] Mantener filtros de elegibilidad/suspensión fuera del owner.
-- [x] Reejecutar holdouts S05 de bounded broadphase/localidad/dirty mutation y suite completa.
+- [x] Fijar overflow, lifecycle por nivel y fences stale/current con outcomes fail-closed.
+- [x] Fijar single-sample rebuild legacy.
 - [x] Añadir `AnatomySpatialIndex.java` a los triggers de la lane prepared.
-- [x] Ejecutar ordinary + prepared sobre el snapshot productivo final.
-- [x] Revisión adversarial post-verde: cero callbacks al orquestador, cero metadata causal duplicada, cero resample global same-tick y single-sample rebuild.
-- [x] Actualizar documentación de cierre; G2 no se da por cerrado por S13.
+- [x] Ejecutar ordinary + prepared sobre la cadena final integrada.
+- [x] Revisión adversarial post-verde sin callbacks al orquestador, metadata causal duplicada ni resample global same-tick.
 
 ## Modelo adversarial y resultado
 
@@ -82,9 +84,9 @@ Verde: los holdouts S05 siguen demostrando que una mutación same-tick no remues
 
 Verde: membership y query oversized devuelven rechazo/exhaustion bounded, sin candidatos parciales ni fallback global.
 
-### A6 — lifecycle por nivel
+### A6 — lifecycle por nivel y tick fence
 
-Verde: desactivar un nivel elimina únicamente su índice; otro nivel permanece intacto y un tick stale no se sirve como current.
+Verde: desactivar un nivel elimina únicamente su índice; otro nivel permanece intacto. Un índice viejo solicita rebuild y un caller viejo frente a un índice más nuevo falla cerrado con candidatos vacíos.
 
 ### A7 — revalidación causal sigue fuera
 
@@ -92,7 +94,7 @@ Verde: `AnatomyMovement` construye entries desde `queryFrame/currentSnapshot`, c
 
 ### A8 — regresión cero
 
-Verde: S05-S12, budgets S09 y lane prepared real-geometry permanecen verdes.
+Verde: S05-S12 y la lane prepared real-geometry permanecen verdes en la cadena final. Una ejecución prepared intermedia reabrió A9 de S09, pero el fallo estaba en `TemporalResponse.resolve(...)` directo y no atravesaba `AnatomySpatialIndex`; se reparó en S09 antes del cierre integrado.
 
 ### A9 — single-sample rebuild
 
@@ -100,46 +102,42 @@ Verde: un rebuild legacy activado por query muestrea cada provider una sola vez.
 
 ## Historia red-before-green
 
-- `2369b45daad9e0a0578343c62fe094e0cc0e8b3d` añadió los holdouts estructurales. Run `34694155736`: **377 tests, 3 fallos previstos**: owner ausente, storage viejo presente y dependencia no auditable todavía.
-- `263b818daf1a9298a72df5ec0987a65698809166` añadió el owner puro. Run `34694260384`: el rojo se redujo a **1 único fallo**, porque `AnatomyMovement` seguía poseyendo el storage viejo.
-- `097237fcc35633b6bb8cbdc68d0a226b884d8fce` endureció overflow/lifecycle, pero la primera versión usó un nombre de enum inexistente. Fue un fallo de fixture/compilación, no evidencia de producción.
-- `6e252e8821a9b3fec3e4234ecb1f7a838ff14748` corrigió sólo ese fixture. Run `34694707067`, job `103556082914`: **379 tests, 378 verdes / 1 rojo**, exclusivamente el ownership espacial todavía residente en `AnatomyMovement`.
-- `5f489dff9a535bf9d25d2f4e63dca17f9675a7f8` añadió `AnatomySpatialIndex.java` al trigger de prepared CI.
-- `2d5a1b75251decdfc1645f2fdc2394792f356960` migró el storage y eliminó la metadata muerta sin cambiar budgets ni solver.
-- `36f15ccd0bf92bc2317cff57680dfbfdf42e8342` añadió después del verde el holdout single-sample; no cambió producción.
+- `2369b45daad9e0a0578343c62fe094e0cc0e8b3d`: holdouts estructurales. Run `34694155736`: **377 tests, 3 fallos previstos**.
+- `263b818daf1a9298a72df5ec0987a65698809166`: owner puro inicial.
+- `097237fcc35633b6bb8cbdc68d0a226b884d8fce`: holdouts de overflow/lifecycle; la primera versión contenía un typo de enum de fixture.
+- `6e252e8821a9b3fec3e4234ecb1f7a838ff14748`: corrige sólo el fixture. Run `34694707067`, job `103556082914`: **379 tests, 378 verdes / 1 rojo**, exclusivamente ownership viejo aún residente.
+- `5f489dff9a535bf9d25d2f4e63dca17f9675a7f8`: añade `AnatomySpatialIndex.java` al trigger prepared.
+- `2d5a1b75251decdfc1645f2fdc2394792f356960`: migra el storage y elimina metadata muerta.
+- `36f15ccd0bf92bc2317cff57680dfbfdf42e8342`: holdout post-verde de single-sample rebuild.
+- `3cd0209b1dd1d01cd2ce949b9a17b0e229411274`: endurece stale/current tick semantics para fail-closed en vez de crash.
+- `efb5e736612f1565a83c4ae860bba2da5df3bd5d`: fija la barrera stale-caller en GameTest.
 
 ## Evidencia final
 
-### Snapshot productivo `2d5a1b75251decdfc1645f2fdc2394792f356960`
+### Evidencia estructural S13
 
-Ordinary run `34695088619`, job `103557088207`:
+`2d5a1b75251decdfc1645f2fdc2394792f356960`:
 
-- **379/379 required GameTests passed**;
-- `BUILD SUCCESSFUL`;
-- artifact `10298357943`;
-- SHA-256 `ea5f4f3138f105b837dc53d3acb613bb03b53c64ac91bdb79606ff8f36abee76`.
+- ordinary run `34695088619`, job `103557088207`: **379/379**;
+- prepared run `34695088607`, job `103557088037`: export original verde y servidor **2/2**.
 
-Prepared run `34695088607`, job `103557088037`:
+`36f15ccd0bf92bc2317cff57680dfbfdf42e8342`:
 
-- export cliente original verde;
-- cow: **240 vertices / 10 pieces**, 80 comparaciones animadas;
-- player wide/slim: **144 vertices / 6 pieces** cada uno, 80 comparaciones cada uno;
-- **640 additional vanilla-family comparisons** verdes;
-- servidor preparado aislado: **2/2 required GameTests passed**;
-- `BUILD SUCCESSFUL`.
+- ordinary run `34695273523`, job `103557571998`: **380/380**;
+- fija single-sample rebuild.
 
-### Revisión post-verde `36f15ccd0bf92bc2317cff57680dfbfdf42e8342`
+### Hardening lifecycle e integración final
 
-Sólo añade el holdout `rebuildSamplesEachLegacyProviderOnce`; producción permanece idéntica a `2d5a1b7...`.
+`3cd0209b1dd1d01cd2ce949b9a17b0e229411274` es el último cambio productivo propio de S13: distingue índice viejo de caller viejo y falla cerrado ante lifecycle stale.
 
-Ordinary run `34695273523`, job `103557571998`:
+La lane prepared disparada por ese cambio encontró una reapertura independiente de A9/S09 en `TemporalResponse`; no atravesaba el owner espacial. Ese defecto se cerró en `de44c78c75bcc54ef423af783d35761014b49356` sin cambiar S13 y quedó endurecido por la matriz de traslación prepared de `a1f1a568726d95664c6e8b4a144659c36be0e5cc`.
 
-- **380/380 required GameTests passed**;
-- `BUILD SUCCESSFUL`;
-- artifact `10298329724`;
-- SHA-256 `662072bf5e11aaa5f8be6d902ecbb4a1f2d03a9f8bd077496555c6b393ff4654`.
+Snapshot integrado final `a1f1a568726d95664c6e8b4a144659c36be0e5cc`:
 
-No se requirió ningún cambio de producción tras esta revisión.
+- ordinary run `34696004871`, job `103559482658`: **380/380 required GameTests passed**;
+- artifact `10298651622`, SHA-256 `2d9d4275bccba84139b0a9d95425197c019a36d6fb28a1d18e6ef0f298137131`;
+- prepared run `34696004864`, job `103559482598`: export original verde y servidor aislado **2/2**;
+- el prepared incluye además A9 del cow real en varias traslaciones mundiales deterministas, hasta magnitudes cercanas al borde práctico.
 
 ## Criterio de cierre
 
@@ -148,8 +146,8 @@ S13 cierra porque:
 1. el índice espacial tiene un único owner dedicado;
 2. `FrameStamp/frames` muertos se eliminaron;
 3. causalidad y física no se trasladaron al owner espacial;
-4. locality, overflow, lifecycle y single-sample rebuild están fijados por holdouts;
-5. ordinary y prepared son verdes sobre el código productivo final;
-6. la revisión posterior converge sin cambios de producción.
+4. locality, overflow, lifecycle, stale-caller y single-sample rebuild están fijados por holdouts;
+5. ordinary y prepared son verdes sobre la cadena integrada final;
+6. la revisión posterior converge sin nuevos cambios de producción S13.
 
 **S13 CERRADO. G2 sigue abierto hasta resolver la frontera arquitectónica restante de las tareas 1/9.**
