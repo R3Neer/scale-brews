@@ -79,7 +79,7 @@ public final class S13SpatialIndexOwnershipTests {
             AnatomySpatialIndex.rebuild(level,tick,List.of());
             var rejected=AnatomySpatialIndex.upsertIfCurrent(support,
                 new AABB(-1000,-1000,-1000,1000,1000,1000));
-            h.assertTrue(rejected!=null && rejected.reason()==MaterialBroadphase.RejectReason.ENTRY_CELL_BUDGET,
+            h.assertTrue(rejected!=null && rejected.reason()==MaterialBroadphase.RejectionReason.ENTRY_BUDGET_EXHAUSTED,
                 "Oversized same-tick membership must return an explicit bounded rejection");
 
             var local=AnatomySpatialIndex.queryIfCurrent(level,tick,new AABB(-2,-2,-2,2,2,2));
