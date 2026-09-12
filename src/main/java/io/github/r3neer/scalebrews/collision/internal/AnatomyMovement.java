@@ -157,7 +157,7 @@ public final class AnatomyMovement {
         register(support,provider);
         // A server registration is the authority that allocates its binding identity.
         // Network/client adapters must supply the received nonzero generation instead.
-        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration()==0?registrationGeneration(support):descriptor.bindingGeneration());
+        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
         DESCRIPTORS.put(support,descriptor);
         queryFrame(support);
     }
@@ -675,7 +675,7 @@ public final class AnatomyMovement {
         if(c==null)return;
         if(!Platforms.eligible(body,c.support)){clear(body);return;}
         var provider=PROVIDERS.get(c.support);
-        var snapshot=currentSnapshot(c.support,provider).orElse(null);
+        var snapshot=currentSnapshot(c.support(),provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
         if(piece==null || snapshot.revision()!=c.revision){clear(body);return;}
         var separation=piece.separation(body.getBoundingBox());
