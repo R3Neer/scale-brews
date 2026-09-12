@@ -23,14 +23,6 @@ public final class AnatomyMovement {
     // Entity equality reuses network IDs across logical worlds in an integrated process.
     // Weak identity keys keep server and client instances strictly separate.
     private static <K,V> Map<K,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());}
-    private static final Map<LivingEntity,GeometryProvider> PROVIDERS=entityMap();
-    /** Local binding generation; Runtime supplies causal descriptor in the Q1 production overload. */
-    private static final Map<LivingEntity,Long> REGISTRATIONS=entityMap();
-    private static final Map<LivingEntity,GeometryProvider.GeometryIdentityDescriptor> DESCRIPTORS=entityMap();
-    /** Synchronized API entry is reentrant in Java; provider callbacks must not start a second capture. */
-    private static final Set<LivingEntity> CAPTURING=Collections.newSetFromMap(new IdentityHashMap<>());
-    /** A failed first capture has no serial fence; quarantine that local registration until an explicit rebind. */
-    private static final Map<LivingEntity,Long> QUARANTINED_REGISTRATIONS=entityMap();
     private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
     /** Server-owned material endpoint serial; it advances for a root or joint endpoint change. */
     private record EndpointStamp(long jointSampleTick,RootFrame root,AnatomyPoseHistory.Sample sample,long revision,GeometryProvider.Availability availability) {}
@@ -56,9 +48,9 @@ public final class AnatomyMovement {
         var level=support.level();
         if(!AnatomySpatialIndex.current(level,level.getGameTime()))return;
         AnatomySpatialIndex.removeIfCurrent(support);
-        var provider=PROVIDERS.get(support);if(provider==null || support.isRemoved())return;
+        var provider=AnatomyBindingState.provider(support);if(provider==null || support.isRemoved())return;
         GeometryProvider.Snapshot snapshot;RootFrame root;
-        var descriptor=DESCRIPTORS.get(support);
+        var descriptor=AnatomyBindingState.descriptor(support);
         if(descriptor!=null) {
             var accepted=FRAME_SERIALS.get(support);
             if(accepted==null || accepted.invalidated() || accepted.snapshot()==null
@@ -78,9 +70,9 @@ public final class AnatomyMovement {
     }
     /** Supported external root/dimension mutation hook; observes only this registered support. */
     public static synchronized void spatialMutation(LivingEntity support) {
-        if(support==null || !ACTIVE.contains(support.level()) || !PROVIDERS.containsKey(support))return;
+        if(support==null || !ACTIVE.contains(support.level()) || !AnatomyBindingState.hasProvider(support))return;
         observeRoot(support);
-        if(DESCRIPTORS.containsKey(support))queryFrame(support);else refreshSpatialEntry(support);
+        if(AnatomyBindingState.causal(support))queryFrame(support);else refreshSpatialEntry(support);
     }
     public static boolean suspended(Entity body,LivingEntity support) {
         var generation=AnatomyContactState.suspensionGeneration(body,support);
@@ -88,7 +80,7 @@ public final class AnatomyMovement {
             if(generation!=null)AnatomyContactState.clearSuspension(body,support);
             return false;
         }
-        var provider=PROVIDERS.get(support);var shape=currentSnapshot(support,provider).orElse(null);
+        var provider=AnatomyBindingState.provider(support);var shape=currentSnapshot(support,provider).orElse(null);
         if(shape!=null && shape.pieces().values().stream().anyMatch(p->p.overlaps(body.getBoundingBox())))return true;
         AnatomyContactState.clearSuspension(body,support);return false;
     }
@@ -116,20 +108,17 @@ public final class AnatomyMovement {
     public static synchronized void register(LivingEntity support,GeometryProvider provider){
         if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
         requireServerThread(support.level());
-        long generation=Math.incrementExact(REGISTRATIONS.getOrDefault(support,0L));
-        PROVIDERS.put(support,provider);REGISTRATIONS.put(support,generation);
-        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        AnatomyBindingState.rebind(support,provider,null);
         FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
         refreshSpatialEntry(support);
     }
     /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
     public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
         if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
-        register(support,provider);
-        // A server registration is the authority that allocates its binding identity.
-        // Network/client adapters must supply the received nonzero generation instead.
-        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
-        DESCRIPTORS.put(support,descriptor);
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,descriptor);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
         queryFrame(support);
     }
     private static void requireServerThread(Level level) {
@@ -138,23 +127,21 @@ public final class AnatomyMovement {
             throw new IllegalStateException("Entity collision mutation requires the world thread");
     }
     /** Local binding generation; changes on every provider rebind for this entity instance. */
-    public static synchronized long registrationGeneration(LivingEntity support){return REGISTRATIONS.getOrDefault(support,0L);}
+    public static synchronized long registrationGeneration(LivingEntity support){return AnatomyBindingState.generation(support);}
     /** Causal publication survives an unavailable pose so networking can clear stale geometry. */
     public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
         requireServerThread(support.level());
-        if(!CAPTURING.add(support))return Optional.empty();
+        var binding=AnatomyBindingState.beginCapture(support);
+        if(binding==null)return Optional.empty();
         try {
-            var descriptor=DESCRIPTORS.get(support);var provider=PROVIDERS.get(support);
-            if(descriptor==null || provider==null)return Optional.empty();
-            long registration=registrationGeneration(support);
-            if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registration))return Optional.empty();
-            var capture=new CaptureStamp(provider,descriptor,registration,transportGeneration(support));
+            var descriptor=binding.descriptor();var provider=binding.provider();
+            var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));
             var endpoint=causalEndpoint(support,provider,capture).orElse(null);
             if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
             var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
                 descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
             return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
-        } finally {CAPTURING.remove(support);}
+        } finally {AnatomyBindingState.endCapture(support);}
     }
     /** Current collision frame; an unavailable causal endpoint deliberately has no convex query. */
     public static synchronized Optional<GeometryProvider.QueryFrame> queryFrame(LivingEntity support){
@@ -196,8 +183,9 @@ public final class AnatomyMovement {
         return Optional.of(serverEndpoint(support,joints.tick(),root,sample,snapshot));
     }
     private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
-        return PROVIDERS.get(support)==capture.provider() && Objects.equals(DESCRIPTORS.get(support),capture.descriptor())
-            && registrationGeneration(support)==capture.registration();
+        var binding=AnatomyBindingState.snapshot(support);
+        return binding!=null && binding.provider()==capture.provider() && Objects.equals(binding.descriptor(),capture.descriptor())
+            && binding.generation()==capture.registration();
     }
     private static boolean captureCurrent(LivingEntity support,CaptureStamp capture) {
         return captureBindingCurrent(support,capture) && transportGeneration(support)==capture.lifecycle();
@@ -232,7 +220,7 @@ public final class AnatomyMovement {
      * fails closed rather than silently changing its authority time or TRS.
      */
     private static synchronized Optional<GeometryProvider.CausalEndpoint> acceptEndpoint(LivingEntity support,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot) {
-        if(endpoint.availability()==GeometryProvider.Availability.AVAILABLE && (snapshot==null || snapshot.revision()!=DESCRIPTORS.get(support).revision()))return quarantineEndpoint(support);
+        if(endpoint.availability()==GeometryProvider.Availability.AVAILABLE && (snapshot==null || snapshot.revision()!=AnatomyBindingState.descriptor(support).revision()))return quarantineEndpoint(support);
         if(endpoint.availability()==GeometryProvider.Availability.UNAVAILABLE && snapshot!=null)return quarantineEndpoint(support);
         var old=FRAME_SERIALS.get(support);
         if(old==null) {
@@ -254,15 +242,15 @@ public final class AnatomyMovement {
     /** Retain the rejected serial's fence; without one, quarantine this exact local registration until rebind. */
     private static Optional<GeometryProvider.CausalEndpoint> quarantineEndpoint(LivingEntity support) {
         var old=FRAME_SERIALS.get(support);
-        if(old==null)QUARANTINED_REGISTRATIONS.put(support,registrationGeneration(support));
+        if(old==null)AnatomyBindingState.quarantineCurrent(support);
         else FRAME_SERIALS.put(support,new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
         clearSupportContacts(support);removeSpatialEntry(support);
         return Optional.empty();
     }
     /** Instantaneous query geometry. A descriptor must have a causal endpoint; fixture-only legacy bindings retain sample(). */
     private static Optional<GeometryProvider.Snapshot> currentSnapshot(LivingEntity support,GeometryProvider provider) {
-        if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registrationGeneration(support)))return Optional.empty();
-        if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(GeometryProvider.QueryFrame::snapshot);
+        if(AnatomyBindingState.quarantined(support))return Optional.empty();
+        if(AnatomyBindingState.causal(support))return queryFrame(support).map(GeometryProvider.QueryFrame::snapshot);
         return provider==null?Optional.empty():provider.sample(support);
     }
     /** Fixture-only gravity seam; the effective value still lives in the shared Scale authority. */
@@ -290,7 +278,7 @@ public final class AnatomyMovement {
     }
     public static synchronized boolean confirm(Entity body,LivingEntity support,SurfaceContact surface) {
         if(!active(body) || surface==null || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
-        var provider=PROVIDERS.get(support);var snapshot=currentSnapshot(support,provider).orElse(null);
+        var provider=AnatomyBindingState.provider(support);var snapshot=currentSnapshot(support,provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(surface.piece());
         if(piece==null || snapshot.revision()!=surface.revision() || surface.face()<0 || surface.face()>5)return false;
         Vec3 point=piece.point(surface.localPoint()),normal=piece.faceNormal(surface.face());
@@ -304,7 +292,7 @@ public final class AnatomyMovement {
     }
     public static boolean supported(Entity body) {
         var c=contact(body);if(c==null || suspended(body,c.support()) || !Platforms.eligible(body,c.support()))return false;
-        var provider=PROVIDERS.get(c.support());var snapshot=currentSnapshot(c.support(),provider).orElse(null);
+        var provider=AnatomyBindingState.provider(c.support());var snapshot=currentSnapshot(c.support(),provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(c.piece());
         if(piece==null || snapshot.revision()!=c.revision())return false;
         var separation=piece.separation(body.getBoundingBox());
@@ -322,7 +310,7 @@ public final class AnatomyMovement {
         return tangent.add(frame.up().scale(vertical));
     }
     private static boolean hasEdgeSupport(Entity body,Contact contact,AABB candidate,double extraDrop) {
-        var provider=PROVIDERS.get(contact.support());var snapshot=currentSnapshot(contact.support(),provider).orElse(null);
+        var provider=AnatomyBindingState.provider(contact.support());var snapshot=currentSnapshot(contact.support(),provider).orElse(null);
         if(snapshot==null || snapshot.revision()!=contact.revision())return false;
         Vec3 drop=gravity(body).gravity().scale(Math.max(.001,body instanceof LivingEntity living?living.maxUpStep():0)+extraDrop+.001);
         for(var piece:snapshot.pieces().values()) {
@@ -344,8 +332,7 @@ public final class AnatomyMovement {
     }
     public static void tick(Level level) {
         if(!ACTIVE.contains(level))return;
-        Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
-        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();List<Entity> bodies;
         bodies=AnatomyContactState.contactBodies();
         for(var entry:providers.entrySet())if(entry.getKey().level()==level) {
             observeRoot(entry.getKey());entry.getValue().tick(entry.getKey(),level.getGameTime());
@@ -356,15 +343,13 @@ public final class AnatomyMovement {
     /** Client-side pose cache update without moving server-owned observer entities. */
     public static void tickGeometry(Level level) {
         if(!ACTIVE.contains(level))return;
-        Map<LivingEntity,GeometryProvider> providers;
-        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();
         for(var entry:providers.entrySet())if(entry.getKey().level()==level)
             entry.getValue().tick(entry.getKey(),level.getGameTime());
     }
     public static synchronized void deactivate(Level level){
-        ACTIVE.remove(level);PROVIDERS.keySet().removeIf(e->e.level()==level);
+        ACTIVE.remove(level);AnatomyBindingState.deactivate(level);
         // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-        DESCRIPTORS.keySet().removeIf(e->e.level()==level);
         FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
         io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);
         AnatomyContactState.deactivate(level);
@@ -456,7 +441,7 @@ public final class AnatomyMovement {
         int queried=0,evaluations=0,exhausted=0;
         for(var support:supports) {
             if(suspended(body,support))continue;
-            var provider=PROVIDERS.get(support);
+            var provider=AnatomyBindingState.provider(support);
             var snapshot=provider==null?null:provider.motion(support).orElse(null);
             if(snapshot==null || snapshot.toTick()!=body.level().getGameTime())continue;
             for(var id:new TreeSet<>(snapshot.pieces().keySet())) {
@@ -493,7 +478,7 @@ public final class AnatomyMovement {
         var supportQuery=indexedSupports(body,swept.inflate(Platforms.searchMargin(body.level())));
         if(!supportQuery.complete())return new CandidateQuery(supportQuery.status(),List.of());
         for(var support:supportQuery.candidates()) {
-            GeometryProvider provider=PROVIDERS.get(support);
+            GeometryProvider provider=AnatomyBindingState.provider(support);
             if(provider==null)continue;
             currentSnapshot(support,provider).ifPresent(snapshot->snapshot.pieces().forEach((id,box)->{
                 if(box.bounds().inflate(.001).intersects(swept))result.add(new Candidate(support,id,snapshot.revision(),box));
@@ -513,8 +498,7 @@ public final class AnatomyMovement {
         long tick=level.getGameTime();
         var current=AnatomySpatialIndex.queryIfCurrent(level,tick,query);
         if(current!=null)return current;
-        Map<LivingEntity,GeometryProvider> providers;
-        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();
         rebuildSpatial(level,providers);
         var rebuilt=AnatomySpatialIndex.queryIfCurrent(level,tick,query);
         if(rebuilt==null)throw new IllegalStateException("Spatial index rebuild lost current tick");
@@ -525,7 +509,7 @@ public final class AnatomyMovement {
         for(var entry:providers.entrySet()) {
             var support=entry.getKey();if(support.level()!=level)continue;
             GeometryProvider.Snapshot sample;RootFrame root;
-            if(DESCRIPTORS.containsKey(support)) {
+            if(AnatomyBindingState.causal(support)) {
                 var frame=queryFrame(support).orElse(null);if(frame==null)continue;
                 sample=frame.snapshot();root=frame.root();
             } else {
@@ -560,7 +544,7 @@ public final class AnatomyMovement {
     }
     public static boolean replacesPair(Entity body,Entity other) {
         if(!(other instanceof LivingEntity support) || !Platforms.eligible(body,support))return false;
-        var provider=PROVIDERS.get(support);
+        var provider=AnatomyBindingState.provider(support);
         return currentSnapshot(support,provider).filter(s->!s.pieces().isEmpty()).isPresent();
     }
     /** Resweep after sliding, with block collision validation on every remaining segment. */
@@ -572,7 +556,7 @@ public final class AnatomyMovement {
         var supportQuery=indexedSupports(body,box.expandTowards(requested).inflate(Platforms.searchMargin(body.level())+4));
         if(!supportQuery.complete()){clear(body);return Vec3.ZERO;}
         for(var support:supportQuery.candidates()) {
-            var provider=PROVIDERS.get(support);
+            var provider=AnatomyBindingState.provider(support);
             // Own Entity.move is swept against the current causal endpoint only.  A
             // certified support interval is deliberately not consumed here: Q2
             // applies each support material interval once from its own cursor.
@@ -627,7 +611,7 @@ public final class AnatomyMovement {
     /** A contact may survive a tangent move without appearing in this response's hit list. */
     private static Vec3 finalSupportNormal(Entity body,LivingEntity support,String pieceId,long revision,AABB finalBox) {
         if(suspended(body,support) || !Platforms.eligible(body,support))return null;
-        var provider=PROVIDERS.get(support);var snapshot=currentSnapshot(support,provider).orElse(null);
+        var provider=AnatomyBindingState.provider(support);var snapshot=currentSnapshot(support,provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(pieceId);
         if(piece==null || snapshot.revision()!=revision)return null;
         var separation=piece.separation(finalBox);
@@ -637,7 +621,7 @@ public final class AnatomyMovement {
         var c=contact(body);
         if(c==null)return;
         if(!Platforms.eligible(body,c.support)){clear(body);return;}
-        var provider=PROVIDERS.get(c.support);
+        var provider=AnatomyBindingState.provider(c.support);
         var snapshot=currentSnapshot(c.support,provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
         if(piece==null || snapshot.revision()!=c.revision){clear(body);return;}
@@ -685,7 +669,7 @@ public final class AnatomyMovement {
             || !gravity(body).equals(anchor.bodyGravity()) || !gravity(c.support).equals(anchor.supportGravity())){clear(body);return;}
         try {
             carry(c.support,visiting);var root=observeRoot(c.support);
-            var provider=PROVIDERS.get(c.support);
+            var provider=AnatomyBindingState.provider(c.support);
             var snapshot=currentSnapshot(c.support,provider).orElse(null);
             var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
             if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin())>16
