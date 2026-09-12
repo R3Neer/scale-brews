@@ -136,7 +136,7 @@ public final class S12ContactStateOwnershipTests {
     private static net.minecraft.world.entity.LivingEntity support(GameTestHelper h, int x) {
         var support = EntityTypes.COW.create(h.getLevel(), EntitySpawnReason.COMMAND);
         h.assertTrue(support != null, "S12 fixture requires a creatable support entity");
-        support.setPos(h.absolutePos(new net.minecraft.core.BlockPos(x, 2, 2)).getCenter());
+        support.setPos(x, 2, 2);
         return support;
     }
 
