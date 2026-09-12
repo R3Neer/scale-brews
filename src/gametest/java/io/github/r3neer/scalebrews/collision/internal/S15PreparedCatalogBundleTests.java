@@ -2,10 +2,13 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 /** Red-before-green and post-green holdouts for G3/NFR-010 prepared catalog publication. */
@@ -75,10 +78,16 @@ public final class S15PreparedCatalogBundleTests {
         var epoch=UUID.randomUUID();
         var accepted=catalog.snapshot();
         var packets=catalog.preparedPackets(epoch);
+        var definition=new io.github.r3neer.scalebrews.collision.api.AnatomyDefinition(
+            Identifier.parse("proof:missing_model"),Identifier.parse("scalebrews:quadruped"),
+            io.github.r3neer.scalebrews.collision.api.AnatomyFilter.DEFAULT);
+        var profile=new io.github.r3neer.scalebrews.platform.PlatformDefinition(
+            Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),Optional.of(definition));
         boolean rejected=false;
-        try {catalog.replace(null,Map.of());}
-        catch(NullPointerException | IllegalArgumentException expected){rejected=true;}
-        h.assertTrue(rejected,"Invalid catalog replacement fixture must fail before publication");
+        try {catalog.replace(Map.of(),Map.of("proof:invalid_binding",profile));}
+        catch(IllegalArgumentException expected){rejected=true;}
+        h.assertTrue(rejected,
+            "Invalid replacement fixture must advance into catalog validation and fail on its missing geometry reference");
         h.assertTrue(catalog.snapshot()==accepted,
             "Invalid replacement must retain the exact previously accepted snapshot object");
         h.assertTrue(catalog.preparedPackets(epoch)==packets,
