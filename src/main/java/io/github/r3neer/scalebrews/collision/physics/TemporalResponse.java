@@ -19,7 +19,8 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,MIDPOINT_CONTACT_PROBE_BUDGET=80,SCREEN_DEPTH=8;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,POST_CONTACT_PROBE_BUDGET=16,
+        MIDPOINT_CONTACT_PROBE_BUDGET=80,SCREEN_DEPTH=8;
     private static final int MIDPOINT_ORDER_MIN_PIECES=4,MIDPOINT_ORDER_MAX_PIECES=64;
     private static final class Budget {
         private int remaining,used;
@@ -151,8 +152,11 @@ public final class TemporalResponse {
             Vec3 queryDelta=delta.scale(horizon);
             // Screening is only for unknown candidates. Once a piece is active, its relevance has
             // already been established; re-screening it would repeatedly tax the same real contact.
+            // After a manifold exists, a slightly wider exact probe lets short post-contact windows
+            // finish directly instead of paying probe + conservative screening for harmless pieces.
+            // The evaluations still debit the same shared response budget; no piece is skipped.
             int probeBudget=!Double.isFinite(earliest) && midpointOverlapping.contains(id)
-                ?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
+                ?MIDPOINT_CONTACT_PROBE_BUDGET:!active.isEmpty()?POST_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
             var result=constraint==null?firstForPiece(body,queryDelta,interval,budget,probeBudget):budget.query(body,queryDelta,interval);
             if(horizon<1)result=new ConservativeSweep.Result(result.status(),
                 Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
