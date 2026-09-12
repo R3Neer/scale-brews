@@ -157,7 +157,7 @@ public final class AnatomyMovement {
         register(support,provider);
         // A server registration is the authority that allocates its binding identity.
         // Network/client adapters must supply the received nonzero generation instead.
-        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration()==0?registrationGeneration(support):descriptor.bindingGeneration());
         DESCRIPTORS.put(support,descriptor);
         queryFrame(support);
     }
@@ -308,8 +308,6 @@ public final class AnatomyMovement {
     public static synchronized SupportTransport transport(Entity body){return TransportLedger.current(body);}
     /** Transitional lifecycle façade paired with the transport cursor. */
     static synchronized long transportGeneration(Entity body){return TransportLedger.generation(body);}
-    /** Transitional cursor façade; the ledger is the sole state owner. */
-    static synchronized TransportLedger.Window transportSince(Entity body,long consumedSequence){return TransportLedger.since(body,consumedSequence);}
     /** A teleport/removal invalidates a body's own anchor but may retain already-applied carry. */
     private static void invalidateBody(Entity body,boolean discardTransport) {
         clear(body);
