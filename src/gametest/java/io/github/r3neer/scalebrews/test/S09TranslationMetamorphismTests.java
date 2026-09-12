@@ -20,11 +20,12 @@ public final class S09TranslationMetamorphismTests {
     public void ccdSkinThresholdSurvivesPreparedScaleWorldTranslation(GameTestHelper h) {
         double gap=ConservativeSweep.SKIN-1e-10;
         var localPiece=ConvexBox.of(new AABB(-.1,-.1,-.1,.1,.1,.1),new Matrix4f());
-        var localBody=new AABB(.1+gap,-.05,-.05,.2+gap,.05,.05);
+        double edge=localPiece.bounds().maxX;
+        var localBody=new AABB(edge+gap,-.05,-.05,edge+.1+gap,.05,.05);
         var localMotion=new ConservativeSweep.Motion(t->localPiece,1,Vec3.ZERO);
         var local=ConservativeSweep.query(localBody,Vec3.ZERO,localMotion,256);
         h.assertTrue(local.status()==ConservativeSweep.Status.CONTACT && local.evaluations()==1,
-            "Control must begin inside the CCD skin in one evaluation: "+local);
+            "Control must begin inside the CCD skin in one evaluation: "+local+" gap="+localPiece.separation(localBody).gap());
 
         // GameTest commonly places structures millions of blocks from origin. The common
         // translation must not turn the same sub-skin configuration into an iteration-limit.
