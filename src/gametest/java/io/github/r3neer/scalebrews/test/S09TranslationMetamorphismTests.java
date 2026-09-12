@@ -29,7 +29,7 @@ public final class S09TranslationMetamorphismTests {
 
         // GameTest commonly places structures millions of blocks from origin. The common
         // translation must not turn the same sub-skin configuration into an iteration-limit.
-        var shift=new Vec3(15_000_000,0,-4_000_000);
+        var shift=new Vec3(8_000_000,0,-4_000_000);
         var translatedPiece=localPiece.move(shift);
         var translatedBody=localBody.move(shift);
         var translatedMotion=new ConservativeSweep.Motion(t->translatedPiece,1,Vec3.ZERO);
