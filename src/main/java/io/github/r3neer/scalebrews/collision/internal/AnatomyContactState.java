@@ -113,10 +113,30 @@ final class AnatomyContactState {
     }
 
     static synchronized void deactivate(Level level) {
-        CONTACTS.keySet().removeIf(entity -> entity.level() == level);
+        // Dimension changes may update body.level() before the old support relation is torn down.
+        // Clear a retained relation when either endpoint still belongs to the deactivated level,
+        // but preserve the sequence watermark of a body that has already transitioned elsewhere.
+        for (var entry : new ArrayList<>(CONTACTS.entrySet())) {
+            var body = entry.getKey();
+            var support = entry.getValue().support();
+            if (body.level() != level && support.level() != level) continue;
+            CONTACTS.remove(body);
+            ANCHORS.remove(body);
+            SURFACES.remove(body);
+        }
         CONTACT_SEQUENCES.keySet().removeIf(entity -> entity.level() == level);
         ANCHORS.keySet().removeIf(entity -> entity.level() == level);
         SURFACES.keySet().removeIf(entity -> entity.level() == level);
-        SUSPENDED.keySet().removeIf(entity -> entity.level() == level);
+
+        for (var body : new ArrayList<>(SUSPENDED.keySet())) {
+            var suspended = SUSPENDED.get(body);
+            if (suspended == null) continue;
+            if (body.level() == level) {
+                SUSPENDED.remove(body);
+                continue;
+            }
+            suspended.keySet().removeIf(support -> support.level() == level);
+            if (suspended.isEmpty()) SUSPENDED.remove(body);
+        }
     }
 }
