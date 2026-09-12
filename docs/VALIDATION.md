@@ -202,7 +202,7 @@ Live integration commit `541a333140543fb1df55e61b4aa78bb2f54f84d7` replaced the 
 - removed the global per-query `overflow` list;
 - quarantines oversized support entries until explicit rebind;
 - propagates exhausted/invalid spatial queries conservatively: `spaceClear=false`, `collide=Vec3.ZERO`, ray/sweep publish no material result;
-- keeps the broadphase input as material `AABB` so later Q2 can replace endpoint bounds with certified temporal envelopes without replacing the kernel.
+- keeps the broadphase input as material `AABB` so later Q2 can replace endpoint bounds with certified temporal envelopes without replacing el kernel.
 
 GitHub Actions run **`34602837677`**, job **`103274063124`**:
 
@@ -235,8 +235,8 @@ Run **`34626763741`**, job **`103353628494`**, snapshot `834fd694619ad899f9d2381
 
 - **309 GameTests**;
 - **306 passed / 3 failed**;
-- post-rebind locality still fails with **128 far-provider samples**;
-- `firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld` also fails with **128 far-provider samples** after `captureRoot → setPos → commitRoot`, with counters reset only after the supported hook;
+- post-rebind locality still fails with **128 far samples**;
+- `firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld` also fails with **128 far samples** after `captureRoot → setPos → commitRoot`, with counters reset only after the supported hook;
 - the third failure is the older direct-`setPos` legacy fixture. It is not needed for acceptance because the supported root-commit holdout independently reproduces the defect.
 
 A further holdout, `S05DirtyMutationLocalityTests.manyFarRebindsMustNotBeProcessedByUnrelatedLocalQuery`, performs 64 supported far-world rebinds, resets counters after those hooks, and then makes an unrelated local query. It is designed to reject a global dirty-list drained by the first query.
@@ -311,18 +311,19 @@ This paragraph records the state of that historical snapshot only. Later repairs
 
 ## Current acceptance gaps for entity collisions
 
-The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
+The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. G2 is closed. Major unproved areas now begin in later gates:
 
-- remaining G2 architectural partition/ownership work in tasks 1 and 9 after S13; the physical Q2 scope is closed and S10-S13 have already extracted transport ledger, gravity authority, persistent contact state and bounded spatial membership;
-- the remaining provider/binding/causal-endpoint/query/root ownership boundary in `AnatomyMovement`, which must be audited before any further extraction; root history is not assumed movable before G3;
-- final lifecycle/reload/reconnect architecture;
-- prediction/reconciliation for locally controlled actors;
-- generic family engines and zero-UNRESOLVED vanilla coverage;
-- final Clinging migration;
-- version-pinned VanillaPlus compatibility;
-- normative performance benchmark and final latency/soak matrix.
+- G3 catalog/binding lifecycle, reload/reconnect, root-provider generalization, reusable family engines and final separation of internal endpoint/root types once that frontier is genuinely acyclic;
+- G4 prediction/reconciliation for locally controlled actors and latency-sensitive multiplayer presentation;
+- G5 special body categories, placement semantics and final removal of the legacy Living Platforms motor;
+- G6 generic family coverage and `UNRESOLVED=0` for ordinary Minecraft 26.2 living entities;
+- G7 final Clinging Reoriented migration;
+- G8 version-pinned VanillaPlus compatibility;
+- G9 normative performance benchmark and final client/dedicated/latency/soak/QA acceptance matrix.
 
-The gravity-authority reconciliation is **not** an open gap: S11 established `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` as the single shared Scale body-gravity authority and the current ordinary/prepared evidence includes that owner.
+The remaining `FRAME_SERIALS` + root history inside `AnatomyMovement` is **not** an untracked G2 gap: `GeometryProvider.CausalEndpoint` still contains `AnatomyMovement.RootFrame`, so extracting that block before G3 would require an inverse dependency or prematurely redesign root/lifecycle. The canonical plan records it under G3.
+
+The gravity-authority reconciliation is also closed: S11 established `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` as the single shared Scale body-gravity authority.
 
 ## Reproduction commands
 
@@ -400,9 +401,9 @@ I16 reviewed the remaining candidate surfaces without changing production or tes
 - **multi-support order:** candidate bodies are canonicalized by UUID/id, contact piece keys are scoped by support UUID/material serial/piece and plan/contact selection uses ordered collections where order can matter; existing permutation holdouts remain green and no new event-order dependency was found in the separated causal-attribution/final-validity phases;
 - **lifecycle during capture/resolve:** `MaterialIntervalRuntime.poll(...)` and `AnatomyRuntime.acceptsIntervalIdentity(...)` fence registration/binding/epoch/revision identity before preparation, while capture/resolve runs synchronously under the dispatcher's reentrancy gate on the world thread; no mid-resolution asynchronous lifecycle seam was found.
 
-A possible anchor/carry concern was also inspected and deliberately not promoted into an S07 blocker: FR-056..060 and productive `DERIVED_CARRY` are outside this sprint's declared scope and remain G2 work.
+A possible anchor/carry concern was also inspected and deliberately not promoted into an S07 blocker: FR-056..060 and productive `DERIVED_CARRY` were outside that sprint's declared scope and were later closed by S08.
 
-No further S07 implementation change was identified. **S07 is closed after the independent zero-change review. G2 remains open.**
+No further S07 implementation change was identified. **S07 is closed after the independent zero-change review.**
 
 ## G2 / S08 continuous anchor transport and derived chains — closure 2026-09-11
 
@@ -437,7 +438,7 @@ At this S08 snapshot, **G2 remained open** for tangential retention, multicontac
 
 ## G2 / S09 multicontact, sliding and recovery — closure 2026-09-12
 
-S09 closed the remaining physical Q2 slice owned by G2 tasks 5, 7 and 8: gravity-relative tangential retention/sliding, deterministic multi-contact response, bounded initial-separation recovery, pair-local wall-squeeze failure, strictly intermediate temporal contact and explicit budget boundaries. It did not close G2's architectural partition/ownership tasks 1 and 9.
+S09 closed the remaining physical Q2 slice owned by G2 tasks 5, 7 and 8: gravity-relative tangential retention/sliding, deterministic multi-contact response, bounded initial-separation recovery, pair-local wall-squeeze failure, strictly intermediate temporal contact and explicit budget boundaries. It did not close G2's architectural partition/ownership tasks 1 and 9 at that historical point.
 
 ### Recovery frontier red-before-green
 
@@ -470,9 +471,7 @@ Prepared adversarial run **`34659541774`**, job **`103458981680`**:
 
 A later final-review pass found no production defect but did find misleading executable documentation: the method formerly named `screeningCannotCostMoreThanTheClearSweepItReplaces` did not assert a strict cost ordering; it asserted the normative property that screening cannot turn a direct CLEAR fitting the same budget into exhaustion. `2aca10ef37c8fdbde85a26e9a4a5c0067189eb0e` renamed it to `screeningCannotExhaustWhenDirectClearFitsSameBudget` without changing its oracle or production. Run **`34659926225`** completed successfully.
 
-No production code changed after the cleaned prepared proof `05e8ad9…`; subsequent changes were boundary-test hardening, test naming and documentation/CI trigger bookkeeping. Hot-path inspection found bounded local entity queries rather than world scans, and the prepared workflow was extended so future `HierarchyMotion` changes trigger the real-geometry lane.
-
-**S09 is closed. G2 remains open only for the architectural partition/ownership work tracked as tasks 1 and 9 in the canonical plan; S10 is the active first extraction.**
+No production code changed after the cleaned prepared proof `05e8ad9…` in this historical closure phase; subsequent changes were boundary-test hardening, test naming and documentation/CI trigger bookkeeping. Hot-path inspection found bounded local entity queries rather than world scans, and the prepared workflow was extended so future `HierarchyMotion` changes trigger the real-geometry lane.
 
 ## G2 architecture partition S10-S13 and integrated Q2 evidence — 2026-09-12
 
@@ -485,11 +484,87 @@ The physical Q2 work remained closed while four ownership extractions reduced `A
 
 S13 prepared validation exposed an independent late S09 defect: `TemporalResponse.validCorrection(q)` paid twice per static piece and could exhaust the unchanged 256 budget after a real prepared A9 contact. `de44c78c75bcc54ef423af783d35761014b49356` preserves route validation plus final `SKIN+ULP` clearance while using one budgeted material sample per piece. No response/separation budget or numeric skin was raised.
 
-Final integrated evidence:
+Final integrated evidence at that stage:
 
 - production snapshot `de44c78c75bcc54ef423af783d35761014b49356`, ordinary run **`34695839944`**, job **`103559056801`**: **380/380 required GameTests passed**; artifact **`10299110544`**, SHA-256 **`58c33a23d8a8cbd9256736e56d55ffeee43b93cb7b02dcf5df2e8d78d1b7985b`**;
 - the same production snapshot passed prepared run **`34695839860`**, job **`103559056605`**, including original client export and isolated prepared server **2/2**;
 - test-only hardening `a1f1a568726d95664c6e8b4a144659c36be0e5cc` re-ran prepared A9 under several explicit world translations; run **`34696004864`**, job **`103559482598`**, remained **2/2** with cow `240 vertices / 10 pieces`, player wide/slim `144 vertices / 6 pieces` and **640** additional vanilla-family pose comparisons;
 - ordinary run `34696004871`, job `103559482658`, on that test-hardened snapshot remained **380/380**; artifact `10298651622`, SHA-256 `2d9d4275bccba84139b0a9d95425197c019a36d6fb28a1d18e6ef0f298137131`.
 
-This evidence closes S10-S13 and the late S09 budget reopening. It does **not** close G2 tasks 1/9: provider/binding/causal-endpoint/query/root ownership in `AnatomyMovement` still requires a boundary audit, and lifecycle/catalog generalization remains G3 work.
+At that historical point, this evidence closed S10-S13 and the then-known late S09 budget reopening. It did **not yet** close G2 tasks 1/9 because provider/binding/causal-endpoint/query/root ownership still required the S14 audit below.
+
+## G2 / S14 binding-state ownership and final G2 closure — 2026-09-12
+
+S14 audited the remaining provider/binding state and found a real separable owner plus one real production defect. It deliberately did **not** move endpoint/root/query state whose current type graph would create an inverse dependency or pre-empt G3.
+
+### S14 red-before-green baseline
+
+Commit `5019fd7f7116c0c79291556fe41a8d70f2c95941`, run **`34696527544`**, job **`103560853344`**:
+
+- **386 GameTests executed**;
+- **383 passed / 3 failed**;
+- structural holdout failed because `AnatomyBindingState` did not yet exist and `AnatomyMovement` still owned provider/descriptor/generation/quarantine/capture state;
+- dependency-direction holdout failed because the owner was not yet auditable;
+- causal-rebind holdout failed with **`samples=3`**: `register(support, provider, descriptor)` first passed through the descriptorless fixture registration path and sampled the provider before installing causal identity.
+
+All other required tests remained green, so this is a clean S14 baseline rather than a mixed regression.
+
+### S14 production repair
+
+`f8693c1d17ac0b73b95aeec74e5b2a57490fe9e1` migrated live binding ownership to `collision.internal.AnatomyBindingState`:
+
+- weak-identity slot owns provider, optional descriptor, monotonic local generation, current-generation quarantine and reentrant capture guard;
+- causal rebind installs provider + descriptor + generation atomically and increments local generation exactly once;
+- `deactivate(level)` removes the active binding/quarantine without rewinding the generation watermark;
+- an outer capture retains its guard through rebind/deactivate until its `finally`;
+- stale capture fences compare provider + descriptor + local generation;
+- `AnatomyMovement` no longer declares the five former binding-state owners;
+- endpoint serials and root history did not change ownership or semantics.
+
+### Final ordinary evidence
+
+Run **`34708981487`**, job **`103594130965`**, snapshot `27a915aba32e0113f5e587c594187783498375a4`:
+
+- **386/386 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact **`10302359158`**;
+- SHA-256 **`c6f506d4cc33cb3d2071d4534eb61057114ab116d53626d4350e4776038ce363`**.
+
+This ordinary tree contains the complete S14 owner/migration/holdouts.
+
+### Final S09 reopening discovered during S14 and prepared evidence
+
+A later prepared A9 run found another legitimate world translation where the first midpoint-positive causal cow piece needed more than the fixed 8-iteration cheap probe. The contact itself remained valid and the global response budget stayed **256**; the inefficiency was only the work schedule before establishing the first `earliest` contact.
+
+Production commit **`d04874085b60ff4c9aaef7246928cf8379240484`** adds an adaptive first-contact probe:
+
+- only a midpoint-positive candidate while no `earliest` exists may receive an enlarged local probe (80);
+- after the first contact is known, later pieces use the normal 8-iteration probe again;
+- all evaluations remain charged to the same global 256 budget;
+- no piece is omitted and CCD, `q`, `SKIN`, `TIME_EPS`, horizon, simultaneity and live fail-closed behavior are unchanged.
+
+Workflow **`34708981488`**, job **`103594131113`**, validated the exact patch before push:
+
+1. checkout of `27a915a...`;
+2. apply the exact `d048740...` patch in workspace;
+3. full ordinary suite green;
+4. original client geometry export green;
+5. isolated prepared server suite **2/2 green**;
+6. only then create/push `d048740...`.
+
+This workflow validates the final production source containing both S14 and the final S09 hardening. The push made by `GITHUB_TOKEN` did not create a redundant second workflow run, so the pre-push workspace run is the exact special-lane evidence for `d048740...`.
+
+### Final G2 ownership review
+
+Post-green source review found no additional G2 production change:
+
+- `TransportLedger` owns passive transport state;
+- shared `GravityFrames` owns body gravity;
+- `AnatomyContactState` owns retained contact/anchor/suspension state;
+- `AnatomySpatialIndex` owns bounded spatial membership/budgets;
+- `AnatomyBindingState` owns live provider/descriptor/generation/quarantine/capture state;
+- `AnatomyMovement` remains the live query/orchestration boundary and retains `FRAME_SERIALS`, `RootFrame`/`RootHistory`, activation and sweep metrics.
+
+The remaining endpoint/root block is not another separable G2 owner: `GeometryProvider.CausalEndpoint` directly contains `AnatomyMovement.RootFrame`. Moving `FRAME_SERIALS` without redesigning root would create an inverse dependency back to the orchestrator; moving/redesigning root now would pre-empt G3's `RootTransformProvider` and lifecycle work. Task 9 requires types to leave `collision.internal` only when actually decoupled, so leaving this block internal is the compliant result, not an unfinished extraction.
+
+**G2 is closed.** Its evidence proves the bounded continuous-material Q2 pipeline and the ownership partition described by S05-S14. It does **not** prove G3 catalog/root lifecycle, G4 prediction/reconciliation, G5 removal of the legacy engine, G6 complete vanilla coverage, G7 Clinging migration, G8 VP26 compatibility or G9 final benchmark/acceptance.
