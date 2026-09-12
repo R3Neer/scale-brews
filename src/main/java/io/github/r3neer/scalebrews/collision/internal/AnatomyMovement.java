@@ -37,7 +37,6 @@ public final class AnatomyMovement {
     /** Retains the whole endpoint, including its original authority time, for a material serial. */
     private record EndpointSerial(EndpointStamp stamp,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot,boolean invalidated) {}
     private static final Map<LivingEntity,EndpointSerial> FRAME_SERIALS=entityMap();
-    private static final Map<Entity,GravityFrame> GRAVITY=entityMap();
     private static final Map<Entity,Contact> CONTACTS=entityMap();
     private static final Map<Entity,Long> CONTACT_SEQUENCES=entityMap();
     private static final Map<Entity,Anchor> ANCHORS=entityMap();
@@ -294,8 +293,9 @@ public final class AnatomyMovement {
         if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(GeometryProvider.QueryFrame::snapshot);
         return provider==null?Optional.empty():provider.sample(support);
     }
-    public static synchronized void gravity(Entity body,GravityFrame gravity){GRAVITY.put(body,gravity);}
-    public static synchronized GravityFrame gravity(Entity body){return GRAVITY.containsKey(body)?GRAVITY.get(body):GravityFrames.get(body);}
+    /** Fixture-only gravity seam; the effective value still lives in the shared Scale authority. */
+    public static synchronized void gravity(Entity body,GravityFrame gravity){io.github.r3neer.scalebrews.integration.gravity.GravityFrames.overrideForTests(body,gravity);}
+    public static synchronized GravityFrame gravity(Entity body){return io.github.r3neer.scalebrews.integration.gravity.GravityFrames.frame(body);}
     public static synchronized Contact contact(Entity body){return CONTACTS.get(body);}
     public static synchronized long contactSequence(Entity body){return CONTACT_SEQUENCES.getOrDefault(body,0L);}
     /** Release a material contact and any receipt that could otherwise outlive it. */
@@ -391,7 +391,7 @@ public final class AnatomyMovement {
         // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
         DESCRIPTORS.keySet().removeIf(e->e.level()==level);
         FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
-        GRAVITY.keySet().removeIf(e->e.level()==level);CONTACTS.keySet().removeIf(e->e.level()==level);
+        io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);CONTACTS.keySet().removeIf(e->e.level()==level);
         CONTACT_SEQUENCES.keySet().removeIf(e->e.level()==level);ROOTS.keySet().removeIf(e->e.level()==level);
         ANCHORS.keySet().removeIf(e->e.level()==level);
         TransportLedger.deactivate(level);
