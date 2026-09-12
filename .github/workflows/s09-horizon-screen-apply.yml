@@ -1,0 +1,61 @@
+name: s09-horizon-screen-apply
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s09-horizon-screen-apply.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout exact trigger snapshot
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - name: apply bounded-horizon certificate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java')
+          s=p.read_text()
+          old="            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);\n"
+          new="            ConservativeSweep.Result result;\n            if(constraint==null && horizon<1) {\n                Boolean clear=certifiedClearWindow(body,queryDelta,interval,budget);\n                if(clear==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                result=clear?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)\n                    :firstForPiece(body,queryDelta,interval,budget);\n            } else result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);\n"
+          if s.count(old)!=1: raise SystemExit(f'expected one target statement, found {s.count(old)}')
+          p.write_text(s.replace(old,new))
+          PY
+          git diff --check
+          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
+      - name: ordinary suite
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build
+      - name: export original client geometry
+        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+      - name: locate exported catalog
+        id: catalog
+        shell: bash
+        run: |
+          catalog="$(find . -type d -name anatomy-export -print -quit)"
+          test -n "$catalog"
+          echo "path=$catalog" >> "$GITHUB_OUTPUT"
+      - name: prepared server suite
+        run: ./gradlew runGameTest -PscalebrewsAnatomyPreparedSuite=true -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}'
+      - name: commit and push production fix
+        shell: bash
+        run: |
+          git config user.name 'ChatGPT'
+          git config user.email 'chatgpt@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
+          git commit -m 'fix(s09): screen bounded horizons before full probe'
+          git push origin HEAD:chatgpt-editing
