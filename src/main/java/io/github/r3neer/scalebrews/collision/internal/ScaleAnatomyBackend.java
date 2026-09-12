@@ -1,8 +1,8 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.runtime.AnatomyBackend;
+import io.github.r3neer.scalebrews.integration.gravity.GravityFrames;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.Direction;
@@ -64,13 +64,11 @@ public final class ScaleAnatomyBackend implements AnatomyBackend {
     }
 
     @Override public Direction gravity(Entity entity) {
-        return entity == null ? Direction.DOWN : AnatomyMovement.gravity(entity).down();
+        return entity == null ? Direction.DOWN : GravityFrames.direction(entity);
     }
 
     @Override public void installGravityAdapter(String owner, Function<Entity, Direction> resolver) {
-        java.util.Objects.requireNonNull(resolver, "resolver");
-        GravityFrames.install(owner, entity -> new GravityFrame(
-            java.util.Objects.requireNonNull(resolver.apply(entity), "gravity direction")));
+        GravityFrames.install(owner, resolver);
     }
 
     private static boolean finite(Vec3 vector) {
