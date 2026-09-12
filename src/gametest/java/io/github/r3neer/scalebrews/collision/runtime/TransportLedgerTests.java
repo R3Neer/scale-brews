@@ -128,13 +128,14 @@ public final class TransportLedgerTests {
 
     @GameTest
     public void deactivatingOneLevelCannotEraseAnotherLevelsLedger(GameTestHelper h) {
-        var deactivatedLevel=isolatedLevel(h);
+        var deactivatedLevel=h.getLevel().getServer().getLevel(Level.END);
+        h.assertTrue(deactivatedLevel!=null && deactivatedLevel!=h.getLevel(),"S10 deactivation holdout requires a second isolated server level");
         Entity survivor=body(h);Entity deactivated=body(deactivatedLevel,h);
         TransportLedger.record(survivor,transport(h.getLevel().getGameTime(),1,.10,.10));
         TransportLedger.record(deactivated,transport(deactivatedLevel.getGameTime(),1,.40,.40));
 
-        // Ordinary GameTests share the overworld. Deactivate only this fixture's private level so
-        // the holdout proves lifecycle locality without deleting unrelated concurrent ledger state.
+        // TTL holdouts use the Nether and ordinary GameTests share the overworld. Use the End here
+        // so deactivation is pairwise observable without deleting any concurrent fixture's state.
         TransportLedger.deactivate(deactivatedLevel);
         h.assertTrue(TransportLedger.current(deactivated)==null && TransportLedger.generation(deactivated)==0,
             "Deactivating a level must remove ledger state owned by that level lifecycle");
