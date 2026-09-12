@@ -318,17 +318,20 @@ public final class TemporalResponse {
     }
 
     /**
-     * q is a true route: full block clip and every instantaneous convex must clear it. A zero-duration
-     * motion is static; its exact CCD query already certifies both the route and the q endpoint under
-     * the same numerical contact band, so a separate endpoint sample would only double-charge budget.
+     * q is a true route: block clip, exact static convex sweep and final numeric clearance all agree.
+     * The instantaneous convex is sampled once and reused for both checks, so correctness keeps the
+     * world-coordinate contact band without double-charging the shared budget for identical geometry.
      */
     private static boolean validCorrection(AABB body,Vec3 q,Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             double time,java.util.function.BiFunction<AABB,Vec3,Vec3> clip,Budget budget) {
         Vec3 clipped=clip.apply(body,q);
         if(clipped==null || !Double.isFinite(clipped.lengthSqr()) || clipped.distanceToSqr(q)>1e-18)return false;
+        AABB after=body.move(q);
         for(var id:ids) {
-            var motion=pieces.get(id).interval(time,time);
-            if(budget.query(body,q,motion).status()!=ConservativeSweep.Status.CLEAR)return false;
+            if(!budget.sample())return false;
+            var material=pieces.get(id).at().apply(time);
+            if(material==null || material.sweep(body,q)!=null
+                    || material.separation(after).gap()<=ConservativeSweep.contactClearance(after,material))return false;
         }
         return true;
     }
