@@ -16,13 +16,23 @@ public final class WorldAnatomyCatalog {
     public record Snapshot(long revision,Map<String,ModelGeometry> models,Map<Identifier,Binding> bindings,Map<String,PlatformDefinition> profiles) {
         public Snapshot {models=Map.copyOf(models);bindings=Map.copyOf(bindings);profiles=Map.copyOf(profiles);}
     }
-    private volatile Snapshot current=new Snapshot(0,Map.of(),Map.of(),Map.of());
+    private record Accepted(Snapshot snapshot,AnatomyCatalogTransfer.PreparedBundle bundle) {}
+    private volatile Accepted current=empty(0);
     public WorldAnatomyCatalog() {}
     public WorldAnatomyCatalog(long previousRevision) {
         if(previousRevision<0)throw new IllegalArgumentException("Negative catalog revision");
-        current=new Snapshot(previousRevision,Map.of(),Map.of(),Map.of());
+        current=empty(previousRevision);
     }
-    public Snapshot snapshot(){return current;}
+    private static Accepted empty(long revision) {
+        var snapshot=new Snapshot(revision,Map.of(),Map.of(),Map.of());
+        return new Accepted(snapshot,AnatomyCatalogTransfer.prepareBundle(snapshot.models(),snapshot.profiles()));
+    }
+    public Snapshot snapshot(){return current.snapshot();}
+    /** Packet objects are materialized once per epoch/revision from the already serialized accepted bundle. */
+    synchronized List<AnatomyCatalogPayload> preparedPackets(UUID epoch) {
+        var accepted=current;
+        return accepted.bundle().packets(epoch,accepted.snapshot().revision());
+    }
     public Snapshot reload(net.minecraft.server.packs.resources.ResourceManager resources) {
         var models=read(resources,"scalebrews/entity_geometry",AnatomyCodecs.GEOMETRY);
         var profiles=read(resources,"scalebrews/entity_platform",PlatformDefinition.CODEC);
@@ -53,7 +63,7 @@ public final class WorldAnatomyCatalog {
         return replace(models,profiles);
     }
     public synchronized Snapshot replace(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
-        return replaceValidated(Math.incrementExact(current.revision()),models,profiles);
+        return replaceValidated(Math.incrementExact(current.snapshot().revision()),models,profiles);
     }
     /** Client-side publication seam: the packet revision is the authority identity, not a local counter. */
     synchronized Snapshot replaceAtRevision(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
@@ -81,9 +91,10 @@ public final class WorldAnatomyCatalog {
             bindings.put(profile.entity(),new Binding(profile,model,provider));
         }
         var validated=new GeometryCatalog().replace(models,references);
-        AnatomyCatalogTransfer.serializedBundle(validated.models(),profiles); // Reject unsendable bundles before committing server state.
+        // Prepare every fallible transfer artifact before the atomic accepted-state swap.
+        var bundle=AnatomyCatalogTransfer.prepareBundle(validated.models(),profiles);
         Snapshot next=new Snapshot(revision,validated.models(),bindings,profiles);
-        current=next;
+        current=new Accepted(next,bundle);
         return next;
     }
 }
