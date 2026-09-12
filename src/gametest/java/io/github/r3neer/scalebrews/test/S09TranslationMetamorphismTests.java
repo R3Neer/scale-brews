@@ -4,6 +4,7 @@ import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
+import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import java.util.Map;
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -38,6 +39,35 @@ public final class S09TranslationMetamorphismTests {
             "A common prepared-scale world translation must preserve the CCD skin classification instead of exhausting on coordinate quantization: local="
                 +local+" translated="+translated+" localGap="+localPiece.separation(localBody).gap()
                 +" translatedGap="+translatedPiece.separation(translatedBody).gap());
+        h.succeed();
+    }
+
+    @GameTest
+    public void temporalClearanceCannotUndercutCcdNumericContactBand(GameTestHelper h) {
+        // At the vanilla world border, the CCD deliberately widens SKIN by a few ulps.  Give the
+        // temporal screen a moving piece whose final geometric gap remains above bare SKIN but falls
+        // inside that widened CCD contact band.  A loose but valid speed bound forces the cheap CCD
+        // probe to hand control to screening, so this catches a screen that certifies CLEAR using a
+        // stricter threshold than the exact query it is allowed to replace.
+        double world=30_000_000d,startGap=.1,targetFinalGap=ConservativeSweep.SKIN+1e-8;
+        var initial=ConvexBox.of(new AABB(0,0,0,1,1,1),new Matrix4f()).move(new Vec3(world,0,0));
+        var body=new AABB(world+1+startGap,.2,.2,world+1.2+startGap,.8,.8);
+        double measuredStart=initial.separation(body).gap();
+        double advance=measuredStart-targetFinalGap;
+        var motion=new ConservativeSweep.Motion(
+            t->initial.move(new Vec3(advance*t,0,0)),
+            advance*2,
+            Vec3.ZERO);
+        double finalGap=motion.at().apply(1).separation(body).gap();
+        var exact=ConservativeSweep.query(body,Vec3.ZERO,motion,256);
+        h.assertTrue(finalGap>ConservativeSweep.SKIN && exact.status()==ConservativeSweep.Status.CONTACT,
+            "Control must end above bare SKIN yet inside the world-coordinate CCD contact band: gap="
+                +finalGap+" exact="+exact);
+
+        var temporal=TemporalResponse.resolve(body,Vec3.ZERO,Map.of("piece",motion),4,256);
+        h.assertTrue(temporal.contacts().stream().anyMatch(contact->contact.piece().equals("piece")),
+            "Temporal clearance must not certify CLEAR inside ConservativeSweep's numeric contact band: gap="
+                +finalGap+" exact="+exact+" temporal="+temporal);
         h.succeed();
     }
 
