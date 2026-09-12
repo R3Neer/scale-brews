@@ -1,6 +1,6 @@
 # S11 — Autoridad compartida de gravedad
 
-Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**
+Estado: **CERRADO**
 
 ## Objetivo
 
@@ -10,26 +10,27 @@ Este sprint no abre G3 ni porta cambios funcionales de Tiny Mounts. El alcance e
 
 ## Baseline observado
 
-En `chatgpt-editing` existen hoy dos capas que pueden decidir la gravedad efectiva dentro de Entity Collisions:
+Al abrir S11, `chatgpt-editing` tenía dos capas capaces de decidir la gravedad efectiva dentro de Entity Collisions:
 
 1. `collision.internal.GravityFrames`, con un adaptador global instalable por owner.
-2. `AnatomyMovement.GRAVITY`, un mapa por entidad que tiene precedencia sobre ese adaptador.
+2. `AnatomyMovement.GRAVITY`, un mapa por entidad con precedencia sobre ese adaptador.
 
-Además, `ScaleAnatomyBackend.gravity(...)` delega en `AnatomyMovement.gravity(...)`, por lo que la API pública puede observar la autoridad local de collisions en vez de una autoridad compartida de Scale Brews.
+Además, `ScaleAnatomyBackend.gravity(...)` delegaba en `AnatomyMovement.gravity(...)`, por lo que la API pública podía observar la autoridad local de collisions en vez de una autoridad compartida de Scale Brews.
 
-`main` ya contiene la dirección arquitectónica que debemos reconciliar: `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como autoridad única de gravedad corporal. S11 adapta ese principio al contrato público de Entity Collisions sin duplicar el `GravityFrame` físico de la API.
+`main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` ya contenía la dirección arquitectónica que debía reconciliarse: `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como autoridad única de gravedad corporal. S11 adopta ese principio sin duplicar el `GravityFrame` físico de la API de Entity Collisions.
 
-## Decisiones arquitectónicas cerradas
+## Arquitectura cerrada
 
-- La autoridad global vivirá en `io.github.r3neer.scalebrews.integration.gravity.GravityFrames`.
-- `collision.api.GravityFrame` sigue siendo la representación física canónica que usa el pipeline de Entity Collisions. No se introduce un segundo DTO de frame con semántica solapada.
+- La autoridad global vive en `io.github.r3neer.scalebrews.integration.gravity.GravityFrames`.
+- `collision.api.GravityFrame` sigue siendo la representación física canónica del pipeline de Entity Collisions. No existe un segundo DTO de frame con semántica solapada.
 - La autoridad compartida expone dirección cardinal y frame, con fallback vanilla `DOWN` y compat opcional con Gravity Changer.
-- Solo puede existir un proveedor global externo. La instalación se identifica por `owner`; reinstalar el mismo owner es idempotente y un owner diferente falla explícitamente.
-- Los overrides por entidad no forman parte de la autoridad de producción. Las pruebas que necesiten gravedad sintética deben usar un seam explícito de GameTest/test, no un segundo almacén físico dentro de `AnatomyMovement`.
-- `AnatomyMovement` no conservará un mapa `GRAVITY` ni decidirá precedencia de fuentes de gravedad.
-- `ScaleAnatomyBackend.gravity(...)` y `AnatomyMovement.gravity(...)` deben observar la misma autoridad compartida.
-- `collision.internal.GravityFrames` deja de ser propietario. Se elimina, no se convierte en otro registro reenvasado.
-- El ciclo de vida de un `Level` no puede resetear el proveedor global ni fabricar una autoridad nueva. Los seams de prueba, si requieren limpieza local, se limpian de forma explícita y acotada.
+- Solo puede existir un proveedor global externo. La instalación se identifica por `owner`; reinstalar el mismo owner es un no-op completo y un owner distinto falla explícitamente.
+- `AnatomyMovement` ya no conserva un mapa `GRAVITY` ni decide precedencia entre fuentes de gravedad.
+- `ScaleAnatomyBackend.gravity(...)` y `AnatomyMovement.gravity(...)` observan la misma autoridad compartida.
+- `collision.internal.GravityFrames` se eliminó de producción.
+- La gravedad sintética por entidad usada por GameTest se conserva como seam explícito dentro de la propia autoridad compartida y está bloqueada fuera de `isDevelopmentEnvironment()`; no constituye una segunda autoridad de producción.
+- `deactivate(Level)` solo limpia los overrides de test asociados al nivel y nunca resetea ni sustituye el proveedor global.
+- El fixture legado de `AnatomyGeometryTests` usa un puente **solo en `src/gametest`** que no posee estado y delega al servicio compartido.
 
 ## Requisitos e invariantes cubiertos
 
@@ -42,71 +43,128 @@ Además, `ScaleAnatomyBackend.gravity(...)` delega en `AnatomyMovement.gravity(.
 
 ## Plan de implementación
 
-- [ ] Añadir el holdout rojo de S11 que demuestre que la autoridad local `AnatomyMovement.GRAVITY` puede ocultar al adaptador global y que aún no existe la autoridad compartida.
-- [ ] Registrar evidencia roja en CI sin reinterpretar fallos preexistentes de S09 como fallo de S11.
-- [ ] Introducir `integration.gravity.GravityFrames` con fallback vanilla, compat Gravity Changer y ownership explícito del proveedor.
-- [ ] Migrar `ScaleAnatomyBackend.installGravityAdapter(...)` y `gravity(...)` a la autoridad compartida.
-- [ ] Migrar `AnatomyMovement.gravity(...)` a lectura de la autoridad compartida y eliminar `GRAVITY`.
-- [ ] Retirar `collision.internal.GravityFrames`.
-- [ ] Mover la inyección de gravedad sintética de los GameTests existentes a un seam explícito de prueba sin crear una segunda autoridad de producción.
-- [ ] Añadir holdouts verdes para DOWN, las seis direcciones cardinales, ownership de proveedor y coincidencia API/pipeline.
-- [ ] Reejecutar los holdouts de S08/S09 que ejercitan gravedad lateral y transporte continuo.
-- [ ] Ejecutar CI ordinario y prepared adversarial; documentar por separado cualquier fallo de baseline no atribuible a S11.
-- [ ] Actualizar `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md` únicamente cuando la evidencia verde permita cerrar S11.
+- [x] Añadir el holdout rojo de S11 que demuestre que aún faltaba la autoridad compartida y que `AnatomyMovement`/`collision.internal.GravityFrames` seguían siendo owners paralelos.
+- [x] Registrar evidencia roja en CI sin reinterpretar fallos ajenos como fallo de S11.
+- [x] Introducir `integration.gravity.GravityFrames` con fallback vanilla, compat Gravity Changer y ownership explícito del proveedor.
+- [x] Migrar `ScaleAnatomyBackend.installGravityAdapter(...)` y `gravity(...)` a la autoridad compartida.
+- [x] Migrar `AnatomyMovement.gravity(...)` a la autoridad compartida y eliminar `GRAVITY`.
+- [x] Retirar `collision.internal.GravityFrames` de producción.
+- [x] Mover la inyección de gravedad sintética de GameTest a un seam explícito de desarrollo sin crear una segunda autoridad de producción.
+- [x] Añadir holdouts verdes para vanilla, seis direcciones cardinales, ownership de proveedor y coincidencia API/pipeline.
+- [x] Reejecutar los holdouts de S08/S09 que ejercitan gravedad lateral y transporte continuo dentro de la suite ordinaria completa.
+- [x] Ejecutar CI ordinario y prepared adversarial sobre la migración relevante.
+- [x] Revisar adversarialmente la semántica de reinstalación del mismo owner: el resolver original queda inmutable.
+- [x] Dejar S11 listo para reflejarse en `ENTITY_COLLISIONS_PLAN.md` y `VALIDATION.md`; G2 sigue abierto por las tareas arquitectónicas 1 y 9.
 
 ## Holdouts adversariales
 
-### A1 — autoridad compartida presente
+### A1 — autoridad compartida presente — VERDE
 
-Debe existir `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como servicio de Scale Brews.
+Existe `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` como servicio compartido de Scale Brews.
 
-### A2 — sin owner local en AnatomyMovement
+### A2 — sin owner local en AnatomyMovement — VERDE
 
-`AnatomyMovement` no puede declarar un campo/registro de gravedad por entidad que preceda a la autoridad compartida.
+`AnatomyMovement` ya no declara `GRAVITY` ni otro registro por entidad que preceda a la autoridad compartida.
 
-### A3 — sin autoridad interna duplicada
+### A3 — sin autoridad interna duplicada — VERDE
 
-`io.github.r3neer.scalebrews.collision.internal.GravityFrames` debe desaparecer como propietario de estado/proveedor.
+`io.github.r3neer.scalebrews.collision.internal.GravityFrames` desapareció del código de producción.
 
-### A4 — API y pipeline coinciden
+### A4 — API y pipeline coinciden — VERDE
 
-Para una misma entidad, `AnatomyApi.gravity(entity)` y la gravedad consumida por `AnatomyMovement` deben resolver el mismo frame.
+`AnatomyApi.gravity(entity)`, `AnatomyMovement.gravity(entity)` y `integration.gravity.GravityFrames.frame(entity)` se prueban contra el mismo frame efectivo.
 
-### A5 — vanilla seguro
+### A5 — vanilla seguro — VERDE
 
-Sin proveedor externo, la resolución debe ser `Direction.DOWN` / `GravityFrame.VANILLA`.
+Sin override de fixture, la resolución de la prueba es `Direction.DOWN` / `GravityFrame.VANILLA`.
 
-### A6 — seis direcciones cardinales
+### A6 — seis direcciones cardinales — VERDE
 
-Un proveedor válido debe poder devolver DOWN, UP, NORTH, SOUTH, WEST o EAST sin perder las transformaciones `toLocal`/`toWorld` ni el criterio `supports(...)` del `GravityFrame` público.
+Los seis `Direction.values()` atraviesan la misma autoridad, conservan `toLocal(toWorld(v)) == v` dentro de tolerancia y mantienen `supports(up())`.
 
-### A7 — ownership exclusivo
+### A7 — ownership exclusivo e inmutable — VERDE
 
-Una segunda instalación con owner distinto falla; repetir el mismo owner no crea otra autoridad ni cambia silenciosamente de resolver.
+Un owner competidor produce `IllegalStateException`. Reinstalar el mismo owner conserva tanto el owner como el resolver original; el holdout final usa un resolver contradictorio y verifica que no lo sustituye.
 
-### A8 — independencia body/support preservada
+### A8 — independencia body/support preservada — VERDE
 
-`S08GravityIndependenceTests` sigue demostrando que la gravedad del cuerpo puede ser distinta de la del soporte sin romper el carry certificado.
+La suite final incluye `S08GravityIndependenceTests`, por lo que una gravedad corporal distinta de la del soporte sigue siendo válida para el carry certificado.
 
-### A9 — sliding lateral preservado
+### A9 — sliding lateral preservado — VERDE
 
-Los casos laterales de S09 continúan verdes para EAST/WEST y no reaparece una suposición de `DOWN` global.
+La suite final incluye `S09LiveOwnMoveTests` y el resto de S09; los casos de gravedad lateral siguen verdes y no reaparece una suposición global de `DOWN`.
 
-### A10 — lifecycle sin estado fantasma
+### A10 — lifecycle sin estado fantasma — VERDE
 
-Desactivar un `Level` limpia solo estado de collisions asociado al nivel; no rebobina ni sustituye la autoridad global compartida.
+`AnatomyMovement.deactivate(Level)` limpia el seam de test del nivel mediante la autoridad compartida, pero no rebobina ni reemplaza el proveedor global.
 
-## Evidencia de baseline
+## Evidencia roja
 
-Al abrir S11, el carril ordinario del baseline anterior estaba verde. El carril prepared adversarial tenía un fallo localizado de S09/A9 por `ITERATION_LIMIT` / presupuesto de manifold; ese fallo es anterior y ajeno a la reconciliación de gravedad. S11 no se considerará culpable ni verde basándose en ese carril hasta distinguir el estado del baseline del efecto de sus propios cambios.
+El primer commit de holdouts (`c8ad81e2f81ce0cfd4d16a85c2fac77310507b2d`) compilaba, pero la clase no estaba registrada en `fabric.mod.json`; ese verde inicial **no cuenta** como prueba porque los holdouts no se ejecutaron.
 
-## Criterio de cierre
+`9007726e6e81dc419671dc177fb436e8a10c1f4b` registró correctamente `S11GravityAuthorityTests`.
 
-S11 solo puede marcarse **CERRADO** cuando:
+GitHub Actions run **`34690210541`**, job **`103544012659`**:
 
-1. existe una única autoridad de gravedad compartida de Scale Brews;
-2. `AnatomyMovement` ya no posee estado de gravedad por entidad;
-3. la antigua autoridad `collision.internal.GravityFrames` ha desaparecido;
-4. API pública y pipeline físico resuelven la misma gravedad;
-5. los holdouts de gravedad lateral/transport de S08 y S09 permanecen verdes;
-6. la evidencia CI queda registrada y cualquier fallo externo de baseline se documenta por separado.
+- ejecutó **361 GameTests**;
+- fallaron exactamente **3** required tests, todos de S11;
+- los fallos demostraron: ausencia de `integration.gravity.GravityFrames`, presencia de `AnatomyMovement.GRAVITY` y existencia de `collision.internal.GravityFrames`;
+- no hubo otro fallo ordinario que contaminase el rojo.
+
+Esto constituye la evidencia red-before-green de S11.
+
+## Reparación de producción
+
+La migración se repartió en cambios pequeños para evitar mezclar física con ownership:
+
+- `a3c2879d8017a9abcfdca0e5335b7cbe77d1f5bc` — añade `integration.gravity.GravityFrames` con proveedor único, owner, fallback vanilla, Gravity Changer y seam de desarrollo;
+- `5d13c1ea2d60b1a201849c3a79accbb46e1b588b` — inicializa la autoridad compartida antes que los subsistemas consumidores;
+- `105ae43876783cb9e19c8708ba72f01083d520b7` — enruta `ScaleAnatomyBackend` y el adaptador público a la autoridad compartida;
+- `e1cc8d3d51fc689a7934cbaf3a3ab490856ab899` — elimina el ownership local de `AnatomyMovement`; el diff de esa clase fue de solo **4 líneas añadidas / 4 eliminadas**, sin churn de CCD/carry;
+- `ee8f6309199936741df0000d7219fef4b31cb798` — elimina `collision.internal.GravityFrames` de producción;
+- `1e7cbade4656a41223e4e00aa1af52bbed438cbd` — añade un puente de fixture solo en `src/gametest` para el antiguo `AnatomyGeometryTests`; no posee estado y delega a la autoridad compartida.
+
+El primer build tras eliminar la clase interna encontró precisamente ese consumidor de test legado. Fue un fallo de compilación del fixture, no de la autoridad de producción, y se corrigió migrando el fixture sin reintroducir ningún owner de producción.
+
+## Evidencia verde
+
+### Suite ordinaria final
+
+El último refuerzo adversarial es `a4c406c8638e63d4daeee56cb7450b01fdf562c2` (`test(s11): prove same-owner resolver is immutable`), que añade la propiedad de que reinstalar el mismo owner tampoco puede cambiar el resolver.
+
+GitHub Actions run **`34690905310`**, job **`103545830375`**:
+
+- checkout exacto `a4c406c8638e63d4daeee56cb7450b01fdf562c2`;
+- **364 tests registrados y ejecutados**;
+- **364/364 required GameTests passed**;
+- `BUILD SUCCESSFUL in 1m 25s`;
+- artifact **`10297312748`**, 896653 bytes;
+- SHA-256 **`f2448b38dd3f4a3519093e18548f442892d3252496ee98a8fec450c1188c0420`**.
+
+Esta suite incluye los seis holdouts actuales de S11, `S08GravityIndependenceTests`, `S09LiveOwnMoveTests` y el resto de regresiones ordinarias S05-S10.
+
+### Prepared adversarial
+
+El cambio de producción que modifica directamente la resolución de gravedad en `AnatomyMovement`, `e1cc8d3d51fc689a7934cbaf3a3ab490856ab899`, activó el workflow prepared por su path filter.
+
+Prepared run **`34690517107`** terminó **success**, por lo que el cambio de ownership en el pipeline no rompió la prueba prepared de geometría/servidor. Los commits posteriores de S11 son eliminación de la clase duplicada, integración/test-fixture y holdouts; no alteran CCD/carry.
+
+## Revisión final
+
+La revisión posterior al verde no encontró una segunda autoridad de producción:
+
+- el servicio compartido posee la elección efectiva de gravedad;
+- `collision.api.GravityFrame` conserva únicamente la representación/transformación física;
+- `ScaleAnatomyBackend` no vuelve a crear estado de gravedad;
+- `AnatomyMovement` no posee un almacén de gravedad;
+- el override por entidad queda restringido al entorno de desarrollo/GameTest dentro de la misma autoridad;
+- el puente legado vive solo en source-set de test y no almacena estado;
+- un owner no puede sustituir a otro ni cambiar silenciosamente su resolver mediante reinstalación.
+
+No se identificó ningún cambio adicional de S11 tras esta revisión.
+
+## Cierre
+
+**S11 está CERRADO.** La reconciliación requerida por `main@39824dd…` queda resuelta: `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` es la autoridad compartida de gravedad que consume Entity Collisions.
+
+Este cierre **no cierra G2**. Permanecen las tareas arquitectónicas de partición/ownership de G2, especialmente la división del estado/orquestación todavía concentrado en `AnatomyMovement` y la retirada/migración de tipos físicos u orquestadores que siguen en `collision.internal` cuando sus fronteras estén estabilizadas.
