@@ -231,3 +231,75 @@ S09 cierra con:
 8. suite ordinaria final verde, lane preparada final verde y pasada posterior sobre el estado canónico consistente sin cambios de producción.
 
 **S09 COMPLETADO.**
+
+## 8. Reapertura tardía — banda numérica CCD y budget prepared
+
+Una revisión adversarial posterior a S12 volvió a abrir S09 sin cambiar requisitos ni budgets.
+
+### 8.1 Rojo: screening CLEAR dentro de la banda numérica de CCD
+
+`8f335aaf623ad663f576a971d47f9fdbdaf74296` añadió `temporalClearanceCannotUndercutCcdNumericContactBand` a `S09TranslationMetamorphismTests`. El fixture traslada el problema a coordenadas cercanas a 30 millones y construye una separación geométrica de aproximadamente `SKIN + 1e-8`.
+
+Run **`34693201192`**, job **`103552049931`**:
+
+- **374 GameTests** ejecutados;
+- **373 passed / 1 failed**;
+- el único rojo fue el nuevo holdout;
+- `ConservativeSweep` clasificó el caso como `CONTACT` con `safeFraction≈0.9999998041`, porque su clearance era `SKIN + numericalGapTolerance(world coordinates)`;
+- `TemporalResponse`, en cambio, certificó `COMPLETE/CLEAR` porque sus certificados temporales comparaban contra `SKIN` desnudo.
+
+El defecto era una contradicción entre dos definiciones numéricas de contacto, no un problema de fixture.
+
+### 8.2 Reparación: una sola banda de clearance
+
+`b9cd7317fedbb4a260757f28312f6ac764c76b9b` introdujo `ConservativeSweep.contactClearance(body, material)` como única banda numérica compartida. `2cd5b1da45f6a04e0874899e0374bad5b621e367` hizo que `TemporalResponse` la use en:
+
+- screening por ventana;
+- cobertura temporal global;
+- fast-path de constraint activa;
+- validación de la corrección `q`.
+
+No se aumentó `SKIN`, `QUERY_BUDGET`, `events` ni el budget de separation. La tolerancia extra sigue limitada a un cuarto de `SKIN` y sólo compensa representación world-space.
+
+Ordinary run **`34693430587`**, job **`103552678546`**, sobre `2cd5b1d...` pasó **374/374**; artifact **`10297851489`**, SHA-256 **`1892a7ab62ecf208177990d8948376d542a2a29f3fc8f474bc69fe8d1d61984e`**.
+
+### 8.3 Reapertura prepared: el manifold real seguía agotando 256
+
+La misma corrección volvió el screening correctamente más conservador. Prepared run **`34693430591`**, job **`103552678300`**, exportó el catálogo real con éxito, pero el servidor agotó exactamente las **256** evaluaciones en A9 con el manifold completo del cow.
+
+La pieza causal aislada seguía resolviendo correctamente; el agotamiento aparecía al recorrer piezas irrelevantes después de localizar el contacto real. No se aceptó elevar el budget ni volver a estrechar artificialmente el clearance.
+
+### 8.4 Cierre final: priorización causal determinista
+
+`e1fc4893f069eb2b60fc1fdd352107dc0205bddb` cambió únicamente el orden de consulta dentro de `TemporalResponse.first(...)`:
+
+1. piezas ya activas primero;
+2. en manifolds pequeños, piezas cuyo convexo en el midpoint solapa el body en ese midpoint antes que las demás;
+3. desempate por id canónico.
+
+Ninguna pieza se descarta. Una vez conocido un primer contacto, las restantes se siguen verificando hasta `earliest + TIME_EPS`, por lo que una pieza realmente anterior todavía puede sustituirlo y un contacto simultáneo dentro de tolerancia todavía se incorpora. El orden reduce trabajo inútil, no cambia el oracle.
+
+Se consideró otra optimización de `validCorrection(q)` para evitar una comprobación duplicada en intervalos de duración cero, pero no se incorporó: la priorización anterior cerró el budget real y no había motivo para añadir otra ruta de código.
+
+### 8.5 Evidencia final vigente
+
+Snapshot final: **`e1fc4893f069eb2b60fc1fdd352107dc0205bddb`**.
+
+Ordinary run **`34693722959`**, job **`103553460145`**:
+
+- **374/374 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact **`10297851829`**;
+- SHA-256 **`b4a06c379be4dce899160f88c37a1c2e280d015e9e71f7a601212fef57cd2b2f`**.
+
+Prepared run **`34693722977`**, job **`103553460165`**:
+
+- export cliente original verde;
+- cow **240 vertices / 10 pieces**, 80 comparaciones de pose;
+- **640** comparaciones adicionales de familias vanilla;
+- player wide/slim **144 vertices / 6 pieces** cada uno, 80 comparaciones cada uno;
+- servidor prepared **2/2 required GameTests passed**;
+- export cliente `BUILD SUCCESSFUL in 1m 28s`;
+- servidor prepared `BUILD SUCCESSFUL in 16s`.
+
+La reapertura numérica queda cerrada sin subir tolerancias físicas ni budgets contractuales. **S09 vuelve a estar COMPLETADO sobre `e1fc4893...`.**
