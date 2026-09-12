@@ -1,6 +1,6 @@
 # S09 — Hardening posterior al cierre
 
-Estado: **COMPLETADO**. Este addendum amplía la evidencia histórica de `S09-multicontact-sliding-recovery.md` después de revisiones adversariales posteriores durante S12/S13.
+Estado: **COMPLETADO**. Este addendum amplía la evidencia histórica de `S09-multicontact-sliding-recovery.md` después de revisiones adversariales posteriores durante S12/S13/S14.
 
 ## Motivo de reapertura
 
@@ -66,7 +66,7 @@ La causa era `validCorrection(q)`: para cada pieza estática en el instante de c
 
 `8910564e53e9752c0a96646d38aaf284b7724530` eliminó la doble carga, pero una revisión inmediata detectó que usar sólo el fast path estático de `ConservativeSweep` podía perder la banda numérica `SKIN + ULP` en el endpoint.
 
-`de44c78c75bcc54ef423af783d35761014b49356` dejó la reparación final:
+`de44c78c75bcc54ef423af783d35761014b49356` dejó la reparación final de esa etapa:
 
 - una sola muestra presupuestada del convexo estático por pieza;
 - `ConvexBox.sweep(body,q)` valida el trayecto real de la corrección;
@@ -78,15 +78,42 @@ Evidencia sobre `de44c78...`:
 - ordinary run `34695839944`, job `103559056801`: **380/380 required GameTests passed**; artifact `10299110544`, SHA-256 `58c33a23d8a8cbd9256736e56d55ffeee43b93cb7b02dcf5df2e8d78d1b7985b`;
 - prepared run `34695839860`, job `103559056605`: export original verde y servidor aislado **2/2** verde.
 
-## Holdout final independiente de la colocación aleatoria
+## Holdout independiente de la colocación aleatoria
 
-`a1f1a568726d95664c6e8b4a144659c36be0e5cc` endurece `S09PreparedIntermediateContactProof`: la misma geometría real de cow y el mismo contacto estrictamente intermedio se reejecutan trasladados a cuatro offsets mundiales explícitos, incluyendo magnitudes de millones de bloques y signos distintos.
+`a1f1a568726d95664c6e8b4a144659c36be0e5cc` endureció `S09PreparedIntermediateContactProof`: la misma geometría real de cow y el mismo contacto estrictamente intermedio se reejecutan trasladados a cuatro offsets mundiales explícitos, incluyendo magnitudes de millones de bloques y signos distintos.
 
 - ordinary run `34696004871`: verde;
 - prepared run `34696004864`, job `103559482598`: **verde**;
 - export original: cow **240 vertices / 10 pieces**, player wide/slim **144 vertices / 6 pieces**, 80 comparaciones animadas por modelo y **640** comparaciones adicionales vanilla-family;
 - servidor preparado aislado: **2/2 required GameTests passed**;
 - A9 mantiene el mismo resultado causal bajo las traslaciones explícitas, sin exhaustion y sin contacto final inventado.
+
+## Reapertura final durante S14: probe adaptativo de primer contacto
+
+Una colocación prepared posterior volvió a encontrar una traducción legítima del mismo cow real donde el probe fijo de 8 iteraciones era demasiado corto para la **primera** pieza causal. El control aislado seguía siendo resoluble, pero el scheduler consumía demasiado trabajo de screening antes de establecer `earliest`.
+
+La campaña de diagnóstico descartó aumentar el budget global y conservó 256 como frontera normativa. El hallazgo final fue que la muestra midpoint ya aportaba información causal útil: cuando una pieza solapa el body en midpoint y todavía no existe un primer contacto conocido, merece un probe exacto más amplio; después de fijar `earliest`, ese coste deja de estar justificado para las piezas restantes.
+
+`d04874085b60ff4c9aaef7246928cf8379240484` implementa esa política mínima:
+
+- añade `MIDPOINT_CONTACT_PROBE_BUDGET = 80`;
+- sólo una pieza midpoint-positive y sólo **antes** de conocer `earliest` puede recibir ese probe ampliado;
+- después del primer contacto, las demás piezas vuelven al `PROBE_QUERY_BUDGET = 8` normal;
+- todas las evaluaciones siguen descontándose del mismo budget global de 256;
+- no cambia CCD, `q`, `SKIN`, `TIME_EPS`, horizon, simultaneidad ni fail-closed;
+- ninguna pieza se omite y el resultado sigue usando el mismo orden determinista de comparación/desempate.
+
+### Validación antes del push
+
+Workflow `34708981488`, job `103594131113`, partiendo de `27a915aba32e0113f5e587c594187783498375a4`:
+
+1. aplicó exactamente el parche que después se convirtió en `d048740...`;
+2. la suite ordinaria pasó completa;
+3. la exportación cliente original pasó;
+4. la suite prepared servidor pasó **2/2**;
+5. sólo tras esas tres capas creó y empujó el commit productivo `d048740...`.
+
+La suite ordinary independiente del mismo árbol base, run `34708981487`, job `103594130965`, ejecutó **386/386 required GameTests** y produjo artifact `10302359158`, SHA-256 `c6f506d4cc33cb3d2071d4534eb61057114ab116d53626d4350e4776038ce363`.
 
 ## Revisión post-verde vigente
 
@@ -98,6 +125,7 @@ La pasada final converge sin nuevos cambios de producción:
 - screening y corrección usan la banda numérica de contacto correcta;
 - el scheduler cambia sólo el orden determinista de evaluación, nunca omite piezas ni altera la simultaneidad dentro de `TIME_EPS`;
 - la validación de `q` no cobra dos veces el mismo convexo;
-- ordinary y prepared, incluido el holdout de traslación explícita, están verdes sobre la cadena final.
+- el probe ampliado sólo existe para localizar el primer contacto midpoint-positive y desaparece como ventaja en cuanto hay `earliest`;
+- ordinary, cliente real y prepared están verdes sobre la fuente que produjo `d048740...`.
 
 **S09 continúa COMPLETADO.**
