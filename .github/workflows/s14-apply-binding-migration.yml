@@ -25,135 +25,30 @@ jobs:
       - name: migrate binding ownership
         shell: bash
         run: |
-          python3 <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
           s=p.read_text()
-          def rep(old,new,count=1):
+          def sub(pattern,repl,count=1):
               global s
-              n=s.count(old)
-              if n != count:
-                  raise SystemExit(f'expected {count}, found {n}: {old[:80]!r}')
-              s=s.replace(old,new)
-
-          rep("""    private static final Map<LivingEntity,GeometryProvider> PROVIDERS=entityMap();
-    /** Local binding generation; Runtime supplies causal descriptor in the Q1 production overload. */
-    private static final Map<LivingEntity,Long> REGISTRATIONS=entityMap();
-    private static final Map<LivingEntity,GeometryProvider.GeometryIdentityDescriptor> DESCRIPTORS=entityMap();
-    /** Synchronized API entry is reentrant in Java; provider callbacks must not start a second capture. */
-    private static final Set<LivingEntity> CAPTURING=Collections.newSetFromMap(new IdentityHashMap<>());
-    /** A failed first capture has no serial fence; quarantine that local registration until an explicit rebind. */
-    private static final Map<LivingEntity,Long> QUARANTINED_REGISTRATIONS=entityMap();
-""","")
-
-          s=s.replace('PROVIDERS.get(', 'AnatomyBindingState.provider(')
-          s=s.replace('DESCRIPTORS.get(', 'AnatomyBindingState.descriptor(')
-          s=s.replace('PROVIDERS.containsKey(', 'AnatomyBindingState.hasProvider(')
-          s=s.replace('DESCRIPTORS.containsKey(', 'AnatomyBindingState.causal(')
-
-          rep("""        Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
-        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-""","""        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();List<Entity> bodies;
-""")
-          rep("""        Map<LivingEntity,GeometryProvider> providers;
-        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-""","""        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();
-""",2)
-
-          rep("""    public static synchronized void register(LivingEntity support,GeometryProvider provider){
-        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
-        requireServerThread(support.level());
-        long generation=Math.incrementExact(REGISTRATIONS.getOrDefault(support,0L));
-        PROVIDERS.put(support,provider);REGISTRATIONS.put(support,generation);
-        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-        refreshSpatialEntry(support);
-    }
-""","""    public static synchronized void register(LivingEntity support,GeometryProvider provider){
-        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
-        requireServerThread(support.level());
-        AnatomyBindingState.rebind(support,provider,null);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-        refreshSpatialEntry(support);
-    }
-""")
-
-          rep("""    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
-        if(descriptor==null)throw new IllegalArgumentException(\"Missing geometry descriptor\");
-        register(support,provider);
-        // A server registration is the authority that allocates its binding identity.
-        // Network/client adapters must supply the received nonzero generation instead.
-        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
-        DESCRIPTORS.put(support,descriptor);
-        queryFrame(support);
-    }
-""","""    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
-        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
-        if(descriptor==null)throw new IllegalArgumentException(\"Missing geometry descriptor\");
-        requireServerThread(support.level());
-        AnatomyBindingState.rebind(support,provider,descriptor);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-        queryFrame(support);
-    }
-""")
-
-          rep('public static synchronized long registrationGeneration(LivingEntity support){return REGISTRATIONS.getOrDefault(support,0L);}',
-              'public static synchronized long registrationGeneration(LivingEntity support){return AnatomyBindingState.generation(support);}')
-
-          rep("""    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
-        requireServerThread(support.level());
-        if(!CAPTURING.add(support))return Optional.empty();
-        try {
-            var descriptor=AnatomyBindingState.descriptor(support);var provider=AnatomyBindingState.provider(support);
-            if(descriptor==null || provider==null)return Optional.empty();
-            long registration=registrationGeneration(support);
-            if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registration))return Optional.empty();
-            var capture=new CaptureStamp(provider,descriptor,registration,transportGeneration(support));
-            var endpoint=causalEndpoint(support,provider,capture).orElse(null);
-            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
-            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
-                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
-            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
-        } finally {CAPTURING.remove(support);}
-    }
-""","""    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
-        requireServerThread(support.level());
-        var binding=AnatomyBindingState.beginCapture(support);
-        if(binding==null)return Optional.empty();
-        try {
-            var descriptor=binding.descriptor();var provider=binding.provider();
-            var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));
-            var endpoint=causalEndpoint(support,provider,capture).orElse(null);
-            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
-            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
-                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
-            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
-        } finally {AnatomyBindingState.endCapture(support);}
-    }
-""")
-
-          rep("""    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
-        return AnatomyBindingState.provider(support)==capture.provider() && Objects.equals(AnatomyBindingState.descriptor(support),capture.descriptor())
-            && registrationGeneration(support)==capture.registration();
-    }
-""","""    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
-        var binding=AnatomyBindingState.snapshot(support);
-        return binding!=null && binding.provider()==capture.provider() && Objects.equals(binding.descriptor(),capture.descriptor())
-            && binding.generation()==capture.registration();
-    }
-""")
-
-          rep('if(old==null)QUARANTINED_REGISTRATIONS.put(support,registrationGeneration(support));','if(old==null)AnatomyBindingState.quarantineCurrent(support);')
-          rep('if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registrationGeneration(support)))return Optional.empty();','if(AnatomyBindingState.quarantined(support))return Optional.empty();')
-          rep("""        ACTIVE.remove(level);PROVIDERS.keySet().removeIf(e->e.level()==level);
-        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-        DESCRIPTORS.keySet().removeIf(e->e.level()==level);
-""","""        ACTIVE.remove(level);AnatomyBindingState.deactivate(level);
-        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-""")
-
+              s2,n=re.subn(pattern,repl,s,count=count,flags=re.S)
+              if n!=count: raise SystemExit(f'expected {count}, found {n}: {pattern[:90]}')
+              s=s2
+          sub(r'    private static final Map<LivingEntity,GeometryProvider> PROVIDERS=entityMap\(\);\n.*?    private static final Map<LivingEntity,Long> QUARANTINED_REGISTRATIONS=entityMap\(\);\n','')
+          s=s.replace('PROVIDERS.get(', 'AnatomyBindingState.provider(').replace('DESCRIPTORS.get(', 'AnatomyBindingState.descriptor(').replace('PROVIDERS.containsKey(', 'AnatomyBindingState.hasProvider(').replace('DESCRIPTORS.containsKey(', 'AnatomyBindingState.causal(')
+          sub(r'        Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;\n        synchronized\(PROVIDERS\)\{providers=new IdentityHashMap<>\(PROVIDERS\);\}\n','        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();List<Entity> bodies;\n')
+          sub(r'        Map<LivingEntity,GeometryProvider> providers;\n        synchronized\(PROVIDERS\)\{providers=new IdentityHashMap<>\(PROVIDERS\);\}\n','        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();\n',2)
+          sub(r'    public static synchronized void register\(LivingEntity support,GeometryProvider provider\)\{\n.*?\n    \}\n    /\*\* Runtime causal registration','    public static synchronized void register(LivingEntity support,GeometryProvider provider){\n        if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");\n        requireServerThread(support.level());\n        AnatomyBindingState.rebind(support,provider,null);\n        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);\n        refreshSpatialEntry(support);\n    }\n    /** Runtime causal registration')
+          sub(r'    public static synchronized void register\(LivingEntity support,GeometryProvider provider,GeometryProvider\.GeometryIdentityDescriptor descriptor\)\{\n.*?\n    \}\n    private static void requireServerThread','    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){\n        if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");\n        if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");\n        requireServerThread(support.level());\n        AnatomyBindingState.rebind(support,provider,descriptor);\n        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);\n        queryFrame(support);\n    }\n    private static void requireServerThread')
+          sub(r'public static synchronized long registrationGeneration\(LivingEntity support\)\{return REGISTRATIONS\.getOrDefault\(support,0L\);\}','public static synchronized long registrationGeneration(LivingEntity support){return AnatomyBindingState.generation(support);}')
+          sub(r'    public static synchronized Optional<GeometryProvider\.PublishedFrame> publishedFrame\(LivingEntity support\)\{\n.*?\n    \}\n    /\*\* Current collision frame','    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){\n        requireServerThread(support.level());\n        var binding=AnatomyBindingState.beginCapture(support);\n        if(binding==null)return Optional.empty();\n        try {\n            var descriptor=binding.descriptor();var provider=binding.provider();\n            var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));\n            var endpoint=causalEndpoint(support,provider,capture).orElse(null);\n            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();\n            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),\n                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());\n            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));\n        } finally {AnatomyBindingState.endCapture(support);}\n    }\n    /** Current collision frame')
+          sub(r'    private static boolean captureBindingCurrent\(LivingEntity support,CaptureStamp capture\) \{\n.*?\n    \}\n    private static boolean captureCurrent','    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {\n        var binding=AnatomyBindingState.snapshot(support);\n        return binding!=null && binding.provider()==capture.provider() && Objects.equals(binding.descriptor(),capture.descriptor())\n            && binding.generation()==capture.registration();\n    }\n    private static boolean captureCurrent')
+          sub(r'if\(old==null\)QUARANTINED_REGISTRATIONS\.put\(support,registrationGeneration\(support\)\);','if(old==null)AnatomyBindingState.quarantineCurrent(support);')
+          sub(r'if\(Objects\.equals\(QUARANTINED_REGISTRATIONS\.get\(support\),registrationGeneration\(support\)\)\)return Optional\.empty\(\);','if(AnatomyBindingState.quarantined(support))return Optional.empty();')
+          sub(r'        ACTIVE\.remove\(level\);PROVIDERS\.keySet\(\)\.removeIf\(e->e\.level\(\)==level\);\n        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle\.\n        DESCRIPTORS\.keySet\(\)\.removeIf\(e->e\.level\(\)==level\);\n','        ACTIVE.remove(level);AnatomyBindingState.deactivate(level);\n        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.\n')
           forbidden=['PROVIDERS','REGISTRATIONS','DESCRIPTORS','CAPTURING','QUARANTINED_REGISTRATIONS']
-          left=[name for name in forbidden if name in s]
+          left=[x for x in forbidden if x in s]
           if left: raise SystemExit(f'forbidden binding owner references remain: {left}')
           p.write_text(s)
           PY
