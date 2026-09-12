@@ -11,6 +11,7 @@ import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -110,6 +111,7 @@ final class S09PreparedIntermediateContactProof {
             }
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
                 "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse+manifoldDiagnostics);
+            assertTranslatedManifolds(h,captured,liveMotion.pieces());
 
             MaterialPhysicsRuntime.drain(level);
 
@@ -135,6 +137,30 @@ final class S09PreparedIntermediateContactProof {
         } finally {
             AnatomyMovement.clear(body);MaterialIntervalRuntime.clear(level);MaterialPhysicsRuntime.clear(level);support.discard();body.discard();
         }
+    }
+
+    private static void assertTranslatedManifolds(GameTestHelper h,AABB body,Map<String,ConservativeSweep.Motion> pieces) {
+        var center=body.getCenter();
+        double[][] targets={{0,0},{8_000_000,-4_000_000},{-13_000_000,8_000_000},{29_000_000,-29_000_000}};
+        for(var target:targets) {
+            var shift=new Vec3(target[0]-center.x,0,target[1]-center.z);
+            var translatedBody=body.move(shift);
+            var translated=new TreeMap<String,ConservativeSweep.Motion>();
+            pieces.forEach((id,motion)->translated.put(id,translate(motion,shift)));
+            var response=TemporalResponse.resolve(translatedBody,Vec3.ZERO,translated,32,256);
+            h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE && response.displacement().lengthSqr()>1e-10,
+                "A9 translated prepared manifold must complete under the same 256 budget at x/z="
+                    +target[0]+"/"+target[1]+": "+response);
+            AABB finalBody=translatedBody.move(response.displacement());
+            h.assertTrue(translated.values().stream().noneMatch(motion->motion.at().apply(1).overlaps(finalBody)),
+                "A9 translated prepared manifold must finish endpoint-clear at x/z="+target[0]+"/"+target[1]);
+        }
+    }
+
+    private static ConservativeSweep.Motion translate(ConservativeSweep.Motion motion,Vec3 shift) {
+        var planes=motion.invariantPlanes().stream().map(plane->new ConservativeSweep.Plane(plane.outward(),
+            plane.offset()+shift.x*plane.outward().getStepX()+shift.y*plane.outward().getStepY()+shift.z*plane.outward().getStepZ())).toList();
+        return new ConservativeSweep.Motion(t->motion.at().apply(t).move(shift),motion.deformationSpeed(),motion.linearTranslation(),planes);
     }
 
     private static GeometryProvider.MotionSnapshot hypotheticalRootMotion(net.minecraft.world.entity.LivingEntity support,
