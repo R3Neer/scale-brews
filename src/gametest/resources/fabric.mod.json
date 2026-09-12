@@ -84,7 +84,8 @@
       "io.github.r3neer.scalebrews.test.S11GravityAuthorityTests",
       "io.github.r3neer.scalebrews.collision.internal.S12ContactStateOwnershipTests",
       "io.github.r3neer.scalebrews.collision.internal.S13SpatialIndexOwnershipTests",
-      "io.github.r3neer.scalebrews.collision.internal.S14BindingStateOwnershipTests"
+      "io.github.r3neer.scalebrews.collision.internal.S14BindingStateOwnershipTests",
+      "io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
