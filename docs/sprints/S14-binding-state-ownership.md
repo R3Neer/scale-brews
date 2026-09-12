@@ -1,189 +1,147 @@
 # S14 — Binding state ownership
 
-Estado operativo: **EN EJECUCIÓN**. Contribuye a G2 tareas 1/9; no cambia por sí solo el estado canónico de G2 hasta disponer de evidencia ejecutada y revisión final.
+Estado operativo: **CERRADO**. S14 completa otra frontera real de G2 tareas 1/9, pero no fuerza una extracción artificial de endpoint/root/query que pertenece a una frontera posterior.
 
-## 1. Tesis
+## 1. Tesis cerrada
 
-Al terminar S14, el registro vivo de bindings anatómicos tendrá un único owner dedicado y acíclico: provider actual, descriptor causal opcional, generación local monotónica, quarantine de la generación actual y guard de captura reentrante dejarán de residir en `AnatomyMovement`.
+El registro vivo de bindings anatómicos tiene un único owner dedicado y acíclico: `collision.internal.AnatomyBindingState`.
 
-La extracción se demostrará estructuralmente y mediante lifecycle/rebind reales, sin mover `FRAME_SERIALS`, endpoint serialisation, root history, spatial membership, contacto, transporte ni solver.
+Provider actual, descriptor causal opcional, `localRegistrationGeneration`, quarantine de la generación actual y guard de captura reentrante ya no residen en `AnatomyMovement`. La extracción no movió `FRAME_SERIALS`, endpoint serialisation, root history, spatial membership, contacto, transporte ni solver.
 
 Gate: **G2 — pipeline material continuo Q2**, tareas arquitectónicas 1/9.
 
-## 2. Scope
+## 2. Frontera final
 
-### Incluido
+`AnatomyBindingState` posee por identidad débil de `LivingEntity`:
 
-- ownership único del binding vivo por instancia de entidad;
-- provider actual y descriptor `GeometryIdentityDescriptor` opcional;
-- `localRegistrationGeneration` monotónico por instancia;
-- quarantine ligada exclusivamente a la generación local actual;
-- guard reentrante de captura por entidad;
-- snapshot estable del conjunto de providers para tick/rebuild;
-- deactivate por `Level` que retire el binding activo sin rebobinar la generación;
-- rebind causal atómico: provider + descriptor + nueva generación aparecen en una sola transición;
-- migración del consumidor real de generación (`AnatomyRuntime.acceptsIntervalIdentity`) cuando no requiera una façade artificial;
-- preservación de world-thread/fail-closed/lifecycle fences existentes.
+- provider activo o ausencia;
+- `GeometryIdentityDescriptor` activo o ausencia;
+- generación local monotónica;
+- quarantine exclusivamente de la generación activa;
+- guard de captura reentrante;
+- `Level` del binding activo para lifecycle;
+- snapshot de providers activos para tick/rebuild.
 
-### Excluido explícitamente
-
-- `EndpointStamp`, `EndpointSerial`, `FRAME_SERIALS`, `serverEndpoint`, `acceptEndpoint` y la semántica de frame serial;
-- `RootFrame`, `RootHistory`, `ROOTS`, `observeRoot` e invalidación de root;
-- `AnatomySpatialIndex`, `MaterialBroadphase` y envelopes;
-- `AnatomyContactState`, receipts, carry/`TransportLedger`;
-- `TemporalResponse`, CCD, separation y cualquier cambio de budgets físicos;
-- extracción de `queryFrame/currentSnapshot` si exige callback inverso al orquestador;
-- generalización de `RootTransformProvider`, lifecycle de catálogo o trabajo propio de G3.
-
-## 3. Estado actual
-
-Después de S13, `AnatomyMovement` ya no posee gravedad compartida, contacto persistente, transporte pasivo ni índice espacial. Sin embargo aún declara cinco piezas de estado que forman una única responsabilidad de binding vivo:
-
-- `PROVIDERS`;
-- `REGISTRATIONS`;
-- `DESCRIPTORS`;
-- `QUARANTINED_REGISTRATIONS`;
-- `CAPTURING`.
-
-El resto del estado causal no es equivalente: `FRAME_SERIALS` y `ROOTS` describen material history/endpoints y permanecen fuera de S14.
-
-### Consumidores reales
-
-- `AnatomyMovement` necesita provider/descriptor/generation/quarantine para publicación, current geometry, tick y revalidación.
-- `AnatomyRuntime.acceptsIntervalIdentity` consume la generación local para rechazar handles de bindings anteriores.
-- Los tests Q1/S06 dependen de que un rebind mantenga la `bindingGeneration` autoritativa pero incremente `localRegistrationGeneration`.
-
-No existe un consumidor externo que necesite mutar esos mapas individualmente.
-
-### Hallazgo adicional
-
-El overload causal actual `register(support, provider, descriptor)` llama primero a `register(support, provider)`. Si existe un índice espacial current, esa primera fase puede tratar temporalmente al support como binding fixture/legacy sin descriptor y muestrear el provider antes de instalar la identidad causal; después `queryFrame` vuelve a muestrearlo como binding causal.
-
-S14 debe eliminar esa ventana intermedia: un rebind causal instala provider, descriptor y generación de forma atómica y sólo entonces invalida/reconstruye consumidores derivados.
-
-## 4. Frontera objetivo
-
-Nuevo owner package-private: `collision.internal.AnatomyBindingState`.
-
-Puede conocer:
-
-- `LivingEntity` / `Level`;
-- `GeometryProvider` y `GeometryProvider.GeometryIdentityDescriptor`;
-- weak identity storage y contadores locales.
-
-No puede conocer ni llamar:
+No conoce ni llama a:
 
 - `AnatomyMovement`;
 - `AnatomyContactState`;
 - `AnatomySpatialIndex`;
 - `TransportLedger` / receipts;
 - `Platforms`;
-- solver/physics.
+- CCD, separation o solver.
 
-Dirección prevista: `AnatomyMovement -> AnatomyBindingState`; `AnatomyRuntime` puede leer la generación directamente del owner si esto elimina una façade sin crear ciclo.
+Dirección de dependencia demostrada: `AnatomyMovement -> AnatomyBindingState`.
 
-### Semántica del slot
+## 3. Semántica preservada
 
-Cada entidad conserva un slot weak-identity con:
+- Cada rebind incrementa `localRegistrationGeneration` exactamente una vez.
+- `deactivate(level)` retira provider/descriptor/quarantine activos del nivel sin rebobinar el watermark de generación de la misma instancia.
+- Un rebind limpia quarantine de la generación anterior.
+- Un causal rebind instala provider + descriptor + nueva generación en una sola transición. Ya no pasa primero por un binding descriptorless/fixture.
+- Una captura exterior conserva el guard hasta su `finally` aunque el callback haga rebind/deactivate. El binding nuevo no puede abrir una captura anidada durante esa ventana.
+- Una captura iniciada sobre binding A no puede publicar bajo binding B: el fence compara provider, descriptor y generación del snapshot de binding.
+- El seam fixture `register(provider)` continúa admitiendo descriptor ausente sin convertirlo en binding causal.
+- `FRAME_SERIALS`, `EndpointStamp`/`EndpointSerial`, `RootFrame`, `RootHistory` y `ROOTS` conservan su ownership y semántica previos.
 
-- provider activo o ausencia;
-- descriptor activo o ausencia;
-- generación monotónica, incluso cuando el binding activo se desactiva;
-- quarantine sólo de la generación actualmente activa;
-- flag de captura reentrante.
+## 4. Hallazgo de producción reparado
 
-Rebind incrementa generación exactamente una vez y limpia quarantine. `deactivate(level)` elimina provider/descriptor/quarantine del binding activo, pero no rebobina la generación de la misma instancia. El guard de captura no puede abrir una captura anidada aunque el provider rebindee durante la captura exterior.
+Antes de S14, `register(support, provider, descriptor)` llamaba primero a `register(support, provider)`. Con un índice espacial same-tick current, esa fase podía tratar temporalmente el support como binding fixture/legacy, muestrear el provider sin descriptor y después volver a muestrearlo al publicar el binding causal.
 
-## 5. Plan de implementación
+S14 elimina esa ventana. El overload causal ejecuta un único `AnatomyBindingState.rebind(support, provider, descriptor)` y sólo después invalida estado derivado y solicita `queryFrame`.
 
-- [ ] I1 Añadir holdout estructural rojo: exigir `AnatomyBindingState` y prohibir los cinco owners de binding en `AnatomyMovement`.
-- [ ] I2 Añadir holdouts de generación/quarantine/deactivate/reentrancia sobre la frontera real, sin seam que replique publication logic.
-- [ ] I3 Añadir holdout rojo de rebind causal atómico: con índice same-tick ya construido, el provider causal se muestrea una sola vez durante `register(..., descriptor)`.
-- [ ] I4 Implementar `AnatomyBindingState` con weak identity slot, generación monotónica, quarantine y guard de captura.
-- [ ] I5 Migrar lecturas/escrituras de provider/descriptor/generation/quarantine/capture desde `AnatomyMovement`.
-- [ ] I6 Hacer fixture rebind y causal rebind dos transiciones explícitas; causal rebind instala provider+descriptor atómicamente antes de invalidar/reconstruir estado derivado.
-- [ ] I7 Mantener `FRAME_SERIALS`, endpoint state y root history intactos y hacer que sus invalidaciones consuman el owner nuevo sin callback inverso.
-- [ ] I8 Migrar `AnatomyRuntime.acceptsIntervalIdentity` a lectura directa del owner si la façade `AnatomyMovement.registrationGeneration` queda sin consumidor real; eliminar sólo wrappers huérfanos.
-- [ ] I9 Deactivate por nivel retira binding activo y quarantine preservando watermark monotónico.
-- [ ] I10 Ejecutar suite ordinaria y lane prepared real-geometry sobre el mismo snapshot.
-- [ ] I11 Revisión adversarial post-verde: rebind durante capture, stale generation, level deactivate/reactivate, identidad débil server/client y ausencia de callbacks/ciclos.
-- [ ] I12 Actualizar evidencia/cierre canónico sólo tras una pasada completa sin cambios de producción.
+## 5. Implementación
 
-## 6. Revisiones iterativas del plan
+- [x] I1 Añadir holdout estructural rojo que exija `AnatomyBindingState` y prohíba `PROVIDERS`, `REGISTRATIONS`, `DESCRIPTORS`, `QUARANTINED_REGISTRATIONS` y `CAPTURING` en `AnatomyMovement`.
+- [x] I2 Añadir holdouts de generación/quarantine/deactivate/reentrancia sobre el owner real.
+- [x] I3 Añadir holdout de causal rebind atómico y single-sample.
+- [x] I4 Implementar `AnatomyBindingState` con weak identity slot, generación monotónica, quarantine y capture guard.
+- [x] I5 Migrar lecturas/escrituras de provider/descriptor/generation/quarantine/capture desde `AnatomyMovement`.
+- [x] I6 Separar fixture rebind y causal rebind como transiciones explícitas; causal rebind es atómico.
+- [x] I7 Mantener endpoint/root ownership intacto y consumir el owner nuevo sin callback inverso.
+- [x] I8 Conservar `AnatomyMovement.registrationGeneration` sólo porque mantiene consumidores reales; no se creó una façade nueva para justificar la extracción.
+- [x] I9 Deactivate por nivel retira binding activo y quarantine preservando watermark monotónico.
+- [x] I10 Ejecutar suite ordinaria y prueba prepared real-geometry sobre la cadena integrada final.
+- [x] I11 Revisión adversarial post-verde de rebind durante capture, stale generation, deactivate/reactivate, weak identity y ciclos.
+- [x] I12 Cerrar sólo después de una pasada completa sin cambio de producción S14.
 
-### Revisión P1 — requisitos y arquitectura
+## 6. Historia red-before-green
 
-Sin cambios: la frontera contribuye a G2 tareas 1/9 y conserva NFR-001/002/004/007/008/015/017. No adelanta G3.
+### Rojo registrado
 
-### Revisión P2 — consumers y ciclos
+Commit `5019fd7f7116c0c79291556fe41a8d70f2c95941`, run `34696527544`, job `103560853344`:
 
-Cambio aplicado: se descartó extraer `queryFrame/currentSnapshot` en S14. Esas queries consumen directamente provider + endpoint/root + eligibility/suspension; extraerlas ahora exigiría callbacks inversos a `AnatomyMovement` y produciría una separación nominal, no de ownership.
+- **386 GameTests ejecutados**;
+- **383 verdes / 3 rojos**;
+- falló `dedicatedBindingOwnerMustExistAndMovementMustShedBindingStorage` porque el owner aún no existía;
+- falló `bindingOwnerMustRemainOneWayAndPhysicsBlind` porque la dirección de dependencia todavía no podía auditarse;
+- falló `causalRebindMustNotPassThroughDescriptorlessDoubleSample` con `samples=3`, demostrando el tránsito real por binding descriptorless.
 
-### Revisión P3 — lifecycle y error states
+El resto de la suite permaneció verde. Este run es el baseline rojo válido de S14.
 
-Cambio aplicado: la generación local debe sobrevivir a `deactivate(level)` para la misma instancia; quarantine no. El guard de captura pertenece al slot y una captura exterior mantiene bloqueada la reentrancia incluso si ocurre rebind durante el callback.
+### Implementación
 
-### Revisión P4 — simplicidad y verificabilidad
+- `692d52e...` introdujo `AnatomyBindingState`.
+- `f8693c1d17ac0b73b95aeec74e5b2a57490fe9e1` migró el ownership vivo desde `AnatomyMovement` y convirtió el causal rebind en una transición atómica.
+- `72c8f8c...` incorporó `AnatomyBindingState.java` a los triggers de la lane prepared para que cambios futuros de binding no puedan evitar la geometría real.
 
-Cambio aplicado: el causal rebind debe ser atómico. El overload actual pasa por un estado descriptorless intermedio y puede duplicar sampling same-tick. Se incorpora un holdout de contador de samples.
+## 7. Evidencia final integrada
 
-### Revisión P5 — pasada completa
+### Ordinary
 
-Sin cambios adicionales. La frontera queda limitada al binding vivo y todos los demás owners permanecen explícitamente fuera.
+Run `34708981487`, job `103594130965`, snapshot `27a915aba32e0113f5e587c594187783498375a4`:
 
-**Convergencia del plan:** alcanzada antes de modificar producción.
+- **386/386 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact `10302359158`;
+- SHA-256 `c6f506d4cc33cb3d2071d4534eb61057114ab116d53626d4350e4776038ce363`.
 
-## 7. Modelo adversarial previo
+Ese snapshot contiene la implementación y todos los holdouts S14. La única modificación productiva posterior es la reparación independiente S09 `d04874085b60ff4c9aaef7246928cf8379240484` en `TemporalResponse`; no modifica binding state ni sus consumidores.
 
-### A1 — rebind monotónico
+### Real client + prepared
 
-Dos rebinds consecutivos de la misma instancia incrementan la generación exactamente una vez cada uno. Mantener la misma `bindingGeneration` de catálogo no permite reciclar la generación local.
+Workflow de validación `34708981488`, job `103594131113`:
 
-### A2 — deactivate no rebobina
+1. hizo checkout exacto de `27a915a...`;
+2. aplicó en workspace únicamente el parche S09 que después se convirtió en `d048740...`;
+3. pasó la suite ordinaria;
+4. exportó la geometría original cliente;
+5. ejecutó la suite prepared servidor **2/2** con éxito;
+6. sólo después creó y empujó `d048740...`.
 
-Binding activo → deactivate(level) → reactivate/rebind de la misma instancia. El nuevo binding recibe una generación mayor, no `1` ni la generación anterior.
+Por tanto la fuente final de S14 fue validada junto con la reparación S09 que forma el HEAD actual. El workflow no rebajó budgets, tests ni geometría.
 
-### A3 — quarantine de generación
+## 8. Revisión adversarial post-verde
 
-Quarantine bloquea sólo la generación actual. Un rebind posterior limpia la quarantine y no puede ser invalidado por un rechazo perteneciente a la generación vieja.
+Pasada completa sobre `d048740...`:
 
-### A4 — reentrancia durante rebind
+- no queda segundo mapa/owner de provider, descriptor, generación, quarantine o capture guard en `AnatomyMovement`;
+- el owner no tiene callback ni dependencia inversa al orquestador/physics/contact/spatial;
+- el rebind causal no atraviesa estado descriptorless;
+- rebind/deactivate durante captura no liberan prematuramente el guard exterior;
+- el fence de captura stale compara el snapshot completo del binding;
+- generation watermark no se rebobina en lifecycle;
+- weak-key storage conserva identidad de instancia, no igualdad por entity id;
+- endpoint serial/root history no cambiaron de owner ni de contrato;
+- no se identificó un cambio adicional de producción S14.
 
-Un provider inicia capture y, dentro de su callback, provoca un rebind e intenta una captura anidada. La captura exterior sigue poseyendo el guard hasta su `finally`; la anidada no puede abrirse sobre el binding nuevo.
+**Resultado de revisión:** cero cambios de producción. S14 queda cerrado.
 
-### A5 — rebind causal atómico
+## 9. Frontera restante tras S14
 
-Con un índice espacial same-tick current, `register(provider, descriptor)` no puede instalar primero un binding descriptorless ni muestrear el provider como fixture. El provider causal se evalúa sólo por la publicación causal necesaria.
+El estado persistente que aún reside en `AnatomyMovement` es esencialmente:
 
-### A6 — fixture descriptorless
+- activación por `Level` (`ACTIVE`);
+- `FRAME_SERIALS` / `EndpointStamp` / `EndpointSerial`;
+- `ROOTS` / `RootHistory`;
+- métricas de sweep.
 
-`register(provider)` sigue siendo un seam fixture válido: descriptor ausente, provider accesible, spatial membership derivada correctamente y generación monotónica.
+No constituyen otra frontera G2 independiente que pueda extraerse limpiamente ahora:
 
-### A7 — deactivate limpia activo
+- `GeometryProvider.CausalEndpoint` contiene todavía `AnatomyMovement.RootFrame`;
+- `queryFrame/currentSnapshot` combinan binding, endpoint causal, root y sampling;
+- extraer endpoint/query manteniendo `RootFrame` anidado introduciría dependencia inversa hacia `AnatomyMovement`;
+- mover/rediseñar `RootFrame` y root history anticiparía la generalización de `RootTransformProvider` y lifecycle prevista en G3;
+- métricas y `ACTIVE` aislados son demasiado pequeños para justificar un sprint que no reduzca el acoplamiento principal.
 
-Tras deactivate no quedan provider/descriptor/quarantine activos del nivel, pero el watermark de generación persiste.
-
-### A8 — weak identity
-
-Dos objetos entidad distintos con ids de red iguales en mundos lógicos distintos no comparten slot ni generación.
-
-### A9 — stale capture/rebind
-
-Una captura iniciada sobre provider/descriptor/generation A no puede publicar un endpoint bajo binding B después de rebind. El fence compara el binding snapshot completo.
-
-### A10 — regresión causal
-
-Los holdouts Q1/S06 de immutable endpoint, unavailable→valid, joint/root serial, rebind y replay siguen verdes sin mover endpoint/root ownership.
-
-### A11 — prepared real geometry
-
-Cow/player exportados y los dos proofs prepared siguen verdes. El owner nuevo no entra en geometry/physics y no puede convertirse en un atajo que eluda los fences existentes.
-
-## 8. Clasificación prevista de fallos
-
-- Fallo del holdout estructural antes del owner: rojo esperado de S14.
-- Sample count >1 en causal rebind con precondiciones válidas: bug real del flujo de binding, no fixture.
-- Rewind de generación tras deactivate o rebind: bug de ownership/lifecycle.
-- Captura anidada que entra después de rebind durante callback: bug de reentrancia.
-- Rojo de endpoint/root serial tras la migración: regresión S14, porque esos owners están explícitamente fuera y deben permanecer semánticamente idénticos.
-- Rojo prepared en solver independiente: clasificar por owner real antes de modificar S14, como ya ocurrió con A9 durante S13.
+Por tanto **no se abre un S15 por numerología**. El plan canónico debe decidir si G2 puede cerrar con esta frontera explícitamente diferida a G3 o si necesita reformular una tarea arquitectónica restante sin violar ese límite.
