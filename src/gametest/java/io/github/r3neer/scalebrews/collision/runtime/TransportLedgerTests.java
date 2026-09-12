@@ -84,7 +84,7 @@ public final class TransportLedgerTests {
 
     @GameTest(maxTicks=TransportLedger.HISTORY_TICKS+10)
     public void historyTtlExpiresOldPrefixWithoutErasingCurrentWatermark(GameTestHelper h) {
-        Entity body=body(h);long tick=h.getLevel().getGameTime();
+        var isolated=isolatedLevel(h);Entity body=body(isolated,h);long tick=isolated.getGameTime();
         TransportLedger.record(body,transport(tick,1,.125,.125));
         h.runAfterDelay(TransportLedger.HISTORY_TICKS,()->{
             try {
@@ -100,7 +100,7 @@ public final class TransportLedgerTests {
 
     @GameTest(maxTicks=TransportLedger.HISTORY_TICKS+10)
     public void historyTtlRetainsTheExactLastProvableTick(GameTestHelper h) {
-        Entity body=body(h);long tick=h.getLevel().getGameTime();
+        var isolated=isolatedLevel(h);Entity body=body(isolated,h);long tick=isolated.getGameTime();
         TransportLedger.record(body,transport(tick,1,.125,.125));
         h.runAfterDelay(TransportLedger.HISTORY_TICKS-1,()->{
             try {
@@ -158,6 +158,12 @@ public final class TransportLedgerTests {
         h.assertTrue(TransportLedger.generation(first)==1 && TransportLedger.generation(second)==0,
             "Lifecycle generation must also be identity-local");
         TransportLedger.invalidate(first,true);TransportLedger.invalidate(second,true);first.discard();second.discard();h.succeed();
+    }
+
+    private static Level isolatedLevel(GameTestHelper h) {
+        var level=h.getLevel().getServer().getLevel(Level.NETHER);
+        h.assertTrue(level!=null && level!=h.getLevel(),"S10 delayed holdout requires a level isolated from ordinary GameTest deactivation");
+        return level;
     }
 
     private static Entity body(GameTestHelper h) {
