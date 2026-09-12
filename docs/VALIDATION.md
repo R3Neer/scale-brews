@@ -313,14 +313,16 @@ This paragraph records the state of that historical snapshot only. Later repairs
 
 The canonical open work is in `ENTITY_COLLISIONS_PLAN.md`. Major unproved areas include:
 
-- remaining G2 architectural partition/ownership work in tasks 1 and 9, beginning with S10's passive transport ledger/cursor extraction; S05-S09 have closed the physical Q2 scope they owned;
-- reconciling `chatgpt-editing` with `main@39824ddfeb708825e6aaf4abc5efb6bd0d9ac284` so `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` is the single Scale body-gravity authority before global G2 closure;
+- remaining G2 architectural partition/ownership work in tasks 1 and 9 after S13; the physical Q2 scope is closed and S10-S13 have already extracted transport ledger, gravity authority, persistent contact state and bounded spatial membership;
+- the remaining provider/binding/causal-endpoint/query/root ownership boundary in `AnatomyMovement`, which must be audited before any further extraction; root history is not assumed movable before G3;
 - final lifecycle/reload/reconnect architecture;
 - prediction/reconciliation for locally controlled actors;
 - generic family engines and zero-UNRESOLVED vanilla coverage;
 - final Clinging migration;
 - version-pinned VanillaPlus compatibility;
 - normative performance benchmark and final latency/soak matrix.
+
+The gravity-authority reconciliation is **not** an open gap: S11 established `io.github.r3neer.scalebrews.integration.gravity.GravityFrames` as the single shared Scale body-gravity authority and the current ordinary/prepared evidence includes that owner.
 
 ## Reproduction commands
 
@@ -471,3 +473,23 @@ A later final-review pass found no production defect but did find misleading exe
 No production code changed after the cleaned prepared proof `05e8ad9…`; subsequent changes were boundary-test hardening, test naming and documentation/CI trigger bookkeeping. Hot-path inspection found bounded local entity queries rather than world scans, and the prepared workflow was extended so future `HierarchyMotion` changes trigger the real-geometry lane.
 
 **S09 is closed. G2 remains open only for the architectural partition/ownership work tracked as tasks 1 and 9 in the canonical plan; S10 is the active first extraction.**
+
+## G2 architecture partition S10-S13 and integrated Q2 evidence — 2026-09-12
+
+The physical Q2 work remained closed while four ownership extractions reduced `AnatomyMovement` without moving physical decisions into storage owners:
+
+- **S10:** `collision.runtime.TransportLedger` owns passive transport current/history/generation/cursors; `AuthorityPoseTracker` consumes it directly.
+- **S11:** `integration.gravity.GravityFrames` is the single shared Scale body-gravity authority; the former `AnatomyMovement.GRAVITY` and `collision.internal.GravityFrames` owners are gone.
+- **S12:** `collision.internal.AnatomyContactState` owns retained contact, sequence watermark, anchor, `SurfaceContact` and pair suspension state. Cross-dimension cleanup is fenced by both body/support level without rewinding surviving sequence state.
+- **S13:** `collision.internal.AnatomySpatialIndex` owns per-level/tick bounded membership and broadphase budgets. Dead `FrameStamp/frames` metadata was removed; same-tick mutation remains local, legacy rebuild samples each provider once, and stale callers cannot rebuild a newer index backwards.
+
+S13 prepared validation exposed an independent late S09 defect: `TemporalResponse.validCorrection(q)` paid twice per static piece and could exhaust the unchanged 256 budget after a real prepared A9 contact. `de44c78c75bcc54ef423af783d35761014b49356` preserves route validation plus final `SKIN+ULP` clearance while using one budgeted material sample per piece. No response/separation budget or numeric skin was raised.
+
+Final integrated evidence:
+
+- production snapshot `de44c78c75bcc54ef423af783d35761014b49356`, ordinary run **`34695839944`**, job **`103559056801`**: **380/380 required GameTests passed**; artifact **`10299110544`**, SHA-256 **`58c33a23d8a8cbd9256736e56d55ffeee43b93cb7b02dcf5df2e8d78d1b7985b`**;
+- the same production snapshot passed prepared run **`34695839860`**, job **`103559056605`**, including original client export and isolated prepared server **2/2**;
+- test-only hardening `a1f1a568726d95664c6e8b4a144659c36be0e5cc` re-ran prepared A9 under several explicit world translations; run **`34696004864`**, job **`103559482598`**, remained **2/2** with cow `240 vertices / 10 pieces`, player wide/slim `144 vertices / 6 pieces` and **640** additional vanilla-family pose comparisons;
+- ordinary run `34696004871`, job `103559482658`, on that test-hardened snapshot remained **380/380**; artifact `10298651622`, SHA-256 `2d9d4275bccba84139b0a9d95425197c019a36d6fb28a1d18e6ef0f298137131`.
+
+This evidence closes S10-S13 and the late S09 budget reopening. It does **not** close G2 tasks 1/9: provider/binding/causal-endpoint/query/root ownership in `AnatomyMovement` still requires a boundary audit, and lifecycle/catalog generalization remains G3 work.
