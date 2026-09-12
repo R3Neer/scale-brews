@@ -128,19 +128,20 @@ public final class TransportLedgerTests {
 
     @GameTest
     public void deactivatingOneLevelCannotEraseAnotherLevelsLedger(GameTestHelper h) {
-        var server=h.getLevel().getServer();var otherLevel=server.getLevel(Level.NETHER);
-        h.assertTrue(otherLevel!=null && otherLevel!=h.getLevel(),"S10 holdout requires a second server level");
-        Entity local=body(h);Entity other=body(otherLevel,h);long tick=h.getLevel().getGameTime();
-        TransportLedger.record(local,transport(tick,1,.10,.10));
-        TransportLedger.record(other,transport(otherLevel.getGameTime(),1,.40,.40));
+        var deactivatedLevel=isolatedLevel(h);
+        Entity survivor=body(h);Entity deactivated=body(deactivatedLevel,h);
+        TransportLedger.record(survivor,transport(h.getLevel().getGameTime(),1,.10,.10));
+        TransportLedger.record(deactivated,transport(deactivatedLevel.getGameTime(),1,.40,.40));
 
-        TransportLedger.deactivate(h.getLevel());
-        h.assertTrue(TransportLedger.current(local)==null && TransportLedger.generation(local)==0,
+        // Ordinary GameTests share the overworld. Deactivate only this fixture's private level so
+        // the holdout proves lifecycle locality without deleting unrelated concurrent ledger state.
+        TransportLedger.deactivate(deactivatedLevel);
+        h.assertTrue(TransportLedger.current(deactivated)==null && TransportLedger.generation(deactivated)==0,
             "Deactivating a level must remove ledger state owned by that level lifecycle");
-        h.assertTrue(TransportLedger.current(other)!=null && TransportLedger.current(other).sequence()==1
-                && close(TransportLedger.current(other).appliedDelta(),new Vec3(.40,0,0)),
+        h.assertTrue(TransportLedger.current(survivor)!=null && TransportLedger.current(survivor).sequence()==1
+                && close(TransportLedger.current(survivor).appliedDelta(),new Vec3(.10,0,0)),
             "Deactivating one level must not erase the independent ledger of another level");
-        TransportLedger.invalidate(other,true);local.discard();other.discard();h.succeed();
+        TransportLedger.invalidate(survivor,true);survivor.discard();deactivated.discard();h.succeed();
     }
 
     @GameTest
