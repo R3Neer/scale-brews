@@ -6,58 +6,34 @@ on:
     paths:
       - '.github/workflows/s09-horizon-screen-apply.yml'
 
-permissions:
-  contents: write
-
 jobs:
-  validate-and-apply:
+  diagnose:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout exact trigger snapshot
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - name: setup jdk
         uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: microsoft
-      - name: reuse midpoint samples as clear certificates
+      - name: add translated manifold diagnostics in workspace only
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java')
+          p=Path('src/gametest/java/io/github/r3neer/scalebrews/test/S09PreparedIntermediateContactProof.java')
           s=p.read_text()
-
-          old='''        var ordered=new ArrayList<String>(ids);\n        if(!active.isEmpty()) {'''
-          new='''        var ordered=new ArrayList<String>(ids);\n        var midpointCleared=new HashSet<String>();\n        if(!active.isEmpty()) {'''
-          if s.count(old)!=1: raise SystemExit(f'ordered target count={s.count(old)}')
-          s=s.replace(old,new)
-
-          old='''            AABB midpointBody=body.move(delta.scale(.5));\n            var midpointOverlap=new HashMap<String,Boolean>();\n            for(var id:ordered) {\n                if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                var material=pieces.get(id).interval(start,end).at().apply(.5);\n                if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                midpointOverlap.put(id,material.overlaps(midpointBody));\n            }\n            ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));'''
-          new='''            AABB midpointBody=body.move(delta.scale(.5));\n            var midpointOverlap=new HashMap<String,Boolean>();\n            for(var id:ordered) {\n                if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                var interval=pieces.get(id).interval(start,end);\n                var material=interval.at().apply(.5);\n                if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());\n                if(certifiedClearMidpoint(body,delta,interval,material))midpointCleared.add(id);\n                midpointOverlap.put(id,material.overlaps(midpointBody));\n            }\n            ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));'''
-          if s.count(old)!=1: raise SystemExit(f'midpoint target count={s.count(old)}')
-          s=s.replace(old,new)
-
-          old='''        for(var id:ordered) {\n            var constraint=active.get(id);'''
-          new='''        for(var id:ordered) {\n            if(midpointCleared.contains(id))continue;\n            var constraint=active.get(id);'''
-          if s.count(old)!=1: raise SystemExit(f'loop target count={s.count(old)}')
-          s=s.replace(old,new)
-
-          old='''    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {\n        if(!budget.sample())return null;\n        var material=interval.at().apply(.5);\n        if(material==null)return false;\n        AABB sampledBody=body.move(delta.scale(.5));\n        var separation=material.separation(sampledBody);\n        Vec3 normal=separation.normal();\n        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())\n                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;\n        Vec3 relative=delta.subtract(interval.linearTranslation());\n        double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));\n        if(!Double.isFinite(rate) || rate<0)return false;\n        double adverse=.5*rate;\n        return separation.gap()-adverse>ConservativeSweep.contactClearance(sampledBody,material);\n    }'''
-          new='''    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {\n        if(!budget.sample())return null;\n        var material=interval.at().apply(.5);\n        if(material==null)return false;\n        return certifiedClearMidpoint(body,delta,interval,material);\n    }\n\n    /** Reuse an already budgeted midpoint sample; this helper itself consumes no evaluation. */\n    private static boolean certifiedClearMidpoint(AABB body,Vec3 delta,ConservativeSweep.Motion interval,ConvexBox material) {\n        AABB sampledBody=body.move(delta.scale(.5));\n        var separation=material.separation(sampledBody);\n        Vec3 normal=separation.normal();\n        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())\n                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;\n        Vec3 relative=delta.subtract(interval.linearTranslation());\n        double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));\n        if(!Double.isFinite(rate) || rate<0)return false;\n        double adverse=.5*rate;\n        return separation.gap()-adverse>ConservativeSweep.contactClearance(sampledBody,material);\n    }'''
-          if s.count(old)!=1: raise SystemExit(f'certificate target count={s.count(old)}')
+          old='''            var response=TemporalResponse.resolve(translatedBody,Vec3.ZERO,translated,32,256);\n            h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE && response.displacement().lengthSqr()>1e-10,\n                "A9 translated prepared manifold must complete under the same 256 budget at x/z="\n                    +target[0]+"/"+target[1]+": "+response);'''
+          new='''            var response=TemporalResponse.resolve(translatedBody,Vec3.ZERO,translated,32,256);\n            String diagnostics="";\n            if(response.status()==TemporalResponse.Status.ITERATION_LIMIT) {\n                var progressive=new TreeMap<String,ConservativeSweep.Motion>();\n                var prefix=new ArrayList<String>();\n                String failedAt=null;\n                for(var id:new TreeSet<>(translated.keySet())) {\n                    progressive.put(id,translated.get(id));\n                    var partial=TemporalResponse.resolve(translatedBody,Vec3.ZERO,progressive,32,256);\n                    prefix.add(id+"{status="+partial.status()+",evals="+partial.evaluations()+",time="+partial.time()+",contacts="+partial.contacts().size()+"}");\n                    if(partial.status()==TemporalResponse.Status.ITERATION_LIMIT){failedAt=id;break;}\n                }\n                if(failedAt!=null) {\n                    var motion=translated.get(failedAt);\n                    var solo=TemporalResponse.resolve(translatedBody,Vec3.ZERO,Map.of(failedAt,motion),32,256);\n                    var sweep8=ConservativeSweep.query(translatedBody,Vec3.ZERO,motion,8);\n                    var sweep256=ConservativeSweep.query(translatedBody,Vec3.ZERO,motion,256);\n                    diagnostics=" prefix="+prefix+" failedAt="+failedAt+" solo="+solo+" sweep8="+sweep8+" sweep256="+sweep256+" maxPointSpeed="+motion.maxPointSpeed()+" bodyCenter="+translatedBody.getCenter();\n                } else diagnostics=" prefix="+prefix+" noPrefixFailure=true bodyCenter="+translatedBody.getCenter();\n            }\n            h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE && response.displacement().lengthSqr()>1e-10,\n                "A9 translated prepared manifold must complete under the same 256 budget at x/z="\n                    +target[0]+"/"+target[1]+": "+response+diagnostics);'''
+          if s.count(old)!=1: raise SystemExit(f'diagnostic target count={s.count(old)}')
           p.write_text(s.replace(old,new))
           PY
           git diff --check
-          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
-      - name: ordinary suite
+      - name: export original client geometry
         run: |
           chmod +x ./gradlew
-          ./gradlew build
-      - name: export original client geometry
-        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+          xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
       - name: locate exported catalog
         id: catalog
         shell: bash
@@ -65,13 +41,5 @@ jobs:
           catalog="$(find . -type d -name anatomy-export -print -quit)"
           test -n "$catalog"
           echo "path=$catalog" >> "$GITHUB_OUTPUT"
-      - name: prepared server suite
+      - name: run prepared diagnostics
         run: ./gradlew runGameTest -PscalebrewsAnatomyPreparedSuite=true -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}'
-      - name: commit and push production fix
-        shell: bash
-        run: |
-          git config user.name 'ChatGPT'
-          git config user.email 'chatgpt@users.noreply.github.com'
-          git add src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
-          git commit -m 'fix(s09): reuse midpoint samples as clear certificates'
-          git push origin HEAD:chatgpt-editing
