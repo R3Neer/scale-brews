@@ -18,8 +18,8 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>This class deliberately stores facts but does not decide physics: it never samples geometry,
  * evaluates gravity/eligibility, performs queries, moves entities, or writes transport receipts.
- * Those decisions remain in {@link AnatomyMovement}, which may write/read this state after it has
- * validated the relevant physical invariants.</p>
+ * Physical validation belongs to its caller, which may write/read this state only after validating
+ * the relevant invariants.</p>
  */
 final class AnatomyContactState {
     record ContactEntry(LivingEntity support, String piece, long revision, Vec3 normal, long sequence) {}
