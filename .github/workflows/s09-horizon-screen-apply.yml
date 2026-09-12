@@ -45,7 +45,7 @@ jobs:
           s=s.replace(old,new)
 
           old='''            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);'''
-          new='''            int probeBudget=midpointOverlapping.contains(id)?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;\n            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget,probeBudget):budget.query(body,queryDelta,interval);'''
+          new='''            int probeBudget=!Double.isFinite(earliest) && midpointOverlapping.contains(id)\n                ?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;\n            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget,probeBudget):budget.query(body,queryDelta,interval);'''
           if s.count(old)!=1: raise SystemExit(f'call target count={s.count(old)}')
           s=s.replace(old,new)
 
@@ -77,5 +77,5 @@ jobs:
           git config user.name 'ChatGPT'
           git config user.email 'chatgpt@users.noreply.github.com'
           git add src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
-          git commit -m 'fix(s09): probe midpoint contacts exactly'
+          git commit -m 'fix(s09): probe first midpoint contact exactly'
           git push origin HEAD:chatgpt-editing
