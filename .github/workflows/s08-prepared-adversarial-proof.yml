@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/s08-prepared-adversarial-proof.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactState.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomySpatialIndex.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
