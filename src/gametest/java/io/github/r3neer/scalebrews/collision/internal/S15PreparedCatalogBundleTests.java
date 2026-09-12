@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -78,9 +79,9 @@ public final class S15PreparedCatalogBundleTests {
         var epoch=UUID.randomUUID();
         var accepted=catalog.snapshot();
         var packets=catalog.preparedPackets(epoch);
-        var definition=new io.github.r3neer.scalebrews.collision.api.AnatomyDefinition(
+        var definition=new AnatomyDefinition(
             Identifier.parse("proof:missing_model"),Identifier.parse("scalebrews:quadruped"),
-            io.github.r3neer.scalebrews.collision.api.AnatomyFilter.DEFAULT);
+            AnatomyFilter.DEFAULT);
         var profile=new io.github.r3neer.scalebrews.platform.PlatformDefinition(
             Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),Optional.of(definition));
         boolean rejected=false;
