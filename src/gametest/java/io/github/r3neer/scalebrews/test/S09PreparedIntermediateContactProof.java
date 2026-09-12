@@ -78,10 +78,21 @@ final class S09PreparedIntermediateContactProof {
             h.assertTrue(liveMotion.pieces().containsKey(chosen) && liveMotion.pieces().get(chosen).at().apply(.5).overlaps(captured),
                 "A9 live interval must preserve the certified interior hit used by the fixture; piece="+chosen);
 
-            var chosenResponse=TemporalResponse.resolve(captured,Vec3.ZERO,
-                Map.of(chosen,liveMotion.pieces().get(chosen)),32,256);
+            var chosenMotion=liveMotion.pieces().get(chosen);
+            var chosenSweep8=ConservativeSweep.query(captured,Vec3.ZERO,chosenMotion,8);
+            var chosenSweep80=ConservativeSweep.query(captured,Vec3.ZERO,chosenMotion,80);
+            var chosenSweep256=ConservativeSweep.query(captured,Vec3.ZERO,chosenMotion,256);
+            var chosenSweep4096=ConservativeSweep.query(captured,Vec3.ZERO,chosenMotion,4096);
+            var chosenMidMaterial=chosenMotion.at().apply(.5);
+            var chosenMidSeparation=chosenMidMaterial.separation(captured);
+            var chosenResponse=TemporalResponse.resolve(captured,Vec3.ZERO,Map.of(chosen,chosenMotion),32,256);
             h.assertTrue(chosenResponse.status()==TemporalResponse.Status.COMPLETE && chosenResponse.displacement().lengthSqr()>1e-10,
-                "A9 chosen live piece alone must produce a complete non-zero interior response: "+chosenResponse);
+                "A9 chosen live piece alone must produce a complete non-zero interior response: "+chosenResponse
+                    +" chosen="+chosen+" sweep8="+chosenSweep8+" sweep80="+chosenSweep80
+                    +" sweep256="+chosenSweep256+" sweep4096="+chosenSweep4096
+                    +" midpointOverlap="+chosenMidMaterial.overlaps(captured)+" midpointGap="+chosenMidSeparation.gap()
+                    +" maxPointSpeed="+chosenMotion.maxPointSpeed()+" deformationSpeed="+chosenMotion.deformationSpeed()
+                    +" bodyCenter="+captured.getCenter());
 
             var manifoldResponse=TemporalResponse.resolve(captured,Vec3.ZERO,liveMotion.pieces(),32,256);
             String manifoldDiagnostics="";
