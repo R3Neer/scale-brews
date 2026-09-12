@@ -1,11 +1,15 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -13,6 +17,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import org.joml.Matrix4f;
 
 /** Structural and behavioral holdouts for the G2 spatial-index ownership split. */
 public final class S13SpatialIndexOwnershipTests {
@@ -130,6 +135,35 @@ public final class S13SpatialIndexOwnershipTests {
         } finally {
             AnatomySpatialIndex.deactivate(firstLevel);AnatomySpatialIndex.deactivate(secondLevel);
             first.discard();second.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void rebuildSamplesEachLegacyProviderOnce(GameTestHelper h) {
+        var level=h.getLevel();
+        var body=h.makeMockServerPlayerInLevel();body.setNoGravity(true);
+        var support=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
+        h.assertTrue(support!=null,"S13 sampling fixture requires a creatable support");
+        support.setNoAi(true);support.setNoGravity(true);support.setPos(body.position().add(64,0,0));
+        level.addFreshEntity(support);
+        var samples=new AtomicInteger();
+        GeometryProvider provider=entity->{
+            samples.incrementAndGet();
+            var box=ConvexBox.of(new AABB(-.25,-.25,-.25,.25,.25,.25),new Matrix4f()).move(entity.position());
+            return Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",box)));
+        };
+        AnatomyMovement.activate(level);
+        try {
+            AnatomySpatialIndex.deactivate(level);
+            AnatomyMovement.register(support,provider);
+            samples.set(0);
+            h.assertTrue(AnatomyMovement.spaceClear(body,body.getBoundingBox()),
+                "Unrelated local query must remain clear while rebuilding a far legacy support");
+            h.assertTrue(samples.get()==1,
+                "A spatial rebuild must sample each legacy provider once; dead frame metadata must not reintroduce duplicate sampling, samples="+samples.get());
+        } finally {
+            AnatomyMovement.deactivate(level);support.discard();body.discard();
         }
         h.succeed();
     }
