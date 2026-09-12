@@ -79,6 +79,7 @@
       "io.github.r3neer.scalebrews.test.S09SeparationTranslationPrecisionTests",
       "io.github.r3neer.scalebrews.test.S09TranslationMetamorphismTests",
       "io.github.r3neer.scalebrews.test.S09TripleContactTests",
+      "io.github.r3neer.scalebrews.collision.runtime.TransportLedgerTests",
       "io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalogTests"
     ],
     "fabric-client-gametest": [
