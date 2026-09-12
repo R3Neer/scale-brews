@@ -124,7 +124,13 @@ public final class S13SpatialIndexOwnershipTests {
                     && secondQuery!=null && secondQuery.candidates().equals(List.of(second)),
                 "Each level must expose only the membership installed for that level");
             h.assertTrue(AnatomySpatialIndex.queryIfCurrent(firstLevel,firstTick+1,firstBox)==null,
-                "A previous-tick index must never be served as current membership");
+                "An older installed index must ask a current caller to rebuild rather than serving stale membership");
+
+            AnatomySpatialIndex.rebuild(firstLevel,firstTick+1,
+                List.of(new MaterialBroadphase.Entry<>(first,firstBox)));
+            var staleCaller=AnatomySpatialIndex.queryIfCurrent(firstLevel,firstTick,firstBox);
+            h.assertTrue(staleCaller!=null && !staleCaller.complete() && staleCaller.candidates().isEmpty(),
+                "A caller older than the installed lifecycle tick must fail closed instead of consuming newer membership");
 
             AnatomySpatialIndex.deactivate(firstLevel);
             h.assertTrue(AnatomySpatialIndex.queryIfCurrent(firstLevel,firstTick,firstBox)==null,
