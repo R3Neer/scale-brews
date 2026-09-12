@@ -1,18 +1,18 @@
 # S10 — Passive transport ledger ownership
 
-Estado: **PLAN CONVERGIDO / IMPLEMENTACIÓN PENDIENTE**. Sexto sprint de G2.
+Estado: **CERRADO**. Sexto sprint de G2.
 
 ## 1. Scope
 
 ### Tesis
 
-Al terminar S10, la identidad temporal del transporte pasivo de un body —secuencia actual, history acotada, generation de lifecycle y ventana contigua consumible por pose— tendrá un único owner en `collision.runtime`, mientras `AnatomyMovement` conservará únicamente la aplicación física/orquestación del carry y una façade transitoria para callers existentes. La extracción no cambiará displacement, receipts, accounting, contacto ni semántica de lifecycle.
+Al terminar S10, la identidad temporal del transporte pasivo de un body —secuencia actual, history acotada, generation de lifecycle y ventana contigua consumible por pose— tiene un único owner en `collision.runtime`, mientras `AnatomyMovement` conserva la aplicación física/orquestación del carry y sólo las façades que todavía tienen consumidores reales. La extracción no cambia displacement, receipts, accounting, contacto ni semántica de lifecycle.
 
 Gate: **G2 — pipeline material continuo Q2**.
 
 ### Incluido
 
-- FR-058 como invariante: un carry parcial/rechazado no puede reaparecer como deuda de transporte.
+- FR-058 como invariante: un carry parcial/rechazado no reaparece como deuda de transporte.
 - FR-059 como invariante de secuencias exactly-once en contribuciones derivadas.
 - FR-061: transporte pasivo no cuenta como movimiento voluntario/fall/exhaustion/stats.
 - NFR-001/002: mismo ledger y orden causal producen la misma ventana.
@@ -20,7 +20,7 @@ Gate: **G2 — pipeline material continuo Q2**.
 - NFR-007: history acotada y outcome `contiguous=false` cuando ya no puede demostrarse continuidad.
 - NFR-011: TTL y cap constantes de history de transporte.
 - NFR-015/017: mutación física/lifecycle conserva barreras y generation.
-- NFR-025: reducir ownership monolítico de `AnatomyMovement` y mover una frontera ya desacoplable a `collision.runtime` sin ciclo hacia `collision.internal`.
+- NFR-025: reducir ownership monolítico de `AnatomyMovement` y mover una frontera desacoplable a `collision.runtime` sin ciclo hacia `collision.internal`.
 - G2 tareas 1 y 9, sólo en la subresponsabilidad **transport ledger/cursor**.
 
 ### Excluido
@@ -32,54 +32,43 @@ Gate: **G2 — pipeline material continuo Q2**.
 - Reorganización completa de `AnatomyMovement`.
 - G3 lifecycle/catalog y G4 prediction/reconciliation.
 
-## 2. Estado actual
+## 2. Estado final
 
-`AnatomyMovement` posee actualmente:
+`collision.runtime.TransportLedger` es el único owner de:
 
-- `TRANSPORT`: último `SupportTransport` aplicado por body;
-- `TRANSPORT_HISTORY`: history necesaria para que `AuthorityPoseTracker` reste todas las contribuciones pasivas ocurridas entre dos samples;
-- `TRANSPORT_GENERATIONS`: fence explícito de lifecycle;
-- TTL `40` ticks y cap `64` entradas;
-- `transport(...)`, `transportGeneration(...)`, `transportSince(...)`, `rememberTransport(...)`, `pruneTransport(...)`, `forgetTransport(...)`;
-- invalidación desde `invalidateBody(...)` y limpieza por `deactivate(level)`.
+- `current SupportTransport` por body;
+- history acotada necesaria para descontar transporte pasivo entre pose samples;
+- generation de lifecycle;
+- cálculo de `Window(contiguous, latestSequence, appliedDelta)` desde un cursor consumido;
+- TTL de **40 ticks** y cap de **64 entradas**;
+- limpieza localizada por body y por `Level`.
 
-La aplicación del carry está en dos callers reales:
+La implementación conserva weak object identity mediante `MapMaker().weakKeys()`. Dos objetos `Entity` diferentes que comparan iguales por network id no comparten current/history/generation.
 
-1. `recordCertifiedTransport(...)`, usado por el dispatcher material S08+;
-2. `carry(...)`, fallback/client endpoint carry que todavía aplica posición, block clip, passengers, baselines y receipts.
+`AuthorityPoseTracker` consume `TransportLedger.generation(...)` y `TransportLedger.since(...)` directamente. Éste es el consumidor real que demuestra que la frontera no es un helper autocontenido.
 
-`AuthorityPoseTracker` consume únicamente `transportGeneration` + `transportSince`; no necesita provider, geometry, contact, spatial index ni solver. Por tanto el ledger ya tiene una frontera real separable.
+`AnatomyMovement` ya no posee mapas/history/generation de transporte. Sigue siendo owner de la **aplicación física** y produce `SupportTransport` desde:
 
-## 3. Estado objetivo
+1. `recordCertifiedTransport(...)`, ruta del dispatcher material;
+2. `carry(...)`, fallback/client endpoint carry todavía vigente.
 
-Crear `collision.runtime.TransportLedger` como único owner de:
+Ambas rutas registran en `TransportLedger`. `invalidateBody(...)` y `deactivate(level)` delegan el lifecycle al ledger. `clear(contact)` no invalida history de transporte ya aplicado.
 
-- current transport por body;
-- bounded history;
-- lifecycle generation;
-- cálculo de ventana contigua desde un cursor consumido.
+Se conserva `AnatomyMovement.transport(...)` como façade transitoria porque existen consumidores reales de integración, prediction y regresión. La generation sigue delegada donde la captura causal de endpoint la usa como fence. La migración del consumidor de pose al ledger no crea un segundo owner.
 
-`TransportLedger` sólo puede depender de JDK/Minecraft + `collision.physics.SupportTransport`; **no puede importar `collision.internal`**.
+## 3. Implementación
 
-`AnatomyMovement`:
+### Checklist
 
-- delegará temporalmente `transport(...)`, `transportGeneration(...)` y `transportSince(...)` para no obligar a migrar todos los callers en el mismo cambio;
-- usará el ledger para registrar contribuciones e invalidar lifecycle;
-- seguirá siendo owner de la aplicación física del carry en este sprint.
-
-`AuthorityPoseTracker` debe migrar al ledger directamente: es el consumidor que demuestra que la frontera es real y no un helper que sólo se prueba a sí mismo.
-
-## 4. Plan de implementación
-
-- [ ] I1 Crear `collision.runtime.TransportLedger` con weak identity keys, current transport, history, generation y `Window` inmutable.
-- [ ] I2 Mover al ledger TTL/cap, `current`, `generation`, `since`, `record`, `invalidate` y cleanup por level sin cambiar algoritmos ni valores.
-- [ ] I3 Migrar `AuthorityPoseTracker` para consumir `TransportLedger` directamente.
-- [ ] I4 Sustituir en `AnatomyMovement` los mapas/helpers de ledger por delegación; `recordCertifiedTransport` y `carry` registran por el ledger.
-- [ ] I5 Hacer que `invalidateBody` y `deactivate(level)` deleguen lifecycle al ledger; liberar contacto ordinario no borra history ya aplicada.
-- [ ] I6 Mantener façade transitoria de `AnatomyMovement.transport(...)` sólo si sigue teniendo callers reales; eliminar cualquier wrapper que quede sin consumidor.
-- [ ] I7 Añadir tests adversariales directos de continuidad, gap/rewind, lifecycle generation, TTL/cap y weak-identity/network-id reuse donde el harness lo permita.
-- [ ] I8 Ejecutar regresiones S08/S09 de carry, pose accounting, receipts, chains y ordinary suite; revisar imports/ciclos y diff completo.
-- [ ] I9 Pasada final sin cambios de producción y registrar evidencia.
+- [x] I1 Crear `collision.runtime.TransportLedger` con weak identity keys, current transport, history, generation y `Window` inmutable.
+- [x] I2 Mover al ledger TTL/cap, `current`, `generation`, `since`, `record`, `invalidate` y cleanup por level sin cambiar algoritmos ni valores.
+- [x] I3 Migrar `AuthorityPoseTracker` para consumir `TransportLedger` directamente.
+- [x] I4 Sustituir en `AnatomyMovement` los mapas/helpers propietarios del ledger por delegación; `recordCertifiedTransport` y `carry` registran por el ledger.
+- [x] I5 Hacer que `invalidateBody` y `deactivate(level)` deleguen lifecycle al ledger; liberar contacto ordinario no borra history ya aplicada.
+- [x] I6 Mantener `AnatomyMovement.transport(...)` como façade porque sigue teniendo callers reales; no existe un segundo almacén de current/history/generation.
+- [x] I7 Añadir/revelar tests adversariales de continuidad, gap/rewind, lifecycle generation, TTL/cap, release entre contribuciones, weak identity/network-id reuse y aislamiento por level.
+- [x] I8 Ejecutar la suite completa con regresiones S08/S09 de carry, passive accounting, receipts y chains; revisar dependencias y diff.
+- [x] I9 Pasada final sin cambios de producción y registrar evidencia.
 
 ### Revisiones del plan
 
@@ -88,65 +77,59 @@ Crear `collision.runtime.TransportLedger` como único owner de:
 - P3 consumidores: `AuthorityPoseTracker` es consumidor directo real; carry/dispatcher producen entradas mediante `AnatomyMovement`.
 - P4 lifecycle: `clear(contact)` no equivale a lifecycle; `invalidateBody(..., discardTransport)` sí incrementa generation y puede descartar current/history.
 - P5 boundedness: TTL=40 y cap=64 se conservan exactamente; history insuficiente devuelve ventana no contigua.
-- P6 identidad: weak object identity se conserva; network/entity id igual no puede aliasar ledger.
-- P7 dependencias: `collision.runtime.TransportLedger` no importa `collision.internal`; runtime→physics es válido y no forma ciclo de capa.
-- P8 simplicidad: no se extrae receipts, contacto, provider ni carry application porque introducirían callbacks/ciclos sin necesidad.
+- P6 identidad: weak object identity se conserva; network/entity id igual no aliasa ledger.
+- P7 dependencias: `collision.runtime.TransportLedger` no importa `collision.internal`; runtime→physics es la única dependencia del ledger.
+- P8 simplicidad: no se extrajeron receipts, contacto, provider ni carry application porque introducirían callbacks/ciclos sin necesidad.
 
-**Convergencia del plan:** una pasada completa P1-P8 no requiere ampliar scope. La primera frontera estable es el ledger/cursor, no el movimiento físico completo.
+**Convergencia:** la revisión final no requiere ampliar scope. La frontera transport ledger/cursor es estable y queda extraída sin alterar ownership físico.
 
-## 5. Modelo adversarial previo
+## 4. Resultado adversarial
 
-### A1 — contacto liberado antes del siguiente pose sample
+- **A1 verde:** un release ordinario entre dos contribuciones contiguas no borra el delta pasivo ya aplicado; la ventana posterior suma ambas exactamente.
+- **A2 verde:** varias contribuciones entre samples se suman exactamente una vez y el cursor avanza al último sequence.
+- **A3 verde:** un gap devuelve `contiguous=false` y delta cero.
+- **A4 verde:** cursor futuro/rewind falla cerrado; una secuencia no creciente no fabrica continuidad anterior.
+- **A5/A6 verdes:** lifecycle generation cambia en invalidación; `discardTransport=false` conserva history ya aplicada y `true` elimina current/history.
+- **A7 verde:** el cap `64` conserva la cola demostrable y rechaza el prefijo podado; el TTL conserva exactamente el último tick dentro de ventana y al `+1` mantiene watermark pero rechaza el cursor viejo.
+- **A8 verde:** dos objetos con el mismo network id mantienen estado independiente por identidad de objeto.
+- **A9 verde:** `S08PassiveTransportStateTests` sigue demostrando que passive carry no altera velocity, fall distance, exhaustion ni movement stats.
+- **A10 verde:** la suite S08/S09 sigue cubriendo receipts, carry certificado, chains y exactly-once sin regresión.
+- **A11 verde por inspección + tests:** `TransportLedger` no importa `collision.internal`; weak identity, generation y aislamiento por `Level` quedan fijados por holdouts directos.
 
-Se aplica carry, después se libera el contacto y sólo entonces corre `AuthorityPoseTracker`. El delta pasivo ya aplicado debe seguir en history para no convertirse en locomoción voluntaria.
+### Red-before-green de fixtures
 
-### A2 — múltiples contribuciones entre samples
+Dos fallos durante la segunda pasada adversarial fueron errores de harness y se conservaron como evidencia, no como bugs ficticios de producción:
 
-Dos o más `SupportTransport` contiguos deben sumarse exactamente una vez y avanzar el cursor al último sequence.
+1. El primer test TTL usaba `runAfterDelay(40, ...)` con el timeout GameTest por defecto de 20 ticks; moría antes de alcanzar el oracle. Se aumentó `maxTicks` sin tocar producción.
+2. Al revelar el holdout de deactivation, éste desactivaba el overworld compartido por otros GameTests y borraba correctamente el estado de los TTL retrasados. Se aisló por dimensión: TTL en Nether, deactivation en End y superviviente en overworld.
 
-### A3 — sequence gap
+Tras esas correcciones de fixture no fue necesario modificar producción.
 
-Si el cursor necesita una secuencia que ya no está en history o existe un hueco, `since(...)` debe devolver `contiguous=false` y delta cero; nunca aproximar la suma restante.
+## 5. Evidencia de cierre
 
-### A4 — cursor futuro / rewind
+Snapshot probado: `8eb01be17bfec05fa0fa4fd9f2abe792b5b7b52c`.
 
-`consumedSequence > latest` debe fallar cerrado; registrar una secuencia no creciente no puede fabricar continuidad vieja.
+GitHub Actions run `34683859470`, job `103527259218`:
 
-### A5 — lifecycle generation
+- `./gradlew build` completó correctamente;
+- **357/357 required GameTests passed**;
+- incluye los holdouts reservados revelados de TTL exacto/`+1`, release entre contribuciones, network-id reuse y deactivation de un level sin borrar otro;
+- incluye las regresiones ordinarias S08/S09;
+- artifact `10294278917`;
+- SHA-256 del artifact: `e180afafe5dd501ccff0db28f2bf33473d82b7948ac4602563e59ec2bdb5bab2`.
 
-Teleport/removal/discontinuity incrementa generation. Aunque posición y sequence parezcan compatibles, `AuthorityPoseTracker` debe resetear locomotion al observar otra generation.
+La pasada final sólo contiene cambios de tests/aislamiento posteriores a la extracción productiva del ledger. No fue necesario ampliar budgets ni cambiar física para hacer verdes los holdouts.
 
-### A6 — release ordinario frente a discard
+## 6. Criterio de cierre
 
-`clear(contact)` no borra transport history ya aplicada; invalidación con `discardTransport=true` sí elimina current/history además de avanzar generation.
+S10 queda cerrado porque:
 
-### A7 — TTL y cap
+1. current/history/generation/cursor tienen un único owner en `collision.runtime`;
+2. `AuthorityPoseTracker` consume esa frontera directamente;
+3. aplicación física y receipts no cambiaron de owner;
+4. TTL/cap, gaps, rewind, lifecycle, release y weak identity tienen oracles adversariales directos;
+5. cleanup por level es local;
+6. no existe dependencia `TransportLedger -> collision.internal`;
+7. la suite final completa es verde sin cambios de producción posteriores.
 
-Tras superar 40 ticks o 64 entradas, memoria se estabiliza. Un cursor que necesite una entrada podada obtiene `contiguous=false`.
-
-### A8 — identity reuse
-
-Dos objetos Entity distintos con mismo network id no comparten current/history/generation.
-
-### A9 — passive accounting
-
-La extracción no puede alterar velocity, fallDistance, exhaustion ni stats; `S08PassiveTransportStateTests` permanece verde.
-
-### A10 — receipts y exactly-once
-
-Mover ownership del ledger no duplica ni pierde `AnatomyTransportReceipts`, transport sequences ni ancestry de DERIVED_CARRY.
-
-### A11 — layer mutation
-
-Sustituir accidentalmente weak identity por equality/UUID, quitar generation o hacer que `TransportLedger` importe `collision.internal` debe quedar detectado por tests/inspección estructural.
-
-## 6. Holdouts reservados
-
-Para la segunda pasada adversarial se reservan escenarios concretos de:
-
-- cursor justo en el borde TTL/cap y `+1`;
-- release entre dos contribuciones contiguas;
-- dos bodies con id de red reutilizado;
-- deactivation de un level sin borrar ledger de otro level.
-
-No se implementará para fixtures concretos antes de revelar estos holdouts.
+S10 reduce las tareas arquitectónicas 1/9 de G2, pero **no las cierra por completo**. El siguiente trabajo debe extraer otra frontera real o resolver una deuda estructural vigente antes de declarar G2 cerrado; no se adelanta G3.
