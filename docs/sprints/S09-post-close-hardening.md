@@ -1,6 +1,6 @@
 # S09 — Hardening posterior al cierre
 
-Estado: **COMPLETADO**. Este addendum amplía la evidencia histórica de `S09-multicontact-sliding-recovery.md` después de revisiones adversariales posteriores durante S12.
+Estado: **COMPLETADO**. Este addendum amplía la evidencia histórica de `S09-multicontact-sliding-recovery.md` después de revisiones adversariales posteriores durante S12/S13.
 
 ## Motivo de reapertura
 
@@ -43,9 +43,9 @@ La clearance correcta hizo visible un segundo problema de scheduling. En una eje
 
 Por tanto, la frase histórica de S09 que decía que `TemporalResponse` “mantiene el orden canónico de piece ids” debe leerse como **orden determinista/canónico de desempate y resultados**, no como obligación de evaluar físicamente todas las piezas en lexicografía pura. El scheduler puede priorizar trabajo causal sin alterar qué piezas se consideran ni cómo se selecciona el primer contacto.
 
-## Evidencia final
+## Primera evidencia final de esta reapertura
 
-Snapshot final de esta reapertura: `e1fc4893f069eb2b60fc1fdd352107dc0205bddb`.
+Snapshot `e1fc4893f069eb2b60fc1fdd352107dc0205bddb`:
 
 - Suite ordinaria: run `34693722959`, **374/374 GameTests verdes**. Incluye el holdout de clearance ULP, simultaneidad dentro de `TIME_EPS`, budgets y regresiones S05–S12.
 - Lane preparada: run `34693722977`, job `103553460165`, **verde**.
@@ -53,15 +53,51 @@ Snapshot final de esta reapertura: `e1fc4893f069eb2b60fc1fdd352107dc0205bddb`.
   - servidor preparado aislado: **2/2 GameTests verdes**;
   - A9 completa de nuevo bajo el budget compartido de 256 con geometría real exportada.
 
-## Revisión post-verde
+## Reapertura posterior durante S13: corrección `q`
 
-La pasada final no exige cambios de producción adicionales:
+La validación prepared del stale-fence espacial S13, sobre `3cd0209b1dd1d01cd2ce949b9a17b0e229411274`, reabrió A9 de forma independiente de la arquitectura espacial:
+
+- prepared run `34695379182`, job `103557851681`;
+- el contacto causal de cow se encontraba, pero el manifold terminaba en `ITERATION_LIMIT` con **256/256 evaluaciones** alrededor de `t≈0.28427`;
+- la pieza en la que se agotaba el budget, aislada, completaba en **22** evaluaciones; el sweep directo de referencia quedaba en **16**;
+- la extracción cliente era verde, por lo que el defecto estaba en el consumo de budget post-contacto de `TemporalResponse`, no en S13 ni en la geometría preparada.
+
+La causa era `validCorrection(q)`: para cada pieza estática en el instante de corrección pagaba primero una muestra/separación de endpoint y después otra consulta para validar el trayecto `q`. Era trabajo duplicado sobre el mismo convexo.
+
+`8910564e53e9752c0a96646d38aaf284b7724530` eliminó la doble carga, pero una revisión inmediata detectó que usar sólo el fast path estático de `ConservativeSweep` podía perder la banda numérica `SKIN + ULP` en el endpoint.
+
+`de44c78c75bcc54ef423af783d35761014b49356` dejó la reparación final:
+
+- una sola muestra presupuestada del convexo estático por pieza;
+- `ConvexBox.sweep(body,q)` valida el trayecto real de la corrección;
+- `separation(body.move(q))` más `ConservativeSweep.contactClearance(...)` preservan la misma banda numérica final usada por el CCD temporal;
+- no se aumenta `QUERY_BUDGET`, no cambia `SKIN`, no cambia `TIME_EPS` y `fail-closed` permanece intacto.
+
+Evidencia sobre `de44c78...`:
+
+- ordinary run `34695839944`, job `103559056801`: **380/380 required GameTests passed**; artifact `10299110544`, SHA-256 `58c33a23d8a8cbd9256736e56d55ffeee43b93cb7b02dcf5df2e8d78d1b7985b`;
+- prepared run `34695839860`, job `103559056605`: export original verde y servidor aislado **2/2** verde.
+
+## Holdout final independiente de la colocación aleatoria
+
+`a1f1a568726d95664c6e8b4a144659c36be0e5cc` endurece `S09PreparedIntermediateContactProof`: la misma geometría real de cow y el mismo contacto estrictamente intermedio se reejecutan trasladados a cuatro offsets mundiales explícitos, incluyendo magnitudes de millones de bloques y signos distintos.
+
+- ordinary run `34696004871`: verde;
+- prepared run `34696004864`, job `103559482598`: **verde**;
+- export original: cow **240 vertices / 10 pieces**, player wide/slim **144 vertices / 6 pieces**, 80 comparaciones animadas por modelo y **640** comparaciones adicionales vanilla-family;
+- servidor preparado aislado: **2/2 required GameTests passed**;
+- A9 mantiene el mismo resultado causal bajo las traslaciones explícitas, sin exhaustion y sin contacto final inventado.
+
+## Revisión post-verde vigente
+
+La pasada final converge sin nuevos cambios de producción:
 
 - `QUERY_BUDGET` permanece en 256;
 - `SEPARATION_BUDGET` permanece en 128;
 - exhaustion live sigue devolviendo desplazamiento/contactos nulos;
-- el screen usa la misma banda numérica de contacto que CCD;
-- el scheduler sólo cambia orden de evaluación, nunca omite piezas ni altera el criterio temporal de simultaneidad;
-- ordinary y prepared son verdes sobre el mismo snapshot final.
+- screening y corrección usan la banda numérica de contacto correcta;
+- el scheduler cambia sólo el orden determinista de evaluación, nunca omite piezas ni altera la simultaneidad dentro de `TIME_EPS`;
+- la validación de `q` no cobra dos veces el mismo convexo;
+- ordinary y prepared, incluido el holdout de traslación explícita, están verdes sobre la cadena final.
 
 **S09 continúa COMPLETADO.**
