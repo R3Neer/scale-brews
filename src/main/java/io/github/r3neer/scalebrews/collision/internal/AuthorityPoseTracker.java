@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
+import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
 
 import java.util.*;
 import net.minecraft.util.Mth;
@@ -33,8 +34,8 @@ public final class AuthorityPoseTracker {
         if(state.tick==tick)return state.inputs;
         Vec3 position=entity.position();
         var gravity=AnatomyMovement.gravity(entity);
-        long transportGeneration=AnatomyMovement.transportGeneration(entity);
-        var transport=AnatomyMovement.transportSince(entity,state.consumedTransportSequence);
+        long transportGeneration=TransportLedger.generation(entity);
+        var transport=TransportLedger.since(entity,state.consumedTransportSequence);
         if(state.previous==null || tick!=state.tick+1 || position.distanceToSqr(state.previous)>16
                 || !gravity.equals(state.gravity) || transportGeneration!=state.transportGeneration
                 || !transport.contiguous())state.walk.stop();
