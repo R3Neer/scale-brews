@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8;
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,SCREEN_DEPTH=8;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
@@ -119,10 +119,17 @@ public final class TemporalResponse {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
                 if(certifies(body,delta,constraint,start,end))continue;
             }
-            var interval=pieces.get(id).interval(start,end);
+            // A known first contact bounds the only part of later pieces that can still change this
+            // event. Include the full simultaneous-contact tolerance instead of cutting at earliest:
+            // the previous exact-horizon attempt dropped contacts at earliest + epsilon.
+            double horizon=Double.isFinite(earliest)?Math.min(1,Math.nextUp(earliest+TIME_EPS)):1;
+            var interval=pieces.get(id).interval(start,start+(end-start)*horizon);
+            Vec3 queryDelta=delta.scale(horizon);
             // Screening is only for unknown candidates. Once a piece is active, its relevance has
             // already been established; re-screening it would repeatedly tax the same real contact.
-            var result=constraint==null?firstForPiece(body,delta,interval,budget):budget.query(body,delta,interval);
+            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget):budget.query(body,queryDelta,interval);
+            if(horizon<1)result=new ConservativeSweep.Result(result.status(),
+                Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
             if(result.status()==ConservativeSweep.Status.INITIAL_OVERLAP)return new Search(result.status(),0,List.of());
             if(result.status()!=ConservativeSweep.Status.CONTACT)continue;
@@ -135,7 +142,9 @@ public final class TemporalResponse {
     /**
      * Cheap CCD is cheaper than screening for many ordinary pieces. Probe first with a deliberately
      * small local allowance: a conclusive CLEAR/contact is final, while a local ITERATION_LIMIT only
-     * means "not cheap" and falls through to the certified temporal screen with the shared remainder.
+     * means "not cheap" and falls through to certified temporal screening. A trajectory that cannot
+     * be certified fully clear is then narrowed chronologically before exact CCD spends the shared
+     * remainder, so a real interior contact does not restart from the whole tick.
      */
     private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
@@ -147,7 +156,59 @@ public final class TemporalResponse {
         Boolean clear=certifiedClearTrajectory(body,delta,interval,budget);
         if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
         if(clear)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
-        return budget.query(body,delta,interval);
+        return firstWindow(body,delta,interval,0,0,1,budget);
+    }
+
+    /**
+     * Chronological fallback for an interval that the global clear screen proved ambiguous. Every
+     * earlier sibling must be certified clear before the search enters a later sibling. Only the
+     * final depth-bounded ambiguous leaf pays exact CCD, and its result is mapped back to the parent
+     * interval. There is no local CCD cap: the only normative limit remains the shared response budget.
+     */
+    private static ConservativeSweep.Result firstWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,
+            int depth,double origin,double scale,Budget budget) {
+        Boolean clear=certifiedClearWindow(body,delta,interval,budget);
+        if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,origin,Vec3.ZERO,0);
+        if(clear)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+        if(depth>=SCREEN_DEPTH) {
+            var result=budget.query(body,delta,interval);
+            double fraction=origin+scale*Math.clamp(result.safeFraction(),0,1);
+            var status=result.status();
+            // Every earlier sibling was certified clear, so an overlap at a later leaf start is the
+            // boundary contact of the continuous trajectory rather than a global initial overlap.
+            if(status==ConservativeSweep.Status.INITIAL_OVERLAP && origin>TIME_EPS)
+                status=ConservativeSweep.Status.CONTACT;
+            return new ConservativeSweep.Result(status,fraction,result.normal(),result.evaluations());
+        }
+        Vec3 halfDelta=delta.scale(.5);
+        var left=firstWindow(body,halfDelta,interval.interval(0,.5),depth+1,origin,scale*.5,budget);
+        if(left.status()!=ConservativeSweep.Status.CLEAR)return left;
+        var right=firstWindow(body.move(halfDelta),halfDelta,interval.interval(.5,1),depth+1,
+            origin+scale*.5,scale*.5,budget);
+        return right.status()==ConservativeSweep.Status.CLEAR
+            ?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)
+            :right;
+    }
+
+    /**
+     * Midpoint separating-plane certificate for one already time-aligned child window. Translation
+     * is compared in the material-relative frame, so the declared linear translation is not counted
+     * twice. The residual deformation bound plus projected relative body motion bounds how much the
+     * sampled separating plane can worsen from the midpoint to either edge.
+     */
+    private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+        if(!budget.sample())return null;
+        var material=interval.at().apply(.5);
+        if(material==null)return false;
+        var separation=material.separation(body.move(delta.scale(.5)));
+        Vec3 normal=separation.normal();
+        if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
+                || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
+        Vec3 relative=delta.subtract(interval.linearTranslation());
+        double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));
+        if(!Double.isFinite(rate) || rate<0)return false;
+        double adverse=.5*rate;
+        return separation.gap()-adverse>ConservativeSweep.SKIN;
     }
 
     /**
