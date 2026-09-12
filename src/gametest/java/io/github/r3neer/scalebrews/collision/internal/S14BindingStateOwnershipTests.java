@@ -20,7 +20,6 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 /** Structural and lifecycle holdouts for the G2 live-binding ownership split. */
@@ -78,9 +77,9 @@ public final class S14BindingStateOwnershipTests {
             // samples once as descriptorless membership and once again for the causal published frame.
             AnatomySpatialIndex.rebuild(level,level.getGameTime(),List.of());
             AnatomyMovement.register(support,provider,descriptor(17,1));
-            h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),"Atomic causal rebind must publish a usable current frame");
             h.assertTrue(samples.get()==1,
                 "Causal rebind must install provider+descriptor atomically and sample once, not transiently as a legacy binding; samples="+samples.get());
+            h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),"Atomic causal rebind must publish a usable current frame");
         } finally {
             AnatomyMovement.deactivate(level);support.discard();
         }
