@@ -2,7 +2,7 @@ name: s14-apply-binding-migration
 
 on:
   push:
-    branches: [ chatgpt-editing ]
+    branches: [chatgpt-editing]
     paths:
       - '.github/workflows/s14-apply-binding-migration.yml'
 
@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   migrate:
-    if: github.event.head_commit.message == 'ci(s14): apply binding migration'
     runs-on: ubuntu-24.04
     steps:
       - name: checkout exact trigger snapshot
@@ -23,7 +22,7 @@ jobs:
         with:
           java-version: '25'
           distribution: microsoft
-      - name: verify source baseline and migrate binding ownership
+      - name: migrate binding ownership
         shell: bash
         run: |
           python3 <<'PY'
@@ -32,134 +31,133 @@ jobs:
           s=p.read_text()
           def rep(old,new,count=1):
               global s
-              actual=s.count(old)
-              if actual != count:
-                  raise SystemExit(f'expected {count} occurrence(s), found {actual}: {old[:100]!r}')
+              n=s.count(old)
+              if n != count:
+                  raise SystemExit(f'expected {count}, found {n}: {old[:80]!r}')
               s=s.replace(old,new)
 
-          rep('''    private static final Map<LivingEntity,GeometryProvider> PROVIDERS=entityMap();
-              /** Local binding generation; Runtime supplies causal descriptor in the Q1 production overload. */
-              private static final Map<LivingEntity,Long> REGISTRATIONS=entityMap();
-              private static final Map<LivingEntity,GeometryProvider.GeometryIdentityDescriptor> DESCRIPTORS=entityMap();
-              /** Synchronized API entry is reentrant in Java; provider callbacks must not start a second capture. */
-              private static final Set<LivingEntity> CAPTURING=Collections.newSetFromMap(new IdentityHashMap<>());
-              /** A failed first capture has no serial fence; quarantine that local registration until an explicit rebind. */
-              private static final Map<LivingEntity,Long> QUARANTINED_REGISTRATIONS=entityMap();
-          '''.replace('              ','    '),'')
+          rep("""    private static final Map<LivingEntity,GeometryProvider> PROVIDERS=entityMap();
+    /** Local binding generation; Runtime supplies causal descriptor in the Q1 production overload. */
+    private static final Map<LivingEntity,Long> REGISTRATIONS=entityMap();
+    private static final Map<LivingEntity,GeometryProvider.GeometryIdentityDescriptor> DESCRIPTORS=entityMap();
+    /** Synchronized API entry is reentrant in Java; provider callbacks must not start a second capture. */
+    private static final Set<LivingEntity> CAPTURING=Collections.newSetFromMap(new IdentityHashMap<>());
+    /** A failed first capture has no serial fence; quarantine that local registration until an explicit rebind. */
+    private static final Map<LivingEntity,Long> QUARANTINED_REGISTRATIONS=entityMap();
+""","")
 
           s=s.replace('PROVIDERS.get(', 'AnatomyBindingState.provider(')
           s=s.replace('DESCRIPTORS.get(', 'AnatomyBindingState.descriptor(')
           s=s.replace('PROVIDERS.containsKey(', 'AnatomyBindingState.hasProvider(')
           s=s.replace('DESCRIPTORS.containsKey(', 'AnatomyBindingState.causal(')
 
-          rep('''        Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
-                  synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-          '''.replace('                  ','        '),'''        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();List<Entity> bodies;
-          '''.replace('          ',''),1)
-          rep('''        Map<LivingEntity,GeometryProvider> providers;
-                  synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-          '''.replace('                  ','        '),'''        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();
-          '''.replace('          ',''),2)
+          rep("""        Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+""","""        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();List<Entity> bodies;
+""")
+          rep("""        Map<LivingEntity,GeometryProvider> providers;
+        synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
+""","""        Map<LivingEntity,GeometryProvider> providers=AnatomyBindingState.providersSnapshot();
+""",2)
 
-          rep('''    public static synchronized void register(LivingEntity support,GeometryProvider provider){
-                  if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
-                  requireServerThread(support.level());
-                  long generation=Math.incrementExact(REGISTRATIONS.getOrDefault(support,0L));
-                  PROVIDERS.put(support,provider);REGISTRATIONS.put(support,generation);
-                  QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
-                  FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-                  refreshSpatialEntry(support);
-              }
-          '''.replace('              ','    '),'''    public static synchronized void register(LivingEntity support,GeometryProvider provider){
-                  if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
-                  requireServerThread(support.level());
-                  AnatomyBindingState.rebind(support,provider,null);
-                  FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-                  refreshSpatialEntry(support);
-              }
-          '''.replace('              ','    '))
+          rep("""    public static synchronized void register(LivingEntity support,GeometryProvider provider){
+        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
+        requireServerThread(support.level());
+        long generation=Math.incrementExact(REGISTRATIONS.getOrDefault(support,0L));
+        PROVIDERS.put(support,provider);REGISTRATIONS.put(support,generation);
+        QUARANTINED_REGISTRATIONS.remove(support);DESCRIPTORS.remove(support);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        refreshSpatialEntry(support);
+    }
+""","""    public static synchronized void register(LivingEntity support,GeometryProvider provider){
+        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,null);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        refreshSpatialEntry(support);
+    }
+""")
 
-          rep('''    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
-                  if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
-                  register(support,provider);
-                  // A server registration is the authority that allocates its binding identity.
-                  // Network/client adapters must supply the received nonzero generation instead.
-                  if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
-                  DESCRIPTORS.put(support,descriptor);
-                  queryFrame(support);
-              }
-          '''.replace('              ','    '),'''    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
-                  if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
-                  if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
-                  requireServerThread(support.level());
-                  AnatomyBindingState.rebind(support,provider,descriptor);
-                  FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
-                  queryFrame(support);
-              }
-          '''.replace('              ','    '))
+          rep("""    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        if(descriptor==null)throw new IllegalArgumentException(\"Missing geometry descriptor\");
+        register(support,provider);
+        // A server registration is the authority that allocates its binding identity.
+        // Network/client adapters must supply the received nonzero generation instead.
+        if(descriptor.bindingGeneration()==0)descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),registrationGeneration(support));
+        DESCRIPTORS.put(support,descriptor);
+        queryFrame(support);
+    }
+""","""    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        if(support==null || provider==null)throw new IllegalArgumentException(\"Missing geometry registration\");
+        if(descriptor==null)throw new IllegalArgumentException(\"Missing geometry descriptor\");
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,descriptor);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        queryFrame(support);
+    }
+""")
 
           rep('public static synchronized long registrationGeneration(LivingEntity support){return REGISTRATIONS.getOrDefault(support,0L);}',
               'public static synchronized long registrationGeneration(LivingEntity support){return AnatomyBindingState.generation(support);}')
 
-          rep('''    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
-                  requireServerThread(support.level());
-                  if(!CAPTURING.add(support))return Optional.empty();
-                  try {
-                      var descriptor=AnatomyBindingState.descriptor(support);var provider=AnatomyBindingState.provider(support);
-                      if(descriptor==null || provider==null)return Optional.empty();
-                      long registration=registrationGeneration(support);
-                      if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registration))return Optional.empty();
-                      var capture=new CaptureStamp(provider,descriptor,registration,transportGeneration(support));
-                      var endpoint=causalEndpoint(support,provider,capture).orElse(null);
-                      if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
-                      var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
-                          descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
-                      return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
-                  } finally {CAPTURING.remove(support);}
-              }
-          '''.replace('              ','    '),'''    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
-                  requireServerThread(support.level());
-                  var binding=AnatomyBindingState.beginCapture(support);
-                  if(binding==null)return Optional.empty();
-                  try {
-                      var descriptor=binding.descriptor();var provider=binding.provider();
-                      var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));
-                      var endpoint=causalEndpoint(support,provider,capture).orElse(null);
-                      if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
-                      var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
-                          descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
-                      return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
-                  } finally {AnatomyBindingState.endCapture(support);}
-              }
-          '''.replace('              ','    '))
+          rep("""    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
+        requireServerThread(support.level());
+        if(!CAPTURING.add(support))return Optional.empty();
+        try {
+            var descriptor=AnatomyBindingState.descriptor(support);var provider=AnatomyBindingState.provider(support);
+            if(descriptor==null || provider==null)return Optional.empty();
+            long registration=registrationGeneration(support);
+            if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registration))return Optional.empty();
+            var capture=new CaptureStamp(provider,descriptor,registration,transportGeneration(support));
+            var endpoint=causalEndpoint(support,provider,capture).orElse(null);
+            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
+            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
+                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
+            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
+        } finally {CAPTURING.remove(support);}
+    }
+""","""    public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
+        requireServerThread(support.level());
+        var binding=AnatomyBindingState.beginCapture(support);
+        if(binding==null)return Optional.empty();
+        try {
+            var descriptor=binding.descriptor();var provider=binding.provider();
+            var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));
+            var endpoint=causalEndpoint(support,provider,capture).orElse(null);
+            if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
+            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
+                descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),capture.registration());
+            return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
+        } finally {AnatomyBindingState.endCapture(support);}
+    }
+""")
 
-          rep('''    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
-                  return AnatomyBindingState.provider(support)==capture.provider() && Objects.equals(AnatomyBindingState.descriptor(support),capture.descriptor())
-                      && registrationGeneration(support)==capture.registration();
-              }
-          '''.replace('              ','    '),'''    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
-                  var binding=AnatomyBindingState.snapshot(support);
-                  return binding!=null && binding.provider()==capture.provider() && Objects.equals(binding.descriptor(),capture.descriptor())
-                      && binding.generation()==capture.registration();
-              }
-          '''.replace('              ','    '))
+          rep("""    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
+        return AnatomyBindingState.provider(support)==capture.provider() && Objects.equals(AnatomyBindingState.descriptor(support),capture.descriptor())
+            && registrationGeneration(support)==capture.registration();
+    }
+""","""    private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
+        var binding=AnatomyBindingState.snapshot(support);
+        return binding!=null && binding.provider()==capture.provider() && Objects.equals(binding.descriptor(),capture.descriptor())
+            && binding.generation()==capture.registration();
+    }
+""")
 
           rep('if(old==null)QUARANTINED_REGISTRATIONS.put(support,registrationGeneration(support));','if(old==null)AnatomyBindingState.quarantineCurrent(support);')
           rep('if(Objects.equals(QUARANTINED_REGISTRATIONS.get(support),registrationGeneration(support)))return Optional.empty();','if(AnatomyBindingState.quarantined(support))return Optional.empty();')
-          rep('''        ACTIVE.remove(level);PROVIDERS.keySet().removeIf(e->e.level()==level);
-                  // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-                  DESCRIPTORS.keySet().removeIf(e->e.level()==level);
-          '''.replace('                  ','        '),'''        ACTIVE.remove(level);AnatomyBindingState.deactivate(level);
-                  // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-          '''.replace('                  ','        '))
+          rep("""        ACTIVE.remove(level);PROVIDERS.keySet().removeIf(e->e.level()==level);
+        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
+        DESCRIPTORS.keySet().removeIf(e->e.level()==level);
+""","""        ACTIVE.remove(level);AnatomyBindingState.deactivate(level);
+        // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
+""")
 
           forbidden=['PROVIDERS','REGISTRATIONS','DESCRIPTORS','CAPTURING','QUARANTINED_REGISTRATIONS']
           left=[name for name in forbidden if name in s]
-          if left: raise SystemExit(f'forbidden binding owners/references remain: {left}')
+          if left: raise SystemExit(f'forbidden binding owner references remain: {left}')
           p.write_text(s)
           PY
           git diff --check
-          git diff -- src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
       - name: build migrated tree
         run: ./gradlew build
       - name: commit and push migrated source
