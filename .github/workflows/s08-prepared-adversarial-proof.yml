@@ -11,6 +11,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialIntervalRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/AnatomySeparation.java'
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'

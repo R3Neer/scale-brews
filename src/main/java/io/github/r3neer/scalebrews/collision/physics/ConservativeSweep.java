@@ -64,17 +64,38 @@ public final class ConservativeSweep {
         final double skin=SKIN;
         Vec3 normal=Vec3.ZERO;
         for(int iteration=1;iteration<=maxIterations;iteration++) {
-            var separation=motion.at().apply(t).separation(body.move(displacement.scale(t)));
+            var material=motion.at().apply(t);
+            var movedBody=body.move(displacement.scale(t));
+            var separation=material.separation(movedBody);
+            double tolerance=numericalGapTolerance(movedBody,material);
             normal=separation.normal();
-            if(separation.gap()<-skin && t==0)return new Result(Status.INITIAL_OVERLAP,0,normal,iteration);
-            if(separation.gap()<=skin)return new Result(Status.CONTACT,t,normal,iteration);
+            if(separation.gap()<-skin-tolerance && t==0)return new Result(Status.INITIAL_OVERLAP,0,normal,iteration);
+            if(separation.gap()<=skin+tolerance)return new Result(Status.CONTACT,t,normal,iteration);
             if(speed==0 || t>=1)return new Result(Status.CLEAR,1,Vec3.ZERO,iteration);
-            double step=(separation.gap()-skin)/speed;
+            double step=(separation.gap()-skin-tolerance)/speed;
             if(step>1-t)return new Result(Status.CLEAR,1,Vec3.ZERO,iteration);
             if(step<1e-12)return new Result(Status.CONTACT,t,normal,iteration);
             t+=step;
         }
         // This is NOT success: callers must stop here and record the exhausted budget.
         return new Result(Status.ITERATION_LIMIT,t,normal,maxIterations);
+    }
+
+    /**
+     * SAT operates on world-space doubles. At Minecraft-scale coordinates, storing two nearby
+     * endpoints can move their reconstructed gap by a few ulps even under a common translation.
+     * CCD must not spend its whole iteration budget chasing a separation smaller than that numeric
+     * floor. Eight coordinate ulps cover endpoint rounding plus three-term SAT projections while
+     * remaining below 3e-8 blocks throughout the vanilla world border, far smaller than SKIN.
+     */
+    private static double numericalGapTolerance(AABB body,ConvexBox material) {
+        AABB bounds=material.bounds();
+        double magnitude=Math.max(
+            Math.max(Math.max(Math.abs(body.minX),Math.abs(body.maxX)),Math.max(Math.abs(bounds.minX),Math.abs(bounds.maxX))),
+            Math.max(
+                Math.max(Math.max(Math.abs(body.minY),Math.abs(body.maxY)),Math.max(Math.abs(bounds.minY),Math.abs(bounds.maxY))),
+                Math.max(Math.max(Math.abs(body.minZ),Math.abs(body.maxZ)),Math.max(Math.abs(bounds.minZ),Math.abs(bounds.maxZ)))));
+        double tolerance=8*Math.ulp(magnitude);
+        return Math.min(SKIN*.25,tolerance);
     }
 }
