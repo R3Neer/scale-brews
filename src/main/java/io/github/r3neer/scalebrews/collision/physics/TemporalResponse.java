@@ -20,6 +20,7 @@ public final class TemporalResponse {
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
     private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,SCREEN_DEPTH=8;
+    private static final int MIDPOINT_ORDER_MIN_PIECES=4,MIDPOINT_ORDER_MAX_PIECES=64;
     private static final class Budget {
         private int remaining,used;
         Budget(int limit) {remaining=limit;}
@@ -113,7 +114,27 @@ public final class TemporalResponse {
     private static Search first(AABB body,Vec3 delta,Map<String,ConservativeSweep.Motion> pieces,SortedSet<String> ids,
             Map<String,Constraint> active,double start,double end,Budget budget) {
         double earliest=Double.POSITIVE_INFINITY;List<Hit> hits=new ArrayList<>();
-        for(var id:ids) {
+        var ordered=new ArrayList<String>(ids);
+        if(!active.isEmpty()) {
+            // Once a manifold is active, query it first. A zero-time recontact immediately bounds the
+            // horizon for every unrelated piece instead of paying for whole-interval clearance first.
+            ordered.sort(Comparator.comparing((String id)->!active.containsKey(id)).thenComparing(Comparator.naturalOrder()));
+        } else if(ordered.size()>=MIDPOINT_ORDER_MIN_PIECES && ordered.size()<=MIDPOINT_ORDER_MAX_PIECES
+                && budget.remaining>ordered.size()) {
+            // For a small fresh manifold, one deterministic midpoint sample per piece is cheaper than
+            // proving an arbitrary lexicographic prefix clear across the entire tick. This is only a
+            // work-order hint: every piece is still queried and earliest-contact comparison is unchanged.
+            AABB midpointBody=body.move(delta.scale(.5));
+            var midpointOverlap=new HashMap<String,Boolean>();
+            for(var id:ordered) {
+                if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
+                var material=pieces.get(id).interval(start,end).at().apply(.5);
+                if(material==null)return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
+                midpointOverlap.put(id,material.overlaps(midpointBody));
+            }
+            ordered.sort(Comparator.comparing((String id)->!midpointOverlap.get(id)).thenComparing(Comparator.naturalOrder()));
+        }
+        for(var id:ordered) {
             var constraint=active.get(id);
             if(constraint!=null) {
                 if(!budget.sample())return new Search(ConservativeSweep.Status.ITERATION_LIMIT,0,List.of());
@@ -183,8 +204,7 @@ public final class TemporalResponse {
         Vec3 halfDelta=delta.scale(.5);
         var left=firstWindow(body,halfDelta,interval.interval(0,.5),depth+1,origin,scale*.5,budget);
         if(left.status()!=ConservativeSweep.Status.CLEAR)return left;
-        var right=firstWindow(body.move(halfDelta),halfDelta,interval.interval(.5,1),depth+1,
-            origin+scale*.5,scale*.5,budget);
+        var right=firstWindow(body.move(halfDelta),halfDelta,interval.interval(.5,1),depth+1,origin+scale*.5,scale*.5,budget);
         return right.status()==ConservativeSweep.Status.CLEAR
             ?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)
             :right;
@@ -250,7 +270,7 @@ public final class TemporalResponse {
             double leftEnd=Math.min(window.end(),time-radius);
             if(leftEnd>window.start()+TIME_EPS)pending.add(new Uncovered(window.start(),leftEnd));
             double rightStart=Math.max(window.start(),time+radius);
-            if(window.end()>rightStart+TIME_EPS)pending.add(new Uncovered(rightStart,window.end()));
+            if(window.end()>rightStart+TIME_EPS)pending.add(new Uncovered(rightStart,window.end));
         }
         return true;
     }
