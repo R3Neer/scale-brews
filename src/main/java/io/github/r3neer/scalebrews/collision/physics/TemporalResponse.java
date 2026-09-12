@@ -194,13 +194,15 @@ public final class TemporalResponse {
      * Midpoint separating-plane certificate for one already time-aligned child window. Translation
      * is compared in the material-relative frame, so the declared linear translation is not counted
      * twice. The residual deformation bound plus projected relative body motion bounds how much the
-     * sampled separating plane can worsen from the midpoint to either edge.
+     * sampled separating plane can worsen from the midpoint to either edge. The clear certificate uses
+     * the same world-coordinate numeric band as exact CCD, so screening can never undercut contact.
      */
     private static Boolean certifiedClearWindow(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
         if(!budget.sample())return null;
         var material=interval.at().apply(.5);
         if(material==null)return false;
-        var separation=material.separation(body.move(delta.scale(.5)));
+        AABB sampledBody=body.move(delta.scale(.5));
+        var separation=material.separation(sampledBody);
         Vec3 normal=separation.normal();
         if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
                 || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
@@ -208,13 +210,14 @@ public final class TemporalResponse {
         double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));
         if(!Double.isFinite(rate) || rate<0)return false;
         double adverse=.5*rate;
-        return separation.gap()-adverse>ConservativeSweep.SKIN;
+        return separation.gap()-adverse>ConservativeSweep.contactClearance(sampledBody,material);
     }
 
     /**
      * Cover [0,1] with neighborhoods certified by sampled separating planes. At sample time t, the
      * fixed plane gap can close no faster than residual deformation plus the relative declared
-     * translation projected on that normal. Thus (gap-SKIN)/rate is a conservative temporal radius.
+     * translation projected on that normal. Thus (gap-clearance)/rate is a conservative temporal radius,
+     * where clearance is exactly the world-coordinate contact band used by ConservativeSweep.
      * Largest uncovered windows are sampled first for deterministic, useful progress under a hard budget.
      * {@code null} means the shared budget itself was exhausted; {@code false} means screening cannot
      * prove clearance and the caller must fall back to exact CCD.
@@ -232,15 +235,17 @@ public final class TemporalResponse {
             double time=(window.start()+window.end())*.5;
             var material=interval.at().apply(time);
             if(material==null)return false;
-            var separation=material.separation(body.move(delta.scale(time)));
+            AABB sampledBody=body.move(delta.scale(time));
+            var separation=material.separation(sampledBody);
             Vec3 normal=separation.normal();
             if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
                     || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
-            if(separation.gap()<=ConservativeSweep.SKIN)return false;
+            double clearance=ConservativeSweep.contactClearance(sampledBody,material);
+            if(separation.gap()<=clearance)return false;
             double rate=interval.deformationSpeed()+Math.abs(relative.dot(normal));
             if(!Double.isFinite(rate) || rate<0)return false;
             if(rate<=1e-20)continue;
-            double radius=(separation.gap()-ConservativeSweep.SKIN)/rate;
+            double radius=(separation.gap()-clearance)/rate;
             if(!Double.isFinite(radius) || radius<=TIME_EPS)return false;
             double leftEnd=Math.min(window.end(),time-radius);
             if(leftEnd>window.start()+TIME_EPS)pending.add(new Uncovered(window.start(),leftEnd));
@@ -265,13 +270,14 @@ public final class TemporalResponse {
     }
 
     /**
-     * Full-interval fixed-plane certificate for an already active contact.
+     * Full-interval fixed-plane certificate for an already active contact. This fast path must use the
+     * same numeric clearance band as CCD before it is allowed to skip an exact query.
      */
     private static boolean certifies(AABB body,Vec3 finalDelta,Constraint constraint,double start,double end) {
         Vec3 normal=constraint.normal();
         if(!Double.isFinite(normal.lengthSqr()) || Math.abs(normal.lengthSqr()-1)>1e-8)return false;
         var current=constraint.motion().at().apply(start);
-        if(minimum(body,normal)-maximum(current,normal)<ConservativeSweep.SKIN)return false;
+        if(current==null || minimum(body,normal)-maximum(current,normal)<=ConservativeSweep.contactClearance(body,current))return false;
         var interval=constraint.motion().interval(start,end);
         double maximumAdvance=minimumAdvance(body,interval,normal);
         return finalDelta.dot(normal)>=maximumAdvance;
@@ -300,7 +306,8 @@ public final class TemporalResponse {
         for(var id:ids) {
             var motion=pieces.get(id).interval(time,time);
             if(!budget.sample())return false;
-            if(motion.at().apply(0).separation(after).gap()<ConservativeSweep.SKIN)return false;
+            var material=motion.at().apply(0);
+            if(material==null || material.separation(after).gap()<=ConservativeSweep.contactClearance(after,material))return false;
             if(budget.query(body,q,motion).status()!=ConservativeSweep.Status.CLEAR)return false;
         }
         return true;
