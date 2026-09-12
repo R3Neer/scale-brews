@@ -3,6 +3,7 @@ package io.github.r3neer.scalebrews.test;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import java.util.Map;
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -13,8 +14,32 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** S09 A13: the live simultaneous-contact result is invariant under registration order and common translation. */
+/** S09 A13: physical results are invariant under registration order and common world translation. */
 public final class S09TranslationMetamorphismTests {
+    @GameTest
+    public void ccdSkinThresholdSurvivesPreparedScaleWorldTranslation(GameTestHelper h) {
+        double gap=ConservativeSweep.SKIN-1e-10;
+        var localPiece=ConvexBox.of(new AABB(-.1,-.1,-.1,.1,.1,.1),new Matrix4f());
+        var localBody=new AABB(.1+gap,-.05,-.05,.2+gap,.05,.05);
+        var localMotion=new ConservativeSweep.Motion(t->localPiece,1,Vec3.ZERO);
+        var local=ConservativeSweep.query(localBody,Vec3.ZERO,localMotion,256);
+        h.assertTrue(local.status()==ConservativeSweep.Status.CONTACT && local.evaluations()==1,
+            "Control must begin inside the CCD skin in one evaluation: "+local);
+
+        // GameTest commonly places structures millions of blocks from origin. The common
+        // translation must not turn the same sub-skin configuration into an iteration-limit.
+        var shift=new Vec3(15_000_000,0,-4_000_000);
+        var translatedPiece=localPiece.move(shift);
+        var translatedBody=localBody.move(shift);
+        var translatedMotion=new ConservativeSweep.Motion(t->translatedPiece,1,Vec3.ZERO);
+        var translated=ConservativeSweep.query(translatedBody,Vec3.ZERO,translatedMotion,256);
+        h.assertTrue(translated.status()==ConservativeSweep.Status.CONTACT,
+            "A common prepared-scale world translation must preserve the CCD skin classification instead of exhausting on coordinate quantization: local="
+                +local+" translated="+translated+" localGap="+localPiece.separation(localBody).gap()
+                +" translatedGap="+translatedPiece.separation(translatedBody).gap());
+        h.succeed();
+    }
+
     @GameTest
     public void simultaneousCornerResponseSurvivesCommonWorldTranslation(GameTestHelper h) {
         var origin=cornerScenario(h,0,0,true);
