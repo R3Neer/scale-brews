@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.WeakHashMap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -60,11 +59,18 @@ final class AnatomySpatialIndex {
         index.broadphase().remove(support);
     }
 
-    /** Returns null only when the caller must rebuild the current tick first. */
+    /**
+     * A missing/older index asks the causal caller for a rebuild. If this caller is itself stale
+     * relative to a newer installed index, publish an explicit empty fail-closed outcome instead of
+     * letting older work consume newer membership or turning lifecycle uncertainty into a crash.
+     */
     static synchronized MaterialBroadphase.QueryResult<LivingEntity> queryIfCurrent(Level level,long tick,AABB query) {
         if(level==null)throw new IllegalArgumentException("Missing spatial level");
         var index=INDEXES.get(level);
-        return index==null || index.tick()!=tick?null:index.broadphase().query(query);
+        if(index==null || index.tick()<tick)return null;
+        if(index.tick()>tick)return new MaterialBroadphase.QueryResult<>(
+            MaterialBroadphase.QueryStatus.BUDGET_EXHAUSTED,List.of(),0,0,0);
+        return index.broadphase().query(query);
     }
 
     static synchronized void deactivate(Level level) {
