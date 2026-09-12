@@ -675,7 +675,7 @@ public final class AnatomyMovement {
         if(c==null)return;
         if(!Platforms.eligible(body,c.support)){clear(body);return;}
         var provider=PROVIDERS.get(c.support);
-        var snapshot=currentSnapshot(c.support(),provider).orElse(null);
+        var snapshot=currentSnapshot(c.support,provider).orElse(null);
         var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
         if(piece==null || snapshot.revision()!=c.revision){clear(body);return;}
         var separation=piece.separation(body.getBoundingBox());
