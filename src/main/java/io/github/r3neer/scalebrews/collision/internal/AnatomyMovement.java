@@ -46,51 +46,35 @@ public final class AnatomyMovement {
     }
     private static final class RootHistory {final ArrayDeque<RootFrame> frames=new ArrayDeque<>();}
     private static final Map<LivingEntity,RootHistory> ROOTS=entityMap();
-    /** Production frames seal causal identity plus full material serial; legacy fixtures retain root/revision only. */
-    private record FrameStamp(GeometryProvider.GeometryIdentity identity,RootFrame root,long revision,long registration,long frameSerial) {}
-    /** Q2 broadphase state keeps causal-frame validation separate from the reusable spatial kernel. */
-    private record SpatialIndex(long tick,MaterialBroadphase<LivingEntity> broadphase,Map<LivingEntity,FrameStamp> frames) {}
-    private static final double CELL_SIZE=4;
-    private static final long MAX_INDEX_CELLS=4096;
-    private static final int MAX_INDEX_CANDIDATES=4096;
-    private static final Comparator<LivingEntity> SUPPORT_ORDER=Comparator.comparing((LivingEntity e)->e.getUUID()).thenComparingInt(Entity::getId);
-    private static final Map<Level,SpatialIndex> SPATIAL=Collections.synchronizedMap(new WeakHashMap<>());
     /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
     private static synchronized void removeSpatialEntry(LivingEntity support) {
         if(support==null)return;
-        var index=SPATIAL.get(support.level());
-        if(index==null || index.tick()!=support.level().getGameTime())return;
-        index.broadphase().remove(support);index.frames().remove(support);
+        AnatomySpatialIndex.removeIfCurrent(support);
     }
     private static synchronized void refreshSpatialEntry(LivingEntity support) {
         if(support==null)return;
-        var index=SPATIAL.get(support.level());
-        if(index==null || index.tick()!=support.level().getGameTime())return;
-        index.broadphase().remove(support);index.frames().remove(support);
+        var level=support.level();
+        if(!AnatomySpatialIndex.current(level,level.getGameTime()))return;
+        AnatomySpatialIndex.removeIfCurrent(support);
         var provider=PROVIDERS.get(support);if(provider==null || support.isRemoved())return;
-        GeometryProvider.Snapshot snapshot;FrameStamp frame;
+        GeometryProvider.Snapshot snapshot;RootFrame root;
         var descriptor=DESCRIPTORS.get(support);
         if(descriptor!=null) {
             var accepted=FRAME_SERIALS.get(support);
             if(accepted==null || accepted.invalidated() || accepted.snapshot()==null
                     || accepted.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE
                     || accepted.snapshot().revision()!=descriptor.revision())return;
-            snapshot=accepted.snapshot();long registration=registrationGeneration(support);
-            var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),
-                descriptor.epoch(),descriptor.revision(),descriptor.model(),descriptor.poseProvider(),descriptor.bindingGeneration(),registration);
-            frame=new FrameStamp(identity,accepted.endpoint().root(),snapshot.revision(),registration,accepted.endpoint().frameSerial());
+            snapshot=accepted.snapshot();root=accepted.endpoint().root();
         } else {
             snapshot=provider.sample(support).orElse(null);if(snapshot==null)return;
-            frame=new FrameStamp(null,observeRoot(support),snapshot.revision(),registrationGeneration(support),0);
+            root=observeRoot(support);
         }
-        var envelope=spatialEnvelope(snapshot,frame.root());if(envelope==null)return;
-        var rejected=index.broadphase().upsert(new MaterialBroadphase.Entry<>(support,envelope));
+        var envelope=spatialEnvelope(snapshot,root);if(envelope==null)return;
+        var rejected=AnatomySpatialIndex.upsertIfCurrent(support,envelope);
         if(rejected!=null) {
-            index.frames().remove(support);clearSupportContacts(support);
+            clearSupportContacts(support);
             if(descriptor!=null)quarantineEndpoint(support);
-            return;
         }
-        index.frames().put(support,frame);
     }
     /** Supported external root/dimension mutation hook; observes only this registered support. */
     public static synchronized void spatialMutation(LivingEntity support) {
@@ -387,7 +371,7 @@ public final class AnatomyMovement {
         ROOTS.keySet().removeIf(e->e.level()==level);
         TransportLedger.deactivate(level);
         METRICS.remove(level);
-        SPATIAL.remove(level);
+        AnatomySpatialIndex.deactivate(level);
     }
     private static synchronized Contact setContact(Entity body,LivingEntity support,String piece,long revision,Vec3 normal) {
         var contact=AnatomyContactState.setContact(body,support,piece,revision,normal);
@@ -519,46 +503,39 @@ public final class AnatomyMovement {
         return new CandidateQuery(MaterialBroadphase.QueryStatus.COMPLETE,result);
     }
     private static MaterialBroadphase.QueryResult<LivingEntity> indexedSupports(Entity body,AABB query) {
-        var raw=spatial(body.level()).broadphase().query(query);
+        var raw=spatialQuery(body.level(),query);
         if(!raw.complete())return raw;
         var result=new ArrayList<LivingEntity>();
         for(var support:raw.candidates())if(support.level()==body.level() && Platforms.eligible(body,support) && !suspended(body,support))result.add(support);
-        result.sort(SUPPORT_ORDER);
         return new MaterialBroadphase.QueryResult<>(raw.status(),result,raw.requestedCells(),raw.cellsVisited(),raw.candidatesVisited());
     }
-    private static SpatialIndex spatial(Level level) {
-        var current=SPATIAL.get(level);
-        // Register/rebind, lifecycle barriers, accepted causal endpoints and tick rollover
-        // invalidate the cache explicitly. Reusing a same-tick index must not resample every
-        // registered provider before a local query can reach the bounded spatial kernel.
-        if(current!=null && current.tick()==level.getGameTime())return current;
+    private static MaterialBroadphase.QueryResult<LivingEntity> spatialQuery(Level level,AABB query) {
+        long tick=level.getGameTime();
+        var current=AnatomySpatialIndex.queryIfCurrent(level,tick,query);
+        if(current!=null)return current;
         Map<LivingEntity,GeometryProvider> providers;
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-        return rebuildSpatial(level,providers);
+        rebuildSpatial(level,providers);
+        var rebuilt=AnatomySpatialIndex.queryIfCurrent(level,tick,query);
+        if(rebuilt==null)throw new IllegalStateException("Spatial index rebuild lost current tick");
+        return rebuilt;
     }
-    private static SpatialIndex rebuildSpatial(Level level,Map<LivingEntity,GeometryProvider> providers) {
-        Map<LivingEntity,FrameStamp> frames=new IdentityHashMap<>();
+    private static void rebuildSpatial(Level level,Map<LivingEntity,GeometryProvider> providers) {
         List<MaterialBroadphase.Entry<LivingEntity>> entries=new ArrayList<>();
         for(var entry:providers.entrySet()) {
             var support=entry.getKey();if(support.level()!=level)continue;
-            var sample=currentSnapshot(support,entry.getValue()).orElse(null);var frame=currentFrameStamp(support,entry.getValue());
-            if(sample==null || frame==null)continue;
-            AABB envelope=spatialEnvelope(sample,frame.root());if(envelope==null)continue;
-            entries.add(new MaterialBroadphase.Entry<>(support,envelope));frames.put(support,frame);
+            GeometryProvider.Snapshot sample;RootFrame root;
+            if(DESCRIPTORS.containsKey(support)) {
+                var frame=queryFrame(support).orElse(null);if(frame==null)continue;
+                sample=frame.snapshot();root=frame.root();
+            } else {
+                sample=currentSnapshot(support,entry.getValue()).orElse(null);if(sample==null)continue;
+                root=observeRoot(support);
+            }
+            AABB envelope=spatialEnvelope(sample,root);if(envelope==null)continue;
+            entries.add(new MaterialBroadphase.Entry<>(support,envelope));
         }
-        var built=MaterialBroadphase.build(entries,SUPPORT_ORDER,CELL_SIZE,MAX_INDEX_CELLS,MAX_INDEX_CELLS,MAX_INDEX_CANDIDATES);
-        for(var rejected:built.rejected()) {
-            frames.remove(rejected.key());
-            quarantineEndpoint(rejected.key());
-        }
-        var index=new SpatialIndex(level.getGameTime(),built.index(),new IdentityHashMap<>(frames));
-        SPATIAL.put(level,index);return index;
-    }
-    private static FrameStamp currentFrameStamp(LivingEntity support,GeometryProvider provider) {
-        if(provider==null)return null;
-        if(DESCRIPTORS.containsKey(support))return queryFrame(support).map(frame->new FrameStamp(frame.identity(),frame.root(),frame.snapshot().revision(),registrationGeneration(support),frame.endpoint().frameSerial())).orElse(null);
-        var sample=provider.sample(support).orElse(null);
-        return sample==null?null:new FrameStamp(null,observeRoot(support),sample.revision(),registrationGeneration(support),0);
+        for(var rejected:AnatomySpatialIndex.rebuild(level,level.getGameTime(),entries))quarantineEndpoint(rejected.key());
     }
     /** The current S05 caller supplies instantaneous convex bounds; later Q2 stages may supply certified interval envelopes. */
     private static AABB snapshotBounds(GeometryProvider.Snapshot current) {
