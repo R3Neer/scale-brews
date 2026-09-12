@@ -37,11 +37,6 @@ public final class AnatomyMovement {
     /** Retains the whole endpoint, including its original authority time, for a material serial. */
     private record EndpointSerial(EndpointStamp stamp,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot,boolean invalidated) {}
     private static final Map<LivingEntity,EndpointSerial> FRAME_SERIALS=entityMap();
-    private static final Map<Entity,Contact> CONTACTS=entityMap();
-    private static final Map<Entity,Long> CONTACT_SEQUENCES=entityMap();
-    private static final Map<Entity,Anchor> ANCHORS=entityMap();
-    private static final Map<Entity,SurfaceContact> SURFACES=entityMap();
-    private static final Map<Entity,Map<LivingEntity,Long>> SUSPENDED=entityMap();
     /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
     public record RootFrame(long sequence,long tick,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
         public RootFrame {
@@ -104,20 +99,17 @@ public final class AnatomyMovement {
         if(DESCRIPTORS.containsKey(support))queryFrame(support);else refreshSpatialEntry(support);
     }
     public static boolean suspended(Entity body,LivingEntity support) {
-        var suspended=SUSPENDED.get(body);
-        if(suspended==null)return false;
-        var generation=suspended.get(support);
+        var generation=AnatomyContactState.suspensionGeneration(body,support);
         if(generation==null || generation.longValue()!=registrationGeneration(support)) {
-            if(generation!=null)suspended.remove(support);
-            if(suspended.isEmpty())SUSPENDED.remove(body);
+            if(generation!=null)AnatomyContactState.clearSuspension(body,support);
             return false;
         }
         var provider=PROVIDERS.get(support);var shape=currentSnapshot(support,provider).orElse(null);
         if(shape!=null && shape.pieces().values().stream().anyMatch(p->p.overlaps(body.getBoundingBox())))return true;
-        suspended.remove(support);if(suspended.isEmpty())SUSPENDED.remove(body);return false;
+        AnatomyContactState.clearSuspension(body,support);return false;
     }
     static void suspend(Entity body,LivingEntity support) {
-        SUSPENDED.computeIfAbsent(body,e->entityMap()).put(support,registrationGeneration(support));
+        AnatomyContactState.suspend(body,support,registrationGeneration(support));
         var contact=contact(body);if(contact!=null && contact.support()==support)clear(body);
     }
     public record SweepMetrics(long tick,long queries,long pieces,long evaluations,long exhausted) {}
@@ -129,10 +121,6 @@ public final class AnatomyMovement {
             if(old.tick()!=level.getGameTime())old=new SweepMetrics(level.getGameTime(),0,0,0,0);
             METRICS.put(level,new SweepMetrics(old.tick(),old.queries()+1,old.pieces()+pieces,old.evaluations()+evaluations,old.exhausted()+exhausted));
         }
-    }
-    /** Exact prior convex, never a later reconstruction, for a material transport contribution. */
-    private record Anchor(Vec3 local,Vec3 previous,ConvexBox materialBefore,Vec3 supportOrigin,Vec3 bodyOrigin,GravityFrame bodyGravity,GravityFrame supportGravity) {
-        private Anchor {if(materialBefore==null)throw new IllegalArgumentException("Missing material provenance");}
     }
     public record Contact(LivingEntity support,String piece,long revision,Vec3 normal,long sequence) {}
     public static synchronized void activate(Level level){ACTIVE.add(level);}
@@ -296,14 +284,17 @@ public final class AnatomyMovement {
     /** Fixture-only gravity seam; the effective value still lives in the shared Scale authority. */
     public static synchronized void gravity(Entity body,GravityFrame gravity){io.github.r3neer.scalebrews.integration.gravity.GravityFrames.overrideForTests(body,gravity);}
     public static synchronized GravityFrame gravity(Entity body){return io.github.r3neer.scalebrews.integration.gravity.GravityFrames.frame(body);}
-    public static synchronized Contact contact(Entity body){return CONTACTS.get(body);}
-    public static synchronized long contactSequence(Entity body){return CONTACT_SEQUENCES.getOrDefault(body,0L);}
+    public static synchronized Contact contact(Entity body){
+        var contact=AnatomyContactState.contact(body);
+        return contact==null?null:new Contact(contact.support(),contact.piece(),contact.revision(),contact.normal(),contact.sequence());
+    }
+    public static synchronized long contactSequence(Entity body){return AnatomyContactState.contactSequence(body);}
     /** Release a material contact and any receipt that could otherwise outlive it. */
     public static synchronized void clear(Entity body){
-        CONTACTS.remove(body);ANCHORS.remove(body);SURFACES.remove(body);
+        AnatomyContactState.clear(body);
         AnatomyTransportReceipts.invalidate(body);
     }
-    public static synchronized SurfaceContact surface(Entity body){return SURFACES.get(body);}
+    public static synchronized SurfaceContact surface(Entity body){return AnatomyContactState.surface(body);}
     /** Transitional façade while callers migrate to the runtime ledger. */
     public static synchronized SupportTransport transport(Entity body){return TransportLedger.current(body);}
     /** Transitional lifecycle façade paired with the transport cursor. */
@@ -323,8 +314,8 @@ public final class AnatomyMovement {
         // accepted pose instead of rejecting a valid contact while the support is animating.
         if(!gravity(body).supports(normal))return false;
         setContact(body,support,surface.piece(),surface.revision(),normal);
-        SURFACES.put(body,new SurfaceContact(surface.support(),surface.revision(),surface.piece(),surface.face(),surface.localPoint(),normal,surface.tick()));
-        ANCHORS.put(body,new Anchor(surface.localPoint(),point,piece,support.position(),body.position(),gravity(body),gravity(support)));
+        AnatomyContactState.surface(body,new SurfaceContact(surface.support(),surface.revision(),surface.piece(),surface.face(),surface.localPoint(),normal,surface.tick()));
+        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(surface.localPoint(),point,piece,support.position(),body.position(),gravity(body),gravity(support)));
         return true;
     }
     public static boolean supported(Entity body) {
@@ -371,7 +362,7 @@ public final class AnatomyMovement {
         if(!ACTIVE.contains(level))return;
         Map<LivingEntity,GeometryProvider> providers;List<Entity> bodies;
         synchronized(PROVIDERS){providers=new IdentityHashMap<>(PROVIDERS);}
-        synchronized(CONTACTS){bodies=List.copyOf(CONTACTS.keySet());}
+        bodies=AnatomyContactState.contactBodies();
         for(var entry:providers.entrySet())if(entry.getKey().level()==level) {
             observeRoot(entry.getKey());entry.getValue().tick(entry.getKey(),level.getGameTime());
         }
@@ -391,21 +382,16 @@ public final class AnatomyMovement {
         // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
         DESCRIPTORS.keySet().removeIf(e->e.level()==level);
         FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
-        io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);CONTACTS.keySet().removeIf(e->e.level()==level);
-        CONTACT_SEQUENCES.keySet().removeIf(e->e.level()==level);ROOTS.keySet().removeIf(e->e.level()==level);
-        ANCHORS.keySet().removeIf(e->e.level()==level);
+        io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);
+        AnatomyContactState.deactivate(level);
+        ROOTS.keySet().removeIf(e->e.level()==level);
         TransportLedger.deactivate(level);
-        SURFACES.keySet().removeIf(e->e.level()==level);
-        SUSPENDED.keySet().removeIf(e->e.level()==level);
         METRICS.remove(level);
         SPATIAL.remove(level);
     }
     private static synchronized Contact setContact(Entity body,LivingEntity support,String piece,long revision,Vec3 normal) {
-        var old=CONTACTS.get(body);
-        boolean same=old!=null && old.support()==support && old.revision()==revision && old.piece().equals(piece);
-        long sequence=same?old.sequence():Math.incrementExact(CONTACT_SEQUENCES.getOrDefault(body,0L));
-        if(!same)CONTACT_SEQUENCES.put(body,sequence);
-        var contact=new Contact(support,piece,revision,normal,sequence);CONTACTS.put(body,contact);return contact;
+        var contact=AnatomyContactState.setContact(body,support,piece,revision,normal);
+        return new Contact(contact.support(),contact.piece(),contact.revision(),contact.normal(),contact.sequence());
     }
     /** Capture before a root move; no pose channels are read or evaluated. */
     public static RootFrame captureRoot(LivingEntity support){return observeRoot(support);}
@@ -464,10 +450,10 @@ public final class AnatomyMovement {
         while(history.frames.size()>64 || history.frames.peekFirst()!=null && history.frames.peekFirst().tick()<tick-20)history.frames.removeFirst();
     }
     private static void clearSupportContacts(LivingEntity support) {
-        for(var entry:new ArrayList<>(CONTACTS.entrySet()))if(entry.getValue().support()==support)
+        for(var body:AnatomyContactState.bodiesSupportedBy(support))
             // A support discontinuity is also a body discontinuity, but the body may need its
             // last applied segment for the next pose sample to remove passive motion exactly once.
-            invalidateBody(entry.getKey(),false);
+            invalidateBody(body,false);
     }
     static record Candidate(LivingEntity entity,String id,long revision,ConvexBox box) {}
     static record CandidateQuery(MaterialBroadphase.QueryStatus status,List<Candidate> candidates) {
@@ -683,8 +669,8 @@ public final class AnatomyMovement {
         int face=piece.closestFace(separation.normal());var normal=piece.faceNormal(face);
         if(!gravity(body).supports(normal)){clear(body);return;}
         Vec3 local=piece.facePoint(face,body.getBoundingBox().getCenter());
-        SURFACES.put(body,new SurfaceContact(c.support.getUUID(),c.revision,c.piece,face,local,normal,body.level().getGameTime()));
-        ANCHORS.put(body,new Anchor(local,piece.point(local),piece,c.support.position(),body.position(),gravity(body),gravity(c.support)));
+        AnatomyContactState.surface(body,new SurfaceContact(c.support.getUUID(),c.revision,c.piece,face,local,normal,body.level().getGameTime()));
+        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(local,piece.point(local),piece,c.support.position(),body.position(),gravity(body),gravity(c.support)));
         body.setOnGround(true);
         body.verticalCollisionBelow=true;
     }
@@ -713,23 +699,23 @@ public final class AnatomyMovement {
     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
     private static void carry(Entity body,Set<Entity> visiting) {
         if(!simulates(body))return;
-        var c=contact(body);var anchor=ANCHORS.get(body);
+        var c=contact(body);var anchor=AnatomyContactState.anchor(body);
         if(c==null || anchor==null)return;
         // Server runtime material intervals own carry. Keeping this endpoint path active in
         // parallel would double-apply ROOT/JOINT work before the causal dispatcher drains it.
         if(!body.level().isClientSide() && AnatomyRuntime.owns(c.support()))return;
         if(!visiting.add(body) || !Platforms.eligible(body,c.support)
-            || !gravity(body).equals(anchor.bodyGravity) || !gravity(c.support).equals(anchor.supportGravity)){clear(body);return;}
+            || !gravity(body).equals(anchor.bodyGravity()) || !gravity(c.support).equals(anchor.supportGravity())){clear(body);return;}
         try {
             carry(c.support,visiting);var root=observeRoot(c.support);
             var provider=PROVIDERS.get(c.support);
             var snapshot=currentSnapshot(c.support,provider).orElse(null);
             var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
-            if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin)>16
-                    || body.position().distanceToSqr(anchor.bodyOrigin)>16){clear(body);return;}
-            var surface=SURFACES.get(body);
+            if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin())>16
+                    || body.position().distanceToSqr(anchor.bodyOrigin())>16){clear(body);return;}
+            var surface=AnatomyContactState.surface(body);
             if(surface==null || !gravity(body).supports(piece.faceNormal(surface.face()))){clear(body);return;}
-            Vec3 now=piece.point(anchor.local),delta=now.subtract(anchor.previous);
+            Vec3 now=piece.point(anchor.local()),delta=now.subtract(anchor.previous());
             if(delta.lengthSqr()>16){clear(body);return;}
             if(delta.lengthSqr()>1e-16) {
                 Entity previous=io.github.r3neer.scalebrews.platform.PlatformPhysics.enter(body);
@@ -748,10 +734,10 @@ public final class AnatomyMovement {
                 var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
                     before!=null && before.tick()==tick?before.displacement().add(allowed):allowed,allowed);
                 TransportLedger.record(body,transport);
-                AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore,piece);
+                AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore(),piece);
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
             }
-            ANCHORS.put(body,new Anchor(anchor.local,now,piece,c.support.position(),body.position(),anchor.bodyGravity,anchor.supportGravity));
+            AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(anchor.local(),now,piece,c.support.position(),body.position(),anchor.bodyGravity(),anchor.supportGravity()));
         } finally {visiting.remove(body);}
     }
     /** Root transport can run after passenger ticks; refresh native seats without another physics move. */
