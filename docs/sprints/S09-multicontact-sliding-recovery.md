@@ -209,10 +209,13 @@ Repetir A3/A7 con orden de registro invertido y tras una traslación común gran
 
 ## 6. Evidencia de cierre
 
-- `05e8ad9c90bc4c9f09a5d47d49e929c8a080b628`: versión sin diagnósticos temporales A9; `build` **verde** y `s08-prepared-adversarial-proof` **verde**.
-- `80fc63386dc0ae5faf10ce28f4658aa2d24c5fec`: último endurecimiento adversarial A11, sólo test; fija que `N-1` completa y `N` agota exactamente.
-- `09ea491f6517d90f81842ecee7ae14cc0e946e99`: documentación/revisión final encima del holdout A11; `build` **verde**.
-- Entre la pasada prepared limpia y el cierre no hubo cambios de producción, sólo el endurecimiento de test A11 y documentación.
+- `05e8ad9c90bc4c9f09a5d47d49e929c8a080b628`: versión limpia sin diagnósticos temporales A9; ordinary run `34659541784`, job `103458981698`, **verde**; prepared run `34659541774`, job `103458981680`, **verde**, con export original y servidor **2/2**.
+- `80fc63386dc0ae5faf10ce28f4658aa2d24c5fec`: endurecimiento adversarial A11, sólo test; fija que `N-1` completa y `N` agota exactamente 256.
+- `09ea491f6517d90f81842ecee7ae14cc0e946e99`: primera documentación/revisión final encima del holdout A11; `build` **verde**.
+- La revisión posterior detectó una única imprecisión de documentación ejecutable: el nombre del holdout de screening prometía una comparación de coste que su oracle no hacía. `2aca10ef37c8fdbde85a26e9a4a5c0067189eb0e` sólo lo renombró a `screeningCannotExhaustWhenDirectClearFitsSameBudget`; run `34659926225` **verde**.
+- `88629bcecbe04256f77d292e6137af014f9acfa3` sincronizó el estado canónico de G2: tareas 5/7/8 cerradas, S09 cerrado y S10 activo; G2 sigue abierto por 1/9.
+- `3175a2bf894286abae68a2aa309282c7384657c4` registró en `VALIDATION.md` la evidencia ejecutada de S09 y sustituyó el gap físico obsoleto por la deuda arquitectónica real.
+- Entre la pasada prepared limpia `05e8ad9…` y este cierre canónico no hubo cambios de producción; sólo endurecimiento/nombrado de tests y documentación/CI-trigger bookkeeping.
 
 ## 7. Criterio de cierre
 
@@ -225,6 +228,6 @@ S09 cierra con:
 5. contacto sólo intermedio detectado sin inventar contacto final;
 6. fronteras de budget con outcome observable, sin mutación parcial ni deuda lógica;
 7. ausencia de scan mundial y de segundo solver;
-8. suite ordinaria final verde, lane preparada final verde y pasada posterior sin cambios de producción.
+8. suite ordinaria final verde, lane preparada final verde y pasada posterior sobre el estado canónico consistente sin cambios de producción.
 
 **S09 COMPLETADO.**
