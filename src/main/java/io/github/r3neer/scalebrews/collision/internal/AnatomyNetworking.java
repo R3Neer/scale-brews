@@ -1,7 +1,5 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
-
 import java.util.*;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -14,6 +12,16 @@ public final class AnatomyNetworking {
     private static final Map<MinecraftServer,Long> REVISIONS=Collections.synchronizedMap(new WeakHashMap<>());
     public static long revision(MinecraftServer server){return REVISIONS.getOrDefault(server,0L);}
     public static UUID epoch(MinecraftServer server){return EPOCHS.computeIfAbsent(server,s->UUID.randomUUID());}
+    /** Server publication fence advances when a revision is accepted, never when the first recipient happens to join. */
+    public static void acceptCatalogRevision(MinecraftServer server,long revision) {
+        Objects.requireNonNull(server,"server");
+        if(revision<0)throw new IllegalArgumentException("Negative catalog revision");
+        synchronized(REVISIONS) {
+            long current=REVISIONS.getOrDefault(server,0L);
+            if(revision<current)throw new IllegalArgumentException("Catalog revision rollback");
+            REVISIONS.put(server,revision);
+        }
+    }
     public static void initialize(){
         PayloadTypeRegistry.clientboundPlay().register(AnatomyCatalogPayload.TYPE,AnatomyCatalogPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyPosePayload.TYPE,AnatomyPosePayload.CODEC);
@@ -40,13 +48,16 @@ public final class AnatomyNetworking {
         if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose protocol v4");
         ServerPlayNetworking.send(recipient,posePayload(frame));
     }
-    public static void sendCatalog(ServerPlayer player,long revision,Map<String,ModelGeometry> models) {
-        sendCatalog(player,revision,models,Map.of());
-    }
-    public static void sendCatalog(ServerPlayer player,long revision,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
+    /** Hot recipient path: packets were serialized, hashed and fragmented when the revision was accepted. */
+    public static void sendCatalog(ServerPlayer player,List<AnatomyCatalogPayload> packets) {
+        Objects.requireNonNull(player,"player");Objects.requireNonNull(packets,"packets");
         if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE))throw new IllegalStateException("Client lacks anatomy catalog protocol v3");
-        UUID epoch=epoch(player.level().getServer());
-        for(var packet:AnatomyCatalogTransfer.encode(epoch,revision,models,profiles))ServerPlayNetworking.send(player,packet);
-        REVISIONS.merge(player.level().getServer(),revision,Math::max);
+        if(packets.isEmpty())throw new IllegalArgumentException("Missing prepared catalog packets");
+        var server=player.level().getServer();UUID expectedEpoch=epoch(server);long expectedRevision=revision(server);
+        for(var packet:packets) {
+            if(packet==null || !expectedEpoch.equals(packet.epoch()) || packet.revision()!=expectedRevision)
+                throw new IllegalArgumentException("Prepared catalog packets do not match accepted server revision");
+            ServerPlayNetworking.send(player,packet);
+        }
     }
 }
