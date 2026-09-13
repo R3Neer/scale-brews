@@ -1,6 +1,6 @@
 # S16 — Canonical catalog authority
 
-Estado: **CERRADO — 2026-09-13**.
+Estado: **REABIERTO — holdout adversarial post-cierre 2026-09-13**.
 
 ## Tesis
 
@@ -53,7 +53,7 @@ La ejecución precomputada existente se conserva mediante un bridge acotado, sin
 8. Los tres IDs de compatibilidad legacy todavía no estaban registrados en `CollisionEngines`.
 9. El bundle S15 ya tenía ownership correcto y debía conservarse.
 
-## Estado final
+## Estado final objetivo
 
 - `WorldAnatomyCatalog` almacena modelos, `CollisionBindingCatalog` y sólo el subconjunto ejecutable por el bridge precomputado; no almacena `PlatformDefinition`.
 - `scalebrews/entity_collision` entra directamente como binding canónico y la anatomía legacy cruza una migración explícita antes de publicación.
@@ -67,11 +67,12 @@ La ejecución precomputada existente se conserva mediante un bridge acotado, sin
 - La ruta de policy/elegibilidad consulta el binding vivo y una sesión anatómica activa falla cerrada antes de cualquier fallback Living Platforms.
 - Los registros manuales/prepared pueden heredar únicamente la policy canónica de la revisión aceptada mediante `AnatomyRuntime.catalogBinding(...)`, sin convertirse en bindings causales runtime.
 - La tabla temporal `Platforms.anatomicalDefinitions(...)` desapareció por completo.
+- **Todo binding del candidato, incluido un selector variant todavía no ejecutable, valida las referencias que pertenecen al bridge antes de la publicación atómica.**
 
 ## Plan de implementación convergido
 
 - [x] **I1** Registrar los tres IDs de compatibilidad de `LegacyCollisionData` en los registries públicos de engines de forma idempotente y transitoria, sin fallback general.
-- [x] **I2** Reestructurar `WorldAnatomyCatalog` sobre `CollisionBindingCatalog`, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y publicación live.
+- [ ] **I2** Reestructurar `WorldAnatomyCatalog` sobre `CollisionBindingCatalog`, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y publicación live, y validar el candidato canónico completo antes del swap.
 - [x] **I3** Añadir carga canónica `scalebrews/entity_collision` y migración legacy explícita antes de aceptación.
 - [x] **I4** Mantener un bridge precomputado limitado a `precomputed_geometry + legacy_pose_provider + entity_root`; el resto queda aceptado pero no ejecutable.
 - [x] **I5** Cambiar `AnatomyCatalogTransfer` a `{models, bindings}` y preservar selectors en orden canónico.
@@ -81,7 +82,7 @@ La ejecución precomputada existente se conserva mediante un bridge acotado, sin
 - [x] **I9** Migrar `AnatomyClientNetworking` a bindings canónicos y retirar lifecycle basado en `Platforms.anatomicalDefinitions(...)`.
 - [x] **I10** Migrar seams y fixtures (`startPrepared`, `encode`, digests) para que cualquier entrada legacy convierta antes de cruzar la frontera autoritativa.
 - [x] **I11** Retirar callers/imports muertos de `PlatformDefinition.anatomy()` en catálogo, red, runtime y cliente.
-- [x] **I12** Ejecutar ordinary, lane focal y revisión adversarial hasta una pasada final sin cambios de producción.
+- [ ] **I12** Ejecutar ordinary, lane focal y revisión adversarial hasta una pasada final sin cambios de producción.
 
 ## Revisión iterativa de implementación
 
@@ -101,19 +102,29 @@ Tras retirar la tabla temporal, la policy necesitaba viajar con el mismo lifecyc
 
 El holdout final de policy demostró que un provider manual dentro de una sesión `startPrepared` podía perder la policy canónica y volver a depender del contexto legacy global. `3a3503b1cba944933eaaf3cf010e8be981ed7d8d` sustituyó los helpers duplicados de policy por el seam estrecho `catalogBinding(...)`; el registro manual toma esa selección canónica sin adquirir descriptor causal ni ejecución runtime.
 
+### Quinta reapertura — selector variant elude validación integral
+
+El holdout adversarial `variantBridgeReferencesMustValidateBeforeAtomicPublication`, añadido en `e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`, construye un binding del bridge precomputado con selector variant no vacío y referencia a un modelo inexistente. La implementación actual sólo valida el resultado de `canonical.resolve(entity, Map.of())`; como el selector variant no coincide con el selector vacío, el binding inválido no entra en `references` y el candidato se publica.
+
+Esto viola FR-033 y FR-036: que el estado variant vivo quede fuera de S16 no convierte sus datos declarativos en una zona sin validar. El catálogo candidato debe validarse completo antes de hacerse visible, aunque determinados selectors todavía no sean ejecutables en runtime.
+
+Evidencia roja: focal S16 run **34753107721**, job **103712855904** sobre `e3e49ac2...`: compilación correcta, **1/6 required GameTests failed**, exactamente el nuevo holdout. La aserción falla porque `catalog.replace(...)` acepta el candidato en lugar de rechazarlo. El cierre automático posterior basado en la evidencia anterior queda por tanto invalidado.
+
 ### Revisión final
 
-Después de `3a3503b1...` sólo hubo cleanup de helpers/workflows temporales y reruns de evidencia. La revisión final de `WorldAnatomyCatalog`, `AnatomyCatalogTransfer`, `AnatomyRuntime`, `AnatomyClientNetworking`, `AnatomyBindingState`, `AnatomyMovement` y `Platforms` no produjo otro cambio de producción.
+Pendiente. La revisión que concluyó en `0b7a8940...` quedó invalidada por la quinta reapertura. Debe repetirse después de reparar la validación del candidato completo y de dejar verde el holdout sin rebajarlo.
 
-## Evidencia de cierre
+## Evidencia de cierre anterior, ahora invalidada
 
-Snapshot de evidencia: `0b7a8940e783f3b8e08128f9d95fa04688376e79`.
+Snapshot de evidencia anterior: `0b7a8940e783f3b8e08128f9d95fa04688376e79`.
 
 - ordinary run **34752369790**, job **103710940047**: **398/398 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315852333**, SHA-256 **a1de8633e76ed2df2516b47fe549a83e4aff5eaf208765cca34088db4737f036**.
-- focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**, incluido protocol v4, ausencia de autoridad `PlatformDefinition`, wire canónico, no promoción de legacy planes y policy canónica prepared; artifact **10316377128**, SHA-256 **429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205**.
-- Los holdouts adversariales permanecieron intactos; las reparaciones cambiaron implementación/fixtures obsoletos, no relajaron requisitos.
+- focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**; artifact **10316377128**, SHA-256 **429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205**.
+- adversarial post-cierre run **34753107721**, job **103712855904**: **1/6 required S16 GameTests failed** sobre `e3e49ac2...`; el candidato variant-only con modelo inexistente fue publicado cuando debía rechazarse.
 
-Esta evidencia no cierra G3.3–G3.12: no prueba todavía engines generales ModelPart/pose/root, coverage scanner, lifecycle completo ni prediction/reconciliation.
+Las dos primeras ejecuciones siguen siendo evidencia histórica útil, pero ya no satisfacen el criterio de cierre vigente porque no contenían el holdout post-cierre.
+
+Esta reapertura no amplía S16 a G3.3–G3.12: sigue sin probar engines generales ModelPart/pose/root, coverage scanner, lifecycle completo ni prediction/reconciliation.
 
 ## Criterio de cierre
 
@@ -121,7 +132,7 @@ Esta evidencia no cierra G3.3–G3.12: no prueba todavía engines generales Mode
 2. [x] el wire v4 transporta bindings canónicos y conserva atomicidad/replay fences;
 3. [x] la ejecución precomputada existente sigue verde mediante un bridge explícito, no mediante fallback;
 4. [x] bindings futuros no ejecutables fallan cerrados sin impedir su conservación canónica;
-5. [x] ordinary + lane focal + holdouts adversariales quedan verdes;
-6. [x] la revisión completa final produce cero cambios de producción.
+5. [ ] todos los selectors del candidato validan sus referencias aplicables antes del swap, y ordinary + lane focal + holdouts adversariales quedan verdes;
+6. [ ] la revisión completa final produce cero cambios de producción después de la reparación.
 
-**S16 queda cerrado. G3 continúa con las tareas 3–12; la siguiente implementación debe abrir un sprint nuevo, no ampliar S16.**
+**S16 permanece abierto. G3 tarea 1 no vuelve a marcarse cerrada hasta que el holdout `variantBridgeReferencesMustValidateBeforeAtomicPublication` quede verde sin relajación y se renueve la evidencia final.**
