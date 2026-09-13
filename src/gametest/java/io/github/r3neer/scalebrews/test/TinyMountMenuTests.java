@@ -18,7 +18,7 @@ public class TinyMountMenuTests {
         var menu = new TinyMountMenu(0, player.getInventory(), chicken);
         h.assertTrue(menu.getSlot(0).isActive() && menu.getSlot(0).mayPlace(new ItemStack(Items.SADDLE)),
                 "Chicken saddle slot is available");
-        h.assertFalse(menu.getSlot(1).isActive(), "Chicken armor slot is absent");
+        h.assertFalse(menu.hasBodyEquipment() || menu.getSlot(1).isActive(), "Chicken BODY slot is absent");
         menu.getSlot(0).setByPlayer(new ItemStack(Items.SADDLE));
         h.assertTrue(chicken.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
                 "Chicken menu writes the same saddle equipment slot used by riding/rendering");
@@ -40,20 +40,20 @@ public class TinyMountMenuTests {
         h.succeed();
     }
 
-    @GameTest public void wolfMenuUsesOwnerProtectedWolfArmor(GameTestHelper h) {
+    @GameTest public void wolfMenuUsesConfiguredOwnerProtectedBodyEquipment(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var stranger = h.makeMockPlayer(GameType.SURVIVAL);
         var wolf = h.spawn(EntityTypes.WOLF, 1, 2, 1);
         wolf.tame(owner);
         var ownerMenu = new TinyMountMenu(0, owner.getInventory(), wolf);
-        h.assertTrue(ownerMenu.hasWolfArmor() && ownerMenu.getSlot(1).isActive(), "Wolf exposes body armor slot");
-        h.assertTrue(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.WOLF_ARMOR)), "Owner can equip wolf armor");
-        h.assertFalse(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.IRON_HORSE_ARMOR)), "Horse armor is rejected");
+        h.assertTrue(ownerMenu.hasBodyEquipment() && ownerMenu.getSlot(1).isActive(), "Wolf data exposes BODY slot");
+        h.assertTrue(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.WOLF_ARMOR)), "Owner can equip configured wolf armor");
+        h.assertFalse(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.IRON_HORSE_ARMOR)), "Unconfigured horse armor is rejected");
         ownerMenu.getSlot(1).setByPlayer(new ItemStack(Items.WOLF_ARMOR));
-        h.assertTrue(wolf.getItemBySlot(EquipmentSlot.BODY).is(Items.WOLF_ARMOR), "Wolf armor uses native BODY equipment");
+        h.assertTrue(wolf.getItemBySlot(EquipmentSlot.BODY).is(Items.WOLF_ARMOR), "Configured body item uses native BODY equipment");
         var strangerMenu = new TinyMountMenu(1, stranger.getInventory(), wolf);
         h.assertFalse(strangerMenu.getSlot(1).mayPlace(new ItemStack(Items.WOLF_ARMOR))
-                || strangerMenu.getSlot(1).mayPickup(stranger), "Borrowed wolf armor remains owner-protected");
+                || strangerMenu.getSlot(1).mayPickup(stranger), "Borrowed tameable BODY equipment remains owner-protected");
         h.succeed();
     }
 }
