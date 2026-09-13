@@ -77,7 +77,7 @@ public final class PoseProgramEvaluator {
         for (var part : geometry.parts()) {
             aliases.computeIfAbsent(part.id(), ignored -> new ArrayList<>()).add(part.id());
             String simple = part.id().substring(part.id().lastIndexOf('/') + 1);
-            aliases.computeIfAbsent(simple, ignored -> new ArrayList<>()).add(part.id());
+            if (!simple.equals(part.id())) aliases.computeIfAbsent(simple, ignored -> new ArrayList<>()).add(part.id());
         }
         Map<String, String> resolved = new LinkedHashMap<>();
         for (var track : program.tracks()) {
