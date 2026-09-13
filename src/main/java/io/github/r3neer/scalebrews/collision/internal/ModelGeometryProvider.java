@@ -52,6 +52,12 @@ public final class ModelGeometryProvider implements GeometryProvider {
     public ModelGeometryProvider(ModelGeometry geometry,PoseEngine poses,AnatomyFilter filter,long revision) {
         this(geometry,bind(geometry,poses,Map.of()),filter,revision);
     }
+    /** Pure/test compatibility seam. The evaluator is bound immediately and carries no catalog/resource lookup. */
+    public ModelGeometryProvider(ModelGeometry geometry,
+            java.util.function.BiFunction<ModelGeometry,PoseEngine.Inputs,Optional<Map<String,Matrix4f>>> poses,
+            AnatomyFilter filter,long revision) {
+        this(geometry,(PoseEngine.Bound)(inputs->poses.apply(geometry,inputs)),filter,revision);
+    }
     /** Procedural/source compatibility constructor with immutable engine parameters. */
     public ModelGeometryProvider(ModelGeometry geometry,PoseEngine poses,Map<String,String> poseParameters,AnatomyFilter filter,long revision) {
         this(geometry,bind(geometry,poses,poseParameters),filter,revision);
