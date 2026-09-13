@@ -28,12 +28,12 @@ public final class PoseProgramEvaluator {
             for (var track : program.tracks()) {
                 String partId = parts.get(track.bone());
                 if (partId == null) return Optional.empty();
-                var sampled = sample(track, time);
+                var sampled = scale(sample(track, time), amplitude);
                 var accumulator = accumulators.computeIfAbsent(partId, ignored -> new Accumulator());
                 switch (track.target()) {
-                    case TRANSLATION -> accumulator.translation = scale(sampled, amplitude);
-                    case ROTATION -> accumulator.rotation = scale(sampled, amplitude);
-                    case SCALE -> accumulator.scale = scale(sampled, amplitude);
+                    case TRANSLATION -> accumulator.translation = add(accumulator.translation, sampled);
+                    case ROTATION -> accumulator.rotation = add(accumulator.rotation, sampled);
+                    case SCALE -> accumulator.scale = add(accumulator.scale, sampled);
                 }
             }
             Map<String, Matrix4f> out = new LinkedHashMap<>();
@@ -48,12 +48,15 @@ public final class PoseProgramEvaluator {
                 var rotation = rest.getUnnormalizedRotation(new Quaternionf()).normalize();
                 var value = entry.getValue();
                 if (value.translation != null) {
-                    position.add(value.translation.x(), value.translation.y(), value.translation.z());
+                    // ModelPart position fields are pixel-space; translateAndRotate applies /16.
+                    position.add(value.translation.x() / 16f, value.translation.y() / 16f, value.translation.z() / 16f);
                 }
                 if (value.rotation != null) {
+                    // Mojang keyframe rotation vectors are already radians.
                     rotation.mul(new Quaternionf().rotationZYX(value.rotation.z(), value.rotation.y(), value.rotation.x()));
                 }
                 if (value.scale != null) {
+                    // Mojang scale vectors are additive deltas around 1.0.
                     baseScale.mul(1 + value.scale.x(), 1 + value.scale.y(), 1 + value.scale.z());
                     if (!(baseScale.x > 0 && baseScale.y > 0 && baseScale.z > 0)) return Optional.empty();
                 }
@@ -120,6 +123,10 @@ public final class PoseProgramEvaluator {
                 yield catmull(p0, a.postTarget(), b.preTarget(), p3, t);
             }
         };
+    }
+
+    private static PoseProgram.Vector add(PoseProgram.Vector a, PoseProgram.Vector b) {
+        return a == null ? b : new PoseProgram.Vector(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
     }
 
     private static PoseProgram.Vector scale(PoseProgram.Vector value, float scale) {
