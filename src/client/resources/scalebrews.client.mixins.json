@@ -16,7 +16,9 @@
     "TinySaddleRendererMixin",
     "ExampleClientMixin",
     "ScaleCameraMixin",
-    "WolfChargeBarMixin"
+    "WolfChargeBarMixin",
+    "WolfPounceRenderMixin",
+    "WolfPounceCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1

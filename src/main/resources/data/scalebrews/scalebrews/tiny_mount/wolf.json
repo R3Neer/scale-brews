@@ -4,7 +4,7 @@
   "saddle": true,
   "control": "direct",
   "movement": "ground",
-  "speed": 0.3,
+  "speed": 0.2,
   "ability": "wolf_pounce",
   "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/wolf.png", "anchor": "body" }
 }

@@ -3,6 +3,7 @@ package io.github.r3neer.scalebrews.client.mixin;
 import io.github.r3neer.scalebrews.client.render.MountPoseState;
 import io.github.r3neer.scalebrews.client.render.SaddleState;
 import io.github.r3neer.scalebrews.client.render.RiderPoseState;
+import io.github.r3neer.scalebrews.client.render.WolfPounceVisualState;
 import org.joml.Matrix4fc;
 import io.github.r3neer.scalebrews.mount.TinyMountDefinition;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -10,13 +11,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(LivingEntityRenderState.class)
-public class TinySaddleStateMixin implements SaddleState, RiderPoseState, MountPoseState {
+public class TinySaddleStateMixin implements SaddleState, RiderPoseState, MountPoseState, WolfPounceVisualState {
     @Unique private TinyMountDefinition.SaddleVisual scalebrews$visual;
     @Unique private SaddleState.SaddlePose scalebrews$saddlePose;
     @Unique private Matrix4fc scalebrews$riderPose;
     @Unique private int scalebrews$entityId;
     @Unique private boolean scalebrews$hasPassengers;
     @Unique private String scalebrews$mountAnchor;
+    @Unique private float scalebrews$wolfScaleX = 1, scalebrews$wolfScaleY = 1, scalebrews$wolfScaleZ = 1;
 
     public Matrix4fc scalebrews$riderPose() { return scalebrews$riderPose; }
     public void scalebrews$riderPose(Matrix4fc pose) { scalebrews$riderPose = pose; }
@@ -30,4 +32,10 @@ public class TinySaddleStateMixin implements SaddleState, RiderPoseState, MountP
     public void scalebrews$hasPassengers(boolean value) { scalebrews$hasPassengers = value; }
     public String scalebrews$mountAnchor() { return scalebrews$mountAnchor; }
     public void scalebrews$mountAnchor(String anchor) { scalebrews$mountAnchor = anchor; }
+    public float scalebrews$wolfScaleX() { return scalebrews$wolfScaleX; }
+    public float scalebrews$wolfScaleY() { return scalebrews$wolfScaleY; }
+    public float scalebrews$wolfScaleZ() { return scalebrews$wolfScaleZ; }
+    public void scalebrews$wolfScale(float x, float y, float z) {
+        scalebrews$wolfScaleX = x; scalebrews$wolfScaleY = y; scalebrews$wolfScaleZ = z;
+    }
 }

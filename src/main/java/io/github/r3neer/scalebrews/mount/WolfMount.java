@@ -2,7 +2,11 @@ package io.github.r3neer.scalebrews.mount;
 
 import io.github.r3neer.scalebrews.integration.gravity.GravityFrames;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Player;
@@ -23,13 +27,28 @@ public final class WolfMount {
         Vec3 previous;
     }
     private WolfMount() {}
+
     public static boolean enabled(Wolf wolf) {
         var d = TinyMounts.definition(wolf);
         return d != null && d.ability() == TinyMountDefinition.Ability.WOLF_POUNCE;
     }
+
     public static boolean permits(Wolf wolf, Player player) {
         return wolf.isTame() && wolf.getTarget() != player;
     }
+
+    /** Full pounce charge cuts sustained running speed in half; tap attacks remain unaffected. */
+    public static float chargeSpeedMultiplier(int heldTicks) {
+        double t = Math.clamp((heldTicks - 3) / 7.0, 0, 1);
+        double smooth = t * t * (3 - 2 * t);
+        return (float)(1 - .5 * smooth);
+    }
+
+    public static float riddenSpeedMultiplier(Wolf wolf) {
+        State state = STATES.get(wolf);
+        return state == null ? 1 : chargeSpeedMultiplier(state.held);
+    }
+
     public static void initialize() {
         ServerLivingEntityEvents.AFTER_DAMAGE.register((victim, source, base, taken, blocked) -> {
             if (taken <= 0) return;
@@ -40,6 +59,7 @@ public final class WolfMount {
                 betray(command.wolf, command.rider, victim);
         });
     }
+
     private static void betray(Wolf wolf, Player rider, LivingEntity victim) {
         if (!wolf.isOwnedBy(victim) || wolf.isOwnedBy(rider) || rider.getVehicle() != wolf) return;
         rider.stopRiding();
@@ -51,6 +71,7 @@ public final class WolfMount {
         wolf.setLastHurtByMob(rider);
         wolf.setTarget(rider);
     }
+
     public static void tick(Wolf wolf) {
         if (wolf.level().isClientSide()) return;
         if (COMMAND_POSES.contains(wolf) && !wolf.swinging) {
@@ -70,10 +91,13 @@ public final class WolfMount {
                     if (TinyMounts.controller(wolf) != rider) return; }
             }
             state.previous = wolf.position();
+            Vec3 landingVelocity = wolf.getDeltaMovement();
             if (--state.flight == 0 || wolf.onGround()) {
                 state.flight = 0;
-                if (wolf.onGround())
+                if (wolf.onGround()) {
+                    landingFeedback(wolf, landingVelocity.length());
                     wolf.setDeltaMovement(GravityFrames.frame(wolf).keepLocalVertical(wolf.getDeltaMovement()));
+                }
             }
         }
         boolean jump = TinyMounts.input(rider).jump();
@@ -84,8 +108,8 @@ public final class WolfMount {
                 var end = start.add(rider.getLookAngle().scale(1.4 * wolf.getScale()));
                 LivingEntity target = target(wolf, rider, start, end);
                 if (target != null) attack(wolf, rider, target);
-                else animateAttack(wolf); // A commanded bite can miss and still animate.
-                state.cooldown = 20; // Vanilla melee goal attack interval.
+                else animateAttack(wolf);
+                state.cooldown = 20;
             } else {
                 double charge = Math.min(1, state.held * .1);
                 Vec3 localVelocity = launchVelocity(rider.getYRot(), rider.getXRot(), Math.clamp(charge, 0, 1));
@@ -101,12 +125,12 @@ public final class WolfMount {
         if (!jump) state.held = 0;
         state.previousJump = jump;
     }
+
     /** Returns the pounce in gravity-local coordinates; callers choose the current world frame. */
     public static Vec3 launchVelocity(float yawDegrees, float pitchDegrees, double charge) {
         double pitch = Math.toRadians(Math.clamp(pitchDegrees, -55, 55));
         double yaw = Math.toRadians(yawDegrees);
         double up = Math.clamp(.32 - Math.sin(pitch) * .65, -.16, .48) * (.55 + .45 * charge);
-        // Match the vanilla airborne gravity/drag trajectory, then choose horizontal speed for the envelope.
         double y = 0, vertical = up, drag = 1, distancePerSpeed = 0;
         for (int tick = 0; tick < 40; tick++) {
             y += vertical;
@@ -118,6 +142,7 @@ public final class WolfMount {
         double horizontal = Math.min(.85, (1 + 4 * charge) * Math.cos(pitch) / distancePerSpeed);
         return new Vec3(-Math.sin(yaw) * horizontal, up, Math.cos(yaw) * horizontal);
     }
+
     private static LivingEntity target(Wolf wolf, Player rider, Vec3 from, Vec3 to) {
         double reach = .35 * wolf.getScale();
         var box = wolf.getBoundingBox().move(from.subtract(wolf.position())).expandTowards(to.subtract(from)).inflate(reach);
@@ -133,6 +158,7 @@ public final class WolfMount {
             return bounds.contains(a) || bounds.clip(a, b).isPresent();
         }).stream().min(Comparator.comparingDouble(candidate -> candidate.distanceToSqr(from))).orElse(null);
     }
+
     public static boolean attack(Wolf wolf, Player rider, LivingEntity target) {
         if (TinyMounts.controller(wolf) != rider || !(wolf.level() instanceof ServerLevel level)) return false;
         animateAttack(wolf);
@@ -141,13 +167,30 @@ public final class WolfMount {
         try { return wolf.doHurtTarget(level, target); }
         finally { if (previous == null) COMMAND.remove(); else COMMAND.set(previous); }
     }
+
     private static void animateAttack(Wolf wolf) {
-        // Same tracked animation packet as MeleeAttackGoal; packs can consume swing_progress.
         wolf.swing(InteractionHand.MAIN_HAND);
-        // Native melee AI also sets this synced pose flag. Do not create anger or an AI target.
         if (!wolf.isAggressive()) {
             wolf.setAggressive(true);
             COMMAND_POSES.add(wolf);
         }
+    }
+
+    private static void landingFeedback(Wolf wolf, double impactSpeed) {
+        if (!(wolf.level() instanceof ServerLevel level) || impactSpeed < .05) return;
+        var frame = GravityFrames.frame(wolf);
+        Vec3 surface = wolf.position().add(frame.toWorld(0, -.25 * wolf.getScale(), 0));
+        var ground = level.getBlockState(BlockPos.containing(surface));
+        if (ground.isAir()) return;
+        int count = Math.clamp((int)Math.round(10 + impactSpeed * 12), 10, 22);
+        double radius = .28 + Math.min(.22, impactSpeed * .18);
+        var dust = new BlockParticleOption(ParticleTypes.BLOCK, ground);
+        for (int i = 0; i < count; i++) {
+            double angle = i * Math.PI * 2 / count;
+            Vec3 offset = frame.toWorld(Math.cos(angle) * radius, .03, Math.sin(angle) * radius);
+            Vec3 point = wolf.position().add(offset);
+            level.sendParticles(dust, point.x, point.y, point.z, 1, .035, .025, .035, .015);
+        }
+        wolf.playSound(SoundEvents.GENERIC_SMALL_FALL, .45F, .85F);
     }
 }
