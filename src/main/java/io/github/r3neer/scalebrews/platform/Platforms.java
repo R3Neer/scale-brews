@@ -33,13 +33,6 @@ public final class Platforms {
 
     private static final Map<Level,Double> MARGINS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Entity,PlatformDefinition> AUTOMATIC=Collections.synchronizedMap(new WeakHashMap<>());
-    private static final Map<Level,Map<Identifier,PlatformDefinition>> ANATOMICAL_DEFINITIONS=Collections.synchronizedMap(new WeakHashMap<>());
-    public static void anatomicalDefinitions(Level level,Collection<PlatformDefinition> profiles) {
-        Map<Identifier,PlatformDefinition> indexed=new HashMap<>();
-        for(var profile:profiles)if(indexed.putIfAbsent(profile.entity(),profile)!=null)throw new IllegalArgumentException("Duplicate anatomical species "+profile.entity());
-        ANATOMICAL_DEFINITIONS.put(level,Map.copyOf(indexed));
-    }
-    public static void clearAnatomicalDefinitions(Level level){ANATOMICAL_DEFINITIONS.remove(level);}
     /** @deprecated Use {@link CollisionAdapters#registerBody(Identifier, BodyAdapter)}. */
     @Deprecated
     public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { CollisionAdapters.registerBody(type, adapter); }
@@ -77,8 +70,6 @@ public final class Platforms {
         // Happy Ghast owns its vanilla platform/parking mechanics. Multipart dragon physics are not ordinary bodies.
         if (!(support instanceof LivingEntity living) || support instanceof net.minecraft.world.entity.animal.happyghast.HappyGhast
                 || support instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return null;
-        var anatomical=ANATOMICAL_DEFINITIONS.get(support.level());
-        if(anatomical!=null)return anatomical.get(BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()));
         var registry = support.registryAccess().lookup(DEFINITIONS).orElse(null);
         if (registry == null) return null;
         var id=BuiltInRegistries.ENTITY_TYPE.getKey(support.getType());
