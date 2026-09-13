@@ -1,10 +1,12 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.*;
+import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -18,6 +20,12 @@ import static io.github.r3neer.scalebrews.test.S00Fixtures.*;
 /** Real replica ownership with explicit geometric fixtures; not a packet/reconciliation proof. */
 public final class S00ObserverBoundaryTests implements FabricClientGameTest {
     private static final Vec3 UP=new Vec3(0,1,0),POINT=new Vec3(.5,1,.5),DELTA=new Vec3(.125,0,0);
+    private static CollisionBinding observerBinding() {
+        return new CollisionBinding(CollisionBinding.SCHEMA_VERSION,Identifier.parse("minecraft:cow"),Map.of(),
+            new CollisionBinding.Geometry(Identifier.parse("test:s00_geometry"),MODEL,Map.of(),AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(STATIC,Map.of(),Set.of()),Identifier.parse("test:s00_root"),
+            new CollisionPolicy.Patch(Optional.empty(),Optional.of(2d),Optional.of(.6)),Set.of());
+    }
     private static final class Provider implements GeometryProvider {
         final LivingEntity support;
         final double height;
@@ -56,15 +64,13 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
                 var level=client.level;var base=(LivingEntity)level.getEntity(baseId.get());var body=(LivingEntity)level.getEntity(bodyId.get());
                 check(!AnatomyMovement.simulates(body) && AnatomyMovement.simulates(client.player),"Fixture does not distinguish owner from remote observer");
                 var problems=new ArrayList<String>();var oldPlayer=client.player.position();var initialBody=body.position();
-                AnatomyMovement.activate(level);
-                Platforms.anatomicalDefinitions(level,List.of(new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(2.0),List.of(),
-                    Optional.of(new AnatomyDefinition(MODEL,STATIC,AnatomyFilter.DEFAULT)))));
+                AnatomyMovement.activate(level);var binding=observerBinding();
                 try {
                     for(int scenario=0;scenario<2;scenario++) {
                         AnatomyMovement.clear(body);AnatomyMovement.clear(client.player);body.setPos(initialBody);
                         var baseProvider=new Provider(base,3.5);var bodyProvider=new Provider(body,2);
                         var descriptor=new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,scenario+1);
-                        AnatomyMovement.register(base,baseProvider,descriptor);AnatomyMovement.register(body,bodyProvider,descriptor);
+                        AnatomyMovement.register(base,baseProvider,descriptor,binding);AnatomyMovement.register(body,bodyProvider,descriptor,binding);
                         var surface=new SurfaceContact(base.getUUID(),1,"piece",3,POINT,UP,level.getGameTime());
                         check(Platforms.eligible(body,base),"Observer fixture is ineligible: body="+body.position()+" base="+base.position()+" ratio="+(body.getBbWidth()/base.getBbWidth()));
                         var diagnosticFrame=AnatomyMovement.queryFrame(base).orElseThrow(()->new AssertionError("Observer fixture has no current base frame"));
@@ -85,7 +91,7 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
                         if(!body.position().equals(before))problems.add(scenario==0?"Observer direct carry moved a server-owned root":"Owner carry recursively moved its server-owned support");
                     }
                 }finally{
-                    Platforms.clearAnatomicalDefinitions(level);AnatomyMovement.deactivate(level);client.player.setPos(oldPlayer);body.setPos(initialBody);
+                    AnatomyMovement.deactivate(level);client.player.setPos(oldPlayer);body.setPos(initialBody);
                 }
                 if(!problems.isEmpty())throw new AssertionError(String.join("; ",problems));
             });
