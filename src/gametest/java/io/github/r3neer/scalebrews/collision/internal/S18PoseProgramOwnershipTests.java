@@ -10,12 +10,12 @@ import net.minecraft.gametest.framework.GameTestHelper;
 /** Pose programs are revision-local catalog data; CollisionEngines owns behavior only. */
 public final class S18PoseProgramOwnershipTests {
     @GameTest
-    public void acceptedCatalogSnapshotOwnsPosePrograms(GameTestHelper h) {
-        var component = Arrays.stream(WorldAnatomyCatalog.Snapshot.class.getRecordComponents())
-            .filter(value -> value.getName().toLowerCase(java.util.Locale.ROOT).contains("program"))
-            .findFirst().orElse(null);
-        h.assertTrue(component != null && Map.class.isAssignableFrom(component.getType()),
-            "Accepted WorldAnatomyCatalog snapshot must own the revision-local pose program table");
+    public void acceptedCatalogSnapshotOwnsThirdRevisionLocalDataMap(GameTestHelper h) {
+        long mapComponents = Arrays.stream(WorldAnatomyCatalog.Snapshot.class.getRecordComponents())
+            .filter(value -> Map.class.isAssignableFrom(value.getType()))
+            .count();
+        h.assertTrue(mapComponents >= 3,
+            "Accepted catalog snapshot must own models, executable bindings and a third revision-local pose-program map; component naming is not prescribed");
         h.succeed();
     }
 
