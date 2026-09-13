@@ -1,9 +1,12 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
+import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
+import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.*;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -12,6 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
@@ -86,10 +90,10 @@ public final class AnatomyRuntime {
         var state=new State(server);state.catalog.reload(server.getResourceManager());
         STATES.put(server,state);reset(server,state);
     }
-    /** Preparation harness supplies already exported server-side data, never a player upload. */
+    /** Preparation harness supplies released data only at this explicit migration seam, never as live authority. */
     public static void startPrepared(MinecraftServer server,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
         if(STATES.containsKey(server))throw new IllegalStateException("Anatomical runtime already running");
-        var state=new State(server);state.catalog.replace(models,profiles);
+        var state=new State(server);state.catalog.replace(models,LegacyAnatomyCatalogMigration.bindings(profiles));
         STATES.put(server,state);reset(server,state);
     }
     public static void reload(MinecraftServer server) {
@@ -105,7 +109,6 @@ public final class AnatomyRuntime {
         // Materialize the immutable packet list now so the first player does no catalog preparation work.
         state.catalog.preparedPackets(AnatomyNetworking.epoch(server));
         for(var level:server.getAllLevels()){
-            Platforms.anatomicalDefinitions(level,snapshot.profiles().values());
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepare(level);
         }
         for(var player:server.getPlayerList().getPlayers())catalog(state,player);
@@ -113,17 +116,15 @@ public final class AnatomyRuntime {
     public static void stop(MinecraftServer server) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
         AnatomyTransportReceipts.clear(server);
-        if(STATES.remove(server)!=null)for(var level:server.getAllLevels()){
-            AnatomyMovement.deactivate(level);Platforms.clearAnatomicalDefinitions(level);
-        }
+        if(STATES.remove(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);
     }
     /** Server half of {@link AnatomySession}: running catalog session, not an own-support test. */
-    public static boolean owns(net.minecraft.world.entity.Entity entity) {
+    public static boolean owns(Entity entity) {
         var server=entity.level().getServer();
         return server!=null && STATES.containsKey(server) && AnatomyMovement.active(entity);
     }
     /**
-     * Internal support-binding ownership, intentionally narrower than {@link #owns(net.minecraft.world.entity.Entity)}.
+     * Internal support-binding ownership, intentionally narrower than {@link #owns(Entity)}.
      * A prepared/running session must not suppress the fixture/local fallback for a manually registered support;
      * only a support present in the runtime's active binding table has certified material intervals to own its carry.
      */
@@ -132,7 +133,44 @@ public final class AnatomyRuntime {
         var state=server==null?null:STATES.get(server);
         return state!=null && state.entities.containsKey(support);
     }
-    public static boolean ready(net.minecraft.world.entity.Entity entity) {
+    /** True only for a support selected by the accepted canonical catalog and executable bridge. */
+    public static boolean hasBinding(LivingEntity support) { return support!=null && owns(support); }
+
+    /** Canonical policy authority for an active anatomical support. No PlatformDefinition participates here. */
+    public static boolean eligible(Entity body,LivingEntity support) {
+        if(body==null || support==null || body==support || body.level()!=support.level()
+                || !Platforms.ordinary(body) || !Platforms.ordinary(support))return false;
+        var server=support.level().getServer();var state=server==null?null:STATES.get(server);
+        var active=state==null?null:state.entities.get(support);if(active==null)return false;
+        var category=Platforms.category(body);if(category==null)return false;
+        double ratio=body.getBbWidth()/(double)support.getBbWidth();
+        if(!Double.isFinite(ratio) || ratio<=0)return false;
+        var rule=policy(body,support,active,category);
+        if(!rule.enabled() || ratio>rule.maxWidthRatio())return false;
+        Entity ancestor=support;Set<Entity> seen=Collections.newSetFromMap(new IdentityHashMap<>());
+        while(ancestor!=null) {
+            if(ancestor==body || !seen.add(ancestor))return false;
+            var anatomical=AnatomyMovement.contact(ancestor);
+            ancestor=anatomical==null?Platforms.state(ancestor).support:anatomical.support();
+        }
+        return true;
+    }
+
+    /** Canonical material coefficient for the currently active support; missing authority preserves vanilla input. */
+    public static double friction(Entity body,LivingEntity support,double original) {
+        if(body==null || support==null || body.level()!=support.level())return original;
+        var server=support.level().getServer();var state=server==null?null:STATES.get(server);
+        var active=state==null?null:state.entities.get(support);if(active==null)return original;
+        var category=Platforms.category(body);if(category==null)return original;
+        return policy(body,support,active,category).friction();
+    }
+
+    private static CollisionPolicy.Rule policy(Entity body,LivingEntity support,Active active,String category) {
+        var global=LegacyCollisionData.policy(Platforms.policy(body.level()));
+        return CollisionRules.resolve(global,active.binding().selection().policy(),category,active.binding().selection().entity());
+    }
+
+    public static boolean ready(Entity entity) {
         var server=entity.level().getServer();
         if(server==null)return false;
         var state=STATES.get(server);
@@ -166,15 +204,14 @@ public final class AnatomyRuntime {
         var server=entity.level().getServer();if(server==null)return false;
         var state=STATES.get(server);if(state==null)return false;
         var active=state.entities.get(entity);if(active==null)return false;
-        var identity=handle.identity();
-        var definition=active.binding().policy().anatomy().orElse(null);
-        return definition!=null && identity.matches(entity)
+        var identity=handle.identity();var selection=active.binding().selection();
+        return identity.matches(entity)
             && identity.bindingGeneration()==active.bindingGeneration()
             && identity.localRegistrationGeneration()==AnatomyMovement.registrationGeneration(entity)
             && identity.epoch().equals(AnatomyNetworking.epoch(server))
             && identity.revision()==state.catalog.snapshot().revision()
-            && identity.model().equals(definition.model())
-            && identity.poseProvider().equals(definition.poses());
+            && identity.model().equals(selection.geometry().model())
+            && identity.poseProvider().equals(selection.pose().engine());
     }
     /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
     public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
@@ -194,14 +231,14 @@ public final class AnatomyRuntime {
         var snapshot=state.catalog.snapshot();
         for(var entity:level.getAllEntities())if(entity instanceof LivingEntity living && !state.entities.containsKey(living)) {
             var binding=snapshot.bindings().get(BuiltInRegistries.ENTITY_TYPE.getKey(living.getType()));
-            if(binding==null || !binding.policy().enabled())continue;
-            var definition=binding.policy().anatomy().orElseThrow();
-            var provider=new ModelGeometryProvider(binding.model(),binding.poses(),definition.filter(),snapshot.revision())
-                .serverDriven(e->AnatomyPoseEligibility.supported(definition.poses(),e));
+            if(binding==null || binding.selection().policy().enabled().orElse(true)==false)continue;
+            var selection=binding.selection();
+            var provider=new ModelGeometryProvider(binding.model(),binding.poses(),selection.geometry().filter(),snapshot.revision())
+                .serverDriven(e->AnatomyPoseEligibility.supported(binding.legacyPoseProvider(),e));
             long bindingGeneration=state.allocateBindingGeneration();
             state.entities.put(living,new Active(binding,provider,bindingGeneration));
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
-                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),definition.model(),definition.poses(),bindingGeneration));
+                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration));
         }
     }
     public static void publish(ServerLevel level) {
@@ -220,7 +257,7 @@ public final class AnatomyRuntime {
             for(var player:interested)contact(body,player,false);
         }
     }
-    private static void contact(net.minecraft.world.entity.Entity body,ServerPlayer recipient,boolean force) {
+    private static void contact(Entity body,ServerPlayer recipient,boolean force) {
         var state=STATES.get(recipient.level().getServer());if(state==null || !catalog(state,recipient)
                 || !ServerPlayNetworking.canSend(recipient,AnatomyContactPayload.TYPE))return;
         var surface=AnatomyMovement.surface(body);
@@ -248,13 +285,13 @@ public final class AnatomyRuntime {
         return Math.incrementExact(current);
     }
     /** Current recipient/body tracking generation for a server receipt; never client authority. */
-    public static long trackingGeneration(ServerPlayer recipient,net.minecraft.world.entity.Entity body) {
+    public static long trackingGeneration(ServerPlayer recipient,Entity body) {
         if(recipient==null || body==null)return 1;
         var state=STATES.get(recipient.level().getServer());
         return state==null?1:generation(state,recipient,body.getUUID());
     }
     /** Clear with the current generation before STOP advances the next START generation. */
-    private static void clearContact(State state,net.minecraft.world.entity.Entity body,ServerPlayer recipient) {
+    private static void clearContact(State state,Entity body,ServerPlayer recipient) {
         if(!catalog(state,recipient) || !ServerPlayNetworking.canSend(recipient,AnatomyContactPayload.TYPE))return;
         long generation=generation(state,recipient,body.getUUID());
         var known=state.contacts.computeIfAbsent(recipient,ignored->new HashMap<>());var old=known.get(body.getUUID());
