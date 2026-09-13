@@ -25,7 +25,7 @@ public final class S18AnimationDefinitionSemanticClientTests implements FabricCl
     @Override
     public void runTest(ClientGameTestContext context) {
         context.runOnClient(client -> {
-            var definition = fixtureDefinition();
+            var definition = fixtureDefinition(false);
             var program = AnimationDefinitionCompiler.compile(SOURCE, VERSION, definition);
             check(program.durationSeconds() == definition.lengthInSeconds() && program.loop() == definition.looping(),
                 "Compiler must preserve duration/loop metadata");
@@ -37,17 +37,16 @@ public final class S18AnimationDefinitionSemanticClientTests implements FabricCl
             var bound = PoseProgramEvaluator.bind(baseline, program).orElseThrow();
 
             for (float amplitude : new float[]{.35f, 1f}) {
-                for (float seconds : new float[]{0f, .25f, .75f, .999f, 1f, 1.25f, 1.75f, 2f}) {
-                    var nativeRoot = CowModel.createBodyLayer().bakeRoot();
-                    definition.bake(nativeRoot).apply((long)Math.floor(seconds * 1000), amplitude);
-                    var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
-                    var nativeHead = partMatrix(nativeGeometry, "root/head");
-                    var neutralHead = bound.evaluate(baseline, seconds, amplitude).orElseThrow().get("root/head");
-                    check(neutralHead != null, "Neutral evaluator must publish the animated head transform");
-                    compare(nativeHead, neutralHead, 3e-5f,
-                        "AnimationDefinition parity seconds=" + seconds + " amplitude=" + amplitude);
-                }
+                for (float seconds : new float[]{0f, .25f, .75f, .999f, 1f, 1.25f, 1.75f, 2f})
+                    compareNative(definition, baseline, bound, seconds, amplitude, "clamped");
             }
+
+            var looping = fixtureDefinition(true);
+            var loopProgram = AnimationDefinitionCompiler.compile(SOURCE, VERSION, looping);
+            check(loopProgram.loop(), "Compiler must preserve looping=true");
+            var loopBound = PoseProgramEvaluator.bind(baseline, loopProgram).orElseThrow();
+            for (float seconds : new float[]{2.25f, 4.25f, 5.75f})
+                compareNative(looping, baseline, loopBound, seconds, .6f, "looping");
 
             boolean customTargetRejected = false;
             try {
@@ -75,12 +74,24 @@ public final class S18AnimationDefinitionSemanticClientTests implements FabricCl
             }
             check(customInterpolationRejected, "Unknown AnimationDefinition interpolation must fail preparation instead of being approximated");
 
-            System.out.println("S18_ANIMATION_DEFINITION PASS original Minecraft 26.2 parity and fail-closed compiler");
+            System.out.println("S18_ANIMATION_DEFINITION PASS original Minecraft 26.2 parity, loop wrap and fail-closed compiler");
         });
     }
 
-    private static AnimationDefinition fixtureDefinition() {
-        return new AnimationDefinition(2f, false, Map.of("head", List.of(
+    private static void compareNative(AnimationDefinition definition, ModelGeometry baseline,
+                                      PoseProgramEvaluator.Bound bound, float seconds, float amplitude, String mode) {
+        var nativeRoot = CowModel.createBodyLayer().bakeRoot();
+        definition.bake(nativeRoot).apply((long)Math.floor(seconds * 1000), amplitude);
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+        var nativeHead = partMatrix(nativeGeometry, "root/head");
+        var neutralHead = bound.evaluate(baseline, seconds, amplitude).orElseThrow().get("root/head");
+        check(neutralHead != null, "Neutral evaluator must publish the animated head transform");
+        compare(nativeHead, neutralHead, 3e-5f,
+            "AnimationDefinition " + mode + " parity seconds=" + seconds + " amplitude=" + amplitude);
+    }
+
+    private static AnimationDefinition fixtureDefinition(boolean loop) {
+        return new AnimationDefinition(2f, loop, Map.of("head", List.of(
             new AnimationChannel(AnimationChannel.Targets.POSITION,
                 new Keyframe(0f, KeyframeAnimations.posVec(0, 0, 0), AnimationChannel.Interpolations.LINEAR),
                 new Keyframe(1f, KeyframeAnimations.posVec(4, 0, 0), KeyframeAnimations.posVec(8, 0, 0), AnimationChannel.Interpolations.LINEAR),
