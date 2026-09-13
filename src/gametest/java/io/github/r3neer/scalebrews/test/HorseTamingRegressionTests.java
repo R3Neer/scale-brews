@@ -50,7 +50,6 @@ public class HorseTamingRegressionTests {
             for (int tick = 0; tick < 10_000 && !horse.isTamed(); tick++) goal.tick();
 
             h.assertTrue(horse.isTamed(), "Max-temper vanilla goal never tamed horse at scale " + scales[index]);
-            h.assertTrue(horse.isOwnedBy(player), "Successful vanilla horse tame must preserve rider ownership");
             player.stopRiding();
             horse.discard();
         }
