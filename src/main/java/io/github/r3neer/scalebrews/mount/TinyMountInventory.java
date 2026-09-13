@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-/** Registration and server opening seam for tiny-mount equipment menus. */
+/** Registration and server opening seam for inventory-bearing Tiny Mount families. */
 public final class TinyMountInventory {
     public static final ExtendedMenuType<TinyMountMenu, Integer> MENU = Registry.register(
             BuiltInRegistries.MENU,
@@ -24,8 +24,12 @@ public final class TinyMountInventory {
     private TinyMountInventory() {}
     public static void initialize() {}
 
+    public static boolean canOpen(Player player, Mob mount) {
+        return player.getVehicle() == mount && mount.isAlive() && TinyMounts.hasMountInventory(mount);
+    }
+
     public static void open(ServerPlayer player, Mob mount) {
-        if (player.getVehicle() != mount || TinyMounts.definition(mount) == null || !mount.isAlive()) return;
+        if (!canOpen(player, mount)) return;
         player.openMenu(new ExtendedMenuProvider<Integer>() {
             @Override public Integer getScreenOpeningData(ServerPlayer ignored) { return mount.getId(); }
             @Override public Component getDisplayName() { return mount.getDisplayName(); }
