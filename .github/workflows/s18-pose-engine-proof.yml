@@ -20,7 +20,9 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18RuntimePoseEngineBoundaryTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramOwnershipTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseEngineSpiCompatibilityTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramExecutionTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionCompilerClientTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionSemanticClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
       - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
@@ -50,7 +52,8 @@ jobs:
             'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineBehaviorTests',
             'io.github.r3neer.scalebrews.collision.internal.S18RuntimePoseEngineBoundaryTests',
             'io.github.r3neer.scalebrews.collision.internal.S18PoseProgramOwnershipTests',
-            'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineSpiCompatibilityTests'
+            'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineSpiCompatibilityTests',
+            'io.github.r3neer.scalebrews.collision.internal.S18PoseProgramExecutionTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
@@ -84,7 +87,10 @@ jobs:
           from pathlib import Path
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S18AnimationDefinitionCompilerClientTests']
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionCompilerClientTests',
+            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests'
+          ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: run S18 client compiler boundary proof
