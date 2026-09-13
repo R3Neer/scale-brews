@@ -1,10 +1,10 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 
 import java.util.*;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,28 +13,26 @@ import org.joml.Matrix4f;
 
 /** Common original-model evaluator. Pose channels are supplied by authority, never by a renderer. */
 public final class ModelGeometryProvider implements GeometryProvider {
-    // Vanilla Entity equality is network-ID based; all reusable provider caches need identity keys.
     private static <V> Map<LivingEntity,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,V>makeMap());}
     private final ModelGeometry geometry;
-    private final PoseProvider poses;
+    private final PoseEngine poses;
+    private final Map<String,String> poseParameters;
     private final AnatomyFilter filter;
     private final long revision;
-    private final Map<LivingEntity,PoseProvider.Inputs> channels=entityMap();
+    private final Map<LivingEntity,PoseEngine.Inputs> channels=entityMap();
     private final Map<LivingEntity,Cached> cache=entityMap();
-    /** Two immutable authority-joint endpoints per support, independent of root TRS rebuilds. */
-    private record JointEndpoint(PoseProvider.Inputs inputs,Optional<Map<String,Matrix4f>> transforms) {}
+    private record JointEndpoint(PoseEngine.Inputs inputs,Optional<Map<String,Matrix4f>> transforms) {}
     private static final class JointEndpoints {JointEndpoint previous,current;}
     private final Map<LivingEntity,JointEndpoints> jointCache=entityMap();
     private final Map<LivingEntity,Trajectory> trajectories=entityMap();
     private record TickFrame(long tick,AnatomyPoseHistory.Sample sample) {}
-    /** Immutable endpoint captured by {@link #tick}, never reconstructed from live entity state. */
     public record AuthoritativeFrame(long tick,AnatomyPoseHistory.Sample sample) {
         public AuthoritativeFrame {
             if(tick<0 || sample==null)throw new IllegalArgumentException("Invalid authoritative frame");
         }
     }
     /** Compatibility view while callers migrate to the complete immutable endpoint. */
-    @Deprecated public record AuthoritativeInputs(long tick,PoseProvider.Inputs inputs) {}
+    @Deprecated public record AuthoritativeInputs(long tick,PoseEngine.Inputs inputs) {}
     private final Map<LivingEntity,TickFrame> tickFrames=entityMap();
     private final Map<LivingEntity,Optional<MotionSnapshot>> tickMotions=entityMap();
     private static final class Trajectory {
@@ -47,16 +45,20 @@ public final class ModelGeometryProvider implements GeometryProvider {
     private long evaluations,jointEvaluations;
     private final AuthorityPoseTracker authority=new AuthorityPoseTracker();
     private java.util.function.Predicate<LivingEntity> poseEligibility;
-    private record Key(PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale,GravityFrame gravity) {}
+    private record Key(PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,GravityFrame gravity) {}
     private record Cached(Key key,Optional<Snapshot> snapshot) {}
-    public ModelGeometryProvider(ModelGeometry geometry,PoseProvider poses,AnatomyFilter filter,long revision) {
+
+    public ModelGeometryProvider(ModelGeometry geometry,PoseEngine poses,AnatomyFilter filter,long revision) {
+        this(geometry,poses,Map.of(),filter,revision);
+    }
+    public ModelGeometryProvider(ModelGeometry geometry,PoseEngine poses,Map<String,String> poseParameters,AnatomyFilter filter,long revision) {
         this.geometry=Objects.requireNonNull(geometry);this.poses=Objects.requireNonNull(poses);
-        this.filter=Objects.requireNonNull(filter);
+        this.poseParameters=Map.copyOf(Objects.requireNonNull(poseParameters));this.filter=Objects.requireNonNull(filter);
         if(revision<0)throw new IllegalArgumentException("Invalid geometry revision");
         this.revision=revision;
     }
-    public void pose(LivingEntity entity,PoseProvider.Inputs input){channels.put(entity,input);}
-    public Optional<PoseProvider.Inputs> inputs(LivingEntity entity){return Optional.ofNullable(channels.get(entity));}
+    public void pose(LivingEntity entity,PoseEngine.Inputs input){channels.put(entity,input);}
+    public Optional<PoseEngine.Inputs> inputs(LivingEntity entity){return Optional.ofNullable(channels.get(entity));}
     public ModelGeometryProvider serverDriven(java.util.function.Predicate<LivingEntity> eligibility) {
         poseEligibility=Objects.requireNonNull(eligibility);return this;
     }
@@ -70,9 +72,6 @@ public final class ModelGeometryProvider implements GeometryProvider {
         var inputs=channels.get(entity);
         if(inputs==null){tickFrames.remove(entity);tickMotions.remove(entity);return;}
         var frame=new AnatomyPoseHistory.Sample(inputs,entity.position(),entity.yBodyRot,entity.getScale(),AnatomyMovement.gravity(entity));
-        // Material Q1 endpoints may later replace only root TRS in this tick.
-        // Cache the authority joint endpoint now, so that queryFrame/sampleAt
-        // rebuilds convexes with the captured root without advancing joints.
         joints(entity,inputs);
         if(previous!=null && previous.tick()+1==tick && previous.sample().gravity().equals(frame.gravity()))
             tickMotions.put(entity,motionBetween(entity,previous.sample(),frame).map(m->new MotionSnapshot(revision,previous.tick(),tick,
@@ -85,10 +84,6 @@ public final class ModelGeometryProvider implements GeometryProvider {
         if(frame!=null && frame.tick()==entity.level().getGameTime())return tickMotions.getOrDefault(entity,Optional.empty());
         return Optional.empty();
     }
-    /**
-     * Certifies exactly the two captured frames carried by the handle. The entity
-     * is only an identity cache key for joint endpoints; its live root/TRS is never read.
-     */
     @Override public Optional<MotionSnapshot> interval(LivingEntity entity,MotionIntervalHandle handle) {
         if(entity==null || handle==null || !handle.identity().matches(entity) || handle.identity().revision()!=revision
                 || handle.before().snapshot().revision()!=revision || handle.after().snapshot().revision()!=revision)
@@ -96,32 +91,22 @@ public final class ModelGeometryProvider implements GeometryProvider {
         return motionBetween(entity,handle.before().sample(),handle.after().sample()).map(m->new MotionSnapshot(revision,
             handle.before().authorityTick(),handle.after().authorityTick(),handle.before().root().origin(),handle.after().root().origin(),m.pieces()));
     }
-    /**
-     * Last server authority frame for this bound support. Reading it never
-     * samples joints, advances the tracker, or substitutes render state.
-     */
     public Optional<AuthoritativeFrame> authoritativeFrame(LivingEntity entity) {
         var frame=tickFrames.get(entity);
         return frame==null?Optional.empty():Optional.of(new AuthoritativeFrame(frame.tick(),frame.sample()));
     }
-    /** @deprecated Consumers need origin/yaw/scale/gravity from {@link #authoritativeFrame}. */
     @Deprecated public Optional<AuthoritativeInputs> authoritativeInputs(LivingEntity entity) {
         return authoritativeFrame(entity).map(frame->new AuthoritativeInputs(frame.tick(),frame.sample().inputs()));
     }
-    /** Convex/root rebuilds; distinct from deterministic joint-channel evaluation. */
     public long evaluations(){return evaluations;}
-    /** Number of pose-provider evaluations, bounded to one per cached authority input endpoint. */
     public long jointEvaluations(){return jointEvaluations;}
-    /** Diagnostics for the two-frame per-support joint retention bound. */
     public int cachedJointEndpoints(LivingEntity entity) {
         synchronized(jointCache) {
             var endpoints=jointCache.get(entity);
             return endpoints==null?0:(endpoints.previous==null?0:1)+(endpoints.current==null?0:1);
         }
     }
-    /** Catalog revision captured with this immutable model/provider binding. */
     public long revision(){return revision;}
-    /** Same joint-space trajectory as continuous collision; cached per support and sample time. */
     public Optional<Snapshot> sampleInterpolated(LivingEntity entity,AnatomyPoseHistory history,double tick) {
         if(!entity.isAlive() || history.current()==null || history.current().revision()!=revision)return Optional.empty();
         var segment=history.segment(tick);var trajectory=trajectories.get(entity);
@@ -138,10 +123,6 @@ public final class ModelGeometryProvider implements GeometryProvider {
         }
         return trajectory.sample;
     }
-    /**
-     * Current-only presentation seam. cacheKey selects cached joints and is never
-     * observed for live root TRS; endpoint.sample is the complete authority frame.
-     */
     public Optional<HierarchyMotion.EvaluatedFrame> evaluatePresentation(LivingEntity cacheKey,GeometryProvider.CausalEndpoint endpoint) {
         if(cacheKey==null || endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return Optional.empty();
         var sample=endpoint.sample();var transforms=joints(cacheKey,sample.inputs());
@@ -151,11 +132,9 @@ public final class ModelGeometryProvider implements GeometryProvider {
         try {return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,sample.origin(),sample.origin(),filter).evaluate(1));}
         catch(RuntimeException rejectedGeometry) {return Optional.empty();}
     }
-    /** The physical interpolation is joint TRS between authoritative endpoint poses, not matrix lerp. */
     public Optional<HierarchyMotion> motionBetween(AnatomyPoseHistory.Sample before,AnatomyPoseHistory.Sample after) {
         return motionBetween(before,after,evaluateJoints(before.inputs()),evaluateJoints(after.inputs()));
     }
-    /** Physical path: retain only the two authority endpoints needed by this support. */
     public Optional<HierarchyMotion> motionBetween(LivingEntity entity,AnatomyPoseHistory.Sample before,AnatomyPoseHistory.Sample after) {
         return motionBetween(before,after,joints(entity,before.inputs()),joints(entity,after.inputs()));
     }
@@ -173,7 +152,6 @@ public final class ModelGeometryProvider implements GeometryProvider {
         if(inputs==null || !entity.isAlive())return Optional.empty();
         return sampleAt(entity,new AnatomyPoseHistory.Sample(inputs,entity.position(),entity.yBodyRot,entity.getScale(),AnatomyMovement.gravity(entity)));
     }
-    /** Evaluates an authoritative/interpolated frame without consulting client animation or position. */
     public Optional<Snapshot> sampleAt(LivingEntity entity,AnatomyPoseHistory.Sample frame) {
         if(!entity.isAlive())return Optional.empty();
         var inputs=frame.inputs();
@@ -186,7 +164,6 @@ public final class ModelGeometryProvider implements GeometryProvider {
         var transforms=joints(entity,inputs);
         Optional<Snapshot> snapshot=Optional.empty();
         if(transforms.isPresent()) {
-            // Renderer-specific scale/offset is exported data, not guessed from entity dimensions.
             Matrix4f root=frame.gravity().matrix().rotateY((float)Math.toRadians(180-frame.yaw()))
                 .scale(scale).mul(ModelGeometry.matrix(geometry.modelTransform()));
             Map<String,ConvexBox> pieces=new LinkedHashMap<>();
@@ -198,7 +175,7 @@ public final class ModelGeometryProvider implements GeometryProvider {
         cache.put(entity,new Cached(key,snapshot));
         return snapshot;
     }
-    private Optional<Map<String,Matrix4f>> joints(LivingEntity entity,PoseProvider.Inputs inputs) {
+    private Optional<Map<String,Matrix4f>> joints(LivingEntity entity,PoseEngine.Inputs inputs) {
         synchronized(jointCache) {
             var endpoints=jointCache.computeIfAbsent(entity,ignored->new JointEndpoints());
             if(endpoints.current!=null && endpoints.current.inputs().equals(inputs))return endpoints.current.transforms();
@@ -207,15 +184,14 @@ public final class ModelGeometryProvider implements GeometryProvider {
             endpoints.previous=endpoints.current;endpoints.current=endpoint;return endpoint.transforms();
         }
     }
-    /** Standalone proof has no support identity; runtime callers retain per-support endpoints. */
-    private Optional<Map<String,Matrix4f>> evaluateJoints(PoseProvider.Inputs inputs) {
+    private Optional<Map<String,Matrix4f>> evaluateJoints(PoseEngine.Inputs inputs) {
         jointEvaluations++;
         try {
-            var evaluated=poses.evaluate(geometry,inputs);
+            var evaluated=poses.evaluate(geometry,inputs,poseParameters);
             if(evaluated==null || evaluated.isEmpty())return Optional.empty();
             Map<String,Matrix4f> copy=new LinkedHashMap<>();
             evaluated.get().forEach((id,matrix)->copy.put(id,new Matrix4f(matrix)));
-            geometry.transforms(copy); // Validate known joints and complete hierarchy before caching.
+            geometry.transforms(copy);
             return Optional.of(Collections.unmodifiableMap(copy));
         } catch(RuntimeException rejectedPose) {return Optional.empty();}
     }
