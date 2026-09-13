@@ -65,8 +65,15 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
             context.waitTicks(12);
             context.runOnClient(client -> assertHorseRiderPose(client, false));
-            context.getInput().holdKeyFor(options -> options.keyJump, 6);
-            context.waitTicks(2);
+
+            // This acceptance targets rendering, not the horse-jump input state machine. Force the
+            // native rearing flag on the client so the vanilla model deterministically animates body.
+            context.runOnClient(client -> {
+                if (!(client.player.getVehicle() instanceof net.minecraft.world.entity.animal.equine.Horse horse))
+                    throw new AssertionError("Horse acceptance fixture lost its rider before animation");
+                horse.setStanding(20);
+            });
+            context.waitTicks(6);
             context.runOnClient(client -> assertHorseRiderPose(client, true));
             context.takeScreenshot("scale-brews-horse-animated-rider");
         }
@@ -80,7 +87,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
         if (pose == null) throw new AssertionError("Native horse did not publish a rider attachment pose");
         if (requireMotion) {
             float stand = horse.getStandAnim(1);
-            if (stand <= .02F) throw new AssertionError("Horse jump charge did not enter animated standing pose");
+            if (stand <= .02F) throw new AssertionError("Forced native horse standing pose did not animate");
             var moved = pose.transformPosition(new Vector3f(0, 0, 1));
             if (moved.distance(new Vector3f(0, 0, 1)) <= .001F)
                 throw new AssertionError("Animated horse body did not move the rider attachment");
