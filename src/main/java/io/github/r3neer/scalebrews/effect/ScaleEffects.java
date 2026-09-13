@@ -28,7 +28,7 @@ public final class ScaleEffects {
             .addAttributeModifier(
                 Attributes.ENTITY_INTERACTION_RANGE,
                 ScaleBrews.id("effect.growth.entity_interaction_range"),
-                0.50,
+                0.30,
                 AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             )
             .addAttributeModifier(
@@ -73,13 +73,13 @@ public final class ScaleEffects {
             .addAttributeModifier(
                 Attributes.BLOCK_INTERACTION_RANGE,
                 ScaleBrews.id("effect.shrinking.block_interaction_range"),
-                -0.12,
+                -0.10,
                 AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             )
             .addAttributeModifier(
                 Attributes.ENTITY_INTERACTION_RANGE,
                 ScaleBrews.id("effect.shrinking.entity_interaction_range"),
-                -0.12,
+                -0.10,
                 AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             )
             .addAttributeModifier(
