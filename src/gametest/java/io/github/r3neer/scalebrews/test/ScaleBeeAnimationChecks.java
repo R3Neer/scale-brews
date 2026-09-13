@@ -2,7 +2,7 @@ package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.client.render.SaddleState;
 import io.github.r3neer.scalebrews.client.render.RiderPoseState;
-import io.github.r3neer.scalebrews.client.render.BeeRiderPose;
+import io.github.r3neer.scalebrews.client.render.MountRiderPose;
 import io.github.r3neer.scalebrews.client.mixin.LivingRendererAccess;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Vector3f;
@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.entity.BeeRenderer;
 import net.minecraft.client.renderer.entity.state.BeeRenderState;
 import net.minecraft.world.entity.animal.bee.Bee;
 
-/** Real renderer snapshots and injected model animation, with an actual synchronized passenger. */
+/** Renderer snapshots plus shared attachment-transform math with an actual synchronized passenger. */
 public final class ScaleBeeAnimationChecks {
     private ScaleBeeAnimationChecks() {}
 
@@ -58,27 +58,23 @@ public final class ScaleBeeAnimationChecks {
                         frame.scale(-1, -1, 1);
                         ((LivingRendererAccess)renderer).scalebrews$scale(state, frame);
                         frame.translate(0, -1.501F, 0);
+                        var outer = new org.joml.Matrix4f(frame.last().pose());
                         model.root().translateAndRotate(frame);
-                        var base = new org.joml.Matrix4f(frame.last().pose());
+                        var rootFrame = new org.joml.Matrix4f(frame.last().pose());
                         bone.translateAndRotate(frame);
                         var animated = new org.joml.Matrix4f(frame.last().pose());
                         bone.loadPose(rest);
                         var reference = new PoseStack();
-                        reference.mulPose(base);
+                        reference.mulPose(rootFrame);
                         bone.translateAndRotate(reference);
                         model.setupAnim(state);
-                        var delta = BeeRiderPose.bodyDelta(renderer, state);
+                        var delta = MountRiderPose.delta(outer, model.root(), bone);
                         for (var point : new Vector3f[]{new Vector3f(), new Vector3f(.2F, -.3F, .1F)}) {
                             var resting = reference.last().pose().transformPosition(new Vector3f(point));
                             var expected = animated.transformPosition(new Vector3f(point));
                             var actual = delta.transformPosition(new Vector3f(resting));
                             if (actual.distance(expected) > .00001F)
-                                throw new AssertionError("Rider did not follow the saddle body frame");
-                            var offset = new net.minecraft.world.phys.Vec3(.2, .7, -.1);
-                            var local = resting.sub(.2F, .7F, -.1F);
-                            BeeRiderPose.atPassenger(delta, offset).transformPosition(local).add(.2F, .7F, -.1F);
-                            if (local.distance(expected) > .00001F)
-                                throw new AssertionError("Passenger-relative pivot is incorrect");
+                                throw new AssertionError("Shared rider transform did not follow the animated body frame");
                         }
                     }
                 }
