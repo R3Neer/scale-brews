@@ -2,6 +2,16 @@
 
 Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.
 
+## Baseline adversarial rojo — 2026-09-13
+
+El baseline final pre-implementación queda fijado en **`0258c6c619d2815afe91bcb96343d6e67998f3b0`**. Todos los commits desde la apertura de S18 hasta ese snapshot son documentación, tests o CI; no hay cambios productivos S18.
+
+- Ordinary run **`34756921522`**, job **`103722768191`**: **407/407 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10317093981`**, SHA-256 **`e1849077cade02d41604b8c59b312c150951869e4cd0ee84edc5dd1373ccf16b`**. Esto demuestra que los holdouts S18 están aislados de la suite ordinaria y que todo el source set compila.
+- Focal S18 run **`34756921526`**, common job **`103722768203`**: 13 tests totales = 12 holdouts S18 + `minecraft:always_pass`; **11 holdouts S18 rojos**, 1 S18 verde y el sentinel verde. El único contrato S18 ya satisfecho antes de implementar es que `CollisionEngines` no expone almacenamiento global de pose programs. Los rojos restantes corresponden exactamente a las deudas declaradas: engines vanilla todavía legacy, DTO live duplicado, registry `PoseProviders`, runtime dependiente de `PoseProvider`, ausencia de `mojang_keyframes`, snapshot sin programs y protocolo/bundle aún v4. Artifact **`10317187330`**, SHA-256 **`450048830cc2d5d850a0db972cdbadf514a4ba708de84e314da79989a62adc1b`**.
+- Mismo focal run, client job **`103722768285`**: main/client/GameTest compilan y Minecraft 26.2 arranca realmente bajo Xvfb; el job cae **únicamente** en `S18AnimationDefinitionCompilerClientTests` porque todavía no existe una ruta `client.collision.preparation` que lea `AnimationDefinition` y emita un programa neutral. Artifact **`10317897787`**, SHA-256 **`58552d93b1a122a815539043d4453c773969a729d92e492d4492933472767cf9`**. El ruido headless de narrator/flite, ALSA/OpenAL y servicios de cuenta es ambiental y no es la causa contractual del rojo.
+
+Este baseline es intencionadamente red-before-green. No autoriza a rebajar ningún oracle: la implementación debe volver verdes esas fronteras preservando el ordinary 407/407 o superior.
+
 ## Tesis
 
 S18 cierra G3 tarea 4: convertir las fórmulas vanilla que hoy viven detrás de `PoseProvider/PoseProviders` en **`PoseEngine` canónicos**, con una sola autoridad de comportamiento, y añadir un engine general `scalebrews:mojang_keyframes` capaz de ejecutar en common/dedicated un programa neutral exportado desde `AnimationDefinition`.
