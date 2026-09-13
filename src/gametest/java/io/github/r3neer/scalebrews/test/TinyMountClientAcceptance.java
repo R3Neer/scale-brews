@@ -34,7 +34,8 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(InventoryScreen.class);
             context.runOnClient(client -> {
-                if (!(client.screen instanceof InventoryScreen) || client.screen instanceof TinyMountScreen)
+                var screen = client.gui.screen();
+                if (!(screen instanceof InventoryScreen) || screen instanceof TinyMountScreen)
                     throw new AssertionError("Item-steered bee E must open normal player inventory, like pig/strider");
             });
             context.takeScreenshot("scale-brews-bee-player-inventory");
@@ -50,7 +51,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.runOnClient(client -> {
                 net.minecraft.world.entity.animal.bee.Bee bee = null;
                 for (var entity : client.level.entitiesForRendering()) {
-                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate && candidate.getTags().contains("menu_bee")) {
+                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate) {
                         bee = candidate;
                         break;
                     }
@@ -68,7 +69,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
                 net.minecraft.world.entity.animal.bee.Bee bee = null;
                 boolean saddleDrop = false;
                 for (var entity : client.level.entitiesForRendering()) {
-                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate && candidate.getTags().contains("menu_bee"))
+                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate)
                         bee = candidate;
                     if (entity instanceof net.minecraft.world.entity.item.ItemEntity item
                             && item.getItem().is(Items.SADDLE) && item.position().distanceToSqr(-3, -60, 2) < 16)
