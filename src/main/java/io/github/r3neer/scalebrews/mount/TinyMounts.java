@@ -120,13 +120,9 @@ public final class TinyMounts {
         boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
 
         // DIRECT can copy Camel's secondary-use inventory grammar exactly. TAMEABLE_DIRECT keeps
-        // Crouch+Use as its mount gesture, but an equipment-in-hand secondary use is unambiguously
-        // management intent and opens the same family menu without introducing another JSON switch.
-        boolean externalInventoryGesture = player.isSecondaryUseActive() && family.hasInventory()
-                && (family == TinyMountDefinition.Family.DIRECT
-                    || (family == TinyMountDefinition.Family.TAMEABLE_DIRECT && familyTamed(mob, definition)
-                        && (holdingSaddle || matchesBodyEquipment(definition, held))));
-        if (externalInventoryGesture && TinyMountInventory.canOpen(player, mob)) {
+        // Crouch+Use as its existing mount gesture so wolf sitting/feeding can remain on normal Use.
+        if (family == TinyMountDefinition.Family.DIRECT && player.isSecondaryUseActive()
+                && TinyMountInventory.canOpen(player, mob)) {
             if (!mob.level().isClientSide() && player instanceof ServerPlayer serverPlayer)
                 TinyMountInventory.open(serverPlayer, mob);
             return InteractionResult.SUCCESS;
