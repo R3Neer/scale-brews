@@ -1,0 +1,79 @@
+name: s16-fixture-migration
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s16-fixture-migration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-fixtures:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+      - name: migrate legacy catalog assertions to canonical bindings
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace(path, old, new, expected=1):
+              p = Path(path)
+              text = p.read_text()
+              found = text.count(old)
+              if found != expected:
+                  raise SystemExit(f"{path}: expected {expected} occurrences, found {found}: {old}")
+              p.write_text(text.replace(old, new))
+
+          host = 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyHostCatalogIndependenceProof.java'
+          replace(host,
+              'digest(accepted.snapshot().models(),accepted.snapshot().profiles())',
+              'AnatomyCatalogTransfer.encode(UUID.fromString("00000000-0000-0000-0000-000000000001"),1,accepted.snapshot().models(),accepted.snapshot().catalog().bindings()).getFirst().digest()')
+          replace(host,
+              'digest(transfer.snapshot().models(),transfer.snapshot().profiles())',
+              'AnatomyCatalogTransfer.encode(UUID.fromString("00000000-0000-0000-0000-000000000001"),1,transfer.snapshot().models(),transfer.snapshot().catalog().bindings()).getFirst().digest()')
+
+          export = 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
+          replace(export,
+              'catalog.snapshot().profiles().size()!=1 || io.github.r3neer.scalebrews.platform.Platforms.definition(entity)==null || io.github.r3neer.scalebrews.platform.Platforms.definition(entity).anatomy().isEmpty()',
+              'catalog.snapshot().catalog().bindings().size()!=1 || catalog.snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()))==null')
+
+          geometry = 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyGeometryTests.java'
+          replace(geometry,
+              'AnatomyCatalogTransfer.encode(java.util.UUID.randomUUID(),accepted.revision(),accepted.models(),accepted.profiles())',
+              'AnatomyCatalogTransfer.encode(java.util.UUID.randomUUID(),accepted.revision(),accepted.models(),accepted.catalog().bindings())')
+          replace(geometry,
+              'receiver.snapshot().models().equals(accepted.models()) && receiver.snapshot().profiles().equals(accepted.profiles())',
+              'receiver.snapshot().models().equals(accepted.models()) && receiver.snapshot().catalog().bindings().equals(accepted.catalog().bindings())')
+          replace(geometry,
+              'receiver.snapshot().bindings().get(net.minecraft.resources.Identifier.parse("minecraft:cow")).policy().friction()==.4',
+              'receiver.snapshot().bindings().get(net.minecraft.resources.Identifier.parse("minecraft:cow")).selection().policy().friction().orElseThrow()==.4')
+          replace(geometry,
+              'world.replace(java.util.Map.of("test:alternate",model),java.util.Map.of("test:cow",profile))',
+              'world.replace(java.util.Map.of("test:alternate",model),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",profile)))')
+          replace(geometry,
+              'world.replace(java.util.Map.of(),java.util.Map.of("test:cow",profile))',
+              'world.replace(java.util.Map.of(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",profile)))')
+          replace(geometry,
+              'world.replace(accepted.models(),java.util.Map.of("test:a",profile,"test:b",profile))',
+              'world.replace(accepted.models(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:a",profile,"test:b",profile)))')
+          replace(geometry,
+              'world.replace(accepted.models(),java.util.Map.of("test:cow",unknownProfile))',
+              'world.replace(accepted.models(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",unknownProfile)))')
+      - name: commit migrated fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --exit-code --quiet && { echo 'No fixture changes produced'; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyHostCatalogIndependenceProof.java \
+                  src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java \
+                  src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyGeometryTests.java
+          git commit -m 'test(s16): migrate catalog fixtures to canonical bindings'
+          git push origin HEAD:chatgpt-editing
