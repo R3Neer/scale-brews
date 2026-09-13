@@ -118,9 +118,15 @@ La publicación sigue siendo atómica: `current` sólo cambia después de valida
 
 ### Sexta pasada adversarial — conflicto de migración y semántica wire de variants
 
-`d218adc84a0180e02dd5908114bacf010c4ee86e` añadió dos holdouts sin tocar producción: conflicto entre binding canónico y binding legacy migrado para el mismo selector, y round-trip v4 de un selector variant sin inventar ejecución default. También permanecen el rechazo wire inválido y la restauración client-style mediante `rejectPending()`.
+`d218adc84a0180e02dd5908114bacf010c4ee86e` añadió dos holdouts sin tocar producción: conflicto entre binding canónico y binding legacy migrado para el mismo selector, y round-trip v4 de un selector variant sin inventar ejecución default.
 
 Los **8/8** métodos de `S16CanonicalCatalogAuthorityTests` pasan sobre ese snapshot. Esta ronda adversarial no exigió ningún cambio de producción después de `5cff913...`.
+
+### Séptima pasada adversarial — rechazo wire completo conserva la revisión aceptada
+
+`eabd6ef31ee8f6ed4a7e4fffa873171339db508f` añadió `invalidWireReplacementRetainsAcceptedRevisionAfterClientStyleRejection`: primero se acepta una revisión v4 válida; después llega una revisión posterior completa y correctamente fragmentada cuyo binding variant referencia un modelo inexistente. El receptor debe rechazar el candidato sin avanzar `revision()` ni sustituir el `Snapshot`; tras `rejectPending()` debe volver a `READY` sobre el mismo objeto aceptado y la misma epoch.
+
+La prueba pasa sin modificar producción. Esto cierra la diferencia entre demostrar atomicidad llamando directamente a `WorldAnatomyCatalog.replace(...)` y demostrarla atravesando la ruta de transferencia utilizada por el cliente.
 
 ### Revisión final
 
@@ -138,16 +144,15 @@ Las dos primeras ejecuciones siguen siendo evidencia histórica útil, pero ya n
 
 Esta reapertura no amplía S16 a G3.3–G3.12: sigue sin probar engines generales ModelPart/pose/root, coverage scanner, lifecycle completo ni prediction/reconciliation.
 
-
 ## Evidencia final renovada
 
-Último cambio productivo S16: `5cff913349a4fc64921a81e0d8236e5aae235ac9`. Snapshot final con la campaña adversarial ampliada: `d218adc84a0180e02dd5908114bacf010c4ee86e`.
+Último cambio productivo S16: `5cff913349a4fc64921a81e0d8236e5aae235ac9`. Snapshot final adversarial: `eabd6ef31ee8f6ed4a7e4fffa873171339db508f`.
 
-- ordinary run **34753580865**, job **103714077843**: **401/401 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315699079**, SHA-256 **`9cd3c32a251988793cd2df1bcb145b0003d2c4b8e149e65832e0473b6d8a004e`**;
-- focal S16 run **34753580858**, job **103714077812**: **8/8 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316528568**, SHA-256 **`f4ca1104ee19347997d456e5719da9ea5fd107fd1941eb39e9b8c7d9e2bb5f7a`**;
-- prepared proof sobre `5cff913...`: el primer intento `34753380100`/`103713567025` cayó en un A9/S09 de `TemporalResponse` ajeno al catálogo; el rerun exacto del mismo job/SHA, **103714031864**, completó export original + prepared server con éxito. Se conserva como incidencia no reproducible y no se usa para sustituir la evidencia ordinary/focal de S16.
+- ordinary run **34753730671**, job **103714474314**: **402/402 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316763087**, SHA-256 **`5c2ee0b2f3673ec238ebced823cf32eee89efe2fa05cdc15c8295676ad1cf54a`**;
+- focal S16 run **34753730753**, job **103714474664**: **9/9 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315833864**, SHA-256 **`5401316de24eb5db5c9be7ab63c81da1b01cb8d87ec739c3779c88852f8e5564`**;
+- la campaña final añade el holdout wire completo sobre la campaña intermedia `d218adc...`; **no hubo cambios productivos posteriores a `5cff913...`**.
 
-La ronda `d218adc...` añadió nuevos holdouts y no requirió cambios productivos. Ésta es la pasada adversarial de cero cambios exigida para cierre.
+La evidencia 401/401 + 8/8 se conserva como campaña intermedia válida; ésta es la evidencia final de cierre.
 
 ## Criterio de cierre
 
@@ -158,4 +163,4 @@ La ronda `d218adc...` añadió nuevos holdouts y no requirió cambios productivo
 5. [x] todos los selectors del candidato validan sus referencias aplicables antes del swap, y ordinary + lane focal + holdouts adversariales quedan verdes;
 6. [x] la revisión completa final produce cero cambios de producción después de la reparación.
 
-**S16 queda cerrado. G3 tarea 1 está renovadamente verde tras la reapertura post-cierre; G3 continúa con tareas 3–12.**
+**S16 queda cerrado. G3 tarea 1 está renovadamente verde tras la reapertura post-cierre; G3 continúa con tareas 4–12 tras el cierre posterior de S17.**
