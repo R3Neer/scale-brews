@@ -16,6 +16,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseEngineAuthorityTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseEngineBehaviorTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
       - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
@@ -40,7 +41,10 @@ jobs:
           from pathlib import Path
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
-          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S18PoseEngineAuthorityTests']
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineAuthorityTests',
+            'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineBehaviorTests'
+          ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: run S18 common authority proof
