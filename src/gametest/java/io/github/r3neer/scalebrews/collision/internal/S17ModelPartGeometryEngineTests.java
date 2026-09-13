@@ -7,6 +7,8 @@ import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +47,24 @@ public final class S17ModelPartGeometryEngineTests {
             h.assertTrue(serverSafe(method.getReturnType()), "Common built-in geometry return type leaks client code: " + method);
             for (var parameter : method.getParameterTypes())
                 h.assertTrue(serverSafe(parameter), "Common built-in geometry parameter leaks client code: " + method);
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void commonBridgeBytecodeContainsNoClientPreparationReferences(GameTestHelper h) {
+        var input = BuiltInGeometryEngines.class.getResourceAsStream("BuiltInGeometryEngines.class");
+        if (input == null) throw new AssertionError("Could not inspect BuiltInGeometryEngines class bytes");
+        try (input) {
+            String constantPool = new String(input.readAllBytes(), StandardCharsets.ISO_8859_1);
+            h.assertTrue(!constantPool.contains("net/minecraft/client/"),
+                "Common built-in geometry bytecode references net.minecraft.client outside its public signatures");
+            h.assertTrue(!constantPool.contains("com/mojang/blaze3d/"),
+                "Common built-in geometry bytecode references renderer classes outside its public signatures");
+            h.assertTrue(!constantPool.contains("io/github/r3neer/scalebrews/client/collision/preparation/"),
+                "Common built-in geometry bytecode references the client preparation implementation");
+        } catch (IOException unreadable) {
+            throw new AssertionError("Could not inspect BuiltInGeometryEngines bytecode", unreadable);
         }
         h.succeed();
     }
