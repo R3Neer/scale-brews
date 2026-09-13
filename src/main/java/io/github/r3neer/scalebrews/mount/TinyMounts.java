@@ -16,6 +16,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import java.util.function.Function;
@@ -56,9 +57,40 @@ public final class TinyMounts {
                 .filter(d -> d.entity().equals(id)).findFirst().orElse(null);
     }
 
+    public static boolean familyTamed(Mob mob, TinyMountDefinition definition) {
+        if (!definition.family().requiresTameForControl()) return true;
+        return mob instanceof TamableAnimal tameable && tameable.isTame();
+    }
+
+    /** Saddle/body equipment follows the vanilla horse rule: adults only, and tameable families must be tamed first. */
+    public static boolean equipmentAvailable(Mob mob, TinyMountDefinition definition) {
+        return definition != null && mob.isAlive() && !mob.isBaby() && familyTamed(mob, definition);
+    }
+
+    public static boolean hasMountInventory(Mob mob) {
+        var definition = definition(mob);
+        return definition != null && definition.family().hasInventory() && equipmentAvailable(mob, definition);
+    }
+
+    public static boolean matchesBodyEquipment(TinyMountDefinition definition, ItemStack stack) {
+        return definition != null && definition.bodyEquipment()
+                .flatMap(body -> BuiltInRegistries.ITEM.getOptional(body.item()))
+                .map(stack::is).orElse(false);
+    }
+
+    /** BODY equipment on tameable mounts is owner-managed; saddle borrowing remains intentionally independent. */
+    public static boolean mayManageBodyEquipment(Mob mob, Player player, TinyMountDefinition definition) {
+        if (definition == null || definition.bodyEquipment().isEmpty()) return false;
+        if (definition.family() != TinyMountDefinition.Family.TAMEABLE_DIRECT) return true;
+        return mob instanceof TamableAnimal tameable && tameable.isOwnedBy(player);
+    }
+
     public static boolean eligible(Player player, Entity mount) {
-        return !player.isSpectator() && MountSizePolicy.permits(player, mount)
-            && (!(mount instanceof Wolf wolf) || !wolf.isTame() || WolfMount.permits(wolf, player));
+        if (player.isSpectator() || !MountSizePolicy.permits(player, mount)) return false;
+        var definition = definition(mount);
+        if (definition != null && definition.family() == TinyMountDefinition.Family.TAMEABLE_DIRECT
+                && !(mount instanceof TamableAnimal)) return false;
+        return !(mount instanceof Wolf wolf) || !wolf.isTame() || WolfMount.permits(wolf, player);
     }
 
     public static Player rider(Entity entity) { return entity.getFirstPassenger() instanceof Player p ? p : null; }
@@ -67,12 +99,11 @@ public final class TinyMounts {
         var definition = definition(mob);
         var player = rider(mob);
         if (definition == null || player == null || !eligible(player, mob) || !mob.isAlive()
-                || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return null;
-        if (mob instanceof Wolf wolf && !wolf.isTame()) return null;
-        if (definition.control() == TinyMountDefinition.Control.ITEM_STEERED) {
-            if (!TinyMountTemptation.matches(definition, player.getMainHandItem())
-                    && !TinyMountTemptation.matches(definition, player.getOffhandItem())) return null;
-        }
+                || !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)) return null;
+        if (definition.family().requiresTameForControl() && !familyTamed(mob, definition)) return null;
+        if (definition.family().usesSteeringItem()
+                && !TinyMountTemptation.matches(definition, player.getMainHandItem())
+                && !TinyMountTemptation.matches(definition, player.getOffhandItem())) return null;
         return player;
     }
 
@@ -82,30 +113,55 @@ public final class TinyMounts {
 
     public static InteractionResult interact(Mob mob, Player player, InteractionHand hand) {
         var definition = definition(mob);
-        if (definition == null || !mob.isAlive()) return InteractionResult.PASS;
+        if (definition == null || !mob.isAlive() || player.isSpectator()) return InteractionResult.PASS;
         var held = player.getItemInHand(hand);
+        var family = definition.family();
         boolean holdingSaddle = held.is(Items.SADDLE);
         boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
-        boolean secondaryMount = mob instanceof TamableAnimal && player.isSecondaryUseActive();
-        boolean saddling = holdingSaddle && !alreadySaddled && !secondaryMount;
-        boolean mounting = secondaryMount || held.isEmpty() || (holdingSaddle && alreadySaddled) || definition.steeringItem()
-                .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
-        if (!saddling && !mounting) return InteractionResult.PASS;
-        if (player.isSpectator()) return InteractionResult.PASS;
-        if (!saddling && player.isSecondaryUseActive() != (mob instanceof TamableAnimal)) return InteractionResult.PASS;
-        if (mob.isBaby()) return reject(mob, player, "mount_too_young");
-        if (saddling) {
-            if (!definition.saddle() || !mob.getItemBySlot(EquipmentSlot.SADDLE).isEmpty()) return InteractionResult.PASS;
-            if (mob instanceof Wolf wolf && !wolf.isTame()) return reject(mob, player, "wolf_not_tamed");
+        boolean tameableMountGesture = family == TinyMountDefinition.Family.TAMEABLE_DIRECT && player.isSecondaryUseActive();
+
+        // Tameable mounts reserve Crouch+Use for mounting so held food/equipment keeps its vanilla meaning otherwise.
+        if (holdingSaddle && !alreadySaddled && !tameableMountGesture) {
+            if (mob.isBaby()) return reject(mob, player, "mount_too_young");
+            if (!equipmentAvailable(mob, definition)) {
+                if (mob instanceof Wolf) return reject(mob, player, "wolf_not_tamed");
+                return InteractionResult.PASS;
+            }
             if (!mob.level().isClientSide()) {
                 mob.setItemSlot(EquipmentSlot.SADDLE, held.copyWithCount(1));
                 mob.setGuaranteedDrop(EquipmentSlot.SADDLE);
                 mob.setPersistenceRequired();
                 held.consume(1, player);
-                mob.playSound(SoundEvents.PIG_SADDLE.value(), .5F, 1.2F);
+                var sound = family == TinyMountDefinition.Family.ITEM_STEERED
+                        ? SoundEvents.PIG_SADDLE.value() : SoundEvents.HORSE_SADDLE.value();
+                mob.playSound(sound, .5F, 1.0F);
             }
             return InteractionResult.SUCCESS;
         }
+
+        // Optional BODY equipment is declared by data, but still respects the item's native entity/slot rules.
+        if (!tameableMountGesture && matchesBodyEquipment(definition, held)
+                && mob.getItemBySlot(EquipmentSlot.BODY).isEmpty()) {
+            if (!equipmentAvailable(mob, definition) || !mayManageBodyEquipment(mob, player, definition)
+                    || !mob.isEquippableInSlot(held, EquipmentSlot.BODY)) return InteractionResult.PASS;
+            if (!mob.level().isClientSide()) {
+                mob.setItemSlot(EquipmentSlot.BODY, held.copyWithCount(1));
+                mob.setGuaranteedDrop(EquipmentSlot.BODY);
+                mob.setPersistenceRequired();
+                held.consume(1, player);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        boolean mounting = switch (family) {
+            case DIRECT -> !player.isSecondaryUseActive()
+                    && (held.isEmpty() || (holdingSaddle && alreadySaddled));
+            case TAMEABLE_DIRECT -> tameableMountGesture;
+            case ITEM_STEERED -> !player.isSecondaryUseActive() && alreadySaddled
+                    && (held.isEmpty() || holdingSaddle || TinyMountTemptation.matches(definition, held));
+        };
+        if (!mounting) return InteractionResult.PASS;
+        if (mob.isBaby()) return reject(mob, player, "mount_too_young");
         if (!MountSizePolicy.permits(player, mob)) return reject(mob, player, "too_large_to_ride");
         if (!eligible(player, mob)) return reject(mob, player, "mount_hostile");
         if (mob.isVehicle()) return reject(mob, player, "mount_occupied");
@@ -126,15 +182,21 @@ public final class TinyMounts {
     public static boolean mayMount(Player player, Entity vehicle) {
         if (!MountSizePolicy.permits(player, vehicle)) return false;
         var definition = definition(vehicle);
-        return definition == null || (eligible(player, vehicle) && !vehicle.isVehicle()
-                && (!(vehicle instanceof Mob mob) || !mob.isBaby()));
+        if (definition == null) return true;
+        if (!eligible(player, vehicle) || vehicle.isVehicle() || !(vehicle instanceof Mob mob) || mob.isBaby()) return false;
+        return !definition.family().requiresSaddleToMount()
+                || mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
     }
 
     public static void enforceRider(LivingEntity player) {
         if (player.level().isClientSide() || player.getVehicle() == null) return;
         var vehicle = player.getVehicle();
         var definition = definition(vehicle);
-        if (!MountSizePolicy.permits(player, vehicle)
+        boolean missingRequiredSaddle = definition != null
+                && definition.family().requiresSaddleToMount()
+                && vehicle instanceof Mob mob
+                && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
+        if (!MountSizePolicy.permits(player, vehicle) || missingRequiredSaddle
                 || (player instanceof Player p && definition != null && !eligible(p, vehicle))) {
             player.stopRiding();
             player.resetFallDistance();
