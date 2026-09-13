@@ -29,84 +29,88 @@ jobs:
           git pull --ff-only origin chatgpt-editing
           python3 - <<'PY'
           from pathlib import Path
+          import textwrap
 
-          def replace_once(path: Path, old: str, new: str):
+          def replace_once(path, old, new):
               text = path.read_text()
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f'{path}: expected exactly one occurrence, found {count}: {old[:100]!r}')
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}: {old[:100]!r}')
               path.write_text(text.replace(old, new, 1))
 
           sprint = Path('docs/sprints/S15-prepared-catalog-bundle.md')
-          replace_once(sprint,
-              'Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.',
-              'Estado: **CERRADO**.')
+          replace_once(sprint, 'Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.', 'Estado: **CERRADO**.')
           for i in range(1, 13):
-              old = f'- [ ] I{i} '
-              new = f'- [x] I{i} '
-              replace_once(sprint, old, new)
-          closure = '''## Resultado de implementación y evidencia de cierre
+              replace_once(sprint, f'- [ ] I{i} ', f'- [x] I{i} ')
+          closure = textwrap.dedent('''\
+          ## Resultado de implementación y evidencia de cierre
 
-S15 quedó implementado sobre un único owner de publicación: `WorldAnatomyCatalog` conserva cada revisión aceptada como el par atómico `Snapshot + AnatomyCatalogTransfer.PreparedBundle`. El bundle serializa, calcula SHA-256 y fragmenta durante la aceptación de la revisión; `PreparedBundle.packets(epoch, revision)` materializa y cachea la lista inmutable de payloads para ese `epoch + revision`. `AnatomyRuntime` y `AnatomyNetworking` consumen únicamente packets preparados en la ruta live, y `AnatomyCatalogTransfer.encode(...)` queda como seam de fixture que delega en el mismo owner en vez de mantener una segunda implementación.
+          S15 quedó implementado sobre un único owner de publicación: `WorldAnatomyCatalog` conserva cada revisión aceptada como el par atómico `Snapshot + AnatomyCatalogTransfer.PreparedBundle`. El bundle serializa, calcula SHA-256 y fragmenta durante la aceptación de la revisión; `PreparedBundle.packets(epoch, revision)` materializa y cachea la lista inmutable de payloads para ese `epoch + revision`. `AnatomyRuntime` y `AnatomyNetworking` consumen únicamente packets preparados en la ruta live, y `AnatomyCatalogTransfer.encode(...)` queda como seam de fixture que delega en el mismo owner en vez de mantener una segunda implementación.
 
-Los holdouts fueron añadidos antes de la implementación productiva en `6b360fe9ec5c635cf3e9cdf89b848b543241f017`; el camino productivo se introdujo en `a1f74865e47af37d644c52437b16d13526ad3c5e`, `e9f8d70aa8280bcd5267c8bece88ac3ef782f7a0`, `2044ee434df5777c07bef0d28e5f7484fa43c0cf` y la publicación explícita de revision quedó integrada después en la misma cadena S15. Los holdouts post-verde fijan reutilización por identidad, replacement atómico, nueva revisión, epoch fence e inmutabilidad de fragments.
+          Los holdouts fueron añadidos antes de la implementación productiva en `6b360fe9ec5c635cf3e9cdf89b848b543241f017`; el camino productivo se introdujo en `a1f74865e47af37d644c52437b16d13526ad3c5e`, `e9f8d70aa8280bcd5267c8bece88ac3ef782f7a0` y `2044ee434df5777c07bef0d28e5f7484fa43c0cf`, con la autoridad de revisión integrada después en la misma cadena S15. Los holdouts post-verde fijan reutilización por identidad, replacement atómico, nueva revisión, epoch fence e inmutabilidad de fragments.
 
-La primera lane focal dedicada, run `34746882338`, job `103696316689`, ejecutó correctamente **9/9** GameTests, pero la aserción de CI esperaba ocho casos totales y no contó el sentinel automático `minecraft:always_pass`; fue un defecto de la lane, no un rojo de producto. `c49087ec095160043db142dcc7774945dc2bfbdd` corrigió esa aserción para exigir exactamente los ocho casos S15 y permitir sólo el sentinel vanilla adicional.
+          La primera lane focal dedicada, run `34746882338`, job `103696316689`, ejecutó correctamente **9/9** GameTests, pero la aserción de CI esperaba ocho casos totales y no contó el sentinel automático `minecraft:always_pass`; fue un defecto de la lane, no un rojo de producto. `c49087ec095160043db142dcc7774945dc2bfbdd` corrigió esa aserción para exigir exactamente los ocho casos S15 y permitir sólo el sentinel vanilla adicional.
 
-Evidencia final sobre snapshot `e52766a71cf66c4157d31b8884d901b22d4de7a8`:
+          Evidencia final sobre snapshot `e52766a71cf66c4157d31b8884d901b22d4de7a8`:
 
-- run `34747160506`, job `103697083788`: prueba focal **8/8 S15** más `minecraft:always_pass`, seguida en la misma ejecución por la suite ordinary completa **394/394**, incluyendo los ocho holdouts S15;
-- artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`;
-- build run `34747160495`: **success** sobre el mismo snapshot.
+          - run `34747160506`, job `103697083788`: prueba focal **8/8 S15** más `minecraft:always_pass`, seguida en la misma ejecución por la suite ordinary completa **394/394**, incluyendo los ocho holdouts S15;
+          - artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`;
+          - build run `34747160495`: **success** sobre el mismo snapshot.
 
-La revisión adversarial final no encontró una segunda ruta live de serialización/hash/fragmentation ni otro owner del bundle. `WorldAnatomyCatalog.Accepted` es la unidad de publicación, el hot send no acepta `models/profiles`, los replacements inválidos conservan snapshot+bundle previos y revision/epoch/bounds permanecen fail-closed. La comparación desde el último hardening S15 `684142f32003a29f255b8ff204d39a7e0a968ed2` hasta el árbol integrado posterior no mostró cambios adicionales en producción o tests S15. **La pasada final produjo cero cambios de producción; S15 queda cerrado.**
+          La revisión adversarial final no encontró una segunda ruta live de serialización/hash/fragmentation ni otro owner del bundle. `WorldAnatomyCatalog.Accepted` es la unidad de publicación, el hot send no acepta `models/profiles`, los replacements inválidos conservan snapshot+bundle previos y revision/epoch/bounds permanecen fail-closed. La comparación desde el último hardening S15 `684142f32003a29f255b8ff204d39a7e0a968ed2` hasta el árbol integrado posterior no mostró cambios adicionales en producción o tests S15. **La pasada final produjo cero cambios de producción; S15 queda cerrado.**
 
-'''
+          ''')
           replace_once(sprint, '## Modelo adversarial\n', closure + '## Modelo adversarial\n')
 
           plan = Path('docs/ENTITY_COLLISIONS_PLAN.md')
           replace_once(plan,
               '2. [ ] preparar/serializar una vez por revisión y reutilizar bundle por receptor;',
               '2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;')
-          plan_anchor = '''12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.\n\n**Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.'''
-          plan_replacement = '''12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.\n\n**S15 cerrado:** la tarea 2/NFR-010 quedó cerrada con un único `PreparedBundle` asociado atómicamente al snapshot aceptado. `AnatomyRuntime`/`AnatomyNetworking` sólo publican packets preparados y varios receptores reutilizan la misma lista por `epoch + revision`; replacements inválidos conservan el par anterior. Snapshot de evidencia `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`: focal **8/8 S15** (+ sentinel vanilla) y ordinary **394/394**; artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`. La revisión adversarial final no requirió cambios de producción. G3 sigue abierto para tareas 1 y 3-12.\n\n**Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.'''
+          plan_anchor = '12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.\n\n**Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.'
+          plan_replacement = textwrap.dedent('''\
+          12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.
+
+          **S15 cerrado:** la tarea 2/NFR-010 quedó cerrada con un único `PreparedBundle` asociado atómicamente al snapshot aceptado. `AnatomyRuntime`/`AnatomyNetworking` sólo publican packets preparados y varios receptores reutilizan la misma lista por `epoch + revision`; replacements inválidos conservan el par anterior. Snapshot de evidencia `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`: focal **8/8 S15** (+ sentinel vanilla) y ordinary **394/394**; artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`. La revisión adversarial final no requirió cambios de producción. G3 sigue abierto para tareas 1 y 3-12.
+
+          **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.''')
           replace_once(plan, plan_anchor, plan_replacement)
           convergence_anchor = 'S14 extrajo el binding vivo a `AnatomyBindingState`: provider, descriptor, generación local, quarantine y capture guard tienen un único owner. El causal rebind dejó de pasar por un binding descriptorless transitorio y ahora instala provider+descriptor+generation atómicamente. Baseline rojo `5019fd7f7116c0c79291556fe41a8d70f2c95941`, run `34696527544`, job `103560853344`: **386 tests, 383 verdes / 3 rojos**, incluido `samples=3` en causal rebind. Tras `f8693c1d17ac0b73b95aeec74e5b2a57490fe9e1`, la cadena integrada pasa ordinary **386/386** y la fuente final con `d048740...` pasa cliente real + prepared **2/2** en `34708981488`. La revisión final no encontró un corte adicional de producción S14.\n'
-          s15_convergence = convergence_anchor + '\nS15 abrió G3 con NFR-010 y cerró la preparación repetida del catálogo por receptor: `WorldAnatomyCatalog` publica `Snapshot + PreparedBundle` como una unidad atómica y la ruta live sólo consume packets preparados. La evidencia final `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`, pasó focal **8/8 S15** (+ sentinel) y ordinary **394/394**; la revisión post-verde convergió sin cambios de producción. G3 tarea 2 queda cerrada; el resto de G3 permanece abierto.\n'
-          replace_once(plan, convergence_anchor, s15_convergence)
+          replace_once(plan, convergence_anchor, convergence_anchor + '\nS15 abrió G3 con NFR-010 y cerró la preparación repetida del catálogo por receptor: `WorldAnatomyCatalog` publica `Snapshot + PreparedBundle` como una unidad atómica y la ruta live sólo consume packets preparados. La evidencia final `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`, pasó focal **8/8 S15** (+ sentinel) y ordinary **394/394**; la revisión post-verde convergió sin cambios de producción. G3 tarea 2 queda cerrada; el resto de G3 permanece abierto.\n')
 
           validation = Path('docs/VALIDATION.md')
           text = validation.read_text()
           marker = '## G3 / S15 prepared catalog bundle reuse — closure 2026-09-13'
           if marker in text:
               raise SystemExit('VALIDATION already contains S15 closure section')
-          section = '''\n\n## G3 / S15 prepared catalog bundle reuse — closure 2026-09-13
+          section = textwrap.dedent('''\
 
-S15 cierra G3 tarea 2 / NFR-010: la serialización, SHA-256 y fragmentación del catálogo anatómico se realizan durante la aceptación de una revisión y no en el envío a cada receptor. `WorldAnatomyCatalog` publica el par `Snapshot + AnatomyCatalogTransfer.PreparedBundle` como una sola unidad; `AnatomyRuntime` obtiene packets del bundle aceptado y `AnatomyNetworking.sendCatalog(...)` no acepta mapas crudos de models/profiles. `AnatomyCatalogTransfer.encode(...)` queda sólo como seam de fixture/convenience y delega en el mismo prepared path.
+          ## G3 / S15 prepared catalog bundle reuse — closure 2026-09-13
 
-### Holdouts y camino de implementación
+          S15 cierra G3 tarea 2 / NFR-010: la serialización, SHA-256 y fragmentación del catálogo anatómico se realizan durante la aceptación de una revisión y no en el envío a cada receptor. `WorldAnatomyCatalog` publica el par `Snapshot + AnatomyCatalogTransfer.PreparedBundle` como una sola unidad; `AnatomyRuntime` obtiene packets del bundle aceptado y `AnatomyNetworking.sendCatalog(...)` no acepta mapas crudos de models/profiles. `AnatomyCatalogTransfer.encode(...)` queda sólo como seam de fixture/convenience y delega en el mismo prepared path.
 
-Los holdouts S15 se añadieron antes de los cambios productivos en `6b360fe9ec5c635cf3e9cdf89b848b543241f017`. Después, `a1f74865e47af37d644c52437b16d13526ad3c5e` introdujo `PreparedBundle`, `e9f8d70aa8280bcd5267c8bece88ac3ef782f7a0` convirtió snapshot+bundle en publicación atómica y `2044ee434df5777c07bef0d28e5f7484fa43c0cf` retiró models/profiles del hot send. Los holdouts post-verde fijan identidad de lista/payload por `epoch + revision`, supervivencia exacta tras replacement inválido, bundle nuevo para revisión nueva, epoch fence e inmutabilidad defensiva de fragments.
+          ### Holdouts y camino de implementación
 
-### Lane focal y corrección de la aserción de CI
+          Los holdouts S15 se añadieron antes de los cambios productivos en `6b360fe9ec5c635cf3e9cdf89b848b543241f017`. Después, `a1f74865e47af37d644c52437b16d13526ad3c5e` introdujo `PreparedBundle`, `e9f8d70aa8280bcd5267c8bece88ac3ef782f7a0` convirtió snapshot+bundle en publicación atómica y `2044ee434df5777c07bef0d28e5f7484fa43c0cf` retiró models/profiles del hot send. Los holdouts post-verde fijan identidad de lista/payload por `epoch + revision`, supervivencia exacta tras replacement inválido, bundle nuevo para revisión nueva, epoch fence e inmutabilidad defensiva de fragments.
 
-La primera ejecución dedicada, run **`34746882338`**, job **`103696316689`**, completó los GameTests de producto con **9/9 required tests passed**: los ocho S15 más el sentinel que Fabric registra automáticamente como `minecraft:always_pass`. El job terminó rojo únicamente porque la aserción de la lane exigía ocho casos totales. Esa aserción, no el producto, se corrigió en `c49087ec095160043db142dcc7774945dc2bfbdd` para exigir exactamente ocho nombres S15 y aceptar sólo ese sentinel adicional.
+          ### Lane focal y corrección de la aserción de CI
 
-### Evidencia final exacta
+          La primera ejecución dedicada, run **`34746882338`**, job **`103696316689`**, completó los GameTests de producto con **9/9 required tests passed**: los ocho S15 más el sentinel que Fabric registra automáticamente como `minecraft:always_pass`. El job terminó rojo únicamente porque la aserción de la lane exigía ocho casos totales. Esa aserción, no el producto, se corrigió en `c49087ec095160043db142dcc7774945dc2bfbdd` para exigir exactamente ocho nombres S15 y aceptar sólo ese sentinel adicional.
 
-Snapshot **`e52766a71cf66c4157d31b8884d901b22d4de7a8`**:
+          ### Evidencia final exacta
 
-- run **`34747160506`**, job **`103697083788`**: fase focal `S15_CATALOG_PROOF PASS`, **8/8 S15** + `minecraft:always_pass`;
-- la misma ejecución restauró el manifiesto ordinary y ejecutó **394/394 required GameTests**, incluyendo los ocho holdouts S15, con `S15_ORDINARY_PROOF PASS`;
-- artifact **`10313754760`**, SHA-256 **`5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`**, contiene ambos JUnit, manifiestos efectivo focal/ordinary y logs;
-- build run **`34747160495`** concluyó **success** sobre el mismo snapshot.
+          Snapshot **`e52766a71cf66c4157d31b8884d901b22d4de7a8`**:
 
-### Revisión adversarial final cero-cambios
+          - run **`34747160506`**, job **`103697083788`**: fase focal `S15_CATALOG_PROOF PASS`, **8/8 S15** + `minecraft:always_pass`;
+          - la misma ejecución restauró el manifiesto ordinary y ejecutó **394/394 required GameTests**, incluyendo los ocho holdouts S15, con `S15_ORDINARY_PROOF PASS`;
+          - artifact **`10313754760`**, SHA-256 **`5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`**, contiene ambos JUnit, manifiestos efectivos focal/ordinary y logs;
+          - build run **`34747160495`** concluyó **success** sobre el mismo snapshot.
 
-La pasada final revisó owner, recipient hot path, fixture encoder, invalid replacement, cambio de revisión, cambio de epoch, fragment immutability y bounds. No se encontró otra ruta live que serialice/hashee/fragmente desde `models/profiles`, ni un segundo owner del bundle. `WorldAnatomyCatalog.Accepted` mantiene snapshot y bundle juntos; el bundle se prepara antes del swap; un fallo candidato no cambia el aceptado; y la primera materialización para el epoch del servidor se fuerza durante reset antes de depender del primer receptor.
+          ### Revisión adversarial final cero-cambios
 
-La comparación desde `684142f32003a29f255b8ff204d39a7e0a968ed2`, último hardening S15 de fixtures, hasta el árbol integrado posterior sólo mostró cambios de S09/CI y ninguna modificación adicional de producción o tests S15. La revisión no produjo cambios de producto. **S15 queda cerrado; G3 permanece abierto para tareas 1 y 3-12.**
-'''
+          La pasada final revisó owner, recipient hot path, fixture encoder, invalid replacement, cambio de revisión, cambio de epoch, fragment immutability y bounds. No se encontró otra ruta live que serialice/hashee/fragmente desde `models/profiles`, ni un segundo owner del bundle. `WorldAnatomyCatalog.Accepted` mantiene snapshot y bundle juntos; el bundle se prepara antes del swap; un fallo candidato no cambia el aceptado; y la primera materialización para el epoch del servidor se fuerza durante reset antes de depender del primer receptor.
+
+          La comparación desde `684142f32003a29f255b8ff204d39a7e0a968ed2`, último hardening S15 de fixtures, hasta el árbol integrado posterior sólo mostró cambios de S09/CI y ninguna modificación adicional de producción o tests S15. La revisión no produjo cambios de producto. **S15 queda cerrado; G3 permanece abierto para tareas 1 y 3-12.**
+          ''')
           validation.write_text(text.rstrip() + section + '\n')
           PY
           git diff --check
