@@ -7,7 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import org.jspecify.annotations.Nullable;
 
-/** Vanilla horse layout without a storage grid; wolf armor appears only for wolves. */
+/** Vanilla mount layout without a storage grid; BODY appears only when declared by family data. */
 public final class TinyMountScreen extends AbstractMountInventoryScreen<TinyMountMenu> {
     private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
     private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("textures/gui/container/horse.png");
@@ -20,5 +20,5 @@ public final class TinyMountScreen extends AbstractMountInventoryScreen<TinyMoun
     @Override protected Identifier getSlotSpriteLocation() { return SLOT_SPRITE; }
     @Override protected @Nullable Identifier getChestSlotsSpriteLocation() { return null; }
     @Override protected boolean shouldRenderSaddleSlot() { return true; }
-    @Override protected boolean shouldRenderArmorSlot() { return menu.hasWolfArmor(); }
+    @Override protected boolean shouldRenderArmorSlot() { return menu.hasBodyEquipment(); }
 }
