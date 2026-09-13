@@ -36,8 +36,9 @@ public final class S18AnimationDefinitionCompilerClientTests implements FabricCl
                 }
 
                 System.out.println("S18_ANIMATION_COMPILER_BOUNDARY PASS client compiler present, common runtime client-free");
+            } catch (AssertionError failure) {
+                throw failure;
             } catch (Exception failure) {
-                if (failure instanceof AssertionError assertion) throw assertion;
                 throw new AssertionError("Could not inspect S18 compiler boundary", failure);
             }
         });
