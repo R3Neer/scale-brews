@@ -1,12 +1,12 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.collision.pose.PoseProviders;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import net.minecraft.resources.Identifier;
 /** Publish canonical bindings and prepared geometry together, only after every reference has validated. */
 public final class WorldAnatomyCatalog {
     /** Executable S16 bridge for the precomputed legacy backend; authority lives in {@code selection}. */
-    public record Binding(CollisionBinding selection, ModelGeometry model, PoseProvider poses, Identifier legacyPoseProvider) {
+    public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine poses, Identifier legacyPoseProvider) {
         public Binding {
             Objects.requireNonNull(selection, "selection");
             Objects.requireNonNull(model, "model");
@@ -59,7 +59,6 @@ public final class WorldAnatomyCatalog {
 
     public Snapshot snapshot() { return current.snapshot(); }
 
-    /** Packet objects are materialized once per epoch/revision from the already serialized accepted bundle. */
     synchronized List<AnatomyCatalogPayload> preparedPackets(UUID epoch) {
         var accepted = current;
         return accepted.bundle().packets(epoch, accepted.snapshot().revision());
@@ -100,7 +99,6 @@ public final class WorldAnatomyCatalog {
         return result;
     }
 
-    /** RegistryAccess remains a legacy preparation seam; it is migrated before publication. */
     public Snapshot reload(RegistryAccess registries) {
         return replace(LegacyAnatomyCatalogMigration.models(registries), LegacyAnatomyCatalogMigration.bindings(registries));
     }
@@ -109,7 +107,6 @@ public final class WorldAnatomyCatalog {
         return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, bindings);
     }
 
-    /** Client-side publication seam: packet revision is the authority identity, not a local counter. */
     synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
         if (revision < 0) throw new IllegalArgumentException("Negative catalog revision");
         return replaceValidated(revision, models, bindings);
@@ -120,9 +117,6 @@ public final class WorldAnatomyCatalog {
         Objects.requireNonNull(bindings, "bindings");
         var canonical = new CollisionBindingCatalog(bindings);
 
-        // Validation belongs to the complete candidate, not merely to the selector that
-        // happens to match today's empty runtime variant. Variant-only bridge bindings are
-        // authoritative catalog data too, so every bridge reference must fail before swap.
         List<String> references = new ArrayList<>();
         for (var candidate : canonical.bindings()) {
             boolean bridge = compatibilityBridge(candidate);
@@ -131,8 +125,6 @@ public final class WorldAnatomyCatalog {
             if (bridge) references.add(candidate.geometry().model().toString());
         }
 
-        // Validate all model objects and every bridge model reference before evaluating any
-        // provider. This temporary catalog is not published; current remains untouched on error.
         var validated = new GeometryCatalog().replace(models, references);
         Map<CollisionBinding, Binding> preparedBridge = new HashMap<>();
         for (var candidate : canonical.bindings()) {
@@ -140,18 +132,14 @@ public final class WorldAnatomyCatalog {
             preparedBridge.put(candidate, prepareBridge(candidate, validated.models()));
         }
 
-        // S16 still executes only the empty/default selector. Variant state remains future
-        // runtime work, but its declarative data has already been fully validated above.
         Map<Identifier, Binding> executable = new HashMap<>();
         for (var entity : canonical.snapshot().keySet()) {
             var selected = canonical.resolve(entity, Map.of()).orElse(null);
-            if (selected == null) continue; // Variant-only selectors never become an accidental default.
+            if (selected == null) continue;
             var prepared = preparedBridge.get(selected);
             if (prepared != null) executable.put(entity, prepared);
-            // Other registered engines stay canonically accepted but unavailable until G3.3-G3.6.
         }
 
-        // Prepare every fallible transfer artifact before the atomic accepted-state swap.
         var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), canonical.bindings());
         var next = new Snapshot(revision, validated.models(), canonical, executable);
         current = new Accepted(next, bundle);
@@ -170,10 +158,10 @@ public final class WorldAnatomyCatalog {
         catch (RuntimeException invalid) {
             throw new IllegalArgumentException("Invalid legacy pose provider " + providerText + " for " + selector(selection), invalid);
         }
-        var provider = PoseProviders.find(providerId)
-            .orElseThrow(() -> new IllegalArgumentException("Missing pose provider " + providerId + " for " + selector(selection)));
-        if (provider.evaluate(model, new PoseProvider.Inputs(0, 0, 0, 0, 0, true)).isEmpty())
-            throw new IllegalArgumentException("Pose provider does not support model/version for " + selector(selection));
+        var provider = CollisionEngines.pose(providerId)
+            .orElseThrow(() -> new IllegalArgumentException("Missing pose engine " + providerId + " for " + selector(selection)));
+        if (provider.evaluate(model, new PoseEngine.Inputs(0, 0, 0, 0, 0, true), Map.of()).isEmpty())
+            throw new IllegalArgumentException("Pose engine does not support model/version for " + selector(selection));
         validateFilter(selection, model);
         return new Binding(selection, model, provider, providerId);
     }
