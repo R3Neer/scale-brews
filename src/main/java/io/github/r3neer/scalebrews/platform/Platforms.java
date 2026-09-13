@@ -7,7 +7,6 @@ import io.github.r3neer.scalebrews.collision.api.spi.BodyAdapter;
 import io.github.r3neer.scalebrews.collision.integration.BodyClassification;
 import io.github.r3neer.scalebrews.collision.integration.CollisionRules;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
-import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -52,7 +51,8 @@ public final class Platforms {
     public static PlatformState state(Entity e) { return ((PlatformBody)e).scalebrews$platform(); }
     public static boolean simulates(Entity e) { return !e.level().isClientSide() || e.isLocalInstanceAuthoritative(); }
     public static void noteSupport(Entity e) {
-        if(!(e instanceof LivingEntity living)) return;
+        // An active shared-anatomy session must never derive live support metadata from the legacy platform catalog.
+        if(!(e instanceof LivingEntity living) || AnatomyApi.ownsSharedPhysics(e)) return;
         var d=definition(e);
         if(d==null) return;
         double margin=.5,scale=living.getScale();
@@ -116,6 +116,9 @@ public final class Platforms {
             var rule=CollisionRules.resolve(LegacyCollisionData.policy(policy(body.level())),canonical.policy(),category,canonical.entity());
             if(!rule.enabled() || ratio>rule.maxWidthRatio())return false;
         } else {
+            // READY/BINDING anatomy owns the boundary even when a canonical selection is disabled,
+            // variant-only, or not executable yet. Never fall through to a homonymous legacy platform.
+            if(AnatomyApi.ownsSharedPhysics(support))return false;
             var legacyPolicy=policy(body.level());
             var definition=definition(support);
             if(definition==null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
@@ -144,6 +147,7 @@ public final class Platforms {
         if(support==null || category==null)return original;
         var canonical=AnatomyMovement.canonicalBinding(support);
         if(canonical!=null)return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),canonical.policy(),category,canonical.entity()).friction();
+        if(AnatomyApi.ownsSharedPhysics(support))return original;
         var definition=definition(support);
         if(definition==null)return original;
         return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),LegacyCollisionData.profilePolicy(definition),
