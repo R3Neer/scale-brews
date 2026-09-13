@@ -1,0 +1,81 @@
+name: s17-model-part-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s17-model-part-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInGeometryEngines.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/ScaleBrewsClient.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S17ModelPartGeometryEngineTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S17ModelPartGeometryEngineClientTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  common-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S17 server tests
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S17ModelPartGeometryEngineTests']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run common boundary
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s17-server-junit.xml"
+      - name: capture server evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S17-model-part-server-proof
+          path: |
+            build/s17-server-junit.xml
+            build/run/gameTest/logs/
+
+  client-preparation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S17 client test
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run real client preparation proof
+        run: xvfb-run -a ./gradlew runClientGameTest --console=plain
+      - name: capture client evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S17-model-part-client-proof
+          path: |
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
