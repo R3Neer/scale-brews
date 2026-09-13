@@ -6,10 +6,11 @@ import io.github.r3neer.scalebrews.client.render.RiderPoseState;
 import io.github.r3neer.scalebrews.mount.TinyMountMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 
-/** Manual-facing acceptance: E opens the correct tiny-mount UI and native horse body motion carries its rider. */
+/** Manual-facing acceptance for tiny-mount inventory UX plus native horse body motion. */
 public final class TinyMountClientAcceptance implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -19,11 +20,27 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             server.runCommand("gamemode survival @a");
             server.runCommand("fill -5 -61 -5 10 -61 10 minecraft:stone");
             server.runCommand("tp @a 0 -60 0 0 0");
+            server.runCommand("effect give @a scalebrews:shrinking 120 1 true");
+            context.waitTicks(30);
+
+            // Bees mirror vanilla item-steered mounts such as pigs/striders: no mount inventory.
+            server.runCommand("summon minecraft:bee -3 -60 2 {Tags:[menu_bee],NoAI:1b}");
+            server.runCommand("item replace entity @e[tag=menu_bee,limit=1] saddle with minecraft:saddle");
+            server.runCommand("ride @a[limit=1] mount @e[tag=menu_bee,limit=1]");
+            context.waitTicks(10);
+            context.getInput().pressKey(options -> options.keyInventory);
+            context.waitForScreen(InventoryScreen.class);
+            context.runOnClient(client -> {
+                if (!(client.screen instanceof InventoryScreen) || client.screen instanceof TinyMountScreen)
+                    throw new AssertionError("Item-steered bee E must open normal player inventory, like pig/strider");
+            });
+            context.takeScreenshot("scale-brews-bee-player-inventory");
+            context.getInput().pressKey(options -> options.keyInventory);
+            context.waitForScreen(null);
+            server.runCommand("ride @a[limit=1] dismount");
 
             server.runCommand("summon minecraft:chicken 0 -60 2 {Tags:[menu_chicken],NoAI:1b}");
             server.runCommand("item replace entity @e[tag=menu_chicken,limit=1] saddle with minecraft:saddle");
-            server.runCommand("effect give @a scalebrews:shrinking 120 1 true");
-            context.waitTicks(30);
             server.runCommand("ride @a[limit=1] mount @e[tag=menu_chicken,limit=1]");
             context.waitTicks(10);
             context.getInput().pressKey(options -> options.keyInventory);
