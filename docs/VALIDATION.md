@@ -578,3 +578,18 @@ Los ocho holdouts S15 se añadieron antes del camino productivo en `6b360fe9ec5c
 Evidencia final exacta sobre **`e52766a71cf66c4157d31b8884d901b22d4de7a8`**: run **`34747160506`**, job **`103697083788`**, fase focal **8/8 S15** + `minecraft:always_pass`, seguida de suite ordinary **394/394** incluyendo los ocho holdouts. Artifact **`10313754760`**, SHA-256 **`5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`**. Build run **`34747160495`** concluyó **success** sobre el mismo snapshot.
 
 La revisión adversarial final recorrió owner, hot send, fixture encoder, invalid replacement, revision/epoch fences, bounds e inmutabilidad. No encontró una segunda ruta live de serialización/hash/fragmentation ni owner duplicado; desde `684142f32003a29f255b8ff204d39a7e0a968ed2` no hubo cambios adicionales de producción/tests S15. **La pasada final produjo cero cambios de producto; S15 queda cerrado y G3 permanece abierto para tareas 1 y 3-12.**
+
+
+## G3 / S16 canonical catalog authority — CLOSED 2026-09-13
+
+Snapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`; último cambio productivo propio `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`.
+
+S16 sustituyó la autoridad anatómica legacy por `CollisionBinding` canónico: `WorldAnatomyCatalog` conserva el catálogo completo y un bridge precomputado ejecutable acotado, `AnatomyCatalogTransfer` usa protocolo v4 con `{models, bindings}`, cliente y servidor validan identidad por `geometry.model + pose.engine`, y la policy activa acompaña al binding vivo. `PlatformDefinition` queda antes de la frontera mediante migración explícita; las superficies legacy no se promocionan a anatomía y una sesión anatómica no cae silenciosamente a Living Platforms cuando el binding es disabled, variant-only o todavía no ejecutable.
+
+Red-before-green relevante: la primera migración dejó consumidores server/client en el schema de perfiles; después la retirada de la tabla temporal expuso autoridad dual de policy; un holdout posterior detectó fallback legacy dentro de sesión anatómica; y el último holdout prepared detectó que un provider manual podía perder la policy canónica. Las reparaciones culminaron en `3a3503b1...`; los helpers/workflows temporales se retiraron antes de la evidencia final.
+
+GitHub Actions ordinary run **34752369790**, job **103710940047**: **398/398 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315852333**, SHA-256 **`a1de8633e76ed2df2516b47fe549a83e4aff5eaf208765cca34088db4737f036`**.
+
+Lane focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316377128**, SHA-256 **`429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205`**.
+
+La revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción. Esta evidencia cierra G3 tarea 1, no G3 tareas 3-12 ni prediction/reconciliation G4.
