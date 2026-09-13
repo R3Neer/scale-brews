@@ -1,0 +1,47 @@
+package io.github.r3neer.scalebrews.test;
+
+import io.github.r3neer.scalebrews.mount.TinyMountMenu;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+
+public class TinyMountMenuTests {
+    @GameTest public void chickenAndBeeExposeOnlySaddleEquipment(GameTestHelper h) {
+        var player = h.makeMockPlayer(GameType.SURVIVAL);
+        for (var type : java.util.List.of(EntityTypes.CHICKEN, EntityTypes.BEE)) {
+            var mount = h.spawn(type, 1, 2, 1);
+            var menu = new TinyMountMenu(0, player.getInventory(), mount);
+            h.assertTrue(menu.getSlot(0).isActive() && menu.getSlot(0).mayPlace(new ItemStack(Items.SADDLE)),
+                    "Tiny mount saddle slot is available");
+            h.assertFalse(menu.getSlot(1).isActive(), "Chicken/bee armor slot is absent");
+            menu.getSlot(0).setByPlayer(new ItemStack(Items.SADDLE));
+            h.assertTrue(mount.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
+                    "Menu writes the same saddle equipment slot used by riding/rendering");
+            menu.getSlot(0).setByPlayer(ItemStack.EMPTY);
+            h.assertTrue(mount.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(), "Saddle can be removed through the menu");
+            mount.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest public void wolfMenuUsesOwnerProtectedWolfArmor(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var stranger = h.makeMockPlayer(GameType.SURVIVAL);
+        var wolf = h.spawn(EntityTypes.WOLF, 1, 2, 1);
+        wolf.tame(owner);
+        var ownerMenu = new TinyMountMenu(0, owner.getInventory(), wolf);
+        h.assertTrue(ownerMenu.hasWolfArmor() && ownerMenu.getSlot(1).isActive(), "Wolf exposes body armor slot");
+        h.assertTrue(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.WOLF_ARMOR)), "Owner can equip wolf armor");
+        h.assertFalse(ownerMenu.getSlot(1).mayPlace(new ItemStack(Items.IRON_HORSE_ARMOR)), "Horse armor is rejected");
+        ownerMenu.getSlot(1).setByPlayer(new ItemStack(Items.WOLF_ARMOR));
+        h.assertTrue(wolf.getItemBySlot(EquipmentSlot.BODY).is(Items.WOLF_ARMOR), "Wolf armor uses native BODY equipment");
+        var strangerMenu = new TinyMountMenu(1, stranger.getInventory(), wolf);
+        h.assertFalse(strangerMenu.getSlot(1).mayPlace(new ItemStack(Items.WOLF_ARMOR))
+                || strangerMenu.getSlot(1).mayPickup(stranger), "Borrowed wolf armor remains owner-protected");
+        h.succeed();
+    }
+}

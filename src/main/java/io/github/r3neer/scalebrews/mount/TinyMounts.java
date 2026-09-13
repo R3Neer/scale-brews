@@ -21,12 +21,10 @@ import java.util.function.Function;
 
 public final class TinyMounts {
     public static final ResourceKey<Registry<TinyMountDefinition>> REGISTRY = ResourceKey.createRegistryKey(ScaleBrews.id("tiny_mount"));
-    /** Installed only by the client entrypoint. Server movement/tests use vanilla input packets. */
     public static Function<Player, Input> clientInput = player -> Input.EMPTY;
     private static final ClassValue<Boolean> GENERIC_MOB = new ClassValue<>() {
         protected Boolean computeValue(Class<?> type) {
             try {
-                // Never replace an entity class's native controlling-passenger implementation.
                 return type.getMethod("getControllingPassenger").getDeclaringClass() == Mob.class;
             } catch (NoSuchMethodException e) { return false; }
         }
@@ -35,6 +33,7 @@ public final class TinyMounts {
 
     public static void initialize() {
         MountSizePolicy.initialize();
+        TinyMountInventory.initialize();
         WolfMount.initialize();
         DynamicRegistries.registerSynced(REGISTRY, TinyMountDefinition.CODEC);
         ServerMobEffectEvents.AFTER_ADD.register((effect, entity, context) -> { if (entity instanceof Player p) enforceRider(p); });
@@ -58,19 +57,17 @@ public final class TinyMounts {
 
     public static boolean eligible(Player player, Entity mount) {
         return !player.isSpectator() && MountSizePolicy.permits(player, mount)
-            && (!(mount instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) || !wolf.isTame() || WolfMount.permits(wolf, player));
+            && (!(mount instanceof Wolf wolf) || !wolf.isTame() || WolfMount.permits(wolf, player));
     }
 
-    public static Player rider(Entity entity) {
-        return entity.getFirstPassenger() instanceof Player p ? p : null;
-    }
+    public static Player rider(Entity entity) { return entity.getFirstPassenger() instanceof Player p ? p : null; }
 
     public static Player controller(Mob mob) {
         var definition = definition(mob);
         var player = rider(mob);
         if (definition == null || player == null || !eligible(player, mob) || !mob.isAlive()
                 || (definition.saddle() && !mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))) return null;
-        if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf && !wolf.isTame()) return null;
+        if (mob instanceof Wolf wolf && !wolf.isTame()) return null;
         if (definition.control() == TinyMountDefinition.Control.ITEM_STEERED) {
             if (!TinyMountTemptation.matches(definition, player.getMainHandItem())
                     && !TinyMountTemptation.matches(definition, player.getOffhandItem())) return null;
@@ -94,13 +91,11 @@ public final class TinyMounts {
                 .map(id -> held.is(BuiltInRegistries.ITEM.getValue(id))).orElse(false);
         if (!saddling && !mounting) return InteractionResult.PASS;
         if (player.isSpectator()) return InteractionResult.PASS;
-        // Tameable normal clicks belong to vanilla (sit, stand, feed). Equipment is independent of rider size.
         if (!saddling && player.isSecondaryUseActive() != (mob instanceof TamableAnimal)) return InteractionResult.PASS;
         if (mob.isBaby()) return reject(mob, player, "mount_too_young");
         if (saddling) {
             if (!definition.saddle() || !mob.getItemBySlot(EquipmentSlot.SADDLE).isEmpty()) return InteractionResult.PASS;
-            if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf && !wolf.isTame())
-                return reject(mob, player, "wolf_not_tamed");
+            if (mob instanceof Wolf wolf && !wolf.isTame()) return reject(mob, player, "wolf_not_tamed");
             if (!mob.level().isClientSide()) {
                 mob.setItemSlot(EquipmentSlot.SADDLE, held.copyWithCount(1));
                 mob.setGuaranteedDrop(EquipmentSlot.SADDLE);
@@ -114,13 +109,12 @@ public final class TinyMounts {
         if (!eligible(player, mob)) return reject(mob, player, "mount_hostile");
         if (mob.isVehicle()) return reject(mob, player, "mount_occupied");
         if (!mob.level().isClientSide()) {
-            // Ignore only the initiating sneak gesture, not vanilla capacity or boarding cooldown.
             boolean shift = player.isShiftKeyDown();
             boolean mounted;
             try { player.setShiftKeyDown(false); mounted = player.startRiding(mob); }
             finally { player.setShiftKeyDown(shift); }
             if (!mounted) return InteractionResult.FAIL;
-            if (mob instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf) {
+            if (mob instanceof Wolf wolf) {
                 wolf.setOrderedToSit(false); wolf.setInSittingPose(false);
                 if (!wolf.isTame()) { wolf.stopBeingAngry(); wolf.setTarget(null); wolf.setLastHurtByMob(null); }
             }
@@ -141,7 +135,7 @@ public final class TinyMounts {
         var definition = definition(vehicle);
         if (!MountSizePolicy.permits(player, vehicle)
                 || (player instanceof Player p && definition != null && !eligible(p, vehicle))) {
-            player.stopRiding(); // Native LivingEntity dismount placement, not raw passenger removal.
+            player.stopRiding();
             player.resetFallDistance();
         }
     }
@@ -159,10 +153,6 @@ public final class TinyMounts {
         return InteractionResult.FAIL;
     }
 
-    /**
-     * Generates a new rider-directed flight velocity in the root mount's current gravity frame.
-     * Existing world momentum is not consumed or reinterpreted by this helper.
-     */
     public static Vec3 flightVelocity(Player player, TinyMountDefinition definition) {
         double pitch = Math.toRadians(Math.clamp(player.getXRot(), -definition.maxPitch(), definition.maxPitch()));
         double yaw = Math.toRadians(player.getYRot());

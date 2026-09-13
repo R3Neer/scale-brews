@@ -7,6 +7,7 @@
 		"WolfMountMixin",
 		"WolfRiderLifecycleMixin",
 		"TinyMountDismountInputMixin",
+		"TinyMountInventoryScreenMixin",
 		"WolfAuthorityMixin",
 		"WolfConnectionMixin",
 		"ScaleHarvestPlayerMixin",
@@ -47,10 +48,6 @@
 		"ScaleMovementExhaustionMixin",
 		"ScaleAttackExhaustionMixin"
 	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+	"injectors": { "defaultRequire": 1 },
+	"overwrites": { "requireAnnotations": true }
 }
