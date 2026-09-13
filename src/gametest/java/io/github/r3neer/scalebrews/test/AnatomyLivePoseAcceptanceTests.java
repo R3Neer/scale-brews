@@ -8,8 +8,8 @@ import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.collision.pose.QuadrupedPose;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.pose.QuadrupedPoseEngine;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +151,7 @@ public final class AnatomyLivePoseAcceptanceTests {
     }
 
     @SuppressWarnings({"rawtypes","unchecked"})
-    private static void compareOriginalModel(Cow cow,PoseProvider.Inputs inputs) {
+    private static void compareOriginalModel(Cow cow,PoseEngine.Inputs inputs) {
         var renderer=net.minecraft.client.Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(cow);
         if(!(renderer instanceof LivingEntityRenderer living))throw new AssertionError("No living cow renderer");
         LivingEntityRenderState state=(LivingEntityRenderState)living.createRenderState();
@@ -159,7 +159,7 @@ public final class AnatomyLivePoseAcceptanceTests {
         state.walkAnimationPos=inputs.walkPhase();state.walkAnimationSpeed=inputs.walkAmount();
         state.xRot=inputs.headPitch();state.yRot=inputs.headYaw();state.ageInTicks=inputs.age();
         ModelGeometry baseline=GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of());
-        var predicted=baseline.evaluate(new Matrix4f(),new QuadrupedPose().evaluate(baseline,inputs).orElseThrow(),AnatomyFilter.DEFAULT);
+        var predicted=baseline.evaluate(new Matrix4f(),new QuadrupedPoseEngine().evaluate(baseline,inputs,Map.of()).orElseThrow(),AnatomyFilter.DEFAULT);
         EntityModel model=new CowModel(CowModel.createBodyLayer().bakeRoot());
         model.setupAnim(state);
         var original=GeometryExtractor.vanilla("minecraft:cow","26.2",model.root(),Set.of())

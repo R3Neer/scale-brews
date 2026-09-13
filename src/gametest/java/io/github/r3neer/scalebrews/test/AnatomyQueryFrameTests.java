@@ -5,7 +5,7 @@ import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,17 +21,17 @@ import org.joml.Matrix4f;
 
 /** Q1: current causal convex frames are independent of optional historical motion. */
 public class AnatomyQueryFrameTests {
-    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+    private static final PoseEngine.Inputs INPUTS=new PoseEngine.Inputs(0,0,0,0,0,true);
     private static GeometryProvider.GeometryIdentityDescriptor descriptor(UUID epoch,long revision) {
         return new GeometryProvider.GeometryIdentityDescriptor(epoch,revision,Identifier.parse("test:query_frame"),Identifier.parse("test:static"),1);
     }
     /** A server fixture endpoint: one captured root/TRS and its exact convex snapshot. */
     private static GeometryProvider endpointProvider(long revision,Function<net.minecraft.world.entity.LivingEntity,ConvexBox> current,
-            Function<net.minecraft.world.entity.LivingEntity,PoseProvider.Inputs> causalInputs,
+            Function<net.minecraft.world.entity.LivingEntity,PoseEngine.Inputs> causalInputs,
             Function<net.minecraft.world.entity.LivingEntity,GeometryProvider.Availability> availability,Optional<GeometryProvider.MotionSnapshot> historical) {
         return new GeometryProvider() {
             private AnatomyMovement.RootFrame previous;
-            private PoseProvider.Inputs previousInputs;
+            private PoseEngine.Inputs previousInputs;
             private GeometryProvider.Availability previousAvailability;
             private long serial;
             private GeometryProvider.Snapshot snapshot(net.minecraft.world.entity.LivingEntity entity) {
@@ -144,7 +144,7 @@ public class AnatomyQueryFrameTests {
                     "Valid to unavailable to valid publishes discrete frames without tweening the unavailable gap");
                 var joint=new float[]{0};
                 var jointProvider=endpointProvider(9,e->ConvexBox.of(new AABB(-.5,-.1,-.5,.5,.1,.5),new Matrix4f()).move(e.position().add(joint[0]*3,0,0)),
-                    e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])),e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
+                    e->new PoseEngine.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])),e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
                 AnatomyMovement.register(support,jointProvider,descriptor(epoch,9));
                 var jointsBefore=AnatomyMovement.queryFrame(support).orElseThrow();joint[0]=1;
                 var jointsAfter=AnatomyMovement.queryFrame(support).orElseThrow();

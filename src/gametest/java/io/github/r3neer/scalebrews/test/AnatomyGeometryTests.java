@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.pose.*;
 import io.github.r3neer.scalebrews.collision.physics.*;
@@ -28,7 +29,7 @@ public class AnatomyGeometryTests {
         support.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(2);support.refreshDimensions();
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         var provider=new ModelGeometryProvider(model,new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
-        provider.pose(support,new PoseProvider.Inputs(0,0,0,0,0,true));
+        provider.pose(support,new PoseEngine.Inputs(0,0,0,0,0,true));
         AnatomyMovement.register(support,provider);
         try {
             var back=provider.sample(support).orElseThrow().pieces().get("root/body/cube_0").bounds();
@@ -40,7 +41,7 @@ public class AnatomyGeometryTests {
                 support.setPos(origin.add(.2*Math.sin(step*.07),.1*Math.sin(step*.05),.2*Math.cos(step*.07)));
                 support.yBodyRot=step*2;
                 support.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(2+.1*Math.sin(step*.03));support.refreshDimensions();
-                provider.pose(support,new PoseProvider.Inputs(step*.37f,.5f,step,10,5,true));
+                provider.pose(support,new PoseEngine.Inputs(step*.37f,.5f,step,10,5,true));
                 AnatomyMovement.carry(player);var carried=player.position();
                 AnatomyMovement.carry(player);
                 h.assertTrue(player.position().equals(carried),"Repeated carry is idempotent at step "+step);
@@ -64,8 +65,8 @@ public class AnatomyGeometryTests {
             var model=new ModelGeometry(2,"test:identity","1",java.util.List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
                 java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(0d,0d,0d),java.util.List.of(1d,1d,1d),null)),ModelGeometry.values(new Matrix4f()));
             var sharedProvider=new ModelGeometryProvider(model,(geometry,inputs)->java.util.Optional.of(java.util.Map.of()),AnatomyFilter.DEFAULT,1);
-            var firstInputs=new PoseProvider.Inputs(1,.1f,1,0,0,true);
-            var secondInputs=new PoseProvider.Inputs(2,.2f,2,0,0,true);
+            var firstInputs=new PoseEngine.Inputs(1,.1f,1,0,0,true);
+            var secondInputs=new PoseEngine.Inputs(2,.2f,2,0,0,true);
             sharedProvider.pose(first,firstInputs);sharedProvider.pose(second,secondInputs);
             h.assertTrue(sharedProvider.inputs(first).orElseThrow().equals(firstInputs) && sharedProvider.inputs(second).orElseThrow().equals(secondInputs),
                 "A reusable geometry provider keeps same-network-ID entities in distinct pose caches");
@@ -229,7 +230,7 @@ public class AnatomyGeometryTests {
     @GameTest public void gravityOrientsGeometryAndResetsPoseHistory(GameTestHelper h) {
         var model=new ModelGeometry(1,"test:head","1",java.util.List.of(new ModelGeometry.Part("head",null,ModelGeometry.values(new Matrix4f()))),
             java.util.List.of(new ModelGeometry.Piece("head","head",java.util.List.of(-.2d,1.2d,-.2d),java.util.List.of(.2d,1.6d,.2d),null))).withModelTransform(new Matrix4f());
-        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);var entity=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var inputs=new PoseEngine.Inputs(0,0,0,0,0,true);var entity=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var evaluator=new ModelGeometryProvider(model,(g,p)->java.util.Optional.of(java.util.Map.of()),AnatomyFilter.DEFAULT,1);
         var base=evaluator.sampleAt(entity,new AnatomyPoseHistory.Sample(inputs,Vec3.ZERO,180,1)).orElseThrow().pieces().get("head");
         try {
@@ -423,7 +424,7 @@ public class AnatomyGeometryTests {
             java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.2d,-.2d,-.2d),java.util.List.of(.2d,.2d,.2d),null)),ModelGeometry.values(new Matrix4f().m10(.2f)));
         var evaluator=new ModelGeometryProvider(model,(geometry,inputs)->java.util.Optional.of(java.util.Map.of("root",new Matrix4f().rotateZ(inputs.walkAmount()))),AnatomyFilter.DEFAULT,1);
         var entity=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-        var inputs=new PoseProvider.Inputs(.3f,0,0,0,0,true);var sample=new AnatomyPoseHistory.Sample(inputs,new Vec3(3,4,5),35,1.1f);
+        var inputs=new PoseEngine.Inputs(.3f,0,0,0,0,true);var sample=new AnatomyPoseHistory.Sample(inputs,new Vec3(3,4,5),35,1.1f);
         var root=new AnatomyMovement.RootFrame(1,7,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(1,9,8,root,sample,GeometryProvider.Availability.AVAILABLE);
         entity.setPos(-20,30,40);entity.yBodyRot=-120;
@@ -436,8 +437,8 @@ public class AnatomyGeometryTests {
     @GameTest public void poseHistoryRejectsReplayAndDiscontinuity(GameTestHelper h) {
         var epoch=java.util.UUID.randomUUID();var entity=java.util.UUID.randomUUID();var dimension=net.minecraft.resources.Identifier.parse("minecraft:overworld");
         var model=net.minecraft.resources.Identifier.parse("minecraft:player_wide");var provider=net.minecraft.resources.Identifier.parse("scalebrews:player_walking");
-        var a=new AnatomyPosePayload(epoch,1,dimension,1,entity,model,provider,10,new PoseProvider.Inputs(0,0,10,179,0,true),Vec3.ZERO,179,1);
-        var b=new AnatomyPosePayload(epoch,1,dimension,1,entity,model,provider,11,new PoseProvider.Inputs(1,1,11,-179,10,true),new Vec3(1,0,0),-179,2);
+        var a=new AnatomyPosePayload(epoch,1,dimension,1,entity,model,provider,10,new PoseEngine.Inputs(0,0,10,179,0,true),Vec3.ZERO,179,1);
+        var b=new AnatomyPosePayload(epoch,1,dimension,1,entity,model,provider,11,new PoseEngine.Inputs(1,1,11,-179,10,true),new Vec3(1,0,0),-179,2);
         var history=new AnatomyPoseHistory();history.accept(a);history.accept(b);
         var mid=history.sample(10.5);
         h.assertTrue(Math.abs(mid.origin().x-.5)<1e-6 && Math.abs(mid.scale()-1.5)<1e-6 && Math.abs(Math.abs(mid.yaw())-180)<1e-6,"Interpolate channels with shortest-angle rotation");
@@ -507,7 +508,7 @@ public class AnatomyGeometryTests {
         giant.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(3);giant.refreshDimensions();
         giant.setPos(h.absoluteVec(new Vec3(2,20,2)));giant.yBodyRot=0;giant.setNoGravity(true);h.getLevel().addFreshEntity(giant);
         var provider=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),AnatomyFilter.DEFAULT,1);
-        provider.pose(giant,new PoseProvider.Inputs(0,0,0,0,0,true));
+        provider.pose(giant,new PoseEngine.Inputs(0,0,0,0,0,true));
         var head=provider.sample(giant).orElseThrow().pieces().get("root/head/cube_0");
         var boat=h.spawn(net.minecraft.world.entity.EntityTypes.OAK_BOAT,2,27,2);
         var rider=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);rider.startRiding(boat,true,true);
@@ -554,7 +555,7 @@ public class AnatomyGeometryTests {
         var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);support.yBodyRot=0;
         var provider=new ModelGeometryProvider(geometry,new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
-        provider.pose(support,new PoseProvider.Inputs(0,0,0,0,0,true));
+        provider.pose(support,new PoseEngine.Inputs(0,0,0,0,0,true));
         var player=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.1);player.refreshDimensions();
         AnatomyMovement.register(support,provider);
@@ -581,7 +582,7 @@ public class AnatomyGeometryTests {
             long evaluations=provider.evaluations();
             for(int i=0;i<50;i++)provider.sample(support);
             h.assertTrue(provider.evaluations()==evaluations,"Repeated observers/queries share one geometry evaluation");
-            provider.pose(support,new PoseProvider.Inputs(0,0,0,0,0,false));
+            provider.pose(support,new PoseEngine.Inputs(0,0,0,0,0,false));
             h.assertTrue(provider.sample(support).isEmpty(),"Unsupported pose removes anatomy instead of freezing it");
         } finally {support.discard();player.discard();}
     }
@@ -805,10 +806,10 @@ public class AnatomyGeometryTests {
         var model=new ModelGeometry(2,"test:joint_cache","1",java.util.List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
             java.util.List.of(new ModelGeometry.Piece("body","root",java.util.List.of(-.5d,0d,-.5d),java.util.List.of(.5d,1d,.5d),null)),ModelGeometry.values(new Matrix4f()));
         var calls=new int[1];
-        PoseProvider pose=(geometry,inputs)->{calls[0]++;return java.util.Optional.of(java.util.Map.of());};
+        PoseEngine pose=(geometry,inputs,parameters)->{calls[0]++;return java.util.Optional.of(java.util.Map.of());};
         var entity=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var provider=new ModelGeometryProvider(model,pose,AnatomyFilter.DEFAULT,1);
-        var inputs=new PoseProvider.Inputs(0,.3f,10,0,0,true);
+        var inputs=new PoseEngine.Inputs(0,.3f,10,0,0,true);
         try {
             var initial=new AnatomyPoseHistory.Sample(inputs,Vec3.ZERO,0,1);
             var rootMoved=new AnatomyPoseHistory.Sample(inputs,new Vec3(.4,.2,0),35,1.25f);
@@ -818,10 +819,10 @@ public class AnatomyGeometryTests {
                 "Root translation/yaw/scale rebuild convexes without re-evaluating authority joints");
             provider.motionBetween(entity,initial,rootMoved).orElseThrow();
             h.assertTrue(calls[0]==1,"CCD endpoint construction reuses the same immutable authority joints");
-            provider.sampleAt(entity,new AnatomyPoseHistory.Sample(new PoseProvider.Inputs(.5f,.3f,11,0,0,true),rootMoved.origin(),rootMoved.yaw(),rootMoved.scale())).orElseThrow();
+            provider.sampleAt(entity,new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(.5f,.3f,11,0,0,true),rootMoved.origin(),rootMoved.yaw(),rootMoved.scale())).orElseThrow();
             h.assertTrue(calls[0]==2 && provider.jointEvaluations()==2,"A distinct authority input gets exactly one new joint evaluation");
             for(int tick=0;tick<160;tick++) {
-                var next=new PoseProvider.Inputs(tick,.3f,tick+12,0,0,true);
+                var next=new PoseEngine.Inputs(tick,.3f,tick+12,0,0,true);
                 provider.sampleAt(entity,new AnatomyPoseHistory.Sample(next,new Vec3(tick*.01,0,0),0,1)).orElseThrow();
             }
             h.assertTrue(provider.cachedJointEndpoints(entity)<=2,"Long-lived animated support retains only current and previous joint endpoints");
@@ -909,10 +910,10 @@ public class AnatomyGeometryTests {
                 models.put(model.source(),model);
                 var boxes=model.evaluate(new Matrix4f(),java.util.Map.of(),AnatomyFilter.DEFAULT);
                 h.assertTrue(!boxes.isEmpty(),"Exported model has non-decorative server geometry: "+model.source());
-                PoseProvider poseProvider=switch(model.source()) {case "minecraft:cow"->new QuadrupedPose();case "alexsmobs:grizzly_bear"->new GrizzlyPose();default->new PlayerWalkingPose();};
+                PoseEngine poseProvider=switch(model.source()) {case "minecraft:cow"->new QuadrupedPose();case "alexsmobs:grizzly_bear"->new GrizzlyPose();default->new PlayerWalkingPose();};
                 var evaluator=new ModelGeometryProvider(model,poseProvider,AnatomyFilter.DEFAULT,1);
-                var from=new AnatomyPoseHistory.Sample(new PoseProvider.Inputs(1,.5f,10,-10,5,true),new Vec3(12000000,20,3000000),179,2);
-                var to=new AnatomyPoseHistory.Sample(new PoseProvider.Inputs(1.37f,.6f,11,10,-5,true),from.origin().add(.2,.1,0),-179,2.1f);
+                var from=new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(1,.5f,10,-10,5,true),new Vec3(12000000,20,3000000),179,2);
+                var to=new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(1.37f,.6f,11,10,-5,true),from.origin().add(.2,.1,0),-179,2.1f);
                 var hierarchy=evaluator.motionBetween(from,to).orElseThrow();var motions=hierarchy.pieces();
                 h.assertTrue(motions.keySet().equals(boxes.keySet()),"Motion retains anatomical pieces");
                 for(double fraction:java.util.List.of(0d,.25,.5,.75,1d)) {
@@ -931,11 +932,11 @@ public class AnatomyGeometryTests {
                     }
                 }
                 if(model.source().equals("minecraft:cow"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new QuadrupedPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Cow server pose");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new QuadrupedPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Cow server pose");
                 if(model.source().equals("alexsmobs:grizzly_bear"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
                 if(model.source().startsWith("minecraft:player_"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new PlayerWalkingPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Player server pose");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new PlayerWalkingPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Player server pose");
             }
         }catch(java.io.IOException e){throw new RuntimeException(e);}
         h.assertTrue(models.size()==4,"Expected cow, both player variants, and grizzly");
