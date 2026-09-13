@@ -39,11 +39,18 @@ public final class TinyMountFamilyTests {
             var definition = TinyMounts.definition(cow);
             h.assertTrue(definition != null && definition.family() == TinyMountDefinition.Family.DIRECT,
                     "Cow becomes a direct Tiny Mount from decoded family data alone");
+            h.assertTrue(TinyMountInventory.canOpen(rider, cow),
+                    "Unridden direct-family species exposes its generic mount inventory");
+            rider.setShiftKeyDown(true);
+            var inventoryResult = cow.interact(rider, InteractionHand.MAIN_HAND, Vec3.ZERO);
+            h.assertTrue(inventoryResult.consumesAction() && !rider.isPassenger(),
+                    "Direct family secondary use is inventory intent rather than mounting");
+            rider.setShiftKeyDown(false);
             cow.interact(rider, InteractionHand.MAIN_HAND, Vec3.ZERO);
             h.assertTrue(rider.getVehicle() == cow && TinyMounts.controller(cow) == null,
                     "Direct family accepts unsaddled passive passenger");
             h.assertTrue(TinyMountInventory.canOpen(rider, cow),
-                    "Unlisted direct-family species exposes the generic mount inventory seam");
+                    "Mounted direct-family species exposes the same generic inventory seam");
             var menu = new TinyMountMenu(0, rider.getInventory(), cow);
             h.assertTrue(menu.getSlot(0).isActive() && !menu.getSlot(1).isActive(),
                     "Data-only direct mount gets saddle-only menu without species code");
