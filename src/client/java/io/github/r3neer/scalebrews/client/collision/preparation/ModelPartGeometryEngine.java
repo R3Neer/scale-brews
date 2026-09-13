@@ -3,7 +3,9 @@ package io.github.r3neer.scalebrews.client.collision.preparation;
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +60,7 @@ public final class ModelPartGeometryEngine implements GeometryEngine {
 
     /** Deterministic tooling view; values are immutable source descriptors, not prepared geometry caches. */
     public static synchronized Map<Identifier, Source> sources() {
-        return Map.copyOf(INSTANCE.sources);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(INSTANCE.sources));
     }
 
     @Override
