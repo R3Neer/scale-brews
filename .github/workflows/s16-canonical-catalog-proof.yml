@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/s16-canonical-catalog-proof.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S16CanonicalCatalogAuthorityTests.java'
       - 'src/gametest/resources/fabric.mod.json'
