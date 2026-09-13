@@ -1,0 +1,86 @@
+name: s15-catalog-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s15-catalog-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogPayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S15PreparedCatalogBundleTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  s15-catalog-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: isolate S15 GameTests in runner manifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('src/gametest/resources/fabric.mod.json')
+          data = json.loads(path.read_text())
+          data['entrypoints']['fabric-gametest'] = [
+              'io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests'
+          ]
+          path.write_text(json.dumps(data, indent=2) + '\n')
+          PY
+      - name: run isolated S15 catalog proof
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s15-junit.xml"
+      - name: assert exact S15 evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import xml.etree.ElementTree as ET
+
+          manifest = json.loads(Path('build/resources/gametest/fabric.mod.json').read_text())
+          selected = manifest['entrypoints']['fabric-gametest']
+          expected = ['io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests']
+          if selected != expected:
+              raise SystemExit(f'effective GameTest manifest selected {selected!r}, expected {expected!r}')
+
+          report = Path('build/s15-junit.xml')
+          if not report.exists():
+              raise SystemExit('Fabric did not emit the requested S15 JUnit report')
+          root = ET.parse(report).getroot()
+          cases = root.findall('.//testcase')
+          failures = root.findall('.//failure')
+          errors = root.findall('.//error')
+          skipped = root.findall('.//skipped')
+          if len(cases) != 8:
+              raise SystemExit(f'S15 must execute exactly 8 GameTests, got {len(cases)}')
+          if failures or errors or skipped:
+              raise SystemExit(
+                  f'S15 JUnit is not fully green: failures={len(failures)} errors={len(errors)} skipped={len(skipped)}'
+              )
+          print('S15_CATALOG_PROOF PASS: 8/8 isolated GameTests')
+          PY
+      - name: capture S15 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S15-catalog-proof
+          path: |
+            build/s15-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
