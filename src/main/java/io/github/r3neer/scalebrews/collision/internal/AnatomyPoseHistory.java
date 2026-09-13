@@ -1,16 +1,16 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.PoseChannels;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /** Two authoritative samples; interpolation cannot advance or mutate the server animation clock. */
 public final class AnatomyPoseHistory {
-    public record Sample(PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
-        public Sample(PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale){this(inputs,origin,yaw,scale,GravityFrame.VANILLA);}
+    public record Sample(PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
+        public Sample(PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale){this(inputs,origin,yaw,scale,GravityFrame.VANILLA);}
         public Sample {
             if(inputs==null || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr())
                     || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
@@ -51,7 +51,7 @@ public final class AnatomyPoseHistory {
         float t=(float)Math.clamp((tick-previous.jointSampleTick())/(current.jointSampleTick()-previous.jointSampleTick()),0,1);
         var a=previous.inputs();var b=current.inputs();
         var channels=PoseChannels.interpolate(a.channels(),b.channels(),t);
-        var pose=new PoseProvider.Inputs(Mth.lerp(t,a.walkPhase(),b.walkPhase()),Mth.lerp(t,a.walkAmount(),b.walkAmount()),Mth.lerp(t,a.age(),b.age()),
+        var pose=new PoseEngine.Inputs(Mth.lerp(t,a.walkPhase(),b.walkPhase()),Mth.lerp(t,a.walkAmount(),b.walkAmount()),Mth.lerp(t,a.age(),b.age()),
             Mth.rotLerp(t,a.headYaw(),b.headYaw()),Mth.lerp(t,a.headPitch(),b.headPitch()),true,channels);
         return new Sample(pose,previous.origin().lerp(current.origin(),t),Mth.rotLerp(t,previous.yaw(),current.yaw()),Mth.lerp(t,previous.scale(),current.scale()),new GravityFrame(current.gravity()));
     }
