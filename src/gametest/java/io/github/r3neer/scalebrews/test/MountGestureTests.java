@@ -39,17 +39,17 @@ public class MountGestureTests {
     }
 
     @GameTest public void configuredCatUsesSameGesture(GameTestHelper h) {
-        try(var scope=new TinyDefinitionTestScope("{\"entity\":\"minecraft:cat\",\"saddle\":false,\"control\":\"direct\",\"movement\":\"ground\",\"speed\":0.3}")) {
+        try(var scope=new TinyDefinitionTestScope("{\"entity\":\"minecraft:cat\",\"family\":\"tameable_direct\",\"movement\":\"ground\",\"speed\":0.3,\"saddle_visual\":{\"texture\":\"scalebrews:textures/entity/saddle/chicken.png\",\"anchor\":\"body\"}}")) {
             var player=h.makeMockPlayer(GameType.SURVIVAL);
             player.getAttribute(Attributes.SCALE).setBaseValue(.28);
             var cat=h.spawn(EntityTypes.CAT,2,2,2);cat.tame(player);cat.setNoAi(true);
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.COD,2));
             for(int attempt=0;attempt<2;attempt++) {
                 player.setShiftKeyDown(true);player.interactOn(cat,InteractionHand.MAIN_HAND,Vec3.ZERO);player.rideTick();
-                h.assertTrue(player.getVehicle()==cat && !cat.isInLove(),"Configured tameable mounts instead of feeding");
+                h.assertTrue(player.getVehicle()==cat && !cat.isInLove(),"Configured tameable family mounts instead of feeding");
                 player.setShiftKeyDown(false);player.rideTick();
                 player.setShiftKeyDown(true);player.rideTick();
-                h.assertFalse(player.isPassenger(),"Configured tameable dismounts on new Shift");
+                h.assertFalse(player.isPassenger(),"Configured tameable family dismounts on new Shift");
             }
             h.assertTrue(player.getMainHandItem().getCount()==2,"Held food preserved");
         }
