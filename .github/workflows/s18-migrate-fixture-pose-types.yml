@@ -1,0 +1,33 @@
+name: s18-migrate-fixture-pose-types
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-migrate-fixture-pose-types.yml'
+      - '.github/scripts/s18_migrate_fixture_pose_types.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+      - run: python3 .github/scripts/s18_migrate_fixture_pose_types.py
+      - name: commit fixtures and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/s18-migrate-fixture-pose-types.yml .github/scripts/s18_migrate_fixture_pose_types.py
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyGeometryTests.java
+          git add src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyLivePoseAcceptanceTests.java
+          git add src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyQueryFrameTests.java
+          git commit -m 'test(s18): migrate fixtures to canonical pose inputs'
+          git push origin HEAD:chatgpt-editing
