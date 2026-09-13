@@ -119,40 +119,67 @@ public final class WorldAnatomyCatalog {
         Objects.requireNonNull(models, "models");
         Objects.requireNonNull(bindings, "bindings");
         var canonical = new CollisionBindingCatalog(bindings);
-        List<String> references = new ArrayList<>();
-        Map<Identifier, Binding> executable = new HashMap<>();
 
+        // Validation belongs to the complete candidate, not merely to the selector that
+        // happens to match today's empty runtime variant. Variant-only bridge bindings are
+        // authoritative catalog data too, so every bridge reference must fail before swap.
+        List<String> references = new ArrayList<>();
+        for (var candidate : canonical.bindings()) {
+            boolean bridge = compatibilityBridge(candidate);
+            if (touchesCompatibilityBridge(candidate) && !bridge)
+                throw new IllegalArgumentException("Incomplete legacy compatibility binding for " + selector(candidate));
+            if (bridge) references.add(candidate.geometry().model().toString());
+        }
+
+        // Validate all model objects and every bridge model reference before evaluating any
+        // provider. This temporary catalog is not published; current remains untouched on error.
+        var validated = new GeometryCatalog().replace(models, references);
+        Map<CollisionBinding, Binding> preparedBridge = new HashMap<>();
+        for (var candidate : canonical.bindings()) {
+            if (!compatibilityBridge(candidate)) continue;
+            preparedBridge.put(candidate, prepareBridge(candidate, validated.models()));
+        }
+
+        // S16 still executes only the empty/default selector. Variant state remains future
+        // runtime work, but its declarative data has already been fully validated above.
+        Map<Identifier, Binding> executable = new HashMap<>();
         for (var entity : canonical.snapshot().keySet()) {
             var selected = canonical.resolve(entity, Map.of()).orElse(null);
             if (selected == null) continue; // Variant-only selectors never become an accidental default.
-            boolean bridge = compatibilityBridge(selected);
-            if (touchesCompatibilityBridge(selected) && !bridge)
-                throw new IllegalArgumentException("Incomplete legacy compatibility binding for " + entity);
-            if (!bridge) continue; // Accepted canonically; G3.3-G3.6 will make it executable.
-
-            String modelId = selected.geometry().model().toString();
-            references.add(modelId);
-            var model = models.get(modelId);
-            if (model == null) throw new IllegalArgumentException("Missing geometry " + modelId + " for " + entity);
-            String providerText = selected.pose().parameters().get("provider");
-            if (providerText == null) throw new IllegalArgumentException("Missing legacy pose provider parameter for " + entity);
-            final Identifier providerId;
-            try { providerId = Identifier.parse(providerText); }
-            catch (RuntimeException invalid) { throw new IllegalArgumentException("Invalid legacy pose provider " + providerText + " for " + entity, invalid); }
-            var provider = PoseProviders.find(providerId)
-                .orElseThrow(() -> new IllegalArgumentException("Missing pose provider " + providerId + " for " + entity));
-            if (provider.evaluate(model, new PoseProvider.Inputs(0, 0, 0, 0, 0, true)).isEmpty())
-                throw new IllegalArgumentException("Pose provider does not support model/version for " + entity);
-            validateFilter(selected, model);
-            executable.put(entity, new Binding(selected, model, provider, providerId));
+            var prepared = preparedBridge.get(selected);
+            if (prepared != null) executable.put(entity, prepared);
+            // Other registered engines stay canonically accepted but unavailable until G3.3-G3.6.
         }
 
-        var validated = new GeometryCatalog().replace(models, references);
         // Prepare every fallible transfer artifact before the atomic accepted-state swap.
         var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), canonical.bindings());
         var next = new Snapshot(revision, validated.models(), canonical, executable);
         current = new Accepted(next, bundle);
         return next;
+    }
+
+    private static Binding prepareBridge(CollisionBinding selection, Map<String, ModelGeometry> models) {
+        String modelId = selection.geometry().model().toString();
+        var model = models.get(modelId);
+        if (model == null) throw new IllegalArgumentException("Missing geometry " + modelId + " for " + selector(selection));
+        String providerText = selection.pose().parameters().get("provider");
+        if (providerText == null)
+            throw new IllegalArgumentException("Missing legacy pose provider parameter for " + selector(selection));
+        final Identifier providerId;
+        try { providerId = Identifier.parse(providerText); }
+        catch (RuntimeException invalid) {
+            throw new IllegalArgumentException("Invalid legacy pose provider " + providerText + " for " + selector(selection), invalid);
+        }
+        var provider = PoseProviders.find(providerId)
+            .orElseThrow(() -> new IllegalArgumentException("Missing pose provider " + providerId + " for " + selector(selection)));
+        if (provider.evaluate(model, new PoseProvider.Inputs(0, 0, 0, 0, 0, true)).isEmpty())
+            throw new IllegalArgumentException("Pose provider does not support model/version for " + selector(selection));
+        validateFilter(selection, model);
+        return new Binding(selection, model, provider, providerId);
+    }
+
+    private static String selector(CollisionBinding binding) {
+        return binding.entity() + (binding.variant().isEmpty() ? "" : " variant " + binding.variant());
     }
 
     private static boolean compatibilityBridge(CollisionBinding binding) {
@@ -173,6 +200,6 @@ public final class WorldAnatomyCatalog {
         model.pieces().forEach(piece -> ids.add(piece.id()));
         var filter = binding.geometry().filter();
         for (String selected : java.util.stream.Stream.concat(filter.include().stream(), filter.exclude().stream()).toList())
-            if (!ids.contains(selected)) throw new IllegalArgumentException("Missing selected piece/part " + selected + " for " + binding.entity());
+            if (!ids.contains(selected)) throw new IllegalArgumentException("Missing selected piece/part " + selected + " for " + selector(binding));
     }
 }
