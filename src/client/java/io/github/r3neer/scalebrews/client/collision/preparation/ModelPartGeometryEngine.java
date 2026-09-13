@@ -81,7 +81,7 @@ public final class ModelPartGeometryEngine implements GeometryEngine {
             var transform = source.modelTransform().get();
             if (root == null || transform == null)
                 throw new IllegalArgumentException("ModelPart source returned null material");
-            var geometry = GeometryExtractor.vanilla(request.model().toString(), source.version(), root, java.util.Set.of());
+            var geometry = ModelPartGeometryExtractor.extract(request.model().toString(), source.version(), root, java.util.Set.of());
             return Optional.of(geometry.withModelTransform(new Matrix4f(transform)));
         } catch (RuntimeException failure) {
             throw new IllegalArgumentException("Failed to prepare ModelPart geometry " + request.model(), failure);
