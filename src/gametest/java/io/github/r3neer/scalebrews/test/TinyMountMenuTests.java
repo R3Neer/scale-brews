@@ -3,28 +3,48 @@ package io.github.r3neer.scalebrews.test;
 import io.github.r3neer.scalebrews.mount.TinyMountMenu;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 
 public class TinyMountMenuTests {
-    @GameTest public void chickenAndBeeExposeOnlySaddleEquipment(GameTestHelper h) {
+    @GameTest public void chickenExposesOnlySaddleEquipment(GameTestHelper h) {
         var player = h.makeMockPlayer(GameType.SURVIVAL);
-        for (var type : java.util.List.of(EntityTypes.CHICKEN, EntityTypes.BEE)) {
-            var mount = h.spawn(type, 1, 2, 1);
-            var menu = new TinyMountMenu(0, player.getInventory(), mount);
-            h.assertTrue(menu.getSlot(0).isActive() && menu.getSlot(0).mayPlace(new ItemStack(Items.SADDLE)),
-                    "Tiny mount saddle slot is available");
-            h.assertFalse(menu.getSlot(1).isActive(), "Chicken/bee armor slot is absent");
-            menu.getSlot(0).setByPlayer(new ItemStack(Items.SADDLE));
-            h.assertTrue(mount.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
-                    "Menu writes the same saddle equipment slot used by riding/rendering");
-            menu.getSlot(0).setByPlayer(ItemStack.EMPTY);
-            h.assertTrue(mount.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(), "Saddle can be removed through the menu");
-            mount.discard();
-        }
+        var chicken = h.spawn(EntityTypes.CHICKEN, 1, 2, 1);
+        var menu = new TinyMountMenu(0, player.getInventory(), chicken);
+        h.assertTrue(menu.getSlot(0).isActive() && menu.getSlot(0).mayPlace(new ItemStack(Items.SADDLE)),
+                "Chicken saddle slot is available");
+        h.assertFalse(menu.getSlot(1).isActive(), "Chicken armor slot is absent");
+        menu.getSlot(0).setByPlayer(new ItemStack(Items.SADDLE));
+        h.assertTrue(chicken.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
+                "Chicken menu writes the same saddle equipment slot used by riding/rendering");
+        menu.getSlot(0).setByPlayer(ItemStack.EMPTY);
+        h.assertTrue(chicken.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(), "Chicken saddle can be removed through the menu");
+        chicken.discard();
+        h.succeed();
+    }
+
+    @GameTest public void itemSteeredBeeUsesVanillaSaddleAndShearsFlow(GameTestHelper h) {
+        var player = h.makeMockPlayer(GameType.SURVIVAL);
+        var bee = h.spawn(EntityTypes.BEE, 1, 2, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE));
+        var saddleResult = bee.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertTrue(saddleResult.consumesAction(), "Using a saddle on a bee consumes the interaction");
+        h.assertTrue(bee.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
+                "Item-steered bee equips saddle by direct interaction like pig/strider");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
+        var shearResult = bee.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertTrue(shearResult.consumesAction(), "Shearing a saddled bee consumes the interaction");
+        h.assertTrue(bee.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(),
+                "Item-steered bee saddle is removed with shears like pig/strider");
+
+        bee.discard();
         h.succeed();
     }
 
