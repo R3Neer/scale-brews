@@ -19,7 +19,7 @@ public final class TemporalResponse {
     }
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
-    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,POST_CONTACT_PROBE_BUDGET=16,
+    private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,
         MIDPOINT_CONTACT_PROBE_BUDGET=80,SCREEN_DEPTH=8;
     private static final int MIDPOINT_ORDER_MIN_PIECES=4,MIDPOINT_ORDER_MAX_PIECES=64;
     private static final class Budget {
@@ -150,14 +150,19 @@ public final class TemporalResponse {
             double horizon=Double.isFinite(earliest)?Math.min(1,Math.nextUp(earliest+TIME_EPS)):1;
             var interval=pieces.get(id).interval(start,start+(end-start)*horizon);
             Vec3 queryDelta=delta.scale(horizon);
-            // Screening is only for unknown candidates. Once a piece is active, its relevance has
-            // already been established; re-screening it would repeatedly tax the same real contact.
-            // After a manifold exists, a slightly wider exact probe lets short post-contact windows
-            // finish directly instead of paying probe + conservative screening for harmless pieces.
-            // The evaluations still debit the same shared response budget; no piece is skipped.
-            int probeBudget=!Double.isFinite(earliest) && midpointOverlapping.contains(id)
-                ?MIDPOINT_CONTACT_PROBE_BUDGET:!active.isEmpty()?POST_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
-            var result=constraint==null?firstForPiece(body,queryDelta,interval,budget,probeBudget):budget.query(body,queryDelta,interval);
+            // Before the first hit, an unknown piece still needs the full temporal screening path.
+            // Once earliest is known, the horizon above is already the complete simultaneous-contact
+            // window that can change this event. Query every remaining piece exactly in that bounded
+            // window instead of paying probe + whole-trajectory screening again. The same shared
+            // response budget still pays every CCD and no piece is skipped.
+            ConservativeSweep.Result result;
+            if(constraint!=null || Double.isFinite(earliest)) {
+                result=budget.query(body,queryDelta,interval);
+            } else {
+                int probeBudget=midpointOverlapping.contains(id)
+                    ?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
+                result=firstForPiece(body,queryDelta,interval,budget,probeBudget);
+            }
             if(horizon<1)result=new ConservativeSweep.Result(result.status(),
                 Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
             if(result.status()==ConservativeSweep.Status.ITERATION_LIMIT)return new Search(result.status(),result.safeFraction(),List.of());
