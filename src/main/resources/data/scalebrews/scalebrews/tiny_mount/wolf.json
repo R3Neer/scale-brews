@@ -1,10 +1,13 @@
 {
   "entity": "minecraft:wolf",
+  "family": "tameable_direct",
   "max_rider_scale_ratio": 0.76,
-  "saddle": true,
-  "control": "direct",
   "movement": "ground",
   "speed": 0.2,
   "ability": "wolf_pounce",
-  "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/wolf.png", "anchor": "body" }
+  "saddle_visual": { "texture": "scalebrews:textures/entity/saddle/wolf.png", "anchor": "body" },
+  "body_equipment": {
+    "item": "minecraft:wolf_armor",
+    "slot_icon": "scalebrews:container/slot/wolf_armor"
+  }
 }
