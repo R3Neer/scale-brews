@@ -67,13 +67,18 @@ jobs:
           failures = root.findall('.//failure')
           errors = root.findall('.//error')
           skipped = root.findall('.//skipped')
-          if len(cases) != 8:
-              raise SystemExit(f'S15 must execute exactly 8 GameTests, got {len(cases)}')
+          names = [case.get('name', '') for case in cases]
+          s15 = [name for name in names if 's15prepared_catalog_bundle_tests_' in name]
+          extras = [name for name in names if 's15prepared_catalog_bundle_tests_' not in name]
+          if len(s15) != 8:
+              raise SystemExit(f'S15 must execute exactly 8 catalog GameTests, got {len(s15)}: {s15!r}')
+          if extras != ['minecraft:always_pass']:
+              raise SystemExit(f'unexpected non-S15 GameTests executed: {extras!r}')
           if failures or errors or skipped:
               raise SystemExit(
                   f'S15 JUnit is not fully green: failures={len(failures)} errors={len(errors)} skipped={len(skipped)}'
               )
-          print('S15_CATALOG_PROOF PASS: 8/8 isolated GameTests')
+          print('S15_CATALOG_PROOF PASS: 8/8 isolated S15 GameTests (+ minecraft:always_pass sentinel)')
           PY
       - name: capture S15 evidence
         if: always()
