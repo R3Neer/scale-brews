@@ -7,7 +7,10 @@ import io.github.r3neer.scalebrews.mount.TinyMountMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.EntityHitResult;
 import org.joml.Vector3f;
 
 /** Manual-facing acceptance for tiny-mount inventory UX plus native horse body motion. */
@@ -38,6 +41,46 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
             server.runCommand("ride @a[limit=1] dismount");
+
+            // Vanilla saddles are shearable. Exercise the real client->server entity interaction so
+            // the server handles it with a genuine ServerPlayer, exactly as normal gameplay does.
+            server.runCommand("tp @a -3 -60 0 0 0");
+            server.runCommand("item replace entity @a weapon.mainhand with minecraft:shears");
+            context.waitTicks(5);
+            context.runOnClient(client -> {
+                net.minecraft.world.entity.animal.bee.Bee bee = null;
+                for (var entity : client.level.entitiesForRendering()) {
+                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate && candidate.getTags().contains("menu_bee")) {
+                        bee = candidate;
+                        break;
+                    }
+                }
+                if (bee == null || !bee.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))
+                    throw new AssertionError("Bee shearing fixture is missing its saddle");
+                if (!client.player.getMainHandItem().is(Items.SHEARS))
+                    throw new AssertionError("Bee shearing fixture did not synchronize shears");
+                var result = client.gameMode.interact(client.player, bee, new EntityHitResult(bee), InteractionHand.MAIN_HAND);
+                if (!result.consumesAction())
+                    throw new AssertionError("Shears did not consume the bee equipment interaction");
+            });
+            context.waitTicks(8);
+            context.runOnClient(client -> {
+                net.minecraft.world.entity.animal.bee.Bee bee = null;
+                boolean saddleDrop = false;
+                for (var entity : client.level.entitiesForRendering()) {
+                    if (entity instanceof net.minecraft.world.entity.animal.bee.Bee candidate && candidate.getTags().contains("menu_bee"))
+                        bee = candidate;
+                    if (entity instanceof net.minecraft.world.entity.item.ItemEntity item
+                            && item.getItem().is(Items.SADDLE) && item.position().distanceToSqr(-3, -60, 2) < 16)
+                        saddleDrop = true;
+                }
+                if (bee == null || !bee.getItemBySlot(EquipmentSlot.SADDLE).isEmpty())
+                    throw new AssertionError("Shears did not remove the bee saddle");
+                if (!saddleDrop)
+                    throw new AssertionError("Shearing the bee did not drop its saddle like pig/strider");
+            });
+            server.runCommand("item replace entity @a weapon.mainhand with minecraft:air");
+            server.runCommand("tp @a 0 -60 0 0 0");
 
             server.runCommand("summon minecraft:chicken 0 -60 2 {Tags:[menu_chicken],NoAI:1b}");
             server.runCommand("item replace entity @e[tag=menu_chicken,limit=1] saddle with minecraft:saddle");
