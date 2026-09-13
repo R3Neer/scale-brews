@@ -66,4 +66,21 @@ public record PoseProgram(int schema, String source, String version, float durat
                 throw new IllegalArgumentException("Pose-program keyframe exceeds duration");
         }
     }
+
+    /** Re-run every nested constructor after JSON/wire materialization; deserialization never bypasses validation. */
+    public static PoseProgram validatedCopy(PoseProgram raw) {
+        if (raw == null) throw new IllegalArgumentException("Missing pose program");
+        var tracks = raw.tracks() == null ? null : raw.tracks().stream().map(track -> {
+            if (track == null) throw new IllegalArgumentException("Missing pose-program track");
+            var frames = track.keyframes() == null ? null : track.keyframes().stream().map(frame -> {
+                if (frame == null) throw new IllegalArgumentException("Missing pose-program keyframe");
+                var pre = frame.preTarget(), post = frame.postTarget();
+                return new Keyframe(frame.timestamp(),
+                    pre == null ? null : new Vector(pre.x(), pre.y(), pre.z()),
+                    post == null ? null : new Vector(post.x(), post.y(), post.z()), frame.interpolation());
+            }).toList();
+            return new Track(track.bone(), track.target(), frames);
+        }).toList();
+        return new PoseProgram(raw.schema(), raw.source(), raw.version(), raw.durationSeconds(), raw.loop(), tracks);
+    }
 }
