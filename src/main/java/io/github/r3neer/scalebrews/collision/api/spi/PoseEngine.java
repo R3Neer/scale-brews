@@ -1,17 +1,53 @@
 package io.github.r3neer.scalebrews.collision.api.spi;
 
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 
 /** Deterministic reusable pose-family engine. Empty means unsupported, never frozen fallback geometry. */
 @FunctionalInterface
 public interface PoseEngine {
     Optional<Map<String, Matrix4f>> evaluate(ModelGeometry geometry, Inputs inputs, Map<String, String> parameters);
+
+    /**
+     * Revision-binding seam. The default preserves legacy/external SAM engines while allowing
+     * data-backed engines to resolve immutable revision-local resources exactly once.
+     */
+    default Optional<Bound> bind(ModelGeometry geometry, Map<String, String> parameters,
+                                 Set<String> requiredChannels, Resources resources) {
+        Objects.requireNonNull(geometry, "geometry");
+        Objects.requireNonNull(parameters, "parameters");
+        Objects.requireNonNull(requiredChannels, "requiredChannels");
+        Objects.requireNonNull(resources, "resources");
+        var params = Collections.unmodifiableMap(new TreeMap<>(parameters));
+        var required = Collections.unmodifiableSet(new LinkedHashSet<>(requiredChannels));
+        if (required.stream().anyMatch(name -> name == null || !name.matches("[a-z0-9_.-]{1,64}")))
+            return Optional.empty();
+        return Optional.of(inputs -> {
+            if (inputs == null || !inputs.channels().keySet().containsAll(required)) return Optional.empty();
+            return evaluate(geometry, inputs, params);
+        });
+    }
+
+    @FunctionalInterface
+    interface Bound {
+        Optional<Map<String, Matrix4f>> evaluate(Inputs inputs);
+    }
+
+    /** Read-only view of the accepted catalog revision. It is never a process-global program registry. */
+    @FunctionalInterface
+    interface Resources {
+        Optional<PoseProgram> program(Identifier id);
+        static Resources empty() { return ignored -> Optional.empty(); }
+    }
 
     /**
      * Canonical authoritative pose-input DTO. It is a class rather than a record so the
