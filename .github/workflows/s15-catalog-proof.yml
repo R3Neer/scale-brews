@@ -80,6 +80,48 @@ jobs:
               )
           print('S15_CATALOG_PROOF PASS: 8/8 isolated S15 GameTests (+ minecraft:always_pass sentinel)')
           PY
+      - name: preserve focused evidence
+        shell: bash
+        run: |
+          cp build/resources/gametest/fabric.mod.json build/s15-focused-manifest.json
+          cp -R build/run/gameTest/logs build/s15-focused-logs
+      - name: restore ordinary GameTest manifest
+        run: git checkout -- src/gametest/resources/fabric.mod.json
+      - name: run full ordinary GameTest suite
+        run: ./gradlew --rerun-tasks runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s15-ordinary-junit.xml"
+      - name: assert ordinary suite includes S15 and is green
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          report = Path('build/s15-ordinary-junit.xml')
+          if not report.exists():
+              raise SystemExit('Fabric did not emit the requested ordinary JUnit report')
+          root = ET.parse(report).getroot()
+          cases = root.findall('.//testcase')
+          failures = root.findall('.//failure')
+          errors = root.findall('.//error')
+          skipped = root.findall('.//skipped')
+          names = [case.get('name', '') for case in cases]
+          s15 = [name for name in names if 's15prepared_catalog_bundle_tests_' in name]
+          if len(s15) != 8:
+              raise SystemExit(f'ordinary suite must include all 8 S15 GameTests, got {len(s15)}: {s15!r}')
+          if failures or errors or skipped:
+              raise SystemExit(
+                  f'ordinary suite is not fully green: total={len(cases)} failures={len(failures)} '
+                  f'errors={len(errors)} skipped={len(skipped)}'
+              )
+          print(f'S15_ORDINARY_PROOF PASS: {len(cases)}/{len(cases)} GameTests, including all 8 S15 holdouts')
+          PY
+      - name: preserve ordinary manifest
+        if: always()
+        shell: bash
+        run: |
+          if [ -f build/resources/gametest/fabric.mod.json ]; then
+            cp build/resources/gametest/fabric.mod.json build/s15-ordinary-manifest.json
+          fi
       - name: capture S15 evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -87,5 +129,8 @@ jobs:
           name: S15-catalog-proof
           path: |
             build/s15-junit.xml
+            build/s15-ordinary-junit.xml
+            build/s15-focused-manifest.json
+            build/s15-ordinary-manifest.json
+            build/s15-focused-logs/
             build/run/gameTest/logs/
-            build/resources/gametest/fabric.mod.json
