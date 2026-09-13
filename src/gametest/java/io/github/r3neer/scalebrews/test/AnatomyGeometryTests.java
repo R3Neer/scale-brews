@@ -162,9 +162,9 @@ public class AnatomyGeometryTests {
         });
         var world=new WorldAnatomyCatalog();var accepted=world.reload(resources);
         var receiver=new AnatomyCatalogTransfer();
-        for(var packet:AnatomyCatalogTransfer.encode(java.util.UUID.randomUUID(),accepted.revision(),accepted.models(),accepted.profiles()))receiver.accept(packet);
-        h.assertTrue(receiver.snapshot().models().equals(accepted.models()) && receiver.snapshot().profiles().equals(accepted.profiles()),"Network commits geometry and filtered policies together");
-        h.assertTrue(receiver.snapshot().bindings().get(net.minecraft.resources.Identifier.parse("minecraft:cow")).policy().friction()==.4,"Reloaded policy survives independent client validation");
+        for(var packet:AnatomyCatalogTransfer.encode(java.util.UUID.randomUUID(),accepted.revision(),accepted.models(),accepted.catalog().bindings()))receiver.accept(packet);
+        h.assertTrue(receiver.snapshot().models().equals(accepted.models()) && receiver.snapshot().catalog().bindings().equals(accepted.catalog().bindings()),"Network commits geometry and filtered policies together");
+        h.assertTrue(receiver.snapshot().bindings().get(net.minecraft.resources.Identifier.parse("minecraft:cow")).selection().policy().friction().orElseThrow()==.4,"Reloaded policy survives independent client validation");
         profile.set("{\"entity\":\"minecraft:cow\",\"anatomy\":{\"model\":\"test:missing\",\"pose_provider\":\"scalebrews:static\"}}");
         boolean rejected=false;try{world.reload(resources);}catch(IllegalArgumentException expected){rejected=true;}
         h.assertTrue(rejected && world.snapshot()==accepted,"Invalid resource reload retains prior geometry and policies atomically");
@@ -198,15 +198,15 @@ public class AnatomyGeometryTests {
         var profileJson=com.google.gson.JsonParser.parseString("{\"entity\":\"minecraft:cow\",\"max_width_ratio\":0.85,\"anatomy\":{\"model\":\"test:alternate\",\"pose_provider\":\"scalebrews:static\"}}");
         var profile=io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,profileJson).getOrThrow();
         h.assertTrue(profile.surfaces().isEmpty() && profile.maxRatio().orElseThrow()==.85,"Anatomical profile preserves policy without fabricated top plane");
-        var world=new WorldAnatomyCatalog();var accepted=world.replace(java.util.Map.of("test:alternate",model),java.util.Map.of("test:cow",profile));
+        var world=new WorldAnatomyCatalog();var accepted=world.replace(java.util.Map.of("test:alternate",model),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",profile)));
         h.assertTrue(accepted.bindings().get(net.minecraft.resources.Identifier.parse("minecraft:cow")).model().equals(model),"World explicitly selects alternative geometry");
-        boolean missing=false;try{world.replace(java.util.Map.of(),java.util.Map.of("test:cow",profile));}catch(IllegalArgumentException expected){missing=true;}
+        boolean missing=false;try{world.replace(java.util.Map.of(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",profile)));}catch(IllegalArgumentException expected){missing=true;}
         h.assertTrue(missing && world.snapshot()==accepted,"Missing references retain entire previous snapshot");
-        boolean duplicate=false;try{world.replace(accepted.models(),java.util.Map.of("test:a",profile,"test:b",profile));}catch(IllegalArgumentException expected){duplicate=true;}
+        boolean duplicate=false;try{world.replace(accepted.models(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:a",profile,"test:b",profile)));}catch(IllegalArgumentException expected){duplicate=true;}
         h.assertTrue(duplicate && world.snapshot()==accepted,"Duplicate species cannot partially replace catalog");
         profileJson.getAsJsonObject().getAsJsonObject("anatomy").addProperty("pose_provider","test:missing");
         var unknownProfile=io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,profileJson).getOrThrow();
-        boolean unknown=false;try{world.replace(accepted.models(),java.util.Map.of("test:cow",unknownProfile));}catch(IllegalArgumentException expected){unknown=true;}
+        boolean unknown=false;try{world.replace(accepted.models(),io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration.bindings(java.util.Map.of("test:cow",unknownProfile)));}catch(IllegalArgumentException expected){unknown=true;}
         h.assertTrue(unknown && world.snapshot()==accepted,"Unknown pose provider is not static fallback");
         h.assertTrue(h.getLevel().registryAccess().lookup(io.github.r3neer.scalebrews.platform.Platforms.GEOMETRIES).isPresent(),"Geometry registry exists on dedicated server");
         h.succeed();

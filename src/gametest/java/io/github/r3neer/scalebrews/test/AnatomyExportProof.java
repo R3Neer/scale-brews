@@ -214,7 +214,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                     throw new AssertionError("Runtime did not automatically bind/tick/publish tracked cow");
                 var entity=(net.minecraft.world.entity.LivingEntity)client.level.getEntity(history.current().entityId());
                 var catalog=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.catalog();
-                if(entity==null || catalog.revision()<=1 || catalog.snapshot().profiles().size()!=1 || io.github.r3neer.scalebrews.platform.Platforms.definition(entity)==null || io.github.r3neer.scalebrews.platform.Platforms.definition(entity).anatomy().isEmpty())
+                if(entity==null || catalog.revision()<=1 || catalog.snapshot().catalog().bindings().size()!=1 || catalog.snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()))==null)
                     throw new AssertionError("Runtime catalog did not atomically replace earlier geometry-only session with species bindings");
                 if(entity==null || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,history.current().tick()).isEmpty())
                     throw new AssertionError("Automatically received pose did not reconstruct geometry");

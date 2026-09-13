@@ -124,7 +124,7 @@ public final class AnatomyHostCatalogIndependenceProof implements FabricClientGa
                 context.runOnClient(client->{
                     var accepted=AnatomyClientNetworking.catalog();
                     if(!secondEpoch.equals(accepted.epoch()) || accepted.revision()!=1
-                            || !digest(accepted.snapshot().models(),accepted.snapshot().profiles()).equals(expectedDigest))
+                            || !AnatomyCatalogTransfer.encode(UUID.fromString("00000000-0000-0000-0000-000000000001"),1,accepted.snapshot().models(),accepted.snapshot().catalog().bindings()).getFirst().digest().equals(expectedDigest))
                         throw new AssertionError("Old first-host catalog replaced host-two accepted state");
                 });
                 second.runOnServer(server->confirm(server,fixture));
@@ -223,7 +223,7 @@ public final class AnatomyHostCatalogIndependenceProof implements FabricClientGa
         if(!transfer.ready() || transfer.epoch()==null || transfer.revision()!=1 || !(support instanceof LivingEntity living)
                 || pose==null || !pose.current().inputs().ordinary() || AnatomyClientNetworking.geometry(living,pose.current().tick()).isEmpty())
             throw new AssertionError(label+" did not admit the original cow catalog/pose");
-        if(!digest(transfer.snapshot().models(),transfer.snapshot().profiles()).equals(expectedDigest))
+        if(!AnatomyCatalogTransfer.encode(UUID.fromString("00000000-0000-0000-0000-000000000001"),1,transfer.snapshot().models(),transfer.snapshot().catalog().bindings()).getFirst().digest().equals(expectedDigest))
             throw new AssertionError(label+" geometry/profile digest differs from the immutable export bundle");
         return transfer.epoch();
     }
