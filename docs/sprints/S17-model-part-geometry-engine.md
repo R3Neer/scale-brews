@@ -1,6 +1,6 @@
 # S17 — ModelPart GeometryEngine
 
-Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.
+Estado: **CERRADO — 2026-09-13, implementación + revisión adversarial final**.
 
 ## Tesis
 
@@ -120,16 +120,16 @@ La API concreta de fuente queda client-only. Registrar una fuente:
 
 ## Plan de implementación convergido
 
-- [ ] **I1** Añadir el built-in/dispatcher common `scalebrews:model_part` y registrarlo desde init normal antes de cualquier carga de catálogo; demostrar que no referencia clases cliente.
-- [ ] **I2** Añadir `ModelPartGeometryEngine` client-only con instalación única en el dispatcher y registry de fuentes acotado/determinista.
-- [ ] **I3** Separar el algoritmo `ModelPart` de la parte Alex dentro de la preparación existente sin romper `GeometryExtractor.alex(...)`; la ruta vanilla de producción/tests debe pasar por el engine.
-- [ ] **I4** Definir fuentes reproducibles con `model id + version + fresh root + modelTransform`, producir `ModelGeometry` formato 2 y validar todos los outputs mediante el DTO existente.
-- [ ] **I5** Registrar fuentes de aceptación vanilla (cow y player wide/slim como mínimo) sin crear un extractor por especie; parámetros desconocidos/modelos desconocidos deben fallar cerrados.
-- [ ] **I6** Migrar `AnatomyExportProof` para que cow/player y al menos una segunda familia vanilla obtengan geometría mediante `CollisionEngines.geometry(scalebrews:model_part).prepare(...)`; conservar Alex fuera de esta migración.
-- [ ] **I7** Añadir fixture de una segunda fuente `ModelPart` registrada por el mismo engine y demostrar IDs/jerarquía/piezas estables, determinismo y huecos/degenerados sin fallback.
-- [ ] **I8** Añadir holdouts estructurales common/dedicated: ninguna clase common del engine contiene referencias a `net.minecraft.client`/`ModelPart`; sin delegate cliente el engine existe pero devuelve vacío.
-- [ ] **I9** Añadir fallos dirigidos: duplicate source, unknown model, unsupported parameters, source exception/invalid output y repeat prepare; ninguno deja geometría stale/cached ni muta otro source.
-- [ ] **I10** Ejecutar ordinary, client export/original-model proof y dedicated/common smoke; después revisión adversarial iterativa hasta una pasada completa de cero cambios productivos.
+- [x] **I1** Añadir el built-in/dispatcher common `scalebrews:model_part` y registrarlo desde init normal antes de cualquier carga de catálogo; demostrar que no referencia clases cliente.
+- [x] **I2** Añadir `ModelPartGeometryEngine` client-only con instalación única en el dispatcher y registry de fuentes acotado/determinista.
+- [x] **I3** Separar el algoritmo `ModelPart` de la parte Alex dentro de la preparación existente sin romper `GeometryExtractor.alex(...)`; la ruta vanilla de producción/tests debe pasar por el engine.
+- [x] **I4** Definir fuentes reproducibles con `model id + version + fresh root + modelTransform`, producir `ModelGeometry` formato 2 y validar todos los outputs mediante el DTO existente.
+- [x] **I5** Registrar fuentes de aceptación vanilla (cow y player wide/slim como mínimo) sin crear un extractor por especie; parámetros desconocidos/modelos desconocidos deben fallar cerrados.
+- [x] **I6** Migrar `AnatomyExportProof` para que cow/player y al menos una segunda familia vanilla obtengan geometría mediante `CollisionEngines.geometry(scalebrews:model_part).prepare(...)`; conservar Alex fuera de esta migración.
+- [x] **I7** Añadir fixture de una segunda fuente `ModelPart` registrada por el mismo engine y demostrar IDs/jerarquía/piezas estables, determinismo y huecos/degenerados sin fallback.
+- [x] **I8** Añadir holdouts estructurales common/dedicated: ninguna clase common del engine contiene referencias a `net.minecraft.client`/`ModelPart`; sin delegate cliente el engine existe pero devuelve vacío.
+- [x] **I9** Añadir fallos dirigidos: duplicate source, unknown model, unsupported parameters, source exception/invalid output y repeat prepare; ninguno deja geometría stale/cached ni muta otro source.
+- [x] **I10** Ejecutar ordinary, client export/original-model proof y dedicated/common smoke; después revisión adversarial iterativa hasta una pasada completa de cero cambios productivos.
 
 ## Revisión iterativa del plan
 
@@ -188,6 +188,17 @@ Alex/Citadel queda deliberadamente fuera. Compartir hoy una clase `GeometryExtra
 - cow y otra fuente vanilla atraviesan el mismo engine;
 - una fuente externa/test `ModelPart` no necesita añadir otro extractor ni tocar solver;
 - `GeometryExtractor.alex(...)` no se registra bajo `scalebrews:model_part` accidentalmente.
+
+## Evidencia adversarial final
+
+Snapshot final: `11824a121b669eeab7cd77704afad6bce4b0c254`. La segunda lectura añadió únicamente tests: escaneo de constant-pool common, ownership único del delegate, fallos de source/output, transform degenerado, aislamiento sin stale reuse, version/transform distintos, `visible=false`/`skipDraw`, no-revival por include y snapshot determinista/inmutable. Ningún holdout exigió cambiar producción.
+
+- ordinary **34755126613** / job **103718098834**: **407/407**, `BUILD SUCCESSFUL`; artifact **10317615494**, SHA-256 `93ce1322a6186ed211bb55dbfb6ba17de5b9d47a1f02ccf9df29f5ce9091dd0c`;
+- focal **34755126630**, common **103718098895**: **6/6**, artifact **10317310881**, SHA-256 `3a1c2de697169e59256a75c4b78ea54d63820a1972d1ce70d0d2d99ed8598534`;
+- client preparation **103718098982**: success, artifact **10317930031**, SHA-256 `501503b498e9cb3462b9ca7515839e4dd626ccc1dd15cd3f660830ca14c9b81a`;
+- original-model/export **103718098983**: success; cow/player wide/player slim, 80 comparaciones animadas por familia principal y **640 comparaciones vanilla adicionales**; artifact **10316049789**, SHA-256 `22fc133027782e612b388a53197737ef4bfbb198679a06eb44da39e4e0181d9c`.
+
+El ruido headless de narrator/flite, ALSA/OpenAL, Realms/auth y cursor X11 no cambia la conclusión: las lanes finalizaron `success` y los proofs contractuales emitieron los sentinels esperados.
 
 ## Criterio de cierre
 
