@@ -37,6 +37,11 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
         return com.mojang.serialization.DataResult.success(d);
     });
 
+    /** Java compatibility only. Saddle is now an invariant of every Tiny Mount family, not a JSON option. */
+    @Deprecated public boolean saddle() { return true; }
+    /** Java compatibility only. Control is derived from family and is no longer independently configurable. */
+    @Deprecated public Control control() { return family == Family.ITEM_STEERED ? Control.ITEM_STEERED : Control.DIRECT; }
+
     public record SaddleVisual(Identifier texture, String anchor) {
         public static final Codec<SaddleVisual> CODEC = RecordCodecBuilder.create(i -> i.group(
             Identifier.CODEC.fieldOf("texture").forGetter(SaddleVisual::texture),
@@ -66,6 +71,8 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
         public boolean usesSteeringItem() { return this == ITEM_STEERED; }
         public String getSerializedName() { return name().toLowerCase(java.util.Locale.ROOT); }
     }
+
+    @Deprecated public enum Control { DIRECT, ITEM_STEERED }
 
     public enum Movement implements StringRepresentable {
         GROUND, FLYING_LOOK_DIRECTION;
