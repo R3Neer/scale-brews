@@ -17,6 +17,7 @@
       "io.github.r3neer.scalebrews.test.ImpactSurfaceTests",
       "io.github.r3neer.scalebrews.test.ScaleReachTests",
       "io.github.r3neer.scalebrews.test.ScaleSizeTests",
+      "io.github.r3neer.scalebrews.test.ScaleGaitTests",
       "io.github.r3neer.scalebrews.test.PlatformPlacementTests",
       "io.github.r3neer.scalebrews.test.PlatformTests",
       "io.github.r3neer.scalebrews.test.ScaleBrewsTests",
