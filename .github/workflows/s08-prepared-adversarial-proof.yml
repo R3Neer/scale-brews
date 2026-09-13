@@ -1,6 +1,7 @@
 name: s08-prepared-adversarial-proof
 
 on:
+  workflow_dispatch:
   push:
     branches: [chatgpt-editing]
     paths:
