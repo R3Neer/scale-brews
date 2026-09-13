@@ -1,0 +1,31 @@
+name: s16-prepared-policy-fix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s16-prepared-policy-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+      - name: apply exact implementation patch
+        run: python3 .github/scripts/s16_preserve_canonical_policy.py
+      - name: commit implementation
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff --exit-code --quiet && { echo 'No implementation changes produced'; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java \
+                  src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+          git commit -m 'fix(s16): preserve canonical policy for manual core bindings'
+          git push origin HEAD:chatgpt-editing
