@@ -40,7 +40,7 @@ public final class ScaleSize {
             if (type.equals(Attributes.SCALE)) return;
             var attribute = entity.getAttribute(type);
             if (attribute == null) return;
-            // Reach must continue following eye height even beyond the potion tiers.
+            // Growth entity reach continues its size curve beyond the potion tiers.
             // Other mechanics retain their established tier-III cap.
             double effectiveMagnitude = magnitude;
             if (type.equals(Attributes.ENTITY_INTERACTION_RANGE) && effect == ScaleEffects.GROWTH.value()) {
