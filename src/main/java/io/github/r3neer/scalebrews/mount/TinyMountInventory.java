@@ -24,8 +24,10 @@ public final class TinyMountInventory {
     private TinyMountInventory() {}
     public static void initialize() {}
 
+    /** Mirrors vanilla mount inventory ownership of the active vehicle: outsiders cannot open a ridden mount. */
     public static boolean canOpen(Player player, Mob mount) {
-        return player.getVehicle() == mount && mount.isAlive() && TinyMounts.hasMountInventory(mount);
+        return mount.isAlive() && TinyMounts.hasMountInventory(mount)
+                && (!mount.isVehicle() || player.getVehicle() == mount);
     }
 
     public static void open(ServerPlayer player, Mob mount) {
