@@ -74,7 +74,8 @@ public record PoseProgram(int schema, String source, String version, float durat
             if (track == null) throw new IllegalArgumentException("Missing pose-program track");
             var frames = track.keyframes() == null ? null : track.keyframes().stream().map(frame -> {
                 if (frame == null) throw new IllegalArgumentException("Missing pose-program keyframe");
-                var pre = frame.preTarget(), post = frame.postTarget();
+                var pre = frame.preTarget();
+                var post = frame.postTarget();
                 return new Keyframe(frame.timestamp(),
                     pre == null ? null : new Vector(pre.x(), pre.y(), pre.z()),
                     post == null ? null : new Vector(post.x(), post.y(), post.z()), frame.interpolation());
