@@ -1,0 +1,45 @@
+name: s18-migrate-runtime
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths: ['.github/workflows/s18-migrate-runtime.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+      - name: migrate runtime observation dto
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          text=p.read_text()
+          pairs=[
+            ('import io.github.r3neer.scalebrews.collision.pose.PoseProvider;', 'import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;'),
+            ('public record AuthoritativePose(UUID entity,long serverTick,PoseProvider.Inputs inputs) {}', 'public record AuthoritativePose(UUID entity,long serverTick,PoseEngine.Inputs inputs) {}'),
+          ]
+          for old,new in pairs:
+            if text.count(old)!=1:
+              raise SystemExit(f'expected exactly one occurrence: {old!r}, got {text.count(old)}')
+            text=text.replace(old,new,1)
+          p.write_text(text)
+          PY
+      - name: commit and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/s18-migrate-runtime.yml
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java
+          git commit -m 'refactor(s18): migrate runtime observation to pose engine inputs'
+          git push origin HEAD:chatgpt-editing
