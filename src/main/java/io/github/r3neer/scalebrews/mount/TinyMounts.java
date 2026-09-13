@@ -118,9 +118,23 @@ public final class TinyMounts {
         var family = definition.family();
         boolean holdingSaddle = held.is(Items.SADDLE);
         boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
+
+        // DIRECT can copy Camel's secondary-use inventory grammar exactly. TAMEABLE_DIRECT keeps
+        // Crouch+Use as its mount gesture, but an equipment-in-hand secondary use is unambiguously
+        // management intent and opens the same family menu without introducing another JSON switch.
+        boolean externalInventoryGesture = player.isSecondaryUseActive() && family.hasInventory()
+                && (family == TinyMountDefinition.Family.DIRECT
+                    || (family == TinyMountDefinition.Family.TAMEABLE_DIRECT && familyTamed(mob, definition)
+                        && (holdingSaddle || matchesBodyEquipment(definition, held))));
+        if (externalInventoryGesture && TinyMountInventory.canOpen(player, mob)) {
+            if (!mob.level().isClientSide() && player instanceof ServerPlayer serverPlayer)
+                TinyMountInventory.open(serverPlayer, mob);
+            return InteractionResult.SUCCESS;
+        }
+
         boolean tameableMountGesture = family == TinyMountDefinition.Family.TAMEABLE_DIRECT && player.isSecondaryUseActive();
 
-        // Tameable mounts reserve Crouch+Use for mounting so held food/equipment keeps its vanilla meaning otherwise.
+        // Tameable mounts reserve Crouch+Use for mounting so held food/item use keeps its vanilla meaning otherwise.
         if (holdingSaddle && !alreadySaddled && !tameableMountGesture) {
             if (mob.isBaby()) return reject(mob, player, "mount_too_young");
             if (!equipmentAvailable(mob, definition)) {
