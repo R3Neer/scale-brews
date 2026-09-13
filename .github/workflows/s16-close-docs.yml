@@ -1,0 +1,63 @@
+name: s16-close-docs
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s16-close-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  close-docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+      - name: sync S16 closure sources
+        shell: python
+        run: |
+          from pathlib import Path
+
+          plan = Path('docs/ENTITY_COLLISIONS_PLAN.md')
+          text = plan.read_text()
+          old = '1. [ ] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;'
+          new = '1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one G3 task-1 marker, found {text.count(old)}')
+          text = text.replace(old, new)
+          marker = '**S16 cerrado:**'
+          if marker not in text:
+              lines = text.splitlines()
+              out = []
+              inserted = False
+              for line in lines:
+                  out.append(line)
+                  if line.startswith('**S15 cerrado:**'):
+                      out.append('')
+                      out.append('**S16 cerrado:** G3 tarea 1 queda cerrada. `WorldAnatomyCatalog` publica autoridad `CollisionBinding` canónica, el wire v4 transporta `{models, bindings}`, la migración legacy cruza una frontera explícita y la policy live viaja con el binding en vez de reinstalar `PlatformDefinition`. El último cambio productivo es `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`; snapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`, ordinary run `34752369790` **398/398** y focal S16 `34752369719` **5/5**. Revisión final sin cambios de producción. G3 continúa con tareas 3-12.')
+                      inserted = True
+              if not inserted:
+                  raise SystemExit('S15 closure paragraph not found')
+              text = '\n'.join(out) + '\n'
+          plan.write_text(text)
+
+          validation = Path('docs/VALIDATION.md')
+          text = validation.read_text()
+          heading = '## G3 / S16 canonical catalog authority — CLOSED 2026-09-13'
+          if heading not in text:
+              text += f'''\n\n{heading}\n\nSnapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`; último cambio productivo propio `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`.\n\nS16 sustituyó la autoridad anatómica legacy por `CollisionBinding` canónico: `WorldAnatomyCatalog` conserva el catálogo completo y un bridge precomputado ejecutable acotado, `AnatomyCatalogTransfer` usa protocolo v4 con `{{models, bindings}}`, cliente y servidor validan identidad por `geometry.model + pose.engine`, y la policy activa acompaña al binding vivo. `PlatformDefinition` queda antes de la frontera mediante migración explícita; las superficies legacy no se promocionan a anatomía y una sesión anatómica no cae silenciosamente a Living Platforms cuando el binding es disabled, variant-only o todavía no ejecutable.\n\nRed-before-green relevante: la primera migración dejó consumidores server/client en el schema de perfiles; después la retirada de la tabla temporal expuso autoridad dual de policy; un holdout posterior detectó fallback legacy dentro de sesión anatómica; y el último holdout prepared detectó que un provider manual podía perder la policy canónica. Las reparaciones culminaron en `3a3503b1...`; los helpers/workflows temporales se retiraron antes de la evidencia final.\n\nGitHub Actions ordinary run **34752369790**, job **103710940047**: **398/398 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315852333**, SHA-256 **`a1de8633e76ed2df2516b47fe549a83e4aff5eaf208765cca34088db4737f036`**.\n\nLane focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316377128**, SHA-256 **`429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205`**.\n\nLa revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción. Esta evidencia cierra G3 tarea 1, no G3 tareas 3-12 ni prediction/reconciliation G4.\n'''
+          validation.write_text(text)
+      - name: commit closure docs and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/s16-close-docs.yml
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+          git commit -m 'docs(s16): record canonical catalog closure'
+          git push origin HEAD:chatgpt-editing
