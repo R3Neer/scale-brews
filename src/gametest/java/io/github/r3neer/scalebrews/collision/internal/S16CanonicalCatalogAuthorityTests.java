@@ -29,9 +29,9 @@ import org.joml.Matrix4f;
 /** Red-first G3/S16 holdouts for canonical catalog authority. */
 public final class S16CanonicalCatalogAuthorityTests {
     @GameTest
-    public void incompatibleCanonicalBundleSchemaOwnsProtocolV4(GameTestHelper h) {
-        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 4,
-            "Replacing legacy profiles with canonical bindings inside the authoritative bundle is an incompatible wire change and must own protocol v4");
+    public void canonicalBundleNeverRegressesToLegacyProfileProtocol(GameTestHelper h) {
+        h.assertTrue(AnatomyApi.PROTOCOL_VERSION >= 4,
+            "Canonical binding bundles must never regress to the pre-S16 profile-era wire protocol; later incompatible catalog features may advance the version");
         h.succeed();
     }
 
@@ -56,7 +56,7 @@ public final class S16CanonicalCatalogAuthorityTests {
         for (var packet : packets) complete.writeBytes(packet.fragment());
         var json = JsonParser.parseString(complete.toString(StandardCharsets.UTF_8)).getAsJsonObject();
         h.assertTrue(json.has("bindings"), "Authoritative catalog bundle must carry canonical bindings");
-        h.assertTrue(!json.has("profiles"), "Protocol-v4 catalog bundle must not carry legacy PlatformDefinition profiles");
+        h.assertTrue(!json.has("profiles"), "Canonical post-profile catalog bundle must not carry legacy PlatformDefinition profiles");
         h.succeed();
     }
 
@@ -151,7 +151,7 @@ public final class S16CanonicalCatalogAuthorityTests {
         var snapshot = receiver.snapshot();
 
         h.assertTrue(completed && receiver.ready() && receiver.revision() == 7,
-            "A complete protocol-v4 variant catalog must publish the announced revision atomically");
+            "A complete canonical variant catalog must publish the announced revision atomically");
         h.assertTrue(variant.equals(snapshot.catalog().resolve(entity, selector).orElse(null)),
             "Variant selector and binding identity must survive canonical wire round-trip");
         h.assertTrue(snapshot.catalog().resolve(entity, Map.of()).isEmpty(),
@@ -188,7 +188,7 @@ public final class S16CanonicalCatalogAuthorityTests {
             rejected = true;
         }
 
-        h.assertTrue(rejected, "A complete but invalid protocol-v4 replacement must fail during authoritative candidate validation");
+        h.assertTrue(rejected, "A complete but invalid canonical replacement must fail during authoritative candidate validation");
         h.assertTrue(receiver.snapshot() == accepted && receiver.revision() == 1 && receiver.binding(),
             "A failed wire replacement may enter BINDING but must not publish or advance beyond the exact accepted revision");
         receiver.rejectPending();
