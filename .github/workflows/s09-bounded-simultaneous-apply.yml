@@ -47,11 +47,22 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew compileJava
-      - name: commit production fix
+      - name: commit production fix without overwriting concurrent solver work
         shell: bash
         run: |
+          target='src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java'
+          base="$(git rev-parse HEAD)"
           git config user.name 'ChatGPT'
           git config user.email 'chatgpt@users.noreply.github.com'
-          git add src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java
+          git add "$target"
           git commit -m 'fix(s09): query bounded simultaneous windows directly'
+          git fetch origin chatgpt-editing
+          remote="$(git rev-parse origin/chatgpt-editing)"
+          if [ "$base" != "$remote" ]; then
+            if ! git diff --quiet "$base" "$remote" -- "$target"; then
+              echo 'TemporalResponse changed concurrently; refusing to rebase the generated fix.' >&2
+              exit 1
+            fi
+            git rebase origin/chatgpt-editing
+          fi
           git push origin HEAD:chatgpt-editing
