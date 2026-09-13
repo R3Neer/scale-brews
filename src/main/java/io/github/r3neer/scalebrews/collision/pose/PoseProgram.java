@@ -1,9 +1,7 @@
 package io.github.r3neer.scalebrews.collision.pose;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Neutral, server-safe animation program compiled during preparation from a model technology.
@@ -18,6 +16,10 @@ public record PoseProgram(int schema, String source, String version, float durat
     public enum Target { TRANSLATION, ROTATION, SCALE }
     public enum Interpolation { LINEAR, CATMULL_ROM }
 
+    /**
+     * Canonical channel-space vector. Translation keeps ModelPart offset units (pixels),
+     * rotation keeps radians, and scale keeps additive deltas from 1.0.
+     */
     public record Vector(float x, float y, float z) {
         public Vector {
             if (!Float.isFinite(x + y + z) || Math.abs(x) > 65536 || Math.abs(y) > 65536 || Math.abs(z) > 65536)
@@ -55,13 +57,10 @@ public record PoseProgram(int schema, String source, String version, float durat
             throw new IllegalArgumentException("Invalid pose program");
         tracks = List.copyOf(tracks);
         int total = 0;
-        Set<String> owners = new HashSet<>();
         for (var track : tracks) {
             Objects.requireNonNull(track, "track");
             total = Math.addExact(total, track.keyframes().size());
             if (total > MAX_KEYFRAMES) throw new IllegalArgumentException("Pose program has too many keyframes");
-            if (!owners.add(track.bone() + "\u0000" + track.target()))
-                throw new IllegalArgumentException("Duplicate pose-program bone target: " + track.bone() + "/" + track.target());
             for (var frame : track.keyframes()) if (frame.timestamp() > durationSeconds + 1e-5f)
                 throw new IllegalArgumentException("Pose-program keyframe exceeds duration");
         }
