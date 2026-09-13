@@ -10,7 +10,12 @@ import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigra
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +54,7 @@ public final class S16CanonicalCatalogAuthorityTests {
         var packets = AnatomyCatalogTransfer.encode(UUID.randomUUID(), 1, Map.of(model.source(), model), Map.of("fixture:cow", profile));
         var complete = new ByteArrayOutputStream();
         for (var packet : packets) complete.writeBytes(packet.fragment());
-        var json = JsonParser.parseString(complete.toString(java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+        var json = JsonParser.parseString(complete.toString(StandardCharsets.UTF_8)).getAsJsonObject();
         h.assertTrue(json.has("bindings"), "Authoritative catalog bundle must carry canonical bindings");
         h.assertTrue(!json.has("profiles"), "Protocol-v4 catalog bundle must not carry legacy PlatformDefinition profiles");
         h.succeed();
@@ -62,7 +67,7 @@ public final class S16CanonicalCatalogAuthorityTests {
         var packets = AnatomyCatalogTransfer.encode(UUID.randomUUID(), 1, Map.of(), Map.of("fixture:legacy_plane", plane));
         var complete = new ByteArrayOutputStream();
         for (var packet : packets) complete.writeBytes(packet.fragment());
-        var json = JsonParser.parseString(complete.toString(java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+        var json = JsonParser.parseString(complete.toString(StandardCharsets.UTF_8)).getAsJsonObject();
         h.assertTrue(json.has("bindings"), "Migrated wire catalog must use the canonical binding collection even when no anatomy survives migration");
         h.assertTrue(json.getAsJsonArray("bindings").isEmpty(), "Legacy one-sided planes must never be promoted into canonical anatomical bindings");
         h.succeed();
@@ -147,13 +152,70 @@ public final class S16CanonicalCatalogAuthorityTests {
 
         h.assertTrue(completed && receiver.ready() && receiver.revision() == 7,
             "A complete protocol-v4 variant catalog must publish the announced revision atomically");
-        h.assertTrue(snapshot.catalog().resolve(entity, selector).orElse(null).equals(variant),
+        h.assertTrue(variant.equals(snapshot.catalog().resolve(entity, selector).orElse(null)),
             "Variant selector and binding identity must survive canonical wire round-trip");
         h.assertTrue(snapshot.catalog().resolve(entity, Map.of()).isEmpty(),
             "A variant-only binding must not resolve for the empty/default selector after transfer");
         h.assertTrue(!snapshot.bindings().containsKey(entity),
             "S16 must retain a variant canonically without inventing default bridge execution before runtime variant authority exists");
         h.succeed();
+    }
+
+    @GameTest
+    public void invalidWireReplacementRetainsAcceptedRevisionAfterClientStyleRejection(GameTestHelper h) {
+        var model = fixtureModel();
+        var entity = Identifier.parse("minecraft:cow");
+        var epoch = UUID.randomUUID();
+        var baseline = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, entity, Map.of(),
+            new CollisionBinding.Geometry(LegacyCollisionData.PRECOMPUTED_GEOMETRY, Identifier.parse(model.source()),
+                Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(LegacyCollisionData.LEGACY_POSE_PROVIDER, Map.of("provider", "scalebrews:static"), Set.of()),
+            LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
+        var receiver = new AnatomyCatalogTransfer();
+        for (var packet : AnatomyCatalogTransfer.encode(epoch, 1, Map.of(model.source(), model), List.of(baseline))) receiver.accept(packet);
+        var accepted = receiver.snapshot();
+
+        var invalid = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, entity, Map.of("coat", "brown"),
+            new CollisionBinding.Geometry(LegacyCollisionData.PRECOMPUTED_GEOMETRY, Identifier.parse("proof:missing_wire_model"),
+                Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(LegacyCollisionData.LEGACY_POSE_PROVIDER, Map.of("provider", "scalebrews:static"), Set.of()),
+            LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
+        var bytes = AnatomyCatalogTransfer.serializedBundle(Map.of(), List.of(invalid));
+        boolean rejected = false;
+        try {
+            for (var packet : rawPackets(epoch, 2, bytes)) receiver.accept(packet);
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+
+        h.assertTrue(rejected, "A complete but invalid protocol-v4 replacement must fail during authoritative candidate validation");
+        h.assertTrue(receiver.snapshot() == accepted && receiver.revision() == 1 && receiver.binding(),
+            "A failed wire replacement may enter BINDING but must not publish or advance beyond the exact accepted revision");
+        receiver.rejectPending();
+        h.assertTrue(receiver.snapshot() == accepted && receiver.revision() == 1 && receiver.ready() && epoch.equals(receiver.epoch()),
+            "Client-style rejectPending must restore READY on the exact accepted revision and connection epoch after invalid wire data");
+        h.succeed();
+    }
+
+    private static List<AnatomyCatalogPayload> rawPackets(UUID epoch, long revision, byte[] bytes) {
+        var digest = sha256(bytes);
+        int count = (bytes.length + AnatomyCatalogPayload.CHUNK - 1) / AnatomyCatalogPayload.CHUNK;
+        var packets = new ArrayList<AnatomyCatalogPayload>(count);
+        for (int index = 0; index < count; index++) {
+            var fragment = Arrays.copyOfRange(bytes, index * AnatomyCatalogPayload.CHUNK,
+                Math.min(bytes.length, (index + 1) * AnatomyCatalogPayload.CHUNK));
+            packets.add(new AnatomyCatalogPayload(epoch, AnatomyApi.PROTOCOL_VERSION, AnatomyApi.capabilities(), revision,
+                index, count, bytes.length, digest, fragment));
+        }
+        return packets;
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException(impossible);
+        }
     }
 
     private static ModelGeometry fixtureModel() {
