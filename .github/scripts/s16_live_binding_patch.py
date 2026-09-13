@@ -1,0 +1,136 @@
+from pathlib import Path
+
+
+def replace(path, old, new, expected=1):
+    p = Path(path)
+    text = p.read_text()
+    found = text.count(old)
+    if found != expected:
+        raise SystemExit(f"{path}: expected {expected} occurrences, found {found}: {old}")
+    p.write_text(text.replace(old, new))
+
+
+movement = 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+replace(movement,
+    'import io.github.r3neer.scalebrews.collision.api.SurfaceContact;\nimport io.github.r3neer.scalebrews.collision.geometry.ConvexBox;',
+    'import io.github.r3neer.scalebrews.collision.api.SurfaceContact;\nimport io.github.r3neer.scalebrews.collision.data.CollisionBinding;\nimport io.github.r3neer.scalebrews.collision.geometry.ConvexBox;')
+replace(movement,
+    '    public static synchronized boolean active(Entity e){return ACTIVE.contains(e.level());}\n    /** Server simulates every body; a client predicts only entities it owns locally. */',
+    '    public static synchronized boolean active(Entity e){return ACTIVE.contains(e.level());}\n    /** Canonical policy/selection attached to this exact live support binding, if the runtime owns one. */\n    public static CollisionBinding canonicalBinding(LivingEntity support){return AnatomyBindingState.binding(support);}\n    /** Server simulates every body; a client predicts only entities it owns locally. */')
+replace(movement,
+'''    /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
+    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
+        if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,descriptor);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        queryFrame(support);
+    }
+''',
+'''    /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
+    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        register(support,provider,descriptor,null);
+    }
+    /** Canonical runtime registration. The binding travels with the same lifecycle slot as its provider and causal descriptor. */
+    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,
+            CollisionBinding binding){
+        if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
+        if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,descriptor,binding);
+        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        queryFrame(support);
+    }
+''')
+
+runtime = 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+replace(runtime,
+'''            AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
+                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration));''',
+'''            AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
+                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration),selection);''')
+
+client = 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+replace(client,
+'''            AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
+                packet.model(),packet.provider(),packet.bindingGeneration()));''',
+'''            AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
+                packet.model(),packet.provider(),packet.bindingGeneration()),binding(living).selection());''')
+
+platforms = 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
+replace(platforms,
+'''    public static boolean eligible(Entity body, LivingEntity support) {
+        if(AnatomyRuntime.hasBinding(support))return AnatomyRuntime.eligible(body,support);
+        if (body == support || body.level() != support.level() || !ordinary(body) || !ordinary(support)) return false;
+        var legacyPolicy = policy(body.level());
+        var definition = definition(support);
+        var category = category(body);
+        double ratio = body.getBbWidth() / (double)support.getBbWidth();
+        if (definition == null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
+                LegacyCollisionData.profilePolicy(definition), category, definition.entity(), ratio)) return false;
+        Entity ancestor = support;
+        Set<Entity> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        while (ancestor != null) {
+            if (ancestor == body || !seen.add(ancestor)) return false;
+            var anatomical=AnatomyMovement.contact(ancestor);
+            ancestor=anatomical==null?state(ancestor).support:anatomical.support();
+        }
+        return true;
+    }
+''',
+'''    public static boolean eligible(Entity body, LivingEntity support) {
+        if (body == support || body.level() != support.level() || !ordinary(body) || !ordinary(support)) return false;
+        var category=category(body);
+        double ratio=body.getBbWidth()/(double)support.getBbWidth();
+        if(!Double.isFinite(ratio) || ratio<=0 || category==null)return false;
+        var canonical=AnatomyMovement.canonicalBinding(support);
+        if(canonical!=null) {
+            var rule=CollisionRules.resolve(LegacyCollisionData.policy(policy(body.level())),canonical.policy(),category,canonical.entity());
+            if(!rule.enabled() || ratio>rule.maxWidthRatio())return false;
+        } else {
+            var legacyPolicy=policy(body.level());
+            var definition=definition(support);
+            if(definition==null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
+                    LegacyCollisionData.profilePolicy(definition),category,definition.entity(),ratio))return false;
+        }
+        Entity ancestor=support;
+        Set<Entity> seen=Collections.newSetFromMap(new IdentityHashMap<>());
+        while(ancestor!=null) {
+            if(ancestor==body || !seen.add(ancestor))return false;
+            var anatomical=AnatomyMovement.contact(ancestor);
+            ancestor=anatomical==null?state(ancestor).support:anatomical.support();
+        }
+        return true;
+    }
+''')
+replace(platforms,
+'''    public static double friction(Entity e, double original) {
+        var support=support(e);
+        if(support!=null && AnatomyRuntime.hasBinding(support))return AnatomyRuntime.friction(e,support,original);
+        var definition=support==null?null:definition(support);var category=category(e);
+        if(definition==null || category==null)return original;
+        return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),LegacyCollisionData.profilePolicy(definition),
+            category,definition.entity()).friction();
+    }
+''',
+'''    public static double friction(Entity e, double original) {
+        var support=support(e);var category=category(e);
+        if(support==null || category==null)return original;
+        var canonical=AnatomyMovement.canonicalBinding(support);
+        if(canonical!=null)return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),canonical.policy(),category,canonical.entity()).friction();
+        var definition=definition(support);
+        if(definition==null)return original;
+        return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),LegacyCollisionData.profilePolicy(definition),
+            category,definition.entity()).friction();
+    }
+''')
+
+geometry = 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyGeometryTests.java'
+replace(geometry,
+'''            String directory=(String)args[0];String json=directory.endsWith("entity_geometry")?modelJson:profile.get();
+            return java.util.Map.of(net.minecraft.resources.Identifier.parse("test:"+directory+"/body.json"),new net.minecraft.server.packs.resources.Resource(pack,()->new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8))));''',
+'''            String directory=(String)args[0];
+            if(directory.endsWith("entity_collision"))return java.util.Map.of();
+            String json=directory.endsWith("entity_geometry")?modelJson:profile.get();
+            return java.util.Map.of(net.minecraft.resources.Identifier.parse("test:"+directory+"/body.json"),new net.minecraft.server.packs.resources.Resource(pack,()->new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8))));''')
