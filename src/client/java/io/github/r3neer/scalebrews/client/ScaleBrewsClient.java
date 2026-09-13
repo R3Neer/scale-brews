@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 public class ScaleBrewsClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		io.github.r3neer.scalebrews.client.collision.preparation.ModelPartGeometryEngine.initialize();
 		io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.initialize();
 		io.github.r3neer.scalebrews.client.platform.PlatformClient.initialize();
 		io.github.r3neer.scalebrews.mount.TinyMounts.clientInput = player ->
