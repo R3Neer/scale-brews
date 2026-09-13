@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.ai.goal.RunAroundLikeCrazyGoal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
 /** Diagnostic coverage for the untouched vanilla horse taming pipeline under Scale Brews hooks. */
@@ -54,5 +56,22 @@ public class HorseTamingRegressionTests {
             horse.discard();
         }
         h.succeed();
+    }
+
+    @GameTest(maxTicks = 1200) public void registeredVanillaGoalTamesMaxTemperMountedHorse(GameTestHelper h) {
+        for (int x = -15; x <= 15; x++) for (int z = -15; z <= 15; z++)
+            h.getLevel().setBlockAndUpdate(h.absolutePos(new BlockPos(x, 1, z)), Blocks.STONE.defaultBlockState());
+
+        ServerPlayer player = (ServerPlayer) h.makeMockServerPlayer(GameType.SURVIVAL);
+        var horse = h.spawn(EntityTypes.HORSE, 0, 2, 0);
+        horse.setTemper(horse.getMaxTemper());
+        player.setPos(horse.position());
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        var result = horse.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertTrue(result.consumesAction() && player.getVehicle() == horse,
+                "Real interaction must mount the wild max-temper horse before its registered AI goal runs");
+
+        h.succeedWhen(() -> h.assertTrue(horse.isTamed(),
+                "Registered vanilla RunAroundLikeCrazyGoal did not tame a mounted max-temper horse"));
     }
 }
