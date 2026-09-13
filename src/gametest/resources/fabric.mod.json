@@ -24,6 +24,7 @@
       "io.github.r3neer.scalebrews.test.ScalePhysicsTests",
       "io.github.r3neer.scalebrews.test.ScaleMountTests",
       "io.github.r3neer.scalebrews.test.TinyMountMenuTests",
+      "io.github.r3neer.scalebrews.test.TinyMountFamilyTests",
       "io.github.r3neer.scalebrews.test.GravityFrameTests",
       "io.github.r3neer.scalebrews.test.TinyMountGravityTests",
       "io.github.r3neer.scalebrews.test.ScaleEntityTests",
