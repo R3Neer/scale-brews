@@ -28,6 +28,16 @@ public final class AnatomyClientNetworking {
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
+    private static WorldAnatomyCatalog.Binding binding(net.minecraft.world.entity.Entity entity) {
+        if(entity==null)return null;
+        return session.catalog().snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+    }
+    /** Wire identity is canonical selection identity, not the bridge's legacy provider implementation id. */
+    private static boolean bindingMatches(net.minecraft.world.entity.LivingEntity entity,AnatomyPosePayload packet) {
+        var binding=binding(entity);if(binding==null)return false;
+        var selection=binding.selection();
+        return selection.geometry().model().equals(packet.model()) && selection.pose().engine().equals(packet.provider());
+    }
     /** Client-only, server-confirmed material data for residual camera presentation. */
     public record PresentationContact(net.minecraft.world.entity.Entity body,net.minecraft.world.entity.LivingEntity support,
             SurfaceContact surface,GeometryProvider.Snapshot geometry,long serverTick) {}
@@ -110,8 +120,7 @@ public final class AnatomyClientNetworking {
         for(var history:frames.values()) {
             var packet=history.current();if(packet==null)continue;var entity=poseLevel.getEntity(packet.entityId());
             if(!(entity instanceof net.minecraft.world.entity.LivingEntity living) || !entity.getUUID().equals(packet.entity()))continue;
-            if(!packet.available() || staleFrames.contains(packet.entity()))continue;
-            if(!transfer.snapshot().bindings().containsKey(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())))continue;
+            if(!packet.available() || staleFrames.contains(packet.entity()) || !bindingMatches(living,packet))continue;
             if(providers.containsKey(packet.entity()))continue;
             var provider=new ClientGeometryProvider(packet.entity());providers.put(packet.entity(),provider);
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
@@ -150,19 +159,14 @@ public final class AnatomyClientNetworking {
         return frame==null?java.util.Optional.empty():frame.endpoint();
     }
     private static java.util.Optional<ModelGeometryProvider> evaluator(net.minecraft.world.entity.LivingEntity entity,AnatomyPosePayload packet) {
-        var transfer=session.catalog();
-        if(!transfer.ready())return java.util.Optional.empty();
+        var transfer=session.catalog();var binding=binding(entity);
+        if(!transfer.ready() || binding==null || !bindingMatches(entity,packet))return java.util.Optional.empty();
         var evaluator=evaluators.get(entity.getUUID());
         if(evaluator==null) {
-            PoseProvider provider=PoseProviders.find(packet.provider()).orElse(null);
-            var model=transfer.snapshot().models().get(packet.model().toString());
-            if(provider==null || model==null)return java.util.Optional.empty();
-            var binding=transfer.snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
-            var definition=binding==null?null:binding.policy();
-            var anatomy=definition==null?java.util.Optional.<AnatomyDefinition>empty():definition.anatomy();
-            if(anatomy.isPresent() && (!anatomy.get().model().equals(packet.model()) || !anatomy.get().poses().equals(packet.provider())))return java.util.Optional.empty();
-            var filter=anatomy.map(AnatomyDefinition::filter).orElse(AnatomyFilter.DEFAULT);
-            evaluator=new ModelGeometryProvider(model,provider,filter,packet.revision());evaluators.put(entity.getUUID(),evaluator);
+            // The packet carries canonical pose-engine identity. The executable bridge keeps
+            // the already-validated legacy PoseProvider implementation private to the catalog.
+            evaluator=new ModelGeometryProvider(binding.model(),binding.poses(),binding.selection().geometry().filter(),packet.revision());
+            evaluators.put(entity.getUUID(),evaluator);
         }
         return java.util.Optional.of(evaluator);
     }
@@ -201,9 +205,7 @@ public final class AnatomyClientNetworking {
         if(!transfer.ready() || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
                 || !packet.dimension().equals(support.level().dimension().identifier()) || packet.entityId()!=support.getId()
                 || !packet.entity().equals(support.getUUID()) || !transfer.snapshot().models().containsKey(packet.model().toString()))return false;
-        var binding=transfer.snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()));
-        var anatomy=binding==null?java.util.Optional.<AnatomyDefinition>empty():binding.policy().anatomy();
-        return anatomy.isPresent() && anatomy.get().model().equals(packet.model()) && anatomy.get().poses().equals(packet.provider());
+        return bindingMatches(support,packet);
     }
     /**
      * Narrow presentation view: no local-render pose, AABB fallback or C2S
@@ -222,16 +224,13 @@ public final class AnatomyClientNetworking {
         return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
-    private static void reset(){if(poseLevel!=null)io.github.r3neer.scalebrews.platform.Platforms.clearAnatomicalDefinitions(poseLevel);session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}
+    private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}
     private static void useLevel(net.minecraft.client.multiplayer.ClientLevel level){
         if(poseLevel!=level){
             // Catalog epoch/revision belongs to the connection, whereas poses,
             // contacts and provider cursors belong to a ClientLevel/dimension.
             // The server does not resend an unchanged catalog merely for a portal.
-            if(poseLevel!=null)io.github.r3neer.scalebrews.platform.Platforms.clearAnatomicalDefinitions(poseLevel);
             clearPoses();poseLevel=level;session.useLevel(level);
-            var transfer=session.catalog();
-            if(level!=null && transfer.ready())io.github.r3neer.scalebrews.platform.Platforms.anatomicalDefinitions(level,transfer.snapshot().profiles().values());
         }
     }
     public static void initialize() {
@@ -282,10 +281,7 @@ public final class AnatomyClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
             useLevel(context.client().level);
             var transfer=session.catalog();
-            try{if(transfer.accept(packet)){
-                clearPoses();
-                if(context.client().level!=null)io.github.r3neer.scalebrews.platform.Platforms.anatomicalDefinitions(context.client().level,transfer.snapshot().profiles().values());
-            }}
+            try{if(transfer.accept(packet))clearPoses();}
             catch(RuntimeException invalid){transfer.rejectPending();io.github.r3neer.scalebrews.ScaleBrews.LOGGER.error("Rejected anatomical catalog; previous revision retained",invalid);}
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
@@ -295,7 +291,10 @@ public final class AnatomyClientNetworking {
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
                 || !transfer.snapshot().models().containsKey(packet.model().toString()))return;
             var entity=level.getEntity(packet.entityId());
-            if(entity!=null && !entity.getUUID().equals(packet.entity()))return;
+            if(entity!=null) {
+                if(!entity.getUUID().equals(packet.entity()) || !(entity instanceof net.minecraft.world.entity.LivingEntity living)
+                        || !bindingMatches(living,packet))return;
+            }
             // Frames are the ordering/watermark source, including unavailable
             // supports, so they—not the geometry-only pose map—are bounded.
             if(frames.size()>=4096 && !frames.containsKey(packet.entity()))return;
