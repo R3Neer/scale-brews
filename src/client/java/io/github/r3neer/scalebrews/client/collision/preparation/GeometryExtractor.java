@@ -8,31 +8,19 @@ import net.minecraft.client.model.geom.ModelPart;
 import org.joml.Matrix4f;
 import org.joml.Vector3fc;
 
-/** Preparation-only extractor. Call with an original model from an isolated client. */
+/** Preparation-only legacy entrypoints. Family engines own their concrete extraction algorithms. */
 public final class GeometryExtractor {
     private final List<ModelGeometry.Part> parts=new ArrayList<>();
     private final List<ModelGeometry.Piece> pieces=new ArrayList<>();
     private final Set<Object> visited=Collections.newSetFromMap(new IdentityHashMap<>());
     private GeometryExtractor() {}
+
+    /** @deprecated S17 production/tooling should prepare ModelPart geometry through {@link ModelPartGeometryEngine}. */
+    @Deprecated
     public static ModelGeometry vanilla(String source,String version,ModelPart root,Set<String> excludedParts) {
-        GeometryExtractor x=new GeometryExtractor();x.vanilla(root,"root",null,false,excludedParts);
-        return new ModelGeometry(1,source,version,x.parts,x.pieces);
+        return ModelPartGeometryExtractor.extract(source,version,root,excludedParts);
     }
-    @SuppressWarnings("unchecked")
-    private void vanilla(ModelPart p,String id,String parent,boolean hidden,Set<String> excludes) {
-        if(!visited.add(p) || parts.size()>=512)throw new IllegalArgumentException("Cyclic/oversized model");
-        PoseStack stack=new PoseStack();p.translateAndRotate(stack);
-        parts.add(new ModelGeometry.Part(id,parent,ModelGeometry.values(new Matrix4f(stack.last().pose()))));
-        boolean excluded=hidden || !p.visible || excludes.contains(id) || excludes.contains(id.substring(id.lastIndexOf('/')+1));
-        List<ModelPart.Cube> cubes=(List<ModelPart.Cube>)field(p,"cubes");int index=0;
-        for(var cube:cubes) {
-            List<double[]> vertices=new ArrayList<>();
-            for(var polygon:cube.polygons)for(var vertex:polygon.vertices())vertices.add(new double[]{vertex.worldX(),vertex.worldY(),vertex.worldZ()});
-            piece(id+"/cube_"+index++,id,vertices,excluded?"hidden_or_cosmetic":p.skipDraw?"skip_draw":null);
-        }
-        Map<String,ModelPart> children=(Map<String,ModelPart>)field(p,"children");
-        children.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(e->vanilla(e.getValue(),id+"/"+e.getKey(),id,excluded,excludes));
-    }
+
     /** Citadel-style models have a different hierarchy and optional non-inherited scale. */
     public static ModelGeometry alex(String source,String version,Object model,Set<String> excludedParts) {
         try {
@@ -82,8 +70,6 @@ public final class GeometryExtractor {
             if(!Double.isFinite(v[i]))throw new IllegalArgumentException("Non-finite model vertex");
             lo[i]=Math.min(lo[i],v[i]);hi[i]=Math.max(hi[i],v[i]);
         }
-        // Renderer models legitimately contain zero-thickness visual quads/cubes. They are not material
-        // convex pieces, so the engine omits them rather than weakening ModelGeometry's load boundary.
         for(int i=0;i<3;i++)if(!(hi[i]>lo[i]))return;
         pieces.add(new ModelGeometry.Piece(id,part,List.of(lo[0],lo[1],lo[2]),List.of(hi[0],hi[1],hi[2]),excluded));
     }
