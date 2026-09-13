@@ -1,12 +1,13 @@
 package io.github.r3neer.scalebrews.mixin;
 
+import io.github.r3neer.scalebrews.scale.ScaleGait;
 import io.github.r3neer.scalebrews.scale.ScaleSprintHandler;
+import io.github.r3neer.scalebrews.scale.ScaleTransition;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import io.github.r3neer.scalebrews.scale.ScaleTransition;
-import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -59,5 +60,17 @@ public abstract class LivingEntityMixin {
                 (LivingEntity) (Object) this,
                 vanillaModifier
         );
+    }
+
+    @ModifyArg(
+            method = "updateWalkAnimation",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/WalkAnimationState;update(FFF)V"
+            ),
+            index = 2
+    )
+    private float scalebrews$scaleWalkAnimationTime(float vanillaTimeScale) {
+        return ScaleGait.walkTimeScale((LivingEntity) (Object) this, vanillaTimeScale);
     }
 }

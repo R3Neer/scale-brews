@@ -35,6 +35,7 @@
 		"MountedBeeHiveMixin",
 		"GiantVillagerFearMixin",
 		"LivingEntityMixin",
+		"ScaleStepSoundMixin",
 		"BeaconEffectsAccessor",
 		"ScaleHealthMixin",
 		"ScaleTerrainMixin",
