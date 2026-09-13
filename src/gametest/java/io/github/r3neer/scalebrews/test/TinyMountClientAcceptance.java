@@ -99,6 +99,9 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
             server.runCommand("ride @a[limit=1] dismount");
+            // Native dismount placement is free to choose a safe point. Pin this networking test
+            // inside the server's entity-interaction reach so it tests inventory grammar, not dismount geometry.
+            server.runCommand("tp @a 0 -60 1 0 0");
             context.waitTicks(5);
 
             // DIRECT mirrors the vanilla Camel interaction grammar: secondary-use from outside opens
@@ -112,6 +115,8 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
                     }
                 }
                 if (chicken == null) throw new AssertionError("External chicken inventory fixture is missing");
+                if (client.player.distanceToSqr(chicken) > 6.25)
+                    throw new AssertionError("External chicken inventory fixture is outside intended interaction range");
                 client.player.setShiftKeyDown(true);
                 try {
                     var result = client.gameMode.interact(client.player, chicken,
