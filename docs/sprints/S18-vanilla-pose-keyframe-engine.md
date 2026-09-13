@@ -24,6 +24,17 @@ Snapshot pre-implementación: **`0258c6c619d2815afe91bcb96343d6e67998f3b0`**. Ha
 
 El baseline es red-before-green deliberado. No se rebaja ningún oracle.
 
+## Freeze adversarial pre-implementación — 2026-09-13
+
+Snapshot congelado: **`b39d6a1aab61eb4852ce302072ef9717b910a8dc`**. Entre el baseline anterior y este punto sólo se añadieron documentación, holdouts y la lane focal S18; **no hay cambio de producción S18**.
+
+- Ordinary run **`34765139924`**, job **`103744660904`**: **407/407 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10319929687`**, SHA-256 **`42599d8cf021fe10017559db58b2292be1e705cd163442817501ee08fdd6063b`**.
+- Focal run **`34765139902`**, common job **`103744660860`**: **15 tests totales**, con **11 required S18 rojos y 4 verdes**. Los rojos siguen aislando únicamente la implementación pendiente: autoridad canonical de built-ins, `PoseEngine.Inputs` live, retirada del registry legacy, paridad adapter↔engine, `mojang_keyframes`, protocolo v5/programs, runtime sin `PoseProvider` y ownership revision-local de programs. Artifact **`10320126961`**, SHA-256 **`bc722710f417a0e4e3845ca8703c51592c621569d30fd28a70cf6b9a25108f8b`**.
+- Los verdes incluyen el control de que no existe almacenamiento global de programs y los dos nuevos holdouts de compatibilidad SPI: `PoseEngine` sigue teniendo **un único método abstracto (`evaluate`)** y una implementación externa mediante lambda sigue compilando/evaluando. Por tanto el seam de preparación S18 debe añadirse sin romper el SAM público.
+- En el mismo focal, client job **`103744660959`** arranca el cliente real bajo Xvfb y falla exclusivamente en el oracle que exige un compiler/tooling que referencie la API de animación de Mojang antes de emitir el programa neutral. Artifact **`10320250799`**, SHA-256 **`0761925a20e4ff0738b50a169de1e534f6f8cbec55967d7e8f2bbbcca076027d`**. Los avisos headless de flite/ALSA/OpenAL/Realms no son la causa del fallo.
+
+**La diana adversarial queda congelada aquí.** No se añadirán nuevos requisitos pre-implementación por mera expansión de tests. Los siguientes cambios adversariales deben responder a producción S18 real o sustituir un oracle provisional por otro semánticamente más preciso sin endurecer el contrato. En particular, el holdout estructural que detecta una tercera tabla revision-local en `Snapshot` es provisional: cuando exista la API `PoseProgram`, deberá convertirse en una prueba semántica de ownership de programs, sin imponer la forma concreta del record.
+
 ## Estado inicial
 
 1. `PoseEngine` público existe y es SAM de `geometry + inputs + parameters`.
