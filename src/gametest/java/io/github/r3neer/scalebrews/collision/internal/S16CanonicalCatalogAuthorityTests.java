@@ -2,13 +2,17 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import com.google.gson.JsonParser;
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -59,6 +63,34 @@ public final class S16CanonicalCatalogAuthorityTests {
         var json = JsonParser.parseString(complete.toString(java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
         h.assertTrue(json.has("bindings"), "Migrated wire catalog must use the canonical binding collection even when no anatomy survives migration");
         h.assertTrue(json.getAsJsonArray("bindings").isEmpty(), "Legacy one-sided planes must never be promoted into canonical anatomical bindings");
+        h.succeed();
+    }
+
+    @GameTest
+    public void variantBridgeReferencesMustValidateBeforeAtomicPublication(GameTestHelper h) {
+        var catalog = new WorldAnatomyCatalog();
+        var epoch = UUID.randomUUID();
+        var accepted = catalog.snapshot();
+        var prepared = catalog.preparedPackets(epoch);
+        var variant = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, Identifier.parse("minecraft:cow"), Map.of("coat", "brown"),
+            new CollisionBinding.Geometry(LegacyCollisionData.PRECOMPUTED_GEOMETRY, Identifier.parse("proof:missing_variant_model"),
+                Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(LegacyCollisionData.LEGACY_POSE_PROVIDER, Map.of("provider", "scalebrews:static"), Set.of()),
+            LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
+
+        boolean rejected = false;
+        try {
+            catalog.replace(Map.of(), List.of(variant));
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+
+        h.assertTrue(rejected,
+            "A variant-only compatibility binding is still part of the accepted candidate and must validate its model/provider/filter references before publication");
+        h.assertTrue(catalog.snapshot() == accepted,
+            "Rejecting an invalid variant binding must retain the exact previously accepted snapshot object");
+        h.assertTrue(catalog.preparedPackets(epoch) == prepared,
+            "Rejecting an invalid variant binding must retain the exact S15 prepared bundle paired with the accepted snapshot");
         h.succeed();
     }
 
