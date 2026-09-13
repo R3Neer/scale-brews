@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import com.google.gson.Gson;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
@@ -7,6 +8,7 @@ import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
+import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,10 +22,10 @@ import java.util.UUID;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
 
-/** Publish canonical bindings and prepared geometry together, only after every reference has validated. */
+/** Publish canonical bindings and prepared geometry/programs together, only after every reference has validated. */
 public final class WorldAnatomyCatalog {
     /** Executable S16 bridge for the precomputed legacy backend; authority lives in {@code selection}. */
-    public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine poses, Identifier legacyPoseProvider) {
+    public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine.Bound poses, Identifier legacyPoseProvider) {
         public Binding {
             Objects.requireNonNull(selection, "selection");
             Objects.requireNonNull(model, "model");
@@ -32,12 +34,13 @@ public final class WorldAnatomyCatalog {
         }
     }
 
-    /** Full canonical catalog plus the subset currently executable by the S16 bridge. */
-    public record Snapshot(long revision, Map<String, ModelGeometry> models, CollisionBindingCatalog catalog,
-                           Map<Identifier, Binding> bindings) {
+    /** Full canonical catalog plus revision-local pose programs and the subset executable by the S16 bridge. */
+    public record Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
+                           CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
         public Snapshot {
             if (revision < 0 || catalog == null) throw new IllegalArgumentException("Invalid anatomical catalog snapshot");
             models = Map.copyOf(models);
+            posePrograms = Map.copyOf(posePrograms);
             bindings = Map.copyOf(bindings);
         }
     }
@@ -53,8 +56,8 @@ public final class WorldAnatomyCatalog {
 
     private static Accepted empty(long revision) {
         var catalog = new CollisionBindingCatalog(List.of());
-        var snapshot = new Snapshot(revision, Map.of(), catalog, Map.of());
-        return new Accepted(snapshot, AnatomyCatalogTransfer.prepareBundle(snapshot.models(), catalog.bindings()));
+        var snapshot = new Snapshot(revision, Map.of(), Map.of(), catalog, Map.of());
+        return new Accepted(snapshot, AnatomyCatalogTransfer.prepareBundle(snapshot.models(), snapshot.posePrograms(), catalog.bindings()));
     }
 
     public Snapshot snapshot() { return current.snapshot(); }
@@ -66,9 +69,10 @@ public final class WorldAnatomyCatalog {
 
     public Snapshot reload(net.minecraft.server.packs.resources.ResourceManager resources) {
         var models = read(resources, "scalebrews/entity_geometry", AnatomyCodecs.GEOMETRY);
+        var programs = readPrograms(resources, "scalebrews/pose_programs");
         List<CollisionBinding> bindings = new ArrayList<>(CollisionBindingCatalog.load(resources).bindings());
         bindings.addAll(LegacyAnatomyCatalogMigration.load(resources));
-        return replace(models, bindings);
+        return replace(models, programs, bindings);
     }
 
     private static <T> Map<String, T> read(net.minecraft.server.packs.resources.ResourceManager resources, String directory,
@@ -79,19 +83,13 @@ public final class WorldAnatomyCatalog {
         long total = 0;
         for (var entry : files.entrySet()) {
             try (var reader = entry.getValue().openAsReader()) {
-                var text = new StringBuilder();
-                char[] buffer = new char[8192];
-                int count;
-                while ((count = reader.read(buffer)) != -1) {
-                    total += count;
-                    if (total > AnatomyCatalogPayload.MAX_BYTES) throw new IllegalArgumentException("Catalog resource limit exceeded");
-                    text.append(buffer, 0, count);
-                }
+                var text = readBounded(reader, total);
+                total += text.length();
                 var file = entry.getKey();
                 var path = file.getPath();
                 String id = Identifier.fromNamespaceAndPath(file.getNamespace(), path.substring(directory.length() + 1, path.length() - 5)).toString();
                 result.put(id, codec.parse(com.mojang.serialization.JsonOps.INSTANCE,
-                    com.google.gson.JsonParser.parseString(text.toString())).getOrThrow());
+                    com.google.gson.JsonParser.parseString(text)).getOrThrow());
             } catch (java.io.IOException | RuntimeException invalid) {
                 throw new IllegalArgumentException("Invalid anatomical resource " + entry.getKey(), invalid);
             }
@@ -99,23 +97,71 @@ public final class WorldAnatomyCatalog {
         return result;
     }
 
+    private static Map<String, PoseProgram> readPrograms(net.minecraft.server.packs.resources.ResourceManager resources, String directory) {
+        var files = resources.listResources(directory, id -> id.getPath().endsWith(".json"));
+        if (files.size() > 4096) throw new IllegalArgumentException("Too many resources under " + directory);
+        Map<String, PoseProgram> result = new TreeMap<>();
+        long total = 0;
+        for (var entry : files.entrySet()) {
+            try (var reader = entry.getValue().openAsReader()) {
+                var text = readBounded(reader, total);
+                total += text.length();
+                var file = entry.getKey();
+                var path = file.getPath();
+                String id = Identifier.fromNamespaceAndPath(file.getNamespace(), path.substring(directory.length() + 1, path.length() - 5)).toString();
+                var raw = new Gson().fromJson(text, PoseProgram.class);
+                if (result.put(id, PoseProgram.validatedCopy(raw)) != null) throw new IllegalArgumentException("Duplicate pose program " + id);
+            } catch (java.io.IOException | RuntimeException invalid) {
+                throw new IllegalArgumentException("Invalid pose-program resource " + entry.getKey(), invalid);
+            }
+        }
+        return result;
+    }
+
+    private static String readBounded(java.io.Reader reader, long previous) throws java.io.IOException {
+        var text = new StringBuilder();
+        char[] buffer = new char[8192];
+        int count;
+        long total = previous;
+        while ((count = reader.read(buffer)) != -1) {
+            total += count;
+            if (total > AnatomyCatalogPayload.MAX_BYTES) throw new IllegalArgumentException("Catalog resource limit exceeded");
+            text.append(buffer, 0, count);
+        }
+        return text.toString();
+    }
+
     public Snapshot reload(RegistryAccess registries) {
-        return replace(LegacyAnatomyCatalogMigration.models(registries), LegacyAnatomyCatalogMigration.bindings(registries));
+        return replace(LegacyAnatomyCatalogMigration.models(registries), Map.of(), LegacyAnatomyCatalogMigration.bindings(registries));
     }
 
     public synchronized Snapshot replace(Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
-        return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, bindings);
+        return replace(models, Map.of(), bindings);
+    }
+
+    public synchronized Snapshot replace(Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
+                                         Collection<CollisionBinding> bindings) {
+        return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, programs, bindings);
     }
 
     synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
-        if (revision < 0) throw new IllegalArgumentException("Negative catalog revision");
-        return replaceValidated(revision, models, bindings);
+        return replaceAtRevision(revision, models, Map.of(), bindings);
     }
 
-    private Snapshot replaceValidated(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
+    synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
+                                             Collection<CollisionBinding> bindings) {
+        if (revision < 0) throw new IllegalArgumentException("Negative catalog revision");
+        return replaceValidated(revision, models, programs, bindings);
+    }
+
+    private Snapshot replaceValidated(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
+                                      Collection<CollisionBinding> bindings) {
         Objects.requireNonNull(models, "models");
+        Objects.requireNonNull(programs, "programs");
         Objects.requireNonNull(bindings, "bindings");
         var canonical = new CollisionBindingCatalog(bindings);
+        Map<String, PoseProgram> validatedPrograms = validatePrograms(programs);
+        var resources = resources(validatedPrograms);
 
         List<String> references = new ArrayList<>();
         for (var candidate : canonical.bindings()) {
@@ -126,10 +172,11 @@ public final class WorldAnatomyCatalog {
         }
 
         var validated = new GeometryCatalog().replace(models, references);
+        validateCanonicalPoseBindings(canonical.bindings(), validated.models(), resources);
         Map<CollisionBinding, Binding> preparedBridge = new HashMap<>();
         for (var candidate : canonical.bindings()) {
             if (!compatibilityBridge(candidate)) continue;
-            preparedBridge.put(candidate, prepareBridge(candidate, validated.models()));
+            preparedBridge.put(candidate, prepareBridge(candidate, validated.models(), resources));
         }
 
         Map<Identifier, Binding> executable = new HashMap<>();
@@ -140,13 +187,48 @@ public final class WorldAnatomyCatalog {
             if (prepared != null) executable.put(entity, prepared);
         }
 
-        var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), canonical.bindings());
-        var next = new Snapshot(revision, validated.models(), canonical, executable);
+        var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), validatedPrograms, canonical.bindings());
+        var next = new Snapshot(revision, validated.models(), validatedPrograms, canonical, executable);
         current = new Accepted(next, bundle);
         return next;
     }
 
-    private static Binding prepareBridge(CollisionBinding selection, Map<String, ModelGeometry> models) {
+    private static Map<String, PoseProgram> validatePrograms(Map<String, PoseProgram> programs) {
+        if (programs.size() > 4096) throw new IllegalArgumentException("Too many pose programs");
+        Map<String, PoseProgram> result = new TreeMap<>();
+        programs.forEach((id, raw) -> {
+            try { Identifier.parse(id); }
+            catch (RuntimeException invalid) { throw new IllegalArgumentException("Invalid pose-program id " + id, invalid); }
+            result.put(id, PoseProgram.validatedCopy(raw));
+        });
+        return Map.copyOf(result);
+    }
+
+    private static PoseEngine.Resources resources(Map<String, PoseProgram> programs) {
+        return id -> Optional.ofNullable(programs.get(id.toString()));
+    }
+
+    private static void validateCanonicalPoseBindings(Collection<CollisionBinding> bindings, Map<String, ModelGeometry> models,
+                                                      PoseEngine.Resources resources) {
+        for (var candidate : bindings) {
+            if (compatibilityBridge(candidate)) continue;
+            var model = models.get(candidate.geometry().model().toString());
+            var engine = CollisionEngines.pose(candidate.pose().engine()).orElse(null);
+            boolean keyframes = candidate.pose().engine().equals(Identifier.parse("scalebrews:mojang_keyframes"));
+            if (engine == null) {
+                if (model != null || keyframes) throw new IllegalArgumentException("Missing pose engine " + candidate.pose().engine() + " for " + selector(candidate));
+                continue;
+            }
+            if (model == null) {
+                if (keyframes) throw new IllegalArgumentException("Missing geometry for keyframe binding " + selector(candidate));
+                continue;
+            }
+            if (engine.bind(model, candidate.pose().parameters(), candidate.pose().channels(), resources).isEmpty())
+                throw new IllegalArgumentException("Pose engine cannot bind accepted revision for " + selector(candidate));
+        }
+    }
+
+    private static Binding prepareBridge(CollisionBinding selection, Map<String, ModelGeometry> models, PoseEngine.Resources resources) {
         String modelId = selection.geometry().model().toString();
         var model = models.get(modelId);
         if (model == null) throw new IllegalArgumentException("Missing geometry " + modelId + " for " + selector(selection));
@@ -158,12 +240,12 @@ public final class WorldAnatomyCatalog {
         catch (RuntimeException invalid) {
             throw new IllegalArgumentException("Invalid legacy pose provider " + providerText + " for " + selector(selection), invalid);
         }
-        var provider = CollisionEngines.pose(providerId)
+        var engine = CollisionEngines.pose(providerId)
             .orElseThrow(() -> new IllegalArgumentException("Missing pose engine " + providerId + " for " + selector(selection)));
-        if (provider.evaluate(model, new PoseEngine.Inputs(0, 0, 0, 0, 0, true), Map.of()).isEmpty())
-            throw new IllegalArgumentException("Pose engine does not support model/version for " + selector(selection));
+        var bound = engine.bind(model, Map.of(), selection.pose().channels(), resources)
+            .orElseThrow(() -> new IllegalArgumentException("Pose engine cannot bind model/version for " + selector(selection)));
         validateFilter(selection, model);
-        return new Binding(selection, model, provider, providerId);
+        return new Binding(selection, model, bound, providerId);
     }
 
     private static String selector(CollisionBinding binding) {
