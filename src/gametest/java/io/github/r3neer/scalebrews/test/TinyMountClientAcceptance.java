@@ -92,8 +92,8 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.runOnClient(client -> {
                 if (!(client.player.containerMenu instanceof TinyMountMenu menu))
                     throw new AssertionError("Chicken E did not open TinyMountMenu");
-                if (menu.hasWolfArmor() || menu.getSlot(1).isActive())
-                    throw new AssertionError("Chicken menu exposed a graphical armor slot");
+                if (menu.hasBodyEquipment() || menu.getSlot(1).isActive())
+                    throw new AssertionError("Chicken menu exposed a graphical BODY slot");
             });
             context.takeScreenshot("scale-brews-chicken-equipment-menu");
             context.getInput().pressKey(options -> options.keyInventory);
@@ -110,9 +110,9 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(TinyMountScreen.class);
             context.runOnClient(client -> {
-                if (!(client.player.containerMenu instanceof TinyMountMenu menu) || !menu.hasWolfArmor()
+                if (!(client.player.containerMenu instanceof TinyMountMenu menu) || !menu.hasBodyEquipment()
                         || !menu.getSlot(0).isActive() || !menu.getSlot(1).isActive())
-                    throw new AssertionError("Wolf menu did not expose saddle plus wolf armor slots");
+                    throw new AssertionError("Wolf menu did not expose saddle plus configured BODY slots");
                 if (!menu.getSlot(0).getItem().is(Items.SADDLE))
                     throw new AssertionError("Wolf menu did not reflect its native saddle equipment");
                 if (!(menu.mount() instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf)
@@ -120,7 +120,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
                     throw new AssertionError("Wolf acceptance fixture is not genuinely owned by the rider");
                 if (client.getResourceManager().getResource(ScaleBrews.id(
                         "textures/gui/sprites/container/slot/wolf_armor.png")).isEmpty())
-                    throw new AssertionError("Wolf armor slot sprite is missing");
+                    throw new AssertionError("Configured wolf BODY slot sprite is missing");
             });
             context.takeScreenshot("scale-brews-wolf-equipment-menu");
             context.getInput().pressKey(options -> options.keyInventory);
