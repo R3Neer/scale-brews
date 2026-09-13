@@ -6,16 +6,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import java.util.Optional;
 
-public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio, boolean saddle,
-        Control control, Movement movement, Optional<Identifier> steeringItem,
+/** Data-driven Tiny Mount contract. Family owns interaction/control grammar; movement and abilities stay orthogonal. */
+public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
+        Family family, Movement movement, Optional<Identifier> steeringItem,
         float speed, float maxPitch, float maxVerticalSpeed, Ability ability, boolean enabled,
-        Optional<SaddleVisual> saddleVisual) {
+        Optional<SaddleVisual> saddleVisual, Optional<BodyEquipment> bodyEquipment) {
     public static final Codec<TinyMountDefinition> CODEC = RecordCodecBuilder.<TinyMountDefinition>create(i -> i.group(
         Identifier.CODEC.fieldOf("entity").forGetter(TinyMountDefinition::entity),
-        // Legacy files without a ratio adopt the new tiny-mount policy; the old level field is ignored.
+        // Legacy files without a ratio adopt the current Tiny Mount size policy.
         MountSizePolicy.RATIO.optionalFieldOf("max_rider_scale_ratio", 0.53).forGetter(TinyMountDefinition::maxRiderScaleRatio),
-        Codec.BOOL.optionalFieldOf("saddle", true).forGetter(TinyMountDefinition::saddle),
-        StringRepresentable.fromEnum(Control::values).fieldOf("control").forGetter(TinyMountDefinition::control),
+        StringRepresentable.fromEnum(Family::values).fieldOf("family").forGetter(TinyMountDefinition::family),
         StringRepresentable.fromEnum(Movement::values).fieldOf("movement").forGetter(TinyMountDefinition::movement),
         Identifier.CODEC.optionalFieldOf("steering_item").forGetter(TinyMountDefinition::steeringItem),
         Codec.floatRange(.01F, 1F).fieldOf("speed").forGetter(TinyMountDefinition::speed),
@@ -23,12 +23,17 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio, 
         Codec.floatRange(.01F, .5F).optionalFieldOf("max_vertical_speed", .15F).forGetter(TinyMountDefinition::maxVerticalSpeed),
         StringRepresentable.fromEnum(Ability::values).optionalFieldOf("ability", Ability.NONE).forGetter(TinyMountDefinition::ability),
         Codec.BOOL.optionalFieldOf("enabled", true).forGetter(TinyMountDefinition::enabled),
-        SaddleVisual.CODEC.optionalFieldOf("saddle_visual").forGetter(TinyMountDefinition::saddleVisual)
+        SaddleVisual.CODEC.optionalFieldOf("saddle_visual").forGetter(TinyMountDefinition::saddleVisual),
+        BodyEquipment.CODEC.optionalFieldOf("body_equipment").forGetter(TinyMountDefinition::bodyEquipment)
     ).apply(i, TinyMountDefinition::new)).validate(d -> {
-        if (d.saddle() && d.saddleVisual().isEmpty())
-            return com.mojang.serialization.DataResult.error(() -> "Saddled mounts require saddle_visual (texture and anchor)");
-        if (d.control() == Control.ITEM_STEERED && d.steeringItem().isEmpty())
-            return com.mojang.serialization.DataResult.error(() -> "item_steered requires steering_item");
+        if (d.saddleVisual().isEmpty())
+            return com.mojang.serialization.DataResult.error(() -> "Tiny Mount families require saddle_visual (texture and anchor)");
+        if (d.family().usesSteeringItem() != d.steeringItem().isPresent())
+            return com.mojang.serialization.DataResult.error(() -> d.family().usesSteeringItem()
+                    ? "item_steered requires steering_item"
+                    : "steering_item is only valid for item_steered mounts");
+        if (d.family() == Family.ITEM_STEERED && d.bodyEquipment().isPresent())
+            return com.mojang.serialization.DataResult.error(() -> "item_steered mounts use saddle-only equipment and have no mount inventory");
         return com.mojang.serialization.DataResult.success(d);
     });
 
@@ -42,10 +47,26 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio, 
         ).apply(i, SaddleVisual::new));
     }
 
-    public enum Control implements StringRepresentable {
-        DIRECT, ITEM_STEERED;
+    /** Optional native BODY equipment exposed by inventory-bearing families. */
+    public record BodyEquipment(Identifier item, Identifier slotIcon) {
+        public static final Codec<BodyEquipment> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Identifier.CODEC.fieldOf("item").forGetter(BodyEquipment::item),
+            Identifier.CODEC.fieldOf("slot_icon").forGetter(BodyEquipment::slotIcon)
+        ).apply(i, BodyEquipment::new));
+    }
+
+    public enum Family implements StringRepresentable {
+        DIRECT,
+        TAMEABLE_DIRECT,
+        ITEM_STEERED;
+
+        public boolean hasInventory() { return this != ITEM_STEERED; }
+        public boolean requiresTameForControl() { return this == TAMEABLE_DIRECT; }
+        public boolean requiresSaddleToMount() { return this == ITEM_STEERED; }
+        public boolean usesSteeringItem() { return this == ITEM_STEERED; }
         public String getSerializedName() { return name().toLowerCase(java.util.Locale.ROOT); }
     }
+
     public enum Movement implements StringRepresentable {
         GROUND, FLYING_LOOK_DIRECTION;
         public String getSerializedName() { return name().toLowerCase(java.util.Locale.ROOT); }
