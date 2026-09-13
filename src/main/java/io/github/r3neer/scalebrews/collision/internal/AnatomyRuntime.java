@@ -4,7 +4,7 @@ import io.github.r3neer.scalebrews.ScaleBrews;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import java.util.*;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.*;
@@ -34,7 +34,7 @@ public final class AnatomyRuntime {
      * and diagnostics: it never advances {@link AuthorityPoseTracker}, renders,
      * or evaluates model geometry.
      */
-    public record AuthoritativePose(UUID entity,long serverTick,PoseProvider.Inputs inputs) {}
+    public record AuthoritativePose(UUID entity,long serverTick,PoseEngine.Inputs inputs) {}
     private static final class State {
         final WorldAnatomyCatalog catalog;
         State(MinecraftServer server){catalog=new WorldAnatomyCatalog(AnatomyNetworking.revision(server));}
