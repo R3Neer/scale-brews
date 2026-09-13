@@ -1,7 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
-
 import java.util.UUID;
 import io.github.r3neer.scalebrews.ScaleBrews;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,7 +17,7 @@ public record AnatomyCatalogPayload(UUID epoch,int protocolVersion,long required
         fragment=fragment.clone();
     }
     @Override public byte[] fragment(){return fragment.clone();}
-    public static final Type<AnatomyCatalogPayload> TYPE=new Type<>(ScaleBrews.id("anatomy_catalog_v3"));
+    public static final Type<AnatomyCatalogPayload> TYPE=new Type<>(ScaleBrews.id("anatomy_catalog_v4"));
     public static final StreamCodec<RegistryFriendlyByteBuf,AnatomyCatalogPayload> CODEC=StreamCodec.of((b,p)->{
         b.writeUUID(p.epoch);b.writeVarInt(p.protocolVersion);b.writeVarLong(p.requiredCapabilities);b.writeVarLong(p.revision);b.writeVarInt(p.index);b.writeVarInt(p.count);b.writeVarInt(p.totalBytes);b.writeUtf(p.digest,64);b.writeByteArray(p.fragment);
     },b->new AnatomyCatalogPayload(b.readUUID(),b.readVarInt(),b.readVarLong(),b.readVarLong(),b.readVarInt(),b.readVarInt(),b.readVarInt(),b.readUtf(64),b.readByteArray(CHUNK)));

@@ -1,100 +1,178 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import io.github.r3neer.scalebrews.collision.pose.PoseProviders;
-
-import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.Platforms;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
-import java.util.*;
 
-/** Publish geometry and species bindings together, only after every reference has validated. */
+/** Publish canonical bindings and prepared geometry together, only after every reference has validated. */
 public final class WorldAnatomyCatalog {
-    public record Binding(PlatformDefinition policy,ModelGeometry model,PoseProvider poses) {}
-    public record Snapshot(long revision,Map<String,ModelGeometry> models,Map<Identifier,Binding> bindings,Map<String,PlatformDefinition> profiles) {
-        public Snapshot {models=Map.copyOf(models);bindings=Map.copyOf(bindings);profiles=Map.copyOf(profiles);}
+    /** Executable S16 bridge for the precomputed legacy backend; authority lives in {@code selection}. */
+    public record Binding(CollisionBinding selection, ModelGeometry model, PoseProvider poses, Identifier legacyPoseProvider) {
+        public Binding {
+            Objects.requireNonNull(selection, "selection");
+            Objects.requireNonNull(model, "model");
+            Objects.requireNonNull(poses, "poses");
+            Objects.requireNonNull(legacyPoseProvider, "legacyPoseProvider");
+        }
     }
-    private record Accepted(Snapshot snapshot,AnatomyCatalogTransfer.PreparedBundle bundle) {}
-    private volatile Accepted current=empty(0);
+
+    /** Full canonical catalog plus the subset currently executable by the S16 bridge. */
+    public record Snapshot(long revision, Map<String, ModelGeometry> models, CollisionBindingCatalog catalog,
+                           Map<Identifier, Binding> bindings) {
+        public Snapshot {
+            if (revision < 0 || catalog == null) throw new IllegalArgumentException("Invalid anatomical catalog snapshot");
+            models = Map.copyOf(models);
+            bindings = Map.copyOf(bindings);
+        }
+    }
+
+    private record Accepted(Snapshot snapshot, AnatomyCatalogTransfer.PreparedBundle bundle) {}
+    private volatile Accepted current = empty(0);
+
     public WorldAnatomyCatalog() {}
     public WorldAnatomyCatalog(long previousRevision) {
-        if(previousRevision<0)throw new IllegalArgumentException("Negative catalog revision");
-        current=empty(previousRevision);
+        if (previousRevision < 0) throw new IllegalArgumentException("Negative catalog revision");
+        current = empty(previousRevision);
     }
+
     private static Accepted empty(long revision) {
-        var snapshot=new Snapshot(revision,Map.of(),Map.of(),Map.of());
-        return new Accepted(snapshot,AnatomyCatalogTransfer.prepareBundle(snapshot.models(),snapshot.profiles()));
+        var catalog = new CollisionBindingCatalog(List.of());
+        var snapshot = new Snapshot(revision, Map.of(), catalog, Map.of());
+        return new Accepted(snapshot, AnatomyCatalogTransfer.prepareBundle(snapshot.models(), catalog.bindings()));
     }
-    public Snapshot snapshot(){return current.snapshot();}
+
+    public Snapshot snapshot() { return current.snapshot(); }
+
     /** Packet objects are materialized once per epoch/revision from the already serialized accepted bundle. */
     synchronized List<AnatomyCatalogPayload> preparedPackets(UUID epoch) {
-        var accepted=current;
-        return accepted.bundle().packets(epoch,accepted.snapshot().revision());
+        var accepted = current;
+        return accepted.bundle().packets(epoch, accepted.snapshot().revision());
     }
+
     public Snapshot reload(net.minecraft.server.packs.resources.ResourceManager resources) {
-        var models=read(resources,"scalebrews/entity_geometry",AnatomyCodecs.GEOMETRY);
-        var profiles=read(resources,"scalebrews/entity_platform",PlatformDefinition.CODEC);
-        return replace(models,profiles);
+        var models = read(resources, "scalebrews/entity_geometry", AnatomyCodecs.GEOMETRY);
+        List<CollisionBinding> bindings = new ArrayList<>(CollisionBindingCatalog.load(resources).bindings());
+        bindings.addAll(LegacyAnatomyCatalogMigration.load(resources));
+        return replace(models, bindings);
     }
-    private static <T> Map<String,T> read(net.minecraft.server.packs.resources.ResourceManager resources,String directory,com.mojang.serialization.Codec<T> codec) {
-        var files=resources.listResources(directory,id->id.getPath().endsWith(".json"));
-        if(files.size()>4096)throw new IllegalArgumentException("Too many resources under "+directory);
-        Map<String,T> result=new TreeMap<>();long total=0;
-        for(var entry:files.entrySet()) {
-            try(var reader=entry.getValue().openAsReader()) {
-                var text=new StringBuilder();char[] buffer=new char[8192];int count;
-                while((count=reader.read(buffer))!=-1) {
-                    total+=count;if(total>AnatomyCatalogPayload.MAX_BYTES)throw new IllegalArgumentException("Catalog resource limit exceeded");
-                    text.append(buffer,0,count);
+
+    private static <T> Map<String, T> read(net.minecraft.server.packs.resources.ResourceManager resources, String directory,
+                                           com.mojang.serialization.Codec<T> codec) {
+        var files = resources.listResources(directory, id -> id.getPath().endsWith(".json"));
+        if (files.size() > 4096) throw new IllegalArgumentException("Too many resources under " + directory);
+        Map<String, T> result = new TreeMap<>();
+        long total = 0;
+        for (var entry : files.entrySet()) {
+            try (var reader = entry.getValue().openAsReader()) {
+                var text = new StringBuilder();
+                char[] buffer = new char[8192];
+                int count;
+                while ((count = reader.read(buffer)) != -1) {
+                    total += count;
+                    if (total > AnatomyCatalogPayload.MAX_BYTES) throw new IllegalArgumentException("Catalog resource limit exceeded");
+                    text.append(buffer, 0, count);
                 }
-                var file=entry.getKey();var path=file.getPath();
-                String id=Identifier.fromNamespaceAndPath(file.getNamespace(),path.substring(directory.length()+1,path.length()-5)).toString();
-                result.put(id,codec.parse(com.mojang.serialization.JsonOps.INSTANCE,com.google.gson.JsonParser.parseString(text.toString())).getOrThrow());
-            }catch(java.io.IOException | RuntimeException invalid){throw new IllegalArgumentException("Invalid anatomical resource "+entry.getKey(),invalid);}
+                var file = entry.getKey();
+                var path = file.getPath();
+                String id = Identifier.fromNamespaceAndPath(file.getNamespace(), path.substring(directory.length() + 1, path.length() - 5)).toString();
+                result.put(id, codec.parse(com.mojang.serialization.JsonOps.INSTANCE,
+                    com.google.gson.JsonParser.parseString(text.toString())).getOrThrow());
+            } catch (java.io.IOException | RuntimeException invalid) {
+                throw new IllegalArgumentException("Invalid anatomical resource " + entry.getKey(), invalid);
+            }
         }
         return result;
     }
+
+    /** RegistryAccess remains a legacy preparation seam; it is migrated before publication. */
     public Snapshot reload(RegistryAccess registries) {
-        Map<String,ModelGeometry> models=new TreeMap<>();Map<String,PlatformDefinition> profiles=new TreeMap<>();
-        registries.lookup(Platforms.GEOMETRIES).ifPresent(registry->registry.listElements().forEach(h->models.put(h.key().identifier().toString(),h.value())));
-        registries.lookup(Platforms.DEFINITIONS).ifPresent(registry->registry.listElements().forEach(h->profiles.put(h.key().identifier().toString(),h.value())));
-        return replace(models,profiles);
+        return replace(LegacyAnatomyCatalogMigration.models(registries), LegacyAnatomyCatalogMigration.bindings(registries));
     }
-    public synchronized Snapshot replace(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
-        return replaceValidated(Math.incrementExact(current.snapshot().revision()),models,profiles);
+
+    public synchronized Snapshot replace(Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
+        return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, bindings);
     }
-    /** Client-side publication seam: the packet revision is the authority identity, not a local counter. */
-    synchronized Snapshot replaceAtRevision(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
-        if(revision<0)throw new IllegalArgumentException("Negative catalog revision");
-        return replaceValidated(revision,models,profiles);
+
+    /** Client-side publication seam: packet revision is the authority identity, not a local counter. */
+    synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
+        if (revision < 0) throw new IllegalArgumentException("Negative catalog revision");
+        return replaceValidated(revision, models, bindings);
     }
-    private Snapshot replaceValidated(long revision,Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
-        Objects.requireNonNull(models,"models");Objects.requireNonNull(profiles,"profiles");
-        if(profiles.size()>4096)throw new IllegalArgumentException("Too many anatomical profiles");
-        List<String> references=new ArrayList<>();Map<Identifier,Binding> bindings=new HashMap<>();Set<Identifier> species=new HashSet<>();
-        for(var entry:new TreeMap<>(profiles).entrySet()) {
-            if(!entry.getKey().matches("[a-z0-9_.-]+:[a-z0-9/._-]+"))throw new IllegalArgumentException("Invalid anatomical profile identifier");
-            var profile=entry.getValue();
-            if(!species.add(profile.entity()))throw new IllegalArgumentException("Duplicate platform species "+profile.entity());
-            if(profile.anatomy().isEmpty())continue; // Legacy planes are not convex anatomy.
-            var anatomy=profile.anatomy().orElseThrow();String id=anatomy.model().toString();references.add(id);
-            var model=models.get(id);
-            if(model==null)throw new IllegalArgumentException("Missing geometry "+id+" in "+entry.getKey());
-            var provider=PoseProviders.find(anatomy.poses()).orElseThrow(()->new IllegalArgumentException("Missing pose provider "+anatomy.poses()));
-            if(provider.evaluate(model,new PoseProvider.Inputs(0,0,0,0,0,true)).isEmpty())
-                throw new IllegalArgumentException("Pose provider does not support model/version: "+entry.getKey());
-            Set<String> ids=new HashSet<>();model.parts().forEach(p->ids.add(p.id()));model.pieces().forEach(p->ids.add(p.id()));
-            for(String selected:java.util.stream.Stream.concat(anatomy.filter().include().stream(),anatomy.filter().exclude().stream()).toList())
-                if(!ids.contains(selected))throw new IllegalArgumentException("Missing selected piece/part "+selected+" in "+entry.getKey());
-            bindings.put(profile.entity(),new Binding(profile,model,provider));
+
+    private Snapshot replaceValidated(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
+        Objects.requireNonNull(models, "models");
+        Objects.requireNonNull(bindings, "bindings");
+        var canonical = new CollisionBindingCatalog(bindings);
+        List<String> references = new ArrayList<>();
+        Map<Identifier, Binding> executable = new HashMap<>();
+
+        for (var entity : canonical.snapshot().keySet()) {
+            var selected = canonical.resolve(entity, Map.of()).orElse(null);
+            if (selected == null) continue; // Variant-only selectors never become an accidental default.
+            boolean bridge = compatibilityBridge(selected);
+            if (touchesCompatibilityBridge(selected) && !bridge)
+                throw new IllegalArgumentException("Incomplete legacy compatibility binding for " + entity);
+            if (!bridge) continue; // Accepted canonically; G3.3-G3.6 will make it executable.
+
+            String modelId = selected.geometry().model().toString();
+            references.add(modelId);
+            var model = models.get(modelId);
+            if (model == null) throw new IllegalArgumentException("Missing geometry " + modelId + " for " + entity);
+            String providerText = selected.pose().parameters().get("provider");
+            if (providerText == null) throw new IllegalArgumentException("Missing legacy pose provider parameter for " + entity);
+            final Identifier providerId;
+            try { providerId = Identifier.parse(providerText); }
+            catch (RuntimeException invalid) { throw new IllegalArgumentException("Invalid legacy pose provider " + providerText + " for " + entity, invalid); }
+            var provider = PoseProviders.find(providerId)
+                .orElseThrow(() -> new IllegalArgumentException("Missing pose provider " + providerId + " for " + entity));
+            if (provider.evaluate(model, new PoseProvider.Inputs(0, 0, 0, 0, 0, true)).isEmpty())
+                throw new IllegalArgumentException("Pose provider does not support model/version for " + entity);
+            validateFilter(selected, model);
+            executable.put(entity, new Binding(selected, model, provider, providerId));
         }
-        var validated=new GeometryCatalog().replace(models,references);
+
+        var validated = new GeometryCatalog().replace(models, references);
         // Prepare every fallible transfer artifact before the atomic accepted-state swap.
-        var bundle=AnatomyCatalogTransfer.prepareBundle(validated.models(),profiles);
-        Snapshot next=new Snapshot(revision,validated.models(),bindings,profiles);
-        current=new Accepted(next,bundle);
+        var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), canonical.bindings());
+        var next = new Snapshot(revision, validated.models(), canonical, executable);
+        current = new Accepted(next, bundle);
         return next;
+    }
+
+    private static boolean compatibilityBridge(CollisionBinding binding) {
+        return binding.geometry().engine().equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY)
+            && binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER)
+            && binding.rootTransform().equals(LegacyCollisionData.ENTITY_ROOT);
+    }
+
+    private static boolean touchesCompatibilityBridge(CollisionBinding binding) {
+        return binding.geometry().engine().equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY)
+            || binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER)
+            || binding.rootTransform().equals(LegacyCollisionData.ENTITY_ROOT);
+    }
+
+    private static void validateFilter(CollisionBinding binding, ModelGeometry model) {
+        Set<String> ids = new HashSet<>();
+        model.parts().forEach(part -> ids.add(part.id()));
+        model.pieces().forEach(piece -> ids.add(piece.id()));
+        var filter = binding.geometry().filter();
+        for (String selected : java.util.stream.Stream.concat(filter.include().stream(), filter.exclude().stream()).toList())
+            if (!ids.contains(selected)) throw new IllegalArgumentException("Missing selected piece/part " + selected + " for " + binding.entity());
     }
 }

@@ -18,7 +18,7 @@ public final class AnatomyApi {
     private AnatomyApi() {}
 
     /** Increment only for an incompatible public API/wire contract change. */
-    public static final int PROTOCOL_VERSION = 3;
+    public static final int PROTOCOL_VERSION = 4;
     /** Canonical collision binding/policy data schema understood by this API generation. */
     public static final int DATA_SCHEMA_VERSION = 1;
 

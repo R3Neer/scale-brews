@@ -107,8 +107,13 @@ public final class CollisionBindingCatalog {
         return Optional.ofNullable(selected);
     }
 
-    /** Deterministic entity and per-entity binding order for tooling and later catalog serialization. */
+    /** Deterministic entity and per-entity binding order for tooling and catalog serialization. */
     public Map<Identifier, List<CollisionBinding>> snapshot() { return byEntity; }
+
+    /** Deterministic flattened view used by the prepared wire bundle and migration merge. */
+    public List<CollisionBinding> bindings() {
+        return byEntity.values().stream().flatMap(Collection::stream).toList();
+    }
 
     private static void validateRegisteredEngines(CollisionBinding binding) {
         if (CollisionEngines.geometry(binding.geometry().engine()).isEmpty())

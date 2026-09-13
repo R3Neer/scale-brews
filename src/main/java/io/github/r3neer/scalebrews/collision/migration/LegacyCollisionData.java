@@ -1,6 +1,10 @@
 package io.github.r3neer.scalebrews.collision.migration;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
+import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
@@ -24,6 +28,33 @@ public final class LegacyCollisionData {
     public static final Identifier LEGACY_POSE_PROVIDER = Identifier.parse("scalebrews:legacy_pose_provider");
     public static final Identifier ENTITY_ROOT = Identifier.parse("scalebrews:entity_root");
     private static final Set<Identifier> WARNED_LEGACY_PLANES = ConcurrentHashMap.newKeySet();
+
+    /*
+     * Transitional registry sentinels. S16 needs migrated bindings to pass the
+     * canonical registry fence, but the actual precomputed execution bridge is
+     * still WorldAnatomyCatalog-owned until G3.3-G3.6 replace it with engines.
+     * Direct SPI execution therefore fails closed instead of becoming fallback.
+     */
+    private static final GeometryEngine PRECOMPUTED_SENTINEL = request -> Optional.empty();
+    private static final PoseEngine LEGACY_POSE_SENTINEL = (geometry, inputs, parameters) -> Optional.empty();
+    private static final RootTransformProvider ENTITY_ROOT_SENTINEL = entity -> Optional.empty();
+
+    public static synchronized void initializeCompatibilityEngines() {
+        var geometry = CollisionEngines.geometry(PRECOMPUTED_GEOMETRY);
+        if (geometry.isEmpty()) CollisionEngines.registerGeometry(PRECOMPUTED_GEOMETRY, PRECOMPUTED_SENTINEL);
+        else if (geometry.orElseThrow() != PRECOMPUTED_SENTINEL)
+            throw new IllegalStateException("Legacy compatibility geometry id is already owned by another engine: " + PRECOMPUTED_GEOMETRY);
+
+        var pose = CollisionEngines.pose(LEGACY_POSE_PROVIDER);
+        if (pose.isEmpty()) CollisionEngines.registerPose(LEGACY_POSE_PROVIDER, LEGACY_POSE_SENTINEL);
+        else if (pose.orElseThrow() != LEGACY_POSE_SENTINEL)
+            throw new IllegalStateException("Legacy compatibility pose id is already owned by another engine: " + LEGACY_POSE_PROVIDER);
+
+        var root = CollisionEngines.rootTransform(ENTITY_ROOT);
+        if (root.isEmpty()) CollisionEngines.registerRootTransform(ENTITY_ROOT, ENTITY_ROOT_SENTINEL);
+        else if (root.orElseThrow() != ENTITY_ROOT_SENTINEL)
+            throw new IllegalStateException("Legacy compatibility root id is already owned by another provider: " + ENTITY_ROOT);
+    }
 
     public record Visual(String part, double x, double y, double z) {}
     public record Plane(String id, double x, double y, double z, double width, double depth, Optional<Visual> visual) {}

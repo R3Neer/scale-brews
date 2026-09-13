@@ -1,14 +1,25 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
-import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
-import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
-
-import java.util.*;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.api.AnatomyMode;
+import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.UUID;
 
 /** One connection's ordered revisions; incomplete/invalid candidates never replace accepted geometry. */
 public final class AnatomyCatalogTransfer {
@@ -76,28 +87,40 @@ public final class AnatomyCatalogTransfer {
         }
     }
 
-    static PreparedBundle prepareBundle(Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
-        return new PreparedBundle(serializedBundle(models,profiles));
+    static PreparedBundle prepareBundle(Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
+        return new PreparedBundle(serializedBundle(models,bindings));
     }
 
     public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models) {
-        return encode(epoch,revision,models,Map.of());
+        return encode(epoch,revision,models,List.of());
     }
-    /** Fixture/convenience encoder. Production publication uses the prepared bundle owned by WorldAnatomyCatalog. */
-    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
+
+    /** Canonical fixture/convenience encoder. Production publication uses WorldAnatomyCatalog's prepared bundle. */
+    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
         var validation=new WorldAnatomyCatalog();
-        validation.replaceAtRevision(revision,models,profiles);
+        validation.replaceAtRevision(revision,models,bindings);
         return validation.preparedPackets(epoch);
     }
-    static byte[] serializedBundle(Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
-        var bundle=new com.google.gson.JsonObject();bundle.add("models",new Gson().toJsonTree(new TreeMap<>(models)));
-        var definitions=new com.google.gson.JsonObject();
-        new TreeMap<>(profiles).forEach((id,profile)->definitions.add(id,io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,profile).getOrThrow()));
-        bundle.add("profiles",definitions);
+
+    /** Legacy fixture seam: migrate before crossing the authoritative catalog boundary. */
+    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,
+            Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
+        return encode(epoch,revision,models,LegacyAnatomyCatalogMigration.bindings(profiles));
+    }
+
+    static byte[] serializedBundle(Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
+        Objects.requireNonNull(models,"models");
+        var canonical=new CollisionBindingCatalog(bindings);
+        var bundle=new com.google.gson.JsonObject();
+        bundle.add("models",new Gson().toJsonTree(new TreeMap<>(models)));
+        var encoded=new com.google.gson.JsonArray();
+        for(var binding:canonical.bindings())encoded.add(CollisionCodecs.BINDING.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,binding).getOrThrow());
+        bundle.add("bindings",encoded);
         byte[] bytes=bundle.toString().getBytes(StandardCharsets.UTF_8);
         if(bytes.length>AnatomyCatalogPayload.MAX_BYTES)throw new IllegalArgumentException("Catalog transfer exceeds size limit");
         return bytes;
     }
+
     public boolean accept(AnatomyCatalogPayload packet) {
         if(!AnatomyApi.compatible(packet.protocolVersion(),packet.requiredCapabilities()))throw new IllegalArgumentException("Incompatible anatomy protocol/capabilities");
         if(epoch==null)epoch=packet.epoch();
@@ -119,11 +142,14 @@ public final class AnatomyCatalogTransfer {
         for(int index=0;index<chunks.length;index++)System.arraycopy(chunks[index],0,complete,index*AnatomyCatalogPayload.CHUNK,chunks[index].length);
         if(!hash(complete).equals(digest))throw new IllegalArgumentException("Catalog integrity check failed");
         var bundle=com.google.gson.JsonParser.parseString(new String(complete,StandardCharsets.UTF_8)).getAsJsonObject();
+        if(bundle.has("profiles") || !bundle.has("models") || !bundle.has("bindings"))throw new IllegalArgumentException("Invalid protocol-v4 catalog object");
         Map<String,ModelGeometry> models=new Gson().fromJson(bundle.get("models"),new TypeToken<Map<String,ModelGeometry>>(){}.getType());
-        if(models==null)throw new IllegalArgumentException("Missing catalog object");
-        Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles=new TreeMap<>();
-        for(var entry:bundle.getAsJsonObject("profiles").entrySet())profiles.put(entry.getKey(),io.github.r3neer.scalebrews.platform.PlatformDefinition.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,entry.getValue()).getOrThrow());
-        catalog.replaceAtRevision(pendingRevision,models,profiles);acceptedRevision=pendingRevision;chunks=null;
+        if(models==null)throw new IllegalArgumentException("Missing catalog models");
+        var bindingJson=bundle.get("bindings");
+        if(!bindingJson.isJsonArray())throw new IllegalArgumentException("Missing canonical binding array");
+        List<CollisionBinding> bindings=new ArrayList<>();
+        for(var element:bindingJson.getAsJsonArray())bindings.add(CollisionCodecs.BINDING.parse(com.mojang.serialization.JsonOps.INSTANCE,element).getOrThrow());
+        catalog.replaceAtRevision(pendingRevision,models,bindings);acceptedRevision=pendingRevision;chunks=null;
         return true;
     }
 }
