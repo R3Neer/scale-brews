@@ -1,0 +1,49 @@
+name: s15-close-runner
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s15-close-runner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  close-s15:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: execute stored closure patch with normalized EOF
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ChatGPT'
+          git config user.email 'chatgpt@users.noreply.github.com'
+          git fetch origin chatgpt-editing
+          git checkout chatgpt-editing
+          git pull --ff-only origin chatgpt-editing
+          python3 - <<'PY'
+          from pathlib import Path
+          wf = Path('.github/workflows/s15-close-apply.yml').read_text()
+          marker = "          python3 - <<'PY'\n"
+          start = wf.index(marker) + len(marker)
+          end = wf.index('\n          PY\n', start)
+          lines = wf[start:end].splitlines()
+          script = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines)
+          old = "validation.write_text(text.rstrip() + section + '\\n')"
+          new = "validation.write_text(text.rstrip() + section.rstrip() + '\\n')"
+          if script.count(old) != 1:
+              raise SystemExit(f'expected one EOF-normalization target, got {script.count(old)}')
+          script = script.replace(old, new, 1)
+          exec(compile(script, '<s15-close>', 'exec'))
+          PY
+          git diff --check
+          git add docs/sprints/S15-prepared-catalog-bundle.md docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+          git diff --cached --stat
+          git commit -m 'docs(s15): close prepared catalog sprint'
+          git pull --rebase origin chatgpt-editing
+          git push origin HEAD:chatgpt-editing
