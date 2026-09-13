@@ -1,0 +1,76 @@
+name: s16-reopen-docs
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s16-reopen-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reopen-docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt-editing
+          fetch-depth: 0
+      - name: reopen canonical S16 state
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          plan = Path('docs/ENTITY_COLLISIONS_PLAN.md')
+          text = plan.read_text()
+          checked = '1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;'
+          open_ = '1. [ ] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;'
+          if checked in text:
+              text = text.replace(checked, open_, 1)
+          elif open_ not in text:
+              raise SystemExit('G3 task 1 marker not found')
+
+          replacement = ('**S16 reabierto:** el cierre provisional sobre `0b7a8940e783f3b8e08128f9d95fa04688376e79` quedó invalidado por el holdout adversarial post-cierre '
+                         '`variantBridgeReferencesMustValidateBeforeAtomicPublication`. En `e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`, run `34753107721`, job `103712855904`, '
+                         'la lane focal compila y ejecuta seis GameTests S16, con **1/6 rojo** porque un binding bridge variant-only con modelo inexistente se publica en vez de rechazarse. '
+                         'G3 tarea 1 permanece abierta hasta validar todos los selectors aplicables antes del swap, dejar verde el holdout sin relajarlo y renovar ordinary + focal + revisión final.')
+          pattern = r'\*\*S16 cerrado:\*\*[^\n]*'
+          if re.search(pattern, text):
+              text = re.sub(pattern, replacement, text, count=1)
+          elif replacement not in text:
+              raise SystemExit('S16 closure paragraph not found')
+          plan.write_text(text)
+
+          validation = Path('docs/VALIDATION.md')
+          text = validation.read_text()
+          old_heading = '## G3 / S16 canonical catalog authority — CLOSED 2026-09-13'
+          new_heading = '## G3 / S16 canonical catalog authority — REOPENED 2026-09-13'
+          if old_heading in text:
+              text = text.replace(old_heading, new_heading, 1)
+          elif new_heading not in text:
+              raise SystemExit('S16 validation heading not found')
+
+          old_tail = ('La revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción. '
+                      'Esta evidencia cierra G3 tarea 1, no G3 tareas 3-12 ni prediction/reconciliation G4.')
+          provisional_tail = ('La revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción en aquella campaña. '
+                              'Esa evidencia constituyó el cierre provisional de G3 tarea 1, pero quedó invalidada por el holdout adversarial post-cierre descrito a continuación.')
+          if old_tail in text:
+              text = text.replace(old_tail, provisional_tail, 1)
+
+          marker = '### Post-closure adversarial reopening — variant bridge validation'
+          if marker not in text:
+              text += f'''\n\n{marker}\n\nCommit de holdout **`e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`**. La prueba `variantBridgeReferencesMustValidateBeforeAtomicPublication` construye un `CollisionBinding` del bridge precomputado con selector variant no vacío y `geometry.model=proof:missing_variant_model`, conserva referencias al snapshot y al bundle preparado aceptados, y exige que `WorldAnatomyCatalog.replace(...)` rechace el candidato antes de publicar nada.\n\nGitHub Actions focal run **`34753107721`**, job **`103712855904`**: compilación main/client/GameTest correcta; servidor GameTest iniciado; **6 required S16 GameTests ejecutados, 5 verdes / 1 rojo**. El único fallo es el holdout nuevo: el candidato variant-only inválido es aceptado. La causa observada es que la validación del bridge consulta sólo `canonical.resolve(entity, Map.of())`, por lo que un selector no vacío queda fuera de la validación de referencias aunque forme parte del candidato canónico.\n\nEsto reabre **FR-033/FR-036 y G3 tarea 1**. Que la selección runtime de variants quede fuera del scope de S16 no permite publicar datos declarativos con referencias inválidas. El candidato completo debe validarse antes del swap; tras el rechazo deben conservarse exactamente el snapshot y el `PreparedBundle` anteriores. La evidencia 398/398 + 5/5 previa sigue siendo histórica, pero ya no es suficiente para cierre porque no contenía este holdout.\n'''
+          validation.write_text(text)
+      - name: commit reopening docs and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/s16-reopen-docs.yml
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+          git commit -m 'docs(s16): reopen canonical gate after holdout'
+          git push origin HEAD:chatgpt-editing
