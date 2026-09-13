@@ -100,7 +100,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S10 cerrado:** `docs/sprints/S10-passive-transport-ledger.md` extrajo a `collision.runtime.TransportLedger` el ownership único de current/history/generation/cursor de transporte pasivo. `AuthorityPoseTracker` consume el ledger directamente; `AnatomyMovement` conserva únicamente la aplicación física del carry y las façades con consumidores reales. La revisión final retiró la façade de cursor que quedó huérfana tras la migración.
 
-**S11 cerrado:** `docs/sprints/S11-shared-gravity-authority.md` reconcilió una única autoridad de gravedad en `integration.gravity.GravityFrames`, eliminó `AnatomyMovement.GRAVITY` y `collision.internal.GravityFrames`, y mantuvo `collision.api.GravityFrame` como representación física canónica. La revisión post-cierre separó `DOWN` explícito de cleanup en el seam de tests y añadió la autoridad compartida a los triggers de prepared CI. Snapshot final `52770bc04d2945f800bf06f78c7e4e33f5bcc6f0`: ordinary run `34691237169`, job `103546736147`, **365/365**; prepared run `34691237142`, job `103546736010`, export cliente original verde y servidor **2/2**.
+**S11 cerrado:** `docs/sprints/S11-shared-gravity-authority.md` reconcilió una única autoridad de gravedad en `integration.gravity.GravityFrames`, eliminó `AnatomyMovement.GRAVITY` y `collision.internal.GravityFrames`, y mantuvo `collision.api.GravityFrame` como representación física canónica. La revisión post-cierre separó `DOWN` explícito de cleanup en el seam de tests y añadió la nueva autoridad compartida a los triggers de prepared CI. Snapshot final `52770bc04d2945f800bf06f78c7e4e33f5bcc6f0`: ordinary run `34691237169`, job `103546736147`, **365/365**; prepared run `34691237142`, job `103546736010`, export cliente original verde y servidor **2/2**.
 
 **S12 cerrado:** `docs/sprints/S12-contact-state-ownership.md` extrajo a `collision.internal.AnatomyContactState` el ownership único de contacto actual, sequence watermark, anchor, `SurfaceContact` y suspensiones body/support. `AnatomyMovement` conserva la validación física y la invalidación de receipts. La revisión post-verde reabrió S12 al demostrar una relación stale cross-dimension cuando el body ya había transitado pero el support seguía en el nivel desactivado; `7142207dba60a64c5f69f8cbe0d56bae5df05a13` reparó el cleanup por ambos extremos sin rebobinar sequence. S12 permanece cerrado en la cadena integrada final.
 
@@ -120,7 +120,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;
 2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;
-3. [ ] consolidar `ModelPart` GeometryEngine;
+3. [x] consolidar `ModelPart` GeometryEngine;
 4. [ ] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
 5. [ ] convertir Citadel/Alex a engine/pose-program reusable;
 6. [ ] añadir `RootTransformProvider` genérico y fixture externo;
@@ -133,7 +133,9 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S15 cerrado:** G3 tarea 2/NFR-010 queda cerrada. `WorldAnatomyCatalog` publica `Snapshot + PreparedBundle` atómicamente y la ruta live reutiliza packets preparados por `epoch + revision`. Evidencia final `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`: focal **8/8 S15** (+ sentinel) y ordinary **394/394**; artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`. Revisión post-verde sin cambios de producción. G3 sigue abierto para tareas 1 y 3-12.
 
-**S16 cerrado tras reapertura adversarial:** el rojo post-cierre `e3e49ac2...` demostró que un selector variant del bridge eludía validación integral. `5cff913349a4fc64921a81e0d8236e5aae235ac9` valida todos los bindings del candidato antes de resolver el selector runtime y conserva atómicamente snapshot+bundle ante rechazo. La campaña posterior `d218adc84a0180e02dd5908114bacf010c4ee86e` añadió conflicto canonical↔legacy, round-trip variant y rechazo wire; quedó verde sin otro cambio productivo. Evidencia final: ordinary `34753580865` **401/401** y focal `34753580858` **8/8**. G3 tarea 1 queda cerrada; permanecen abiertas 3–12.
+**S16 cerrado tras reapertura adversarial:** el rojo post-cierre `e3e49ac2...` demostró que un selector variant del bridge eludía validación integral. `5cff913349a4fc64921a81e0d8236e5aae235ac9` valida todos los bindings del candidato antes de resolver el selector runtime y conserva atómicamente snapshot+bundle ante rechazo. La campaña final `eabd6ef31ee8f6ed4a7e4fffa873171339db508f` añadió conflicto canonical↔legacy, round-trip variant y rechazo wire completo con restauración client-style; quedó verde sin otro cambio productivo. Evidencia final: ordinary `34753730671` **402/402** y focal `34753730753` **9/9**. G3 tarea 1 queda cerrada.
+
+**S17 cerrado:** G3 tarea 3 queda cerrada. `scalebrews:model_part` usa dispatcher common server-safe y preparación `ModelPart` client-only. La campaña adversarial final `11824a121b669eeab7cd77704afad6bce4b0c254` añadió classloading/constant-pool, ownership del delegate, aislamiento ante fallos, exclusiones estructurales y reproducibilidad sin cambios de producción. Evidencia: ordinary `34755126613` **407/407**; focal `34755126630`: common **6/6**, client preparation verde y original-model/export verde con 640 comparaciones vanilla adicionales. G3 continúa con tareas 4–12.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
