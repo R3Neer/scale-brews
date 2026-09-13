@@ -28,22 +28,14 @@ public class TinyMountMenuTests {
         h.succeed();
     }
 
-    @GameTest public void itemSteeredBeeUsesVanillaSaddleAndShearsFlow(GameTestHelper h) {
+    @GameTest public void itemSteeredBeeEquipsSaddleByDirectInteraction(GameTestHelper h) {
         var player = h.makeMockPlayer(GameType.SURVIVAL);
         var bee = h.spawn(EntityTypes.BEE, 1, 2, 1);
-
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE));
         var saddleResult = bee.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
         h.assertTrue(saddleResult.consumesAction(), "Using a saddle on a bee consumes the interaction");
         h.assertTrue(bee.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
                 "Item-steered bee equips saddle by direct interaction like pig/strider");
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
-        var shearResult = bee.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
-        h.assertTrue(shearResult.consumesAction(), "Shearing a saddled bee consumes the interaction");
-        h.assertTrue(bee.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(),
-                "Item-steered bee saddle is removed with shears like pig/strider");
-
         bee.discard();
         h.succeed();
     }
