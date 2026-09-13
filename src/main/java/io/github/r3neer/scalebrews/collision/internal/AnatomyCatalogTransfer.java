@@ -9,6 +9,7 @@ import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionCodecs;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
+import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.UUID;
 
-/** One connection's ordered revisions; incomplete/invalid candidates never replace accepted geometry. */
+/** One connection's ordered revisions; incomplete/invalid candidates never replace accepted geometry/programs. */
 public final class AnatomyCatalogTransfer {
     private UUID epoch;
     private int protocolVersion;
@@ -53,10 +54,7 @@ public final class AnatomyCatalogTransfer {
         catch(java.security.NoSuchAlgorithmException e){throw new IllegalStateException(e);}
     }
 
-    /**
-     * Immutable serialization/hash/fragmentation result for one accepted catalog revision.
-     * Packet materialization is cached per epoch+revision; fragment arrays remain private and payloads clone them.
-     */
+    /** Immutable serialization/hash/fragmentation result for one accepted catalog revision. */
     static final class PreparedBundle {
         private final int totalBytes;
         private final String digest;
@@ -88,31 +86,50 @@ public final class AnatomyCatalogTransfer {
     }
 
     static PreparedBundle prepareBundle(Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
-        return new PreparedBundle(serializedBundle(models,bindings));
+        return prepareBundle(models,Map.of(),bindings);
+    }
+
+    static PreparedBundle prepareBundle(Map<String,ModelGeometry> models,Map<String,PoseProgram> programs,
+                                        Collection<CollisionBinding> bindings) {
+        return new PreparedBundle(serializedBundle(models,programs,bindings));
     }
 
     public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models) {
-        return encode(epoch,revision,models,List.of());
+        return encode(epoch,revision,models,Map.of(),List.of());
     }
 
     /** Canonical fixture/convenience encoder. Production publication uses WorldAnatomyCatalog's prepared bundle. */
-    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
+    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,
+                                                      Collection<CollisionBinding> bindings) {
+        return encode(epoch,revision,models,Map.of(),bindings);
+    }
+
+    public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,
+                                                      Map<String,PoseProgram> programs,Collection<CollisionBinding> bindings) {
         var validation=new WorldAnatomyCatalog();
-        validation.replaceAtRevision(revision,models,bindings);
+        validation.replaceAtRevision(revision,models,programs,bindings);
         return validation.preparedPackets(epoch);
     }
 
     /** Legacy fixture seam: migrate before crossing the authoritative catalog boundary. */
     public static List<AnatomyCatalogPayload> encode(UUID epoch,long revision,Map<String,ModelGeometry> models,
             Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles) {
-        return encode(epoch,revision,models,LegacyAnatomyCatalogMigration.bindings(profiles));
+        return encode(epoch,revision,models,Map.of(),LegacyAnatomyCatalogMigration.bindings(profiles));
     }
 
     static byte[] serializedBundle(Map<String,ModelGeometry> models,Collection<CollisionBinding> bindings) {
-        Objects.requireNonNull(models,"models");
+        return serializedBundle(models,Map.of(),bindings);
+    }
+
+    static byte[] serializedBundle(Map<String,ModelGeometry> models,Map<String,PoseProgram> programs,
+                                   Collection<CollisionBinding> bindings) {
+        Objects.requireNonNull(models,"models");Objects.requireNonNull(programs,"programs");
         var canonical=new CollisionBindingCatalog(bindings);
+        var validatedPrograms=new TreeMap<String,PoseProgram>();
+        programs.forEach((id,program)->validatedPrograms.put(id,PoseProgram.validatedCopy(program)));
         var bundle=new com.google.gson.JsonObject();
         bundle.add("models",new Gson().toJsonTree(new TreeMap<>(models)));
+        bundle.add("pose_programs",new Gson().toJsonTree(validatedPrograms));
         var encoded=new com.google.gson.JsonArray();
         for(var binding:canonical.bindings())encoded.add(CollisionCodecs.BINDING.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,binding).getOrThrow());
         bundle.add("bindings",encoded);
@@ -142,14 +159,20 @@ public final class AnatomyCatalogTransfer {
         for(int index=0;index<chunks.length;index++)System.arraycopy(chunks[index],0,complete,index*AnatomyCatalogPayload.CHUNK,chunks[index].length);
         if(!hash(complete).equals(digest))throw new IllegalArgumentException("Catalog integrity check failed");
         var bundle=com.google.gson.JsonParser.parseString(new String(complete,StandardCharsets.UTF_8)).getAsJsonObject();
-        if(bundle.has("profiles") || !bundle.has("models") || !bundle.has("bindings"))throw new IllegalArgumentException("Invalid protocol-v4 catalog object");
-        Map<String,ModelGeometry> models=new Gson().fromJson(bundle.get("models"),new TypeToken<Map<String,ModelGeometry>>(){}.getType());
+        if(bundle.has("profiles") || !bundle.has("models") || !bundle.has("pose_programs") || !bundle.has("bindings"))
+            throw new IllegalArgumentException("Invalid protocol-v5 catalog object");
+        var gson=new Gson();
+        Map<String,ModelGeometry> models=gson.fromJson(bundle.get("models"),new TypeToken<Map<String,ModelGeometry>>(){}.getType());
         if(models==null)throw new IllegalArgumentException("Missing catalog models");
+        Map<String,PoseProgram> rawPrograms=gson.fromJson(bundle.get("pose_programs"),new TypeToken<Map<String,PoseProgram>>(){}.getType());
+        if(rawPrograms==null)throw new IllegalArgumentException("Missing catalog pose programs");
+        Map<String,PoseProgram> programs=new TreeMap<>();
+        rawPrograms.forEach((id,program)->programs.put(id,PoseProgram.validatedCopy(program)));
         var bindingJson=bundle.get("bindings");
         if(!bindingJson.isJsonArray())throw new IllegalArgumentException("Missing canonical binding array");
         List<CollisionBinding> bindings=new ArrayList<>();
         for(var element:bindingJson.getAsJsonArray())bindings.add(CollisionCodecs.BINDING.parse(com.mojang.serialization.JsonOps.INSTANCE,element).getOrThrow());
-        catalog.replaceAtRevision(pendingRevision,models,bindings);acceptedRevision=pendingRevision;chunks=null;
+        catalog.replaceAtRevision(pendingRevision,models,programs,bindings);acceptedRevision=pendingRevision;chunks=null;
         return true;
     }
 }
