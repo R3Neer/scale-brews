@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -9,7 +10,7 @@ import net.minecraft.world.level.Level;
 
 /** Sole owner of live provider/binding identity state. It has no physics or orchestration callbacks. */
 final class AnatomyBindingState {
-    record Snapshot(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long generation) {
+    record Snapshot(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,CollisionBinding binding,long generation) {
         Snapshot {
             Objects.requireNonNull(provider,"provider");
             if(generation<1)throw new IllegalArgumentException("Invalid binding generation");
@@ -21,6 +22,7 @@ final class AnatomyBindingState {
         long generation;
         GeometryProvider provider;
         GeometryProvider.GeometryIdentityDescriptor descriptor;
+        CollisionBinding binding;
         Level level;
         long quarantinedGeneration;
         boolean capturing;
@@ -33,6 +35,11 @@ final class AnatomyBindingState {
 
     static synchronized Snapshot rebind(LivingEntity support,GeometryProvider provider,
             GeometryProvider.GeometryIdentityDescriptor descriptor) {
+        return rebind(support,provider,descriptor,null);
+    }
+
+    static synchronized Snapshot rebind(LivingEntity support,GeometryProvider provider,
+            GeometryProvider.GeometryIdentityDescriptor descriptor,CollisionBinding binding) {
         if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
         var slot=SLOTS.computeIfAbsent(support,ignored->new Slot());
         slot.generation=Math.incrementExact(slot.generation);
@@ -41,9 +48,10 @@ final class AnatomyBindingState {
                 descriptor.model(),descriptor.poseProvider(),slot.generation);
         slot.provider=provider;
         slot.descriptor=descriptor;
+        slot.binding=binding;
         slot.level=support.level();
         slot.quarantinedGeneration=0;
-        return new Snapshot(provider,descriptor,slot.generation);
+        return new Snapshot(provider,descriptor,binding,slot.generation);
     }
 
     static synchronized GeometryProvider provider(LivingEntity support) {
@@ -52,6 +60,10 @@ final class AnatomyBindingState {
 
     static synchronized GeometryProvider.GeometryIdentityDescriptor descriptor(LivingEntity support) {
         var slot=SLOTS.get(support);return slot==null?null:slot.descriptor;
+    }
+
+    static synchronized CollisionBinding binding(LivingEntity support) {
+        var slot=SLOTS.get(support);return slot==null?null:slot.binding;
     }
 
     static synchronized boolean hasProvider(LivingEntity support) {return provider(support)!=null;}
@@ -63,14 +75,15 @@ final class AnatomyBindingState {
 
     static synchronized Snapshot snapshot(LivingEntity support) {
         var slot=SLOTS.get(support);
-        return slot==null || slot.provider==null?null:new Snapshot(slot.provider,slot.descriptor,slot.generation);
+        return slot==null || slot.provider==null?null:new Snapshot(slot.provider,slot.descriptor,slot.binding,slot.generation);
     }
 
     static synchronized boolean current(LivingEntity support,Snapshot snapshot) {
         if(snapshot==null)return false;
         var slot=SLOTS.get(support);
         return slot!=null && slot.provider==snapshot.provider()
-            && Objects.equals(slot.descriptor,snapshot.descriptor()) && slot.generation==snapshot.generation;
+            && Objects.equals(slot.descriptor,snapshot.descriptor()) && Objects.equals(slot.binding,snapshot.binding())
+            && slot.generation==snapshot.generation;
     }
 
     static synchronized Snapshot beginCapture(LivingEntity support) {
@@ -78,7 +91,7 @@ final class AnatomyBindingState {
         if(slot==null || slot.provider==null || slot.descriptor==null || slot.capturing
                 || slot.quarantinedGeneration==slot.generation)return null;
         slot.capturing=true;
-        return new Snapshot(slot.provider,slot.descriptor,slot.generation);
+        return new Snapshot(slot.provider,slot.descriptor,slot.binding,slot.generation);
     }
 
     static synchronized void endCapture(LivingEntity support) {
@@ -106,6 +119,7 @@ final class AnatomyBindingState {
         for(var slot:SLOTS.values())if(slot.level==level) {
             slot.provider=null;
             slot.descriptor=null;
+            slot.binding=null;
             slot.level=null;
             slot.quarantinedGeneration=0;
             // Do not release an outer capture. Its finally owns the reentrancy guard even across lifecycle/rebind.
