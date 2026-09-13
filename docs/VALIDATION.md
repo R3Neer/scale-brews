@@ -580,7 +580,7 @@ Evidencia final exacta sobre **`e52766a71cf66c4157d31b8884d901b22d4de7a8`**: run
 La revisión adversarial final recorrió owner, hot send, fixture encoder, invalid replacement, revision/epoch fences, bounds e inmutabilidad. No encontró una segunda ruta live de serialización/hash/fragmentation ni owner duplicado; desde `684142f32003a29f255b8ff204d39a7e0a968ed2` no hubo cambios adicionales de producción/tests S15. **La pasada final produjo cero cambios de producto; S15 queda cerrado y G3 permanece abierto para tareas 1 y 3-12.**
 
 
-## G3 / S16 canonical catalog authority — REOPENED 2026-09-13
+## G3 / S16 canonical catalog authority — CLOSED 2026-09-13 after adversarial reopening
 
 Snapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`; último cambio productivo propio `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`.
 
@@ -602,3 +602,21 @@ Commit de holdout **`e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`**. La prueba `var
 GitHub Actions focal run **`34753107721`**, job **`103712855904`**: compilación main/client/GameTest correcta; servidor GameTest iniciado; **6 required S16 GameTests ejecutados, 5 verdes / 1 rojo**. El único fallo es el holdout nuevo: el candidato variant-only inválido es aceptado. La causa observada es que la validación del bridge consulta sólo `canonical.resolve(entity, Map.of())`, por lo que un selector no vacío queda fuera de la validación de referencias aunque forme parte del candidato canónico.
 
 Esto reabre **FR-033/FR-036 y G3 tarea 1**. Que la selección runtime de variants quede fuera del scope de S16 no permite publicar datos declarativos con referencias inválidas. El candidato completo debe validarse antes del swap; tras el rechazo deben conservarse exactamente el snapshot y el `PreparedBundle` anteriores. La evidencia 398/398 + 5/5 previa sigue siendo histórica, pero ya no es suficiente para cierre porque no contenía este holdout.
+
+
+### Repair and renewed closure after variant-validation reopening
+
+Production commit **`5cff913349a4fc64921a81e0d8236e5aae235ac9`** validates the complete canonical candidate before publication. Every binding touching the legacy compatibility IDs must either form the full bridge or reject; every full bridge validates its model reference, legacy provider parameter/provider compatibility and filter before any default selector is resolved. Only after those fallible steps does S16 derive the currently executable `variant={}` subset. Variant-only bindings therefore remain canonical data without becoming accidental default execution.
+
+The red holdout `variantBridgeReferencesMustValidateBeforeAtomicPublication` is green without relaxation, and invalid candidates preserve the exact previously accepted `Snapshot` and S15 `PreparedBundle` objects.
+
+A subsequent adversarial-only commit **`d218adc84a0180e02dd5908114bacf010c4ee86e`** added two further cases: canonical plus migrated legacy bindings cannot share one selector by merge/file-order precedence, and a valid variant selector must survive protocol-v4 round-trip while remaining absent from the default executable map. The existing invalid-wire replacement/rejectPending fence also remained active. No production change followed this test expansion.
+
+Renewed exact evidence on `d218adc...`:
+
+- ordinary run **`34753580865`**, job **`103714077843`**: **401/401 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10315699079`**, SHA-256 **`9cd3c32a251988793cd2df1bcb145b0003d2c4b8e149e65832e0473b6d8a004e`**;
+- focal S16 run **`34753580858`**, job **`103714077812`**: **8/8 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10316528568`**, SHA-256 **`f4ca1104ee19347997d456e5719da9ea5fd107fd1941eb39e9b8c7d9e2bb5f7a`**.
+
+Supplemental prepared evidence on production `5cff913...`: the first attempt of run **`34753380100`**, job `103713567025`, failed in the unrelated S09 prepared A9 temporal-response translation oracle after client export succeeded. Re-running the exact same job/SHA as **`103714031864`** completed the same export and prepared server proof successfully. The first failure is retained as a non-reproduced S09 incident and is not used to waive or replace any S16 oracle.
+
+Final review after the repair found no further S16 production change. The later adversarial expansion was green on the existing repair, satisfying the zero-change final-pass criterion. **S16 and G3 task 1 are closed; this does not close G3 tasks 3–12.**
