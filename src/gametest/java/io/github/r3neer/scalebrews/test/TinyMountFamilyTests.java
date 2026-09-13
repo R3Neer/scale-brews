@@ -7,6 +7,10 @@ import io.github.r3neer.scalebrews.mount.TinyMountInventory;
 import io.github.r3neer.scalebrews.mount.TinyMountMenu;
 import io.github.r3neer.scalebrews.mount.TinyMounts;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
+import net.minecraft.core.dispenser.EquipmentDispenseItemBehavior;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
@@ -16,6 +20,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 /** Adversarial proof that Tiny Mount behavior comes from family data rather than species branches. */
@@ -62,6 +69,28 @@ public final class TinyMountFamilyTests {
             cow.setItemSlot(EquipmentSlot.SADDLE, ItemStack.EMPTY);
             TinyMounts.enforceRider(rider);
             h.assertFalse(rider.isPassenger(), "Item-steered family ejects rider when its saddle disappears");
+        }
+        cow.discard(); h.succeed();
+    }
+
+    @GameTest public void dataOnlyMountAcceptsSaddleFromRealDispenserPath(GameTestHelper h) {
+        var sourcePos = h.absolutePos(new BlockPos(1, 2, 2));
+        var state = Blocks.DISPENSER.defaultBlockState().setValue(DispenserBlock.FACING, Direction.EAST);
+        var blockEntity = new DispenserBlockEntity(sourcePos, state);
+        var source = new BlockSource(h.getLevel(), sourcePos, state, blockEntity);
+        var targetPos = sourcePos.east();
+        var cow = h.spawn(EntityTypes.COW, 2, 2, 2);
+        cow.setNoAi(true);
+        cow.setPos(targetPos.getX() + .5, targetPos.getY(), targetPos.getZ() + .5);
+
+        try (var ignored = new TinyDefinitionTestScope("{\"entity\":\"minecraft:cow\",\"family\":\"direct\",\"movement\":\"ground\",\"speed\":0.2," + SADDLE_VISUAL + "}")) {
+            var stack = new ItemStack(Items.SADDLE);
+            h.assertTrue(cow.canEquipWithDispenser(stack),
+                    "Family data extends vanilla dispenser eligibility to a normally unsaddleable species");
+            h.assertTrue(EquipmentDispenseItemBehavior.dispenseEquipment(source, stack),
+                    "Real vanilla equipment dispenser path selects the data-only Tiny Mount");
+            h.assertTrue(stack.isEmpty() && cow.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE),
+                    "Dispenser consumes one saddle and writes the native SADDLE equipment slot");
         }
         cow.discard(); h.succeed();
     }
