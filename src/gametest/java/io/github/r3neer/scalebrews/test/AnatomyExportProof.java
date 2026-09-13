@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.test;
 
 import com.google.gson.GsonBuilder;
 import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
+import io.github.r3neer.scalebrews.client.collision.preparation.ModelPartGeometryEngine;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.pose.*;
@@ -27,14 +28,14 @@ public class AnatomyExportProof implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         context.runOnClient(client->{
             var cow=CowModel.createBodyLayer().bakeRoot();
-            verifyVanilla(cow,Set.of(),"minecraft:cow");
+            verifyVanilla(cow,"minecraft:cow",()->CowModel.createBodyLayer().bakeRoot());
             verifyCowPoses();
             verifyVanillaFamilies();
-            var skinLayers=Set.of("hat","jacket","left_sleeve","right_sleeve","left_pants","right_pants");
             for(boolean slim:new boolean[]{false,true}) {
                 var root=LayerDefinition.create(PlayerModel.createMesh(CubeDeformation.NONE,slim),64,64).bakeRoot();
-                verifyVanilla(root,skinLayers,"minecraft:player_"+(slim?"slim":"wide"));
-                verifyPlayerPoses(root,slim,skinLayers);
+                String source="minecraft:player_"+(slim?"slim":"wide");
+                verifyVanilla(root,source,()->LayerDefinition.create(PlayerModel.createMesh(CubeDeformation.NONE,slim),64,64).bakeRoot());
+                verifyPlayerPoses(root,slim);
             }
             if(FabricLoader.getInstance().isModLoaded("alexsmobs"))try {
                 Object bear=Class.forName("com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear").getConstructor().newInstance();
@@ -380,10 +381,10 @@ public class AnatomyExportProof implements FabricClientGameTest {
         compare(geometry.evaluate(new Matrix4f(),provider.evaluate(geometry,inputs).orElseThrow(),AnatomyFilter.DEFAULT),
             GeometryExtractor.vanilla(geometry.source(),"26.2",root,excluded).evaluate(new Matrix4f(),Map.of(),AnatomyFilter.DEFAULT),label);
     }
-    private static void verifyPlayerPoses(ModelPart root,boolean slim,Set<String> skinLayers) {
+    private static void verifyPlayerPoses(ModelPart root,boolean slim) {
         var model=new PlayerModel(root,slim);
         String source="minecraft:player_"+(slim?"slim":"wide");
-        var geometry=GeometryExtractor.vanilla(source,"26.2",root,skinLayers);
+        var geometry=modelPart(source);
         for(int tick=0;tick<80;tick++) {
             var state=new net.minecraft.client.renderer.entity.state.AvatarRenderState();
             state.walkAnimationPos=tick*.37f;state.walkAnimationSpeed=(tick%20)/20f;state.ageInTicks=tick;
@@ -391,7 +392,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             model.setupAnim(state);
             var inputs=new PoseProvider.Inputs(state.walkAnimationPos,state.walkAnimationSpeed,tick,state.yRot,state.xRot,true);
             compare(geometry.evaluate(new Matrix4f(),new PlayerWalkingPose().evaluate(geometry,inputs).orElseThrow(),new AnatomyFilter(0,0,0)),
-                GeometryExtractor.vanilla(source,"26.2",root,skinLayers).evaluate(new Matrix4f(),Map.of(),new AnatomyFilter(0,0,0)),source+" tick "+tick);
+                GeometryExtractor.vanilla(source,"26.2",root,Set.of()).evaluate(new Matrix4f(),Map.of(),new AnatomyFilter(0,0,0)),source+" tick "+tick);
         }
         System.out.println("ANATOMY_POSE "+source+" 80 animated pose comparisons passed");
     }
@@ -416,7 +417,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
     }
     private static void verifyCowPoses() {
         var model=new CowModel(CowModel.createBodyLayer().bakeRoot());
-        var geometry=GeometryExtractor.vanilla("minecraft:cow","26.2",model.root(),Set.of());
+        var geometry=modelPart("minecraft:cow");
         for(int tick=0;tick<80;tick++) {
             var state=new net.minecraft.client.renderer.entity.state.LivingEntityRenderState();
             state.walkAnimationPos=tick*.37f;state.walkAnimationSpeed=(tick%20)/20f;state.xRot=tick%50-25;state.yRot=tick%80-40;
@@ -431,16 +432,19 @@ public class AnatomyExportProof implements FabricClientGameTest {
         }
         System.out.println("ANATOMY_POSE minecraft:cow 80 animated pose comparisons passed");
     }
-    private static void verifyVanilla(ModelPart root,Set<String> excluded,String source) {
-        var result=GeometryExtractor.vanilla(source,"26.2",root,excluded);
+    private static void verifyVanilla(ModelPart root,String source,java.util.function.Supplier<ModelPart> freshRoot) {
+        final Matrix4f modelTransform;
         try {
             var dispatcher=net.minecraft.client.Minecraft.getInstance().getEntityRenderDispatcher();
             var field=dispatcher.getClass().getDeclaredField(source.startsWith("minecraft:player_")?"playerRenderers":"renderers");field.setAccessible(true);
             var renderers=(Map<?,?>)field.get(dispatcher);
             Object renderer=source.startsWith("minecraft:player_")?renderers.values().iterator().next():renderers.get(net.minecraft.world.entity.EntityTypes.COW);
             Object state=source.startsWith("minecraft:player_")?new net.minecraft.client.renderer.entity.state.AvatarRenderState():new net.minecraft.client.renderer.entity.state.LivingEntityRenderState();
-            result=result.withModelTransform(rendererRoot(renderer,state,false));
+            modelTransform=rendererRoot(renderer,state,false);
         }catch(ReflectiveOperationException e){throw new AssertionError("Original renderer transform extraction failed",e);}
+        ModelPartGeometryEngine.registerSource(net.minecraft.resources.Identifier.parse(source),
+            new ModelPartGeometryEngine.Source("26.2",freshRoot,()->new Matrix4f(modelTransform)));
+        var result=modelPart(source);
         var boxes=result.evaluate(new Matrix4f(),Map.of(),new AnatomyFilter(0,0,0));
         int[] checked={0};
         root.visit(new PoseStack(),(pose,path,index,cube)->{
@@ -456,6 +460,12 @@ public class AnatomyExportProof implements FabricClientGameTest {
         if(checked[0]==0)throw new AssertionError("No reference vertices compared");
         save(result);
         System.out.println("ANATOMY_EXPORT "+source+" vertices="+checked[0]+" pieces="+boxes.size());
+    }
+    private static ModelGeometry modelPart(String source) {
+        var engine=CollisionEngines.geometry(BuiltInGeometryEngines.MODEL_PART)
+            .orElseThrow(()->new AssertionError("Built-in ModelPart geometry engine is not registered"));
+        return engine.prepare(new io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine.Request(net.minecraft.resources.Identifier.parse(source)))
+            .orElseThrow(()->new AssertionError("ModelPart source was not prepared: "+source));
     }
     private static void save(ModelGeometry model) {
         try {
