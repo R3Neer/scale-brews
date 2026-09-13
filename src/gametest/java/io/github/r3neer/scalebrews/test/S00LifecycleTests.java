@@ -1,10 +1,11 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.*;
 import java.util.*;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.Direction;
@@ -18,6 +19,12 @@ import static io.github.r3neer.scalebrews.test.S00Fixtures.*;
 public final class S00LifecycleTests {
     private static GeometryProvider.GeometryIdentityDescriptor descriptor(long generation) {
         return new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,generation);
+    }
+    private static CollisionBinding cycleBinding() {
+        return new CollisionBinding(CollisionBinding.SCHEMA_VERSION,Identifier.parse("minecraft:cow"),Map.of(),
+            new CollisionBinding.Geometry(Identifier.parse("test:s00_geometry"),MODEL,Map.of(),AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(STATIC,Map.of(),Set.of()),Identifier.parse("test:s00_root"),
+            new CollisionPolicy.Patch(Optional.empty(),Optional.of(2d),Optional.of(.6)),Set.of());
     }
     private static class Provider implements GeometryProvider {
         final CausalEndpoint endpoint;
@@ -98,10 +105,8 @@ public final class S00LifecycleTests {
         try {
             b.setPos(a.position().add(a.getBbWidth(),0,0));
             AnatomyMovement.gravity(a,new GravityFrame(Direction.EAST));AnatomyMovement.gravity(b,new GravityFrame(Direction.WEST));
-            var profile=new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(2d),List.of(),
-                Optional.of(new AnatomyDefinition(MODEL,STATIC,AnatomyFilter.DEFAULT)));
-            Platforms.anatomicalDefinitions(h.getLevel(),List.of(profile));
-            AnatomyMovement.register(a,new Provider(a,1,0),descriptor(1));AnatomyMovement.register(b,new Provider(b,1,0),descriptor(1));
+            var binding=cycleBinding();
+            AnatomyMovement.register(a,new Provider(a,1,0),descriptor(1),binding);AnatomyMovement.register(b,new Provider(b,1,0),descriptor(1),binding);
             long tick=h.getLevel().getGameTime();
             var onB=new SurfaceContact(b.getUUID(),1,"piece",0,new Vec3(0,.35,.5),new Vec3(-1,0,0),tick);
             check(AnatomyMovement.confirm(a,b,onB) && AnatomyMovement.supported(a),"Valid side contact fixture was not physically supported");
@@ -109,7 +114,7 @@ public final class S00LifecycleTests {
             var onA=new SurfaceContact(a.getUUID(),1,"piece",1,new Vec3(1,.35,.5),new Vec3(1,0,0),tick);
             check(!AnatomyMovement.confirm(b,a,onA),"Anatomical support cycle bypassed the legacy-only ancestry check");
             check(AnatomyMovement.contact(b)==null && AnatomyMovement.contact(a).equals(first),"Cycle rejection mutated the valid contact");
-        }finally{Platforms.clearAnatomicalDefinitions(h.getLevel());AnatomyMovement.deactivate(h.getLevel());a.discard();b.discard();}h.succeed();
+        }finally{AnatomyMovement.deactivate(h.getLevel());a.discard();b.discard();}h.succeed();
     }
 
     @GameTest public void firstCaptureInvalidationExceptionCannotForgetBarrier(GameTestHelper h) {
