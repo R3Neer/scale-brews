@@ -107,11 +107,15 @@ public final class AnatomyMovement {
     public static CollisionBinding canonicalBinding(LivingEntity support){return AnatomyBindingState.binding(support);}
     /** Server simulates every body; a client predicts only entities it owns locally. */
     public static boolean simulates(Entity body){return !body.level().isClientSide() || body.isLocalInstanceAuthoritative();}
-    /** Fixture-only overload. Production runtime uses the causal-descriptor overload. */
+    /**
+     * Fixture/local-core overload. Inside an accepted server session it borrows the canonical
+     * policy selection but remains non-causal: no descriptor, no certified motion interval.
+     */
     public static synchronized void register(LivingEntity support,GeometryProvider provider){
         if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
         requireServerThread(support.level());
-        AnatomyBindingState.rebind(support,provider,null);
+        var binding=AnatomyRuntime.catalogBinding(support).orElse(AnatomyBindingState.binding(support));
+        AnatomyBindingState.rebind(support,provider,null,binding);
         FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
         refreshSpatialEntry(support);
     }
