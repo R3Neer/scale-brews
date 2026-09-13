@@ -30,9 +30,9 @@ public final class TinyMountMenu extends AbstractMountInventoryMenu {
         this.menuPlayer = playerInventory.player;
         this.wolfArmor = mount instanceof Wolf;
 
-        this.addSlot(new EquipmentSlotView(mount, playerInventory.player, EquipmentSlot.SADDLE,
+        this.addSlot(new EquipmentSlotView(mount, EquipmentSlot.SADDLE,
                 8, 18, SADDLE_ICON, true));
-        this.addSlot(new EquipmentSlotView(mount, playerInventory.player, EquipmentSlot.BODY,
+        this.addSlot(new EquipmentSlotView(mount, EquipmentSlot.BODY,
                 8, 36, WOLF_ARMOR_ICON, wolfArmor));
         this.addStandardInventorySlots(playerInventory, 8, 84);
     }
@@ -47,6 +47,8 @@ public final class TinyMountMenu extends AbstractMountInventoryMenu {
     public Mob mount() { return tinyMount; }
     public boolean hasWolfArmor() { return wolfArmor; }
 
+    /** AbstractMountInventoryMenu is vanilla's special-packet base and therefore stores a null type. */
+    @Override public net.minecraft.world.inventory.MenuType<?> getType() { return TinyMountInventory.MENU; }
     @Override protected boolean hasInventoryChanged(net.minecraft.world.Container container) { return false; }
 
     private final class EquipmentSlotView extends Slot {
@@ -54,7 +56,7 @@ public final class TinyMountMenu extends AbstractMountInventoryMenu {
         private final Identifier emptyIcon;
         private final boolean active;
 
-        EquipmentSlotView(Mob owner, Player player, EquipmentSlot equipmentSlot,
+        EquipmentSlotView(Mob owner, EquipmentSlot equipmentSlot,
                           int x, int y, Identifier emptyIcon, boolean active) {
             super(owner.createEquipmentSlotContainer(equipmentSlot), 0, x, y);
             this.equipmentSlot = equipmentSlot;
