@@ -1,0 +1,118 @@
+from pathlib import Path
+
+
+def one(text, old, new, label):
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{label}: expected 1 occurrence, found {count}")
+    return text.replace(old, new, 1)
+
+
+sprint = Path("docs/sprints/S16-canonical-catalog-authority.md")
+text = sprint.read_text()
+text = one(text,
+    "Estado: **REABIERTO — holdout adversarial post-cierre 2026-09-13**.",
+    "Estado: **CERRADO — 2026-09-13, tras reapertura adversarial post-cierre**.",
+    "sprint status")
+text = one(text,
+    "- [ ] **I2** Reestructurar `WorldAnatomyCatalog` sobre `CollisionBindingCatalog`, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y publicación live, y validar el candidato canónico completo antes del swap.",
+    "- [x] **I2** Reestructurar `WorldAnatomyCatalog` sobre `CollisionBindingCatalog`, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y publicación live, y validar el candidato canónico completo antes del swap.",
+    "I2")
+text = one(text,
+    "- [ ] **I12** Ejecutar ordinary, lane focal y revisión adversarial hasta una pasada final sin cambios de producción.",
+    "- [x] **I12** Ejecutar ordinary, lane focal y revisión adversarial hasta una pasada final sin cambios de producción.",
+    "I12")
+old_review = """### Revisión final
+
+Pendiente. La revisión que concluyó en `0b7a8940...` quedó invalidada por la quinta reapertura. Debe repetirse después de reparar la validación del candidato completo y de dejar verde el holdout sin rebajarlo.
+"""
+new_review = """### Reparación de la quinta reapertura — candidato completo antes del selector runtime
+
+`5cff913349a4fc64921a81e0d8236e5aae235ac9` cambió `WorldAnatomyCatalog.replaceValidated(...)` para validar primero **todos** los bindings del candidato. Todo binding que toque parcialmente los IDs del bridge se rechaza; todo bridge completo valida referencia de modelo, `provider`, compatibilidad del provider y filtro en objetos temporales. Sólo después se resuelve `variant={}` para construir el subconjunto actualmente ejecutable. Así un variant declarativo inválido no puede publicarse y un variant válido tampoco se convierte accidentalmente en default.
+
+La publicación sigue siendo atómica: `current` sólo cambia después de validar geometría, providers/filtros y preparar el bundle wire; un rechazo conserva exactamente el `Snapshot` y `PreparedBundle` anteriores.
+
+### Sexta pasada adversarial — conflicto de migración y semántica wire de variants
+
+`d218adc84a0180e02dd5908114bacf010c4ee86e` añadió dos holdouts sin tocar producción: conflicto entre binding canónico y binding legacy migrado para el mismo selector, y round-trip v4 de un selector variant sin inventar ejecución default. También permanecen el rechazo wire inválido y la restauración client-style mediante `rejectPending()`.
+
+Los **8/8** métodos de `S16CanonicalCatalogAuthorityTests` pasan sobre ese snapshot. Esta ronda adversarial no exigió ningún cambio de producción después de `5cff913...`.
+
+### Revisión final
+
+La revisión post-reparación volvió a recorrer catálogo, transferencia, runtime/server, cliente, binding state y frontera Living Platforms. No apareció otra ruta `PlatformDefinition.anatomy()` live, segundo owner del catálogo, fallback legacy desde sesión anatómica ni selector variant ejecutado como default. No se identificó otro cambio de producción. La última pasada adversarial amplió tests y quedó verde sin modificar producto.
+"""
+text = one(text, old_review, new_review, "final review")
+text = one(text,
+    "## Evidencia de cierre anterior, ahora invalidada",
+    "## Evidencia de cierre anterior, conservada como histórica",
+    "historical evidence heading")
+final_evidence = """
+## Evidencia final renovada
+
+Último cambio productivo S16: `5cff913349a4fc64921a81e0d8236e5aae235ac9`. Snapshot final con la campaña adversarial ampliada: `d218adc84a0180e02dd5908114bacf010c4ee86e`.
+
+- ordinary run **34753580865**, job **103714077843**: **401/401 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315699079**, SHA-256 **`9cd3c32a251988793cd2df1bcb145b0003d2c4b8e149e65832e0473b6d8a004e`**;
+- focal S16 run **34753580858**, job **103714077812**: **8/8 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316528568**, SHA-256 **`f4ca1104ee19347997d456e5719da9ea5fd107fd1941eb39e9b8c7d9e2bb5f7a`**;
+- prepared proof sobre `5cff913...`: el primer intento `34753380100`/`103713567025` cayó en un A9/S09 de `TemporalResponse` ajeno al catálogo; el rerun exacto del mismo job/SHA, **103714031864**, completó export original + prepared server con éxito. Se conserva como incidencia no reproducible y no se usa para sustituir la evidencia ordinary/focal de S16.
+
+La ronda `d218adc...` añadió nuevos holdouts y no requirió cambios productivos. Ésta es la pasada adversarial de cero cambios exigida para cierre.
+
+"""
+marker = "## Criterio de cierre\n"
+if text.count(marker) != 1:
+    raise SystemExit("closure criteria marker missing/duplicated")
+text = text.replace(marker, final_evidence + marker, 1)
+text = one(text,
+    "5. [ ] todos los selectors del candidato validan sus referencias aplicables antes del swap, y ordinary + lane focal + holdouts adversariales quedan verdes;",
+    "5. [x] todos los selectors del candidato validan sus referencias aplicables antes del swap, y ordinary + lane focal + holdouts adversariales quedan verdes;",
+    "criterion 5")
+text = one(text,
+    "6. [ ] la revisión completa final produce cero cambios de producción después de la reparación.",
+    "6. [x] la revisión completa final produce cero cambios de producción después de la reparación.",
+    "criterion 6")
+text = one(text,
+    "**S16 permanece abierto. G3 tarea 1 no vuelve a marcarse cerrada hasta que el holdout `variantBridgeReferencesMustValidateBeforeAtomicPublication` quede verde sin relajación y se renueve la evidencia final.**",
+    "**S16 queda cerrado. G3 tarea 1 está renovadamente verde tras la reapertura post-cierre; G3 continúa con tareas 3–12.**",
+    "final state")
+sprint.write_text(text)
+
+plan = Path("docs/ENTITY_COLLISIONS_PLAN.md")
+text = plan.read_text()
+text = one(text,
+    "1. [ ] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;",
+    "1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;",
+    "G3 task 1")
+old = "**S16 reabierto:** el cierre provisional sobre `0b7a8940e783f3b8e08128f9d95fa04688376e79` quedó invalidado por el holdout adversarial post-cierre `variantBridgeReferencesMustValidateBeforeAtomicPublication`. En `e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`, run `34753107721`, job `103712855904`, la lane focal compila y ejecuta seis GameTests S16, con **1/6 rojo** porque un binding bridge variant-only con modelo inexistente se publica en vez de rechazarse. G3 tarea 1 permanece abierta hasta validar todos los selectors aplicables antes del swap, dejar verde el holdout sin relajarlo y renovar ordinary + focal + revisión final."
+new = "**S16 cerrado tras reapertura adversarial:** el rojo post-cierre `e3e49ac2...` demostró que un selector variant del bridge eludía validación integral. `5cff913349a4fc64921a81e0d8236e5aae235ac9` valida todos los bindings del candidato antes de resolver el selector runtime y conserva atómicamente snapshot+bundle ante rechazo. La campaña posterior `d218adc84a0180e02dd5908114bacf010c4ee86e` añadió conflicto canonical↔legacy, round-trip variant y rechazo wire; quedó verde sin otro cambio productivo. Evidencia final: ordinary `34753580865` **401/401** y focal `34753580858` **8/8**. G3 tarea 1 queda cerrada; permanecen abiertas 3–12."
+text = one(text, old, new, "plan S16 paragraph")
+plan.write_text(text)
+
+validation = Path("docs/VALIDATION.md")
+text = validation.read_text()
+text = one(text,
+    "## G3 / S16 canonical catalog authority — REOPENED 2026-09-13",
+    "## G3 / S16 canonical catalog authority — CLOSED 2026-09-13 after adversarial reopening",
+    "validation S16 heading")
+append = """
+
+### Repair and renewed closure after variant-validation reopening
+
+Production commit **`5cff913349a4fc64921a81e0d8236e5aae235ac9`** validates the complete canonical candidate before publication. Every binding touching the legacy compatibility IDs must either form the full bridge or reject; every full bridge validates its model reference, legacy provider parameter/provider compatibility and filter before any default selector is resolved. Only after those fallible steps does S16 derive the currently executable `variant={}` subset. Variant-only bindings therefore remain canonical data without becoming accidental default execution.
+
+The red holdout `variantBridgeReferencesMustValidateBeforeAtomicPublication` is green without relaxation, and invalid candidates preserve the exact previously accepted `Snapshot` and S15 `PreparedBundle` objects.
+
+A subsequent adversarial-only commit **`d218adc84a0180e02dd5908114bacf010c4ee86e`** added two further cases: canonical plus migrated legacy bindings cannot share one selector by merge/file-order precedence, and a valid variant selector must survive protocol-v4 round-trip while remaining absent from the default executable map. The existing invalid-wire replacement/rejectPending fence also remained active. No production change followed this test expansion.
+
+Renewed exact evidence on `d218adc...`:
+
+- ordinary run **`34753580865`**, job **`103714077843`**: **401/401 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10315699079`**, SHA-256 **`9cd3c32a251988793cd2df1bcb145b0003d2c4b8e149e65832e0473b6d8a004e`**;
+- focal S16 run **`34753580858`**, job **`103714077812`**: **8/8 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10316528568`**, SHA-256 **`f4ca1104ee19347997d456e5719da9ea5fd107fd1941eb39e9b8c7d9e2bb5f7a`**.
+
+Supplemental prepared evidence on production `5cff913...`: the first attempt of run **`34753380100`**, job `103713567025`, failed in the unrelated S09 prepared A9 temporal-response translation oracle after client export succeeded. Re-running the exact same job/SHA as **`103714031864`** completed the same export and prepared server proof successfully. The first failure is retained as a non-reproduced S09 incident and is not used to waive or replace any S16 oracle.
+
+Final review after the repair found no further S16 production change. The later adversarial expansion was green on the existing repair, satisfying the zero-change final-pass criterion. **S16 and G3 task 1 are closed; this does not close G3 tasks 3–12.**
+"""
+if "### Repair and renewed closure after variant-validation reopening" in text:
+    raise SystemExit("renewed validation already present")
+validation.write_text(text + append)
