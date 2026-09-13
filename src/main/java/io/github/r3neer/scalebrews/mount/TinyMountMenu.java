@@ -48,6 +48,8 @@ public final class TinyMountMenu extends AbstractMountInventoryMenu {
 
     public Mob mount() { return tinyMount; }
     public boolean hasBodyEquipment() { return bodyEquipment != null; }
+    /** Compatibility shim for older acceptance code; behavior is now entirely body_equipment-driven. */
+    @Deprecated public boolean hasWolfArmor() { return hasBodyEquipment(); }
 
     /** AbstractMountInventoryMenu is vanilla's special-packet base and therefore stores a null type. */
     @Override public net.minecraft.world.inventory.MenuType<?> getType() { return TinyMountInventory.MENU; }
