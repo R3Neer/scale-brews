@@ -6,6 +6,7 @@ import io.github.r3neer.scalebrews.client.render.RiderPoseState;
 import io.github.r3neer.scalebrews.mount.TinyMountMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 
 /** Manual-facing acceptance: E opens the correct tiny-mount UI and native horse body motion carries its rider. */
@@ -38,7 +39,10 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.waitForScreen(null);
             server.runCommand("ride @a[limit=1] dismount");
 
-            server.runCommand("summon minecraft:wolf 3 -60 2 {Tags:[menu_wolf],Tame:1b,NoAI:1b}");
+            server.runCommand("summon minecraft:wolf 3 -60 2 {Tags:[menu_wolf],NoAI:1b}");
+            // 26.2 derives tame state from Owner when loading entity data. Copy the test player's
+            // UUID so this is a genuinely owned/tamed wolf rather than an ownerless fake Tame flag.
+            server.runCommand("data modify entity @e[tag=menu_wolf,limit=1] Owner set from entity @a[limit=1] UUID");
             server.runCommand("item replace entity @e[tag=menu_wolf,limit=1] saddle with minecraft:saddle");
             server.runCommand("ride @a[limit=1] mount @e[tag=menu_wolf,limit=1]");
             context.waitTicks(10);
@@ -46,8 +50,13 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.waitForScreen(TinyMountScreen.class);
             context.runOnClient(client -> {
                 if (!(client.player.containerMenu instanceof TinyMountMenu menu) || !menu.hasWolfArmor()
-                        || !menu.getSlot(1).isActive())
-                    throw new AssertionError("Wolf menu did not expose its armor slot");
+                        || !menu.getSlot(0).isActive() || !menu.getSlot(1).isActive())
+                    throw new AssertionError("Wolf menu did not expose saddle plus wolf armor slots");
+                if (!menu.getSlot(0).getItem().is(Items.SADDLE))
+                    throw new AssertionError("Wolf menu did not reflect its native saddle equipment");
+                if (!(menu.mount() instanceof net.minecraft.world.entity.animal.wolf.Wolf wolf)
+                        || !wolf.isTame() || !wolf.isOwnedBy(client.player))
+                    throw new AssertionError("Wolf acceptance fixture is not genuinely owned by the rider");
                 if (client.getResourceManager().getResource(ScaleBrews.id(
                         "textures/gui/sprites/container/slot/wolf_armor.png")).isEmpty())
                     throw new AssertionError("Wolf armor slot sprite is missing");
