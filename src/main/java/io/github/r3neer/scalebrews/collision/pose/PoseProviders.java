@@ -1,28 +1,19 @@
 package io.github.r3neer.scalebrews.collision.pose;
 
-import java.util.*;
+import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
+import java.util.Map;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
-/** Common-only extension point. Register deterministic providers during mod initialization. */
+/**
+ * @deprecated Read-only S18 compatibility adapter. Canonical behavior registry is
+ * {@link CollisionEngines#pose}; this class owns no registry and no formulas.
+ */
+@Deprecated
 public final class PoseProviders {
     private PoseProviders() {}
-    private static final Map<Identifier,PoseProvider> PROVIDERS=new HashMap<>();
-    static {
-        register(Identifier.parse("scalebrews:player_walking"),new PlayerWalkingPose());
-        register(Identifier.parse("scalebrews:quadruped"),new QuadrupedPose());
-        register(Identifier.parse("scalebrews:chicken"),new VanillaFamilyPose(VanillaFamilyPose.Family.CHICKEN));
-        register(Identifier.parse("scalebrews:villager"),new VanillaFamilyPose(VanillaFamilyPose.Family.VILLAGER));
-        register(Identifier.parse("scalebrews:iron_golem"),new VanillaFamilyPose(VanillaFamilyPose.Family.IRON_GOLEM));
-        register(Identifier.parse("scalebrews:ghast"),new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST));
-        register(Identifier.parse("scalebrews:feline"),new VanillaFamilyPose(VanillaFamilyPose.Family.FELINE));
-        register(Identifier.parse("scalebrews:equine"),new VanillaFamilyPose(VanillaFamilyPose.Family.EQUINE));
-        register(Identifier.parse("scalebrews:bee"),new VanillaFamilyPose(VanillaFamilyPose.Family.BEE));
-        // Static is explicit in the world's JSON. Never use it as a missing-provider fallback.
-        register(Identifier.parse("scalebrews:static"),(geometry,inputs)->inputs.ordinary()?Optional.of(Map.of()):Optional.empty());
+
+    public static Optional<PoseProvider> find(Identifier id) {
+        return CollisionEngines.pose(id).map(engine -> (geometry, inputs) -> engine.evaluate(geometry, inputs, Map.of()));
     }
-    public static synchronized void register(Identifier id,PoseProvider provider) {
-        Objects.requireNonNull(id);Objects.requireNonNull(provider);
-        if(PROVIDERS.putIfAbsent(id,provider)!=null)throw new IllegalArgumentException("Duplicate anatomical pose provider: "+id);
-    }
-    public static synchronized Optional<PoseProvider> find(Identifier id){return Optional.ofNullable(PROVIDERS.get(id));}
 }
