@@ -19,20 +19,23 @@ public final class S18AnimationDefinitionCompilerClientTests implements FabricCl
                 check(Files.isDirectory(preparation), "Could not inspect client preparation classes for S18");
                 boolean compilerFound;
                 try (var classes = Files.walk(preparation)) {
-                    compilerFound = classes.filter(path -> path.toString().endsWith(".class")).anyMatch(path -> contains(path, "AnimationDefinition"));
+                    compilerFound = classes.filter(path -> path.toString().endsWith(".class"))
+                        .anyMatch(path -> contains(path, "net/minecraft/client/animation/")
+                            || contains(path, "net/minecraft/client/render/entity/animation/"));
                 }
                 check(compilerFound,
-                    "S18 requires a client/tooling compiler that reads original AnimationDefinition data before emitting a neutral server-safe program");
+                    "S18 requires client/tooling preparation code that actually references Mojang's client animation API before emitting a neutral server-safe program");
 
                 Path commonRoot = Path.of(PoseEngine.class.getProtectionDomain().getCodeSource().getLocation().toURI());
                 Path collision = commonRoot.resolve("io/github/r3neer/scalebrews/collision");
                 check(Files.isDirectory(collision), "Could not inspect common collision classes for S18");
                 try (var classes = Files.walk(collision)) {
                     var leaking = classes.filter(path -> path.toString().endsWith(".class"))
-                        .filter(path -> contains(path, "AnimationDefinition") || contains(path, "net/minecraft/client/animation/"))
+                        .filter(path -> contains(path, "net/minecraft/client/animation/")
+                            || contains(path, "net/minecraft/client/render/entity/animation/"))
                         .findFirst();
                     check(leaking.isEmpty(),
-                        "AnimationDefinition/client-animation references must remain outside common collision runtime: " + leaking.orElse(null));
+                        "Client-animation type references must remain outside common collision runtime: " + leaking.orElse(null));
                 }
 
                 System.out.println("S18_ANIMATION_COMPILER_BOUNDARY PASS client compiler present, common runtime client-free");
