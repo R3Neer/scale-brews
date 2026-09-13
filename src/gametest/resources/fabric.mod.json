@@ -86,7 +86,8 @@
       "io.github.r3neer.scalebrews.collision.internal.S13SpatialIndexOwnershipTests",
       "io.github.r3neer.scalebrews.collision.internal.S14BindingStateOwnershipTests",
       "io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests",
-      "io.github.r3neer.scalebrews.collision.internal.S16CanonicalCatalogAuthorityTests"
+      "io.github.r3neer.scalebrews.collision.internal.S16CanonicalCatalogAuthorityTests",
+      "io.github.r3neer.scalebrews.collision.internal.S17ModelPartGeometryEngineTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
@@ -95,7 +96,8 @@
       "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
       "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
       "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests",
-      "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests"
+      "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests",
+      "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests"
     ]
   }
 }
