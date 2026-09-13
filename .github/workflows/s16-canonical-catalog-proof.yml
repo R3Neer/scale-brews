@@ -1,5 +1,5 @@
 name: s16-canonical-catalog-proof
-# Implementation verification: keep this lane pinned to the adversarial S16 holdouts.
+# Implementation verification: exercise the adversarial S16 holdouts after canonical policy wiring.
 
 on:
   push:
