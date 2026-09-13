@@ -238,7 +238,7 @@ public final class AnatomyRuntime {
             long bindingGeneration=state.allocateBindingGeneration();
             state.entities.put(living,new Active(binding,provider,bindingGeneration));
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
-                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration));
+                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration),selection);
         }
     }
     public static void publish(ServerLevel level) {

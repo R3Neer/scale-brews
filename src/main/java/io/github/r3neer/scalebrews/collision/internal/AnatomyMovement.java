@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
@@ -102,6 +103,8 @@ public final class AnatomyMovement {
     public static synchronized void activate(Level level){ACTIVE.add(level);}
     public static synchronized boolean active(Level level){return ACTIVE.contains(level);}
     public static synchronized boolean active(Entity e){return ACTIVE.contains(e.level());}
+    /** Canonical policy/selection attached to this exact live support binding, if the runtime owns one. */
+    public static CollisionBinding canonicalBinding(LivingEntity support){return AnatomyBindingState.binding(support);}
     /** Server simulates every body; a client predicts only entities it owns locally. */
     public static boolean simulates(Entity body){return !body.level().isClientSide() || body.isLocalInstanceAuthoritative();}
     /** Fixture-only overload. Production runtime uses the causal-descriptor overload. */
@@ -114,10 +117,15 @@ public final class AnatomyMovement {
     }
     /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
     public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
+        register(support,provider,descriptor,null);
+    }
+    /** Canonical runtime registration. The binding travels with the same lifecycle slot as its provider and causal descriptor. */
+    public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,
+            CollisionBinding binding){
         if(support==null || provider==null)throw new IllegalArgumentException("Missing geometry registration");
         if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
         requireServerThread(support.level());
-        AnatomyBindingState.rebind(support,provider,descriptor);
+        AnatomyBindingState.rebind(support,provider,descriptor,binding);
         FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
         queryFrame(support);
     }

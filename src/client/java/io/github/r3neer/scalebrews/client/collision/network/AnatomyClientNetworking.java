@@ -124,7 +124,7 @@ public final class AnatomyClientNetworking {
             if(providers.containsKey(packet.entity()))continue;
             var provider=new ClientGeometryProvider(packet.entity());providers.put(packet.entity(),provider);
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
-                packet.model(),packet.provider(),packet.bindingGeneration()));
+                packet.model(),packet.provider(),packet.bindingGeneration()),binding(living).selection());
         }
         for(var packet:contacts.pending().values()) {
             var body=poseLevel.getEntity(packet.bodyId());

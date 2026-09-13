@@ -107,18 +107,24 @@ public final class Platforms {
     public static String category(Entity e) { return BodyClassification.category(e); }
     public static boolean ordinary(Entity e) { return BodyClassification.ordinary(e); }
     public static boolean eligible(Entity body, LivingEntity support) {
-        if(AnatomyRuntime.hasBinding(support))return AnatomyRuntime.eligible(body,support);
         if (body == support || body.level() != support.level() || !ordinary(body) || !ordinary(support)) return false;
-        var legacyPolicy = policy(body.level());
-        var definition = definition(support);
-        var category = category(body);
-        double ratio = body.getBbWidth() / (double)support.getBbWidth();
-        if (definition == null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
-                LegacyCollisionData.profilePolicy(definition), category, definition.entity(), ratio)) return false;
-        Entity ancestor = support;
-        Set<Entity> seen = Collections.newSetFromMap(new IdentityHashMap<>());
-        while (ancestor != null) {
-            if (ancestor == body || !seen.add(ancestor)) return false;
+        var category=category(body);
+        double ratio=body.getBbWidth()/(double)support.getBbWidth();
+        if(!Double.isFinite(ratio) || ratio<=0 || category==null)return false;
+        var canonical=AnatomyMovement.canonicalBinding(support);
+        if(canonical!=null) {
+            var rule=CollisionRules.resolve(LegacyCollisionData.policy(policy(body.level())),canonical.policy(),category,canonical.entity());
+            if(!rule.enabled() || ratio>rule.maxWidthRatio())return false;
+        } else {
+            var legacyPolicy=policy(body.level());
+            var definition=definition(support);
+            if(definition==null || !CollisionRules.allows(LegacyCollisionData.policy(legacyPolicy),
+                    LegacyCollisionData.profilePolicy(definition),category,definition.entity(),ratio))return false;
+        }
+        Entity ancestor=support;
+        Set<Entity> seen=Collections.newSetFromMap(new IdentityHashMap<>());
+        while(ancestor!=null) {
+            if(ancestor==body || !seen.add(ancestor))return false;
             var anatomical=AnatomyMovement.contact(ancestor);
             ancestor=anatomical==null?state(ancestor).support:anatomical.support();
         }
@@ -134,10 +140,12 @@ public final class Platforms {
         return state(e).support;
     }
     public static double friction(Entity e, double original) {
-        var support=support(e);
-        if(support!=null && AnatomyRuntime.hasBinding(support))return AnatomyRuntime.friction(e,support,original);
-        var definition=support==null?null:definition(support);var category=category(e);
-        if(definition==null || category==null)return original;
+        var support=support(e);var category=category(e);
+        if(support==null || category==null)return original;
+        var canonical=AnatomyMovement.canonicalBinding(support);
+        if(canonical!=null)return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),canonical.policy(),category,canonical.entity()).friction();
+        var definition=definition(support);
+        if(definition==null)return original;
         return CollisionRules.resolve(LegacyCollisionData.policy(policy(e.level())),LegacyCollisionData.profilePolicy(definition),
             category,definition.entity()).friction();
     }
