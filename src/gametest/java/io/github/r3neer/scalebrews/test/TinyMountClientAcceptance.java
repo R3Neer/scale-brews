@@ -99,6 +99,39 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
             server.runCommand("ride @a[limit=1] dismount");
+            context.waitTicks(5);
+
+            // DIRECT mirrors the vanilla Camel interaction grammar: secondary-use from outside opens
+            // the same equipment menu instead of attempting to mount.
+            context.runOnClient(client -> {
+                net.minecraft.world.entity.animal.chicken.Chicken chicken = null;
+                for (var entity : client.level.entitiesForRendering()) {
+                    if (entity instanceof net.minecraft.world.entity.animal.chicken.Chicken candidate) {
+                        chicken = candidate;
+                        break;
+                    }
+                }
+                if (chicken == null) throw new AssertionError("External chicken inventory fixture is missing");
+                client.player.setShiftKeyDown(true);
+                try {
+                    var result = client.gameMode.interact(client.player, chicken,
+                            new EntityHitResult(chicken), InteractionHand.MAIN_HAND);
+                    if (!result.consumesAction())
+                        throw new AssertionError("Secondary-use did not consume direct-family inventory interaction");
+                } finally {
+                    client.player.setShiftKeyDown(false);
+                }
+            });
+            context.waitForScreen(TinyMountScreen.class);
+            context.runOnClient(client -> {
+                if (client.player.isPassenger())
+                    throw new AssertionError("External direct-family inventory interaction mounted the player");
+                if (!(client.player.containerMenu instanceof TinyMountMenu menu)
+                        || !(menu.mount() instanceof net.minecraft.world.entity.animal.chicken.Chicken))
+                    throw new AssertionError("External direct-family interaction did not open the chicken menu");
+            });
+            context.getInput().pressKey(options -> options.keyInventory);
+            context.waitForScreen(null);
 
             server.runCommand("summon minecraft:wolf 3 -60 2 {Tags:[menu_wolf],NoAI:1b}");
             // 26.2 derives tame state from Owner when loading entity data. Copy the test player's
