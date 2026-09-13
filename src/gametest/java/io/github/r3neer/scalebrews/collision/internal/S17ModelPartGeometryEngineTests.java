@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -65,6 +66,37 @@ public final class S17ModelPartGeometryEngineTests {
                 "Common built-in geometry bytecode references the client preparation implementation");
         } catch (IOException unreadable) {
             throw new AssertionError("Could not inspect BuiltInGeometryEngines bytecode", unreadable);
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void preparationDelegateHasOneOwnerAndSameOwnerReinstallIsIdempotent(GameTestHelper h) {
+        try {
+            var slot = BuiltInGeometryEngines.class.getDeclaredField("modelPartPreparation");
+            slot.setAccessible(true);
+            GeometryEngine first = request -> Optional.empty();
+            GeometryEngine second = request -> Optional.empty();
+            synchronized (BuiltInGeometryEngines.class) {
+                Object previous = slot.get(null);
+                try {
+                    slot.set(null, null);
+                    BuiltInGeometryEngines.installModelPartPreparation(first);
+                    BuiltInGeometryEngines.installModelPartPreparation(first);
+                    boolean rejected = false;
+                    try {
+                        BuiltInGeometryEngines.installModelPartPreparation(second);
+                    } catch (IllegalStateException expected) {
+                        rejected = true;
+                    }
+                    h.assertTrue(rejected, "A distinct second ModelPart preparation delegate must not steal the built-in family id");
+                    h.assertTrue(slot.get(null) == first, "Rejected delegate replacement must retain the exact first owner");
+                } finally {
+                    slot.set(null, previous);
+                }
+            }
+        } catch (ReflectiveOperationException inaccessible) {
+            throw new AssertionError("Could not verify ModelPart preparation delegate ownership", inaccessible);
         }
         h.succeed();
     }
