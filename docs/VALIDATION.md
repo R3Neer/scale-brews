@@ -580,7 +580,7 @@ Evidencia final exacta sobre **`e52766a71cf66c4157d31b8884d901b22d4de7a8`**: run
 La revisión adversarial final recorrió owner, hot send, fixture encoder, invalid replacement, revision/epoch fences, bounds e inmutabilidad. No encontró una segunda ruta live de serialización/hash/fragmentation ni owner duplicado; desde `684142f32003a29f255b8ff204d39a7e0a968ed2` no hubo cambios adicionales de producción/tests S15. **La pasada final produjo cero cambios de producto; S15 queda cerrado y G3 permanece abierto para tareas 1 y 3-12.**
 
 
-## G3 / S16 canonical catalog authority — CLOSED 2026-09-13
+## G3 / S16 canonical catalog authority — REOPENED 2026-09-13
 
 Snapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`; último cambio productivo propio `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`.
 
@@ -592,4 +592,13 @@ GitHub Actions ordinary run **34752369790**, job **103710940047**: **398/398 req
 
 Lane focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **10316377128**, SHA-256 **`429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205`**.
 
-La revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción. Esta evidencia cierra G3 tarea 1, no G3 tareas 3-12 ni prediction/reconciliation G4.
+La revisión final de catálogo, transfer, runtime, cliente, binding state, movimiento y frontera Living Platforms no produjo cambios de producción en aquella campaña. Esa evidencia constituyó el cierre provisional de G3 tarea 1, pero quedó invalidada por el holdout adversarial post-cierre descrito a continuación.
+
+
+### Post-closure adversarial reopening — variant bridge validation
+
+Commit de holdout **`e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`**. La prueba `variantBridgeReferencesMustValidateBeforeAtomicPublication` construye un `CollisionBinding` del bridge precomputado con selector variant no vacío y `geometry.model=proof:missing_variant_model`, conserva referencias al snapshot y al bundle preparado aceptados, y exige que `WorldAnatomyCatalog.replace(...)` rechace el candidato antes de publicar nada.
+
+GitHub Actions focal run **`34753107721`**, job **`103712855904`**: compilación main/client/GameTest correcta; servidor GameTest iniciado; **6 required S16 GameTests ejecutados, 5 verdes / 1 rojo**. El único fallo es el holdout nuevo: el candidato variant-only inválido es aceptado. La causa observada es que la validación del bridge consulta sólo `canonical.resolve(entity, Map.of())`, por lo que un selector no vacío queda fuera de la validación de referencias aunque forme parte del candidato canónico.
+
+Esto reabre **FR-033/FR-036 y G3 tarea 1**. Que la selección runtime de variants quede fuera del scope de S16 no permite publicar datos declarativos con referencias inválidas. El candidato completo debe validarse antes del swap; tras el rechazo deben conservarse exactamente el snapshot y el `PreparedBundle` anteriores. La evidencia 398/398 + 5/5 previa sigue siendo histórica, pero ya no es suficiente para cierre porque no contenía este holdout.

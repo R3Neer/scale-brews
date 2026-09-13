@@ -118,7 +118,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **Requisitos:** FR-014..041, FR-080..082, FR-089..092; NFR-003..013, NFR-015..018, NFR-026..029, NFR-032, NFR-036.
 
-1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;
+1. [ ] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;
 2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;
 3. [ ] consolidar `ModelPart` GeometryEngine;
 4. [ ] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
@@ -133,7 +133,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S15 cerrado:** G3 tarea 2/NFR-010 queda cerrada. `WorldAnatomyCatalog` publica `Snapshot + PreparedBundle` atómicamente y la ruta live reutiliza packets preparados por `epoch + revision`. Evidencia final `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`: focal **8/8 S15** (+ sentinel) y ordinary **394/394**; artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`. Revisión post-verde sin cambios de producción. G3 sigue abierto para tareas 1 y 3-12.
 
-**S16 cerrado:** G3 tarea 1 queda cerrada. `WorldAnatomyCatalog` publica autoridad `CollisionBinding` canónica, el wire v4 transporta `{models, bindings}`, la migración legacy cruza una frontera explícita y la policy live viaja con el binding en vez de reinstalar `PlatformDefinition`. El último cambio productivo es `3a3503b1cba944933eaaf3cf010e8be981ed7d8d`; snapshot de evidencia `0b7a8940e783f3b8e08128f9d95fa04688376e79`, ordinary run `34752369790` **398/398** y focal S16 `34752369719` **5/5**. Revisión final sin cambios de producción. G3 continúa con tareas 3-12.
+**S16 reabierto:** el cierre provisional sobre `0b7a8940e783f3b8e08128f9d95fa04688376e79` quedó invalidado por el holdout adversarial post-cierre `variantBridgeReferencesMustValidateBeforeAtomicPublication`. En `e3e49ac2a80ea1729c20dfe75ef3a7095e1ea25e`, run `34753107721`, job `103712855904`, la lane focal compila y ejecuta seis GameTests S16, con **1/6 rojo** porque un binding bridge variant-only con modelo inexistente se publica en vez de rechazarse. G3 tarea 1 permanece abierta hasta validar todos los selectors aplicables antes del swap, dejar verde el holdout sin relajarlo y renovar ordinary + focal + revisión final.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
