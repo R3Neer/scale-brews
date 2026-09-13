@@ -1,0 +1,56 @@
+name: s18-pose-engine-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-pose-engine-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/ModelGeometryProvider.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseEngineAuthorityTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
+      - 'src/gametest/resources/fabric.mod.json'
+      - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
+  workflow_dispatch:
+
+jobs:
+  common-authority:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S18 authority tests
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S18PoseEngineAuthorityTests']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S18 common authority proof
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s18-junit.xml"
+      - name: capture S18 evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-pose-engine-common-proof
+          path: |
+            build/s18-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
