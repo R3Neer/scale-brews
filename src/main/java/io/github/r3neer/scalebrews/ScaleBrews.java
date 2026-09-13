@@ -18,8 +18,9 @@ public class ScaleBrews implements ModInitializer {
 	public void onInitialize() {
 		io.github.r3neer.scalebrews.integration.gravity.GravityFrames.initialize();
 		// Built-in family ids must exist on dedicated before canonical binding validation.
-		// Their client-only preparation implementations are installed separately by the client entrypoint.
+		// Client-only model/animation preparation implementations are installed separately.
 		io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines.initialize();
+		io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines.initialize();
 		// Canonical catalogs validate engine ids during construction. Register the
 		// one-way legacy migration sentinels before any runtime/resource catalog can load.
 		io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData.initializeCompatibilityEngines();
