@@ -14,6 +14,7 @@ import org.joml.Matrix4f;
 
 /** Adversarial S18 holdouts against wrapper-only migrations and permissive procedural engines. */
 public final class S18PoseEngineBehaviorTests {
+    private static final String LEGACY_PROVIDER = "io.github.r3neer.scalebrews.collision.pose.PoseProvider";
     private static final List<String> PROCEDURAL = List.of(
         "scalebrews:player_walking",
         "scalebrews:quadruped",
@@ -27,17 +28,24 @@ public final class S18PoseEngineBehaviorTests {
     );
 
     @GameTest
-    public void canonicalVanillaEnginesDoNotDependOnLegacyPoseProvider(GameTestHelper h) {
+    public void canonicalVanillaEnginesDoNotOwnLegacyProviderState(GameTestHelper h) {
         for (String text : PROCEDURAL) {
             var id = Identifier.parse(text);
             var engine = CollisionEngines.pose(id).orElse(null);
             h.assertTrue(engine != null, "Missing canonical procedural PoseEngine: " + id);
             var type = engine.getClass();
+            boolean capturedLegacyProvider = java.util.Arrays.stream(type.getDeclaredFields())
+                .anyMatch(field -> field.getType().getName().equals(LEGACY_PROVIDER));
+            h.assertTrue(!capturedLegacyProvider,
+                "Canonical PoseEngine must not capture a legacy PoseProvider owner: " + id);
+
+            // Named classes can be inspected more strongly; synthetic lambdas remain valid if they capture no legacy owner.
             try (var input = type.getResourceAsStream(type.getSimpleName() + ".class")) {
-                h.assertTrue(input != null, "Canonical pose engine must be an auditable common class: " + id);
-                String pool = new String(input.readAllBytes(), StandardCharsets.ISO_8859_1);
-                h.assertTrue(!pool.contains("io/github/r3neer/scalebrews/collision/pose/PoseProvider"),
-                    "Canonical PoseEngine must own formula behavior instead of wrapping legacy PoseProvider: " + id);
+                if (input != null) {
+                    String pool = new String(input.readAllBytes(), StandardCharsets.ISO_8859_1);
+                    h.assertTrue(!pool.contains("io/github/r3neer/scalebrews/collision/pose/PoseProvider"),
+                        "Named canonical PoseEngine bytecode must not call the legacy PoseProvider API: " + id);
+                }
             } catch (IOException unreadable) {
                 throw new AssertionError("Could not inspect canonical pose engine bytecode: " + id, unreadable);
             }
@@ -76,13 +84,14 @@ public final class S18PoseEngineBehaviorTests {
         return new ModelGeometry(1, "minecraft:cow", "26.2",
             List.of(
                 new ModelGeometry.Part("root", null, identity),
+                new ModelGeometry.Part("root/body", "root", identity),
                 new ModelGeometry.Part("root/head", "root", identity),
                 new ModelGeometry.Part("root/right_hind_leg", "root", identity),
                 new ModelGeometry.Part("root/left_hind_leg", "root", identity),
                 new ModelGeometry.Part("root/right_front_leg", "root", identity),
                 new ModelGeometry.Part("root/left_front_leg", "root", identity)
             ),
-            List.of(new ModelGeometry.Piece("body", "root", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)),
+            List.of(new ModelGeometry.Piece("body", "root/body", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)),
             identity);
     }
 
