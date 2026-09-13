@@ -1,4 +1,5 @@
 name: s08-prepared-adversarial-proof
+# Re-run this cross-generation proof for S16 whenever canonical policy ownership changes.
 
 on:
   workflow_dispatch:
