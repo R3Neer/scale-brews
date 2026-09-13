@@ -1,12 +1,12 @@
 # S16 — Canonical catalog authority
 
-Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.
+Estado: **CERRADO — 2026-09-13**.
 
 ## Tesis
 
-Al terminar S16, una revisión aceptada y sincronizada de anatomía estará definida por `CollisionBinding` canónico. `PlatformDefinition` sólo podrá participar antes de esa frontera mediante el decoder explícito de migración legacy; ningún camino live de catálogo, runtime o cliente leerá `PlatformDefinition.anatomy()` para decidir modelo, pose, filtro, policy de perfil o identidad causal.
+S16 cierra G3 tarea 1: una revisión aceptada y sincronizada de anatomía queda definida por `CollisionBinding` canónico. `PlatformDefinition` sólo participa antes de esa frontera mediante migración legacy explícita; ningún camino live de catálogo, runtime o cliente lee `PlatformDefinition.anatomy()` para decidir modelo, pose, filtro, policy de perfil o identidad causal.
 
-Esto se demostrará con holdouts que inspeccionen el bundle real, la publicación atómica, el runtime server/client y el protocolo, sin asumir todavía que los `GeometryEngine`, `PoseEngine` y `RootTransformProvider` generales de G3 tareas 3–6 ya ejecuten bindings arbitrarios.
+La ejecución precomputada existente se conserva mediante un bridge acotado, sin fingir todavía que los `GeometryEngine`, `PoseEngine` y `RootTransformProvider` generales de G3 tareas 3–6 ejecuten bindings arbitrarios.
 
 ## Scope
 
@@ -23,138 +23,105 @@ Esto se demostrará con holdouts que inspeccionen el bundle real, la publicació
 - **FR-037**: revision/epoch y los identificadores de binding forman parte de la identidad causal pertinente.
 - **NFR-012/NFR-013**: se conservan límites de catálogo/protocolo, digest y fragmentación ya demostrados.
 
-### Invariantes que no se pueden romper
+### Invariantes preservados
 
 - S15/NFR-010: un bundle se prepara una vez por revisión y se reutiliza entre receptores compatibles.
 - `BINDING` sigue fail-closed y no usa el snapshot anterior para queries nuevas mientras entra un replacement.
-- Los paquetes atrasados de otra epoch/revisión siguen sin sustituir el estado aceptado.
-- El runtime precomputado actual mantiene la misma geometría y `PoseProvider` efectiva hasta que G3 tareas 3–6 migren la ejecución a engines genéricos.
-- El motor Living Platforms conserva sus superficies legacy para el modo legacy; S16 no revive esas superficies dentro del core anatómico.
+- Los paquetes atrasados de otra epoch/revisión no sustituyen el estado aceptado.
+- El runtime precomputado mantiene la misma geometría y `PoseProvider` efectiva hasta que G3 tareas 3–6 migren la ejecución a engines genéricos.
+- Living Platforms conserva sus superficies legacy sólo para el modo legacy; S16 no las revive dentro del core anatómico.
 
 ### Exclusiones explícitas
 
 - No implementar todavía el `GeometryEngine` ModelPart general (G3.3).
 - No migrar todavía las familias de `PoseEngine` vanilla/AnimationDefinition/Citadel (G3.4–5).
 - No convertir todavía la física raíz a `RootTransformProvider` general (G3.6).
-- No resolver variants runtime distintos del selector vacío; S16 debe preservar y sincronizar todos los selectors canónicos, pero la obtención de estado variant vivo queda fuera hasta tener su fuente autoritativa explícita.
+- No resolver variants runtime distintos del selector vacío; S16 conserva y sincroniza todos los selectors canónicos, pero la obtención de estado variant vivo queda fuera hasta tener su fuente autoritativa explícita.
 - No rediseñar lifecycle/rebind/unload/dimension/reconnect (G3.9), salvo fences imprescindibles para conservar la atomicidad ya existente.
 - No retirar todavía `PlatformDefinition` ni `PlatformPolicy` del motor Living Platforms.
 - No cambiar solver, CCD, broadphase, contacto ni transporte.
 
-## Estado actual reconstruido
+## Estado inicial reconstruido
 
-1. `CollisionBinding`, `CollisionCodecs.BINDING` y `CollisionBindingCatalog` ya son la representación canónica G1. El catálogo canónico valida engines registrados, ordena selectors de forma determinista y falla cerrado ante ambigüedad.
-2. `LegacyCollisionData.decode(...)` ya convierte una definición anatómica legacy en `CollisionBinding` con los IDs de compatibilidad `precomputed_geometry`, `legacy_pose_provider` y `entity_root`; las superficies legacy se mantienen como `LegacyPlanes`, no como anatomía.
-3. `WorldAnatomyCatalog` sigue publicando `Snapshot(models, bindings, profiles)` donde `Binding.policy` es un `PlatformDefinition`; valida modelo/pose/filtro leyendo `profile.anatomy()`.
-4. `AnatomyRuntime.Active` conserva ese binding legacy. `prepare(...)`, `acceptsIntervalIdentity(...)` y el descriptor causal vuelven a leer `PlatformDefinition.anatomy()`.
-5. `AnatomyCatalogTransfer` serializa `{models, profiles}` y el cliente reconstruye `PlatformDefinition` por wire. El protocolo actual es v3.
-6. `AnatomyClientNetworking` vuelve a instalar `snapshot.profiles()` en `Platforms.anatomicalDefinitions(...)` y valida/evalúa packets leyendo otra vez `binding.policy().anatomy()`.
-7. `MaterialPhysicsRuntime` usa `Platforms.eligible(body,support)`; el runtime anatómico depende por ello de la tabla temporal de `PlatformDefinition` instalada por servidor/cliente.
-8. Los bindings de migración canónicos todavía no tienen registrados sus tres IDs de compatibilidad en `CollisionEngines`, porque G1 sólo definió la frontera y G3 aún no consumía esos bindings.
-9. El bundle S15 ya tiene ownership correcto y debe conservarse: `WorldAnatomyCatalog.Accepted` publica snapshot+prepared bundle como una unidad.
+1. `CollisionBinding`, `CollisionCodecs.BINDING` y `CollisionBindingCatalog` ya eran la representación canónica G1.
+2. `LegacyCollisionData.decode(...)` ya convertía anatomía legacy en binding canónico y mantenía superficies legacy como `LegacyPlanes`.
+3. `WorldAnatomyCatalog` seguía publicando `Snapshot(models, bindings, profiles)` y obtenía autoridad de `PlatformDefinition`.
+4. `AnatomyRuntime` y el descriptor causal volvían a leer anatomía legacy.
+5. `AnatomyCatalogTransfer` enviaba `{models, profiles}` por protocolo v3.
+6. `AnatomyClientNetworking` reinstalaba perfiles legacy en una tabla temporal de `Platforms`.
+7. La elegibilidad material terminaba dependiendo de esa tabla temporal.
+8. Los tres IDs de compatibilidad legacy todavía no estaban registrados en `CollisionEngines`.
+9. El bundle S15 ya tenía ownership correcto y debía conservarse.
 
-## Estado objetivo
+## Estado final
 
-- `WorldAnatomyCatalog` no importa ni almacena `PlatformDefinition`/`Platforms`.
-- El snapshot aceptado contiene modelos precomputados, el `CollisionBindingCatalog` canónico y sólo los bindings actualmente ejecutables por el bridge de compatibilidad.
-- La carga desde resources acepta `scalebrews/entity_collision`; las definiciones anatómicas legacy sólo se convierten mediante `LegacyCollisionData` antes de entrar al catálogo. Superficies legacy no entran.
-- El bundle wire contiene `bindings` canónicos, no `profiles` legacy.
-- El protocolo aumenta porque el bundle interno cambia de schema incompatible.
-- Server y cliente derivan modelo, pose engine, filtro y policy de perfil desde `CollisionBinding`.
-- El bridge transitorio resuelve `legacy_pose_provider.parameters["provider"]` hacia el `PoseProvider` preexistente, pero la identidad causal publicada usa el engine canónico del binding, no el ID interno legacy.
-- Bindings canónicos cuyo engine todavía no tenga ejecución G3 disponible se conservan en el catálogo aceptado pero producen cero geometría live, no fallback.
-- La elegibilidad del core anatómico usa el `CollisionBinding.policy()` activo y deja de depender de `Platforms.anatomicalDefinitions(...)`.
+- `WorldAnatomyCatalog` almacena modelos, `CollisionBindingCatalog` y sólo el subconjunto ejecutable por el bridge precomputado; no almacena `PlatformDefinition`.
+- `scalebrews/entity_collision` entra directamente como binding canónico y la anatomía legacy cruza una migración explícita antes de publicación.
+- Superficies legacy no se convierten en anatomía.
+- El wire v4 contiene `{models, bindings}` y rechaza `profiles`.
+- El protocolo público es v4; `DATA_SCHEMA_VERSION` permanece 1.
+- Server y cliente derivan modelo, pose-engine, filtro, policy e identidad causal del binding canónico.
+- El `PoseProvider` legacy efectivo queda privado dentro del bridge de compatibilidad; la identidad publicada usa `geometry.model` + `pose.engine` canónicos.
+- Bindings válidos pero todavía no ejecutables se conservan en el catálogo canónico y no reciben provider ni fallback.
+- `AnatomyBindingState` acompaña el provider vivo con su `CollisionBinding` canónico cuando existe.
+- La ruta de policy/elegibilidad consulta el binding vivo y una sesión anatómica activa falla cerrada antes de cualquier fallback Living Platforms.
+- Los registros manuales/prepared pueden heredar únicamente la policy canónica de la revisión aceptada mediante `AnatomyRuntime.catalogBinding(...)`, sin convertirse en bindings causales runtime.
+- La tabla temporal `Platforms.anatomicalDefinitions(...)` desapareció por completo.
 
 ## Plan de implementación convergido
 
-- [ ] **I1** Registrar los tres IDs de compatibilidad de `LegacyCollisionData` en los registries públicos de engines de forma idempotente y explícitamente transitoria; no convertirlos en fallback general.
-- [ ] **I2** Reestructurar `WorldAnatomyCatalog` para aceptar/almacenar `CollisionBindingCatalog` canónico y bindings ejecutables derivados, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y `replaceValidated`.
-- [ ] **I3** Añadir carga ResourceManager canónica desde `scalebrews/entity_collision` y migración explícita de anatomía legacy antes de aceptación. Duplicados/ambigüedad deben fallar cerrado; `LegacyPlanes` no entran en el catálogo anatómico.
-- [ ] **I4** Mantener un bridge precomputado acotado: sólo `precomputed_geometry + legacy_pose_provider + entity_root` puede convertirse al `ModelGeometryProvider` actual. Otros bindings válidos permanecen aceptados pero `UNAVAILABLE` para ejecución live hasta sus sprints de engine.
-- [ ] **I5** Cambiar `AnatomyCatalogTransfer` a `{models, bindings}` usando `CollisionCodecs.BINDING`; serializar todos los selectors canónicos en orden determinista y reconstruir el mismo catálogo en cliente.
-- [ ] **I6** Subir `AnatomyApi.PROTOCOL_VERSION` de 3 a 4 y actualizar la evidencia de compatibilidad. `DATA_SCHEMA_VERSION` permanece 1 porque el binding canónico sigue siendo schema v1.
-- [ ] **I7** Migrar `AnatomyRuntime.Active`, `prepare`, identity checks y descriptor causal a `CollisionBinding`. El descriptor usa `geometry.model` + `pose.engine`; el `PoseProvider` legacy efectivo sólo vive dentro del bridge de ejecución.
-- [ ] **I8** Añadir elegibilidad/fricción anatómica desde `CollisionPolicy` + `CollisionBinding.policy()` sin instalar `PlatformDefinition` temporales. `MaterialPhysicsRuntime` debe consultar la autoridad anatómica para soportes activos; el motor legacy conserva `Platforms.eligible`.
-- [ ] **I9** Migrar `AnatomyClientNetworking` para validar/evaluar contra el binding canónico aceptado y eliminar `Platforms.anatomicalDefinitions(...)` del lifecycle cliente.
-- [ ] **I10** Migrar seams de preparación/tests (`startPrepared`, `encode`, digests) a bindings canónicos; cualquier helper legacy restante debe vivir explícitamente en migración y convertir antes de llamar al catálogo.
-- [ ] **I11** Eliminar imports/campos/callers muertos de `PlatformDefinition.anatomy()` en la ruta live anatómica y demostrar por inspección que `WorldAnatomyCatalog`, `AnatomyCatalogTransfer`, `AnatomyRuntime` y `AnatomyClientNetworking` no dependen ya de perfiles legacy.
-- [ ] **I12** Ejecutar suite ordinary completa y una lane focal S16 que pruebe bundle canónico, protocol fence, replacement atómico, migración legacy y ausencia de fallback; después ejecutar revisión adversarial iterativa hasta una pasada cero-cambios.
+- [x] **I1** Registrar los tres IDs de compatibilidad de `LegacyCollisionData` en los registries públicos de engines de forma idempotente y transitoria, sin fallback general.
+- [x] **I2** Reestructurar `WorldAnatomyCatalog` sobre `CollisionBindingCatalog`, eliminando `PlatformDefinition` de `Binding`, `Snapshot` y publicación live.
+- [x] **I3** Añadir carga canónica `scalebrews/entity_collision` y migración legacy explícita antes de aceptación.
+- [x] **I4** Mantener un bridge precomputado limitado a `precomputed_geometry + legacy_pose_provider + entity_root`; el resto queda aceptado pero no ejecutable.
+- [x] **I5** Cambiar `AnatomyCatalogTransfer` a `{models, bindings}` y preservar selectors en orden canónico.
+- [x] **I6** Subir `AnatomyApi.PROTOCOL_VERSION` a 4 manteniendo `DATA_SCHEMA_VERSION = 1`.
+- [x] **I7** Migrar runtime, identity checks y descriptor causal a `CollisionBinding`.
+- [x] **I8** Obtener elegibilidad/fricción anatómica del binding canónico sin instalar perfiles temporales.
+- [x] **I9** Migrar `AnatomyClientNetworking` a bindings canónicos y retirar lifecycle basado en `Platforms.anatomicalDefinitions(...)`.
+- [x] **I10** Migrar seams y fixtures (`startPrepared`, `encode`, digests) para que cualquier entrada legacy convierta antes de cruzar la frontera autoritativa.
+- [x] **I11** Retirar callers/imports muertos de `PlatformDefinition.anatomy()` en catálogo, red, runtime y cliente.
+- [x] **I12** Ejecutar ordinary, lane focal y revisión adversarial hasta una pasada final sin cambios de producción.
 
-## Revisión iterativa del plan
+## Revisión iterativa de implementación
 
-### Pasada 1 — requisitos y arquitectura
+### Primera reapertura — migración incompleta
 
-Se añadió el cambio wire/protocolo: conservar `profiles` en red habría dejado una segunda autoridad legacy aunque el servidor usara `CollisionBinding`.
+La primera implementación dejó el catálogo en `CollisionBinding` pero consumidores server/client todavía hablaban el contrato `{profiles, PlatformDefinition}`. La sonda CI falló por compilación y obligó a migrar la frontera completa en lugar de añadir adaptadores de compatibilidad a producción.
 
-### Pasada 2 — código real y consumidores
+### Segunda reapertura — autoridad dual de policy
 
-Se añadió I8 tras comprobar que `MaterialPhysicsRuntime` todavía llama a `Platforms.eligible(...)`; eliminar sólo `snapshot.profiles()` habría roto policy/elegibilidad o forzado un fallback legacy silencioso.
+Tras retirar la tabla temporal, la policy necesitaba viajar con el mismo lifecycle que provider/descriptor. `774de560c0076802019924379b0b5cc37e7b51d9` añadió el binding canónico a `AnatomyBindingState` y `8704a30e6c11e147969937d7f58b9a013be83e3c` enrutó policy/elegibilidad por ese estado vivo.
 
-### Pasada 3 — dependencias y orden
+### Tercera reapertura — fallback legacy silencioso
 
-Se mantiene el bridge precomputado y se excluye la ejecución de engines genéricos. Esto permite cerrar autoridad de selección antes de G3.3–6 sin fingir que un binding externo ya tiene geometría runtime.
+`744c777a5e8016d22832bc028edea9e6bd846958` cerró el caso en que una sesión anatómica activa sin binding ejecutable podía caer a una definición Living Platforms homónima. Desde entonces una selección disabled, variant-only o todavía no ejecutable falla cerrada.
 
-### Pasada 4 — fail-closed y regresiones
+### Cuarta reapertura — bindings manuales/prepared
 
-Se fijó que bindings válidos pero todavía no ejecutables se aceptan como selección del mundo y producen ausencia de geometría, nunca un `PlatformDefinition`, AABB o `automatic_top` inventado.
+El holdout final de policy demostró que un provider manual dentro de una sesión `startPrepared` podía perder la policy canónica y volver a depender del contexto legacy global. `3a3503b1cba944933eaaf3cf010e8be981ed7d8d` sustituyó los helpers duplicados de policy por el seam estrecho `catalogBinding(...)`; el registro manual toma esa selección canónica sin adquirir descriptor causal ni ejecución runtime.
 
-### Pasada 5 — simplicidad/verificabilidad
+### Revisión final
 
-No se introduce un segundo catálogo ni un DTO intermedio público. `CollisionBindingCatalog` sigue siendo el índice canónico; el único objeto extra permitido es un binding interno ya resuelto para el bridge precomputado.
+Después de `3a3503b1...` sólo hubo cleanup de helpers/workflows temporales y reruns de evidencia. La revisión final de `WorldAnatomyCatalog`, `AnatomyCatalogTransfer`, `AnatomyRuntime`, `AnatomyClientNetworking`, `AnatomyBindingState`, `AnatomyMovement` y `Platforms` no produjo otro cambio de producción.
 
-**Pasada completa final: cero cambios. Plan convergido.**
+## Evidencia de cierre
 
-## Modelo adversarial previo
+Snapshot de evidencia: `0b7a8940e783f3b8e08128f9d95fa04688376e79`.
 
-### Autoridad dual
+- ordinary run **34752369790**, job **103710940047**: **398/398 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **10315852333**, SHA-256 **a1de8633e76ed2df2516b47fe549a83e4aff5eaf208765cca34088db4737f036**.
+- focal S16 run **34752369719**, job **103710939888**: **5/5 required S16 GameTests passed**, incluido protocol v4, ausencia de autoridad `PlatformDefinition`, wire canónico, no promoción de legacy planes y policy canónica prepared; artifact **10316377128**, SHA-256 **429aac1871a8fcb108766c12f0b7dba9eeeac06bf018408be181fbf7c5eba205**.
+- Los holdouts adversariales permanecieron intactos; las reparaciones cambiaron implementación/fixtures obsoletos, no relajaron requisitos.
 
-- Cambiar servidor a `CollisionBinding` pero seguir enviando `PlatformDefinition` por wire.
-- Mantener `Platforms.anatomicalDefinitions` como segunda tabla live y que policy/filtro difieran del binding aceptado.
-- Construir descriptor causal desde el provider legacy en vez del engine canónico, permitiendo que dos bindings distintos parezcan la misma identidad.
-
-### Migración
-
-- Perfil legacy con superficies solamente: no debe producir binding anatómico.
-- Perfil legacy anatómico válido: debe producir exactamente un binding canónico equivalente.
-- Candidato con anatomy y surfaces contradictorios: falla antes de publicación.
-- Binding canónico explícito y migrado con selector duplicado: no puede depender de orden de archivos.
-
-### Wire / atomicidad
-
-- Cliente v3 frente a servidor v4 y viceversa: incompatibilidad explícita, no parse parcial.
-- Bundle con key `profiles` pero protocol v4: rechazo, no interpretación legacy silenciosa.
-- Binding corrupto, selector duplicado o engine inexistente en replacement: la revisión previa permanece exacta.
-- Reorder/replay de fragments mantiene epoch/revision/digest fences S15.
-
-### Ejecución transitoria
-
-- Binding canónico válido con engine externo registrado pero todavía no integrado al runtime: snapshot lo conserva; soporte no recibe provider y no cae a legacy.
-- Binding de bridge con model ausente, provider parameter ausente/malformado o pose provider inexistente: candidato/endpoint falla cerrado según la fase, nunca static fallback.
-- Cambio únicamente de `pose.engine` o `geometry.model` debe cambiar identidad causal aunque el `PoseProvider` legacy efectivo coincida.
-
-### Policy
-
-- Enabled false, ratio justo antes/en/después del límite y friction override deben venir del `CollisionBinding.policy()` activo.
-- Un soporte activo anatómico no debe consultar un `PlatformDefinition` legacy homónimo.
-- El motor Living Platforms sin sesión anatómica debe conservar su comportamiento existente.
-
-### Variants
-
-- Selectors no vacíos deben sobrevivir encode/decode y orden canónico aunque S16 no tenga todavía fuente runtime de variant.
-- Dos selectors igualmente específicos siguen fallando cerrado.
-- Un selector variant no debe convertirse por accidente en default al no existir fuente variant.
-
-### Holdout reservado
-
-Se reservarán escenarios concretos post-implementación sobre: conflicto canonical/migration, cambio de engine con mismo provider legacy, replacement inválido después de reutilizar bundle S15, selector variant no ejecutable y ausencia total de tablas `ANATOMICAL_DEFINITIONS` durante una sesión anatómica.
+Esta evidencia no cierra G3.3–G3.12: no prueba todavía engines generales ModelPart/pose/root, coverage scanner, lifecycle completo ni prediction/reconciliation.
 
 ## Criterio de cierre
 
-S16 sólo puede cerrarse si:
+1. [x] ninguna clase live de catálogo/red/runtime/cliente anatómico obtiene identidad o configuración desde `PlatformDefinition.anatomy()`;
+2. [x] el wire v4 transporta bindings canónicos y conserva atomicidad/replay fences;
+3. [x] la ejecución precomputada existente sigue verde mediante un bridge explícito, no mediante fallback;
+4. [x] bindings futuros no ejecutables fallan cerrados sin impedir su conservación canónica;
+5. [x] ordinary + lane focal + holdouts adversariales quedan verdes;
+6. [x] la revisión completa final produce cero cambios de producción.
 
-1. ninguna clase live de catálogo/red/runtime/cliente anatómico obtiene identidad o configuración desde `PlatformDefinition.anatomy()`;
-2. el wire v4 transporta bindings canónicos y conserva atomicidad/replay fences;
-3. la ejecución precomputada existente sigue verde mediante un bridge explícito, no mediante fallback;
-4. bindings futuros no ejecutables fallan cerrados sin impedir su conservación canónica;
-5. ordinary + lane focal + holdouts adversariales quedan verdes;
-6. una revisión completa final produce cero cambios.
+**S16 queda cerrado. G3 continúa con las tareas 3–12; la siguiente implementación debe abrir un sprint nuevo, no ampliar S16.**
