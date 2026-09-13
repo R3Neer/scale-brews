@@ -1,7 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
-import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import java.util.UUID;
 import io.github.r3neer.scalebrews.ScaleBrews;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,13 +12,13 @@ import net.minecraft.world.phys.Vec3;
 /** Authoritative pose channels, not renderer output. Identity/revision checks precede evaluation. */
 public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
         Identifier model,Identifier provider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,long bindingGeneration,boolean available,
-        PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) implements CustomPacketPayload {
-    /** Fixture/source compatibility only. Production uses the causal v4 constructor. */
-    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,long tick,PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale) {
+        PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) implements CustomPacketPayload {
+    /** Fixture/source compatibility only. Production uses the causal constructor. */
+    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,long tick,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale) {
         this(epoch,revision,dimension,entityId,entity,model,provider,tick,tick,tick,tick,tick,1,true,inputs,origin,yaw,scale,net.minecraft.core.Direction.DOWN);
     }
-    /** Fixture/source compatibility only. Production uses the causal v4 constructor. */
-    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,long tick,PoseProvider.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) {
+    /** Fixture/source compatibility only. Production uses the causal constructor. */
+    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,long tick,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) {
         this(epoch,revision,dimension,entityId,entity,model,provider,tick,tick,tick,tick,tick,1,true,inputs,origin,yaw,scale,gravity);
     }
     public AnatomyPosePayload {
@@ -28,7 +27,7 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
             || origin==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw+scale) || scale<=0 || scale>1024)
             throw new IllegalArgumentException("Invalid anatomical pose frame");
     }
-    /** Incompatible with v3: every frame now has independently ordered joint/root provenance. */
+    /** Joint/root causal packet format remains v4; S18's catalog bundle advances independently to protocol v5. */
     public static final Type<AnatomyPosePayload> TYPE=new Type<>(ScaleBrews.id("anatomy_pose_v4"));
     public static final StreamCodec<RegistryFriendlyByteBuf,AnatomyPosePayload> CODEC=StreamCodec.of((b,p)->{
         b.writeUUID(p.epoch);b.writeVarLong(p.revision);b.writeIdentifier(p.dimension);b.writeVarInt(p.entityId);b.writeUUID(p.entity);
@@ -42,7 +41,7 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
         var model=b.readIdentifier();var provider=b.readIdentifier();long frameSerial=b.readVarLong(),authorityTick=b.readVarLong(),jointSampleTick=b.readVarLong(),rootFrameSequence=b.readVarLong(),rootFrameTick=b.readVarLong(),bindingGeneration=b.readVarLong();boolean available=b.readBoolean();float walkPhase=b.readFloat(),walkAmount=b.readFloat(),age=b.readFloat(),headYaw=b.readFloat(),headPitch=b.readFloat();boolean ordinary=b.readBoolean();
         int count=b.readVarInt();if(count<0 || count>64)throw new IllegalArgumentException("Invalid pose channel count");
         var channels=new java.util.TreeMap<String,Float>();for(int i=0;i<count;i++)if(channels.put(b.readUtf(64),b.readFloat())!=null)throw new IllegalArgumentException("Duplicate pose channel");
-        return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,frameSerial,authorityTick,jointSampleTick,rootFrameSequence,rootFrameTick,bindingGeneration,available,new PoseProvider.Inputs(walkPhase,walkAmount,age,headYaw,headPitch,ordinary,channels),
+        return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,frameSerial,authorityTick,jointSampleTick,rootFrameSequence,rootFrameTick,bindingGeneration,available,new PoseEngine.Inputs(walkPhase,walkAmount,age,headYaw,headPitch,ordinary,channels),
             new Vec3(b.readDouble(),b.readDouble(),b.readDouble()),b.readFloat(),b.readFloat(),b.readEnum(net.minecraft.core.Direction.class));
     });
     /** Joint history clock; root-only updates may repeat it while frame serial advances. */
