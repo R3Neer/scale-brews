@@ -6,9 +6,11 @@ import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,6 +93,66 @@ public final class S16CanonicalCatalogAuthorityTests {
             "Rejecting an invalid variant binding must retain the exact previously accepted snapshot object");
         h.assertTrue(catalog.preparedPackets(epoch) == prepared,
             "Rejecting an invalid variant binding must retain the exact S15 prepared bundle paired with the accepted snapshot");
+        h.succeed();
+    }
+
+    @GameTest
+    public void canonicalAndMigratedLegacyDuplicateSelectorFailsAtomically(GameTestHelper h) {
+        var model = fixtureModel();
+        var profile = new PlatformDefinition(Identifier.parse("minecraft:cow"), true, .6, Optional.empty(), List.of(),
+            Optional.of(new AnatomyDefinition(Identifier.parse(model.source()), Identifier.parse("scalebrews:static"), AnatomyFilter.DEFAULT)));
+        var migrated = LegacyAnatomyCatalogMigration.bindings(List.of(profile)).get(0);
+        var canonical = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, migrated.entity(), Map.of(), migrated.geometry(), migrated.pose(),
+            migrated.rootTransform(), new CollisionPolicy.Patch(Optional.empty(), Optional.empty(), Optional.of(.91)), Set.of());
+        var candidate = new ArrayList<CollisionBinding>();
+        candidate.add(canonical);
+        candidate.add(migrated);
+
+        var catalog = new WorldAnatomyCatalog();
+        var epoch = UUID.randomUUID();
+        var accepted = catalog.snapshot();
+        var prepared = catalog.preparedPackets(epoch);
+        boolean rejected = false;
+        try {
+            catalog.replace(Map.of(model.source(), model), candidate);
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+
+        h.assertTrue(rejected,
+            "Canonical and migrated legacy bindings for the same selector must conflict instead of gaining precedence from merge/file order");
+        h.assertTrue(catalog.snapshot() == accepted,
+            "A canonical/legacy selector conflict must leave the exact previously accepted snapshot published");
+        h.assertTrue(catalog.preparedPackets(epoch) == prepared,
+            "A canonical/legacy selector conflict must leave the exact previously prepared bundle published");
+        h.succeed();
+    }
+
+    @GameTest
+    public void variantSelectorRoundTripsWithoutInventingDefaultExecution(GameTestHelper h) {
+        var model = fixtureModel();
+        var entity = Identifier.parse("minecraft:cow");
+        var selector = Map.of("coat", "brown");
+        var variant = new CollisionBinding(CollisionBinding.SCHEMA_VERSION, entity, selector,
+            new CollisionBinding.Geometry(LegacyCollisionData.PRECOMPUTED_GEOMETRY, Identifier.parse(model.source()),
+                Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(LegacyCollisionData.LEGACY_POSE_PROVIDER, Map.of("provider", "scalebrews:static"), Set.of()),
+            LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
+
+        var packets = AnatomyCatalogTransfer.encode(UUID.randomUUID(), 7, Map.of(model.source(), model), List.of(variant));
+        var receiver = new AnatomyCatalogTransfer();
+        boolean completed = false;
+        for (var packet : packets) completed |= receiver.accept(packet);
+        var snapshot = receiver.snapshot();
+
+        h.assertTrue(completed && receiver.ready() && receiver.revision() == 7,
+            "A complete protocol-v4 variant catalog must publish the announced revision atomically");
+        h.assertTrue(snapshot.catalog().resolve(entity, selector).orElse(null).equals(variant),
+            "Variant selector and binding identity must survive canonical wire round-trip");
+        h.assertTrue(snapshot.catalog().resolve(entity, Map.of()).isEmpty(),
+            "A variant-only binding must not resolve for the empty/default selector after transfer");
+        h.assertTrue(!snapshot.bindings().containsKey(entity),
+            "S16 must retain a variant canonically without inventing default bridge execution before runtime variant authority exists");
         h.succeed();
     }
 
