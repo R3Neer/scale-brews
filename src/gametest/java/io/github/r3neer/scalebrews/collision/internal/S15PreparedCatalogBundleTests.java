@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +86,7 @@ public final class S15PreparedCatalogBundleTests {
         var profile=new io.github.r3neer.scalebrews.platform.PlatformDefinition(
             Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),Optional.of(definition));
         boolean rejected=false;
-        try {catalog.replace(Map.of(),Map.of("proof:invalid_binding",profile));}
+        try {catalog.replace(Map.of(),LegacyAnatomyCatalogMigration.bindings(Map.of("proof:invalid_binding",profile)));}
         catch(IllegalArgumentException expected){rejected=true;}
         h.assertTrue(rejected,
             "Invalid replacement fixture must advance into catalog validation and fail on its missing geometry reference");
@@ -102,7 +103,7 @@ public final class S15PreparedCatalogBundleTests {
         var epoch=UUID.randomUUID();
         var before=catalog.snapshot();
         var oldPackets=catalog.preparedPackets(epoch);
-        var after=catalog.replace(Map.of(),Map.of());
+        var after=catalog.replace(Map.of(),List.of());
         var newPackets=catalog.preparedPackets(epoch);
         h.assertTrue(after.revision()==before.revision()+1,
             "Accepted replacement must advance exactly one catalog revision");
