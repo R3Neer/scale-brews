@@ -1,4 +1,5 @@
 name: s16-canonical-catalog-proof
+# Implementation probe: keep this lane pinned to the canonical S16 holdouts.
 
 on:
   push:
