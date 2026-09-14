@@ -98,20 +98,20 @@ final class AdvancedModelBoxGeometryExtractor {
             if (!dialect.advancedBox.isInstance(root))
                 throw new IllegalArgumentException("parts() contains a non-AdvancedModelBox root");
             if (!catalog.contains(root)) throw new IllegalArgumentException("AdvancedModelBox root is absent from getAllParts()");
-            extractPart(root, null, false, 0);
+            extractPart(root, null, null, false, 0);
         }
         if (rootCount == 0) throw new IllegalArgumentException("AdvancedModelBox source has no render roots");
         if (visited.size() != catalog.size() || !visited.containsAll(catalog))
             throw new IllegalArgumentException("AdvancedModelBox getAllParts() contains detached or multiply-owned nodes");
     }
 
-    private void extractPart(Object part, String parent, boolean structurallyHidden, int depth) {
+    private void extractPart(Object part, String sourceParent, String transformParent, boolean structurallyHidden, int depth) {
         if (depth > MAX_DEPTH) throw new IllegalArgumentException("AdvancedModelBox hierarchy too deep");
         if (!visited.add(part)) throw new IllegalArgumentException("Cyclic or multiply-parented AdvancedModelBox hierarchy");
         if (visited.size() > MAX_PARTS) throw new IllegalArgumentException("Too many AdvancedModelBox parts");
 
         String name = validName(string(read(dialect.boxName, part, "boxName"), "boxName"));
-        String id = parent == null ? name : parent + "/" + name;
+        String id = sourceParent == null ? name : sourceParent + "/" + name;
         requireId(id);
         if (!partIds.add(id)) throw new IllegalArgumentException("Ambiguous AdvancedModelBox part id " + id);
 
@@ -127,7 +127,7 @@ final class AdvancedModelBoxGeometryExtractor {
         var sourcePose = new ModelGeometry.SourcePose(px, py, pz, rx, ry, rz, sx, sy, sz);
         Matrix4f local = sourcePose.matrix();
         verifyRendererTransform(part, local);
-        addPart(new ModelGeometry.Part(id, parent, ModelGeometry.values(local), sourcePose));
+        addPart(new ModelGeometry.Part(id, transformParent, ModelGeometry.values(local), sourcePose));
 
         boolean hidden = structurallyHidden || !bool(read(dialect.showModel, part, "showModel"), "showModel");
         Iterable<?> cubes = iterable(read(dialect.cubeList, part, "cubeList"), "AdvancedModelBox.cubeList");
@@ -141,7 +141,7 @@ final class AdvancedModelBoxGeometryExtractor {
         }
 
         boolean scaleChildren = bool(read(dialect.scaleChildren, part, "scaleChildren"), "scaleChildren");
-        String childParent = id;
+        String childTransformParent = id;
         if (!scaleChildren && !identityScale(sx, sy, sz)) {
             // This is the renderer's exact propagation rule, not a physical epsilon repair. A zero
             // local scale has already failed SourcePose validation before this inverse is considered.
@@ -150,17 +150,20 @@ final class AdvancedModelBoxGeometryExtractor {
             float iz = 1f / Math.max(sz, 1.0e-4f);
             if (!Float.isFinite(ix) || !Float.isFinite(iy) || !Float.isFinite(iz))
                 throw new IllegalArgumentException("Invalid AdvancedModelBox child-scale compensation");
-            childParent = id + "/unscaled_children";
-            requireId(childParent);
-            if (!partIds.add(childParent)) throw new IllegalArgumentException("Ambiguous AdvancedModelBox helper id " + childParent);
-            addPart(new ModelGeometry.Part(childParent, id, ModelGeometry.values(new Matrix4f().scaling(ix, iy, iz))));
+            childTransformParent = id + "/unscaled_children";
+            requireId(childTransformParent);
+            if (!partIds.add(childTransformParent))
+                throw new IllegalArgumentException("Ambiguous AdvancedModelBox helper id " + childTransformParent);
+            addPart(new ModelGeometry.Part(childTransformParent, id,
+                ModelGeometry.values(new Matrix4f().scaling(ix, iy, iz))));
         }
 
         Iterable<?> children = iterable(read(dialect.childModels, part, "childModels"), "AdvancedModelBox.childModels");
         for (Object child : children) {
             if (!dialect.advancedBox.isInstance(child))
                 throw new IllegalArgumentException("AdvancedModelBox childModels contains a non-AdvancedModelBox child");
-            extractPart(child, childParent, hidden, depth + 1);
+            // The helper is transform-only. Stable source ids continue to follow the boxName hierarchy.
+            extractPart(child, id, childTransformParent, hidden, depth + 1);
         }
     }
 
