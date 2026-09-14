@@ -90,7 +90,8 @@
       "io.github.r3neer.scalebrews.collision.internal.S17ModelPartGeometryEngineTests",
       "io.github.r3neer.scalebrews.collision.internal.MojangKeyframeBindingParameterTests",
       "io.github.r3neer.scalebrews.collision.internal.S18ImplementerRegressionTests",
-      "io.github.r3neer.scalebrews.collision.internal.S18ZeroDurationPoseProgramTests"
+      "io.github.r3neer.scalebrews.collision.internal.S18ZeroDurationPoseProgramTests",
+      "io.github.r3neer.scalebrews.collision.internal.S19ImplementerRegressionTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
