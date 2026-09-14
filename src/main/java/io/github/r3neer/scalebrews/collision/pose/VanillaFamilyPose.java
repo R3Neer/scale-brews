@@ -6,14 +6,16 @@ import java.util.Map;
 import java.util.Optional;
 import org.joml.Matrix4f;
 
-/** @deprecated Compatibility wrapper. Canonical family behavior is owned by {@link VanillaFamilyPoseEngine}. */
+/** @deprecated Compatibility wrapper. Canonical family behavior is owned by the registered PoseEngine. */
 @Deprecated
 public final class VanillaFamilyPose implements PoseProvider, PoseEngine {
     public enum Family { CHICKEN, VILLAGER, IRON_GOLEM, GHAST, FELINE, EQUINE, BEE }
-    private final VanillaFamilyPoseEngine engine;
+    private final PoseEngine engine;
 
     public VanillaFamilyPose(Family family) {
-        engine = new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.valueOf(family.name()));
+        engine = family == Family.FELINE
+            ? new FelinePoseEngine()
+            : new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.valueOf(family.name()));
     }
 
     @Override
