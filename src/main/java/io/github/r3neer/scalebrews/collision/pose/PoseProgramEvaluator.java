@@ -45,19 +45,29 @@ public final class PoseProgramEvaluator {
                 var rest = ModelGeometry.matrix(part.transform());
                 var position = rest.getTranslation(new Vector3f());
                 var baseScale = rest.getScale(new Vector3f());
-                var rotation = rest.getUnnormalizedRotation(new Quaternionf()).normalize();
+                var restRotation = rest.getUnnormalizedRotation(new Quaternionf()).normalize();
+                var rotation = restRotation;
                 var value = entry.getValue();
                 if (value.translation != null) {
                     // ModelPart position fields are pixel-space; translateAndRotate applies /16.
                     position.add(value.translation.x() / 16f, value.translation.y() / 16f, value.translation.z() / 16f);
                 }
                 if (value.rotation != null) {
-                    // Mojang keyframe rotation vectors are already radians.
-                    rotation.mul(new Quaternionf().rotationZYX(value.rotation.z(), value.rotation.y(), value.rotation.x()));
+                    // AnimationDefinition applies ROTATION with ModelPart.offsetRotation: add
+                    // x/y/z Euler fields first, then translateAndRotate builds one rotationZYX.
+                    // Multiplying restQuaternion * deltaQuaternion is not equivalent for a
+                    // ModelPart whose rest Euler rotation is non-identity.
+                    var restEuler = restRotation.getEulerAnglesZYX(new Vector3f());
+                    rotation = new Quaternionf().rotationZYX(
+                        restEuler.z + value.rotation.z(),
+                        restEuler.y + value.rotation.y(),
+                        restEuler.x + value.rotation.x());
                 }
                 if (value.scale != null) {
-                    // Mojang scale vectors are additive deltas around 1.0.
-                    baseScale.mul(1 + value.scale.x(), 1 + value.scale.y(), 1 + value.scale.z());
+                    // KeyframeAnimations.scaleVec stores deltas around 1 and Minecraft applies
+                    // them with ModelPart.offsetScale, i.e. restScale + sampledDelta. Treating
+                    // the delta as a percentage breaks any non-unit rest scale.
+                    baseScale.add(value.scale.x(), value.scale.y(), value.scale.z());
                     if (!(baseScale.x > 0 && baseScale.y > 0 && baseScale.z > 0)) return Optional.empty();
                 }
                 out.put(entry.getKey(), new Matrix4f().translationRotateScale(position, rotation, baseScale));
