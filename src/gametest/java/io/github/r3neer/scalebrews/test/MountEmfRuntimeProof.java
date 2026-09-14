@@ -40,6 +40,10 @@ public final class MountEmfRuntimeProof implements FabricClientGameTest {
             server.runCommand("fill -5 -61 -5 5 -61 5 minecraft:stone");
             server.runCommand("tp @a 0 -60 0 0 0");
             server.runCommand("effect give @a scalebrews:shrinking 120 1 true");
+
+            // Match the stable tiny-mount client fixture: mount eligibility uses effective scale,
+            // so the shrinking transition must settle before /ride evaluates the size ratio.
+            context.waitTicks(30);
             server.runCommand("summon minecraft:bee 0 -60 2 {Tags:[emf_mount_bee],NoAI:1b}");
             server.runCommand("item replace entity @e[tag=emf_mount_bee,limit=1] saddle with minecraft:saddle");
             server.runCommand("ride @a[limit=1] mount @e[tag=emf_mount_bee,limit=1]");
@@ -55,6 +59,8 @@ public final class MountEmfRuntimeProof implements FabricClientGameTest {
                     }
                 }
                 if (bee == null) throw new AssertionError("EMF bee fixture is missing on the client");
+                if (client.player.getVehicle() != bee)
+                    throw new AssertionError("EMF proof rider failed to mount the Bee before render validation");
 
                 var renderer = client.getEntityRenderDispatcher().getRenderer(bee);
                 if (!(renderer instanceof LivingEntityRenderer<?, ?, ?> livingRenderer))
