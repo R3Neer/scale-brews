@@ -35,6 +35,8 @@ final class AdvancedModelBoxGeometryExtractor {
     private static final String TEXTURED_QUAD = "com.github.alexthe666.alexsmobs.citadel.client.model.TabulaModelRenderUtils$TexturedQuad";
     private static final String POSITION_VERTEX = "com.github.alexthe666.alexsmobs.citadel.client.model.TabulaModelRenderUtils$PositionTextureVertex";
     private static final float MATRIX_EPS = 3e-5f;
+    // Source boxName segments can only contain [A-Za-z0-9_.-], so '$' keeps helpers disjoint.
+    private static final String SYNTHETIC_ID_PREFIX = "$";
 
     record Result(ModelGeometry geometry, List<AdvancedModelBoxGeometryEngine.Omission> omissions) {
         Result {
@@ -150,7 +152,7 @@ final class AdvancedModelBoxGeometryExtractor {
             float iz = 1f / Math.max(sz, 1.0e-4f);
             if (!Float.isFinite(ix) || !Float.isFinite(iy) || !Float.isFinite(iz))
                 throw new IllegalArgumentException("Invalid AdvancedModelBox child-scale compensation");
-            childTransformParent = id + "/unscaled_children";
+            childTransformParent = SYNTHETIC_ID_PREFIX + id + "/unscaled_children";
             requireId(childTransformParent);
             if (!partIds.add(childTransformParent))
                 throw new IllegalArgumentException("Ambiguous AdvancedModelBox helper id " + childTransformParent);
