@@ -20,7 +20,9 @@ public final class AnimationDefinitionCompiler {
         if (source == null || source.isBlank() || version == null || version.isBlank() || definition == null)
             throw new IllegalArgumentException("Invalid AnimationDefinition compilation request");
         float duration = definition.lengthInSeconds();
-        if (!Float.isFinite(duration) || duration <= 0) throw new IllegalArgumentException("Invalid AnimationDefinition duration");
+        // Mojang ships legitimate zero-length definitions for static/baby transforms. They are not
+        // malformed: applyStatic() evaluates their timestamp-zero keyframes directly.
+        if (!Float.isFinite(duration) || duration < 0) throw new IllegalArgumentException("Invalid AnimationDefinition duration");
 
         List<PoseProgram.Track> tracks = new ArrayList<>();
         Map<String, List<AnimationChannel>> bones = new TreeMap<>(Objects.requireNonNull(definition.boneAnimations(), "bone animations"));
