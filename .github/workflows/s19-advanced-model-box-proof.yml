@@ -12,6 +12,8 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInGeometryEngines.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S19AdvancedModelBoxGeometryContractTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19*'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
@@ -49,3 +51,90 @@ jobs:
             build/s19-common-junit.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  external-input-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve pinned CurseMaven inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-external-inputs"
+          mkdir -p "$probe"
+          cat > "$probe/settings.gradle" <<'EOF'
+          rootProject.name = 's19-external-inputs'
+          EOF
+          cat > "$probe/build.gradle" <<'EOF'
+          repositories {
+              maven {
+                  url = 'https://cursemaven.com/'
+                  content { includeGroup 'curse.maven' }
+              }
+          }
+          configurations {
+              proofInputs {
+                  canBeConsumed = false
+                  canBeResolved = true
+                  transitive = false
+              }
+          }
+          dependencies {
+              proofInputs 'curse.maven:alexs-mobs-continued-1635121:8772801'
+              proofInputs 'curse.maven:codxlib-1633207:8723545'
+              proofInputs 'curse.maven:cloth-config-348521:8269699'
+          }
+          tasks.register('copyProofInputs', Copy) {
+              from configurations.proofInputs
+              into layout.buildDirectory.dir('proof-inputs')
+          }
+          EOF
+          ./gradlew -p "$probe" copyProofInputs --console=plain
+          mkdir -p build/s19-external-inputs/mods
+          cp "$probe"/build/proof-inputs/*.jar build/s19-external-inputs/mods/
+      - name: verify pinned hashes and mod identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir=build/s19-external-inputs/mods
+          manifest=build/s19-external-inputs/manifest.txt
+          : > "$manifest"
+          verify() {
+              local file="$1" expected_sha="$2" expected_id="$3" expected_version="$4"
+              local actual_sha
+              actual_sha="$(sha256sum "$dir/$file" | awk '{print $1}')"
+              test "$actual_sha" = "$expected_sha" || {
+                  echo "SHA-256 mismatch for $file: expected $expected_sha, got $actual_sha" >&2
+                  exit 1
+              }
+              python3 - "$dir/$file" "$expected_id" "$expected_version" <<'PY'
+          import json, sys, zipfile
+          jar, expected_id, expected_version = sys.argv[1:]
+          with zipfile.ZipFile(jar) as z:
+              data = json.loads(z.read('fabric.mod.json'))
+          if data.get('id') != expected_id:
+              raise SystemExit(f"mod id mismatch for {jar}: {data.get('id')} != {expected_id}")
+          if str(data.get('version')) != expected_version:
+              raise SystemExit(f"mod version mismatch for {jar}: {data.get('version')} != {expected_version}")
+          PY
+              printf '%s\t%s\t%s\t%s\n' "$file" "$expected_id" "$expected_version" "$actual_sha" | tee -a "$manifest"
+          }
+          verify 'alexs-mobs-continued-1635121-8772801.jar' \
+              'b810e1b7ac925f1f1ba6a2a87e742e30b33fafad4d164ff64192f21f46f6154c' 'alexsmobs' '2.1.9'
+          verify 'codxlib-1633207-8723545.jar' \
+              '2133472c9e504923c592709901d77092a09bcf645884968839479c8ee02c7acb' 'codxlib' '1.5.1'
+          verify 'cloth-config-348521-8269699.jar' \
+              'def4be7639cd66704f7e304d658ea0f6bf490fb4a6eaa2dbf18ec2c3999d6349' 'cloth-config' '26.2.155'
+      - name: capture pinned input evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-external-input-contract
+          path: build/s19-external-inputs/manifest.txt
