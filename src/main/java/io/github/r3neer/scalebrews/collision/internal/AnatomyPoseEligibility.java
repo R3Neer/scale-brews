@@ -33,9 +33,9 @@ public final class AnatomyPoseEligibility {
             case "scalebrews:equine"->java.util.Set.of(EntityTypes.HORSE,EntityTypes.DONKEY,EntityTypes.MULE,EntityTypes.SKELETON_HORSE,EntityTypes.ZOMBIE_HORSE).contains(entity.getType())
                 && entity instanceof net.minecraft.world.entity.animal.equine.AbstractHorse horse && horse.getEatAnim(1)==0 && horse.getStandAnim(1)==0 && horse.getMouthAnim(1)==0 && !horse.isInWater();
             case "scalebrews:bee"->entity.getType()==EntityTypes.BEE;
-            case "scalebrews:player_walking"->entity instanceof net.minecraft.world.entity.player.Player && entity.getPose()==Pose.STANDING
+            case "scalebrews:player_walking"->entity instanceof net.minecraft.world.entity.player.Player player && entity.getPose()==Pose.STANDING
                 && !entity.isPassenger() && !entity.isCrouching() && !entity.swinging && !entity.isUsingItem()
-                && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
+                && player.getSwimAmount(1f)==0f && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
             default->{diagnose(provider.toString());yield false;}
         };
     }
