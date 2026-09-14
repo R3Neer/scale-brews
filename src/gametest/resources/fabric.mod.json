@@ -99,7 +99,8 @@
       "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
       "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests",
       "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests",
-      "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests"
+      "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests",
+      "io.github.r3neer.scalebrews.test.S18ZeroDurationCompilerClientTests"
     ]
   }
 }
