@@ -32,7 +32,7 @@ public final class S19SourceRegistryBudgetClientProof implements FabricClientGam
                 AdvancedModelBoxGeometryEngine.registerSource(sentinel, descriptor);
                 throw new AssertionError("S19 duplicate source registration was accepted");
             } catch (IllegalArgumentException expected) {
-                if (expected.getMessage() == null || !expected.getMessage().contains("Duplicate AdvancedModelBox source"))
+                if (expected.getMessage() == null || !expected.getMessage().contains("Duplicate AdvancedModelBox geometry source"))
                     throw new AssertionError("S19 duplicate registration failed for the wrong reason: " + expected, expected);
             }
             if (AdvancedModelBoxGeometryEngine.sources().size() != afterSentinel)
@@ -52,7 +52,7 @@ public final class S19SourceRegistryBudgetClientProof implements FabricClientGam
                 AdvancedModelBoxGeometryEngine.registerSource(overflow, descriptor);
                 throw new AssertionError("S19 source registry accepted N+1 entry beyond limit " + EXPECTED_LIMIT);
             } catch (IllegalArgumentException expected) {
-                if (expected.getMessage() == null || !expected.getMessage().contains("Too many AdvancedModelBox sources"))
+                if (expected.getMessage() == null || !expected.getMessage().contains("Too many AdvancedModelBox geometry sources"))
                     throw new AssertionError("S19 N+1 source failed for the wrong reason: " + expected, expected);
             }
             if (AdvancedModelBoxGeometryEngine.sources().size() != EXPECTED_LIMIT)
