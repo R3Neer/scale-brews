@@ -1,0 +1,61 @@
+name: s19-stable-ids-fix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-stable-ids-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: preserve source ids across scaleChildren compensation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java')
+          t=p.read_text()
+          t=t.replace('extractPart(root, null, false, 0);','extractPart(root, null, null, false, 0);')
+          old='''    private void extractPart(Object part, String parent, boolean structurallyHidden, int depth) {\n'''
+          new='''    private void extractPart(Object part, String sourceParent, String transformParent, boolean structurallyHidden, int depth) {\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          old='''        String id = parent == null ? name : parent + "/" + name;\n'''
+          new='''        String id = sourceParent == null ? name : sourceParent + "/" + name;\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          old='''        addPart(new ModelGeometry.Part(id, parent, ModelGeometry.values(local), sourcePose));\n'''
+          new='''        addPart(new ModelGeometry.Part(id, transformParent, ModelGeometry.values(local), sourcePose));\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          old='''        String childParent = id;\n'''
+          new='''        String childTransformParent = id;\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          old='''            childParent = id + "/unscaled_children";\n            requireId(childParent);\n            if (!partIds.add(childParent)) throw new IllegalArgumentException("Ambiguous AdvancedModelBox helper id " + childParent);\n            addPart(new ModelGeometry.Part(childParent, id, ModelGeometry.values(new Matrix4f().scaling(ix, iy, iz))));\n'''
+          new='''            childTransformParent = id + "/unscaled_children";\n            requireId(childTransformParent);\n            if (!partIds.add(childTransformParent))\n                throw new IllegalArgumentException("Ambiguous AdvancedModelBox helper id " + childTransformParent);\n            addPart(new ModelGeometry.Part(childTransformParent, id,\n                ModelGeometry.values(new Matrix4f().scaling(ix, iy, iz))));\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          old='''            extractPart(child, childParent, hidden, depth + 1);\n'''
+          new='''            // The helper is transform-only. Stable source ids continue to follow the boxName hierarchy.\n            extractPart(child, id, childTransformParent, hidden, depth + 1);\n'''
+          assert old in t
+          t=t.replace(old,new,1)
+          p.write_text(t)
+          PY
+          git diff --check
+          git config user.name 'ChatGPT Implementer'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java
+          git rm .github/workflows/s19-stable-ids-fix.yml
+          git commit -m 'fix(s19): keep source ids stable across child-scale compensation'
+          git pull --rebase origin chatgpt-editing
+          git push origin HEAD:chatgpt-editing
