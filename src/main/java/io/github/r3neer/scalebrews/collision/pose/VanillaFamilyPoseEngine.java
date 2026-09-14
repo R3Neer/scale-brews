@@ -151,6 +151,13 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     private static String name(ModelGeometry.Part p) { return p.id().substring(p.id().lastIndexOf('/') + 1); }
     private static void putRest(Map<String, Matrix4f> out, ModelGeometry.Part p) { out.put(p.id(), ModelGeometry.matrix(p.transform())); }
     private static void put(Map<String, Matrix4f> out, ModelGeometry.Part p, float dx, float dy, float dz, float x, float y, float z) {
+        var source = p.sourcePose();
+        if (source != null) {
+            out.put(p.id(), new Matrix4f().translation(
+                    source.x() / 16f + dx / 16f, source.y() / 16f + dy / 16f, source.z() / 16f + dz / 16f)
+                .rotateZYX(z, y, x).scale(source.xScale(), source.yScale(), source.zScale()));
+            return;
+        }
         Matrix4f rest = ModelGeometry.matrix(p.transform());
         Vector3f translation = rest.getTranslation(new Vector3f()), scale = rest.getScale(new Vector3f());
         out.put(p.id(), new Matrix4f().translation(translation.x + dx / 16, translation.y + dy / 16, translation.z + dz / 16)
