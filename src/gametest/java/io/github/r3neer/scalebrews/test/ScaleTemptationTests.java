@@ -68,9 +68,9 @@ public class ScaleTemptationTests {
         var player = h.makeMockPlayer(GameType.SURVIVAL);
         var chicken = h.spawn(EntityTypes.CHICKEN, 1, 2, 1);
         player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.STICK));
-        h.assertFalse(accepts(chicken, player), "Direct-control default chicken does not follow stick");
+        h.assertFalse(accepts(chicken, player), "Direct-family default chicken does not follow stick");
         try (var ignored = new TinyDefinitionTestScope(definition("chicken", "minecraft:stick", true))) {
-            h.assertTrue(accepts(chicken, player), "New item-steered JSON extends existing native goal");
+            h.assertTrue(accepts(chicken, player), "New item-steered family JSON extends existing native goal");
             var goals = ((TestMobGoalsAccess)chicken).scalebrews$goals();
             int count = goals.getAvailableGoals().size();
             TinyMountTemptation.install(chicken, goals);
@@ -98,7 +98,8 @@ public class ScaleTemptationTests {
     }
 
     private static String definition(String entity, String item, boolean enabled) {
-        return "{\"entity\":\"minecraft:" + entity + "\",\"control\":\"item_steered\",\"movement\":\"ground\","
-            + "\"speed\":0.18,\"saddle\":false,\"steering_item\":\"" + item + "\",\"enabled\":" + enabled + "}";
+        return "{\"entity\":\"minecraft:" + entity + "\",\"family\":\"item_steered\",\"movement\":\"ground\","
+            + "\"speed\":0.18,\"steering_item\":\"" + item + "\",\"enabled\":" + enabled + ","
+            + "\"saddle_visual\":{\"texture\":\"scalebrews:textures/entity/saddle/bee.png\",\"anchor\":\"body\"}}";
     }
 }

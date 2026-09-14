@@ -17,11 +17,14 @@
       "io.github.r3neer.scalebrews.test.ImpactSurfaceTests",
       "io.github.r3neer.scalebrews.test.ScaleReachTests",
       "io.github.r3neer.scalebrews.test.ScaleSizeTests",
+      "io.github.r3neer.scalebrews.test.ScaleGaitTests",
       "io.github.r3neer.scalebrews.test.PlatformPlacementTests",
       "io.github.r3neer.scalebrews.test.PlatformTests",
       "io.github.r3neer.scalebrews.test.ScaleBrewsTests",
       "io.github.r3neer.scalebrews.test.ScalePhysicsTests",
       "io.github.r3neer.scalebrews.test.ScaleMountTests",
+      "io.github.r3neer.scalebrews.test.TinyMountMenuTests",
+      "io.github.r3neer.scalebrews.test.TinyMountFamilyTests",
       "io.github.r3neer.scalebrews.test.GravityFrameTests",
       "io.github.r3neer.scalebrews.test.TinyMountGravityTests",
       "io.github.r3neer.scalebrews.test.ScaleEntityTests",
@@ -36,7 +39,8 @@
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
       "io.github.r3neer.scalebrews.test.WolfClientProof",
       "io.github.r3neer.scalebrews.test.PlatformClientProof",
-      "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests"
+      "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
+      "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance"
     ]
   }
 }

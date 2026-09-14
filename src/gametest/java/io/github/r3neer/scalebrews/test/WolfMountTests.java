@@ -39,6 +39,22 @@ public class WolfMountTests {
         h.assertTrue(TinyMounts.eligible(rider, wolf), "Wild wolf permits an uncontrolled taming attempt");
         h.succeed();
     }
+
+    @GameTest public void wolfTravelSpeedAndChargeTradeoff(GameTestHelper h) {
+        var wolf = h.spawn(EntityTypes.WOLF, 2, 2, 2);
+        var definition = TinyMounts.definition(wolf);
+        ScaleMountTests.near(h, definition.speed(), .2, "Wolf riding speed keeps horse travel niche");
+        h.assertTrue(Math.abs(WolfMount.chargeSpeedMultiplier(3) - 1) < .00001, "Tap attack never slows running");
+        float previous = 1;
+        for (int held = 4; held <= 10; held++) {
+            float multiplier = WolfMount.chargeSpeedMultiplier(held);
+            h.assertTrue(multiplier < previous, "Pounce charge slowdown is monotonic at " + held);
+            previous = multiplier;
+        }
+        h.assertTrue(Math.abs(WolfMount.chargeSpeedMultiplier(10) - .5) < .00001, "Full charge halves sustained speed");
+        wolf.discard(); h.succeed();
+    }
+
     @GameTest public void damageBetrayalAndCommandScope(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var rider = h.makeMockPlayer(GameType.SURVIVAL);
@@ -127,7 +143,6 @@ public class WolfMountTests {
         h.runAfterDelay(12,()->{
             h.assertFalse(wolf.swinging || wolf.isAggressive(),"Command pose expires even after dismount");
             var target=h.spawn(EntityTypes.COW,3,20,2);target.setNoAi(true);
-            // Bypass vanilla's 60-tick boarding cooldown to isolate pose ownership.
             h.assertTrue(rider.startRiding(wolf,true,false),"Remount for independent pose check");
             wolf.setAggressive(true);
             h.assertTrue(WolfMount.attack(wolf,rider,target),"Second command executes a real attack");

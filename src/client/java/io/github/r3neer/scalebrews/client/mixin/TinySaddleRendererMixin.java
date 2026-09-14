@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.client.mixin;
 
+import io.github.r3neer.scalebrews.client.render.MountPoseCaptureLayer;
+import io.github.r3neer.scalebrews.client.render.MountPoseState;
 import io.github.r3neer.scalebrews.client.render.SaddleState;
 import io.github.r3neer.scalebrews.client.render.TinySaddleLayer;
 import io.github.r3neer.scalebrews.mount.TinyMounts;
@@ -20,15 +22,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntityRenderer.class)
 public abstract class TinySaddleRendererMixin<S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
     @Shadow protected abstract boolean addLayer(RenderLayer<S, M> layer);
+
     @Inject(method = "<init>", at = @At("RETURN"))
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void scalebrews$layer(CallbackInfo ci) {
-        addLayer(new TinySaddleLayer<>((RenderLayerParent<S, M>)(Object)this));
+        var parent = (RenderLayerParent<S, M>)(Object)this;
+        addLayer(new MountPoseCaptureLayer((LivingEntityRenderer)(Object)this, parent));
+        addLayer(new TinySaddleLayer<>(parent));
     }
+
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("RETURN"))
     private void scalebrews$extract(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         var definition = TinyMounts.definition(entity);
-        ((SaddleState)state).scalebrews$saddle(definition != null && entity.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)
-            ? definition.saddleVisual().orElse(null) : null);
+        var saddle = (SaddleState) state;
+        saddle.scalebrews$saddlePose(null);
+        saddle.scalebrews$saddle(definition != null && entity.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)
+                ? definition.saddleVisual().orElse(null) : null);
+        var mount = (MountPoseState) state;
+        mount.scalebrews$entityId(entity.getId());
+        mount.scalebrews$hasPassengers(entity.isVehicle());
+        mount.scalebrews$mountAnchor(definition == null ? null : definition.saddleVisual().map(v -> v.anchor()).orElse(null));
     }
 }

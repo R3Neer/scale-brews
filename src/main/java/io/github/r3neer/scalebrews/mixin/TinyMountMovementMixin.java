@@ -2,9 +2,11 @@ package io.github.r3neer.scalebrews.mixin;
 
 import io.github.r3neer.scalebrews.mount.TinyMounts;
 import io.github.r3neer.scalebrews.mount.TinyMountDefinition;
+import io.github.r3neer.scalebrews.mount.WolfMount;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,11 +22,16 @@ public abstract class TinyMountMovementMixin {
         if ((Object)this instanceof Mob mob && TinyMounts.controller(mob) == player)
             cir.setReturnValue(TinyMounts.groundInput(player));
     }
+
     @Inject(method = "getRiddenSpeed", at = @At("HEAD"), cancellable = true)
     private void scalebrews$speed(Player player, CallbackInfoReturnable<Float> cir) {
-        if ((Object)this instanceof Mob mob && TinyMounts.controller(mob) == player)
-            cir.setReturnValue(TinyMounts.definition(mob).speed());
+        if ((Object)this instanceof Mob mob && TinyMounts.controller(mob) == player) {
+            float speed = TinyMounts.definition(mob).speed();
+            if (mob instanceof Wolf wolf) speed *= WolfMount.riddenSpeedMultiplier(wolf);
+            cir.setReturnValue(speed);
+        }
     }
+
     @Inject(method = "tickRidden", at = @At("HEAD"))
     private void scalebrews$orient(Player player, Vec3 input, CallbackInfo ci) {
         if ((Object)this instanceof Mob mob && TinyMounts.controller(mob) == player) {
@@ -36,10 +43,12 @@ public abstract class TinyMountMovementMixin {
             if (!mob.level().isClientSide()) mob.getNavigation().stop();
         }
     }
+
     @Inject(method = "jumpFromGround", at = @At("HEAD"), cancellable = true)
     private void scalebrews$noJump(CallbackInfo ci) {
         if ((Object)this instanceof Mob mob && TinyMounts.controller(mob) != null) ci.cancel();
     }
+
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     private void scalebrews$fly(Vec3 input, CallbackInfo ci) {
         if (!((Object)this instanceof Mob mob)) return;
