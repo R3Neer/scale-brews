@@ -6,6 +6,18 @@ Snapshot pre-implementación: **`b5ce86a54f8954afcb2d2f5eddff587f7a874720`**.
 
 Freeze common contract: **`9c8e93f2a0dfb7e91e1b348339de3c22bc5a2f8d`**.
 
+## Roles del sprint
+
+### IMPLEMENTADOR
+
+El implementador es dueño de **I1–I9** y de cualquier corrección productiva que aparezca después de un fallo adversarial correctamente clasificado. Puede añadir diagnostics/tests de desarrollo, pero no debe conocer ni programar contra holdouts todavía no revelados.
+
+### ADVERSARIO
+
+El adversario es dueño del modelo adversarial, los holdouts, la segunda lectura independiente, la verificación malformed/bounds/determinism, los proofs reales, las capturas visuales y cualquier tooling de test necesario. Puede implementar harnesses, programas paralelos, visualizadores, comparadores, fixture generators y workflows temporales, pero **no modifica producción** salvo reasignación explícita de rol.
+
+Para S19 se autoriza expresamente tooling de captura/comparación que cargue los jars fijados de Alex 2.1.9, materialice modelos reales y produzca overlays/snapshots/diffs de modelo original vs `ModelGeometry`. Si el tooling es temporal se elimina tras capturar evidencia durable; si resulta reusable puede quedarse aislado en `tools/`, fuentes de test o infraestructura CI.
+
 ## Tesis
 
 Al terminar S19, `AdvancedModelBox` será una familia `GeometryEngine` real y reutilizable, identificada en common pero preparada sólo desde tooling/cliente, sin lógica productiva por especie y con geometría estrictamente validada. La misma familia deberá exportar y reproducir la geometría original de **Grizzly Bear** y **Gazelle** de Alex's Mobs Continued **2.1.9** mediante el mismo engine, sin convertir Alex/Citadel en dependencia obligatoria del core.
@@ -143,7 +155,7 @@ Gazelle debe demostrar además que una primitiva render-only plana no se convier
 
 Grizzly conserva además el oracle histórico de pose como regresión, pero esa comparación no convierte la pose en alcance de S19.
 
-## Plan convergido
+## Plan convergido — IMPLEMENTADOR
 
 - [ ] **I1** Añadir `scalebrews:advanced_model_box` a `BuiltInGeometryEngines` con dispatcher common server-safe y seam de instalación client/tooling, sin clases externas en constant pool common.
 - [ ] **I2** Crear `AdvancedModelBoxGeometryEngine` client/tooling con registry de fuentes acotado, determinista, repeat-safe y sin selección por especie.
@@ -157,7 +169,9 @@ Grizzly conserva además el oracle histórico de pose como regresión, pero esa 
 - [ ] **I10** Ejecutar ordinary sin Alex + focal common/dedicated + client original Grizzly/Gazelle + malformed/bounds/determinism holdouts.
 - [ ] **I11** Segunda lectura completa hasta cero cambios productivos; actualizar sprint/VALIDATION. G3 tarea 5 permanece abierta para el sprint de pose Citadel.
 
-## Modelo adversarial previo
+`I10` e `I11` son de cierre compartido, pero la aceptación independiente y la pasada cero-production-change pertenecen al adversario. Si esa pasada encuentra un bug productivo, vuelve al implementador.
+
+## Modelo adversarial previo — ADVERSARIO
 
 ### Ownership / classloading
 
@@ -231,7 +245,34 @@ El proof de aceptación compara contra modelo/renderer original exacto y debe de
 - no cambia protocolo ni schema por introducir sólo una nueva familia de GeometryEngine;
 - solver no recibe imports ni branches Citadel/Alex.
 
-## Holdouts reservados
+## Tooling adversarial recomendado — ADVERSARIO
+
+S19 es un caso donde una suite puramente textual puede ocultar errores de frame, jerarquía o transform. El adversario puede crear un harness de visualización/captura que:
+
+- cargue exactamente los jars fijados por `tools/s19-external-inputs.lock.json`;
+- materialice Grizzly y Gazelle originales y el `ModelGeometry` preparado por el engine;
+- renderice modelo fuente y colliders/pieces con colores o wireframes distintos;
+- permita vista original, overlay y diff;
+- exporte PNGs/contact sheets y un manifest reproducible con model id, versión/hash de inputs, camera/projection, tick/pose, `modelTransform`, filtros y hash del output;
+- pueda ejecutarse localmente o en CI sin convertirse en dependencia ordinaria del mod.
+
+También está permitido construir herramientas separadas para hierarchy dumps (`parts()`/`getAllParts()`/`childModels`), comparación de transforms o fixtures malformed si eso produce un oracle más fuerte que reflexión ad hoc dentro de un único test.
+
+## Sitios recomendados para snapshots visuales — ADVERSARIO
+
+Estos snapshots **no añaden requisitos**: son observables recomendados para propiedades ya congeladas. Deben acompañar, no sustituir, los asserts semánticos aplicables.
+
+1. **Grizzly reference vs collision overlay.** Pose canónica y al menos dos vistas útiles (por ejemplo tres cuartos + lateral) mostrando cubos separados, pivots/huecos y alineación tras `modelTransform`.
+2. **Gazelle reference vs collision overlay.** Mismas condiciones deterministas y foco explícito en cuerpo/cuello/cabeza/patas/cola. La cola plana debe verse en el renderer original mientras el overlay físico demuestra que no existe un collider artificial para esa primitiva.
+3. **`scaleChildren=false`.** Fixture o parte real donde un parent escalado tenga descendientes. Capturar referencia y resultado preparado para detectar el bug clásico «el hijo hereda la escala del padre» aunque las AABB agregadas sigan pareciendo razonables.
+4. **Transform por fuente.** Captura pareada que demuestre el `0.8` del renderer de Gazelle sin contaminar Grizzly con la misma escala. Idealmente overlay de referencia/candidato con cámara idéntica.
+5. **Filtro parent/child.** Visualizador de piezas coloreadas antes/después de excluir un parent, demostrando que un descendiente físico no coincidente sigue presente. Este caso puede ser snapshot del debug geometry aunque el renderer original no permita expresar la selección declarativa directamente.
+6. **`hat`/`microphone` de Grizzly.** Comparación de geometría base completa frente a selección filtrada para demostrar que el filtro no destruye la exportación canónica.
+7. **Pose/regresión histórica Grizzly.** Para unas pocas muestras representativas de las 80 comparaciones, generar contact sheet original vs geometría evaluada. No hace falta snapshot de los 80 ticks si los asserts cubren toda la serie; los snapshots se usan para detectar desalineaciones visuales que el agregado no hace obvias.
+
+Las capturas deben fijar cámara, tick/pose, partial tick, escala y transforms. Si una comparación puede automatizarse con overlay/diff, se prefiere a una inspección manual aislada. Los artifacts grandes se guardan como artifacts de CI salvo que exista una razón clara para convertirlos en fixtures versionados.
+
+## Holdouts reservados — ADVERSARIO
 
 Antes de implementación se reservarán escenarios concretos para no programar contra la lista visible. Las propiedades reservadas son:
 
@@ -252,9 +293,10 @@ Los casos concretos se revelan después de leer la implementación. No se añadi
 | constant pool common sin cliente/Alex/Citadel | common/static + dedicated | verde |
 | malformed/cycles/physical-degenerate/render-only/N/N+1 | common/client fixture según seam | clasificación/rechazo exactos |
 | determinismo y orden de registro | client/tooling | bytes/ModelGeometry equivalentes |
-| Grizzly 2.1.9 engine geometry vs original | real client | paridad |
-| Gazelle 2.1.9 mismo engine vs original | real client | paridad + plano render-only sin collider artificial |
-| filtro parent/child y hat/microphone | GameTest/client | selección declarativa correcta |
+| Grizzly 2.1.9 engine geometry vs original | real client + snapshots/overlay útiles | paridad semántica + alineación visual |
+| Gazelle 2.1.9 mismo engine vs original | real client + snapshots/overlay útiles | paridad + plano render-only visible sin collider artificial |
+| `scaleChildren` / transform por fuente | client/tooling + snapshot diferencial | paridad espacial con renderer fijado |
+| filtro parent/child y hat/microphone | GameTest/client + debug snapshot cuando ayude | selección declarativa correcta |
 | build ordinario sin jars externos | ordinary CI | suite completa verde |
 | catálogo/binding fail-closed | common/dedicated | conserva snapshot aceptado |
 | revisión final | diff/revisión manual adversarial | cero cambio productivo |
@@ -271,4 +313,6 @@ S19 sólo cierra si:
 6. common/dedicated no cargan clases cliente/Alex/Citadel y el build ordinario no necesita esos jars;
 7. inputs externos de aceptación quedan versionados/hasheados/reproducibles;
 8. ordinary + focal + real-client externo están verdes;
-9. una segunda pasada adversarial produce cero cambios de producción.
+9. snapshots/tooling visual se ejecutaron en los puntos donde aportaban observabilidad material y sus artifacts/parámetros quedaron reproducibles;
+10. tooling temporal quedó retirado o tooling reusable quedó aislado/justificado;
+11. una segunda pasada adversarial independiente produce cero cambios de producción.
