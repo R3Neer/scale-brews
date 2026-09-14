@@ -158,6 +158,14 @@ La referencia adversarial también debe ser reproducible:
 
 Un oracle que cambia de opinión según el orden de un `HashMap` sería una contribución muy fiel al ecosistema Java, pero poco útil como evidencia.
 
+## Frontera geometry/pose: `offsetX/Y/Z`
+
+Una inspección temporal adicional del `AdvancedModelBox` del jar Alex 2.1.9 fijado buscó todas las referencias bytecode a `offsetX`, `offsetY` y `offsetZ`. Evidencia: run `34837027943`, job `103953065183`, artifact `10343927810`, SHA-256 `08b22ee90efa6f66b3f4171be06b3047df212da3675d433aa0e3c587f26567ed`. La workflow fue retirada después de capturar el artifact.
+
+Los únicos accesos observados a esos tres fields están dentro de `transitionTo(AdvancedModelBox, float, float)`, donde se interpolan junto con `rotateAngle*` y `rotationPoint*`. No aparecen en `translateAndRotate(PoseStack)`, `render(...)` ni `doRender(...)`.
+
+Consecuencia: para el dialecto exacto fijado, `offsetX/Y/Z` no forman parte del transform espacial usado por el renderer canónico de la geometría. Son estado auxiliar de transición/pose y no deben añadirse por duplicado al extractor S19. Si el futuro sprint de pose Citadel decide modelar `transitionTo`, esa semántica pertenece a aquella autoridad de pose, no a la geometría base de S19.
+
 ## Checklist de aceptación post-implementación
 
 Cuando exista producción, la segunda lectura decidirá qué harness concreto materializa estas capas. Como mínimo, la evidencia de Grizzly/Gazelle debe poder responder de forma independiente:
