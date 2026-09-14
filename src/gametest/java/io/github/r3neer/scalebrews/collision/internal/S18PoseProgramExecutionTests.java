@@ -101,6 +101,31 @@ public final class S18PoseProgramExecutionTests {
         h.succeed();
     }
 
+    @GameTest
+    public void validRuntimeTrackAccumulationMayExceedStoredVectorBound(GameTestHelper h) {
+        var zero = new PoseProgram.Vector(0,0,0);
+        var fortyThousand = new PoseProgram.Vector(40_000,0,0);
+        var track = new PoseProgram.Track("root", PoseProgram.Target.TRANSLATION, List.of(
+            new PoseProgram.Keyframe(0,zero,zero,PoseProgram.Interpolation.LINEAR),
+            new PoseProgram.Keyframe(1,fortyThousand,fortyThousand,PoseProgram.Interpolation.LINEAR)));
+        var accumulated = new PoseProgram(PoseProgram.SCHEMA_VERSION,"proof:runtime-accumulation","26.2",1f,false,
+            List.of(track, track));
+
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(accumulated) : Optional.empty();
+        var parameters = Map.of("program",PROGRAM.toString(),"clock","channel:time","clock_scale","1","amplitude","one");
+        var bound = engine.bind(geometry(), parameters, Set.of(), resources).orElseThrow();
+        var inputs = new PoseEngine.Inputs(0,0,0,0,0,true,Map.of("time",1f));
+
+        var result = bound.evaluate(inputs);
+        h.assertTrue(result.isPresent(),
+            "Two individually valid tracks may accumulate beyond the serialized per-vector bound; runtime accumulation must not reconstruct the bounded wire DTO");
+        float x = translationX(result.orElseThrow().get("root"));
+        h.assertTrue(Math.abs(x - 5_000f) < 1e-3f,
+            "Mojang applies both POSITION channels additively: 40000 + 40000 pixels must produce a finite 5000-block local translation");
+        h.succeed();
+    }
+
     private static ModelGeometry geometry() {
         var sourcePose = new ModelGeometry.SourcePose(0,0,0,0,0,0,1,1,1);
         return new ModelGeometry(1,"proof:s18","26.2",
