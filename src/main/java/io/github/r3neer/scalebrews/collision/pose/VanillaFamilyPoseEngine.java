@@ -115,18 +115,62 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     }
 
     private static void equine(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
-        if (!required(in, "tail")) return;
-        float speed = in.walkAmount(), pos = in.walkPhase(), pitch = in.headPitch() * Mth.DEG_TO_RAD;
-        if (speed > .2f) pitch += Mth.cos(pos * .8f) * .15f * speed;
-        float leg = Mth.cos(pos * .6662f + (float)Math.PI), swing = leg * .8f * speed;
-        for (var p : g.parts()) switch (name(p)) {
-            case "head_parts" -> put(out, p, 0, 0, 0, (float)Math.PI / 6 + pitch, Mth.clamp(in.headYaw(), -20, 20) * Mth.DEG_TO_RAD, 0);
-            case "left_hind_leg" -> put(out, p, 0, 0, 0, -leg * .5f * speed, 0, 0);
-            case "right_hind_leg" -> put(out, p, 0, 0, 0, leg * .5f * speed, 0, 0);
-            case "left_front_leg" -> put(out, p, 0, 0, 0, swing, 0, 0);
-            case "right_front_leg" -> put(out, p, 0, 0, 0, -swing, 0, 0);
-            case "tail" -> put(out, p, 0, speed, speed * 2, (float)Math.PI / 6 + speed * .75f,
-                in.flag("tail") ? Mth.cos(in.age() * .7f) : 0, 0);
+        if (!required(in, "eat", "stand", "mouth", "tail", "water")) return;
+        float animationSpeed = in.walkAmount();
+        float animationPos = in.walkPhase();
+        float clampedYRot = Mth.clamp(in.headYaw(), -20f, 20f);
+        float headRotXRad = in.headPitch() * Mth.DEG_TO_RAD;
+        if (animationSpeed > .2f) headRotXRad += Mth.cos(animationPos * .8f) * .15f * animationSpeed;
+
+        float eating = in.channel("eat", 0);
+        float standing = in.channel("stand", 0);
+        float iStanding = 1f - standing;
+        float feeding = in.channel("mouth", 0);
+        float waterMultiplier = in.flag("water") ? .2f : 1f;
+        float legAnim1 = Mth.cos(waterMultiplier * animationPos * .6662f + (float)Math.PI);
+        float legXRotAnim = legAnim1 * .8f * animationSpeed;
+        float baseHeadAngle = (1f - Math.max(standing, eating))
+            * ((float)Math.PI / 6f + headRotXRad + feeding * Mth.sin(in.age()) * .05f);
+        float headX = standing * ((float)Math.PI / 12f + headRotXRad)
+            + eating * (2.1816616f + Mth.sin(in.age()) * .05f) + baseHeadAngle;
+        float headY = standing * clampedYRot * Mth.DEG_TO_RAD
+            + (1f - Math.max(standing, eating)) * clampedYRot * Mth.DEG_TO_RAD;
+        float headDy = Mth.lerp(eating, Mth.lerp(standing, 0f, -8f), 7f);
+        float standAngle = (float)Math.PI / 12f * standing;
+        float bobValue = Mth.cos(in.age() * .6f + (float)Math.PI);
+        float rightFrontX = (-(float)Math.PI / 3f + bobValue) * standing + legXRotAnim * iStanding;
+        float leftFrontX = (-(float)Math.PI / 3f - bobValue) * standing - legXRotAnim * iStanding;
+        float leftHindX = standAngle - legAnim1 * .5f * animationSpeed * iStanding;
+        float rightHindX = standAngle + legAnim1 * .5f * animationSpeed * iStanding;
+        float ageScale = in.channel("age_scale", 1f);
+
+        for (var p : g.parts()) {
+            var source = p.sourcePose();
+            switch (name(p)) {
+                case "body" -> {
+                    float restX = source == null ? 0f : source.xRot();
+                    put(out, p, 0, 0, 0, standing * (float)(-Math.PI / 4) + iStanding * restX,
+                        source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                }
+                case "head_parts" -> {
+                    float sourceZ = source == null ? -12f : source.z();
+                    float desiredZ = Mth.lerp(standing, sourceZ, -4f);
+                    put(out, p, 0, headDy, desiredZ - sourceZ, headX, headY,
+                        source == null ? 0f : source.zRot());
+                }
+                case "left_hind_leg" -> put(out, p, 0, 0, 0, leftHindX,
+                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                case "right_hind_leg" -> put(out, p, 0, 0, 0, rightHindX,
+                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                case "left_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, leftFrontX,
+                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                case "right_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, rightFrontX,
+                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                case "tail" -> put(out, p, 0, animationSpeed * ageScale, animationSpeed * 2f * ageScale,
+                    (float)Math.PI / 6f + animationSpeed * .75f,
+                    in.flag("tail") ? Mth.cos(in.age() * .7f) : 0f,
+                    source == null ? 0f : source.zRot());
+            }
         }
     }
 
