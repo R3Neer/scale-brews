@@ -10,6 +10,8 @@ El término **anatomía** significa la geometría por piezas que representa el c
 
 El sistema objetivo sustituye el antiguo motor de `living platforms` y es la única física compartida que puede consumir Clinging Reoriented. Tiny Mounts y las relaciones vanilla de pasajero son sistemas distintos.
 
+La ruta general de interacción actor→entidad tampoco pertenece a este subsistema. Cuando el objetivo no califica como moving platform/soporte material para ese actor, la interacción vigente de Minecraft + las extensiones intencionales de `main` siguen siendo autoritativas; entity collisions sólo puede sustituir la física de una relación que haya sido realmente clasificada y gestionada como soporte.
+
 ### 1.1 Convenciones normativas
 
 - **DEBE / NO DEBE**: requisito obligatorio.
@@ -99,7 +101,7 @@ El sistema objetivo sustituye el antiguo motor de `living platforms` y es la ún
 | FR-047 | El solver DEBE conservar un contacto tangencial previo si sigue siendo materialmente válido aunque el movimiento actual no genere un nuevo hit. | Caminar paralelamente sobre una pieza no parpadea contacto. |
 | FR-048 | El solver DEBE manejar múltiples candidatos/contactos con orden determinista y seleccionar una solución estable, no depender del orden de hash/entidades. | Repetición con orden de registro invertido produce mismo resultado. |
 | FR-049 | La colisión DEBE ser continua frente al intervalo material del soporte: traslación, yaw, escala y animación de joints no pueden reducirse a dos endpoints si eso permite tunneling. | Obstáculo/contacto intermedio que no existe en endpoints es detectado. |
-| FR-050 | Los movimientos materiales ocurridos entre dos instantes de autoridad DEBEN consumirse una única vez y en orden causal. | Repetición/replay de intervalo no mueve el cuerpo de nuevo. |
+| FR-050 | Los movimientos materiales ocurridos entre dos instantes de autoridad DEBEN consumirse una única vez y en orden causal. | Repetición/replay de intervalo no mueve al cuerpo de nuevo. |
 | FR-051 | Varias contribuciones materiales genuinas dentro de un mismo tick DEBEN poder agregarse sin colapsarlas ni duplicarlas. | Root move + joint change + soporte base producen el delta esperado una vez cada uno. |
 | FR-052 | El solver DEBE intentar separación inicial/recovery acotada; si no puede separar con seguridad, DEBE suspender sólo la pareja problemática y liberar su contacto. | Solapamiento irresoluble no desactiva otras entidades ni teletransporta el cuerpo. |
 | FR-053 | La supresión de `canCollideWith`/push DEBE limitarse a la pareja soporte-cuerpo y al periodo en que el core anatómico la sustituye. | Terceras entidades siguen empujando/colisionando vanilla. |
@@ -177,6 +179,7 @@ El sistema objetivo sustituye el antiguo motor de `living platforms` y es la ún
 | FR-090 | Camello sentado y gato sentado/tumbado DEBEN quedar sin collider mientras esas poses no estén verificadas. | Tests específicos de entrada/salida. |
 | FR-091 | Entidades multipartes/bosses con física incompatible, incluido Ender Dragon mientras no exista diseño específico, DEBEN quedar EXCLUDED en lugar de hacks AABB. | Coverage report explica exclusión y query devuelve vacío. |
 | FR-092 | Happy Ghast DEBE conservar su plataforma/mecánica vanilla nativa; la política de Scale no debe reemplazarla. | Con Scale activo/desactivado se conserva comportamiento vanilla. |
+| FR-093 | Para una pareja actor→objetivo, si el objetivo es suficientemente pequeño respecto al actor para quedar fuera de la elegibilidad cuerpo/soporte vigente y además NO califica como moving platform/soporte material conforme a policy y estado, el subsistema DEBE preservar íntegra la ruta de interacción de entidad vigente en Minecraft/`main`; NO PUEDE cancelar, consumir, redirigir ni duplicar Use/Attack, feeding/taming, sitting, equipamiento, Tiny Mount gestures/menus, reach u otros hooks mainline. Tener geometría anatómica preparada o un binding no convierte por sí solo al objetivo en moving platform. | Tests a ambos lados del ratio/policy verifican que la pareja pequeña/no-plataforma conserva exactamente interacción mainline y que una pareja platform sólo sustituye la física/contacto explícitamente gestionada, sin doble owner de interacción. |
 
 ## 3. Requisitos no funcionales
 
@@ -241,7 +244,7 @@ El sistema objetivo sustituye el antiguo motor de `living platforms` y es la ún
 
 | ID | Requisito no funcional | Criterio mínimo de aceptación |
 | --- | --- | --- |
-| NFR-033 | Activar el subsistema NO DEBE alterar colisión/pathfinding global, combate, interacción o física de entidades que no participan en un contacto gestionado. | Comparativas vanilla/feature para terceros y entidades fuera de policy. |
+| NFR-033 | Activar el subsistema NO DEBE alterar colisión/pathfinding global, combate, interacción o física de entidades que no participan en un contacto gestionado. La interacción mainline queda además protegida por FR-093 cuando la pareja no entra en régimen moving-platform. | Comparativas vanilla/feature para terceros y entidades fuera de policy, incluido Use/Attack/equipamiento/Tiny Mount UX a ambos lados de la frontera de elegibilidad. |
 | NFR-034 | Debe conservar compatibilidad con SCALE efectivo externo y con Gravity Changer mediante adapters, sin convertir esos mods en dependencia obligatoria del core. | Tests con y sin cada mod cargado. |
 | NFR-035 | La migración del sistema antiguo DEBE eliminar el motor físico legacy cuando la nueva ruta lo sustituya; sólo puede sobrevivir un adapter de datos legacy explícito si tiene requisito vigente. | Búsqueda de hooks/carry legacy tras gate de migración muestra cero segunda ruta. |
 | NFR-036 | Datos/resources desconocidos o de versiones no validadas NO DEBEN producir una afirmación automática de compatibilidad. | Coverage queda UNRESOLVED/SAFE_PARTIAL hasta regeneración/prueba. |
