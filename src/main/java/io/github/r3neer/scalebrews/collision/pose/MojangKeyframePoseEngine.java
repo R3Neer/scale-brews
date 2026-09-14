@@ -13,10 +13,11 @@ import org.joml.Matrix4f;
  * Common/dedicated evaluator for revision-bound neutral Mojang keyframe programs.
  *
  * <p>Bindings select a revision-local {@code program}, an explicit clock source and amplitude source.
- * {@code clock_scale} converts the selected clock into seconds; {@code walk_phase} additionally mirrors
- * Minecraft's millisecond truncation before sampling. {@code amplitude_scale} and {@code amplitude_max}
- * are optional post-selector transforms so callers can reproduce helpers such as {@code applyWalk}
- * without hiding source-specific formulas inside the generic {@code walk_amount} selector.</p>
+ * {@code clock_scale} converts the selected clock into seconds; Mojang clocks that cross the animation
+ * API through integer milliseconds ({@code age}/{@code walk_phase}) preserve those truncation points
+ * before sampling. {@code amplitude_scale} and {@code amplitude_max} are optional post-selector
+ * transforms so callers can reproduce helpers such as {@code applyWalk} without hiding source-specific
+ * formulas inside the generic {@code walk_amount} selector.</p>
  */
 public final class MojangKeyframePoseEngine implements PoseEngine {
     private static final Set<String> PARAMETERS = Set.of(
@@ -97,10 +98,20 @@ public final class MojangKeyframePoseEngine implements PoseEngine {
     private static Optional<Selector> clock(String text, float scale, Set<String> required) {
         return switch (text) {
             case "static" -> Optional.of(inputs -> 0);
-            case "age" -> Optional.of(inputs -> inputs.age() * .05f * scale);
+            case "age" -> Optional.of(inputs -> quantizedAgeSeconds(inputs.age(), scale));
             case "walk_phase" -> Optional.of(inputs -> quantizedWalkSeconds(inputs.walkPhase(), scale));
             default -> channelSelector(text, "channel:", scale, required);
         };
+    }
+
+    /**
+     * AnimationState first truncates age-derived ticks to milliseconds, then KeyframeAnimation
+     * truncates again after applying its speed factor.
+     */
+    private static float quantizedAgeSeconds(float ageInTicks, float speedFactor) {
+        long baseMillis = (long)(ageInTicks * 50.0f);
+        long scaledMillis = (long)((float)baseMillis * speedFactor);
+        return scaledMillis / 1000.0f;
     }
 
     /** Minecraft applyWalk truncates its phase-derived clock to integer milliseconds before sampling. */
