@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "purpose": "S19 exact external model-family proof inputs",
+  "minecraft": "26.2",
+  "inputs": [
+    {
+      "coordinate": "curse.maven:alexs-mobs-continued-1635121:8772801",
+      "modId": "alexsmobs",
+      "version": "2.1.9",
+      "curseForgeProjectId": 1635121,
+      "curseForgeFileId": 8772801,
+      "curseForgeFileName": "alexsmobs-2.1.9-fabric+26.2.jar",
+      "sha256": "b810e1b7ac925f1f1ba6a2a87e742e30b33fafad4d164ff64192f21f46f6154c",
+      "source": "https://www.curseforge.com/minecraft/mc-mods/alexs-mobs-continued/files/8772801"
+    },
+    {
+      "coordinate": "curse.maven:codxlib-1633207:8723545",
+      "modId": "codxlib",
+      "version": "1.5.1",
+      "curseForgeProjectId": 1633207,
+      "curseForgeFileId": 8723545,
+      "curseForgeFileName": "codxlib-1.5.1-fabric+26.2.jar",
+      "sha256": "2133472c9e504923c592709901d77092a09bcf645884968839479c8ee02c7acb",
+      "source": "https://www.curseforge.com/minecraft/mc-mods/codxlib/files/8723545"
+    },
+    {
+      "coordinate": "curse.maven:cloth-config-348521:8269699",
+      "modId": "cloth-config",
+      "version": "26.2.155",
+      "curseForgeProjectId": 348521,
+      "curseForgeFileId": 8269699,
+      "curseForgeFileName": "cloth-config-26.2.155.jar",
+      "sha256": "def4be7639cd66704f7e304d658ea0f6bf490fb4a6eaa2dbf18ec2c3999d6349",
+      "source": "https://www.curseforge.com/minecraft/mc-mods/cloth-config/files/8269699"
+    }
+  ]
+}

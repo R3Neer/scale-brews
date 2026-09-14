@@ -5,6 +5,7 @@ on:
     branches: [chatgpt-editing]
     paths:
       - '.github/workflows/s19-advanced-model-box-proof.yml'
+      - 'tools/s19-external-inputs.lock.json'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/catalog/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
@@ -63,39 +64,55 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: resolve pinned CurseMaven inputs
+      - name: validate lock and build isolated resolver
         shell: bash
         run: |
           set -euo pipefail
           probe="$RUNNER_TEMP/s19-external-inputs"
           mkdir -p "$probe"
-          cat > "$probe/settings.gradle" <<'EOF'
-          rootProject.name = 's19-external-inputs'
-          EOF
-          cat > "$probe/build.gradle" <<'EOF'
-          repositories {
-              maven {
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          if lock.get('schema') != 1 or lock.get('minecraft') != '26.2':
+              raise SystemExit('Unsupported S19 external input lock schema or Minecraft version')
+          inputs = lock.get('inputs')
+          if not isinstance(inputs, list) or len(inputs) != 3:
+              raise SystemExit('S19 external input lock must contain exactly three pinned proof inputs')
+          ids = [item.get('modId') for item in inputs]
+          if sorted(ids) != ['alexsmobs', 'cloth-config', 'codxlib'] or len(set(ids)) != len(ids):
+              raise SystemExit(f'Unexpected or duplicate S19 proof mod ids: {ids}')
+          coordinates = [item.get('coordinate') for item in inputs]
+          if len(set(coordinates)) != len(coordinates):
+              raise SystemExit('Duplicate CurseMaven coordinates in S19 lock')
+          for item in inputs:
+              sha = item.get('sha256', '')
+              if len(sha) != 64 or any(c not in '0123456789abcdef' for c in sha):
+                  raise SystemExit(f"Invalid SHA-256 in S19 lock for {item.get('modId')}")
+          deps = '\n'.join(f"    proofInputs '{item['coordinate']}'" for item in inputs)
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-external-inputs'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{
+              maven {{
                   url = 'https://cursemaven.com/'
-                  content { includeGroup 'curse.maven' }
-              }
-          }
-          configurations {
-              proofInputs {
+                  content {{ includeGroup 'curse.maven' }}
+              }}
+          }}
+          configurations {{
+              proofInputs {{
                   canBeConsumed = false
                   canBeResolved = true
                   transitive = false
-              }
-          }
-          dependencies {
-              proofInputs 'curse.maven:alexs-mobs-continued-1635121:8772801'
-              proofInputs 'curse.maven:codxlib-1633207:8723545'
-              proofInputs 'curse.maven:cloth-config-348521:8269699'
-          }
-          tasks.register('copyProofInputs', Copy) {
+              }}
+          }}
+          dependencies {{
+          {deps}
+          }}
+          tasks.register('copyProofInputs', Copy) {{
               from configurations.proofInputs
               into layout.buildDirectory.dir('proof-inputs')
-          }
-          EOF
+          }}
+          """)
+          PY
           ./gradlew -p "$probe" copyProofInputs --console=plain
           mkdir -p build/s19-external-inputs/mods
           cp "$probe"/build/proof-inputs/*.jar build/s19-external-inputs/mods/
@@ -103,38 +120,40 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dir=build/s19-external-inputs/mods
-          manifest=build/s19-external-inputs/manifest.txt
-          : > "$manifest"
-          verify() {
-              local file="$1" expected_sha="$2" expected_id="$3" expected_version="$4"
-              local actual_sha
-              actual_sha="$(sha256sum "$dir/$file" | awk '{print $1}')"
-              test "$actual_sha" = "$expected_sha" || {
-                  echo "SHA-256 mismatch for $file: expected $expected_sha, got $actual_sha" >&2
-                  exit 1
-              }
-              python3 - "$dir/$file" "$expected_id" "$expected_version" <<'PY'
-          import json, sys, zipfile
-          jar, expected_id, expected_version = sys.argv[1:]
-          with zipfile.ZipFile(jar) as z:
-              data = json.loads(z.read('fabric.mod.json'))
-          if data.get('id') != expected_id:
-              raise SystemExit(f"mod id mismatch for {jar}: {data.get('id')} != {expected_id}")
-          if str(data.get('version')) != expected_version:
-              raise SystemExit(f"mod version mismatch for {jar}: {data.get('version')} != {expected_version}")
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          lock_path = pathlib.Path('tools/s19-external-inputs.lock.json')
+          lock = json.loads(lock_path.read_text())
+          mods = pathlib.Path('build/s19-external-inputs/mods')
+          manifest = pathlib.Path('build/s19-external-inputs/manifest.txt')
+          lines = []
+          for item in lock['inputs']:
+              group, artifact, version = item['coordinate'].split(':')
+              if group != 'curse.maven':
+                  raise SystemExit(f"Unexpected Maven group in lock: {item['coordinate']}")
+              jar = mods / f'{artifact}-{version}.jar'
+              if not jar.is_file():
+                  raise SystemExit(f'Missing resolved proof input: {jar.name}')
+              actual_sha = hashlib.sha256(jar.read_bytes()).hexdigest()
+              if actual_sha != item['sha256']:
+                  raise SystemExit(f"SHA-256 mismatch for {jar.name}: expected {item['sha256']}, got {actual_sha}")
+              with zipfile.ZipFile(jar) as archive:
+                  metadata = json.loads(archive.read('fabric.mod.json'))
+              if metadata.get('id') != item['modId']:
+                  raise SystemExit(f"mod id mismatch for {jar.name}: {metadata.get('id')} != {item['modId']}")
+              if str(metadata.get('version')) != item['version']:
+                  raise SystemExit(f"mod version mismatch for {jar.name}: {metadata.get('version')} != {item['version']}")
+              lines.append('\t'.join((jar.name, item['modId'], item['version'], actual_sha)))
+          if len(list(mods.glob('*.jar'))) != len(lock['inputs']):
+              raise SystemExit('Resolver produced unpinned extra jars')
+          manifest.write_text('\n'.join(lines) + '\n')
+          print(manifest.read_text(), end='')
           PY
-              printf '%s\t%s\t%s\t%s\n' "$file" "$expected_id" "$expected_version" "$actual_sha" | tee -a "$manifest"
-          }
-          verify 'alexs-mobs-continued-1635121-8772801.jar' \
-              'b810e1b7ac925f1f1ba6a2a87e742e30b33fafad4d164ff64192f21f46f6154c' 'alexsmobs' '2.1.9'
-          verify 'codxlib-1633207-8723545.jar' \
-              '2133472c9e504923c592709901d77092a09bcf645884968839479c8ee02c7acb' 'codxlib' '1.5.1'
-          verify 'cloth-config-348521-8269699.jar' \
-              'def4be7639cd66704f7e304d658ea0f6bf490fb4a6eaa2dbf18ec2c3999d6349' 'cloth-config' '26.2.155'
       - name: capture pinned input evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: S19-external-input-contract
-          path: build/s19-external-inputs/manifest.txt
+          path: |
+            tools/s19-external-inputs.lock.json
+            build/s19-external-inputs/manifest.txt
