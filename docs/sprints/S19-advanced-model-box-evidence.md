@@ -34,8 +34,15 @@ Hallazgos relevantes:
 3. `BasicModelPart` posee `rotationPointX/Y/Z`, `rotateAngleX/Y/Z`, `showModel`, su propio `cubeList`/`childModels` y `translateRotate(PoseStack)`.
 4. `AdvancedEntityModel` expone `getAllParts()` como método abstracto de la familia, además de las primitivas procedurales Citadel. S19 sólo usa la parte geométrica.
 5. `ModelGrizzlyBear` expone muchas piezas como fields públicos, pero `ModelGazelle` declara sus piezas como fields privados. Ambos exponen `getAllParts()`.
+6. Existe **field hiding real** en la jerarquía. `AdvancedModelBox` declara `public ObjectList<TabulaModelRenderUtils.ModelBox> cubeList` y `public ObjectList<BasicModelPart> childModels`, mientras `BasicModelPart` declara otros campos distintos con los mismos nombres: `private final ObjectList<BasicModelPart.ModelBox> cubeList` y `private final ObjectList<BasicModelPart> childModels`.
 
-Consecuencia adversarial: una implementación que derive identidad/cobertura exclusivamente de `getFields()` o de visibilidad pública puede parecer correcta con Grizzly y fallar con Gazelle. La genericidad no se demuestra con un solo modelo favorable.
+Consecuencias adversariales:
+
+- una implementación que derive identidad/cobertura exclusivamente de `getFields()` o de visibilidad pública puede parecer correcta con Grizzly y fallar con Gazelle;
+- un resolver reflectivo genérico que busque `cubeList` o `childModels` por nombre atravesando la jerarquía sin fijar el dialecto/clase declaradora puede enlazar el campo homónimo equivocado; en `cubeList` incluso el tipo de elemento es distinto;
+- el contrato reflectivo del extractor debe validar la estructura exacta esperada de `AdvancedModelBox` y fallar cerrado ante un dialecto parcial o ambiguo, en lugar de mezclar accidentalmente las dos representaciones.
+
+La genericidad no se demuestra con un solo modelo favorable y la compatibilidad reflectiva no puede reducirse a «existe un field con este nombre».
 
 ## Primitiva plana exacta de Gazelle
 
