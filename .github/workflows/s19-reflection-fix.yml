@@ -1,0 +1,69 @@
+name: s19-reflection-fix
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-reflection-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: wrap reflective field access
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java')
+          t=p.read_text()
+          replacements={
+            'dialect.boxName.get(part)':'read(dialect.boxName, part, "boxName")',
+            'dialect.rotationPointX.get(part)':'read(dialect.rotationPointX, part, "rotationPointX")',
+            'dialect.rotationPointY.get(part)':'read(dialect.rotationPointY, part, "rotationPointY")',
+            'dialect.rotationPointZ.get(part)':'read(dialect.rotationPointZ, part, "rotationPointZ")',
+            'dialect.rotateAngleX.get(part)':'read(dialect.rotateAngleX, part, "rotateAngleX")',
+            'dialect.rotateAngleY.get(part)':'read(dialect.rotateAngleY, part, "rotateAngleY")',
+            'dialect.rotateAngleZ.get(part)':'read(dialect.rotateAngleZ, part, "rotateAngleZ")',
+            'dialect.scaleX.get(part)':'read(dialect.scaleX, part, "scaleX")',
+            'dialect.scaleY.get(part)':'read(dialect.scaleY, part, "scaleY")',
+            'dialect.scaleZ.get(part)':'read(dialect.scaleZ, part, "scaleZ")',
+            'dialect.showModel.get(part)':'read(dialect.showModel, part, "showModel")',
+            'dialect.cubeList.get(part)':'read(dialect.cubeList, part, "cubeList")',
+            'dialect.scaleChildren.get(part)':'read(dialect.scaleChildren, part, "scaleChildren")',
+            'dialect.childModels.get(part)':'read(dialect.childModels, part, "childModels")',
+            'dialect.posX1.get(cube)':'read(dialect.posX1, cube, "posX1")',
+            'dialect.posY1.get(cube)':'read(dialect.posY1, cube, "posY1")',
+            'dialect.posZ1.get(cube)':'read(dialect.posZ1, cube, "posZ1")',
+            'dialect.posX2.get(cube)':'read(dialect.posX2, cube, "posX2")',
+            'dialect.posY2.get(cube)':'read(dialect.posY2, cube, "posY2")',
+            'dialect.posZ2.get(cube)':'read(dialect.posZ2, cube, "posZ2")',
+            'dialect.quads.get(cube)':'read(dialect.quads, cube, "quads")',
+            'dialect.vertexPositions.get(quad)':'read(dialect.vertexPositions, quad, "vertexPositions")',
+            'dialect.position.get(vertex)':'read(dialect.position, vertex, "position")',
+          }
+          for old,new in replacements.items():
+              assert old in t, old
+              t=t.replace(old,new)
+          anchor='''    private static String string(Object value, String label) {\n'''
+          helper='''    private static Object read(Field field, Object owner, String label) {\n        try {\n            return field.get(owner);\n        } catch (IllegalAccessException failure) {\n            throw new IllegalArgumentException("Cannot read AdvancedModelBox " + label, failure);\n        }\n    }\n\n'''
+          assert helper not in t
+          assert anchor in t
+          t=t.replace(anchor,helper+anchor,1)
+          p.write_text(t)
+          PY
+          git diff --check
+          git config user.name 'ChatGPT Implementer'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java
+          git rm .github/workflows/s19-reflection-fix.yml
+          git commit -m 'fix(s19): fail closed on reflective field access'
+          git pull --rebase origin chatgpt-editing
+          git push origin HEAD:chatgpt-editing
