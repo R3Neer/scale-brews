@@ -10,6 +10,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -58,6 +59,16 @@ public final class S19HiddenHierarchyClientProof implements FabricClientGameTest
             for (var piece : bodyPieces) if (evaluated.containsKey(piece.id()))
                 throw new AssertionError("S19 hidden ancestor leaked descendant collider into evaluated anatomy: " + piece.id());
 
+            // Source renderer metadata is authoritative. A user include may override thickness/aspect/
+            // volume filtering, but it must never resurrect a piece that the source model itself hides.
+            var hiddenPiece = bodyPieces.getFirst();
+            var forcePiece = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.id()), Set.of());
+            if (geometry.evaluate(new Matrix4f(), Map.of(), forcePiece).containsKey(hiddenPiece.id()))
+                throw new AssertionError("S19 explicit piece include revived source_hidden collider: " + hiddenPiece.id());
+            var forcePart = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.part()), Set.of());
+            if (geometry.evaluate(new Matrix4f(), Map.of(), forcePart).containsKey(hiddenPiece.id()))
+                throw new AssertionError("S19 explicit part include revived source_hidden collider: " + hiddenPiece.id());
+
             Object oracleModel = freshHiddenBodyGrizzly();
             List<Vec3> rendered = renderVertices(oracleModel);
             for (var entry : evaluated.entrySet()) for (Vec3 vertex : entry.getValue().vertices()) {
@@ -68,7 +79,7 @@ public final class S19HiddenHierarchyClientProof implements FabricClientGameTest
 
             System.out.println("S19_HIDDEN_HIERARCHY PASS body=" + bodyId + " hiddenPieces=" + bodyPieces.size()
                 + " hiddenDescendantPieces=" + descendantPieces + " retainedPieces=" + evaluated.size()
-                + " renderVertices=" + rendered.size());
+                + " includeCannotRevive=true renderVertices=" + rendered.size());
         });
     }
 
