@@ -1,0 +1,88 @@
+name: s19-root-identity-probe
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-root-identity-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect-root-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve exact locked Alex jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-root-identity"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          alex = next(item for item in lock['inputs'] if item['modId'] == 'alexsmobs')
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-root-identity'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{ maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }} }}
+          configurations {{ proofInput {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{ proofInput '{alex['coordinate']}' }}
+          tasks.register('copyProofInput', Copy) {{ from configurations.proofInput; into layout.buildDirectory.dir('proof-input') }}
+          """)
+          pathlib.Path('build').mkdir(exist_ok=True)
+          pathlib.Path('build/s19-root-identity-expected.txt').write_text(alex['sha256'] + '\n')
+          PY
+          ./gradlew -p "$probe" copyProofInput --console=plain
+          jar="$(find "$probe/build/proof-input" -name '*.jar' -type f -print -quit)"
+          test -n "$jar"
+          test "$(sha256sum "$jar" | awk '{print $1}')" = "$(cat build/s19-root-identity-expected.txt)"
+          cp "$jar" build/s19-root-identity-alex.jar
+      - name: inspect roots all-parts and constructor naming
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s19-root-identity-probe
+          for cls in \
+            com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear \
+            com.github.alexthe666.alexsmobs.client.model.ModelGazelle; do
+            short="${cls##*.}"
+            javap -classpath build/s19-root-identity-alex.jar -p -c "$cls" > "build/s19-root-identity-probe/${short}.txt"
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          sigs=('public java.lang.Iterable<com.github.alexthe666.alexsmobs.citadel.client.model.basic.BasicModelPart> parts();',
+                'public java.lang.Iterable<com.github.alexthe666.alexsmobs.citadel.client.model.AdvancedModelBox> getAllParts();')
+          out=[]
+          for p in sorted(Path('build/s19-root-identity-probe').glob('Model*.txt')):
+              lines=p.read_text().splitlines()
+              out.append('=== '+p.stem+' ===')
+              for sig in sigs:
+                  try: start=next(i for i,l in enumerate(lines) if l.strip()==sig)
+                  except StopIteration:
+                      out.append('MISSING '+sig); continue
+                  end=len(lines)
+                  for j in range(start+1,len(lines)):
+                      if lines[j].startswith('  public ') or lines[j].startswith('  private ') or lines[j].startswith('  protected '):
+                          end=j; break
+                  out.append('\n'.join(lines[start:end]))
+              out.append('--- AdvancedModelBox constructor calls / string constants ---')
+              for i,l in enumerate(lines):
+                  if 'AdvancedModelBox."<init>"' in l:
+                      lo=max(0,i-10); hi=min(len(lines),i+2)
+                      out.append('\n'.join(lines[lo:hi]))
+          text='\n\n'.join(out)
+          Path('build/s19-root-identity-probe/summary.txt').write_text(text+'\n')
+          print(text)
+          PY
+      - name: capture root identity evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-root-identity-probe
+          path: build/s19-root-identity-probe/
