@@ -35,6 +35,27 @@ Snapshot congelado: **`b39d6a1aab61eb4852ce302072ef9717b910a8dc`**. Entre el bas
 
 **La diana adversarial queda congelada aquí.** No se añadirán nuevos requisitos pre-implementación por mera expansión de tests. Los siguientes cambios adversariales deben responder a producción S18 real o sustituir un oracle provisional por otro semánticamente más preciso sin endurecer el contrato. En particular, el holdout estructural que detecta una tercera tabla revision-local en `Snapshot` es provisional: cuando exista la API `PoseProgram`, deberá convertirse en una prueba semántica de ownership de programs, sin imponer la forma concreta del record.
 
+## Revisión adversarial post-implementación — 2026-09-14
+
+La implementación ya existe, pero **S18 permanece abierto** hasta obtener ordinary + focal + regresión verdes sobre el estado de cierre y completar la segunda lectura sin cambios productivos.
+
+Hallazgos causales cerrados hasta ahora:
+
+- **Ownership semántico:** el oracle provisional que contaba una tercera `Map` en `Snapshot` se sustituyó en **`f05c742467612f813222599e87df1a33c39b466b`** por una prueba de dos revisiones que demuestra contenido `posePrograms` distinto, persistencia del snapshot anterior e inmutabilidad. Ya no prescribe la forma del record.
+- **Duplicados de timestamp:** el mismo holdout expuso que `PoseProgram.Track` aceptaba dos keyframes con timestamp idéntico porque comparaba `< previous`. Producción se corrigió en **`1c2e4d503bc65e2c225a530fceeab520ea0253e7`** con validación estrictamente creciente (`<= previous` rechaza), sin más cambio productivo.
+- **Adapter legacy:** el primer run common post-implementación mostró un fallo del propio oracle al reflejar una clase lambda sintética bajo Java 25. Se corrigió sólo el test en **`960ddb32630e58f0acf804ba98caef62928f1f8c`** para invocar por la interfaz pública `PoseProvider`; no fue un defecto productivo.
+- **Semántica `preTarget/postTarget`:** la comparación contra `AnimationDefinition` original detectó en t=1.0 un resultado `0.175` donde Mojang da `0.0875`: el evaluator neutral devolvía `postTarget` exactamente en el keyframe en vez de `preTarget`. Producción se corrigió en **`49d828a12e9fec7d75c6b1d5ee1760ce6b7fbb7e`** distinguiendo instante exacto, tramo posterior y clamp final. En el focal **`34818424359`**, common job **`103894162131`** quedó **18/18 verde** y client job **`103894162350`** quedó verde contra la definición original, incluidos bordes, loop, Catmull-Rom, translation/rotation/scale, canales aditivos y fail-closed. Artifacts: common **`10337163876`**, SHA-256 **`098771b4944e68c1aacf6f6699df5589febae98dd58be3b97bfc4a625cb42cbe`**; client **`10336974137`**, SHA-256 **`ef501f209230699385fa36772a085080dfcc8e0c41f453fd6fb99c7ceb31dac1`**.
+- **IDs canónicos de programs:** `1fbf2d71341e69bce662bc989dca32eefc490894` canoniza IDs en snapshot y rechaza alias duplicados; `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` hace lo mismo antes de serializar/hash v5; `cace9620b9b7332dcc628e73c9ff423cb0afbeb2` añade el holdout de alias/atomicidad. La ruta de recepción sigue publicando `acceptedRevision` sólo después de `replaceAtRevision`, por lo que un candidato inválido no sustituye el accepted anterior.
+- **Bounds congelados:** `f0361263bcff9f96d6b9b75f20b92a5a0fa76e7a` añade N/N+1 para tracks, keyframes, número de programs y bytes v5. Son límites ya exigidos por el freeze, no requisitos nuevos.
+
+Deuda de cierre actualmente aislada:
+
+- El ordinary completo de **`ac50b5003dc3256cdef8ef89668ee5c0fb33b631`**, run **`34819068786`**, ejecuta **407 tests** en `Fabric Env=SERVER` y sólo falla `AnatomyGeometryTests.resourceReloadAndNetworkBundleRemainAtomic`: su `ResourceManager` de prueba devuelve el JSON legacy de perfil también para `scalebrews/pose_programs`, fabricando `test:scalebrews/pose_programs/body.json`. Producción lo rechaza correctamente como `PoseProgram` inválido. La fixture debe devolver vacío para `pose_programs`; **no** debe relajarse el parser productivo. Artifact del rojo: **`10338120008`**, SHA-256 **`05b135587fbcb451105664adf8a1a8bbe52c33c14347965b39d38edae6e1a8df`**.
+- El oracle legacy de S04 que fijaba protocolo v4 ya se migró a v5 en **`aa159393704887a47d68dfb20e039ba49f3c066e`**. En el ordinary anterior era el segundo rojo; en `34819068786` ya no falla.
+- Los nuevos holdouts de bounds aún requieren ejecución focal de cierre. Este cambio documental fuerza la lane S18 sin alterar producción.
+
+No se cierra I11/I12 ni la tarea G3.4 hasta eliminar la fixture obsoleta, obtener evidence verde actualizada y realizar la segunda lectura final.
+
 ## Estado inicial
 
 1. `PoseEngine` público existe y es SAM de `geometry + inputs + parameters`.
