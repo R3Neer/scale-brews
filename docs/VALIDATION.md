@@ -645,9 +645,9 @@ Final evidence:
 
 Observed original-model evidence includes cow **240 vertices / 10 pieces**, player wide/slim **288 vertices / 12 pieces** under the newer extraction, 80 animated comparisons per primary family and **640 additional vanilla-family comparisons**. The final adversarial pass required no S17 production change.
 
-## G3 / S18 vanilla PoseEngine + Mojang keyframe program — closure 2026-09-14
+## G3 / S18 vanilla PoseEngine + Mojang keyframe program — historical closure 2026-09-14
 
-S18 closed G3 task 4. Vanilla procedural families now have canonical `PoseEngine` ownership in `CollisionEngines.pose`; live authority/history/wire evaluation uses `PoseEngine.Inputs`; `PoseProviders` remains only as a read-only legacy adapter. `scalebrews:mojang_keyframes` evaluates revision-owned, common/server-safe `PoseProgram` data compiled from Mojang `AnimationDefinition` on the client/tooling side. Protocol v5 synchronizes **`{models, pose_programs, bindings}`** and preserves the S15 prepared-bundle and S16 atomic-rejection invariants.
+This was the first S18 closure and was later reopened by stronger original-source rest-transform oracles. At that historical point, vanilla procedural families had canonical `PoseEngine` ownership in `CollisionEngines.pose`; live authority/history/wire evaluation uses `PoseEngine.Inputs`; `PoseProviders` remains only as a read-only legacy adapter. `scalebrews:mojang_keyframes` evaluates revision-owned, common/server-safe `PoseProgram` data compiled from Mojang `AnimationDefinition` on the client/tooling side. Protocol v5 synchronizes **`{models, pose_programs, bindings}`** and preserves the S15 prepared-bundle and S16 atomic-rejection invariants.
 
 The post-implementation adversarial campaign found real defects rather than expanding requirements:
 
@@ -669,4 +669,36 @@ S16 regression was re-run on the exact final production commit `9ff92bb6f6bf9384
 
 The final second-read compare from `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` to checkpoint `22b1803784b7792163b881ae49254efaa2dd8c2c` changed only tests, documentation and CI; no `src/main` or `src/client` production file changed. Temporary helper workflows were removed before closure. Sprint documentation closed at `5dfec1b2f67e027bf7d91289f3aae37984bc4758`, and the canonical G3 plan marked task 4 closed in `509946f80ead5c0ce4d693ea2faa741f49ef9c43`.
 
-**S18 is closed. G3 remains open for tasks 5–12.**
+**Historical conclusion only:** this closure was later superseded by the retroactive reopening recorded below; its evidence remains valid for the coverage it actually exercised.
+
+
+## G3 / S18 retroactive reopening and final reclosure — 2026-09-14
+
+The historical S18 closure above was reopened after stronger client oracles proved that a local affine matrix is insufficient authority for Mojang animation semantics: distinct Euler representatives and signed/non-unit rest scales can be matrix-equivalent at rest yet diverge after `ModelPart.offsetRotation` / `offsetScale`. This was a real model-data gap, not a test-only disagreement.
+
+The repair campaign converged on exact neutral source fields plus native sequential application. `ModelGeometry.SourcePose` now preserves local position/Euler/scale fields; the keyframe evaluator applies tracks in source order from those fields; keyframe interval selection, `preTarget/postTarget`, Catmull-Rom edge control points, negative Java remainder, duplicate-target accumulation and finite runtime vectors match the original source semantics. Bindings also preserve `applyWalk` clock/amplitude transforms explicitly and the final production repair **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`** reproduces `AnimationState`'s age-clock integer-millisecond truncation rather than approximating it with continuous seconds.
+
+### Exact final campaign
+
+On production snapshot **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`**, GitHub Actions reported **17 workflow runs, all successful**, and a filtered query for failures returned **0 runs**.
+
+Focal run **`34876662857`** passed all six jobs:
+
+- `common-authority` — job **`104085426886`**;
+- `client-compiler-boundary` — job **`104085426627`**;
+- `client-euler-representative` — job **`104085426367`**;
+- `client-non-unit-rest-scale` — job **`104085426719`**;
+- `client-signed-rest-scale` — job **`104085426792`**;
+- `client-signed-scale-representative` — job **`104085426707`**.
+
+The same production snapshot also passed the isolated `applyWalk`, apply-walk clock quantization, duplicate-target order, Catmull first/right boundary, first-keyframe exact/boundary, single-keyframe, negative-loop, effective-channel-budget, vanilla/equine/bee procedural parity, implementer-regression and S16 catalog lanes. Ordinary build run **`34876662817`** was green as well.
+
+A later test-only commit, **`6a72c9f96bd4d19b1c1a02b0fa5a474cbb7fe884`**, permanently locks the age-clock double-truncation case. It changed no production and its ordinary build run **`34876732944`** completed successfully.
+
+### Final zero-change review
+
+The closing TM reread re-inspected the canonical registry/SAM, built-in procedural engines, legacy read-only adapter, `PoseProgram`, evaluator, exact `SourcePose` export, client compiler, revision-local catalog/program ownership, protocol-v5 bundle, authoritative tracker/history/payload, bound provider and runtime bridge. It identified **no further production change**.
+
+The compare from the last production change `3ff54a7...` to pre-documentation checkpoint **`4afcc19dcdb9c683125e874ec1e3f16894e7ebec`** contains only the S18 regression test plus documentation/CI work; there is no later `src/main` or `src/client` S18 modification. The transitional S16 execution bridge remains intentionally outside this closure's replacement scope: it already binds the canonical `PoseEngine.Bound`; generic root/lifecycle removal belongs to later G3 tasks.
+
+**Final conclusion:** S18 satisfies its 11 closure criteria and **G3 task 4 is closed again after the retroactive reopening**. G3 remains open for tasks 5–12, with task 5 / S19 as the next productive gate.

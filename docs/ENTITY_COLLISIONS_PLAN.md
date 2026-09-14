@@ -123,7 +123,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;
 2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;
 3. [x] consolidar `ModelPart` GeometryEngine;
-4. [ ] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
+4. [x] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
 5. [ ] convertir Citadel/Alex a engine/pose-program reusable;
 6. [ ] añadir `RootTransformProvider` genérico y fixture externo;
 7. [ ] mantener `DisplayRig` como SPI hasta target real;
@@ -139,9 +139,9 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S17 cerrado y revalidado retroactivamente:** G3 tarea 3 sigue cerrada. La auditoría `docs/sprints/RETRO-S00-S18-adversarial-observability-audit.md` demostró que el oracle original permitía omitir un cubo volumétrico real. Se añadió un oracle original-tree independiente y bidireccional más snapshots SVG; producción normal volvió a quedar verde y la misma mutación quedó muerta con `missing=[root/body/cube_0]`. No fue necesario cambiar producción S17.
 
-**S18 continúa ABIERTO en segunda lectura adversarial:** el cierre histórico quedó invalidado por la auditoría retroactiva, pero desde entonces la producción ha avanzado mucho más allá del primer fallo Euler. Ya se preserva `SourcePose` exacto y negociado, el evaluator reproduce selección/interpolación Mojang, pre/post targets, remainder negativo, orden secuencial de canales, runtime vectors sin reutilizar bounds wire, y los bindings pueden expresar transformaciones explícitas de clock/amplitude como `applyWalk`. La segunda lectura también obligó a endurecer captura autoritativa de estados (oveja, abeja, golem), fuentes permitidas, escala/rotaciones fuente y familias procedurales. El oracle canónico `S18VanillaProceduralSemanticClientTests` pasa **800 comparaciones original-source Minecraft 26.2** en run `34871991696`, job `104069894227`, artifact `10359732016`, SHA-256 `a36189425efdb29ba8d5f0d746676838dfcb16d9e65cbe80b008bf90f81305f8`. Esto demuestra una cobertura muy superior a la reapertura inicial, pero la tarea 4 permanece `[ ]` hasta que la pasada final TM produzca cero cambios de producción y queden verdes todas las lanes S18 relevantes sobre el mismo snapshot candidato.
+**S18 cerrado tras reapertura adversarial:** G3 tarea 4 queda completada. La reparación final conserva `SourcePose` exacto para representantes Euler/escalas con signo, reproduce la aplicación secuencial de targets y bordes Mojang, mantiene programs revision-local sin registry global, y expresa clocks/amplitudes autoritativos con las truncaciones de milisegundos de `applyWalk` y `AnimationState`. El último cambio productivo es `3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`. Sobre él, los **17 workflows** de la campaña final terminaron verdes y no existe ningún run fallido; la lane focal `34876662857` pasó common authority, compiler boundary, Euler representative, non-unit rest scale y ambos signed-scale holdouts. El regression test posterior `6a72c9f...` dejó también verde el build `34876732944`. La segunda lectura final no produjo cambios de producción y el compare hasta `4afcc19...` contiene sólo test/documentación/CI posteriores. Detalle completo en `docs/sprints/S18-vanilla-pose-keyframe-engine.md` y `VALIDATION.md`.
 
-**Prioridad G3 vigente:** tarea **4** sigue siendo el primer trabajo abierto hasta su cierre formal. S19/G3.5 puede acumular investigación/tooling adversarial que no dependa de la reparación, pero no debe cerrarse productivamente saltándose G3.4.
+**Prioridad G3 vigente:** tarea **5** es ahora el primer trabajo productivo abierto. S19/G3.5 deja de estar bloqueado por G3.4 y puede continuar con Citadel/Alex reusable; root/lifecycle siguen perteneciendo a sus tareas posteriores y no se arrastran artificialmente al cierre S18.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 

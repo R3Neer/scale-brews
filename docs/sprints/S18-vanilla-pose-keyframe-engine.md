@@ -1,6 +1,6 @@
 # S18 — Vanilla PoseEngine + Mojang keyframe program
 
-Estado: **REABIERTO / G3.4 PENDIENTE POR PARIDAD MOJANG**.
+Estado: **CERRADO / G3.4 COMPLETADO TRAS REAPERTURA ADVERSARIAL**.
 
 ## Tesis
 
@@ -72,9 +72,9 @@ Hallazgos de la reapertura:
 4. **Holdout post-fix de identidad Euler:** `S18EulerRepresentativeSemanticClientTests` demuestra que dos triples Euler distintos pueden colapsar a la misma matriz de reposo y, sin embargo, separarse después bajo el mismo `offsetRotation` aditivo de Mojang. La representación neutral actual sólo conserva la matriz y no puede distinguir ambos estados fuente.
 5. **Resultado aislado:** run `34839609532`. `common-authority`, `client-compiler-boundary` y `client-non-unit-rest-scale` verdes; `client-euler-representative` job `103961255753` rojo con `expected=0.510475 actual=0.69862896`. Artifact `10345492485`, SHA-256 `bbc9d485aa66de37a698858b4ba64a95c4a0386e720435a97fd2b6b379473eaa`.
 
-Clasificación TM actual: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**. El material neutral server-safe debe conservar información suficiente para reproducir la semántica aditiva de los fields `ModelPart` originales, sin clases cliente ni estado global. Este documento no prescribe si la solución concreta pertenece a geometry, program o material preparado; esa decisión vuelve a arquitectura/IMPLEMENTADOR.
+Clasificación TM en esa reapertura: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**. El material neutral server-safe debe conservar información suficiente para reproducir la semántica aditiva de los fields `ModelPart` originales, sin clases cliente ni estado global. Este documento no prescribe si la solución concreta pertenece a geometry, program o material preparado; esa decisión vuelve a arquitectura/IMPLEMENTADOR.
 
-Por tanto **G3.4 permanece abierto**. El cierre histórico no autoriza avanzar el estado global como si esta paridad estuviera resuelta, y S19/G3.5 no puede declararse cerrado por delante de esta dependencia.
+En ese punto **G3.4 quedó reabierto**. El cierre histórico no autorizaba avanzar el estado global como si esa paridad estuviera resuelta, y S19/G3.5 no podía declararse cerrado por delante de esta dependencia.
 
 ## Estado inicial
 
@@ -245,3 +245,26 @@ S18 sólo cierra si:
 9. procedural vanilla + una definición original quedan equivalentes **también para rest transforms cuya semántica no puede reconstruirse ambiguamente desde una matriz**;
 10. ordinary + common/dedicated + client compiler/original-source + holdouts verdes;
 11. segunda lectura final produce cero cambios de producción.
+
+
+## Cierre definitivo tras reapertura — 2026-09-14
+
+La reapertura retroactiva queda cerrada por causa, sin rebajar los oráculos. La solución final conserva en `ModelGeometry.SourcePose` los fields locales exactos de `ModelPart` que una matriz no puede representar de forma unívoca, incluidos representantes Euler y escalas con signo. `PoseProgramEvaluator` parte de esos fields y aplica los tracks secuencialmente con la semántica aditiva nativa de POSITION/ROTATION/SCALE, conservando `preTarget/postTarget`, límites de keyframe, Catmull-Rom con targets `post`, remainder Java para loop negativo y aritmética runtime no limitada por los bounds del DTO serializado.
+
+Los clocks/amplitudes son datos explícitos del binding. `applyWalk` conserva su truncación a milisegundos y su `min(animationSpeed * scaleFactor, 1)` mediante `clock_scale`, `amplitude_scale` y `amplitude_max`; el clock `age` reproduce además las dos truncaciones enteras de `AnimationState.getTimeInMillis(...)` y `KeyframeAnimation.apply(..., speedFactor)`. La segunda lectura también cerró estados procedurales que podían divergir del renderer original, entre ellos la transición residual de swim del player y el default adulto `age_scale=1` de equinos.
+
+### Candidato y evidencia final
+
+El último cambio de producción S18 es **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`** (`fix(s18): preserve AnimationState millisecond clock semantics`). Sobre ese snapshot se ejecutaron **17 workflows relacionados y 17 concluyeron `success`**; la consulta de runs con `status=failure` devolvió **0**.
+
+La lane focal **`34876662857`** quedó completamente verde en sus seis jobs: `common-authority`, `client-compiler-boundary`, `client-euler-representative`, `client-non-unit-rest-scale`, `client-signed-rest-scale` y `client-signed-scale-representative`. En el mismo snapshot también quedaron verdes las lanes aisladas de `applyWalk`, cuantización del clock, duplicate-target, límites Catmull/primer/single keyframe, negative loop, effective channel budget, paridad procedural vanilla/equina/abeja, regresiones del implementador, S16 y el `build` ordinario **`34876662817`**.
+
+El commit posterior **`6a72c9f96bd4d19b1c1a02b0fa5a474cbb7fe884`** añadió únicamente el regression test que fija la doble truncación de milisegundos del clock `age`; su build ordinario **`34876732944`** terminó `success`. No cambió producción.
+
+### Segunda lectura final / convergencia TM
+
+La pasada final revisó de nuevo `PoseEngine`/`CollisionEngines`, built-ins procedurales, adapter legacy, `PoseProgram`, evaluator, `SourcePose` y extracción `ModelPart`, compiler cliente, catálogo/program ownership, protocolo v5, tracker/history/payload, provider bound y runtime. No produjo ningún cambio bajo `src/main` ni `src/client`.
+
+Desde **`3ff54a7...`** hasta el checkpoint previo a este cierre documental **`4afcc19dcdb9c683125e874ec1e3f16894e7ebec`** sólo entraron el test S18 `6a72c9f...` y cambios de documentación/CI ajenos de G2. Por tanto el mismo producto que pasó la campaña verde sigue siendo el producto revisado al cerrar.
+
+**Resultado:** los criterios de cierre 1–11 quedan satisfechos. **S18 y G3.4 quedan cerrados.** El primer gate productivo abierto de G3 pasa a ser la tarea 5 / S19 (Citadel/Alex reusable), sin atribuir a S18 el trabajo posterior de root/lifecycle.
