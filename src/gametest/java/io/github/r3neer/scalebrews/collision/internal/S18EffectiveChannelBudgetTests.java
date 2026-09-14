@@ -20,39 +20,78 @@ public final class S18EffectiveChannelBudgetTests {
 
     @GameTest
     public void selectorChannelsCannotCreateAnUnrepresentableRequiredSet(GameTestHelper h) {
-        var required = new LinkedHashSet<String>();
-        var sixtyFour = new LinkedHashMap<String, Float>();
-        for (int i = 0; i < 64; i++) {
-            String name = "gate" + i;
-            required.add(name);
-            sixtyFour.put(name, 1f);
-        }
-
-        // Precondition: exactly 64 channels are representable, while the selector-added 65th is not.
-        new PoseEngine.Inputs(0, 0, 0, 0, 0, true, sixtyFour);
-        var sixtyFive = new LinkedHashMap<>(sixtyFour);
-        sixtyFive.put("clock", 1f);
-        boolean inputsReject65 = false;
-        try {
-            new PoseEngine.Inputs(0, 0, 0, 0, 0, true, sixtyFive);
-        } catch (IllegalArgumentException expected) {
-            inputsReject65 = true;
-        }
-        h.assertTrue(inputsReject65,
-            "Precondition: PoseEngine.Inputs must reject a 65-channel live payload");
-
         var engine = CollisionEngines.pose(ENGINE).orElseThrow();
-        var program = program();
-        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program) : Optional.empty();
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program()) : Optional.empty();
         var parameters = Map.of(
             "program", PROGRAM.toString(),
             "clock", "channel:clock",
             "clock_scale", "1",
             "amplitude", "one");
 
-        h.assertTrue(engine.bind(geometry(), parameters, required, resources).isEmpty(),
-            "Binding must fail closed when clock/amplitude selectors expand the effective required-channel set beyond the 64-channel Inputs budget; accepting such a Bound creates an endpoint no valid live input can ever satisfy");
+        var required64 = channels("gate", 64);
+        var input64 = values(required64);
+        new PoseEngine.Inputs(0, 0, 0, 0, 0, true, input64);
+
+        var input65 = new LinkedHashMap<>(input64);
+        input65.put("clock", 1f);
+        boolean inputsReject65 = false;
+        try {
+            new PoseEngine.Inputs(0, 0, 0, 0, 0, true, input65);
+        } catch (IllegalArgumentException expected) {
+            inputsReject65 = true;
+        }
+        h.assertTrue(inputsReject65,
+            "Precondition: PoseEngine.Inputs must accept exactly 64 channels and reject a 65-channel live payload");
+
+        h.assertTrue(engine.bind(geometry(), parameters, required64, resources).isEmpty(),
+            "Binding must fail closed when a selector expands 64 distinct declared channels to an effective set of 65");
         h.succeed();
+    }
+
+    @GameTest
+    public void effectiveChannelBudgetAcceptsExactly64AndDeduplicatesSelectors(GameTestHelper h) {
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program()) : Optional.empty();
+        var parameters = Map.of(
+            "program", PROGRAM.toString(),
+            "clock", "channel:clock",
+            "clock_scale", "1",
+            "amplitude", "one");
+
+        // 63 declared + one selector-added channel = exactly 64: this must remain bindable.
+        var required63 = channels("gate", 63);
+        var boundAdded = engine.bind(geometry(), parameters, required63, resources).orElse(null);
+        h.assertTrue(boundAdded != null,
+            "An effective required-channel set of exactly 64 must be accepted; the overflow fix must not reject the legal boundary");
+        var valuesAdded = values(required63);
+        valuesAdded.put("clock", 1f);
+        new PoseEngine.Inputs(0, 0, 0, 0, 0, true, valuesAdded);
+        h.assertTrue(boundAdded.evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true, valuesAdded)).isPresent(),
+            "The exactly-64 binding must be satisfiable by a valid live Inputs payload");
+
+        // 64 declared including the selector channel stays 64 after set deduplication.
+        var requiredDedup = channels("gate", 63);
+        requiredDedup.add("clock");
+        var boundDedup = engine.bind(geometry(), parameters, requiredDedup, resources).orElse(null);
+        h.assertTrue(boundDedup != null,
+            "A selector channel already present in the declared set must be deduplicated, not counted twice");
+        var valuesDedup = values(requiredDedup);
+        new PoseEngine.Inputs(0, 0, 0, 0, 0, true, valuesDedup);
+        h.assertTrue(boundDedup.evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true, valuesDedup)).isPresent(),
+            "The deduplicated exactly-64 binding must remain live-representable and evaluable");
+        h.succeed();
+    }
+
+    private static LinkedHashSet<String> channels(String prefix, int count) {
+        var result = new LinkedHashSet<String>();
+        for (int i = 0; i < count; i++) result.add(prefix + i);
+        return result;
+    }
+
+    private static LinkedHashMap<String, Float> values(Iterable<String> names) {
+        var result = new LinkedHashMap<String, Float>();
+        for (String name : names) result.put(name, 1f);
+        return result;
     }
 
     private static ModelGeometry geometry() {
