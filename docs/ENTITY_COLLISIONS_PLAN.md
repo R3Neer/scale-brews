@@ -10,6 +10,8 @@ Un gate no se cierra porque exista una clase o un test. Se cierra cuando la evid
 
 El estado de tareas vive **sólo aquí**. La arquitectura no mantiene un segundo snapshot de implementación y VALIDATION no mantiene una segunda lista de trabajo.
 
+Este plan **no congela `main`** mientras dura el proyecto. Antes de cada sprint que toque integración, mixins, limpieza, migración legacy, controles, interacción o merge/rebase, se compara contra el `main` vigente y se preservan sus cambios ajenos a entity collisions. Tiny Mounts, equipamiento/menús, alcance, gravedad efectiva, attachments/render, gamefeel y cualquier otra mecánica mainline pueden seguir evolucionando en paralelo. Su ausencia de este roadmap no las convierte en código descartable. La rama de colisiones se integra alrededor de ellas salvo conflicto explícito con un FR/NFR canónico.
+
 ## 2. Resultado de la reestructuración inicial
 
 La auditoría iterativa del árbol legacy + anatómico produjo estas decisiones estables:
@@ -137,9 +139,9 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S17 cerrado y revalidado retroactivamente:** G3 tarea 3 sigue cerrada. La auditoría `docs/sprints/RETRO-S00-S18-adversarial-observability-audit.md` demostró que el oracle original permitía omitir un cubo volumétrico real. Se añadió un oracle original-tree independiente y bidireccional más snapshots SVG; producción normal volvió a quedar verde y la misma mutación quedó muerta con `missing=[root/body/cube_0]`. No fue necesario cambiar producción S17.
 
-**S18 REABIERTO por auditoría retroactiva:** el cierre histórico queda conservado como evidencia de lo que se demostró entonces, pero G3 tarea 4 vuelve a pendiente. Una mutación del compiler que eliminaba todos los bones distintos de `head` sobrevivió a la aceptación original. El nuevo holdout multi-bone contra `AnimationDefinition` real encontró además un bug productivo: `PoseProgramEvaluator` compone `Q(rest) * Q(delta)`, mientras Minecraft 26.2 aplica `offsetRotation` sumando Euler por componente y sólo después construye `rotationZYX(rest + delta)`. El fallo aparece en `body` del Cow con rotación de reposo no identidad. La evidencia exacta, runs y artifacts están en `docs/sprints/RETRO-S00-S18-adversarial-observability-audit.md`. El adversario no corrige producción; G3.4 sólo podrá volver a `[x]` cuando el implementador repare la semántica y queden verdes ordinary, common, original-source multi-bone, mutation kill y snapshot reproducible.
+**S18 continúa ABIERTO en segunda lectura adversarial:** el cierre histórico quedó invalidado por la auditoría retroactiva, pero desde entonces la producción ha avanzado mucho más allá del primer fallo Euler. Ya se preserva `SourcePose` exacto y negociado, el evaluator reproduce selección/interpolación Mojang, pre/post targets, remainder negativo, orden secuencial de canales, runtime vectors sin reutilizar bounds wire, y los bindings pueden expresar transformaciones explícitas de clock/amplitude como `applyWalk`. La segunda lectura también obligó a endurecer captura autoritativa de estados (oveja, abeja, golem), fuentes permitidas, escala/rotaciones fuente y familias procedurales. El oracle canónico `S18VanillaProceduralSemanticClientTests` pasa **800 comparaciones original-source Minecraft 26.2** en run `34871991696`, job `104069894227`, artifact `10359732016`, SHA-256 `a36189425efdb29ba8d5f0d746676838dfcb16d9e65cbe80b008bf90f81305f8`. Esto demuestra una cobertura muy superior a la reapertura inicial, pero la tarea 4 permanece `[ ]` hasta que la pasada final TM produzca cero cambios de producción y queden verdes todas las lanes S18 relevantes sobre el mismo snapshot candidato.
 
-**Prioridad G3 vigente:** tarea **4** es de nuevo el primer trabajo productivo abierto. S19/G3.5 puede seguir acumulando investigación/tooling adversarial que no dependa de la reparación, pero no debe cerrarse productivamente saltándose G3.4.
+**Prioridad G3 vigente:** tarea **4** sigue siendo el primer trabajo abierto hasta su cierre formal. S19/G3.5 puede acumular investigación/tooling adversarial que no dependa de la reparación, pero no debe cerrarse productivamente saltándose G3.4.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
@@ -157,20 +159,21 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
-### G5 — categorías especiales, placement y retirada del motor legacy
+### G5 — categorías especiales, placement, interacción y retirada del motor legacy
 
-**Requisitos:** FR-007..013, FR-053..071, FR-089..092; NFR-033..035.
+**Requisitos:** FR-007..013, FR-053..071, FR-089..093; NFR-033..035.
 
 1. [ ] portar boat/raft, off-rail minecart, item y falling-block semantics;
 2. [ ] verificar agua, rail, despawn, hardening, placement y anvil una vez;
 3. [ ] portar sneak edge y jump release;
 4. [ ] portar raycast/placement con permisos/inventario/footprint;
 5. [ ] demostrar no regresión de fall/exhaustion/stats/Growth landing;
-6. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
-7. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
-8. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos.
+6. [ ] preservar la ruta de interacción Minecraft/`main` para parejas que no califican como moving platform según FR-093, incluida la frontera de ratio/policy y Tiny Mount/reach/equipment UX; sólo la física de una relación soporte-cuerpo realmente gestionada puede ser sustituida por entity collisions;
+7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
+8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
+9. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción.
 
-**Salida:** un solo motor físico.
+**Salida:** un solo motor físico, sin secuestrar la interacción mainline fuera del régimen moving-platform.
 
 ### G6 — cobertura completa de Minecraft general
 
@@ -247,6 +250,8 @@ G3 puede preparar tooling mientras G2 avanza, pero no se declara una familia FUL
 Una pieza se elimina si: no tiene consumidor/requisito; duplica ownership; implementa fallback prohibido; sólo demuestra experimento absorbido; codifica especie donde corresponde engine reusable; o pertenece al legacy y su requisito ya tiene sustituto verificado.
 
 No se elimina una implementación legacy si todavía es el único código que conserva un requisito vigente durante migración. Se mantiene aislada y con retirada explícita en G5.
+
+Tampoco se elimina ni revierte código de `main` ajeno a entity collisions por el mero hecho de no aparecer en este plan. Toda limpieza destructiva debe distinguir deuda del subsistema de evolución productiva mainline y volver a contrastar el `main` vigente antes de borrar.
 
 ## 6. Método iterativo y convergencia
 
