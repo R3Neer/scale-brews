@@ -52,7 +52,10 @@ public final class MojangKeyframePoseEngine implements PoseEngine {
         var required = new LinkedHashSet<>(requiredChannels);
         var clock = clock(clockText, clockScale, required).orElse(null);
         var amplitude = amplitude(amplitudeText, required).orElse(null);
-        if (clock == null || amplitude == null || required.stream().anyMatch(name -> name == null || !name.matches("[a-z0-9_.-]{1,64}")))
+        // Selectors can add channels beyond those declared by the binding. Validate the effective,
+        // deduplicated set because PoseEngine.Inputs itself is bounded to 64 channels.
+        if (clock == null || amplitude == null || required.size() > 64
+                || required.stream().anyMatch(name -> name == null || !name.matches("[a-z0-9_.-]{1,64}")))
             return Optional.empty();
         Set<String> requiredCopy = Set.copyOf(required);
         return Optional.of(inputs -> {
