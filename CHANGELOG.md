@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.1.0-beta.7] - 2026-09-14
+
+This prerelease makes Tiny Mount interaction and equipment data-driven through three vanilla-style behavior families, synchronizes saddles and riders with final animated mount models, and polishes wolf riding. It also adds size-scaled gait/footstep presentation and updates interaction-reach balance. The experimental all-direction anatomical collision system remains unfinished and disabled in normal gameplay.
+
+### Tiny Mount behavior families
+
+- Replace independent `saddle` / `control` JSON switches with `family`: `direct`, `tameable_direct`, or `item_steered`. The codec rejects contradictory combinations while movement and abilities remain independent.
+- Chicken uses `direct`: it can carry a passenger unsaddled, needs a saddle for direct control, and exposes its mount equipment menu. Bee uses `item_steered`: it needs a saddle even to mount, needs Flower on a Stick to control, has no mount menu, and E opens the player's normal inventory. Wolf uses `tameable_direct`: native taming gates equipment/control and its menu exposes SADDLE plus configured BODY equipment.
+- Remove species-hardcoded inventory routing. Inventory-bearing families open their menus dynamically; `direct` mounts also support Crouch + Use from outside, while `tameable_direct` keeps Crouch + Use as the wolf mounting gesture and uses E for equipment while mounted.
+- Preserve vanilla equipment semantics: SADDLE/BODY are real equipment slots, shearability comes from each item's `Equippable` component, vanilla BODY-before-SADDLE shearing order remains intact, wolf owner-only shearing remains authoritative, and vanilla dispensers can saddle configured Tiny Mount species.
+- Custom Tiny Mount datapacks using the old `saddle` and `control` fields must migrate to `family`; `item_steered` definitions still require `steering_item`.
+
+### Wolf mount polish
+
+- Add a horse-style equipment menu backed by the wolf's native SADDLE and BODY slots, including configured Wolf Armor and owner protection for BODY management.
+- Set controlled wolf travel speed to 0.20 and make pounce charging progressively slow ground movement to 50% at full charge, preserving the established pounce travel envelope instead of turning the wolf into a better long-distance horse.
+- Add squash/stretch, a short FOV kick, damped camera impact feedback, gravity-aware landing dust and concise audiovisual landing feedback without changing server pounce physics.
+
+### Animated saddles and riders
+
+- Capture the mount model's final rendered attachment transform after vanilla `setupAnim` and optional model animation, then share that same transform with saddle and rider rendering. This removes separate pose reconstruction and covers Tiny Mounts plus native horse body animation.
+- Validate the path against the exact VanillaPlus stack of EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5: Fresh Animations produces an active EMF bee model and the mounted rider receives a finite, non-identity final attachment transform. These remain optional dependencies.
+
+### Size-scaled gait and interaction reach
+
+- Scale ordinary footstep pitch with `clamp(1 / sqrt(scale), 0.5, 2.0)` and walk-animation time with `clamp(1 / scale, 0.25, 4.0)`, following effective physical scale while leaving vanilla cadence/amplitude ownership intact.
+- Growth block reach remains +20% per equivalent level (5.4 / 6.3 / 7.2 blocks), while entity reach is +30% per equivalent level (3.9 / 4.8 / 5.7) and continues the same curve beyond Growth III. Shrinking block/entity reach both decrease by 10% per equivalent level.
+
+### Validation
+
+- Add adversarial family tests using a data-only Cow to prove mounting, control, inventory and dispenser behavior come from decoded family data rather than species branches.
+- Exercise real client/server inventory routing, external `direct` menu interaction, vanilla saddle shearing/drop behavior, wolf BODY-before-SADDLE shearing, owner protection, horse rider animation and the pinned EMF/Fresh Animations runtime proof.
+
 ## [0.1.0-beta.6] - 2026-09-11
 
 This prerelease adds optional effective-gravity support to Scale-owned Tiny Mount movement and moves the real-client GameTest into ordinary GitHub Actions validation. The all-direction anatomical collision system remains unfinished and disabled in normal gameplay.

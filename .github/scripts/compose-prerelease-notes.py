@@ -45,14 +45,11 @@ live in the spoiler-rich [player guide](https://github.com/R3Neer/scale-brews/bl
 
 {changes}
 
-## Maintenance refresh
+## Release integrity
 
-This prerelease was rebuilt from `{sha[:7]}` after migrating the stable GameTests from
-the deprecated `GameTestHelper.makeMockServerPlayerInLevel()` helper to Minecraft
-26.2's explicit `makeMockServerPlayer(GameType)` API. CI now rejects any reintroduction
-of the deprecated helper before building. The prerelease publisher also verifies that
-the moved tag and the uploaded regular JAR both match this exact validated source
-snapshot.
+The prerelease publisher tags the exact validated source snapshot `{sha[:7]}` and
+verifies that the uploaded regular JAR matches the locally built SHA-256 before
+publication completes.
 
 ## Installation
 
