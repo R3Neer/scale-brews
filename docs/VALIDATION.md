@@ -620,3 +620,53 @@ Renewed exact evidence on `d218adc...`:
 Supplemental prepared evidence on production `5cff913...`: the first attempt of run **`34753380100`**, job `103713567025`, failed in the unrelated S09 prepared A9 temporal-response translation oracle after client export succeeded. Re-running the exact same job/SHA as **`103714031864`** completed the same export and prepared server proof successfully. The first failure is retained as a non-reproduced S09 incident and is not used to waive or replace any S16 oracle.
 
 Final review after the repair found no further S16 production change. The later adversarial expansion was green on the existing repair, satisfying the zero-change final-pass criterion. **S16 and G3 task 1 are closed; this does not close G3 tasks 3–12.**
+
+## G3 / S16 final post-reopening evidence — closure 2026-09-13
+
+The S16 record above ended on the first fully green expansion, but one further adversarial client-style rejection case was executed before later G3 work. Commit **`eabd6ef31ee8f6ed4a7e4fffa873171339db508f`** added a full real-wire invalid-model candidate and proves that rejection preserves the exact accepted snapshot/revision and that `rejectPending()` recovers `READY` in the same epoch.
+
+Final S16 evidence:
+
+- ordinary run **`34753730671`**, job **`103714474314`**: **402/402 required GameTests passed**; artifact **`10316763087`**, SHA-256 **`5c2ee0b2f3673ec238ebced823cf32eee89efe2fa05cdc15c8295676ad1cf54a`**;
+- focal run **`34753730753`**, job **`103714474664`**: **9/9 required S16 GameTests passed**; artifact **`10315833864`**, SHA-256 **`5401316de24eb5db5c9be7ab63c81da1b01cb8d87ec739c3779c88852f8e5564`**.
+
+No S16 production change followed `5cff913349a4fc64921a81e0d8236e5aae235ac9`. This supersedes the 401/401 + 8/8 intermediate evidence as the final S16 closure snapshot while retaining that earlier evidence as history.
+
+## G3 / S17 ModelPart GeometryEngine — closure 2026-09-13
+
+S17 closed G3 task 3. `scalebrews:model_part` is a common/server-safe geometry engine fed by client-only ModelPart preparation. The final adversarial campaign, ending at test commit **`11824a121b669eeab7cd77704afad6bce4b0c254`**, covered classloading/constant-pool isolation, delegate ownership, failure isolation, structural exclusions and deterministic repeatability without requiring another production repair.
+
+Final evidence:
+
+- ordinary run **`34755126613`**, job **`103718098834`**: **407/407 required GameTests passed**; artifact **`10317615494`**, SHA-256 **`93ce1322a6186ed211bb55dbfb6ba17de5b9d47a1f02ccf9df29f5ce9091dd0c`**;
+- focal run **`34755126630`**, common job **`103718098895`**: **6/6 required S17 GameTests passed**; artifact **`10317310881`**, SHA-256 **`3a1c2de697169e59256a75c4b78ea54d63820a1972d1ce70d0d2d99ed8598534`**;
+- same focal run, client preparation job **`103718098982`**: success; artifact **`10317930031`**, SHA-256 **`501503b498e9cb3462b9ca7515839e4dd626ccc1dd15cd3f660830ca14c9b81a`**;
+- same focal run, original-model job **`103718098983`**: success; artifact **`10316049789`**, SHA-256 **`22fc133027782e612b388a53197737ef4bfbb198679a06eb44da39e4e0181d9c`**.
+
+Observed original-model evidence includes cow **240 vertices / 10 pieces**, player wide/slim **288 vertices / 12 pieces** under the newer extraction, 80 animated comparisons per primary family and **640 additional vanilla-family comparisons**. The final adversarial pass required no S17 production change.
+
+## G3 / S18 vanilla PoseEngine + Mojang keyframe program — closure 2026-09-14
+
+S18 closed G3 task 4. Vanilla procedural families now have canonical `PoseEngine` ownership in `CollisionEngines.pose`; live authority/history/wire evaluation uses `PoseEngine.Inputs`; `PoseProviders` remains only as a read-only legacy adapter. `scalebrews:mojang_keyframes` evaluates revision-owned, common/server-safe `PoseProgram` data compiled from Mojang `AnimationDefinition` on the client/tooling side. Protocol v5 synchronizes **`{models, pose_programs, bindings}`** and preserves the S15 prepared-bundle and S16 atomic-rejection invariants.
+
+The post-implementation adversarial campaign found real defects rather than expanding requirements:
+
+- duplicate keyframe timestamps were accepted; production repair `1c2e4d5...` changed the ordering fence to reject equality;
+- the evaluator collapsed Mojang discontinuity semantics at an exact keyframe timestamp; `49d828a12e9fec7d75c6b1d5ee1760ce6b7fbb7e` restored exact `preTarget` at the timestamp and `postTarget` immediately after/final clamp;
+- revision and wire program identifiers were hardened to canonical form in `1fbf2d71341e69bce662bc989dca32eefc490894` and the final S18 production commit **`9ff92bb6f6bf93844516643e1b2fcac8ca3405a6`**.
+
+Final focal evidence on run **`34819384389`**:
+
+- common/dedicated job **`103897173738`**: **21/21 required S18 GameTests passed**, including semantic revision ownership, exact N/N+1 bounds, SPI SAM compatibility, required-channel/fail-closed behavior and common-runtime client-class isolation;
+- client compiler/original-source job **`103897173936`**: success with `S18_ANIMATION_COMPILER_BOUNDARY PASS` and `S18_ANIMATION_DEFINITION PASS original Minecraft 26.2 parity, loop wrap and fail-closed compiler`; artifact **`10337647129`**, SHA-256 **`50df0d9d0050009b08afc1f4e85a65da6a811e6a89bdea8971e534b2d7ec8cce`**.
+
+Final ordinary evidence after repairing the historical reload fixture:
+
+- run **`34819573289`**, job **`103897783223`**: **407/407 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10337702118`**, SHA-256 **`d12a251fd777d0e5bfd41c63585f99ffbdf9d4eca3a8eef7ba55da947444a741`**;
+- normal build run **`34819573066`**, job **`103897782597`**: **407/407 required GameTests passed**; artifact **`10336964165`**, SHA-256 **`4f4699a8e336703bfe29b54dde8b3c3954d9c9cf44626184cef26d86b89015c8`**.
+
+S16 regression was re-run on the exact final production commit `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6`: run **`34818534247`**, job **`103894502904`**, **9/9 required S16 GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10337526551`**, SHA-256 **`4a87841f15ee620f8f2ac6df56de0b4b17e1fb8632ec211f56d9944654bc9404`**.
+
+The final second-read compare from `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` to checkpoint `22b1803784b7792163b881ae49254efaa2dd8c2c` changed only tests, documentation and CI; no `src/main` or `src/client` production file changed. Temporary helper workflows were removed before closure. Sprint documentation closed at `5dfec1b2f67e027bf7d91289f3aae37984bc4758`, and the canonical G3 plan marked task 4 closed in `509946f80ead5c0ce4d693ea2faa741f49ef9c43`.
+
+**S18 is closed. G3 remains open for tasks 5–12.**
