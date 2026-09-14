@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -14,13 +15,16 @@ import org.joml.Vector3f;
 /** Canonical server-safe Minecraft 26.2 pose formulae for reusable ordinary model families. */
 public final class VanillaFamilyPoseEngine implements PoseEngine {
     public enum Family { CHICKEN, VILLAGER, IRON_GOLEM, GHAST, EQUINE, BEE }
+    private static final Set<String> EQUINE_SOURCES = Set.of(
+        "minecraft:horse", "minecraft:donkey", "minecraft:mule", "minecraft:skeleton_horse", "minecraft:zombie_horse");
     private final Family family;
 
     public VanillaFamilyPoseEngine(Family family) { this.family = Objects.requireNonNull(family); }
 
     @Override
     public Optional<Map<String, Matrix4f>> evaluate(ModelGeometry geometry, Inputs in, Map<String, String> parameters) {
-        if (!parameters.isEmpty() || !in.ordinary() || !"26.2".equals(geometry.version())) return Optional.empty();
+        if (!parameters.isEmpty() || !in.ordinary() || !"26.2".equals(geometry.version()) || !supportsSource(geometry.source()))
+            return Optional.empty();
         Map<String, Matrix4f> out = new LinkedHashMap<>();
         switch (family) {
             case CHICKEN -> chicken(geometry, in, out);
@@ -31,6 +35,17 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case BEE -> bee(geometry, in, out);
         }
         return out.isEmpty() ? Optional.empty() : Optional.of(Collections.unmodifiableMap(out));
+    }
+
+    private boolean supportsSource(String source) {
+        return switch (family) {
+            case CHICKEN -> "minecraft:chicken".equals(source);
+            case VILLAGER -> "minecraft:villager".equals(source);
+            case IRON_GOLEM -> "minecraft:iron_golem".equals(source);
+            case GHAST -> "minecraft:ghast".equals(source);
+            case EQUINE -> EQUINE_SOURCES.contains(source);
+            case BEE -> "minecraft:bee".equals(source);
+        };
     }
 
     private static void chicken(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
