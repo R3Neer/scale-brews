@@ -63,11 +63,13 @@ public final class S18AnimationDefinitionSemanticClientTests implements FabricCl
             check(multiProgram.tracks().stream().anyMatch(track -> track.bone().equals("body")),
                 "Compiler must preserve a non-head animation track");
             var multiBound = PoseProgramEvaluator.bind(baseline, multiProgram).orElseThrow();
+            // Capture the diagnostic before assertions so a red parity run still
+            // leaves a reproducible visual artifact for the implementer.
+            writeMultiBoneSnapshot(multiBone, baseline, multiBound);
             for (float seconds : new float[]{0f, .35f, .8f, 1f, 1.45f, 2f}) {
                 compareNativeBone(multiBone, baseline, multiBound, "head", "root/head", seconds, .7f, "multi-bone");
                 compareNativeBone(multiBone, baseline, multiBound, "body", "root/body", seconds, .7f, "multi-bone");
             }
-            writeMultiBoneSnapshot(multiBone, baseline, multiBound);
 
             boolean customTargetRejected = false;
             try {
