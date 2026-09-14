@@ -65,6 +65,41 @@ Una inspección adicional del mismo jar fijado separó explícitamente la fronte
 
 Consecuencia: `parts()` representa las raíces desde las que debe reconstruirse la jerarquía renderizada; `getAllParts()` es útil como catálogo/cobertura, pero no puede tratarse como una lista de raíces y volver después a recorrer `childModels`, porque eso reintroduciría nodos ya contenidos en el árbol. Para los dos modelos exactos de aceptación, `boxName` ofrece identidad tecnológica independiente de la visibilidad de fields del modelo concreto. Una implementación genérica no debe volver a depender de `getDeclaredFields()` como autoridad de nombres para compensar que Gazelle los declare privados.
 
+## Baseline estructural independiente de Grizzly y Gazelle
+
+El artifact `10342916772` contiene el `javap -p -c` completo de ambos modelos exactos. A partir de ese bytecode puede construirse una referencia estructural sin llamar ni al extractor legacy ni a una futura implementación S19.
+
+### Gazelle
+
+- una raíz: `body`;
+- 13 parts y 12 relaciones parent→child, por tanto un único árbol sin nodos sueltos;
+- jerarquía observada: `body -> neck`; `neck -> head`; `head -> earL, earR, snout, hornL, hornR`; `body -> tail, frontlegR, frontlegL, backlegL, backlegR`;
+- 13 llamadas `AdvancedModelBox.addBox(...)`, todas dentro del constructor;
+- 12 cubos tienen dimensiones fuente estrictamente positivas;
+- `tail` aporta el único cubo fuente plano observado: `4 × 5 × 0`, inflation `0`.
+
+Por tanto, antes de cualquier filtro declarativo, la geometría física esperada del modelo canónico contiene **12 cubos volumétricos** y una omisión render-only explícita. Tratar `getAllParts()` como 13 roots y recorrer otra vez `childModels` produciría duplicación observable respecto a este baseline.
+
+### Grizzly
+
+- una raíz: `root`;
+- 13 parts y 12 relaciones parent→child;
+- jerarquía observada: `root -> body`; `body -> midbody, head, left_leg, right_leg, left_arm, right_arm`; `head -> snout, left_ear, right_ear, hat`; `right_arm -> microphone`;
+- 15 llamadas `AdvancedModelBox.addBox(...)`, todas dentro del constructor;
+- `root` no tiene cubo propio; `body`, `hat` y `microphone` tienen dos cubos cada uno y el resto de parts volumétricas observadas uno;
+- los 15 cubos tienen dimensiones fuente estrictamente positivas;
+- `midbody` usa dimensiones fuente `16 × 17 × 12` con inflation `0.1`; los demás addBox observados usan inflation `0`.
+
+Por tanto la geometría física base canónica contiene **15 cubos volumétricos** antes de aplicar `AnatomyFilter`. El caso `midbody` es una referencia real especialmente útil para detectar una implementación que lea sólo `posX1..posZ2` pre-inflation: esa ruta conservaría el tamaño nominal pero perdería el crecimiento renderizado de `0.1` por cara.
+
+### Huecos de cobertura de los dos modelos reales
+
+El bytecode exacto de `AdvancedModelBox` del artifact `10341929614` inicializa `scaleX/Y/Z = 1`; `scaleChildren` no se inicializa explícitamente y por tanto parte en `false`. Sin embargo, el baseline geométrico adulto de Grizzly/Gazelle no ofrece por sí solo un parent con escala local no identidad y `scaleChildren=false`. Los escalados de cabeza observados en ramas de render juveniles activan `scaleChildren=true` y pertenecen además a estado/render dinámico fuera de la geometría canónica estática de S19.
+
+Tampoco se observan escrituras directas de `showModel` en las dos clases de modelo inspeccionadas. En consecuencia, **pasar únicamente los proofs reales Grizzly/Gazelle no demuestra** las ramas semánticamente importantes `scaleChildren=false` con escala no identidad ni `showModel=false`. Esas propiedades ya están en el modelo adversarial y necesitarán observación independiente después de existir producción; no se deduce cobertura de ellas sólo porque los dos modelos reales estén verdes.
+
+Finalmente, el dialecto `AdvancedModelBox` también expone un constructor `(model)` que delega con `boxName = null`. Grizzly y Gazelle no lo usan, pero demuestra que pertenecer a la clase tecnológica no garantiza por sí solo identidad válida. El requisito S19 de nombres/IDs válidos debe seguir fallando cerrado ante material que no pueda producir identidad canónica no ambigua.
+
 ## Semántica exacta de transforms locales y `scaleChildren`
 
 Una tercera inspección de bytecode contra el mismo jar fijado cerró la semántica de transformación que el extractor debe reproducir. Evidencia: run `34832565884`, job `103939039210`, artifact `10341929614`, SHA-256 `2c0b01598130a658d6ae03a42b20d800bbc98f93886c0ee15d02fe55ed96e511`.
