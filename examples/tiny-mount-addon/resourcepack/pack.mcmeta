@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Optional Scale Brews Tiny Mount visual override",
+    "min_format": [83, 0],
+    "max_format": [83, 0]
+  }
+}

@@ -22,7 +22,7 @@ public final class PlatformCamera {
         if(previous!=e || world!=e.level() || e.position().distanceToSqr(lastPhysical)>16) smoothed=Vec3.ZERO;
         double dt=nanos==0?0.05:Math.clamp((now-nanos)/1e9,0,.1);
         previous=e; world=e.level(); nanos=now; lastPhysical=e.position();
-        Vec3 desired=PlatformVisuals.offset(e,partial);
+        Vec3 desired=PlatformVisuals.offset(e,partial).add(io.github.r3neer.scalebrews.client.render.TinyMountCamera.offset(camera,partial));
         double max=Math.min(.25,.5*e.getBbHeight());
         if(desired.length()>max) desired=desired.normalize().scale(max);
         smoothed=smoothed.lerp(desired,1-Math.exp(-dt/.1));

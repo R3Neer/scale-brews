@@ -123,7 +123,7 @@ Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chi
 
 *The three default tiny mounts, shown with saddles. Equipping a saddle does not require Shrinking; riding depends on relative size.*
 
-Bees keep their natural bobbing and rolling while ridden: the rendered rider follows the saddle, while first-person camera and collision physics stay stable.
+Saddles and mounted riders consume one **final rendered seat frame**, discovered from the registered Tiny Mount's complete model hierarchy. Nested Fresh Animations groups therefore move the body, saddle and rider together. Visual fitting is optional resource-pack JSON and reloads with F3+T; gameplay definitions stay in the server datapack. Native horses, pigs and other unregistered mounts never enter this renderer path. Camera correction is translation-only; collision physics and server position remain authoritative.
 
 A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
 
@@ -163,7 +163,7 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current released suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction. Collision-prototype evidence is tracked separately in the same [Validation](VALIDATION.md) record and does not imply release readiness.
+The current released suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated saddle/rider transforms and unmounted steering-item attraction. Collision-prototype evidence is tracked separately in the same [Validation](VALIDATION.md) record and does not imply release readiness. Changes after beta.7 require a fresh base-client run, the pinned EMF/Fresh Animations lane and manual visual acceptance before release.
 
 Base Fabric behavior has also been exercised with bounded optional integrations including **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**. These are version-bounded checks, not a guarantee for every modpack, configuration or future version. Custom projectile, camera, movement, renderer or multipart implementations may need adapters or compatibility data.
 

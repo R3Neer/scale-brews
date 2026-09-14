@@ -100,13 +100,21 @@ tasks.named('processGametestResources') {
 	def hostIndependenceProof = providers.gradleProperty('scalebrewsAnatomyHostIndependenceProof').orElse('false')
 	def predictionBaselineProof = providers.gradleProperty('scalebrewsAnatomyPredictionBaselineProof').orElse('false')
 	def readmeCapture = providers.gradleProperty('scalebrewsReadmeCapture').orElse('false')
+	def tinyMountVisualProof = providers.gradleProperty('scalebrewsTinyMountVisualProof').orElse('false')
 	inputs.property('anatomyOnly', anatomyOnly)
 	inputs.property('preparedAnatomySuite', preparedAnatomySuite)
 	inputs.property('trackerLifecycleSuite', trackerLifecycleSuite)
 	inputs.property('hostIndependenceProof', hostIndependenceProof)
 	inputs.property('predictionBaselineProof', predictionBaselineProof)
 	inputs.property('readmeCapture', readmeCapture)
+	inputs.property('tinyMountVisualProof', tinyMountVisualProof)
 	doLast {
+		if (tinyMountVisualProof.get().toBoolean()) {
+			def visualManifest = new File(destinationDir, 'fabric.mod.json')
+			def visualMetadata = new groovy.json.JsonSlurper().parse(visualManifest)
+			visualMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.ScaleBrewsClientTests']
+			visualManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(visualMetadata))
+		}
 		if (hostIndependenceProof.get().toBoolean() && (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()
 				|| preparedAnatomySuite.get().toBoolean() || trackerLifecycleSuite.get().toBoolean() || predictionBaselineProof.get().toBoolean()))
 			throw new GradleException('Host-independence client proof is mutually exclusive with the other client proof selectors.')

@@ -2,6 +2,12 @@
 
 This file is the sole source of truth for **executed evidence**. It records what was actually built, run or inspected, against which snapshot, and what that evidence does **not** prove.
 
+## Tiny Mount SeatFrame candidate (after beta.7)
+
+This branch replaces direct `body` / `bone` anchors and the previous-frame entity-ID cache with an autodetected, complete `SeatFrame`. Compile-time checks cover the minimal gameplay codec, legacy `saddle_visual` decoding, strict visual-profile values, nested/rest-scaled `ModelPart` resolution, explicit-path override, same-frame topological ordering and cache clearing. Release still requires the complete base client suite, the pinned EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5 lane, and the front/side/rear/top manual capture and two-minute traversal matrix for Bee, Chicken and Wolf. Do not treat compilation alone as aesthetic acceptance.
+
+## Current prerelease: 0.1.0-beta.7 — 2026-09-14
+
 Normative entity-collision behavior lives in [ENTITY_COLLISIONS_REQUIREMENTS](ENTITY_COLLISIONS_REQUIREMENTS.md), architecture/API/data ownership in [ENTITY_COLLISIONS](ENTITY_COLLISIONS.md), and implementation order/status in [ENTITY_COLLISIONS_PLAN](ENTITY_COLLISIONS_PLAN.md).
 
 ## Evidence rules

@@ -94,7 +94,9 @@ Soul sand retains 60/25/0% of its base penalty, giving speed factors .64/.85/1.0
 
 ## Mounted-bee rendering
 
-`BeeRiderPose` samples the actual adult bee model at the same interpolated time as its rider. It computes the transform from the resting body frame to the animated `bone` frame, including mount scale, yaw and renderer rotations, then expresses it relative to the passenger. `AnimatedRiderRendererMixin` applies that immutable snapshot around the complete living-entity render submission, so rider, armor and held items follow the saddle's translation and tilt. It does not duplicate vanilla bobbing formulas or freeze the bee. Selecting the adult model explicitly avoids reusing a renderer's last submitted baby model. Snapshots clear on dismount; entity positions, collision boxes, camera and first-person hands remain untouched. The saddle layer still copies the animated body pose for deferred rendering.
+Registered Tiny Mounts resolve one **final rendered `SeatFrame`** from the actual `ModelPart` hierarchy after vanilla, EMF and resource-pack animation have updated it. Autodetection scores visible upper cube faces by area, centrality and height; an optional resource-pack profile can select or tune a path without changing server gameplay.
+
+Entity submission is stably reordered only for a Tiny Mount and its rider. The mount captures the current serial first, then both the unit saddle and passenger consume that exact serial. The context is cleared at both frame boundaries, so disappearance, reused entity IDs or failed capture falls back to vanilla instead of using an old pose. The saddle receives the complete affine chain; the player receives only translation and orthonormal rotation. Physical positions, collision and server authority are unchanged. Camera correction is translation-only, exponentially smoothed over 100 ms and clipped with the existing near-plane collision path.
 
 ## Steering-item attraction
 

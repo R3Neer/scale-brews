@@ -3,7 +3,7 @@ package io.github.r3neer.scalebrews.client.mixin;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.r3neer.scalebrews.client.render.BeeRiderPose;
+import io.github.r3neer.scalebrews.client.render.MountRenderFrame;
 import io.github.r3neer.scalebrews.client.render.RiderPoseState;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -19,13 +19,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class AnimatedRiderRendererMixin {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("RETURN"))
     private void scalebrews$pose(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        BeeRiderPose.extract(entity, state, partialTick);
+        var vehicle = entity.getVehicle();
+        ((RiderPoseState)state).scalebrews$vehicleId(vehicle instanceof LivingEntity living
+                && io.github.r3neer.scalebrews.mount.TinyMounts.definition(living) != null ? vehicle.getId() : -1);
     }
 
     @WrapMethod(method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V")
     private void scalebrews$animate(LivingEntityRenderState state, PoseStack poses, SubmitNodeCollector collector,
-                                   CameraRenderState camera, Operation<Void> original) {
-        var animation = ((RiderPoseState)state).scalebrews$riderPose();
+                                    CameraRenderState camera, Operation<Void> original) {
+        var animation = MountRenderFrame.riderTransform((RiderPoseState)state, state, poses);
         if (animation == null) { original.call(state, poses, collector, camera); return; }
         poses.pushPose();
         try {
