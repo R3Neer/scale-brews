@@ -33,7 +33,9 @@ final class ModelPartGeometryExtractor {
         if (!visited.add(part) || parts.size() >= 512) throw new IllegalArgumentException("Cyclic/oversized ModelPart model");
         var stack = new PoseStack();
         part.translateAndRotate(stack);
-        parts.add(new ModelGeometry.Part(id, parent, ModelGeometry.values(new Matrix4f(stack.last().pose()))));
+        var sourcePose = new ModelGeometry.SourcePose(part.x, part.y, part.z, part.xRot, part.yRot, part.zRot,
+            part.xScale, part.yScale, part.zScale);
+        parts.add(new ModelGeometry.Part(id, parent, ModelGeometry.values(new Matrix4f(stack.last().pose())), sourcePose));
 
         String localName = id.substring(id.lastIndexOf('/') + 1);
         boolean excluded = hidden || !part.visible || excludes.contains(id) || excludes.contains(localName);
