@@ -51,7 +51,7 @@ public final class S08VisualSnapshotTests {
         body.refreshDimensions();
 
         BlockPos blockRelative = new BlockPos(6, 40, 4);
-        net.minecraft.world.entity.LivingEntity obstacleEntity = null;
+        net.minecraft.world.entity.Mob obstacleEntity = null;
         AABB obstacleBox;
         if (entityObstacle) {
             obstacleEntity = h.spawn(EntityTypes.SHULKER, 6, 40, 4);
