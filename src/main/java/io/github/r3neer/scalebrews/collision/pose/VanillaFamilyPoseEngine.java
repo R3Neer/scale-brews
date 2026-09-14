@@ -124,7 +124,7 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     }
 
     private static void equine(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
-        if (!required(in, "eat", "stand", "mouth", "tail", "water")) return;
+        if (!required(in, "eat", "stand", "mouth", "tail", "water", "age_scale")) return;
         float animationSpeed = in.walkAmount();
         float animationPos = in.walkPhase();
         float clampedYRot = Mth.clamp(in.headYaw(), -20f, 20f);
