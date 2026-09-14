@@ -121,7 +121,7 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 1. [x] sustituir `WorldAnatomyCatalog` acoplado a perfiles legacy por catálogo/binding canónico;
 2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;
 3. [x] consolidar `ModelPart` GeometryEngine;
-4. [ ] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
+4. [x] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
 5. [ ] convertir Citadel/Alex a engine/pose-program reusable;
 6. [ ] añadir `RootTransformProvider` genérico y fixture externo;
 7. [ ] mantener `DisplayRig` como SPI hasta target real;
@@ -135,7 +135,9 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S16 cerrado tras reapertura adversarial:** el rojo post-cierre `e3e49ac2...` demostró que un selector variant del bridge eludía validación integral. `5cff913349a4fc64921a81e0d8236e5aae235ac9` valida todos los bindings del candidato antes de resolver el selector runtime y conserva atómicamente snapshot+bundle ante rechazo. La campaña final `eabd6ef31ee8f6ed4a7e4fffa873171339db508f` añadió conflicto canonical↔legacy, round-trip variant y rechazo wire completo con restauración client-style; quedó verde sin otro cambio productivo. Evidencia final: ordinary `34753730671` **402/402** y focal `34753730753` **9/9**. G3 tarea 1 queda cerrada.
 
-**S17 cerrado:** G3 tarea 3 queda cerrada. `scalebrews:model_part` usa dispatcher common server-safe y preparación `ModelPart` client-only. La campaña adversarial final `11824a121b669eeab7cd77704afad6bce4b0c254` añadió classloading/constant-pool, ownership del delegate, aislamiento ante fallos, exclusiones estructurales y reproducibilidad sin cambios de producción. Evidencia: ordinary `34755126613` **407/407**; focal `34755126630`: common **6/6**, client preparation verde y original-model/export verde con 640 comparaciones vanilla adicionales. G3 continúa con tareas 4–12.
+**S17 cerrado:** G3 tarea 3 queda cerrada. `scalebrews:model_part` usa dispatcher common server-safe y preparación `ModelPart` client-only. La campaña adversarial final `11824a121b669eeab7cd77704afad6bce4b0c254` añadió classloading/constant-pool, ownership del delegate, aislamiento ante fallos, exclusiones estructurales y reproducibilidad sin cambios de producción. Evidencia: ordinary `34755126613` **407/407**; focal `34755126630`: common **6/6**, client preparation verde y original-model/export verde con 640 comparaciones vanilla adicionales. G3 continúa con tareas 5–12.
+
+**S18 cerrado:** G3 tarea 4 queda cerrada. Los built-ins vanilla tienen autoridad única en `CollisionEngines.pose`, el runtime live usa `PoseEngine.Inputs`, `PoseProviders` queda como adapter legacy read-only, y `scalebrews:mojang_keyframes` ejecuta programas `PoseProgram` revision-local compilados desde `AnimationDefinition` sin tipos cliente en common/dedicated. El protocolo v5 sincroniza `{models, pose_programs, bindings}` y conserva atomicidad/reuse de S15/S16. La revisión adversarial post-implementación detectó y cerró timestamps duplicados, semántica exacta `preTarget/postTarget` e IDs de programa no canónicos sin relajar oracles. Evidencia final: focal run `34819384389`, common **21/21** y client compiler/original-source verde; ordinary run `34819573289` **407/407**; build normal `34819573066` **407/407**. Desde el último cambio productivo S18 `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` hasta el checkpoint `22b1803784b7792163b881ae49254efaa2dd8c2c` sólo cambiaron tests/docs/CI. G3 continúa con tareas 5–12.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
