@@ -34,7 +34,8 @@ public final class AnatomyPoseEligibility {
                 && entity instanceof net.minecraft.world.entity.animal.equine.AbstractHorse horse && horse.getEatAnim(1)==0 && horse.getStandAnim(1)==0 && horse.getMouthAnim(1)==0 && !horse.isInWater();
             case "scalebrews:bee"->entity.getType()==EntityTypes.BEE;
             case "scalebrews:player_walking"->entity instanceof net.minecraft.world.entity.player.Player && entity.getPose()==Pose.STANDING
-                && !entity.isCrouching() && !entity.swinging && !entity.isUsingItem() && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
+                && !entity.isPassenger() && !entity.isCrouching() && !entity.swinging && !entity.isUsingItem()
+                && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
             default->{diagnose(provider.toString());yield false;}
         };
     }
