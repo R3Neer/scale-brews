@@ -23,16 +23,26 @@ public final class PlayerWalkingPoseEngine implements PoseEngine {
         Map<String, Matrix4f> result = new LinkedHashMap<>();
         for (var p : geometry.parts()) {
             String name = p.id().substring(p.id().lastIndexOf('/') + 1);
-            float x, y = 0, z = 0;
+            var source = p.sourcePose();
+            float x, y = 0, z;
             switch (name) {
-                case "head" -> { x = in.headPitch() * Mth.DEG_TO_RAD; y = in.headYaw() * Mth.DEG_TO_RAD; }
-                case "right_arm" -> { x = b * in.walkAmount() + bobX; z = bobZ; }
-                case "left_arm" -> { x = a * in.walkAmount() - bobX; z = -bobZ; }
+                case "head" -> {
+                    x = in.headPitch() * Mth.DEG_TO_RAD;
+                    y = in.headYaw() * Mth.DEG_TO_RAD;
+                    z = source == null ? 0f : source.zRot();
+                }
+                case "right_arm" -> {
+                    x = b * in.walkAmount() + bobX;
+                    z = (source == null ? 0f : source.zRot()) + bobZ;
+                }
+                case "left_arm" -> {
+                    x = a * in.walkAmount() - bobX;
+                    z = (source == null ? 0f : source.zRot()) - bobZ;
+                }
                 case "right_leg" -> { x = a * 1.4f * in.walkAmount(); y = z = .005f; }
                 case "left_leg" -> { x = b * 1.4f * in.walkAmount(); y = z = -.005f; }
                 default -> { continue; }
             }
-            var source = p.sourcePose();
             if (source != null) {
                 result.put(p.id(), new Matrix4f().translation(source.x() / 16f, source.y() / 16f, source.z() / 16f)
                     .rotateZYX(z, y, x).scale(source.xScale(), source.yScale(), source.zScale()));
