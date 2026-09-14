@@ -31,12 +31,15 @@ public final class AnatomyApi {
         SERVER_AUTHORITY,
         ENGINE_REGISTRY,
         VERSIONED_BINDINGS,
-        BODY_ADAPTERS
+        BODY_ADAPTERS,
+        /** Exact prepared local source-pose fields needed for lossless reusable pose semantics. */
+        SOURCE_POSE
     }
 
     private static final long CAPABILITIES = mask(Capability.CONTACTS, Capability.CLEARANCE, Capability.RAYCAST,
         Capability.GRAVITY_FRAME, Capability.ROOT_TRANSPORT, Capability.SERVER_AUTHORITY,
-        Capability.ENGINE_REGISTRY, Capability.VERSIONED_BINDINGS, Capability.BODY_ADAPTERS);
+        Capability.ENGINE_REGISTRY, Capability.VERSIONED_BINDINGS, Capability.BODY_ADAPTERS,
+        Capability.SOURCE_POSE);
     private static final AnatomyBackend BACKEND = loadBackend();
 
     private static AnatomyBackend loadBackend() {
