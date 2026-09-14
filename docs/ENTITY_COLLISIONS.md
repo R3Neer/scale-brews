@@ -144,6 +144,8 @@ El solver consume convexos e intervalos materiales. Sus responsabilidades son:
 8. carry de raíces/cadenas con colisión vanilla alrededor;
 9. liberación o cuarentena cuando una pareja deja de ser resoluble.
 
+La relación moving-platform **no convierte el AABB global del soporte en una pared**. La anatomía sustituye únicamente el bloqueo sólido global de la pareja cuando ésta es elegible como soporte-cuerpo. Fuera de esa elegibilidad no existe narrowphase anatómico entre ambos. Incluso dentro de una relación soporte-cuerpo válida, el **push vanilla** producido por la entidad soporte sobre el cuerpo se conserva exactamente una vez. Si la integración necesita evitar que el AABB global duplique el bloqueo anatómico, debe separar esa supresión del impulso/push vanilla, no borrar ambos como si fueran la misma cosa.
+
 El solver no conoce Alex's Mobs, Fresh Animations, Clinging ni JSON concreto.
 
 ### 4.7 Contacto y causalidad
@@ -176,13 +178,27 @@ La presentación puede corregir el residual entre posición física y superficie
 
 La cámara aplica sólo offset visual acotado y validado contra bloques/near plane. Teleports resetean el residual; pérdidas ordinarias pueden suavizarlo. Integraciones visuales consumen esta capa y no alteran contacto.
 
-### 4.11 Interacción de entidades y precedencia de moving platforms
+### 4.11 Interacción física entre entidades y precedencia de moving platforms
 
-Entity collisions no posee el sistema general de interacción con entidades. Para cada pareja actor→objetivo se decide primero si el objetivo entra realmente en el régimen de **soporte material/moving platform** para ese actor conforme a policy, ratio físico efectivo y estado. El ratio de FR-009 es la frontera física por defecto y puede ser sustituido por la policy canónica; no se crea un segundo umbral oculto para interacción.
+La decisión soporte-cuerpo es **relacional y direccional**. Para cada posible cuerpo y soporte se evalúan policy, ratio físico efectivo y estado. El ratio de FR-009 es la frontera por defecto y puede ser sustituido por la policy canónica.
 
-Mientras el objetivo sea suficientemente pequeño respecto al actor para quedar fuera de esa relación de soporte y **no califique como moving platform** para la pareja, la ruta vigente de interacción de Minecraft/`main` permanece autoritativa. Eso incluye no sólo vanilla puro, sino las extensiones deliberadas de producto que existan en `main`: reach, feeding/taming, sitting, equipamiento, Tiny Mount gestures/menus, ataques y otros hooks compatibles. El subsistema de entity collisions no cancela, consume, redirige ni duplica esos eventos.
+Si la entidad objetivo es demasiado pequeña para servir como soporte material al actor, o la policy/estado la excluyen, **no existe pared anatómica** para esa pareja. El actor la atraviesa/empieza a desplazar exactamente como lo permitiría la física vanilla entre entidades; sólo permanecen sus colisiones y pushes vanilla normales.
 
-Que una entidad tenga geometría anatómica preparada no la convierte por sí sola en moving platform. Del mismo modo, ser grande no basta si policy, estado o elegibilidad material excluyen la relación. Cuando sí existe una relación de soporte gestionada, Scale sustituye únicamente la física/contacto que le pertenece; cualquier interacción no física sigue pasando por la ruta mainline salvo que un requisito funcional específico diga lo contrario.
+Si la entidad sí califica como moving platform para el actor, Scale añade la geometría material necesaria para apoyar, caminar, deslizar, chocar con partes y recibir carry. Eso no concede ownership del push vanilla: la entidad soporte sigue empujando al actor como lo haría sin el subsistema. La integración debe garantizar que el push ocurra una vez aunque el bloqueo AABB global sea sustituido por anatomía. El mismo principio evita dos errores opuestos: una vaca pequeña convertida en muro por tener `ModelGeometry`, y una vaca grande convertida en suelo inerte que deja de empujar al jugador.
+
+### 4.12 Clinging Reoriented: landing surfaces y Reorientation
+
+Clinging Reoriented ya expone en su `main` un SPI público de geometría de aterrizaje: `LandingSurfaceProvider`, registrado mediante `LandingSurfaces`. Su provider vanilla sólo publica superficies derivadas de colisión de bloques. La predicción de aterrizaje y Reorientation consultan ese registro para distinguir un suelo válido de una pared/intersección y para revalidar el contacto durante la ventana de aterrizaje.
+
+La integración correcta no consiste en que Clinging vuelva a descubrir la anatomía por AABB ni en duplicar el solver. Scale registra un **provider/adaptador de landing surfaces** que traduce su verdad material autoritativa a las tres operaciones geométricas que Clinging necesita:
+
+- `currentSupport`: contacto material actual que realmente puede sostener al cuerpo bajo su gravedad;
+- `sweep`: primer contacto geométrico certificado del segmento, indicando si esa cara es soporte válido;
+- `revalidate`: comprobación de que la identidad material/revisión sigue vigente.
+
+La identidad del contacto debe incluir suficiente material causal para no reusar una pieza tras reload/rebind/revisión. Scale sigue poseyendo geometría, contacto, sweep físico y carry. Clinging sigue poseyendo la **política de Reorientation**: predicción temporal de aterrizaje, decisión de giro, reposicionamiento del personaje, consumo de efectos/cargas, Gravity Changer y presentación/cámara. El provider no cambia gravedad ni mueve al jugador; sólo declara «esta superficie material existe y es un landing válido ahora».
+
+Una entidad que no es moving platform para ese cuerpo tampoco se publica como landing surface Scale para Reorientation. Así, tocar o empujar una entidad pequeña no puede hacer que el personaje gire como si hubiera aterrizado sobre suelo.
 
 ## 5. API frente a JSON
 
