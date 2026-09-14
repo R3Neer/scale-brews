@@ -64,6 +64,24 @@ public final class S18PoseEngineAuthorityTests {
     }
 
     @GameTest
+    public void finitePoseInputsDoNotBecomeInvalidOnlyBecauseTheirSumOverflows(GameTestHelper h) {
+        var inputs = new PoseEngine.Inputs(
+            Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, Float.MAX_VALUE, true, Map.of());
+        h.assertTrue(Float.isFinite(inputs.walkPhase()) && Float.isFinite(inputs.walkAmount())
+                && Float.isFinite(inputs.age()) && Float.isFinite(inputs.headYaw()) && Float.isFinite(inputs.headPitch()),
+            "Pose inputs must validate each authoritative component independently; adding finite components together is not a valid finiteness test");
+
+        boolean rejectedInfinity = false;
+        try {
+            new PoseEngine.Inputs(Float.POSITIVE_INFINITY, 0, 0, 0, 0, true, Map.of());
+        } catch (IllegalArgumentException expected) {
+            rejectedInfinity = true;
+        }
+        h.assertTrue(rejectedInfinity, "Infinite pose inputs must still fail closed");
+        h.succeed();
+    }
+
+    @GameTest
     public void legacyPoseProvidersIfRetainedExposeNoSecondRegistry(GameTestHelper h) {
         final Class<?> adapters;
         try { adapters = Class.forName(LEGACY_PROVIDERS); }
