@@ -32,9 +32,15 @@ public final class PlayerWalkingPoseEngine implements PoseEngine {
                 case "left_leg" -> { x = b * 1.4f * in.walkAmount(); y = z = -.005f; }
                 default -> { continue; }
             }
-            var rest = ModelGeometry.matrix(p.transform());
-            result.put(p.id(), new Matrix4f().translation(rest.getTranslation(new Vector3f()))
-                .rotateZYX(z, y, x).scale(rest.getScale(new Vector3f())));
+            var source = p.sourcePose();
+            if (source != null) {
+                result.put(p.id(), new Matrix4f().translation(source.x() / 16f, source.y() / 16f, source.z() / 16f)
+                    .rotateZYX(z, y, x).scale(source.xScale(), source.yScale(), source.zScale()));
+            } else {
+                var rest = ModelGeometry.matrix(p.transform());
+                result.put(p.id(), new Matrix4f().translation(rest.getTranslation(new Vector3f()))
+                    .rotateZYX(z, y, x).scale(rest.getScale(new Vector3f())));
+            }
         }
         return result.size() == 5 ? Optional.of(Collections.unmodifiableMap(result)) : Optional.empty();
     }
