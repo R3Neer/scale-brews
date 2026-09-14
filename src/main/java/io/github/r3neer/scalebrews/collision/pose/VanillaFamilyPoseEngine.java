@@ -133,13 +133,44 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     private static void bee(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
         if (!required(in, "on_ground", "angry", "roll")) return;
         boolean ground = in.flag("on_ground"), angry = in.flag("angry");
-        float speed = Mth.cos(in.age() * .18f), boneX = 0, boneY = 0;
-        if (!angry && !ground) { boneX = .1f + speed * (float)Math.PI * .025f; boneY = -Mth.cos(in.age() * .18f) * .9f; }
+        float age = in.age();
+        float wave = Mth.cos(age * .18f);
+        float wing = Mth.cos(age * 2.1f) * (float)Math.PI * .15f;
+
+        float rightWingY, leftWingY, rightWingZ, leftWingZ;
+        float frontLegX, middleLegX, backLegX;
+        if (ground) {
+            rightWingY = -.2618f;
+            leftWingY = .2618f;
+            rightWingZ = leftWingZ = 0;
+            frontLegX = middleLegX = backLegX = 0;
+        } else {
+            rightWingY = leftWingY = 0;
+            rightWingZ = wing;
+            leftWingZ = -wing;
+            frontLegX = middleLegX = backLegX = .7853982f;
+        }
+
+        float boneX = 0, boneDy = 0, antennaX = 0;
+        if (!angry && !ground) {
+            boneX = .1f + wave * (float)Math.PI * .025f;
+            antennaX = wave * (float)Math.PI * .03f;
+            frontLegX = -wave * (float)Math.PI * .1f + .3926991f;
+            backLegX = -wave * (float)Math.PI * .05f + .7853982f;
+            boneDy = -wave * .9f;
+        }
         float roll = in.channel("roll", 0);
-        if (roll > 0) boneX += roll * (float)Math.atan2(Math.sin(3.0915928f - boneX), Math.cos(3.0915928f - boneX));
+        if (roll > 0)
+            boneX += roll * (float)Math.atan2(Math.sin(3.0915928f - boneX), Math.cos(3.0915928f - boneX));
+
         for (var p : g.parts()) switch (name(p)) {
-            case "bone" -> put(out, p, 0, boneY, 0, boneX, 0, 0);
-            case "left_antenna", "right_antenna" -> { if (!angry && !ground) put(out, p, 0, 0, 0, speed * (float)Math.PI * .03f, 0, 0); }
+            case "bone" -> put(out, p, 0, boneDy, 0, boneX, 0, 0);
+            case "right_wing" -> put(out, p, 0, 0, 0, 0, rightWingY, rightWingZ);
+            case "left_wing" -> put(out, p, 0, 0, 0, 0, leftWingY, leftWingZ);
+            case "front_legs" -> put(out, p, 0, 0, 0, frontLegX, 0, 0);
+            case "middle_legs" -> put(out, p, 0, 0, 0, middleLegX, 0, 0);
+            case "back_legs" -> put(out, p, 0, 0, 0, backLegX, 0, 0);
+            case "left_antenna", "right_antenna" -> put(out, p, 0, 0, 0, antennaX, 0, 0);
         }
     }
 
