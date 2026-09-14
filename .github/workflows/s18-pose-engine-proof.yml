@@ -102,4 +102,5 @@ jobs:
           name: S18-animation-definition-compiler-boundary
           path: |
             build/run/clientGameTest/logs/
+            build/run/clientGameTest/s18-retro-snapshots/
             build/resources/gametest/fabric.mod.json
