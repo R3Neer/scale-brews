@@ -162,9 +162,9 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
                     source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
                 case "right_hind_leg" -> put(out, p, 0, 0, 0, rightHindX,
                     source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
-                case "left_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, leftFrontX,
+                case "left_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, rightFrontX,
                     source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
-                case "right_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, rightFrontX,
+                case "right_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, leftFrontX,
                     source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
                 case "tail" -> put(out, p, 0, animationSpeed * ageScale, animationSpeed * 2f * ageScale,
                     (float)Math.PI / 6f + animationSpeed * .75f,
