@@ -49,7 +49,8 @@ public final class AuthorityPoseTracker {
             channels.put("flap",chicken.flap);channels.put("flap_speed",chicken.flapSpeed);
         }
         if(entity instanceof net.minecraft.world.entity.animal.bee.Bee bee) {
-            channels.put("on_ground",bee.onGround()?1f:0f);channels.put("angry",bee.isAngry()?1f:0f);
+            boolean rendererGrounded=bee.onGround() && bee.getDeltaMovement().lengthSqr()<1.0E-7;
+            channels.put("on_ground",rendererGrounded?1f:0f);channels.put("angry",bee.isAngry()?1f:0f);
             channels.put("roll",bee.getRollAmount(1));
         }
         if(entity instanceof net.minecraft.world.entity.animal.equine.AbstractHorse horse) {
