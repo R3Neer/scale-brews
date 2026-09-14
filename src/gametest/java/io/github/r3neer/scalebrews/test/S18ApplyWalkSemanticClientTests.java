@@ -40,11 +40,18 @@ public final class S18ApplyWalkSemanticClientTests implements FabricClientGameTe
             PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? java.util.Optional.of(program) : java.util.Optional.empty();
 
             // Native applyWalk(pos, speed, 2, 2.5) means:
-            //   timeSeconds = pos * 50ms * 2 / 1000 = pos * 0.1
+            //   timeSeconds = truncateMillis(pos * 50ms * 2) / 1000
             //   amplitude = min(speed * 2.5, 1)
-            // The current neutral binding can express the time factor but only raw walk_amount amplitude.
+            // S18 keeps those call-site transforms as explicit binding data rather than smuggling
+            // renderer-specific knowledge into the neutral PoseProgram.
             var bound = engine.bind(baseline,
-                Map.of("program",PROGRAM.toString(),"clock","walk_phase","clock_scale","0.1","amplitude","walk_amount"),
+                Map.of(
+                    "program", PROGRAM.toString(),
+                    "clock", "walk_phase",
+                    "clock_scale", "0.1",
+                    "amplitude", "walk_amount",
+                    "amplitude_scale", "2.5",
+                    "amplitude_max", "1"),
                 Set.of(), resources).orElseThrow();
 
             compareNative(definition, baseline, bound, 5f, .2f, 2f, 2.5f);
