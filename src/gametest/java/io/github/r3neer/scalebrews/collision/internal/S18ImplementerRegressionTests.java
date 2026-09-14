@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Pose;
 import org.joml.Matrix4f;
 
 /** Implementer-owned S18 regression coverage discovered during the final architecture reread. */
@@ -93,6 +94,27 @@ public final class S18ImplementerRegressionTests {
             "Vanilla walk smoothing must keep the 0.4 update factor at the current endpoint");
         h.assertTrue(Math.abs(inputs.walkPhase() - 1.2f) < 1e-6f,
             "Baby LivingEntity walkAnimation uses positionScale=3; authority must not animate baby legs at adult phase speed");
+        h.succeed();
+    }
+
+    @GameTest
+    public void playerResidualSwimBlendFailsOrdinaryWalkingClosed(GameTestHelper h) {
+        var player = h.makeMockServerPlayerInLevel();
+        player.setPose(Pose.STANDING);
+        try {
+            var swim = net.minecraft.world.entity.LivingEntity.class.getDeclaredField("swimAmount");
+            swim.setAccessible(true);
+            swim.setFloat(player, .45f);
+            h.assertTrue(!player.isSwimming() && player.getPose() == Pose.STANDING && player.getSwimAmount(1f) == .45f,
+                "Fixture must model the renderer's ramp-down frame: standing/not-swimming while swimAmount remains nonzero");
+            h.assertTrue(!AnatomyPoseEligibility.supported(Identifier.parse("scalebrews:player_walking"), player),
+                "PlayerWalkingPoseEngine does not implement HumanoidModel swim blending, so residual swimAmount must publish UNAVAILABLE");
+            swim.setFloat(player, 0f);
+            h.assertTrue(AnatomyPoseEligibility.supported(Identifier.parse("scalebrews:player_walking"), player),
+                "Ordinary empty-handed standing player must recover once the residual swim blend reaches zero");
+        } catch (ReflectiveOperationException inaccessible) {
+            throw new AssertionError("Could not construct residual player swim-blend frame", inaccessible);
+        }
         h.succeed();
     }
 
