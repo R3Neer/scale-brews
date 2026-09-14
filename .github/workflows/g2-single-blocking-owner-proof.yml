@@ -1,0 +1,49 @@
+name: g2-single-blocking-owner-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/g2-single-blocking-owner-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/G2SingleBlockingOwnerReadyTests.java'
+  workflow_dispatch:
+
+jobs:
+  single-blocking-owner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate READY single-blocking-owner holdout
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.G2SingleBlockingOwnerReadyTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run single-blocking-owner holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/g2-single-blocking-owner-junit.xml"
+      - name: capture single-blocking-owner evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: G2-single-blocking-owner-proof
+          path: |
+            build/g2-single-blocking-owner-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
