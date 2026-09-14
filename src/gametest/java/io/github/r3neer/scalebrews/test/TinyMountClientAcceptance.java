@@ -105,7 +105,10 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.waitTicks(5);
 
             // DIRECT mirrors the vanilla Camel interaction grammar: secondary-use from outside opens
-            // the same equipment menu instead of attempting to mount.
+            // the same equipment menu instead of attempting to mount. LocalPlayer derives secondary-use
+            // from its real input state, so drive the key mapping instead of mutating Entity shared flags.
+            context.getInput().holdKey(options -> options.keyShift);
+            context.waitTicks(1);
             context.runOnClient(client -> {
                 net.minecraft.world.entity.animal.chicken.Chicken chicken = null;
                 for (var entity : client.level.entitiesForRendering()) {
@@ -117,16 +120,15 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
                 if (chicken == null) throw new AssertionError("External chicken inventory fixture is missing");
                 if (client.player.distanceToSqr(chicken) > 6.25)
                     throw new AssertionError("External chicken inventory fixture is outside intended interaction range");
-                client.player.setShiftKeyDown(true);
-                try {
-                    var result = client.gameMode.interact(client.player, chicken,
-                            new EntityHitResult(chicken), InteractionHand.MAIN_HAND);
-                    if (!result.consumesAction())
-                        throw new AssertionError("Secondary-use did not consume direct-family inventory interaction");
-                } finally {
-                    client.player.setShiftKeyDown(false);
-                }
+                if (!client.player.isSecondaryUseActive())
+                    throw new AssertionError("Client crouch input did not become secondary-use before interaction");
+                var result = client.gameMode.interact(client.player, chicken,
+                        new EntityHitResult(chicken), InteractionHand.MAIN_HAND);
+                if (!result.consumesAction())
+                    throw new AssertionError("Secondary-use did not consume direct-family inventory interaction");
             });
+            context.getInput().releaseKey(options -> options.keyShift);
+            context.waitTicks(1);
             context.waitForScreen(TinyMountScreen.class);
             context.runOnClient(client -> {
                 if (client.player.isPassenger())
