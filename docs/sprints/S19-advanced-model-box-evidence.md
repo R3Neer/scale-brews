@@ -37,6 +37,21 @@ Hallazgos relevantes:
 
 Consecuencia adversarial: una implementación que derive identidad/cobertura exclusivamente de `getFields()` o de visibilidad pública puede parecer correcta con Grizzly y fallar con Gazelle. La genericidad no se demuestra con un solo modelo favorable.
 
+## Primitiva plana exacta de Gazelle
+
+La excepción render-only del plan también fue comprobada contra el jar exacto del lock, no contra otra rama de source. Evidencia: run `34828802003`, job `103926989818`, artifact `10340938164`, SHA-256 `4683707be2d3a3820c39309333223b964ddc9ebe5bd5e4c349b7c6e59385c1f6`.
+
+El constructor real de `ModelGazelle` ejecuta para `tail`:
+
+`addBox(-2.0f, 0.0f, 0.0f, 4.0f, 5.0f, 0.0f, 0.0f, false)`.
+
+La tercera dimensión es exactamente `0.0f`. Es una primitiva visual plana legítima de la versión fijada. Por tanto:
+
+- no puede convertirse en `ModelGeometry.Piece`, porque el DTO físico exige volumen estrictamente positivo;
+- no se le puede inventar epsilon/espesor;
+- tampoco puede provocar por sí sola el rechazo del resto del modelo Gazelle válido;
+- su clasificación/omisión debe ser deliberada y determinista, diferenciada de una primitiva volumétrica corrupta o de datos NaN/∞.
+
 ## Transform de renderer por fuente
 
 Una segunda inspección temporal verificó los renderers del mismo jar exacto del lock. Evidencia: run `34828467843`, job `103925942390`, artifact `10341416449`, SHA-256 `27a82acf23dda01b24a38bbd92184575e8eca2000ca46af6ea78793940b26795`.
@@ -58,7 +73,7 @@ Por tanto S19 puede migrar el proof Alex al engine de familia y reducir/eliminar
 
 - No demuestra todavía que exista `scalebrews:advanced_model_box` en producción.
 - No demuestra extracción real de Grizzly + Gazelle por el nuevo engine.
-- No demuestra filtrado parent/child, clasificación render-only, límites N/N+1 ni fail-closed de datos corruptos.
+- No demuestra filtrado parent/child, clasificación render-only en el nuevo extractor, límites N/N+1 ni fail-closed de datos corruptos.
 - No demuestra pose Citadel/`ModelAnimator`; esa mitad de G3 tarea 5 sigue fuera de S19.
 
 Esos puntos deben pasar a pruebas adversariales únicamente cuando exista la superficie productiva correspondiente, sin ampliar el contrato congelado.
