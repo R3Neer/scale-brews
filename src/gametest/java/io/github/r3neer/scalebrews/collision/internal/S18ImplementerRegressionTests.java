@@ -4,6 +4,7 @@ import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines;
+import io.github.r3neer.scalebrews.collision.pose.FelinePoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.MojangKeyframePoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.PlayerWalkingPoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.QuadrupedPoseEngine;
@@ -62,9 +63,11 @@ public final class S18ImplementerRegressionTests {
             "player_walking must be owned by PlayerWalkingPoseEngine");
         h.assertTrue(before.get(Identifier.parse("scalebrews:quadruped")) instanceof QuadrupedPoseEngine,
             "quadruped must be owned by QuadrupedPoseEngine");
-        for (String path : List.of("chicken", "villager", "iron_golem", "ghast", "feline", "equine", "bee"))
+        for (String path : List.of("chicken", "villager", "iron_golem", "ghast", "equine", "bee"))
             h.assertTrue(before.get(Identifier.fromNamespaceAndPath("scalebrews", path)) instanceof VanillaFamilyPoseEngine,
                 path + " must be owned by the canonical VanillaFamilyPoseEngine");
+        h.assertTrue(before.get(Identifier.parse("scalebrews:feline")) instanceof FelinePoseEngine,
+            "feline must be owned by the exact common-side FelinePoseEngine");
         h.assertTrue(before.get(Identifier.parse("scalebrews:mojang_keyframes")) instanceof MojangKeyframePoseEngine,
             "mojang_keyframes must be owned by the common canonical keyframe engine");
         h.succeed();
