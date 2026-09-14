@@ -198,9 +198,12 @@ public final class WorldAnatomyCatalog {
         if (programs.size() > 4096) throw new IllegalArgumentException("Too many pose programs");
         Map<String, PoseProgram> result = new TreeMap<>();
         programs.forEach((id, raw) -> {
-            try { Identifier.parse(id); }
+            final String canonicalId;
+            try { canonicalId = Identifier.parse(id).toString(); }
             catch (RuntimeException invalid) { throw new IllegalArgumentException("Invalid pose-program id " + id, invalid); }
-            result.put(id, PoseProgram.validatedCopy(raw));
+            var program = PoseProgram.validatedCopy(raw);
+            if (result.putIfAbsent(canonicalId, program) != null)
+                throw new IllegalArgumentException("Duplicate canonical pose-program id " + canonicalId);
         });
         return Map.copyOf(result);
     }
