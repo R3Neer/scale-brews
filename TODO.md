@@ -4,7 +4,7 @@
 
 - [x] Merge the validated mount-polish work into `main`: data-driven `direct` / `tameable_direct` / `item_steered` families, generic SADDLE/BODY inventory, vanilla shearing/dispensers, wolf gamefeel and final animated mount attachment transforms.
 - [x] Publish `0.1.0-beta.7` through the guarded prerelease lane with 154 required server GameTests, the full real-client suite, package checks and published-JAR SHA verification.
-- [x] Audit the live GUIDE/CONFIGURATION/VALIDATION/TODO/example datapack after beta.7, remove stale reach and Tiny Mount wording, and label older validation entries as historical rather than current contracts.
+- [x] Audit the live GUIDE/CONFIGURATION/MECHANICS/VALIDATION/TODO/example datapack after beta.7, remove stale reach, Tiny Mount and removed-renderer wording, and label older validation entries as historical rather than current contracts.
 - [x] Refresh the existing beta.7 prerelease after this documentation audit so its tag/assets point at the documentation-complete validated snapshot.
 - [ ] Full-pack human acceptance and broad multiplayer/mod-combination QA remain separate from automated release validation.
 
