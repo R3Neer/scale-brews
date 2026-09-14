@@ -99,6 +99,39 @@ public class AnatomyQueryFrameTests {
         } finally {AnatomyMovement.deactivate(h.getLevel());support.discard();body.discard();}
         h.succeed();
     }
+
+    @GameTest public void materialSupportPreservesVanillaEntityPush(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockPlayer(GameType.SURVIVAL);
+        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var floor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(support.position());
+        var provider=endpointProvider(13,e->floor,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
+        AnatomyMovement.activate(h.getLevel());
+        AnatomyMovement.register(support,provider,descriptor(UUID.randomUUID(),13));
+        try {
+            body.setPos(support.getX()+.2,floor.bounds().maxY+.5,support.getZ());
+            var landing=AnatomyMovement.collide(body,new Vec3(0,-1,0));body.setPos(body.position().add(landing));
+
+            body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
+            support.push(body);
+            Vec3 vanillaBody=body.getDeltaMovement(),vanillaSupport=support.getDeltaMovement();
+            h.assertTrue(vanillaBody.lengthSqr()>1e-12 || vanillaSupport.lengthSqr()>1e-12,
+                "Holdout precondition: vanilla Entity.push must produce a measurable response for this pair");
+
+            body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
+            AnatomyMovement.afterMove(body);
+            h.assertTrue(AnatomyMovement.supported(body) && AnatomyMovement.contact(body)!=null
+                    && AnatomyMovement.contact(body).support()==support,
+                "Fixture must acquire the same material support before probing managed push");
+            support.push(body);
+            Vec3 managedBody=body.getDeltaMovement(),managedSupport=support.getDeltaMovement();
+            h.assertTrue(managedBody.distanceToSqr(vanillaBody)<=1e-12 && managedSupport.distanceToSqr(vanillaSupport)<=1e-12,
+                "A moving-platform contact must preserve vanilla Entity.push exactly once: vanilla body="+vanillaBody
+                    +" support="+vanillaSupport+" managed body="+managedBody+" support="+managedSupport);
+        } finally {AnatomyMovement.deactivate(h.getLevel());support.discard();body.discard();}
+        h.succeed();
+    }
+
     @GameTest public void currentTrsFrameOverridesDeliberatelyStaleMotionAndBoundsOverflow(GameTestHelper h) {
         var epoch=UUID.randomUUID();
         h.runAfterDelay(1,()->{
