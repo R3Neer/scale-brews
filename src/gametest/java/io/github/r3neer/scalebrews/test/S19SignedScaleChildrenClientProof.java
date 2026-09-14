@@ -20,12 +20,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** Adversarial real-Citadel proof for signed AdvancedModelBox scales and child-scale cancellation. */
+/** Adversarial real-Citadel proof for signed AdvancedModelBox scales and pinned child-scale cancellation. */
 public final class S19SignedScaleChildrenClientProof implements FabricClientGameTest {
     private static final String GRIZZLY = "com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear";
     private static final Identifier PROPAGATING = Identifier.parse("test:s19_signed_scale_propagating");
     private static final Identifier CANCELLED_CHILDREN = Identifier.parse("test:s19_signed_scale_cancelled_children");
     private static final double EPS2 = 2.5e-9;
+    private static final float CHILD_SCALE_FLOOR = 1.0e-4f;
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -35,7 +36,8 @@ public final class S19SignedScaleChildrenClientProof implements FabricClientGame
 
             // Control: signed scale itself is representable end-to-end when it propagates to children.
             prove(PROPAGATING, true, false);
-            // Target: the same signed scale with scaleChildren=false must cancel with the exact signed reciprocal.
+            // Target: scaleChildren=false must reproduce the exact pinned Citadel Math.max(scale, 1e-4) clamp,
+            // even for a negative source scale. This is deliberately source fidelity, not a nicer reciprocal rule.
             prove(CANCELLED_CHILDREN, false, true);
         });
     }
@@ -63,11 +65,18 @@ public final class S19SignedScaleChildrenClientProof implements FabricClientGame
         if (requireHelper) {
             var helper = geometry.parts().stream().filter(part -> part.id().endsWith("/unscaled_children")).findFirst().orElseThrow();
             Matrix4f inverse = ModelGeometry.matrix(helper.transform());
-            float[] expected = {-2f / 3f, 4f / 3f, .8f};
+            float[] sourceScale = {-1.5f, .75f, 1.25f};
+            float[] expected = {
+                1f / Math.max(sourceScale[0], CHILD_SCALE_FLOOR),
+                1f / Math.max(sourceScale[1], CHILD_SCALE_FLOOR),
+                1f / Math.max(sourceScale[2], CHILD_SCALE_FLOOR)
+            };
             float[] actual = {inverse.m00(), inverse.m11(), inverse.m22()};
-            for (int i = 0; i < 3; i++) if (Math.abs(actual[i] - expected[i]) > 1e-5f)
-                throw new AssertionError("Signed scaleChildren inverse is not the exact reciprocal: expected="
+            for (int i = 0; i < 3; i++) if (Float.floatToIntBits(actual[i]) != Float.floatToIntBits(expected[i]))
+                throw new AssertionError("Signed scaleChildren helper diverges from the exact pinned Citadel clamp: expected="
                     + java.util.Arrays.toString(expected) + " actual=" + java.util.Arrays.toString(actual));
+            if (Float.floatToIntBits(expected[0]) != Float.floatToIntBits(10000f))
+                throw new AssertionError("Signed-scale fixture stopped exercising Citadel's negative-scale clamp boundary");
         }
 
         Object oracle = freshSignedAdultGrizzly(scaleChildren);
