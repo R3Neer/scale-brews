@@ -1,6 +1,6 @@
 # S19 — Evidencia de `scaleChildren=false` con escala negativa
 
-Estado: **ORACLE CORREGIDO / PRODUCCIÓN COINCIDE CON EL BYTECODE FIJADO**.
+Estado: **SUPERFICIE ADVERSARIAL CERRADA / PRODUCCIÓN COINCIDE CON EL BYTECODE FIJADO**.
 
 Este documento conserva tanto el contraejemplo adversarial como su clasificación correcta. El primer holdout asumió que `scaleChildren=false` debía compensar una escala negativa mediante el recíproco firmado. Esa hipótesis era razonable como geometría abstracta, pero no era la semántica del dialecto Citadel que S19 ha fijado como autoridad. El adversario retiró esa expectativa antes de solicitar cualquier cambio productivo.
 
@@ -85,13 +85,50 @@ Ese rojo **no demuestra un defecto productivo**. Demuestra que el oracle había 
 - mantener una entrada negativa para que el test ejerza específicamente la rama clamp a `10000`;
 - comparar los colliders resultantes con los vertices capturados del renderer real.
 
-La lane `s19-signed-scale-children-proof` sigue siendo útil: ahora protege la semántica peculiar del dialecto en lugar de intentar corregirla.
+La lane `s19-signed-scale-children-proof` protege así la semántica peculiar del dialecto en lugar de intentar corregirla.
 
-## Regla de cierre adversarial
+## Cierre adversarial
 
-Antes de cerrar esta superficie de S19 deben cumplirse las dos condiciones siguientes:
+Las dos condiciones de cierre se cumplen en el mismo snapshot `1a92c4c7eddac3043f94ec3535226416f5382e9c`.
 
-1. el holdout corregido debe pasar sobre los jars pinned;
-2. un mutante que sustituya la regla `1 / Math.max(scale, 1e-4)` por el recíproco firmado `1 / scale` debe morir causalmente en esta lane.
+Workflow `s19-signed-scale-children-proof`:
 
-No hay corrección productiva solicitada por esta evidencia. La revisión adversarial sí deja una lección de contrato: en extractores versionados, una conducta fuente extraña sigue siendo autoridad mientras el sprint prometa reproducir exactamente ese dialecto.
+- run `34894548710`;
+- job `104145161382`;
+- artifact `10367774853`;
+- SHA-256 `99ab0674099a25ed13a8b8221a5632c426d29b4cf3210993e53febbe50f45045`.
+
+Primero el código productivo pasa contra los jars fijados:
+
+```text
+S19_SIGNED_SCALE PASS source=test:s19_signed_scale_propagating scaleChildren=true helpers=0 comparedVertices=120 renderVertices=360
+S19_SIGNED_SCALE PASS source=test:s19_signed_scale_cancelled_children scaleChildren=false helpers=1 comparedVertices=16 renderVertices=360
+```
+
+Después la misma lane modifica únicamente el checkout efímero de CI y sustituye:
+
+```java
+1f / Math.max(scale, 1.0e-4f)
+```
+
+por:
+
+```java
+1f / scale
+```
+
+El mutante muere exactamente en la aserción del clamp fijado:
+
+```text
+Signed scaleChildren helper diverges from the exact pinned Citadel clamp:
+expected=[10000.0, 1.3333334, 0.8]
+actual=[-0.6666667, 1.3333334, 0.8]
+```
+
+y el workflow confirma:
+
+```text
+S19 raw-reciprocal mutant killed causally by exact pinned Citadel clamp oracle
+```
+
+No hay corrección productiva solicitada por esta evidencia. La superficie queda cerrada y protegida frente a una futura sustitución accidental de la semántica exacta del dialecto por una compensación geométricamente más intuitiva.
