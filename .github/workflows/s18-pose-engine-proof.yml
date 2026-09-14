@@ -23,6 +23,7 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramExecutionTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionCompilerClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionSemanticClientTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18NonUnitRestScaleSemanticClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
       - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
@@ -89,7 +90,8 @@ jobs:
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-client-gametest']=[
             'io.github.r3neer.scalebrews.test.S18AnimationDefinitionCompilerClientTests',
-            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests'
+            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests',
+            'io.github.r3neer.scalebrews.test.S18NonUnitRestScaleSemanticClientTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
