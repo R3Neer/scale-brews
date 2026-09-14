@@ -158,12 +158,44 @@ En el mismo run:
 
 La precondición del holdout firmada pasó: la reflexión llegó a `ModelGeometry` y Mojang la conservó tras el target. El neutral no sólo obtuvo una magnitud X incorrecta, sino que cambió el signo del determinante y convirtió un transform reflejado en uno no reflejado.
 
+## Holdout fuerte: dos representantes signed-scale con la misma matriz
+
+El fallo anterior aún permitía una explicación demasiado estrecha: «`getScale()` eligió mal dónde poner el signo». Para descartar que otra convención de descomposición de la misma matriz pueda resolver el problema genéricamente, `S18SignedScaleRepresentativeSemanticClientTests` construye dos estados fuente distintos con **exactamente el mismo transform inicial**:
+
+- A: `R = I`, `scale = (-1.5, +0.75, 1.25)`;
+- B: `Rz = π`, `scale = (+1.5, -0.75, 1.25)`.
+
+Como `Rz(π) = diag(-1,-1,1)`, ambas composiciones producen el mismo transform afín inicial. Sin embargo, el mismo target Mojang `scaleVec(1.2,1,1)` suma `+0.2` al **field fuente** `xScale`:
+
+- A pasa a `xScale=-1.3`;
+- B pasa a `xScale=+1.7`, que bajo su `Rz(π)` produce una columna X efectiva `-1.7`.
+
+Por tanto la misma matriz neutral inicial y el mismo `PoseProgram` deben producir dos resultados distintos según qué estado TRS fuente existía antes de la pérdida de información.
+
+Commits adversariales:
+
+- holdout: `384c1834fa53254a25c824496b5cdc57d57d2847`;
+- lane aislada: `d3f7e5bdf62b7b6ef6dcb8a6c3ad0b17a25c21ee`.
+
+Evidencia ejecutada: run `34840822137`, job `client-signed-scale-representative` `103965143584`: **failure causal**.
+
+Mensaje exacto:
+
+`signed-scale representative A differs at matrix[0]: expected=-1.3 actual=1.7`
+
+Artifact `10346136387` (`S18-signed-scale-representative-proof`), SHA-256 `531ce252edde822c9dd604d8ed1903d91adcf220b93a43b8fb55ffbf7421485c`.
+
+La línea de fallo ocurre después de que el test haya verificado dos precondiciones: los estados A/B colapsan a la misma matriz de reposo y Mojang los separa después del target. De hecho el neutral elige un resultado compatible con otro representante (`+1.7` en la entrada `matrix[0]`) cuando A exige `-1.3`.
+
+Este holdout convierte el problema de signed scale en la misma imposibilidad informacional ya demostrada para Euler: **no existe una función de la sola matriz de reposo y del delta que pueda recuperar ambos futuros fuente**. Cambiar la convención de signos de una descomposición sólo elige qué representante se favorece.
+
 ## Clasificación actual
 
-Los dos holdouts post-fix muestran el mismo problema general desde ángulos distintos: la matriz local de reposo conserva el transform final, pero **no conserva necesariamente la semántica de los fields TRS fuente sobre los que `AnimationDefinition` aplica offsets aditivos**.
+Los holdouts post-fix muestran el mismo problema general desde varios ángulos: la matriz local de reposo conserva el transform final, pero **no conserva necesariamente la semántica de los fields TRS fuente sobre los que `AnimationDefinition` aplica offsets aditivos**.
 
-- El holdout Euler demuestra formalmente pérdida de identidad: dos estados fuente distintos colapsan a la misma matriz y requieren salidas distintas para el mismo delta.
-- El holdout de escala firmada demuestra además que una descomposición ordinaria por magnitudes puede destruir una reflexión válida incluso sin necesitar una pareja equivalente más sofisticada.
+- El holdout Euler demuestra formalmente pérdida de identidad rotacional: dos estados fuente distintos colapsan a la misma matriz y requieren salidas distintas para el mismo delta.
+- El holdout signed-scale simple demuestra que una descomposición ordinaria por magnitudes puede destruir una reflexión válida.
+- El holdout signed-scale representativo eleva esa observación a una imposibilidad general: dos estados TRS distintos colapsan a la misma matriz y requieren salidas SCALE distintas, así que ninguna convención de descomposición puede recuperar la semántica perdida.
 
 Clasificación TM: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**. El requisito no cambia: el material neutral server-safe debe conservar información suficiente del estado de reposo fuente para reproducir `offsetPos`, `offsetRotation` y `offsetScale` exactamente sin clases cliente ni estado global. La forma concreta de esa información y dónde vive pertenecen al IMPLEMENTADOR/arquitectura, no al adversario.
 
