@@ -193,6 +193,20 @@ Grizzly conserva además el oracle histórico de pose como regresión, pero esa 
 
 La identidad debe proceder de la jerarquía/nombres canónicos de la tecnología, no del orden accidental de `getDeclaredFields()`.
 
+### Registro, disponibilidad y secuencias
+
+El registry/seam hereda riesgos de S17 que deben seguir siendo observables sin convertirlos en lifecycle nuevo:
+
+- `initialize()` repetido con el mismo singleton debe ser inocuo; intentar sustituir el delegate ya instalado debe fallar;
+- registrar dos veces el mismo `model` debe rechazarse tanto si el descriptor es idéntico como si es conflictivo;
+- el límite de fuentes debe distinguir exactamente N y N+1 sin permitir que un duplicate consuma presupuesto adicional;
+- source inexistente y request con parámetros desconocidos deben resolverse de forma determinista y no activar fallback heurístico;
+- el build/arranque ordinario sin jars externos no puede hacer linking/reflection eager que provoque `ClassNotFoundException` antes de pedir una fuente externa;
+- un supplier/factory o `modelTransform` que devuelve `null`, lanza o entrega material inválido después de una preparación anterior válida no puede reutilizar geometry/cache/material parcial anterior;
+- registrar las mismas fuentes válidas en otro orden no puede cambiar la vista determinista ni la geometría preparada.
+
+No hay hot-unload/hot-reload de mods, epoch/revision nuevos ni transición de red propia en S19. Reorder/replay/pérdida de paquetes y lifecycle G3.9-11 se consideran conscientemente **no aplicables** aquí salvo como regresión de que S19 no cambie protocolo/schema.
+
 ### Geometría inválida, render-only y límites
 
 - part/cube exactamente en N y N+1;
@@ -208,6 +222,21 @@ La identidad debe proceder de la jerarquía/nombres canónicos de la tecnología
 - excepción a mitad de recorrido después de haber acumulado pieces.
 
 Una omisión render-only legítima debe estar clasificada explícitamente y no producir `Piece`. Todo fallo físico/corrupto debe abortar el resultado entero; no se publica un prefijo válido de una fuente inválida.
+
+### Tabla de decisión: intención fuente vs volumen renderizado
+
+La clasificación no puede reducirse a `min/max(vertices)` ni a «alguna dimensión fuente es cero». Para el dialecto fijado se separa intención dimensional pre-inflation de geometría efectiva post-inflation:
+
+| Dimensión fuente nominal | Geometría efectiva finita post-inflation | Clasificación esperada |
+| --- | --- | --- |
+| todas estrictamente positivas | volumen estrictamente positivo | `Piece` física |
+| todas estrictamente positivas | colapsada/no volumétrica | rechazo: una primitiva volumétrica dejó de ser físicamente válida |
+| alguna exactamente cero, ninguna negativa | sigue no volumétrica y corresponde a primitiva plana legítima del dialecto | render-only explícita, sin `Piece` ni epsilon |
+| alguna exactamente cero, ninguna negativa | inflation/materialización produce volumen positivo | `Piece` física; cero nominal no basta para declararla plana |
+| alguna negativa | cualquier AABB ordenable después de `min/max` | rechazo; no se sanea corrupción cambiando orientación |
+| cualquier fuente/vertex/transform no finito | cualquiera | rechazo completo sin resultado parcial |
+
+Un caso desconocido no se convierte en render-only por conveniencia. La excepción plana necesita evidencia del dialecto soportado; la corrupción física falla cerrada.
 
 ### Filtrado / descendientes
 
@@ -227,6 +256,29 @@ Una omisión render-only legítima debe estar clasificada explícitamente y no p
 
 No se concede compatibilidad por nombre de clase. Sólo dialectos demostrados y versionados.
 
+### Propiedades metamórficas y algebraicas
+
+Sin fijar todavía escenarios concretos de test, la fase post-implementación debe poder comprobar propiedades que no dependan de una única fixture favorable:
+
+- reordenar registros de fuentes válidas no cambia IDs, bytes ni geometría de una fuente concreta;
+- reordenar una enumeración auxiliar equivalente (`getAllParts`, fields o catálogo) no altera la jerarquía canónica obtenida desde roots/children;
+- dos objetos `Matrix4f` numéricamente iguales para `modelTransform` producen geometría idéntica y ninguna preparación puede mutar el objeto entregado por el caller;
+- aplicar el mismo transform rígido de referencia a source y candidato conserva correspondencia de vertices/piezas; una traslación global no puede alterar tamaños ni parentage;
+- cambiar `AnatomyFilter` afecta a la selección evaluada, no a la geometría base preparada ni a sus IDs;
+- preparar dos veces material fresco pero equivalente produce el mismo `ModelGeometry` aunque cambien identidades Java de los objetos;
+- `mirror` puede cambiar winding/UV del renderer, pero no autoriza un volumen físico distinto cuando el conjunto de vertices espaciales es equivalente.
+
+### Combinatoria/pairwise a reservar para fase post-implementación
+
+Las dimensiones que pueden interactuar y no deben probarse sólo de una en una son, como mínimo:
+
+- herencia de escala (`scaleChildren`) × escala parent identidad/no-identidad × child con geometría propia;
+- visibilidad estructural (`showModel`) × selección declarativa (`AnatomyFilter`) × descendencia;
+- material válido/inválido × fallo temprano/tardío × existencia de pieces ya recorridas;
+- source conocida/desconocida × parámetros request vacíos/desconocidos × delegate instalado/no instalado.
+
+Aquí sólo se fija la interacción a cubrir. Los valores y fixtures concretos permanecen para la segunda pasada después de leer producción.
+
 ### Proof real de familia
 
 - Grizzly pasa pero Gazelle falla porque el extractor depende de fields públicos/orden/nombre de root propios del bear;
@@ -236,6 +288,29 @@ No se concede compatibilidad por nombre de clase. Sólo dialectos demostrados y 
 - el test sintético comparte el mismo bug que el extractor.
 
 El proof de aceptación compara contra modelo/renderer original exacto y debe demostrar piezas/vertices/transforms seleccionados, no sólo que «hay cubos».
+
+### Mutation-testing mindset
+
+Después de existir producción, las pruebas deben ser capaces de matar mutaciones plausibles derivadas de los riesgos anteriores. Entre las mutaciones candidatas, sin fijar aún el caso concreto que las detectará:
+
+- enlazar el `cubeList` homónimo de `BasicModelPart` en vez del de `AdvancedModelBox`;
+- usar `getAllParts()` como lista de roots y volver a recorrer children;
+- calcular bounds físicos sólo con `posX1..posZ2` pre-inflation en vez de geometría materializada;
+- eliminar la compensación de escala hacia hijos cuando `scaleChildren=false`;
+- propagar una exclusión de `AnatomyFilter` del parent al subárbol;
+- convertir una dimensión cero en epsilon físico;
+- normalizar con `min/max` una dimensión fuente negativa y aceptarla;
+- devolver el prefijo ya acumulado después de corrupción/excepción tardía;
+- convertir el `0.8` de Gazelle en constante de toda la familia;
+- dejar de copiar defensivamente el `modelTransform`;
+- sustituir orden determinista por una colección de iteración arbitraria;
+- permitir reemplazar el owner/delegate built-in o mantener el algoritmo legacy en paralelo.
+
+Una mutación relevante que sobreviva significa cobertura insuficiente aunque ordinary/focal estén verdes.
+
+### Fuzzing estructurado: consideración previa
+
+El fuzzing sí aplica a la jerarquía/validación, pero **no se materializa antes de producción**. Candidato para fase 7: generar árboles pequeños válidos con nombres únicos, transforms finitos y cubos volumétricos; después aplicar una sola mutación estructural/numérica por ejecución y comprobar propiedades de determinismo o fail-closed. Debe mantenerse independiente del algoritmo productivo y no reemplaza los proofs reales Grizzly/Gazelle.
 
 ### No regresión
 
