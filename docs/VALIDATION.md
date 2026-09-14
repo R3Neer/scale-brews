@@ -1,10 +1,10 @@
 # Validation record
 
-## Tiny Mount SeatFrame candidate (after beta.7)
+## 0.1.0-beta.8 release candidate — 2026-09-14
 
-This branch replaces direct `body` / `bone` anchors and the previous-frame entity-ID cache with an autodetected, complete `SeatFrame`. Compile-time checks cover the minimal gameplay codec, legacy `saddle_visual` decoding, strict visual-profile values, nested/rest-scaled `ModelPart` resolution, explicit-path override, same-frame topological ordering and cache clearing. Release still requires the complete base client suite, the pinned EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5 lane, and the front/side/rear/top manual capture and two-minute traversal matrix for Bee, Chicken and Wolf. Do not treat compilation alone as aesthetic acceptance.
+This release replaces direct `body` / `bone` anchors and the previous-frame entity-ID cache with an autodetected, complete `SeatFrame`. Checks cover the minimal gameplay codec, legacy `saddle_visual` decoding, strict visual-profile values, nested/rest-scaled `ModelPart` resolution, explicit-path override, same-frame topological ordering and cache clearing. The final source passed the complete base client suite and the pinned EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5 lane. Sixteen mounted, unmounted, movement and pounce snapshots for Bee, Chicken and Wolf were inspected directly; saddle orientation and rider contact remained coherent in those captures, and the native Horse stayed outside this renderer path. The planned two-minute-per-creature human-controlled play session and broad multiplayer latency check were not performed; publication remains explicitly prerelease-scoped.
 
-## Current prerelease: 0.1.0-beta.7 — 2026-09-14
+## Previous prerelease: 0.1.0-beta.7 — 2026-09-14
 
 - The guarded prerelease lane passes **154 required server GameTests**, the complete real-client/integrated-server GameTest suite, packaged-version/test-class checks, tag verification and a post-upload SHA-256 comparison of the regular JAR.
 - Tiny Mount interaction is validated by `family`, including data-only Cow adversaries proving `direct` / `item_steered` behavior without species branches, dynamic equipment menus, Bee player-inventory UX, vanilla saddle shearing/drop behavior, Wolf owner protection and BODY-before-SADDLE shearing, plus the real dispenser equipment path.

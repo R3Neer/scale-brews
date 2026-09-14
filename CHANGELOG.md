@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.0-beta.8] - 2026-09-14
+
+This prerelease replaces fixed Tiny Mount saddle anchors with a shared, data-driven visual attachment frame derived from the model actually rendered by the client. It targets the floating and desynchronized saddle/rider presentation visible on Bees, Chickens and Wolves, especially with Fresh Animations.
+
+### Extensible visual attachments
+
+- Add a `SeatFrame` resolver that traverses the complete animated `ModelPart` hierarchy, selects a stable upper body surface and captures its current affine transform for the saddle, rider and translation-only camera correction.
+- Replace the persistent previous-frame entity cache with same-frame mount/rider submission ordering and a frame-scoped context. Missing or failed captures now fall back to vanilla rendering instead of reusing stale transforms.
+- Render one generic saddle mesh in the selected normalized right/up/front frame. Saddles inherit model scale and animation; riders inherit only translation and orthonormal rotation.
+- Add optional reloadable resource-pack profiles at `assets/<namespace>/scalebrews/tiny_mount_visual/<path>.json`, including explicit model paths, normalized anchor points, pixel offsets, rotations, saddle dimensions and texture overrides.
+- Permit minimal Tiny Mount definitions containing only `entity`, with safe defaults for family, movement, speed, size ratio, ability and enabled state. Legacy `saddle_visual` textures remain supported as compatibility hints.
+- Add a small client adapter registry for renderers that do not expose ordinary `LivingEntityRenderer` plus `ModelPart` models.
+
+### Compatibility and validation
+
+- Correct rotated torso axes such as the Chicken model so the saddle remains horizontal and centred rather than following the model's internal Y axis.
+- Rebase model reference transforms when EMF changes internal base poses, allowing Fresh Animations groups such as Bee body rotations to remain synchronized without deforming the player.
+- Cover nested/hidden model parts, explicit-path fallback, invalid profile data, stable same-frame ordering, stale-state clearing and native-mount exclusion.
+- Exercise and visually inspect mounted, unmounted and motion snapshots for Bee, Chicken and Wolf with Entity Model Features 3.3.5, Entity Texture Features 7.2 and Fresh Animations 1.10.5.
+
 ## [0.1.0-beta.7] - 2026-09-14
 
 This prerelease makes Tiny Mount interaction and equipment data-driven through three vanilla-style behavior families, synchronizes saddles and riders with final animated mount models, and polishes wolf riding. It also adds size-scaled gait/footstep presentation and updates interaction-reach balance. The experimental all-direction anatomical collision system remains unfinished and disabled in normal gameplay.
