@@ -6,9 +6,9 @@ Fecha: 2026-09-14
 
 ## Resumen
 
-La revisión adversarial de `PoseProgramEvaluator` encontró una divergencia semántica con `AnimationDefinition` de Minecraft 26.2 para un canal válido que contiene **un único keyframe con `preTarget != postTarget`**.
+La revisión adversarial de `PoseProgramEvaluator` encontró una divergencia semántica con `AnimationDefinition` de Minecraft 26.2 para canales válidos con `preTarget != postTarget` en su frontera inicial.
 
-La implementación neutral posee un special-case:
+El primer hallazgo apareció en un canal de **un único keyframe**, cuyo special-case neutral era:
 
 ```java
 if (frames.size() == 1) {
@@ -17,9 +17,11 @@ if (frames.size() == 1) {
 }
 ```
 
-El comportamiento original de Mojang no coincide con esa regla.
+Un segundo holdout diferencial demuestra que el defecto **no se limita a ese special-case**: un canal LINEAR ordinario con dos keyframes también diverge antes del primer timestamp por la regla general `time <= first.timestamp() -> first.preTarget()`.
 
-## Holdout diferencial
+El comportamiento original de Mojang no coincide con ninguna de esas dos reglas.
+
+## Holdout 1 — único keyframe
 
 Commit del test: `1486a7a02ee61c88cd33b12c8a05e9ad398b9174` (`test(s18): probe single-keyframe discontinuity parity`).
 
@@ -37,7 +39,7 @@ La fixture usa un `CowModel` real y un `AnimationDefinition` 26.2 con:
 
 El test compila la definición con `AnimationDefinitionCompiler`, liga el `PoseProgram` contra la geometría extraída del mismo `CowModel` y compara matrices locales contra la aplicación nativa de Mojang en `t = 0`, `0.999`, `1`, `1.001` y `2`.
 
-## Evidencia CI
+### Evidencia CI
 
 Workflow: `s18-single-keyframe-proof`, run `34849478744`.
 
@@ -56,16 +58,36 @@ Como la posición base de la cabeza es la misma en ambos caminos, la diferencia 
 - Mojang aplica `12 px / 16 = 0.75`;
 - el evaluator neutral aplica `4 px / 16 = 0.25`.
 
-Por tanto el rojo no procede de extracción, rest pose, Euler, escala firmada ni del compiler: la diferencia está en la selección `preTarget/postTarget` durante la evaluación del canal de un único keyframe.
+## Holdout 2 — frontera inicial multikeyframe
+
+Commit del test: `99806559f705159c01bf8b25790ac288cbc1bf98` (`test(s18): probe multi-keyframe first boundary parity`).
+
+Lane aislada: `6324832146f8ef74242a68b0e199f1746eafaacd` (`ci(s18): isolate multi-keyframe first boundary probe`).
+
+Fixture LINEAR sobre `CowModel`, bone `head`:
+
+- primer keyframe en `t=0.5 s`, `pre=4`, `post=12` px;
+- segundo keyframe en `t=2 s`, `pre=post=20` px;
+- muestras `t=0`, `0.499`, `0.5`, `0.501`, `1`.
+
+Workflow `s18-first-keyframe-boundary-proof`, run `34850265081`.
+
+Job `client-first-keyframe-boundary` `103996129105`: **FAILURE causal**.
+
+Artifact `10350556473` (`S18-first-keyframe-boundary-proof`), SHA-256 `9c5038f6fc061785a76cf64b07556df84c0d274bbb0f4ee01181d05098f8f3b1`.
+
+Primer fallo exacto:
+
+`first-keyframe boundary parity seconds=0.0 matrix[12] expected=0.75 actual=0.25`
+
+De nuevo Mojang aplica el `postTarget` de 12 px antes del primer timestamp, mientras el evaluator neutral devuelve `preTarget` de 4 px. Esto mata explícitamente una reparación estrecha que modificase sólo `frames.size()==1`.
 
 ## Clasificación TM
 
-**Bug productivo de semántica de keyframe en `PoseProgramEvaluator.sample(...)`.**
+**Bug productivo de semántica de frontera inicial en `PoseProgramEvaluator.sample(...)`.**
 
-No amplía el contrato S18. El sprint ya exige preservar `preTarget/postTarget` y comparar LINEAR/CATMULL contra la fuente original. La fixture simplemente cubre una forma válida del mismo `AnimationDefinition` que el oracle histórico no ejercitaba.
+No amplía el contrato S18. El sprint ya exige preservar `preTarget/postTarget` y comparar LINEAR/CATMULL contra la fuente original. Las fixtures cubren formas válidas del mismo `AnimationDefinition` que el oracle histórico no ejercitaba.
 
-La reparación debe reproducir la selección original de Mojang para la frontera de un único keyframe, no introducir una convención propia basada en «antes = pre / después = post».
+La reparación debe reproducir la selección original de Mojang para la frontera anterior/al primer keyframe tanto en canales de uno como de múltiples keyframes, no introducir una convención propia basada en «antes = pre / después = post».
 
-## Siguiente holdout
-
-Se ha preparado por separado un diferencial CATMULL_ROM con `pre/post` distintos en los keyframes de borde. Su objetivo es comprobar si la divergencia se limita al special-case de un único frame o si la selección de vecinos fantasma de `PoseProgramEvaluator.catmull(...)` también difiere de Mojang.
+CATMULL_ROM mantiene evidencia separada porque su divergencia ocurre además dentro de tramos interpolados y responde a la selección de vecinos de spline, no sólo a esta frontera LINEAR.
