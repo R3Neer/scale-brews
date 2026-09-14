@@ -10,7 +10,7 @@ on:
 jobs:
   missing-cube-mutation:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
       - uses: gradle/actions/wrapper-validation@v6
@@ -34,22 +34,7 @@ jobs:
           p.write_text(text.replace(needle, replacement))
           PY
           git diff -- src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelPartGeometryExtractor.java
-      - name: run S17 client preparation suite against mutation
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp src/gametest/resources/fabric.mod.json "$RUNNER_TEMP/fabric.mod.json"
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path('src/gametest/resources/fabric.mod.json')
-          data=json.loads(p.read_text())
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests']
-          p.write_text(json.dumps(data,indent=2)+'\n')
-          PY
-          xvfb-run -a ./gradlew runClientGameTest --console=plain
-          cp "$RUNNER_TEMP/fabric.mod.json" src/gametest/resources/fabric.mod.json
-      - name: run S17 original-model proof against mutation
+      - name: require independent structural oracle to kill mutation
         shell: bash
         run: |
           set -euo pipefail
@@ -58,16 +43,26 @@ jobs:
           from pathlib import Path
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.AnatomyExportProof']
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S17OriginalModelStructuralParityClientTests']
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
-          xvfb-run -a ./gradlew runClientGameTest --console=plain
-          echo 'S17_RETRO_MUTATION_SURVIVED missing root/body/cube_0 was not detected by existing S17 acceptance'
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain > build/s17-retro-mutation.log 2>&1
+          status=$?
+          set -e
+          cat build/s17-retro-mutation.log
+          if [ "$status" -eq 0 ]; then
+            echo 'S17_RETRO_MUTATION_SURVIVED strengthened structural oracle did not detect missing root/body/cube_0'
+            exit 1
+          fi
+          grep -Eq 'structural piece mismatch|misses original vertex|Vertex cardinality mismatch' build/s17-retro-mutation.log
+          echo 'S17_RETRO_MUTATION_KILLED independent original-tree oracle detected missing volumetric source cube'
       - name: capture mutation evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: S17-retro-missing-cube-mutation
+          name: S17-retro-missing-cube-mutation-kill
           path: |
+            build/s17-retro-mutation.log
             build/run/clientGameTest/logs/
-            build/run/clientGameTest/anatomy-export/
+            build/run/clientGameTest/s17-retro-snapshots/
