@@ -84,6 +84,23 @@ public final class S18PoseProgramExecutionTests {
         h.succeed();
     }
 
+    @GameTest
+    public void validRuntimeAmplitudeMayExceedStoredVectorBound(GameTestHelper h) {
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program(40_000)) : Optional.empty();
+        var parameters = Map.of("program", PROGRAM.toString(), "clock", "channel:time", "clock_scale", "1", "amplitude", "constant:2");
+        var bound = engine.bind(geometry(), parameters, Set.of(), resources).orElseThrow();
+        var inputs = new PoseEngine.Inputs(0, 0, 0, 0, 0, true, Map.of("time", 1f));
+
+        var result = bound.evaluate(inputs);
+        h.assertTrue(result.isPresent(),
+            "A valid runtime amplitude must not be revalidated as stored PoseProgram data merely because the sampled vector exceeds the serialized vector bound");
+        float x = translationX(result.orElseThrow().get("root"));
+        h.assertTrue(Math.abs(x - 5_000f) < 1e-3f,
+            "Mojang amplitude is applied after sampling: 40000 ModelPart pixels * 2 must remain a finite 5000-block local translation");
+        h.succeed();
+    }
+
     private static ModelGeometry geometry() {
         var sourcePose = new ModelGeometry.SourcePose(0,0,0,0,0,0,1,1,1);
         return new ModelGeometry(1,"proof:s18","26.2",
