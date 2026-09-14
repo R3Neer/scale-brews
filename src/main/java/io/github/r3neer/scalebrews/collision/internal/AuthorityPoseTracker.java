@@ -64,7 +64,8 @@ public final class AuthorityPoseTracker {
             channels.put("relax",cat.getRelaxStateOneAmount(1));channels.put("age_scale",cat.getAgeScale());
         }
         if(entity instanceof net.minecraft.world.entity.animal.golem.IronGolem golem) {
-            channels.put("attack",(float)golem.getAttackAnimationTick());channels.put("flower",(float)golem.getOfferFlowerTick());
+            int rawAttack=golem.getAttackAnimationTick();
+            channels.put("attack",rawAttack>0?(float)(rawAttack-1):0f);channels.put("flower",(float)golem.getOfferFlowerTick());
         }
         if(entity instanceof net.minecraft.world.entity.npc.villager.AbstractVillager villager)
             channels.put("unhappy",villager.getUnhappyCounter()>0?1f:0f);
