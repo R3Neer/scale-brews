@@ -13,7 +13,7 @@ La inspección se ejecutó contra el `minecraft-clientOnly` de Minecraft 26.2 re
 - SHA-256 del artifact: `38d6d772b25bdcf2044aba403c4d034aa28a1e6886cc1210956f2afe77eafe34`;
 - SHA-256 del jar cliente inspeccionado: `7f64691f870cbf79fdfe754fd20091a285ceea65e28788836b8041fb025771b8`.
 
-La workflow era exclusivamente diagnóstica y debe retirarse tras conservar esta evidencia.
+La workflow era exclusivamente diagnóstica y fue retirada tras conservar esta evidencia.
 
 ## `ModelPart` 26.2
 
@@ -52,7 +52,24 @@ La comparación con Minecraft permite aislar las responsabilidades:
 
 Ejemplo algebraico mínimo: con `baseScale=1.5` y `scaleVec(1.2,...)`, el sample es `+0.2`; Minecraft produce `1.7` y la multiplicación actual produce `1.8`.
 
-Este segundo defecto no se veía en la aceptación histórica porque las piezas ejercitadas tenían escala de reposo unitaria. Se añade un holdout cliente independiente sobre un `ModelPart` real con escala de reposo no unitaria; cualquier rojo causal pertenece al implementador, no al adversario.
+## Evidencia ejecutada del defecto SCALE
+
+El holdout cliente `S18NonUnitRestScaleSemanticClientTests` parte de un `CowModel` real, fija la escala de reposo de `root/body` a `(1.5, 0.75, 1.25)`, compila un `AnimationDefinition` real con target SCALE y compara la aplicación nativa de Mojang con `PoseProgramEvaluator`.
+
+La lane se aisló de los demás oracles S18 para que el rojo de ROTATION no ocultase la causa SCALE. Evidencia:
+
+- commit de la lane aislada: `5701ba3cb6f11a9ecbffcfc5c9a4e235fe75bc86`;
+- run `34839087126`;
+- job SCALE `103959597946`: **failure intencional/causal**;
+- mensaje exacto: `Mojang SCALE target diverges for non-unit rest xScale: expected=1.6999999 actual=1.8`;
+- artifact `10345108684` (`S18-non-unit-rest-scale-proof`);
+- SHA-256 del artifact: `45c38c7180ef83cfbd5e8d0e5d621331c68d445057b4233ffc8c326449d42ac0`.
+
+En el mismo run, `common-authority` (`103959598058`) quedó **success**, mientras `client-compiler-boundary` (`103959598157`) siguió rojo por el defecto ROTATION ya conocido. Quedan así dos defectos productivos independientes y localizados en la semántica de aplicación del programa neutral, no en el registry/SPI común ni en el entorno de CI.
+
+`AnimationDefinitionCompiler` no introduce la divergencia SCALE: copia literalmente los vectores `preTarget`/`postTarget` de Mojang al `PoseProgram`. La discrepancia aparece al combinar ese sample con el transform de reposo en `PoseProgramEvaluator`.
+
+Clasificación TM: **bug de implementación productiva**. El adversario conserva el rojo y la reproducción; la reparación corresponde al IMPLEMENTADOR.
 
 ## Riesgo de representación de la rotación
 
