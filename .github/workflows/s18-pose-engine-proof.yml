@@ -27,6 +27,7 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
       - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
+      - 'docs/sprints/S18-target-semantics-evidence.md'
   workflow_dispatch:
 
 jobs:
@@ -90,8 +91,7 @@ jobs:
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-client-gametest']=[
             'io.github.r3neer.scalebrews.test.S18AnimationDefinitionCompilerClientTests',
-            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests',
-            'io.github.r3neer.scalebrews.test.S18NonUnitRestScaleSemanticClientTests'
+            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
@@ -105,4 +105,38 @@ jobs:
           path: |
             build/run/clientGameTest/logs/
             build/run/clientGameTest/s18-retro-snapshots/
+            build/resources/gametest/fabric.mod.json
+
+  client-non-unit-rest-scale:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate non-unit rest SCALE semantic holdout
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S18NonUnitRestScaleSemanticClientTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run non-unit rest SCALE semantic holdout
+        run: xvfb-run -a ./gradlew runClientGameTest --console=plain
+      - name: capture non-unit rest SCALE evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-non-unit-rest-scale-proof
+          path: |
+            build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
