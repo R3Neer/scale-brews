@@ -1,5 +1,13 @@
 # Scale Brews — active work
 
+## Beta.7 Tiny Mount families and documentation audit — 2026-09-14
+
+- [x] Merge the validated mount-polish work into `main`: data-driven `direct` / `tameable_direct` / `item_steered` families, generic SADDLE/BODY inventory, vanilla shearing/dispensers, wolf gamefeel and final animated mount attachment transforms.
+- [x] Publish `0.1.0-beta.7` through the guarded prerelease lane with 154 required server GameTests, the full real-client suite, package checks and published-JAR SHA verification.
+- [x] Audit the live GUIDE/CONFIGURATION/VALIDATION/TODO/example datapack after beta.7, remove stale reach and Tiny Mount wording, and label older validation entries as historical rather than current contracts.
+- [x] Refresh the existing beta.7 prerelease after this documentation audit so its tag/assets point at the documentation-complete validated snapshot.
+- [ ] Full-pack human acceptance and broad multiplayer/mod-combination QA remain separate from automated release validation.
+
 ## Beta.6 prerelease delivery — 2026-09-11
 
 - [x] Audit `main` against beta.5 and current README claims; confirm the latest pre-release code snapshot has green server/client CI before changing publication metadata.
@@ -68,8 +76,8 @@
 
 - [x] Wolf crouch + use: distinguish equipping a saddle from riding an already-saddled wolf while holding a spare saddle; real client input, reassigned controls, inventory retention and release-before-dismount verified. Build, 80 server tests and full base client suite passed.
 
-- [x] Rebalance entity reach to 4.5 / 6 / 7.5 blocks at Growth I/II/III survival baseline, following effective scale and preserving block reach and Shrinking balance.
-- [x] Validate foot-level melee regression, mixed/external sizes, build and client runtime: 80 base server tests and the real-client suite pass, including Growth III eye-ray targeting beside the feet.
+- [x] Finalize Growth entity reach at **3.9 / 4.8 / 5.7 blocks** at Growth I/II/III (+30% per equivalent level from the 3.0 survival baseline), superseding the earlier 4.5 / 6 / 7.5 intermediate target. Block reach remains **5.4 / 6.3 / 7.2**, and Shrinking block/entity reach remains -10% per equivalent level.
+- [x] Validate the final reach curve across pure tiers, mixed/external sizes and client runtime in the current regression suite; beta.7 release validation runs all 154 required server GameTests plus the full real-client suite.
 
 ## Living platforms
 

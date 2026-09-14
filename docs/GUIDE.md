@@ -64,7 +64,7 @@ Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / I
 
 **Growth** makes you larger, tougher and stronger, with more health, interaction reach and step height. Walking feels like longer strides, while sprinting adds progressively less acceleration. Physical activity costs more exhaustion.
 
-Growth's entity reach increases by 50% / 100% / 150% at its pure-potion sizes: 4.5 / 6 / 7.5 blocks from a survival baseline of 3. This keeps small targets beside a giant's feet reachable from eye height. Block reach retains +20% / +40% / +60%; Shrinking's reach penalties are unchanged. Entity reach follows effective size throughout blending and mixed effects, continuing the same linear growth curve beyond Growth III for external scales (subject to vanilla attribute limits). Other reach modifiers still compose multiplicatively; explicit item attack-range components may use their own ranges.
+Growth's entity reach increases by 30% / 60% / 90% at its pure-potion sizes: **3.9 / 4.8 / 5.7 blocks** from a survival baseline of 3. Block reach remains +20% / +40% / +60%: **5.4 / 6.3 / 7.2 blocks** from a survival baseline of 4.5. Shrinking reduces both block and entity reach by 10% per equivalent level, giving entity ranges of **2.7 / 2.4 / 2.1** and block ranges of **4.05 / 3.60 / 3.15**. Entity reach follows effective size throughout blending and mixed effects, continuing the same linear Growth curve beyond Growth III for external scales (subject to vanilla attribute limits); Growth block reach and Shrinking reach retain their tier-III caps. Other reach modifiers still compose through Minecraft's attribute system, while explicit item attack-range components may use their own ranges.
 
 **Shrinking** trades health, damage and reach for a smaller body, explosive sprinting, slightly stronger jumps and lower physical exhaustion. It also reduces fall damage and movement-vibration detection range, with Swift Sneak synergy at levels II and III.
 
@@ -107,7 +107,7 @@ Use a boat item or spawn egg on an eligible living surface to place its entity w
 
 ### Ride and steer
 
-Equip an adult chicken, bee or tamed wolf with a saddle; equipping does not require being small. Riding does require the appropriate size ratio.
+The three default Tiny Mounts deliberately use different interaction families. A **Chicken** (`direct`) and a **tamed Wolf** (`tameable_direct`) can carry a passive rider without a saddle, but need a vanilla saddle for manual control. A **Bee** (`item_steered`) follows Pig/Strider-style rules: it must be saddled even to mount and then needs a Flower on a Stick for manual control. Equipping a saddle does not require being small; riding still requires the appropriate size ratio. Wild wolves are the deliberate exception to the taming gate because riding is also their alternate taming route described below.
 
 For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with any item or an empty hand. This gesture mounts without using the held item, including food and saddles. Release Crouch before pressing it again to dismount; you can then mount the same animal again. Use without Crouch retains feeding, sitting and saddle equipment.
 
@@ -117,6 +117,8 @@ For wolves and other configured tameables, hold **Crouch + Use** (your configure
 | Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
 | Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
 
+Equipment UI follows the same families. **Chicken:** Crouch + Use from outside opens its saddle menu, and E opens that menu while riding. **Wolf:** Crouch + Use remains the mounting gesture so normal Use can keep vanilla sitting/feeding/equipment behavior; E opens its SADDLE + BODY equipment menu while mounted. **Bee:** there is no mount menu, so E opens the player's normal inventory. The saddle is Minecraft's normal shearable equipment in 26.2; shears remove it when the entity's own permissions allow. Shearable BODY equipment is removed before SADDLE by vanilla slot order, and a wolf keeps its vanilla owner-only shearing permission.
+
 Scale-generated bee flight, chicken glide and wolf pounce/landing use the **root mount's effective gravity frame** when a compatible provider is available. Gravity Changer is recognized automatically; no gravity mod is required, and without one the frame is vanilla `DOWN`. See [Effective-gravity integration](GRAVITY_INTEGRATION.md) for the ownership boundary and validation scope.
 
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chicken and bee saddles have separate hand-authored visual layers; wolves can wear their saddle and Wolf Armor together. Each tiny mount carries one rider. Mounted bees stay out of hives.
@@ -125,7 +127,7 @@ Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chi
 
 *The three default tiny mounts, shown with saddles. Equipping a saddle does not require Shrinking; riding depends on relative size.*
 
-Bees keep their natural bobbing and rolling while ridden: the rendered rider follows the saddle, while first-person camera and collision physics stay stable.
+Saddles and mounted riders consume the mount model's **final rendered attachment transform**, so they follow the same finished animation instead of reconstructing a separate pose. Bees therefore keep their natural bobbing and rolling while ridden, and the same path covers chicken, wolf and vanilla horse body animation. The optional-mod proof also passed with EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5. First-person camera and collision physics remain separate and stable.
 
 A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
 
@@ -151,7 +153,7 @@ Copy the [example datapack](../examples/world-config) into your world's `datapac
 
 The released optional mechanics below default to enabled (this does not enable the anatomical prototype). Configure:
 
-- Tiny Mounts as a whole, individual mount types, controls and saddle visuals.
+- Tiny Mounts as a whole, individual mount types, interaction `family`, steering item, movement/ability, optional BODY equipment and saddle visuals.
 - Living-mount size ratios, independently of the Tiny Mounts switch.
 - Living-platform categories, support species, friction and physical-width ratios.
 - Entity-scoped material drops through the separate reloadable loot definitions.
@@ -165,7 +167,7 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, tiny-mount input, animated bee riders and unmounted steering-item attraction.
+The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, family-driven Tiny Mount mounting/inventory rules, saddle shearing and dispenser equipment, animated saddle/rider transforms, wolf controls and unmounted steering-item attraction. The beta.7 prerelease lane passed **154 required server GameTests** plus the full client suite; the pinned EMF/Fresh Animations proof is a separate optional-mod lane rather than a hard dependency.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
 

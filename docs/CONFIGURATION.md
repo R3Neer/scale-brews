@@ -13,7 +13,7 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 ```json
 {
   "tiny_mounts": true,
-  "mounts": { "minecraft:chicken": true, "minecraft:bee": true },
+  "mounts": { "minecraft:chicken": true, "minecraft:bee": true, "minecraft:wolf": true },
   "villager_fear": true,
   "growth_landing_impact": true,
   "environment_interactions": true,
@@ -103,7 +103,7 @@ Every Tiny Mount family requires `saddle_visual`; `item_steered` additionally re
 
 The reusable anchors currently supported are `body` (chicken-style quarter-turned torso) and `bone` (bee-style body animation group). Both use the supplied 64×32 UV layout. The base model must expose the selected root child. A new body shape may need an additional model adapter; changing an identifier alone cannot fit arbitrary anatomy. A missing anchor skips the saddle layer rather than crashing the renderer. Chicken variants and bee anger/nectar states keep their vanilla base textures.
 
-Enabled tiny-mount bees retain natural body bobbing and rolling while carrying a player. The rendered rider follows the animated saddle, including its tilt, without moving the physical entity, collision box or first-person camera. This does not require a new texture or JSON field and remains active without the steering item. Custom renderers that replace the bee model need separate compatibility testing.
+Supported living Tiny Mounts share the mount model's final rendered attachment transform with both the saddle and passenger, after vanilla `setupAnim` and optional model animation have run. This keeps the saddle and rider on one animation source instead of reconstructing species-specific poses. Bees retain natural bobbing and rolling while ridden; the same path covers chicken, wolf and vanilla horse body animation. The pinned optional-mod proof passed with EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5. Custom renderers that replace the expected model/root structure still need separate compatibility testing.
 
 ### Steering-item attraction
 

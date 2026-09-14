@@ -1,5 +1,17 @@
 # Validation record
 
+## Current prerelease: 0.1.0-beta.7 — 2026-09-14
+
+- The guarded prerelease lane passes **154 required server GameTests**, the complete real-client/integrated-server GameTest suite, packaged-version/test-class checks, tag verification and a post-upload SHA-256 comparison of the regular JAR.
+- Tiny Mount interaction is validated by `family`, including data-only Cow adversaries proving `direct` / `item_steered` behavior without species branches, dynamic equipment menus, Bee player-inventory UX, vanilla saddle shearing/drop behavior, Wolf owner protection and BODY-before-SADDLE shearing, plus the real dispenser equipment path.
+- Animated saddle/rider attachment uses the final rendered mount transform. A separate reproducible optional-mod lane passed with the VanillaPlus-pinned **EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5** stack and verified an active EMF bee model plus a finite, non-identity rider attachment transform.
+- Size presentation/reach coverage includes scale-dependent step pitch and gait timing plus the final reach contract: Growth block +20% per equivalent level, Growth entity +30%, and Shrinking block/entity -10%.
+- Normal gameplay still uses the released upper-surface living-platform system. All-direction anatomical collisions and shared Clinging Reoriented physics remain unfinished and disabled in ordinary worlds. Full-pack human acceptance and broad multiplayer/mod-combination QA remain bounded separately.
+
+## Historical validation records
+
+The dated sections below are retained as evidence of earlier milestones. They may describe behavior or balances that were later superseded; current gameplay contracts live in the player/configuration/mechanics references and the beta.7 section above.
+
 ## 0.1.0-beta.6 candidate — 2026-09-11
 
 - Candidate scope adds optional effective-gravity support for Scale-generated Tiny Mount movement: bee flight, chicken glide and wolf pounce/landing use the root mount's effective gravity frame rather than assuming world-down.
