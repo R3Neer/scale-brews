@@ -6,13 +6,37 @@ import org.joml.Matrix4f;
 
 /** Server-safe export DTO: no client model or renderer references. */
 public record ModelGeometry(int format,String source,String version,List<Part> parts,List<Piece> pieces,List<Float> modelTransform) {
+    private static final float SOURCE_POSE_EPS=3e-5f;
+
     public ModelGeometry(int format,String source,String version,List<Part> parts,List<Piece> pieces) {
         this(format,source,version,parts,pieces,values(new Matrix4f().scaling(-1,-1,1).translate(0,-1.501f,0)));
     }
     public ModelGeometry withModelTransform(Matrix4f transform) {
         return new ModelGeometry(2,source,version,parts,pieces,values(transform));
     }
-    public record Part(String id,String parent,List<Float> transform) {
+
+    /**
+     * Exact neutral ModelPart local fields needed by Mojang keyframe target semantics.
+     *
+     * <p>The affine matrix alone is intentionally not treated as sufficient authority:
+     * equivalent Euler representatives and signed scale decompositions can have the same
+     * rest matrix but produce different results after ModelPart offsetRotation/offsetScale.
+     */
+    public record SourcePose(float x,float y,float z,float xRot,float yRot,float zRot,
+                             float xScale,float yScale,float zScale) {
+        public SourcePose {
+            if(!finite(x,y,z,xRot,yRot,zRot,xScale,yScale,zScale))throw new IllegalArgumentException("Non-finite source pose");
+            if(Math.abs(xScale)<1e-12f || Math.abs(yScale)<1e-12f || Math.abs(zScale)<1e-12f)
+                throw new IllegalArgumentException("Degenerate source scale");
+        }
+        public Matrix4f matrix() {
+            return new Matrix4f().translationRotateScale(x/16f,y/16f,z/16f,
+                new org.joml.Quaternionf().rotationZYX(zRot,yRot,xRot),xScale,yScale,zScale);
+        }
+    }
+
+    public record Part(String id,String parent,List<Float> transform,SourcePose sourcePose) {
+        public Part(String id,String parent,List<Float> transform) {this(id,parent,transform,null);}
         public Part {transform=List.copyOf(transform);}
     }
     public record Piece(String id,String part,List<Double> min,List<Double> max,String excluded) {
@@ -35,6 +59,8 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
             Matrix4f m=matrix(p.transform);
             if(Math.abs(m.m03())>1e-6 || Math.abs(m.m13())>1e-6 || Math.abs(m.m23())>1e-6 || Math.abs(m.m33()-1)>1e-6 || !Float.isFinite(m.determinant()) || Math.abs(m.determinant())<1e-12)
                 throw new IllegalArgumentException("Non-affine/degenerate matrix");
+            if(p.sourcePose!=null && !matrixNear(m,p.sourcePose.matrix(),SOURCE_POSE_EPS))
+                throw new IllegalArgumentException("Source pose does not match local transform for "+p.id);
         }
         Set<String> pieceIds=new HashSet<>();
         for(Piece p:pieces) {
@@ -43,6 +69,12 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
             double volume=(p.max.get(0)-p.min.get(0))*(p.max.get(1)-p.min.get(1))*(p.max.get(2)-p.min.get(2));
             if(!Double.isFinite(volume) || volume<=0)throw new IllegalArgumentException("Degenerate piece volume");
         }
+    }
+    private static boolean finite(float... values) {for(float value:values)if(!Float.isFinite(value))return false;return true;}
+    private static boolean matrixNear(Matrix4f a,Matrix4f b,float tolerance) {
+        float[] av=a.get(new float[16]),bv=b.get(new float[16]);
+        for(int i=0;i<16;i++)if(Math.abs(av[i]-bv[i])>tolerance)return false;
+        return true;
     }
     public static List<Float> values(Matrix4f matrix) {
         float[] f=matrix.get(new float[16]);List<Float> out=new ArrayList<>();for(float v:f)out.add(v);return List.copyOf(out);
