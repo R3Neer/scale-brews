@@ -82,7 +82,7 @@ Run focal del fix: `34839362564`.
 - `client-compiler-boundary` job `103960475221`: **success**;
 - `client-non-unit-rest-scale` job `103960475418`: **success**.
 
-Por tanto la corrección SCALE queda confirmada y el caso ROTATION multi-bone que reabrió originalmente S18 también deja de fallar. El fix no fue un simple ajuste para ocultar el rojo conocido.
+Por tanto la corrección SCALE queda confirmada para escala de reposo positiva no unitaria y el caso ROTATION multi-bone que reabrió originalmente S18 también deja de fallar. El fix no fue un simple ajuste para ocultar el rojo conocido.
 
 ## Holdout post-fix: pérdida de representante Euler
 
@@ -123,12 +123,48 @@ Artifact `10345492485` (`S18-euler-representative-proof`), SHA-256 `bbc9d485aa66
 
 El punto del fallo importa: el test alcanza la última comparación de la representación alternativa. Por tanto ya habían pasado las precondiciones de que ambas poses de reposo colapsan a la misma matriz, de que Mojang las separa tras el mismo delta y de que la representación canónica sí coincide con el evaluator reparado.
 
-## Clasificación del holdout Euler
+## Holdout post-fix: escala de reposo firmada
 
-Este rojo demuestra una **pérdida de información de representación**, no sólo una llamada incorrecta a JOML.
+`ModelPart.translateAndRotate(...)` aplica directamente `xScale/yScale/zScale`; `ModelGeometry` acepta transforms afines no degenerados con determinante negativo. Una reflexión en reposo es por tanto una entrada representable del pipeline, no un dato prohibido.
 
-Si dos estados fuente distintos producen exactamente la misma entrada neutral de reposo, pero para el mismo `PoseProgram` deben producir dos salidas físicas distintas, ninguna función pura `restMatrix + sampledDelta -> pose` puede reproducir ambos casos. Elegir otro algoritmo de descomposición Euler sólo cambia qué representante favorece; no recupera la identidad que la matriz ya perdió.
+El fix `7733dfce` obtiene la escala mediante `Matrix4f.getScale(...)`, que devuelve magnitudes y no conserva por sí sola qué componente fuente era negativa. `S18SignedRestScaleSemanticClientTests` usa de nuevo un `CowModel` real:
 
-Clasificación TM: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**. El requisito no cambia: el material neutral server-safe debe conservar información suficiente para reproducir la semántica aditiva de `ModelPart` sin clases cliente ni estado global. La forma concreta de esa información y dónde vive pertenecen al IMPLEMENTADOR/arquitectura, no al adversario.
+- fija `root/body` a `xScale=-1.5`, `yScale=0.75`, `zScale=1.25`;
+- exige como precondición que la extracción conserve determinante negativo;
+- aplica un target SCALE Mojang aditivo `+0.2` sobre X;
+- exige que Mojang conserve la reflexión tras el target;
+- compara esa matriz nativa con el evaluator neutral.
+
+Commits adversariales:
+
+- holdout: `e5e06db5f0875c4d4d77bdd4f9cc67f2c780e096`;
+- lane aislada: `80a1a432a72aea62ffd474c2d38546e63894131f`.
+
+Evidencia ejecutada: run `34840312369`, job `client-signed-rest-scale` `103963505205`: **failure causal**.
+
+Mensaje exacto:
+
+`signed rest SCALE differs at matrix[0]: expected=-1.2999998 actual=-1.6999995 expectedDet=-1.2187496 actualDet=1.5937489`
+
+Artifact `10345981147` (`S18-signed-rest-scale-proof`), SHA-256 `53e9b46a547e9aa7827ef1596dcbcc5504ce6f8c96f91f7d6fdeb66bbd001dfe`.
+
+En el mismo run:
+
+- `common-authority` `103963504791`: **success**;
+- `client-compiler-boundary` `103963505045`: **success**;
+- `client-non-unit-rest-scale` `103963505181`: **success**;
+- `client-euler-representative` `103963505119`: sigue **failure**;
+- `client-signed-rest-scale` `103963505205`: **failure**.
+
+La precondición del holdout firmada pasó: la reflexión llegó a `ModelGeometry` y Mojang la conservó tras el target. El neutral no sólo obtuvo una magnitud X incorrecta, sino que cambió el signo del determinante y convirtió un transform reflejado en uno no reflejado.
+
+## Clasificación actual
+
+Los dos holdouts post-fix muestran el mismo problema general desde ángulos distintos: la matriz local de reposo conserva el transform final, pero **no conserva necesariamente la semántica de los fields TRS fuente sobre los que `AnimationDefinition` aplica offsets aditivos**.
+
+- El holdout Euler demuestra formalmente pérdida de identidad: dos estados fuente distintos colapsan a la misma matriz y requieren salidas distintas para el mismo delta.
+- El holdout de escala firmada demuestra además que una descomposición ordinaria por magnitudes puede destruir una reflexión válida incluso sin necesitar una pareja equivalente más sofisticada.
+
+Clasificación TM: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**. El requisito no cambia: el material neutral server-safe debe conservar información suficiente del estado de reposo fuente para reproducir `offsetPos`, `offsetRotation` y `offsetScale` exactamente sin clases cliente ni estado global. La forma concreta de esa información y dónde vive pertenecen al IMPLEMENTADOR/arquitectura, no al adversario.
 
 S18/G3.4 permanece abierto. S19 puede seguir investigándose, pero no debe declararse cerrado por delante de esta dependencia.
