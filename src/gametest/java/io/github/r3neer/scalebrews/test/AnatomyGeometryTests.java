@@ -159,7 +159,7 @@ public class AnatomyGeometryTests {
         var resources=(net.minecraft.server.packs.resources.ResourceManager)java.lang.reflect.Proxy.newProxyInstance(resourceType.getClassLoader(),new Class<?>[]{resourceType},(proxy,method,args)->{
             if(!method.getName().equals("listResources"))throw new UnsupportedOperationException(method.toString());
             String directory=(String)args[0];
-            if(directory.endsWith("entity_collision"))return java.util.Map.of();
+            if(directory.endsWith("entity_collision") || directory.endsWith("pose_programs"))return java.util.Map.of();
             String json=directory.endsWith("entity_geometry")?modelJson:profile.get();
             return java.util.Map.of(net.minecraft.resources.Identifier.parse("test:"+directory+"/body.json"),new net.minecraft.server.packs.resources.Resource(pack,()->new java.io.ByteArrayInputStream(json.getBytes(java.nio.charset.StandardCharsets.UTF_8))));
         });
