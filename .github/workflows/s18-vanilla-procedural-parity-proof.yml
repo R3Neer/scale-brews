@@ -11,7 +11,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseEligibility.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
-      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18VanillaProceduralSemanticClientTests.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: isolate original vanilla family parity
+      - name: isolate canonical original-source vanilla family parity
         run: |
           python3 - <<'PY'
           import json
@@ -35,11 +35,11 @@ jobs:
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-client-gametest']=[
-            'io.github.r3neer.scalebrews.test.AnatomyExportProof'
+            'io.github.r3neer.scalebrews.test.S18VanillaProceduralSemanticClientTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
-      - name: run original vanilla family parity proof
+      - name: run canonical original-source vanilla family parity proof
         run: xvfb-run -a ./gradlew runClientGameTest --console=plain
       - name: capture vanilla family parity evidence
         if: always()
@@ -48,5 +48,4 @@ jobs:
           name: S18-vanilla-procedural-original-source-proof
           path: |
             build/run/clientGameTest/logs/
-            build/run/clientGameTest/anatomy-export/
             build/resources/gametest/fabric.mod.json
