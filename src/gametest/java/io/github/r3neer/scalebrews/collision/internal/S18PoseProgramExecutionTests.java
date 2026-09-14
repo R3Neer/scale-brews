@@ -126,6 +126,38 @@ public final class S18PoseProgramExecutionTests {
         h.succeed();
     }
 
+    @GameTest
+    public void explicitClockAndAmplitudeSelectorsHaveIndependentOracles(GameTestHelper h) {
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        var geometry = geometry();
+        var selectorProgram = twoSecondProgram(32);
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(selectorProgram) : Optional.empty();
+        var inputs = new PoseEngine.Inputs(2f, .25f, 20f, 0, 0, true, Map.of("time", .5f));
+
+        var staticBound = engine.bind(geometry,
+            Map.of("program",PROGRAM.toString(),"clock","static","amplitude","one"), Set.of(), resources).orElseThrow();
+        var ageBound = engine.bind(geometry,
+            Map.of("program",PROGRAM.toString(),"clock","age","clock_scale","1","amplitude","one"), Set.of(), resources).orElseThrow();
+        var walkBound = engine.bind(geometry,
+            Map.of("program",PROGRAM.toString(),"clock","walk_phase","clock_scale","0.5","amplitude","one"), Set.of(), resources).orElseThrow();
+        var channelBound = engine.bind(geometry,
+            Map.of("program",PROGRAM.toString(),"clock","channel:time","clock_scale","2","amplitude","one"), Set.of(), resources).orElseThrow();
+        var walkAmplitudeBound = engine.bind(geometry,
+            Map.of("program",PROGRAM.toString(),"clock","channel:time","clock_scale","2","amplitude","walk_amount"), Set.of(), resources).orElseThrow();
+
+        h.assertTrue(Math.abs(translationX(staticBound.evaluate(inputs).orElseThrow().get("root"))) < 1e-6,
+            "static clock must evaluate the program at t=0 regardless of live age/walk/channel inputs");
+        h.assertTrue(Math.abs(translationX(ageBound.evaluate(inputs).orElseThrow().get("root")) - 1f) < 1e-6,
+            "age clock must convert 20 authoritative ticks to 1 program second when clock_scale=1");
+        h.assertTrue(Math.abs(translationX(walkBound.evaluate(inputs).orElseThrow().get("root")) - 1f) < 1e-6,
+            "walk_phase clock must apply its explicit clock_scale exactly once: 2 * 0.5 = 1 program second");
+        h.assertTrue(Math.abs(translationX(channelBound.evaluate(inputs).orElseThrow().get("root")) - 1f) < 1e-6,
+            "channel clock must apply its explicit clock_scale exactly once: 0.5 * 2 = 1 program second");
+        h.assertTrue(Math.abs(translationX(walkAmplitudeBound.evaluate(inputs).orElseThrow().get("root")) - .25f) < 1e-6,
+            "walk_amount amplitude must scale the sampled target after clock evaluation: 1 block * 0.25 = 0.25 blocks");
+        h.succeed();
+    }
+
     private static ModelGeometry geometry() {
         var sourcePose = new ModelGeometry.SourcePose(0,0,0,0,0,0,1,1,1);
         return new ModelGeometry(1,"proof:s18","26.2",
@@ -134,6 +166,12 @@ public final class S18PoseProgramExecutionTests {
     }
 
     private static PoseProgram program(float endPixels) { return programForBone("root", endPixels); }
+    private static PoseProgram twoSecondProgram(float endPixels) {
+        return new PoseProgram(PoseProgram.SCHEMA_VERSION,"proof:selector-program","26.2",2f,false,List.of(
+            new PoseProgram.Track("root",PoseProgram.Target.TRANSLATION,List.of(
+                new PoseProgram.Keyframe(0,new PoseProgram.Vector(0,0,0),new PoseProgram.Vector(0,0,0),PoseProgram.Interpolation.LINEAR),
+                new PoseProgram.Keyframe(2,new PoseProgram.Vector(endPixels,0,0),new PoseProgram.Vector(endPixels,0,0),PoseProgram.Interpolation.LINEAR)))));
+    }
     private static PoseProgram programForBone(String bone,float endPixels) {
         return new PoseProgram(PoseProgram.SCHEMA_VERSION,"proof:program","26.2",1f,false,List.of(
             new PoseProgram.Track(bone,PoseProgram.Target.TRANSLATION,List.of(
