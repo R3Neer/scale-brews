@@ -1,6 +1,6 @@
 # S18 — Vanilla PoseEngine + Mojang keyframe program
 
-Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.
+Estado: **CERRADO / G3.4 COMPLETADO**.
 
 ## Tesis
 
@@ -37,24 +37,28 @@ Snapshot congelado: **`b39d6a1aab61eb4852ce302072ef9717b910a8dc`**. Entre el bas
 
 ## Revisión adversarial post-implementación — 2026-09-14
 
-La implementación ya existe, pero **S18 permanece abierto** hasta obtener ordinary + focal + regresión verdes sobre el estado de cierre y completar la segunda lectura sin cambios productivos.
+La implementación se sometió a una segunda ronda adversarial antes del cierre. Los rojos que aparecieron se resolvieron por causa, sin relajar los contratos productivos.
 
-Hallazgos causales cerrados hasta ahora:
+Hallazgos causales cerrados:
 
 - **Ownership semántico:** el oracle provisional que contaba una tercera `Map` en `Snapshot` se sustituyó en **`f05c742467612f813222599e87df1a33c39b466b`** por una prueba de dos revisiones que demuestra contenido `posePrograms` distinto, persistencia del snapshot anterior e inmutabilidad. Ya no prescribe la forma del record.
-- **Duplicados de timestamp:** el mismo holdout expuso que `PoseProgram.Track` aceptaba dos keyframes con timestamp idéntico porque comparaba `< previous`. Producción se corrigió en **`1c2e4d503bc65e2c225a530fceeab520ea0253e7`** con validación estrictamente creciente (`<= previous` rechaza), sin más cambio productivo.
+- **Duplicados de timestamp:** el mismo holdout expuso que `PoseProgram.Track` aceptaba dos keyframes con timestamp idéntico porque comparaba `< previous`. Producción se corrigió en **`1c2e4d503bc65e2c225a530fceeab520ea0253e7`** con validación estrictamente creciente (`<= previous` rechaza).
 - **Adapter legacy:** el primer run common post-implementación mostró un fallo del propio oracle al reflejar una clase lambda sintética bajo Java 25. Se corrigió sólo el test en **`960ddb32630e58f0acf804ba98caef62928f1f8c`** para invocar por la interfaz pública `PoseProvider`; no fue un defecto productivo.
-- **Semántica `preTarget/postTarget`:** la comparación contra `AnimationDefinition` original detectó en t=1.0 un resultado `0.175` donde Mojang da `0.0875`: el evaluator neutral devolvía `postTarget` exactamente en el keyframe en vez de `preTarget`. Producción se corrigió en **`49d828a12e9fec7d75c6b1d5ee1760ce6b7fbb7e`** distinguiendo instante exacto, tramo posterior y clamp final. En el focal **`34818424359`**, common job **`103894162131`** quedó **18/18 verde** y client job **`103894162350`** quedó verde contra la definición original, incluidos bordes, loop, Catmull-Rom, translation/rotation/scale, canales aditivos y fail-closed. Artifacts: common **`10337163876`**, SHA-256 **`098771b4944e68c1aacf6f6699df5589febae98dd58be3b97bfc4a625cb42cbe`**; client **`10336974137`**, SHA-256 **`ef501f209230699385fa36772a085080dfcc8e0c41f453fd6fb99c7ceb31dac1`**.
-- **IDs canónicos de programs:** `1fbf2d71341e69bce662bc989dca32eefc490894` canoniza IDs en snapshot y rechaza alias duplicados; `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` hace lo mismo antes de serializar/hash v5; `cace9620b9b7332dcc628e73c9ff423cb0afbeb2` añade el holdout de alias/atomicidad. La ruta de recepción sigue publicando `acceptedRevision` sólo después de `replaceAtRevision`, por lo que un candidato inválido no sustituye el accepted anterior.
+- **Semántica `preTarget/postTarget`:** la comparación contra `AnimationDefinition` original detectó en t=1.0 un resultado `0.175` donde Mojang da `0.0875`: el evaluator neutral devolvía `postTarget` exactamente en el keyframe en vez de `preTarget`. Producción se corrigió en **`49d828a12e9fec7d75c6b1d5ee1760ce6b7fbb7e`** distinguiendo instante exacto, tramo posterior y clamp final.
+- **IDs canónicos de programs:** `1fbf2d71341e69bce662bc989dca32eefc490894` canoniza IDs en snapshot y rechaza alias duplicados; `9ff92bb6f6bf93844516643e1b2fcac8ca3405a6` hace lo mismo antes de serializar/hash v5; `cace9620b9b7332dcc628e73c9ff423cb0afbeb2` añade el holdout de alias/atomicidad.
 - **Bounds congelados:** `f0361263bcff9f96d6b9b75f20b92a5a0fa76e7a` añade N/N+1 para tracks, keyframes, número de programs y bytes v5. Son límites ya exigidos por el freeze, no requisitos nuevos.
+- **Fixture ordinaria histórica:** la suite completa detectó que `AnatomyGeometryTests.resourceReloadAndNetworkBundleRemainAtomic` fabricaba accidentalmente un JSON legacy dentro del nuevo namespace `scalebrews/pose_programs`. Producción lo rechazaba correctamente. La fixture se corrigió en **`01d46f348041bf511e61db00c287a146679da92b`** para devolver vacío en `pose_programs`; el parser productivo no se relajó.
+- **Oracle de protocolo histórico:** el test S04 que fijaba literalmente protocolo v4 se migró a v5 en **`aa159393704887a47d68dfb20e039ba49f3c066e`**.
 
-Deuda de cierre actualmente aislada:
+## Cierre final — 2026-09-14
 
-- El ordinary completo de **`ac50b5003dc3256cdef8ef89668ee5c0fb33b631`**, run **`34819068786`**, ejecuta **407 tests** en `Fabric Env=SERVER` y sólo falla `AnatomyGeometryTests.resourceReloadAndNetworkBundleRemainAtomic`: su `ResourceManager` de prueba devuelve el JSON legacy de perfil también para `scalebrews/pose_programs`, fabricando `test:scalebrews/pose_programs/body.json`. Producción lo rechaza correctamente como `PoseProgram` inválido. La fixture debe devolver vacío para `pose_programs`; **no** debe relajarse el parser productivo. Artifact del rojo: **`10338120008`**, SHA-256 **`05b135587fbcb451105664adf8a1a8bbe52c33c14347965b39d38edae6e1a8df`**.
-- El oracle legacy de S04 que fijaba protocolo v4 ya se migró a v5 en **`aa159393704887a47d68dfb20e039ba49f3c066e`**. En el ordinary anterior era el segundo rojo; en `34819068786` ya no falla.
-- Los nuevos holdouts de bounds aún requieren ejecución focal de cierre. Este cambio documental fuerza la lane S18 sin alterar producción.
+- **Focal S18 final:** run **`34819384389`**. Common job **`103897173738`**: **21/21 required S18 GameTests passed**, incluidos ownership revision-local, IDs canónicos, duplicados de timestamp y límites N/N+1; artifact **`10337721645`**, SHA-256 **`4275b29568f179353825ade70191893325118330f6b076bfbbabae0cb703b09f`**. Client job **`103897173936`**: verde con `S18_ANIMATION_COMPILER_BOUNDARY PASS` y `S18_ANIMATION_DEFINITION PASS`, comparando contra `AnimationDefinition` original de Minecraft 26.2; artifact **`10337647129`**, SHA-256 **`50df0d9d0050009b08afc1f4e85a65da6a811e6a89bdea8971e534b2d7ec8cce`**.
+- **Ordinary completo:** run **`34819573289`**, job **`103897783223`**: **407/407 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10337702118`**, SHA-256 **`d12a251fd777d0e5bfd41c63585f99ffbdf9d4eca3a8eef7ba55da947444a741`**.
+- **Build normal:** run **`34819573066`**, job **`103897782597`**: `./gradlew build` verde, vuelve a ejecutar **407/407 required GameTests**, `BUILD SUCCESSFUL`; artifact **`10336964165`**, SHA-256 **`4f4699a8e336703bfe29b54dde8b3c3954d9c9cf44626184cef26d86b89015c8`**.
+- **Segunda lectura / I12:** desde el último cambio productivo S18 **`9ff92bb6f6bf93844516643e1b2fcac8ca3405a6`** hasta el checkpoint de cierre **`22b1803784b7792163b881ae49254efaa2dd8c2c`** sólo cambiaron tests, documentación y CI; no cambió ningún archivo bajo `src/main` ni `src/client`. La revisión final produjo **cero cambios de producción**.
+- La lane extraordinaria usada para demostrar la suite completa se eliminó tras capturar la evidencia en **`bbd7dc3b4dd150621e567237539022dd9737511f`**. No queda infraestructura temporal de cierre en el árbol.
 
-No se cierra I11/I12 ni la tarea G3.4 hasta eliminar la fixture obsoleta, obtener evidence verde actualizada y realizar la segunda lectura final.
+Con estas evidencias se cierran I11, I12 y G3.4.
 
 ## Estado inicial
 
@@ -143,18 +147,18 @@ No consulta resources locales, renderer, `AnimationDefinition`, `ModelPart` ni r
 
 ## Plan convergido
 
-- [ ] **I1** Migrar runtime live a `PoseEngine.Inputs`.
-- [ ] **I2** Mover built-ins vanilla a `CollisionEngines.pose(...)` como owners únicos.
-- [ ] **I3** Eliminar o reducir `PoseProviders` a adapter legacy read-only.
-- [ ] **I4** Required channels/unsupported state fail-closed + recovery.
-- [ ] **I5** `PoseProgram` neutral bounded con `preTarget/postTarget`.
-- [ ] **I6** Seam de preparación/binding por revisión preservando el SAM público.
-- [ ] **I7** Clock/amplitude selectors explícitos y server-authoritative.
-- [ ] **I8** Catálogo/bundle `{models, pose_programs, bindings}`, validación pre-swap y protocolo v5.
-- [ ] **I9** Compiler client/tooling `AnimationDefinition -> PoseProgram`.
-- [ ] **I10** `mojang_keyframes` sobre evaluator ligado/server-safe y proof original a múltiples tiempos.
-- [ ] **I11** Holdouts malformed/N+1/channels/freeze/order/repeat/v4-v5/atomicidad y lanes ordinary/common/dedicated/client.
-- [ ] **I12** Segunda lectura completa hasta cero cambios productivos.
+- [x] **I1** Migrar runtime live a `PoseEngine.Inputs`.
+- [x] **I2** Mover built-ins vanilla a `CollisionEngines.pose(...)` como owners únicos.
+- [x] **I3** Eliminar o reducir `PoseProviders` a adapter legacy read-only.
+- [x] **I4** Required channels/unsupported state fail-closed + recovery.
+- [x] **I5** `PoseProgram` neutral bounded con `preTarget/postTarget`.
+- [x] **I6** Seam de preparación/binding por revisión preservando el SAM público.
+- [x] **I7** Clock/amplitude selectors explícitos y server-authoritative.
+- [x] **I8** Catálogo/bundle `{models, pose_programs, bindings}`, validación pre-swap y protocolo v5.
+- [x] **I9** Compiler client/tooling `AnimationDefinition -> PoseProgram`.
+- [x] **I10** `mojang_keyframes` sobre evaluator ligado/server-safe y proof original a múltiples tiempos.
+- [x] **I11** Holdouts malformed/N+1/channels/freeze/order/repeat/v4-v5/atomicidad y lanes ordinary/common/dedicated/client.
+- [x] **I12** Segunda lectura completa hasta cero cambios productivos.
 
 ## Modelo adversarial
 
