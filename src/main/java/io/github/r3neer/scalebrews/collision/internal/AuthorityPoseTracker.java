@@ -55,6 +55,12 @@ public final class AuthorityPoseTracker {
         if(entity instanceof net.minecraft.world.entity.animal.equine.AbstractHorse horse) {
             channels.put("eat",horse.getEatAnim(1));channels.put("stand",horse.getStandAnim(1));channels.put("mouth",horse.getMouthAnim(1));
             channels.put("tail",horse.tailCounter>0?1f:0f);channels.put("water",horse.isInWater()?1f:0f);
+            channels.put("age_scale",horse.getAgeScale());
+        }
+        if(entity instanceof net.minecraft.world.entity.animal.feline.Cat cat) {
+            channels.put("sitting",cat.isInSittingPose()?1f:0f);
+            channels.put("lie",cat.getLieDownAmount(1));channels.put("lie_tail",cat.getLieDownAmountTail(1));
+            channels.put("relax",cat.getRelaxStateOneAmount(1));channels.put("age_scale",cat.getAgeScale());
         }
         if(entity instanceof net.minecraft.world.entity.animal.golem.IronGolem golem) {
             channels.put("attack",(float)golem.getAttackAnimationTick());channels.put("flower",(float)golem.getOfferFlowerTick());
