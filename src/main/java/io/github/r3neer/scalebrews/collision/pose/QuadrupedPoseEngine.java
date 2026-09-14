@@ -28,9 +28,15 @@ public final class QuadrupedPoseEngine implements PoseEngine {
                 case "left_hind_leg", "right_front_leg" -> x = b;
                 default -> { continue; }
             }
-            Matrix4f rest = ModelGeometry.matrix(p.transform());
-            Vector3f pos = rest.getTranslation(new Vector3f()), scale = rest.getScale(new Vector3f());
-            result.put(p.id(), new Matrix4f().translation(pos).rotateZYX(0, y, x).scale(scale));
+            var source = p.sourcePose();
+            if (source != null) {
+                result.put(p.id(), new Matrix4f().translation(source.x() / 16f, source.y() / 16f, source.z() / 16f)
+                    .rotateZYX(0, y, x).scale(source.xScale(), source.yScale(), source.zScale()));
+            } else {
+                Matrix4f rest = ModelGeometry.matrix(p.transform());
+                Vector3f pos = rest.getTranslation(new Vector3f()), scale = rest.getScale(new Vector3f());
+                result.put(p.id(), new Matrix4f().translation(pos).rotateZYX(0, y, x).scale(scale));
+            }
         }
         return result.size() == 5 ? Optional.of(Collections.unmodifiableMap(result)) : Optional.empty();
     }
