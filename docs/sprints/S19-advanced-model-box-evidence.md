@@ -37,6 +37,17 @@ Hallazgos relevantes:
 
 Consecuencia adversarial: una implementación que derive identidad/cobertura exclusivamente de `getFields()` o de visibilidad pública puede parecer correcta con Grizzly y fallar con Gazelle. La genericidad no se demuestra con un solo modelo favorable.
 
+## Transform de renderer por fuente
+
+Una segunda inspección temporal verificó los renderers del mismo jar exacto del lock. Evidencia: run `34828467843`, job `103925942390`, artifact `10341416449`, SHA-256 `27a82acf23dda01b24a38bbd92184575e8eca2000ca46af6ea78793940b26795`.
+
+- `RenderGazelle` declara su propio `scale(EntityGazelle, PoseStack, float)` y ejecuta `PoseStack.scale(0.8f, 0.8f, 0.8f)`.
+- `RenderGrizzlyBear` **no** declara un override equivalente; usa el comportamiento heredado de su renderer base.
+- Los `0.4f` y `0.8f` pasados por sus constructores a `MobRenderer` son parámetros de renderer (por ejemplo shadow radius), no deben confundirse con el transform geométrico aplicado por `scale(...)`.
+- El proof histórico `rendererRoot(...)` invoca precisamente el hook `scale(...)` del renderer real antes de la traslación de modelo, por lo que esta diferencia forma parte del frame de referencia, no de una preferencia estética del test.
+
+Consecuencia de diseño ya prevista por I6: el `modelTransform` debe pertenecer a la **fuente concreta** y no puede ser una constante compartida por la familia `AdvancedModelBox`. La aceptación posterior debe detectar tanto la pérdida del `0.8` de Gazelle como la aplicación accidental de esa escala a Grizzly.
+
 ## Legacy y ownership
 
 La búsqueda de consumidores del algoritmo Alex legacy muestra que `GeometryExtractor.alex(...)` sólo está consumido por el proof `AnatomyExportProof`. Los demás usos de `GeometryExtractor` pertenecen a la antigua ruta vanilla/ModelPart y ya son adapters del engine S17.
