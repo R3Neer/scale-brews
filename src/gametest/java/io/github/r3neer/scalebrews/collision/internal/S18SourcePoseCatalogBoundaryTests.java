@@ -90,8 +90,9 @@ public final class S18SourcePoseCatalogBoundaryTests {
         boolean rejected=false;
         try {
             for(var packet:packets(epoch,2,corrupt))receiver.accept(packet);
-        } catch(IllegalArgumentException expected) {
-            rejected=true;
+        } catch(RuntimeException expected) {
+            rejected=containsCause(expected,"Source pose does not match local transform");
+            if(!rejected)throw expected;
         }
         h.assertTrue(rejected,
             "SourcePose that no longer reconstructs the stored local transform must reject the entire candidate revision");
@@ -102,6 +103,12 @@ public final class S18SourcePoseCatalogBoundaryTests {
         h.assertTrue(receiver.snapshot()==accepted && receiver.ready(),
             "Rejecting the malformed pending revision must restore READY on the unchanged accepted snapshot");
         h.succeed();
+    }
+
+    private static boolean containsCause(Throwable error,String text) {
+        for(Throwable current=error;current!=null;current=current.getCause())
+            if(current instanceof IllegalArgumentException && current.getMessage()!=null && current.getMessage().contains(text))return true;
+        return false;
     }
 
     private static ModelGeometry geometry(ModelGeometry.SourcePose pose,List<Float> transform) {
