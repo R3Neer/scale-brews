@@ -910,7 +910,7 @@ public class AnatomyGeometryTests {
                 models.put(model.source(),model);
                 var boxes=model.evaluate(new Matrix4f(),java.util.Map.of(),AnatomyFilter.DEFAULT);
                 h.assertTrue(!boxes.isEmpty(),"Exported model has non-decorative server geometry: "+model.source());
-                PoseEngine poseProvider=switch(model.source()) {case "minecraft:cow"->new QuadrupedPose();case "alexsmobs:grizzly_bear"->new GrizzlyPose();default->new PlayerWalkingPose();};
+                java.util.function.BiFunction<ModelGeometry,PoseEngine.Inputs,java.util.Optional<java.util.Map<String,Matrix4f>>> poseProvider=switch(model.source()) {case "minecraft:cow"->(g,i)->new QuadrupedPoseEngine().evaluate(g,i,java.util.Map.of());case "alexsmobs:grizzly_bear"->(g,i)->new GrizzlyPose().evaluate(g,new PoseProvider.Inputs(i.walkPhase(),i.walkAmount(),i.age(),i.headYaw(),i.headPitch(),i.ordinary(),i.channels()));default->(g,i)->new PlayerWalkingPoseEngine().evaluate(g,i,java.util.Map.of());};
                 var evaluator=new ModelGeometryProvider(model,poseProvider,AnatomyFilter.DEFAULT,1);
                 var from=new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(1,.5f,10,-10,5,true),new Vec3(12000000,20,3000000),179,2);
                 var to=new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(1.37f,.6f,11,10,-5,true),from.origin().add(.2,.1,0),-179,2.1f);
@@ -932,11 +932,11 @@ public class AnatomyGeometryTests {
                     }
                 }
                 if(model.source().equals("minecraft:cow"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new QuadrupedPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Cow server pose");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new QuadrupedPoseEngine().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true),java.util.Map.of()).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Cow server pose");
                 if(model.source().equals("alexsmobs:grizzly_bear"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
                 if(model.source().startsWith("minecraft:player_"))for(int tick=0;tick<80;tick++)
-                    h.assertTrue(!model.evaluate(new Matrix4f(),new PlayerWalkingPose().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Player server pose");
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new PlayerWalkingPoseEngine().evaluate(model,new PoseEngine.Inputs(tick*.37f,.5f,tick,10,5,true),java.util.Map.of()).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Player server pose");
             }
         }catch(java.io.IOException e){throw new RuntimeException(e);}
         h.assertTrue(models.size()==4,"Expected cow, both player variants, and grizzly");
