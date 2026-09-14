@@ -145,6 +145,25 @@ public final class S18PoseEngineBehaviorTests {
         h.succeed();
     }
 
+    @GameTest
+    public void golemAttackChannelMatchesMojangEndpointInterpolation(GameTestHelper h) {
+        var golem = h.spawn(net.minecraft.world.entity.EntityTypes.IRON_GOLEM, 1, 2, 1);
+        try {
+            var field = net.minecraft.world.entity.animal.golem.IronGolem.class.getDeclaredField("attackAnimationTick");
+            field.setAccessible(true);
+            field.setInt(golem, 7);
+        } catch (ReflectiveOperationException inaccessible) {
+            throw new AssertionError("Could not construct iron-golem attack frame", inaccessible);
+        }
+        h.assertTrue(golem.getAttackAnimationTick() == 7,
+            "Holdout precondition: iron golem raw attack counter must be seven before authoritative sampling");
+
+        var inputs = new AuthorityPoseTracker().tick(golem, h.getLevel().getGameTime(), true);
+        h.assertTrue(inputs.channel("attack", Float.NaN) == 6f,
+            "Authority golem attack must match IronGolemRenderer at the tick endpoint: positive attack counter minus partialTicks=1");
+        h.succeed();
+    }
+
     private static ModelGeometry quadrupedGeometry() {
         var identity = ModelGeometry.values(new Matrix4f());
         return new ModelGeometry(1, "minecraft:cow", "26.2",
