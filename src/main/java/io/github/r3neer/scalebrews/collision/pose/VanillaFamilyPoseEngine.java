@@ -13,7 +13,7 @@ import org.joml.Vector3f;
 
 /** Canonical server-safe Minecraft 26.2 pose formulae for reusable ordinary model families. */
 public final class VanillaFamilyPoseEngine implements PoseEngine {
-    public enum Family { CHICKEN, VILLAGER, IRON_GOLEM, GHAST, FELINE, EQUINE, BEE }
+    public enum Family { CHICKEN, VILLAGER, IRON_GOLEM, GHAST, EQUINE, BEE }
     private final Family family;
 
     public VanillaFamilyPoseEngine(Family family) { this.family = Objects.requireNonNull(family); }
@@ -27,7 +27,6 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case VILLAGER -> villager(geometry, in, out);
             case IRON_GOLEM -> golem(geometry, in, out);
             case GHAST -> ghast(geometry, in, out);
-            case FELINE -> feline(geometry, in, out);
             case EQUINE -> equine(geometry, in, out);
             case BEE -> bee(geometry, in, out);
         }
@@ -87,31 +86,6 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             } catch (NumberFormatException ignored) {}
         }
         if (out.isEmpty()) for (var p : g.parts()) if (name(p).equals("body")) { putRest(out, p); break; }
-    }
-
-    private static void feline(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
-        if (!required(in, "crouching", "sprinting")) return;
-        boolean crouch = in.flag("crouching"), sprint = in.flag("sprinting");
-        float speed = in.walkAmount(), pos = in.walkPhase();
-        float lh, rh, lf, rf, tail2;
-        if (sprint) {
-            lh = Mth.cos(pos * .6662f) * speed; rh = Mth.cos(pos * .6662f + .3f) * speed;
-            lf = Mth.cos(pos * .6662f + (float)Math.PI + .3f) * speed; rf = Mth.cos(pos * .6662f + (float)Math.PI) * speed;
-            tail2 = 1.7278761f + (float)Math.PI / 10 * Mth.cos(pos) * speed;
-        } else {
-            lh = Mth.cos(pos * .6662f) * speed; rh = Mth.cos(pos * .6662f + (float)Math.PI) * speed; lf = rh; rf = lh;
-            tail2 = 1.7278761f + (crouch ? .47123894f : (float)Math.PI / 4) * Mth.cos(pos) * speed;
-        }
-        for (var p : g.parts()) switch (name(p)) {
-            case "head" -> put(out, p, 0, crouch ? 2 : 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, 0);
-            case "body" -> put(out, p, 0, crouch ? 1 : 0, 0, (float)Math.PI / 2, 0, 0);
-            case "tail1" -> put(out, p, 0, crouch ? 1 : 0, 0, crouch || sprint ? (float)Math.PI / 2 : .9f, 0, 0);
-            case "tail2" -> put(out, p, 0, crouch ? -4 : sprint ? -5 : 0, crouch || sprint ? 2 : 0, tail2, 0, 0);
-            case "left_hind_leg" -> put(out, p, 0, 0, 0, lh, 0, 0);
-            case "right_hind_leg" -> put(out, p, 0, 0, 0, rh, 0, 0);
-            case "left_front_leg" -> put(out, p, 0, 0, 0, lf, 0, 0);
-            case "right_front_leg" -> put(out, p, 0, 0, 0, rf, 0, 0);
-        }
     }
 
     private static void equine(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
