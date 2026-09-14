@@ -5,6 +5,7 @@ import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -103,6 +104,33 @@ public final class S18PoseEngineBehaviorTests {
         h.succeed();
     }
 
+    @GameTest
+    public void proceduralHeadPosePreservesUntouchedSourceRoll(GameTestHelper h) {
+        var head = new ModelGeometry.SourcePose(2f, 3f, -4f, .7f, -.6f, .35f, 1.2f, .8f, 1.1f);
+        var inputs = new PoseEngine.Inputs(1.25f, .4f, 12f, 17f, -8f, true);
+        var expected = new Matrix4f().translation(head.x() / 16f, head.y() / 16f, head.z() / 16f)
+            .rotateZYX(head.zRot(), inputs.headYaw() * (float)(Math.PI / 180.0), inputs.headPitch() * (float)(Math.PI / 180.0))
+            .scale(head.xScale(), head.yScale(), head.zScale());
+
+        var player = CollisionEngines.pose(Identifier.parse("scalebrews:player_walking")).orElseThrow();
+        var playerHead = player.evaluate(playerLikeGeometry(head), inputs, Map.of()).orElseThrow().get("root/head");
+        h.assertTrue(playerHead != null, "Player walking engine must publish head transform");
+        assertMatrixNear(h, expected, playerHead,
+            "Humanoid setupAnim overwrites head xRot/yRot but leaves the reset-pose zRot untouched");
+
+        var chicken = CollisionEngines.pose(Identifier.parse("scalebrews:chicken")).orElseThrow();
+        var chickenInputs = new PoseEngine.Inputs(1.25f, .4f, 12f, 17f, -8f, true,
+            Map.of("flap", .3f, "flap_speed", .7f));
+        var chickenHead = chicken.evaluate(chickenLikeGeometry(head), chickenInputs, Map.of()).orElseThrow().get("root/head");
+        h.assertTrue(chickenHead != null, "Chicken engine must publish head transform");
+        var chickenExpected = new Matrix4f().translation(head.x() / 16f, head.y() / 16f, head.z() / 16f)
+            .rotateZYX(head.zRot(), chickenInputs.headYaw() * (float)(Math.PI / 180.0), chickenInputs.headPitch() * (float)(Math.PI / 180.0))
+            .scale(head.xScale(), head.yScale(), head.zScale());
+        assertMatrixNear(h, chickenExpected, chickenHead,
+            "AdultChickenModel setupAnim overwrites head xRot/yRot but leaves the reset-pose zRot untouched");
+        h.succeed();
+    }
+
     private static ModelGeometry quadrupedGeometry() {
         var identity = ModelGeometry.values(new Matrix4f());
         return new ModelGeometry(1, "minecraft:cow", "26.2",
@@ -117,6 +145,34 @@ public final class S18PoseEngineBehaviorTests {
             ),
             List.of(new ModelGeometry.Piece("body", "root/body", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)),
             identity);
+    }
+
+    private static ModelGeometry playerLikeGeometry(ModelGeometry.SourcePose head) {
+        return proceduralGeometry("minecraft:player_wide", head,
+            List.of("right_arm", "left_arm", "right_leg", "left_leg"));
+    }
+
+    private static ModelGeometry chickenLikeGeometry(ModelGeometry.SourcePose head) {
+        return proceduralGeometry("minecraft:chicken", head,
+            List.of("right_leg", "left_leg", "right_wing", "left_wing"));
+    }
+
+    private static ModelGeometry proceduralGeometry(String source, ModelGeometry.SourcePose head, List<String> siblings) {
+        var identity = ModelGeometry.values(new Matrix4f());
+        var parts = new ArrayList<ModelGeometry.Part>();
+        parts.add(new ModelGeometry.Part("root", null, identity));
+        parts.add(new ModelGeometry.Part("root/head", "root", ModelGeometry.values(head.matrix()), head));
+        for (String sibling : siblings) parts.add(new ModelGeometry.Part("root/" + sibling, "root", identity));
+        return new ModelGeometry(2, source, "26.2", parts,
+            List.of(new ModelGeometry.Piece("piece", "root", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)), identity);
+    }
+
+    private static void assertMatrixNear(GameTestHelper h, Matrix4f expected, Matrix4f actual, String message) {
+        float[] a = expected.get(new float[16]);
+        float[] b = actual.get(new float[16]);
+        for (int i = 0; i < a.length; i++)
+            h.assertTrue(Math.abs(a[i] - b[i]) <= 2e-6f,
+                message + " at matrix[" + i + "]: expected=" + a[i] + " actual=" + b[i]);
     }
 
     private static boolean sameMatrices(Map<String, Matrix4f> left, Map<String, Matrix4f> right) {
