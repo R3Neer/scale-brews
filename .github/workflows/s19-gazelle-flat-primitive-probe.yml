@@ -1,0 +1,71 @@
+name: s19-gazelle-flat-primitive-probe
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-gazelle-flat-primitive-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect-gazelle-constructor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve exact locked Alex jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-gazelle-probe"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          alex = next(item for item in lock['inputs'] if item['modId'] == 'alexsmobs')
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-gazelle-probe'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{ maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }} }}
+          configurations {{ proofInput {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{ proofInput '{alex['coordinate']}' }}
+          tasks.register('copyProofInput', Copy) {{ from configurations.proofInput; into layout.buildDirectory.dir('proof-input') }}
+          """)
+          pathlib.Path('build').mkdir(exist_ok=True)
+          pathlib.Path('build/s19-gazelle-expected.txt').write_text(alex['sha256'] + '\n')
+          PY
+          ./gradlew -p "$probe" copyProofInput --console=plain
+          jar="$(find "$probe/build/proof-input" -name '*.jar' -type f -print -quit)"
+          test -n "$jar"
+          test "$(sha256sum "$jar" | awk '{print $1}')" = "$(cat build/s19-gazelle-expected.txt)"
+          cp "$jar" build/s19-gazelle-probe-alex.jar
+      - name: inspect exact Gazelle constructor bytecode
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s19-gazelle-flat-probe
+          javap -classpath build/s19-gazelle-probe-alex.jar -p -c \
+            com.github.alexthe666.alexsmobs.client.model.ModelGazelle \
+            > build/s19-gazelle-flat-probe/gazelle-javap.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          lines = Path('build/s19-gazelle-flat-probe/gazelle-javap.txt').read_text().splitlines()
+          out=[]
+          for i,line in enumerate(lines):
+              if 'addBox:' in line or 'addBox(' in line:
+                  lo=max(0,i-18); hi=min(len(lines),i+3)
+                  out.append('\n'.join(lines[lo:hi]))
+          text='\n\n--- addBox call ---\n'.join(out)
+          Path('build/s19-gazelle-flat-probe/addbox-context.txt').write_text(text+'\n')
+          print(text)
+          PY
+      - name: capture Gazelle constructor evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-gazelle-flat-primitive-probe
+          path: build/s19-gazelle-flat-probe/
