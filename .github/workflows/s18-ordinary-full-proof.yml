@@ -1,0 +1,32 @@
+name: s18-ordinary-full-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-ordinary-full-proof.yml'
+  workflow_dispatch:
+
+jobs:
+  ordinary-full:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: run complete ordinary GameTest suite
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s18-ordinary-junit.xml"
+      - name: capture complete ordinary evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-ordinary-full-proof
+          path: |
+            build/s18-ordinary-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
