@@ -43,6 +43,16 @@ public final class S18ImplementerRegressionTests {
     }
 
     @GameTest
+    public void authorityAgeMatchesCompletedRendererEndpoint(GameTestHelper h) {
+        var bee = h.spawn(net.minecraft.world.entity.EntityTypes.BEE, 1, 2, 1);
+        bee.tickCount = 37;
+        var inputs = new AuthorityPoseTracker().tick(bee, h.getLevel().getGameTime(), true);
+        h.assertTrue(inputs.age() == 38f,
+            "END_LEVEL_TICK authority must match the current renderer endpoint: ageInTicks = tickCount + partialTicks with partialTicks=1");
+        h.succeed();
+    }
+
+    @GameTest
     public void builtInPoseInitializationIsIdempotentAndKeepsCanonicalOwners(GameTestHelper h) {
         var ids = List.of(
             Identifier.parse("scalebrews:player_walking"), Identifier.parse("scalebrews:quadruped"),
