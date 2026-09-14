@@ -79,6 +79,30 @@ public final class S18PoseEngineBehaviorTests {
         h.succeed();
     }
 
+    @GameTest
+    public void sheepFinalEatTickIsNotOrdinaryQuadruped(GameTestHelper h) {
+        var sheep = h.spawn(net.minecraft.world.entity.EntityTypes.SHEEP, 1, 2, 1);
+        try {
+            var field = net.minecraft.world.entity.animal.sheep.Sheep.class.getDeclaredField("eatAnimationTick");
+            field.setAccessible(true);
+            field.setInt(sheep, 1);
+        } catch (ReflectiveOperationException inaccessible) {
+            throw new AssertionError("Could not construct final sheep-eating frame", inaccessible);
+        }
+
+        float positionScale = sheep.getHeadEatPositionScale(1f);
+        float angleScale = sheep.getHeadEatAngleScale(1f);
+        h.assertTrue(Math.abs(positionScale) < 1e-7f,
+            "Holdout precondition: final eating tick must have zero head position offset at the authoritative endpoint");
+        h.assertTrue(Math.abs(angleScale - (float)(Math.PI / 5)) < 1e-6f
+                && Math.abs(angleScale - sheep.getXRot() * (float)(Math.PI / 180.0)) > .1f,
+            "Holdout precondition: SheepModel must still own a distinct eating head angle when position offset has reached zero");
+
+        h.assertTrue(!AnatomyPoseEligibility.supported(Identifier.parse("scalebrews:quadruped"), sheep),
+            "Quadruped eligibility must fail closed while SheepModel still overrides head rotation, even when getHeadEatPositionScale(1) is already zero");
+        h.succeed();
+    }
+
     private static ModelGeometry quadrupedGeometry() {
         var identity = ModelGeometry.values(new Matrix4f());
         return new ModelGeometry(1, "minecraft:cow", "26.2",
