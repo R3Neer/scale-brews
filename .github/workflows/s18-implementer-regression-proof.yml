@@ -1,0 +1,50 @@
+name: s18-implementer-regression-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-implementer-regression-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18ImplementerRegressionTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  common-implementer-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S18 implementer regressions
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S18ImplementerRegressionTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S18 implementer regressions
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s18-implementer-junit.xml"
+      - name: capture implementer evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-implementer-regression-proof
+          path: |
+            build/s18-implementer-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
