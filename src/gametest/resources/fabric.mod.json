@@ -88,7 +88,8 @@
       "io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests",
       "io.github.r3neer.scalebrews.collision.internal.S16CanonicalCatalogAuthorityTests",
       "io.github.r3neer.scalebrews.collision.internal.S17ModelPartGeometryEngineTests",
-      "io.github.r3neer.scalebrews.collision.internal.MojangKeyframeBindingParameterTests"
+      "io.github.r3neer.scalebrews.collision.internal.MojangKeyframeBindingParameterTests",
+      "io.github.r3neer.scalebrews.collision.internal.S18ImplementerRegressionTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
