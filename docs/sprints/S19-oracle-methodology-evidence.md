@@ -56,3 +56,122 @@ Evidencia:
 Cuando exista la implementación S19, los proofs Grizzly/Gazelle no deben reutilizar el extractor productivo ni el legacy para construir su geometría esperada. La referencia debe caminar el modelo/renderer original del jar exacto fijado y poder detectar, como mínimo, tanto piezas/vertices ausentes como piezas/vertices fantasma.
 
 Las mutations relevantes de S19 no se consideran cubiertas porque una lane cualquiera se ponga roja. El harness debe demostrar que mueren por el assert causal previsto. Los escenarios concretos y mutations S19 permanecen reservados hasta la segunda lectura de producción, conforme al TM.
+
+## Diseño del oracle S19: capas que no deben colapsarse
+
+El oracle retroactivo S17 demuestra muy bien paridad de `Piece` final, pero S19 necesita distinguir capas que `AdvancedModelBox` separa semánticamente. Este apartado fija **qué observables comparar**, no fixtures concretas ni una representación productiva obligatoria.
+
+### 1. Identidad de fuente
+
+Cada resultado de aceptación debe quedar ligado a:
+
+- `GeometryEngine` esperado;
+- `Request.model` exacto;
+- versión/dialecto de la fuente;
+- hashes de jars fijados;
+- `ModelGeometry.source` y `version` devueltos.
+
+Un resultado espacialmente correcto preparado desde otra fuente/versión no es evidencia equivalente.
+
+### 2. Grafo semántico fuente
+
+La referencia debe construirse directamente desde `parts()`/`AdvancedModelBox.childModels` del modelo original y registrar por part semántica:
+
+- nombre canónico/`boxName`;
+- parent semántico;
+- orden/cobertura de children sólo donde el orden sea contractualmente relevante;
+- transform local que afecta a la geometría propia;
+- transform que debe propagarse a los hijos según `scaleChildren`;
+- visibilidad estructural (`showModel`).
+
+No debe usar `getDeclaredFields()` del modelo concreto como autoridad primaria de identidad ni `getAllParts()` como lista de roots.
+
+### 3. Normalización de helpers de representación
+
+No debe exigirse igualdad bruta del número de `ModelGeometry.Part`. El DTO posee un único transform local por `Part`, mientras el renderer `AdvancedModelBox` puede aplicar escala a su geometría propia y cancelarla antes de recorrer hijos cuando `scaleChildren=false`.
+
+Una implementación válida puede por tanto necesitar parts sintéticas sin piezas propias para representar esa separación. El legacy ya usa un nodo `.../unscaled_children` con la inversa de escala.
+
+El oracle debe comparar **semántica normalizada**:
+
+- cada part fuente canónica debe tener una representación no ambigua;
+- el world transform que alcanza su propia geometría debe coincidir con el renderer original;
+- el transform propagado desde una part fuente hasta cada child semántico debe coincidir con la ruta del renderer original;
+- parts auxiliares extra sólo son tolerables si son estructurales, deterministas y su composición no inventa ni elimina grados de libertad, piezas o transform neto;
+- un helper no puede ocultar duplicación, cycles, alias de IDs ni geometría fantasma.
+
+Así se evita tanto un falso positivo contra una compensación legítima como un falso negativo que acepte un árbol distinto sólo porque, en la pose canónica, termina colocando cajas parecidas.
+
+### 4. Geometría local por cubo
+
+Antes de aplicar `modelTransform`, la referencia debe derivar de los quads/vertices materializados del cubo original y registrar:
+
+- identidad estable de la pieza dentro de su part;
+- bounds/vertices efectivos post-inflation;
+- intención dimensional pre-inflation necesaria para distinguir corrupción de render-only;
+- clasificación física vs render-only.
+
+La comparación debe ser bidireccional por identidad, no un pool global de vertices: source -> candidate y candidate -> source, con cardinalidad suficiente para detectar omisiones y cajas fantasma.
+
+### 5. `modelTransform` por fuente
+
+La matriz de renderer/modelo se comprueba como autoridad separada de los transforms locales de parts. Para una fuente dada deben coincidir:
+
+- la matriz declarada/materializada por la `Source`;
+- el frame derivado del renderer original fijado;
+- el resultado espacial después de componerla con la jerarquía.
+
+Esto evita que un error de `modelTransform` quede compensado accidentalmente por el error inverso dentro del extractor. Dos errores que se cancelan en world-space siguen siendo dos errores de autoridad.
+
+### 6. Geometría base antes de filtros
+
+La paridad contra modelo original se realiza sobre `ModelGeometry` base **antes** de aplicar `AnatomyFilter`. Sólo después se valida selección declarativa.
+
+De lo contrario una implementación podría borrar durante extracción una part que casualmente también está excluida por el filtro de aceptación y obtener un falso verde. En particular, una comparación filtrada no demuestra que la geometría canónica completa se haya preservado.
+
+### 7. Resultado espacial como última capa, no única capa
+
+Tras validar identidad, grafo, transforms y piezas locales, el oracle sí debe comparar world-space contra el renderer original y producir snapshots/overlays deterministas.
+
+World-space sirve como prueba diferencial final y como detector visual, pero no sustituye las capas anteriores: distintas jerarquías o repartos de transforms pueden ser espacialmente equivalentes en una pose estática y divergir en cuanto una futura pose modifique un joint.
+
+### 8. Diagnóstico de render-only
+
+Una primitiva plana legítima no aparece como `Piece` física, pero su existencia debe permanecer observable en el lado de referencia/proof. El oracle debe poder afirmar simultáneamente:
+
+- la primitiva existía en el renderer original;
+- fue clasificada como no volumétrica bajo el dialecto soportado;
+- no produjo collider;
+- su omisión no alteró IDs/parentage de las piezas físicas restantes.
+
+Esto evita que “no está en el output” sea indistinguible entre clasificación deliberada y extractor que simplemente perdió material.
+
+### 9. Determinismo del propio oracle
+
+La referencia adversarial también debe ser reproducible:
+
+- misma fuente exacta => mismo manifest estructural;
+- snapshots con cámara/proyección/tolerancias fijadas;
+- serialización/orden estable para diffs;
+- ninguna dependencia del orden accidental de reflexión;
+- tolerancias numéricas declaradas y acotadas, no adaptadas al candidato.
+
+Un oracle que cambia de opinión según el orden de un `HashMap` sería una contribución muy fiel al ecosistema Java, pero poco útil como evidencia.
+
+## Checklist de aceptación post-implementación
+
+Cuando exista producción, la segunda lectura decidirá qué harness concreto materializa estas capas. Como mínimo, la evidencia de Grizzly/Gazelle debe poder responder de forma independiente:
+
+1. ¿La fuente/version/hash es la fijada?
+2. ¿Las roots y relaciones semánticas del modelo original están cubiertas una vez y sólo una vez?
+3. ¿La geometría propia de cada part recibe el transform correcto?
+4. ¿Los children reciben la herencia/cancelación de escala correcta?
+5. ¿Cada cubo físico original corresponde a exactamente una pieza física y viceversa, salvo representación equivalente explícitamente demostrada?
+6. ¿Las primitivas render-only quedan explicadas y no se transforman en colliders?
+7. ¿`modelTransform` coincide por fuente sin compensaciones cruzadas con transforms locales?
+8. ¿La geometría base completa es correcta antes de filtros?
+9. ¿Los filtros posteriores seleccionan sin reescribir la geometría base?
+10. ¿El world-space y los snapshots coinciden con el renderer original?
+11. ¿Las mutations elegidas mueren por asserts causales de estas propiedades y no por fallos colaterales del harness?
+
+La forma exacta de IDs auxiliares, fixtures malformed y mutations permanece deliberadamente sin concretar hasta leer la implementación S19 real.
