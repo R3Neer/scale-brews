@@ -10,6 +10,8 @@ La arquitectura separa **forma**, **pose**, **transformación raíz**, **políti
 
 Clinging Reoriented es consumidor de la frontera pública: conserva input, cargas, Gravity Changer, efectos, persistencia y cámara propios. No posee un collider, carry o reconciliador alternativo para entidades que Scale gestiona.
 
+`chatgpt-editing` tampoco es propietario de las demás mecánicas de producto de Scale Brews. `main` puede seguir evolucionando Tiny Mounts, controles, equipamiento, inventarios, alcance, gravedad efectiva, render/attachments, gamefeel u otros subsistemas mientras este proyecto continúa. Al integrar cambios, la arquitectura de entity collisions debe adaptarse a la **ruta productiva vigente de `main`**, no restaurar una fotografía histórica del repositorio. Sólo un conflicto explícito con un requisito canónico de entity collisions justifica cambiar una mecánica mainline ajena.
+
 ## 2. Fuentes de verdad
 
 | Información | Documento canónico |
@@ -20,7 +22,7 @@ Clinging Reoriented es consumidor de la frontera pública: conserva input, carga
 | Pruebas realmente ejecutadas y límites de evidencia | `VALIDATION.md` |
 | Historial de versiones publicadas | `../CHANGELOG.md` |
 
-README, GUIDE, CONFIGURATION y TODO sólo enlazan o resumen a nivel de producto; no mantienen otra especificación del subsistema.
+README, GUIDE, CONFIGURATION y TODO sólo enlazan o resumen a nivel de producto; no mantienen otra especificación del subsistema. No obstante, el comportamiento de producto que ya existe en el `main` actual sigue siendo una dependencia externa real: que no se replique aquí como especificación no autoriza a borrarlo durante una migración.
 
 ## 3. Modelo conceptual
 
@@ -173,6 +175,14 @@ Un observador remoto no ejecuta carry físico local de la entidad observada. Usa
 La presentación puede corregir el residual entre posición física y superficie animada, pero no es otra fuente de pose física. Usa el mismo endpoint/intervalo causal confirmado.
 
 La cámara aplica sólo offset visual acotado y validado contra bloques/near plane. Teleports resetean el residual; pérdidas ordinarias pueden suavizarlo. Integraciones visuales consumen esta capa y no alteran contacto.
+
+### 4.11 Interacción de entidades y precedencia de moving platforms
+
+Entity collisions no posee el sistema general de interacción con entidades. Para cada pareja actor→objetivo se decide primero si el objetivo entra realmente en el régimen de **soporte material/moving platform** para ese actor conforme a policy, ratio físico efectivo y estado. El ratio de FR-009 es la frontera física por defecto y puede ser sustituido por la policy canónica; no se crea un segundo umbral oculto para interacción.
+
+Mientras el objetivo sea suficientemente pequeño respecto al actor para quedar fuera de esa relación de soporte y **no califique como moving platform** para la pareja, la ruta vigente de interacción de Minecraft/`main` permanece autoritativa. Eso incluye no sólo vanilla puro, sino las extensiones deliberadas de producto que existan en `main`: reach, feeding/taming, sitting, equipamiento, Tiny Mount gestures/menus, ataques y otros hooks compatibles. El subsistema de entity collisions no cancela, consume, redirige ni duplica esos eventos.
+
+Que una entidad tenga geometría anatómica preparada no la convierte por sí sola en moving platform. Del mismo modo, ser grande no basta si policy, estado o elegibilidad material excluyen la relación. Cuando sí existe una relación de soporte gestionada, Scale sustituye únicamente la física/contacto que le pertenece; cualquier interacción no física sigue pasando por la ruta mainline salvo que un requisito funcional específico diga lo contrario.
 
 ## 5. API frente a JSON
 
