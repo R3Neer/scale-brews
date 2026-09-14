@@ -8,6 +8,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyQueryFrameTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/G2VanillaPushReadyTests.java'
   workflow_dispatch:
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: isolate vanilla push holdout
+      - name: isolate READY-session vanilla push holdout
         run: |
           python3 - <<'PY'
           import json
@@ -30,7 +31,7 @@ jobs:
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-gametest']=[
-            'io.github.r3neer.scalebrews.test.AnatomyQueryFrameTests'
+            'io.github.r3neer.scalebrews.test.G2VanillaPushReadyTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
