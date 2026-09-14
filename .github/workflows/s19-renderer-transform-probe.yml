@@ -1,0 +1,70 @@
+name: s19-renderer-transform-probe
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-renderer-transform-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect-renderers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve exact locked Alex jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-renderer-probe"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          alex = next(item for item in lock['inputs'] if item['modId'] == 'alexsmobs')
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-renderer-probe'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{ maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }} }}
+          configurations {{ proofInput {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{ proofInput '{alex['coordinate']}' }}
+          tasks.register('copyProofInput', Copy) {{ from configurations.proofInput; into layout.buildDirectory.dir('proof-input') }}
+          """)
+          pathlib.Path('build').mkdir(exist_ok=True)
+          pathlib.Path('build/s19-renderer-probe-expected.txt').write_text(alex['sha256'] + '\n')
+          PY
+          ./gradlew -p "$probe" copyProofInput --console=plain
+          jar="$(find "$probe/build/proof-input" -name '*.jar' -type f -print -quit)"
+          test -n "$jar"
+          expected="$(cat build/s19-renderer-probe-expected.txt)"
+          actual="$(sha256sum "$jar" | awk '{print $1}')"
+          test "$actual" = "$expected" || { echo "Alex jar SHA mismatch" >&2; exit 1; }
+          cp "$jar" build/s19-renderer-probe-alex.jar
+      - name: inspect exact renderer classes and scale hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          jar=build/s19-renderer-probe-alex.jar
+          mkdir -p build/s19-renderer-probe
+          jar tf "$jar" | grep -E 'client/render/Render(GrizzlyBear|Gazelle)\.class$' | tee build/s19-renderer-probe/classes.txt
+          test "$(wc -l < build/s19-renderer-probe/classes.txt)" -eq 2
+          while IFS= read -r entry; do
+              cls="${entry%.class}"
+              cls="${cls//\//.}"
+              echo "===== $cls =====" | tee -a build/s19-renderer-probe/javap.txt
+              javap -classpath "$jar" -p -c "$cls" | tee -a build/s19-renderer-probe/javap.txt
+          done < build/s19-renderer-probe/classes.txt
+          grep -n -E 'scale\(|PoseStack|fconst_|ldc.*float|translate|scale:' build/s19-renderer-probe/javap.txt | tee build/s19-renderer-probe/scale-excerpts.txt || true
+          cat build/s19-renderer-probe/scale-excerpts.txt
+      - name: capture renderer evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-renderer-transform-probe
+          path: build/s19-renderer-probe/
