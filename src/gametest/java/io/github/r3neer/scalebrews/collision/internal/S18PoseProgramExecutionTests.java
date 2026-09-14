@@ -50,6 +50,19 @@ public final class S18PoseProgramExecutionTests {
     }
 
     @GameTest
+    public void missingSourcePoseFailsKeyframeBindingClosed(GameTestHelper h) {
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        var legacyGeometry = new ModelGeometry(1,"proof:s18-no-source-pose","26.2",
+            List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            List.of(new ModelGeometry.Piece("piece","root",List.of(0d,0d,0d),List.of(1d,1d,1d),null)));
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program(16)) : Optional.empty();
+        var parameters = Map.of("program",PROGRAM.toString(),"clock","static","amplitude","one");
+        h.assertTrue(engine.bind(legacyGeometry, parameters, Set.of(), resources).isEmpty(),
+            "Mojang keyframes must fail closed when exact source pose metadata is unavailable");
+        h.succeed();
+    }
+
+    @GameTest
     public void unknownAndAmbiguousBonesFailBindingClosed(GameTestHelper h) {
         var engine = CollisionEngines.pose(ENGINE).orElseThrow();
         PoseEngine.Resources missingBoneResources = id -> id.equals(PROGRAM) ? Optional.of(programForBone("missing", 16)) : Optional.empty();
@@ -72,8 +85,9 @@ public final class S18PoseProgramExecutionTests {
     }
 
     private static ModelGeometry geometry() {
+        var sourcePose = new ModelGeometry.SourcePose(0,0,0,0,0,0,1,1,1);
         return new ModelGeometry(1,"proof:s18","26.2",
-            List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(sourcePose.matrix()),sourcePose)),
             List.of(new ModelGeometry.Piece("piece","root",List.of(0d,0d,0d),List.of(1d,1d,1d),null)));
     }
 
