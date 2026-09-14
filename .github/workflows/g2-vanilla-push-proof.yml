@@ -6,8 +6,18 @@ on:
     paths:
       - '.github/workflows/g2-vanilla-push-proof.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
-      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
-      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyQueryFrameTests.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactState.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomySession.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/ScaleAnatomyBackend.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/integration/CollisionRules.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/migration/LegacyAnatomyCatalogMigration.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/migration/LegacyCollisionData.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/G2VanillaPushReadyTests.java'
   workflow_dispatch:
 
