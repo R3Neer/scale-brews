@@ -124,6 +124,18 @@ Una segunda inspección temporal verificó los renderers del mismo jar exacto de
 
 Consecuencia de diseño ya prevista por I6: el `modelTransform` debe pertenecer a la **fuente concreta** y no puede ser una constante compartida por la familia `AdvancedModelBox`. La aceptación posterior debe detectar tanto la pérdida del `0.8` de Gazelle como la aplicación accidental de esa escala a Grizzly.
 
+## Limitación del oracle histórico de vértices
+
+El proof cliente legacy `AnatomyExportProof.verifyAlexVertices(...)` no es una equivalencia bidireccional entre renderer y geometría exportada. Construye primero cajas con `GeometryExtractor.alex(...)`, intercepta cada `addVertex(...)` del renderer y sólo exige que **cada vértice renderizado** coincida con al menos un vértice de alguna caja exportada. También exige que el renderer emita al menos un vértice.
+
+Eso demuestra una inclusión `render -> export`, pero no la inversa:
+
+- no comprueba que cada `Piece` exportada tenga contraparte renderizada;
+- no detecta cajas o vértices físicos extra que nunca emite el renderer;
+- pierde identidad estructural al aceptar coincidencia con cualquier caja del conjunto, sin preservar qué part/cube originó el vértice.
+
+Por tanto el proof histórico sigue siendo evidencia útil de regresión, pero no puede ser el único oracle de aceptación de I8. La fase adversarial post-implementación deberá exigir paridad suficiente en ambas direcciones/estructura para impedir que geometría fantasma pase simplemente porque también contiene todos los vértices reales. Este punto define calidad de evidencia, no amplía la superficie productiva de S19.
+
 ## Legacy y ownership
 
 La autoridad legacy está actualmente en `src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/GeometryExtractor.java`. La búsqueda de consumidores muestra que `GeometryExtractor.alex(...)` sólo está consumido por el proof `AnatomyExportProof`; los demás usos de `GeometryExtractor` pertenecen a la ruta vanilla/ModelPart y ya son adapters del engine S17.
