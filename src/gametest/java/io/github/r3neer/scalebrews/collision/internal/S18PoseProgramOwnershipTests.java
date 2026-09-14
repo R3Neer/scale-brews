@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -39,6 +40,36 @@ public final class S18PoseProgramOwnershipTests {
         }
         h.assertTrue(immutable,
             "Accepted revision-local pose-program data must be immutable once published");
+        h.succeed();
+    }
+
+    @GameTest
+    public void equivalentProgramIdsCanonicalizeAndAliasCollisionFailsAtomically(GameTestHelper h) {
+        var value = program(16);
+        var shorthand = AnatomyCatalogTransfer.serializedBundle(Map.of(), Map.of("s18_alias", value), List.of());
+        var explicit = AnatomyCatalogTransfer.serializedBundle(Map.of(), Map.of("minecraft:s18_alias", value), List.of());
+        h.assertTrue(Arrays.equals(shorthand, explicit),
+            "Equivalent pose-program identifiers must serialize to the same canonical protocol-v5 bytes/hash input");
+
+        var catalog = new WorldAnatomyCatalog();
+        var accepted = catalog.replaceAtRevision(21, Map.of(), Map.of("s18_alias", value), List.of());
+        h.assertTrue(value.equals(accepted.posePrograms().get("minecraft:s18_alias")) && !accepted.posePrograms().containsKey("s18_alias"),
+            "Accepted revision data must own only the canonical Identifier string");
+        var epoch = UUID.randomUUID();
+        var prepared = catalog.preparedPackets(epoch);
+
+        boolean rejected = false;
+        try {
+            catalog.replaceAtRevision(22, Map.of(), Map.of("s18_alias", value, "minecraft:s18_alias", value), List.of());
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+        h.assertTrue(rejected,
+            "Two textual aliases of the same canonical pose-program Identifier must be rejected instead of gaining map-order precedence");
+        h.assertTrue(catalog.snapshot() == accepted,
+            "Rejecting a canonical pose-program alias collision must retain the exact accepted snapshot object");
+        h.assertTrue(catalog.preparedPackets(epoch) == prepared,
+            "Rejecting a canonical pose-program alias collision must retain the exact prepared bundle");
         h.succeed();
     }
 
