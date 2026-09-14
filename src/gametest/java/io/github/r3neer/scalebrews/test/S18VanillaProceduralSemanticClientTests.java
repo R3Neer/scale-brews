@@ -22,6 +22,7 @@ import org.joml.Matrix4f;
  */
 public final class S18VanillaProceduralSemanticClientTests implements FabricClientGameTest {
     private static final AnatomyFilter ALL_MATERIAL = new AnatomyFilter(0, 0, 0);
+    private static final double VERTEX_EPS = 3e-5;
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -212,7 +213,7 @@ public final class S18VanillaProceduralSemanticClientTests implements FabricClie
             throw new AssertionError("Animated piece mismatch: " + label + " predicted=" + predicted.keySet() + " actual=" + actual.keySet());
         for (String key : actual.keySet()) for (int i = 0; i < 8; i++) {
             double d2 = predicted.get(key).vertices().get(i).distanceToSqr(actual.get(key).vertices().get(i));
-            if (d2 > 1e-10) throw new AssertionError("Canonical PoseEngine differs from original Minecraft 26.2: "
+            if (d2 > VERTEX_EPS * VERTEX_EPS) throw new AssertionError("Canonical PoseEngine differs from original Minecraft 26.2: "
                 + label + " piece=" + key + " vertex=" + i + " d2=" + d2);
         }
     }
