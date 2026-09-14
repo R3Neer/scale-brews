@@ -50,7 +50,7 @@ Estado: **cerrado**.
 
 Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó modelo adversarial clean-room, inventario/clasificación, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. Registro: `docs/sprints/S00-foundation-audit.md`; evidencia: `VALIDATION.md`.
 
-Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5. La reapertura adversarial posterior de G1 fue reparada y revalidada; **G1 está cerrado y G2 también ha cerrado posteriormente**.
+Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5. La reapertura adversarial posterior de G1 fue reparada y revalidada; **G1 está cerrado. G2 cerró históricamente después, pero permanece reabierto de forma localizada por la revisión posterior de FR-053 descrita en su gate.**
 
 ### G1 — contrato público y data model desacoplados del legacy
 
@@ -74,7 +74,7 @@ Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5
 
 ### G2 — pipeline material continuo Q2
 
-**Estado:** **CERRADO**. S05-S14 están cerrados. La física material Q2 y la partición de ownership exigible dentro de fronteras reales han convergido: broadphase acotado, identidad causal de intervalos, dispatcher ROOT/JOINT, transporte anclado y `DERIVED_CARRY`, multicontacto/sliding/recovery, wall squeeze, contacto sólo intermedio, budgets exactos, precisión estable bajo traslaciones mundiales grandes y owners separados para transporte, gravedad, contacto, índice y binding vivo.
+**Estado:** **REABIERTO LOCALMENTE / FR-053**. S05-S14 permanecen cerrados y su evidencia sobre broadphase, causalidad, CCD, carry, multicontacto, budgets y ownership sigue vigente. La precisión posterior de FR-053 separó dos fenómenos que el cierre histórico trataba como una sola sustitución física: Scale puede reemplazar el **bloqueo geométrico** de una pareja moving-platform, pero debe conservar el `Entity.push` vanilla de esa misma pareja exactamente una vez. El holdout READY/canónico de `6aba43f236ff7f675ca4c135f6fe981fd11a7cdc` demuestra que producción cancela hoy ese impulso: el control vanilla produce velocidades `±0.02236068006654798` y, tras adquirir contacto material, ambas quedan en `0`. Run `34885201453`, job `104114021333`, artifact `10364073081`, SHA-256 `40668506c3918d53d5540123990cdbfe560303cea137d0d77719c3236b5d79e6`. Evidencia completa: `docs/sprints/G2-vanilla-push-reopen-evidence.md`.
 
 El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo interno deba salir de `collision.internal`. Tras S14 permanece como orquestador/query live y conserva `FRAME_SERIALS` + root history porque `GeometryProvider.CausalEndpoint` todavía contiene `AnatomyMovement.RootFrame`; separar ese bloque ahora exigiría una dependencia inversa o adelantar el rediseño de root/lifecycle de G3. La tarea 9 exige precisamente **no** mover tipos hasta que queden realmente desacoplados.
 
@@ -83,12 +83,13 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 1. [x] dividir `AnatomyMovement` en estado/índice/query/contact/transport dentro de fronteras reales, quitando ownership redundante;
 2. [x] integrar `MaterialEventDispatcher` con hooks reales de root/joint/carry;
 3. [x] usar `MotionIntervalHandle`/trayectoria certificada para traslación, yaw, scale y joints, no sólo endpoint actual;
-4. [x] procesar varias contribuciones del mismo tick exactamente una vez cada una y mantener ancestry;
+4. [x] procesar varias contribuciones materiales genuinas del mismo tick exactamente una vez y mantener ancestry;
 5. [x] cerrar tangential retention, multicontacto, sliding y separation recovery;
 6. [x] impedir que broadphase oversized degrade a scan mundial en hot path: kernel `MaterialBroadphase` acotado, fail-closed y cuarentena local, cerrado en S05;
 7. [x] probar cadenas, obstrucción, wall squeeze, huecos y contacto que sólo existe en mitad del intervalo;
 8. [x] fijar e instrumentar budgets de sweep/eventos;
-9. [x] mover fuera de `collision.internal` tipos físicos/orquestadores sólo cuando queden realmente desacoplados al cerrar Q2; los tipos aún acoplados a root/endpoint quedan deliberadamente para G3.
+9. [x] mover fuera de `collision.internal` tipos físicos/orquestadores sólo cuando queden realmente desacoplados al cerrar Q2; los tipos aún acoplados a root/endpoint quedan deliberadamente para G3;
+10. [ ] recerrar FR-053: una pareja fuera de elegibilidad moving-platform no adquiere pared anatómica, y una pareja elegible con contacto material conserva el `Entity.push` vanilla exactamente una vez sin doble bloqueo/carry.
 
 **S05 cerrado:** `MaterialBroadphase<K>` quedó extraído a `collision.physics`; desaparecieron el fallback `all bounds` y `overflow` del hot query; entry/query/candidate budgets tienen outcomes explícitos; runtime propaga agotamiento de forma conservadora. Run `34602837677`, job `103274063124`: **277/277 required GameTests passed**.
 
@@ -110,9 +111,9 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S14 cerrado:** `docs/sprints/S14-binding-state-ownership.md` extrajo a `collision.internal.AnatomyBindingState` el ownership único del binding vivo: provider, descriptor causal opcional, generación local monotónica, quarantine de la generación actual y capture guard reentrante. El causal rebind dejó de pasar por un binding descriptorless transitorio y ahora instala provider+descriptor+generation atómicamente. Baseline rojo `5019fd7f7116c0c79291556fe41a8d70f2c95941`, run `34696527544`, job `103560853344`: **386 tests, 383 verdes / 3 rojos**, incluido `samples=3` en causal rebind. Tras `f8693c1d17ac0b73b95aeec74e5b2a57490fe9e1`, la cadena integrada pasa ordinary **386/386** y la fuente final con `d048740...` pasa cliente real + prepared **2/2** en `34708981488`. La revisión final no encontró un corte adicional de producción S14.
 
-**Cierre arquitectónico G2:** transport, gravity, contact state, spatial membership y live binding state tienen owners únicos. `AnatomyMovement` queda como orquestador/query y retiene endpoint/root history porque esa frontera todavía no es acíclica: `GeometryProvider.CausalEndpoint` referencia `AnatomyMovement.RootFrame`. Moverla ahora sería una extracción nominal con dependencia inversa o anticiparía G3. G2 no abre un S15 por numerología; la generalización de root/lifecycle y la separación interna restante continúan en G3 tareas 6, 9 y 12.
+**Cierre arquitectónico histórico G2:** transport, gravity, contact state, spatial membership y live binding state tienen owners únicos. `AnatomyMovement` queda como orquestador/query y retiene endpoint/root history porque esa frontera todavía no es acíclica: `GeometryProvider.CausalEndpoint` referencia `AnatomyMovement.RootFrame`. Ese cierre estructural sigue demostrado. **El gate global G2, sin embargo, permanece reabierto únicamente por FR-053 hasta reparar y revalidar la frontera bloqueo-vs-push.**
 
-**Salida:** física material Q2 correcta y acotada en server, validada además sobre geometría cliente original preparada, con ownership Q2 particionado; prediction/reconciliación bajo latencia sigue perteneciendo a G4.
+**Salida pendiente de recierre:** física material Q2 correcta y acotada en server, con `Entity.push` vanilla preservado exactamente una vez para moving platforms y sin collider anatómico para parejas no elegibles; prediction/reconciliación bajo latencia sigue perteneciendo a G4.
 
 ### G3 — catálogo, engines generales y lifecycle
 
@@ -168,12 +169,12 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 3. [ ] portar sneak edge y jump release;
 4. [ ] portar raycast/placement con permisos/inventario/footprint;
 5. [ ] demostrar no regresión de fall/exhaustion/stats/Growth landing;
-6. [ ] preservar la ruta de interacción Minecraft/`main` para parejas que no califican como moving platform según FR-093, incluida la frontera de ratio/policy y Tiny Mount/reach/equipment UX; sólo la física de una relación soporte-cuerpo realmente gestionada puede ser sustituida por entity collisions;
+6. [ ] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez;
 7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
 8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
 9. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción.
 
-**Salida:** un solo motor físico, sin secuestrar la interacción mainline fuera del régimen moving-platform.
+**Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general
 
@@ -188,14 +189,15 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 ### G7 — migración de Clinging Reoriented
 
-**Requisitos:** FR-001..004, FR-044..046, FR-072..085; NFR-021..024, NFR-030, NFR-033..035.
+**Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.
 
 1. [ ] compilar consumer contra API final;
 2. [ ] migrar preflight/raycast/contact/gravity frame;
-3. [ ] preservar Space/charge/Reorientation/Elytra/efectos/persistencia/camera;
-4. [ ] borrar AABB selection/moving surfaces/carry/references/reconciliation duplicados del consumer;
-5. [ ] transiciones cardinales y bloqueo;
-6. [ ] network/latency con consumer real.
+3. [ ] registrar/adaptar las superficies materiales válidas de Scale al SPI público `LandingSurfaceProvider`/`LandingSurfaces` de Clinging, usando identidad/revisión/normal/sweep de Scale y sin declarar superficies para parejas no elegibles;
+4. [ ] preservar Space/charge/Reorientation/Elytra/efectos/persistencia/camera y dejar en Clinging la decisión de giro/reposicionamiento al aterrizar;
+5. [ ] borrar AABB selection/moving surfaces/carry/references/reconciliation duplicados del consumer;
+6. [ ] transiciones cardinales y bloqueo;
+7. [ ] network/latency con consumer real.
 
 ### G8 — VanillaPlus compat como proyecto separado
 
@@ -277,12 +279,14 @@ S13 extrajo el índice espacial per-level/tick a `AnatomySpatialIndex`, eliminó
 
 S14 extrajo el binding vivo a `AnatomyBindingState`: provider, descriptor, generación local, quarantine y capture guard tienen un único owner. El rojo inicial probó además que el causal rebind pasaba transitoriamente por un binding descriptorless y muestreaba de más; `f8693c1...` convirtió esa transición en atómica. La revisión final cero-cambios demostró que endpoint/root/query no puede separarse todavía sin callback inverso o sin adelantar G3.
 
-**Convergencia G2:** tras S14 no queda otra frontera de ownership Q2 que pueda separarse de forma acíclica. Task 1 se satisface porque state/index/contact/transport tienen owners separados y `AnatomyMovement` queda como query/orquestador; task 9 se satisface precisamente dejando dentro de `collision.internal` los tipos que aún no están desacoplados. `FRAME_SERIALS` y root history quedan trazados a G3, no como deuda oculta de G2. Una pasada completa no introduce un S15 ni otro cambio de producción. G2 queda cerrado.
+**Reapertura FR-053:** la precisión posterior de requisitos separó bloqueo anatómico y `Entity.push`. El primer oracle verde (`34878390388`) no atravesaba `AnatomyApi.READY`; el segundo rojo (`34884834050`) no poseía binding canónico y falló antes de crear contacto. El tercer oracle añadió ambos precondicionantes y demostró causalmente en `34885201453` que el contacto material cancela por completo el impulso vanilla. G2 no necesita rehacer S05-S14, pero no puede volver a declararse cerrado hasta reparar esa frontera y pasar además el holdout no-wall para parejas fuera de elegibilidad.
+
+**Convergencia estructural G2:** tras S14 no queda otra frontera de ownership Q2 que pueda separarse de forma acíclica. Task 1 se satisface porque state/index/contact/transport tienen owners separados y `AnatomyMovement` queda como query/orquestador; task 9 se satisface precisamente dejando dentro de `collision.internal` los tipos que aún no están desacoplados. `FRAME_SERIALS` y root history quedan trazados a G3, no como deuda oculta de G2. Esta conclusión arquitectónica no sustituye el recierre funcional pendiente de FR-053.
 
 ### Revisión del código
 
 El inventario y revisiones destructivas de G0 fijaron qué conservar/eliminar. G1 dejó fronteras públicas/data estables. S05 extrajo `MaterialBroadphase`; S06-S09 establecieron fronteras causales y físicas reales alrededor de `MaterialIntervalRuntime`, `MaterialPhysicsRuntime`, `AnchoredTransportPlanner`, `TemporalResponse`, `AnatomySeparation` y el dispatcher. S10 extrajo `TransportLedger`; S11 retiró la doble autoridad de gravedad; S12 extrajo el estado retenido de contacto a `AnatomyContactState`; S13 extrajo membership/index bounded a `AnatomySpatialIndex`; S14 extrajo live binding state a `AnatomyBindingState`.
 
-La partición G2 de `AnatomyMovement` se considera completa **para el alcance Q2**. Sigue conservando activación, endpoint serials, root history, sweep metrics y la orquestación/query live. Eso no se interpreta como un nuevo owner redundante: endpoint/root forman todavía una unidad causal porque `GeometryProvider.CausalEndpoint` usa `AnatomyMovement.RootFrame`, mientras la generalización de root y lifecycle pertenece a G3. Las métricas y activación aisladas no justifican una extracción propia. El siguiente cambio de ownership sólo se hará desde G3 cuando root/catalog/lifecycle produzcan una frontera real.
+La partición G2 de `AnatomyMovement` se considera completa **para el alcance estructural Q2**. Sigue conservando activación, endpoint serials, root history, sweep metrics y la orquestación/query live. Eso no se interpreta como un nuevo owner redundante: endpoint/root forman todavía una unidad causal porque `GeometryProvider.CausalEndpoint` usa `AnatomyMovement.RootFrame`, mientras la generalización de root y lifecycle pertenece a G3. Las métricas y activación aisladas no justifican una extracción propia. El siguiente cambio de ownership sólo se hará desde G3 cuando root/catalog/lifecycle produzcan una frontera real.
 
 Cualquier cambio de requisitos o implementación vuelve a ejecutar una pasada completa; si esa pasada cambia plan o clasificación, se repite hasta obtener una pasada sin cambios.
