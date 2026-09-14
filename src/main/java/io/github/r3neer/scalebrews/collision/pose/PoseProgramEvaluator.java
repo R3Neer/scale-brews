@@ -41,34 +41,32 @@ public final class PoseProgramEvaluator {
             geometry.parts().forEach(part -> byId.put(part.id(), part));
             for (var entry : accumulators.entrySet()) {
                 var part = byId.get(entry.getKey());
-                if (part == null) return Optional.empty();
-                var rest = ModelGeometry.matrix(part.transform());
-                var position = rest.getTranslation(new Vector3f());
-                var baseScale = rest.getScale(new Vector3f());
-                var restRotation = rest.getUnnormalizedRotation(new Quaternionf()).normalize();
-                var rotation = restRotation;
+                if (part == null || part.sourcePose() == null) return Optional.empty();
+                var source = part.sourcePose();
+                var position = new Vector3f(source.x() / 16f, source.y() / 16f, source.z() / 16f);
+                var rotation = new Quaternionf().rotationZYX(source.zRot(), source.yRot(), source.xRot());
+                var baseScale = new Vector3f(source.xScale(), source.yScale(), source.zScale());
                 var value = entry.getValue();
                 if (value.translation != null) {
-                    // ModelPart position fields are pixel-space; translateAndRotate applies /16.
+                    // ModelPart position fields are pixel-space; AnimationDefinition offsets those fields directly.
                     position.add(value.translation.x() / 16f, value.translation.y() / 16f, value.translation.z() / 16f);
                 }
                 if (value.rotation != null) {
-                    // AnimationDefinition applies ROTATION with ModelPart.offsetRotation: add
-                    // x/y/z Euler fields first, then translateAndRotate builds one rotationZYX.
-                    // Multiplying restQuaternion * deltaQuaternion is not equivalent for a
-                    // ModelPart whose rest Euler rotation is non-identity.
-                    var restEuler = restRotation.getEulerAnglesZYX(new Vector3f());
+                    // Exact ModelPart semantics: offsetRotation adds to the source Euler representative first,
+                    // then translateAndRotate constructs one ZYX quaternion. The local matrix cannot recover
+                    // which equivalent Euler representative was present in the source model.
                     rotation = new Quaternionf().rotationZYX(
-                        restEuler.z + value.rotation.z(),
-                        restEuler.y + value.rotation.y(),
-                        restEuler.x + value.rotation.x());
+                        source.zRot() + value.rotation.z(),
+                        source.yRot() + value.rotation.y(),
+                        source.xRot() + value.rotation.x());
                 }
                 if (value.scale != null) {
-                    // KeyframeAnimations.scaleVec stores deltas around 1 and Minecraft applies
-                    // them with ModelPart.offsetScale, i.e. restScale + sampledDelta. Treating
-                    // the delta as a percentage breaks any non-unit rest scale.
+                    // Exact ModelPart semantics: offsetScale adds component-wise to the signed source fields.
+                    // Matrix decomposition loses the original sign distribution, so use SourcePose authority.
                     baseScale.add(value.scale.x(), value.scale.y(), value.scale.z());
-                    if (!(baseScale.x > 0 && baseScale.y > 0 && baseScale.z > 0)) return Optional.empty();
+                    if (!Float.isFinite(baseScale.x) || !Float.isFinite(baseScale.y) || !Float.isFinite(baseScale.z)
+                            || Math.abs(baseScale.x) < 1e-12f || Math.abs(baseScale.y) < 1e-12f || Math.abs(baseScale.z) < 1e-12f)
+                        return Optional.empty();
                 }
                 out.put(entry.getKey(), new Matrix4f().translationRotateScale(position, rotation, baseScale));
             }
@@ -84,7 +82,9 @@ public final class PoseProgramEvaluator {
     public static Optional<Bound> bind(ModelGeometry geometry, PoseProgram program) {
         if (geometry == null || program == null || !geometry.version().equals(program.version())) return Optional.empty();
         Map<String, List<String>> aliases = new LinkedHashMap<>();
+        Map<String, ModelGeometry.Part> byId = new LinkedHashMap<>();
         for (var part : geometry.parts()) {
+            byId.put(part.id(), part);
             aliases.computeIfAbsent(part.id(), ignored -> new ArrayList<>()).add(part.id());
             String simple = part.id().substring(part.id().lastIndexOf('/') + 1);
             if (!simple.equals(part.id())) aliases.computeIfAbsent(simple, ignored -> new ArrayList<>()).add(part.id());
@@ -93,7 +93,10 @@ public final class PoseProgramEvaluator {
         for (var track : program.tracks()) {
             var matches = aliases.get(track.bone());
             if (matches == null || matches.size() != 1) return Optional.empty();
-            resolved.put(track.bone(), matches.getFirst());
+            String partId = matches.getFirst();
+            var part = byId.get(partId);
+            if (part == null || part.sourcePose() == null) return Optional.empty();
+            resolved.put(track.bone(), partId);
         }
         return Optional.of(new Bound(program, resolved));
     }
