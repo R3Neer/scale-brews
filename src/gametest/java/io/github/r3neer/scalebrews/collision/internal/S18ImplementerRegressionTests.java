@@ -74,6 +74,23 @@ public final class S18ImplementerRegressionTests {
     }
 
     @GameTest
+    public void proceduralEnginesRejectAccidentalSourceMatches(GameTestHelper h) {
+        var quadruped = CollisionEngines.pose(Identifier.parse("scalebrews:quadruped")).orElseThrow();
+        var fakeQuadruped = ordinaryGeometry("minecraft:zombie",
+            List.of("head", "right_hind_leg", "left_hind_leg", "right_front_leg", "left_front_leg"));
+        h.assertTrue(quadruped.evaluate(fakeQuadruped, new PoseEngine.Inputs(1, .5f, 10, 0, 0, true), Map.of()).isEmpty(),
+            "Matching part names are not authority to reinterpret an unrelated model as the vanilla quadruped family");
+
+        var chicken = CollisionEngines.pose(Identifier.parse("scalebrews:chicken")).orElseThrow();
+        var fakeChicken = ordinaryGeometry("example:chicken_shaped",
+            List.of("head", "right_leg", "left_leg", "right_wing", "left_wing"));
+        h.assertTrue(chicken.evaluate(fakeChicken,
+            new PoseEngine.Inputs(1, .5f, 10, 0, 0, true, Map.of("flap", .4f, "flap_speed", .8f)), Map.of()).isEmpty(),
+            "Procedural family engines must bind to known vanilla model sources, not structural coincidence");
+        h.succeed();
+    }
+
+    @GameTest
     public void proceduralPoseFamiliesPreserveExactSignedSourceScale(GameTestHelper h) {
         float yaw = 17f;
         float pitch = -8f;
