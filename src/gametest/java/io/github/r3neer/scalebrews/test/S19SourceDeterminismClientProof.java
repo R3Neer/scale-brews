@@ -4,6 +4,7 @@ import io.github.r3neer.scalebrews.client.collision.preparation.AdvancedModelBox
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -15,7 +16,8 @@ import org.joml.Matrix4f;
 /**
  * Adversarial S19 lifecycle proof: source preparation must be history-independent and fail closed
  * when tooling supplies reused mutable model identity, unstable root transforms, or alternating
- * fresh model geometry.
+ * fresh model geometry. The tooling source view must also be deterministic regardless of
+ * registration order, and caller-owned mutable transform objects must be materialized defensively.
  */
 public final class S19SourceDeterminismClientProof implements FabricClientGameTest {
     private static final String GRIZZLY = "com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear";
@@ -23,6 +25,9 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
     private static final Identifier REUSED = Identifier.parse("test:s19_reused_model_identity");
     private static final Identifier TRANSFORM = Identifier.parse("test:s19_unstable_model_transform");
     private static final Identifier GEOMETRY = Identifier.parse("test:s19_unstable_model_geometry");
+    private static final Identifier ORDER_Z = Identifier.parse("test:s19_order_z");
+    private static final Identifier ORDER_A = Identifier.parse("test:s19_order_a");
+    private static final Identifier ORDER_M = Identifier.parse("test:s19_order_m");
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -44,12 +49,17 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
                 new AdvancedModelBoxGeometryEngine.Source(() -> reused, Matrix4f::new));
             requireFailure(engine, REUSED, "reused mutable model identity", "S19 reused model identity was accepted");
 
+            // Return the SAME mutable object twice and mutate it before the second read. The engine
+            // must have snapshotted the first value immediately; retaining the caller-owned reference
+            // would make both reads appear equal after the mutation.
+            Matrix4f sharedTransform = new Matrix4f();
             AtomicInteger transformCalls = new AtomicInteger();
-            Supplier<Matrix4f> alternatingTransform = () -> transformCalls.getAndIncrement() % 2 == 0
-                ? new Matrix4f()
-                : new Matrix4f().translation(.125f, 0f, 0f);
+            Supplier<Matrix4f> mutatingSharedTransform = () -> {
+                if (transformCalls.getAndIncrement() != 0) sharedTransform.translation(.125f, 0f, 0f);
+                return sharedTransform;
+            };
             AdvancedModelBoxGeometryEngine.registerSource(TRANSFORM,
-                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshAdultGrizzly, alternatingTransform));
+                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshAdultGrizzly, mutatingSharedTransform));
             requireFailure(engine, TRANSFORM, "source transform is not reproducible",
                 "S19 unstable model transform was accepted");
 
@@ -64,7 +74,23 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
             requireFailure(engine, GEOMETRY, "source factory is not deterministic",
                 "S19 alternating fresh model geometry was accepted");
 
-            System.out.println("S19_SOURCE_DETERMINISM PASS control=repeated reused=closed transform=closed geometry=closed");
+            // Registration order is deliberately Z, A, M. The public tooling view must expose the
+            // same canonical ordering independent of insertion history.
+            AdvancedModelBoxGeometryEngine.registerSource(ORDER_Z,
+                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshAdultGrizzly, Matrix4f::new));
+            AdvancedModelBoxGeometryEngine.registerSource(ORDER_A,
+                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshAdultGrizzly, Matrix4f::new));
+            AdvancedModelBoxGeometryEngine.registerSource(ORDER_M,
+                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshAdultGrizzly, Matrix4f::new));
+            List<Identifier> order = AdvancedModelBoxGeometryEngine.sources().keySet().stream()
+                .filter(id -> id.getNamespace().equals("test") && id.getPath().startsWith("s19_order_"))
+                .toList();
+            List<Identifier> expectedOrder = List.of(ORDER_A, ORDER_M, ORDER_Z);
+            if (!order.equals(expectedOrder))
+                throw new AssertionError("S19 source registry view depends on registration order: expected="
+                    + expectedOrder + " actual=" + order);
+
+            System.out.println("S19_SOURCE_DETERMINISM PASS control=repeated reused=closed transform=closed geometry=closed order=canonical");
         });
     }
 
