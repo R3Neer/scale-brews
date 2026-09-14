@@ -89,15 +89,17 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/s19-external-inputs
-          ./gradlew dependencies --configuration compileClasspath --console=plain > build/s19-external-inputs/compile-classpath.txt
-          ./gradlew dependencies --configuration runtimeClasspath --console=plain > build/s19-external-inputs/runtime-classpath.txt
+          for configuration in compileClasspath runtimeClasspath clientCompileClasspath clientRuntimeClasspath; do
+            output="build/s19-external-inputs/${configuration}.txt"
+            ./gradlew dependencies --configuration "$configuration" --console=plain > "$output"
+          done
           pattern='curse\.maven|alexs-mobs-continued|alexsmobs|codxlib|cloth-config'
-          if grep -Eiq "$pattern" build/s19-external-inputs/compile-classpath.txt build/s19-external-inputs/runtime-classpath.txt; then
+          if grep -Eiq "$pattern" build/s19-external-inputs/*Classpath.txt; then
             echo 'S19 ordinary Gradle classpath unexpectedly contains an external proof mod'
-            grep -Ein "$pattern" build/s19-external-inputs/compile-classpath.txt build/s19-external-inputs/runtime-classpath.txt || true
+            grep -Ein "$pattern" build/s19-external-inputs/*Classpath.txt || true
             exit 1
           fi
-          echo 'S19 ordinary compile/runtime classpaths exclude external proof mods'
+          echo 'S19 ordinary main/client compile/runtime classpaths exclude external proof mods'
       - name: validate lock and build isolated resolver
         shell: bash
         run: |
@@ -190,5 +192,7 @@ jobs:
           path: |
             tools/s19-external-inputs.lock.json
             build/s19-external-inputs/manifest.txt
-            build/s19-external-inputs/compile-classpath.txt
-            build/s19-external-inputs/runtime-classpath.txt
+            build/s19-external-inputs/compileClasspath.txt
+            build/s19-external-inputs/runtimeClasspath.txt
+            build/s19-external-inputs/clientCompileClasspath.txt
+            build/s19-external-inputs/clientRuntimeClasspath.txt
