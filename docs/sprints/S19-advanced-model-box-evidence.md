@@ -73,6 +73,19 @@ Una tercera inspección de bytecode contra el mismo jar fijado cerró la semánt
 
 Consecuencia: un traversal que acumule siempre la matriz local completa del padre hacia los hijos no reproduce el renderer cuando `scaleChildren == false`. La extracción debe distinguir el transform usado para la geometría propia del nodo del transform que se propaga a descendientes.
 
+## Semántica exacta de `ModelBox`
+
+La representación renderizada del cubo se inspeccionó también contra el mismo jar exacto. Evidencia: run `34832761258`, job `103939670854`, artifact `10343230830`, SHA-256 `b189bb48fd5e06168c2feedd1006bbcb7069f1794981f1b820949f0f6aedf242`. La workflow temporal fue retirada tras conservar el artifact.
+
+`TabulaModelRenderUtils.ModelBox` conserva dos niveles distintos de información:
+
+- `posX1/Y1/Z1` guardan la posición fuente recibida por el constructor;
+- `posX2/Y2/Z2` se calculan como posición fuente + tamaño fuente, **antes de aplicar inflation**;
+- los ocho `PositionTextureVertex` usados para construir los seis `TexturedQuad` se calculan después de restar/sumar los tres inflates por eje;
+- cuando `mirror` es verdadero se intercambian los extremos X usados para los vértices, pero ello no convierte el tamaño fuente almacenado en otro valor.
+
+Consecuencia adversarial: el extractor no debe decidir si una dimensión fuente era positiva, cero o negativa a partir de un `min/max` posterior que ya haya normalizado orientación e inflation. Para paridad de forma, los vértices/quads materializados son la autoridad geométrica; para validar la intención dimensional del dialecto, los `pos1/pos2` conservan la dimensión fuente previa a inflation. Una dimensión fuente negativa no debe transformarse accidentalmente en una `Piece` positiva sólo porque `min/max` produzca una AABB ordenada, mientras una dimensión fuente exactamente cero puede seguir clasificándose como render-only si el caso exacto del dialecto lo demuestra.
+
 ## Primitiva plana exacta de Gazelle
 
 La excepción render-only del plan también fue comprobada contra el jar exacto del lock, no contra otra rama de source. Evidencia: run `34828802003`, job `103926989818`, artifact `10340938164`, SHA-256 `4683707be2d3a3820c39309333223b964ddc9ebe5bd5e4c349b7c6e59385c1f6`.
@@ -101,7 +114,9 @@ Consecuencia de diseño ya prevista por I6: el `modelTransform` debe pertenecer 
 
 ## Legacy y ownership
 
-La búsqueda de consumidores del algoritmo Alex legacy muestra que `GeometryExtractor.alex(...)` sólo está consumido por el proof `AnatomyExportProof`. Los demás usos de `GeometryExtractor` pertenecen a la antigua ruta vanilla/ModelPart y ya son adapters del engine S17.
+La autoridad legacy está actualmente en `src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/GeometryExtractor.java`. La búsqueda de consumidores muestra que `GeometryExtractor.alex(...)` sólo está consumido por el proof `AnatomyExportProof`; los demás usos de `GeometryExtractor` pertenecen a la ruta vanilla/ModelPart y ya son adapters del engine S17.
+
+El algoritmo Alex legacy confirma la deuda que S19 sustituye: deriva nombres de `getDeclaredFields()` del modelo concreto, propaga la exclusión/visibilidad de un parent a todos sus descendientes, descarta silenciosamente primitivas planas/degeneradas y usa la compensación `1/max(scale, 1e-4)` dentro de su representación de herencia. Esta última constante coincide con el renderer 2.1.9 sólo en la operación concreta de compensación de hijos descrita arriba; no puede generalizarse a validación o reparación física.
 
 Por tanto S19 puede migrar el proof Alex al engine de familia y reducir/eliminar `GeometryExtractor.alex(...)` sin una migración runtime masiva. El criterio sigue siendo uno: **no deben sobrevivir dos algoritmos independientes de extracción AdvancedModelBox**.
 
