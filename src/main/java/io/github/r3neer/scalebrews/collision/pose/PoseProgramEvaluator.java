@@ -29,11 +29,21 @@ public final class PoseProgramEvaluator {
                 String partId = parts.get(track.bone());
                 if (partId == null) return Optional.empty();
                 var sampled = scale(sample(track, time), amplitude);
+                if (!sampled.finite()) return Optional.empty();
                 var accumulator = accumulators.computeIfAbsent(partId, ignored -> new Accumulator());
                 switch (track.target()) {
-                    case TRANSLATION -> accumulator.translation = add(accumulator.translation, sampled);
-                    case ROTATION -> accumulator.rotation = add(accumulator.rotation, sampled);
-                    case SCALE -> accumulator.scale = add(accumulator.scale, sampled);
+                    case TRANSLATION -> {
+                        accumulator.translation = add(accumulator.translation, sampled);
+                        if (!accumulator.translation.finite()) return Optional.empty();
+                    }
+                    case ROTATION -> {
+                        accumulator.rotation = add(accumulator.rotation, sampled);
+                        if (!accumulator.rotation.finite()) return Optional.empty();
+                    }
+                    case SCALE -> {
+                        accumulator.scale = add(accumulator.scale, sampled);
+                        if (!accumulator.scale.finite()) return Optional.empty();
+                    }
                 }
             }
             Map<String, Matrix4f> out = new LinkedHashMap<>();
@@ -102,7 +112,18 @@ public final class PoseProgramEvaluator {
     }
 
     private static final class Accumulator {
-        PoseProgram.Vector translation, rotation, scale;
+        RuntimeVector translation, rotation, scale;
+    }
+
+    /** Runtime math value; serialized {@link PoseProgram.Vector} bounds do not apply after interpolation/amplitude. */
+    private record RuntimeVector(float x, float y, float z) {
+        static RuntimeVector from(PoseProgram.Vector value) {
+            return new RuntimeVector(value.x(), value.y(), value.z());
+        }
+
+        boolean finite() {
+            return Float.isFinite(x) && Float.isFinite(y) && Float.isFinite(z);
+        }
     }
 
     private static float normalize(PoseProgram program, float time) {
@@ -114,52 +135,53 @@ public final class PoseProgramEvaluator {
         return Math.clamp(time, 0, program.durationSeconds());
     }
 
-    private static PoseProgram.Vector sample(PoseProgram.Track track, float time) {
+    private static RuntimeVector sample(PoseProgram.Track track, float time) {
         var frames = track.keyframes();
-        if (frames.size() == 1) {
-            var only = frames.getFirst();
-            return time <= only.timestamp() ? only.preTarget() : only.postTarget();
+
+        // Mirror AnimationChannel selection: choose the interval immediately before the first
+        // keyframe whose timestamp is >= time, then clamp both indices at the ends.
+        int insertion = 0;
+        while (insertion < frames.size() && time > frames.get(insertion).timestamp()) insertion++;
+        int previous = Math.max(0, insertion - 1);
+        int next = Math.min(frames.size() - 1, previous + 1);
+        if (insertion >= frames.size()) {
+            previous = frames.size() - 1;
+            next = previous;
         }
-        var first = frames.getFirst();
-        var last = frames.getLast();
-        if (time <= first.timestamp()) return first.preTarget();
-        if (time > last.timestamp()) return last.postTarget();
-        if (time == last.timestamp()) return last.preTarget();
 
-        int next = 1;
-        while (next < frames.size() && time > frames.get(next).timestamp()) next++;
-        var b = frames.get(next);
-        if (time == b.timestamp()) return b.preTarget();
-
-        int previous = next - 1;
         var a = frames.get(previous);
+        var b = frames.get(next);
         float span = b.timestamp() - a.timestamp();
-        if (!(span > 0)) return b.preTarget();
-        float t = Math.clamp((time - a.timestamp()) / span, 0, 1);
+        float t = previous == next || !(span > 0) ? 0
+            : Math.clamp((time - a.timestamp()) / span, 0, 1);
+
         return switch (b.interpolation()) {
-            case LINEAR -> lerp(a.postTarget(), b.preTarget(), t);
+            case LINEAR -> lerp(RuntimeVector.from(a.postTarget()), RuntimeVector.from(b.preTarget()), t);
             case CATMULL_ROM -> {
-                var p0 = previous > 0 ? frames.get(previous - 1).postTarget() : a.preTarget();
-                var p3 = next + 1 < frames.size() ? frames.get(next + 1).preTarget() : b.postTarget();
-                yield catmull(p0, a.postTarget(), b.preTarget(), p3, t);
+                // Mojang CATMULL_ROM uses postTarget at all four clamped keyframe indices.
+                var p0 = RuntimeVector.from(frames.get(Math.max(0, previous - 1)).postTarget());
+                var p1 = RuntimeVector.from(a.postTarget());
+                var p2 = RuntimeVector.from(b.postTarget());
+                var p3 = RuntimeVector.from(frames.get(Math.min(frames.size() - 1, next + 1)).postTarget());
+                yield catmull(p0, p1, p2, p3, t);
             }
         };
     }
 
-    private static PoseProgram.Vector add(PoseProgram.Vector a, PoseProgram.Vector b) {
-        return a == null ? b : new PoseProgram.Vector(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
+    private static RuntimeVector add(RuntimeVector a, RuntimeVector b) {
+        return a == null ? b : new RuntimeVector(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
     }
 
-    private static PoseProgram.Vector scale(PoseProgram.Vector value, float scale) {
-        return new PoseProgram.Vector(value.x() * scale, value.y() * scale, value.z() * scale);
+    private static RuntimeVector scale(RuntimeVector value, float scale) {
+        return new RuntimeVector(value.x() * scale, value.y() * scale, value.z() * scale);
     }
 
-    private static PoseProgram.Vector lerp(PoseProgram.Vector a, PoseProgram.Vector b, float t) {
-        return new PoseProgram.Vector(a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t, a.z() + (b.z() - a.z()) * t);
+    private static RuntimeVector lerp(RuntimeVector a, RuntimeVector b, float t) {
+        return new RuntimeVector(a.x() + (b.x() - a.x()) * t, a.y() + (b.y() - a.y()) * t, a.z() + (b.z() - a.z()) * t);
     }
 
-    private static PoseProgram.Vector catmull(PoseProgram.Vector p0, PoseProgram.Vector p1, PoseProgram.Vector p2, PoseProgram.Vector p3, float t) {
-        return new PoseProgram.Vector(catmull(p0.x(), p1.x(), p2.x(), p3.x(), t),
+    private static RuntimeVector catmull(RuntimeVector p0, RuntimeVector p1, RuntimeVector p2, RuntimeVector p3, float t) {
+        return new RuntimeVector(catmull(p0.x(), p1.x(), p2.x(), p3.x(), t),
             catmull(p0.y(), p1.y(), p2.y(), p3.y(), t), catmull(p0.z(), p1.z(), p2.z(), p3.z(), t));
     }
 
