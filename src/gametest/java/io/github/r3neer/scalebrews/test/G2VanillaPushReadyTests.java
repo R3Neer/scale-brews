@@ -57,11 +57,19 @@ public final class G2VanillaPushReadyTests {
                 "Holdout must use a canonically eligible body/support pair, not a fixture-only provider rejected by READY policy");
 
             body.setPos(support.getX()+.2,floor.bounds().maxY+.5,support.getZ());
+
             body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
             support.push(body);
-            Vec3 vanillaBody=body.getDeltaMovement(),vanillaSupport=support.getDeltaMovement();
-            h.assertTrue(vanillaBody.lengthSqr()>1e-12 || vanillaSupport.lengthSqr()>1e-12,
-                "Holdout precondition: READY but unmanaged pair must retain a measurable vanilla Entity.push response");
+            Vec3 vanillaSupportCallerBody=body.getDeltaMovement(),vanillaSupportCallerSupport=support.getDeltaMovement();
+
+            body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
+            body.push(support);
+            Vec3 vanillaBodyCallerBody=body.getDeltaMovement(),vanillaBodyCallerSupport=support.getDeltaMovement();
+
+            h.assertTrue(vanillaSupportCallerBody.lengthSqr()>1e-12 || vanillaSupportCallerSupport.lengthSqr()>1e-12,
+                "Holdout precondition: support.push(body) must produce a measurable vanilla response before material contact");
+            h.assertTrue(vanillaBodyCallerBody.lengthSqr()>1e-12 || vanillaBodyCallerSupport.lengthSqr()>1e-12,
+                "Holdout precondition: body.push(support) must produce a measurable vanilla response before material contact");
 
             body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
             var landing=AnatomyMovement.collide(body,new Vec3(0,-1,0));body.setPos(body.position().add(landing));
@@ -70,11 +78,23 @@ public final class G2VanillaPushReadyTests {
                     && AnatomyMovement.contact(body).support()==support && AnatomyMovement.suppressesPush(body,support),
                 "Holdout must acquire the exact material pair currently selected by production push suppression");
 
+            body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
             support.push(body);
-            Vec3 managedBody=body.getDeltaMovement(),managedSupport=support.getDeltaMovement();
-            h.assertTrue(managedBody.distanceToSqr(vanillaBody)<=1e-12 && managedSupport.distanceToSqr(vanillaSupport)<=1e-12,
-                "A moving-platform contact must preserve vanilla Entity.push exactly once: vanilla body="+vanillaBody
-                    +" support="+vanillaSupport+" managed body="+managedBody+" support="+managedSupport);
+            Vec3 managedSupportCallerBody=body.getDeltaMovement(),managedSupportCallerSupport=support.getDeltaMovement();
+
+            body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
+            body.push(support);
+            Vec3 managedBodyCallerBody=body.getDeltaMovement(),managedBodyCallerSupport=support.getDeltaMovement();
+
+            h.assertTrue(managedSupportCallerBody.distanceToSqr(vanillaSupportCallerBody)<=1e-12
+                    && managedSupportCallerSupport.distanceToSqr(vanillaSupportCallerSupport)<=1e-12
+                    && managedBodyCallerBody.distanceToSqr(vanillaBodyCallerBody)<=1e-12
+                    && managedBodyCallerSupport.distanceToSqr(vanillaBodyCallerSupport)<=1e-12,
+                "A moving-platform contact must preserve vanilla Entity.push in both caller directions exactly once: "
+                    +"support->body vanilla body="+vanillaSupportCallerBody+" support="+vanillaSupportCallerSupport
+                    +" managed body="+managedSupportCallerBody+" support="+managedSupportCallerSupport
+                    +"; body->support vanilla body="+vanillaBodyCallerBody+" support="+vanillaBodyCallerSupport
+                    +" managed body="+managedBodyCallerBody+" support="+managedBodyCallerSupport);
         } finally {
             body.discard();support.discard();AnatomyRuntime.stop(server);
         }
