@@ -1,0 +1,123 @@
+name: s19-source-registry-budget-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-source-registry-budget-proof.yml'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19SourceRegistryBudgetClientProof.java'
+  workflow_dispatch:
+
+jobs:
+  source-registry-budget:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: isolate source registry budget client proof
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S19SourceRegistryBudgetClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run source registry budget proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s19-source-budget-normal.log
+          mkdir -p build/s19-source-budget-logs-normal
+          cp -r build/run/clientGameTest/logs/. build/s19-source-budget-logs-normal/ || true
+
+      - name: require N+1 boundary mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if (INSTANCE.sources.size() >= MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox sources");'''
+          new='''        if (INSTANCE.sources.size() > MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox sources"); // adversarial mutant: N+1 admitted'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 source-budget boundary mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s19-source-budget-overflow-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-source-budget-logs-overflow-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-source-budget-logs-overflow-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 N+1 source-budget mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -R -F 'S19 source registry accepted N+1 entry beyond limit 64' \
+              build/run/clientGameTest/logs build/s19-source-budget-overflow-mutant.log >/dev/null 2>&1; then
+            echo 'S19 N+1 source-budget mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
+          git checkout -- "$file"
+
+      - name: require duplicate-source guard mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if (INSTANCE.sources.containsKey(source)) throw new IllegalArgumentException("Duplicate AdvancedModelBox source " + source);'''
+          new='''        if (false && INSTANCE.sources.containsKey(source)) throw new IllegalArgumentException("Duplicate AdvancedModelBox source " + source); // adversarial mutant'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 duplicate-source registration mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s19-source-budget-duplicate-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-source-budget-logs-duplicate-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-source-budget-logs-duplicate-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 duplicate-source registration mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -R -F 'S19 duplicate source registration was accepted' \
+              build/run/clientGameTest/logs build/s19-source-budget-duplicate-mutant.log >/dev/null 2>&1; then
+            echo 'S19 duplicate-source registration mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
+
+      - name: capture source registry budget evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-source-registry-budget-proof
+          path: |
+            build/s19-source-budget-*.log
+            build/s19-source-budget-logs-normal/
+            build/s19-source-budget-logs-overflow-mutant/
+            build/s19-source-budget-logs-duplicate-mutant/
+            build/resources/gametest/fabric.mod.json
