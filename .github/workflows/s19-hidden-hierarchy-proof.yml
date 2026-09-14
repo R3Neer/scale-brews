@@ -126,8 +126,8 @@ jobs:
             echo 'S19 lost ancestor-hidden propagation mutant survived.' >&2
             exit 1
           fi
-          if ! grep -R -E 'S19 hidden ancestor did not propagate source_hidden|S19 hidden ancestor leaked descendant collider' \
-              build/run/clientGameTest/logs build/s19-hidden-hierarchy/hidden-propagation-mutant.log >/dev/null 2>&1; then
+          if ! grep -Fq 'S19 hidden ancestor did not propagate source_hidden' build/s19-hidden-hierarchy/hidden-propagation-mutant.log \
+             && ! grep -Fq 'S19 hidden ancestor leaked descendant collider' build/s19-hidden-hierarchy/hidden-propagation-mutant.log; then
             echo 'S19 hidden-propagation mutant died for a non-causal reason.' >&2
             exit 1
           fi
@@ -161,8 +161,8 @@ jobs:
             echo 'S19 source-hidden revival mutant survived.' >&2
             exit 1
           fi
-          if ! grep -R -E 'S19 explicit (piece|part) include revived source_hidden collider' \
-              build/run/clientGameTest/logs build/s19-hidden-hierarchy/source-hidden-revival-mutant.log >/dev/null 2>&1; then
+          if ! grep -Fq 'S19 explicit piece include revived source_hidden collider' build/s19-hidden-hierarchy/source-hidden-revival-mutant.log \
+             && ! grep -Fq 'S19 explicit part include revived source_hidden collider' build/s19-hidden-hierarchy/source-hidden-revival-mutant.log; then
             echo 'S19 source-hidden revival mutant died for a non-causal reason.' >&2
             exit 1
           fi
