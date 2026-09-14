@@ -44,12 +44,13 @@ jobs:
             jar tf "$jar" | grep -E 'AdvancedModelBox|ModelGrizzlyBear|ModelGazelle|BasicModelPart|AdvancedEntityModel' | sort
             echo
             for cls in \
-              com.github.alexthe666.citadel.client.model.AdvancedModelBox \
-              com.github.alexthe666.citadel.client.model.AdvancedEntityModel \
+              com.github.alexthe666.alexsmobs.citadel.client.model.AdvancedModelBox \
+              com.github.alexthe666.alexsmobs.citadel.client.model.AdvancedEntityModel \
+              com.github.alexthe666.alexsmobs.citadel.client.model.basic.BasicModelPart \
               com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear \
               com.github.alexthe666.alexsmobs.client.model.ModelGazelle; do
               echo "=== javap -private $cls ==="
-              javap -private -classpath "$jar" "$cls" || true
+              javap -private -classpath "$jar" "$cls"
               echo
             done
           } | tee build/s19-dialect-probe/dialect.txt
@@ -57,5 +58,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: S19-dialect-probe
+          name: S19-dialect-probe-relocated
           path: build/s19-dialect-probe/dialect.txt
