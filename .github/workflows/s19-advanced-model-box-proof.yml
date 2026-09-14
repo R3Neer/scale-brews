@@ -6,6 +6,10 @@ on:
     paths:
       - '.github/workflows/s19-advanced-model-box-proof.yml'
       - 'tools/s19-external-inputs.lock.json'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'src/main/resources/fabric.mod.json'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/catalog/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
@@ -65,6 +69,21 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
+      - name: verify external family remains optional in ordinary metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          metadata = json.loads(Path('src/main/resources/fabric.mod.json').read_text())
+          depends = set((metadata.get('depends') or {}).keys())
+          forbidden = {'alexsmobs', 'codxlib', 'cloth-config'}
+          leaked = sorted(depends & forbidden)
+          if leaked:
+              raise SystemExit('S19 external proof mods became mandatory fabric.mod.json dependencies: ' + ', '.join(leaked))
+          print('S19 ordinary metadata keeps Alex/Codx/Cloth optional')
+          PY
       - name: validate lock and build isolated resolver
         shell: bash
         run: |
