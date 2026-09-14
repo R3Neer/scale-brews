@@ -47,10 +47,16 @@ public final class S18DuplicateTargetAccumulationOrderClientTests implements Fab
             var actual = bound.evaluate(baseline, .5f, 1f).orElseThrow().get(BODY);
             if (actual == null) throw new AssertionError("Neutral evaluator omitted body for duplicate-target oracle");
 
+            // An implementation that first collapses both POSITION channels gets (+65536 + -65536) == 0,
+            // then applies that zero once to REST_X. Mojang instead performs two float additions directly
+            // on ModelPart.x, so the tiny rest value is rounded away by the first large addition.
+            // Keep this independent mutant check so the oracle stays capable of killing a future regression
+            // even after the production evaluator correctly becomes sequential.
+            float collapsedX = (REST_X + (65_536f + -65_536f)) / 16f;
             float expectedX = expected.m30();
-            float actualX = actual.m30();
-            if (Math.abs(expectedX - actualX) <= 1e-5f)
-                throw new AssertionError("Holdout precondition failed: fixture did not expose sequential float-addition order");
+            if (Math.abs(expectedX - collapsedX) <= 1e-5f)
+                throw new AssertionError("Holdout precondition failed: fixture no longer distinguishes sequential application from collapsed accumulation");
+
             compare(expected, actual, 1e-5f);
             System.out.println("S18_DUPLICATE_TARGET_ORDER PASS neutral evaluator preserves sequential ModelPart float-addition semantics");
         });
