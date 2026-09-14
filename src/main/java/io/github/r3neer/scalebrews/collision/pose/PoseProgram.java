@@ -43,7 +43,7 @@ public record PoseProgram(int schema, String source, String version, float durat
             float previous = -1;
             for (var frame : keyframes) {
                 Objects.requireNonNull(frame, "keyframe");
-                if (frame.timestamp() < previous) throw new IllegalArgumentException("Pose-program keyframes must be ordered");
+                if (frame.timestamp() <= previous) throw new IllegalArgumentException("Pose-program keyframe timestamps must be strictly increasing");
                 previous = frame.timestamp();
             }
         }
