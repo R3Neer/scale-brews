@@ -2,6 +2,8 @@
 
 Estado: **evidencia auxiliar preimplementación**. Este archivo no redefine requisitos, arquitectura, scope ni estado global. El contrato normativo sigue en `ENTITY_COLLISIONS_REQUIREMENTS.md`, la arquitectura en `ENTITY_COLLISIONS.md`, el plan global en `ENTITY_COLLISIONS_PLAN.md` y el plan de sprint en `S19-advanced-model-box-geometry-engine.md`. La evidencia final de aceptación se consolidará en `VALIDATION.md` al cerrar S19.
 
+Este archivo es **evidencia compartida y role-neutral**. No autoriza cambios de producción ni sustituye las responsabilidades de `IMPLEMENTADOR`/`ADVERSARIO` definidas en `ENTITY_COLLISIONS_SPRINT_WORKFLOW.md` y en el plan S19. Las “consecuencias adversariales” aquí registradas son hallazgos/oracles para el adversario; cualquier reparación productiva resultante corresponde al implementador salvo reasignación explícita.
+
 ## Baseline preimplementación
 
 Snapshot de plan: `b5ce86a54f8954afcb2d2f5eddff587f7a874720`.
