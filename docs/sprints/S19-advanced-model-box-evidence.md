@@ -36,10 +36,19 @@ Hallazgos relevantes:
 5. `ModelGrizzlyBear` expone muchas piezas como fields públicos, pero `ModelGazelle` declara sus piezas como fields privados. Ambos exponen `getAllParts()`.
 6. Existe **field hiding real** en la jerarquía. `AdvancedModelBox` declara `public ObjectList<TabulaModelRenderUtils.ModelBox> cubeList` y `public ObjectList<BasicModelPart> childModels`, mientras `BasicModelPart` declara otros campos distintos con los mismos nombres: `private final ObjectList<BasicModelPart.ModelBox> cubeList` y `private final ObjectList<BasicModelPart> childModels`.
 
+Una inspección de bytecode adicional contra el mismo jar fijado confirmó qué representación es autoritativa en ejecución. Evidencia: run `34832259638`, job `103938053795`, artifact `10342294111`, SHA-256 `4cf1dbe793f05f36a3c8e129cb19e4e1e2612c410653aeec539f66952830fd44`. La workflow temporal fue retirada después de capturar el artifact.
+
+- Los constructores de `AdvancedModelBox` inicializan sus propios `cubeList` y `childModels`.
+- Todos los overloads públicos observados de `AdvancedModelBox.addBox(...)` terminan en su `private addBox(...)`, que lee `AdvancedModelBox.cubeList` y añade `TabulaModelRenderUtils.ModelBox` a esa lista.
+- `AdvancedModelBox.render(...)` y `doRender(...)` leen ese mismo `cubeList` de la subclase. Para este dialecto, ésa es por tanto la representación geométrica que realmente renderiza.
+- `AdvancedModelBox.addChild(...)` primero invoca `BasicModelPart.addChild(...)` y después añade el mismo hijo también a `AdvancedModelBox.childModels`; si el hijo también es `AdvancedModelBox`, además fija su parent. Los dos `childModels` homónimos coexisten y se actualizan en paralelo.
+
 Consecuencias adversariales:
 
 - una implementación que derive identidad/cobertura exclusivamente de `getFields()` o de visibilidad pública puede parecer correcta con Grizzly y fallar con Gazelle;
 - un resolver reflectivo genérico que busque `cubeList` o `childModels` por nombre atravesando la jerarquía sin fijar el dialecto/clase declaradora puede enlazar el campo homónimo equivocado; en `cubeList` incluso el tipo de elemento es distinto;
+- leer el `cubeList` privado de `BasicModelPart` para una instancia `AdvancedModelBox` no reproduce la geometría que los overloads `addBox(...)` de esa clase construyen ni la que `AdvancedModelBox.render(...)` consume;
+- para hijos, mezclar o concatenar ambos `childModels` puede duplicar traversal, porque `addChild(...)` mantiene ambas listas;
 - el contrato reflectivo del extractor debe validar la estructura exacta esperada de `AdvancedModelBox` y fallar cerrado ante un dialecto parcial o ambiguo, en lugar de mezclar accidentalmente las dos representaciones.
 
 La genericidad no se demuestra con un solo modelo favorable y la compatibilidad reflectiva no puede reducirse a «existe un field con este nombre».
