@@ -19,6 +19,8 @@ import org.joml.Matrix4f;
 public final class S18SourcePoseCatalogBoundaryTests {
     private static final String MODEL_ID = "scalebrews_test:s18_source_pose_catalog";
     private static final float X=.3f,Y=.8f,Z=-.6f;
+    /** Protocol-v5 capability mask frozen before exact ModelPart source-pose semantics existed. */
+    private static final long FROZEN_V5_CAPABILITIES=(1L<<9)-1;
 
     @GameTest
     public void equivalentMatricesWithDifferentSourcePoseHaveDifferentCatalogIdentity(GameTestHelper h) {
@@ -49,9 +51,21 @@ public final class S18SourcePoseCatalogBoundaryTests {
         for(var packet:firstPackets)receiver.accept(packet);
         var received=receiver.snapshot().models().get(MODEL_ID);
         h.assertTrue(first.equals(received),
-            "Protocol-v5 catalog transfer must preserve SourcePose exactly");
+            "Authoritative catalog transfer must preserve SourcePose exactly");
         h.assertTrue(canonical.equals(received.parts().getFirst().sourcePose()),
             "Transferred model must retain the exact prepared source pose, not a matrix decomposition");
+        h.succeed();
+    }
+
+    @GameTest
+    public void sourcePoseSemanticChangeMustBeNegotiated(GameTestHelper h) {
+        var pose=new ModelGeometry.SourcePose(0,0,0,X,Y,Z,1,1,1);
+        var model=geometry(pose,ModelGeometry.values(pose.matrix()));
+        boolean protocolBumped=AnatomyApi.PROTOCOL_VERSION>5;
+        boolean capabilityNegotiated=AnatomyApi.capabilities()!=FROZEN_V5_CAPABILITIES;
+        boolean geometryFormatBumped=model.format()>2;
+        h.assertTrue(protocolBumped || capabilityNegotiated || geometryFormatBumped,
+            "Exact SourcePose changes physical pose semantics: a protocol-v5 peer with the frozen capability mask must not accept it as unchanged ModelGeometry format 2. Negotiate via protocol, capability or geometry-format versioning");
         h.succeed();
     }
 
