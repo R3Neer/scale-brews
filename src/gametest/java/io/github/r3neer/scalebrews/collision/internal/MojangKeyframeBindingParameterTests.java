@@ -37,6 +37,29 @@ public final class MojangKeyframeBindingParameterTests {
     }
 
     @GameTest
+    public void ageClockPreservesAnimationStateMillisecondTruncation(GameTestHelper h) {
+        var engine = CollisionEngines.pose(ENGINE).orElseThrow();
+        var geometry = geometry();
+        PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program()) : Optional.empty();
+        var bound = engine.bind(geometry, Map.of(
+                "program", PROGRAM.toString(),
+                "clock", "age",
+                "clock_scale", "0.333",
+                "amplitude", "one"),
+            Set.of(), resources).orElseThrow();
+
+        // AnimationState.getTimeInMillis(1 tick) -> 50 ms, then KeyframeAnimation applies
+        // speedFactor=.333 and truncates again: (long)(50*.333)=16 ms. The fixture reaches
+        // one block at t=2s, hence 0.5 block/s * .016s = .008 blocks.
+        var result = bound.evaluate(new PoseEngine.Inputs(0, 0, 1f, 0, 0, true)).orElseThrow();
+        var matrix = result.get("root");
+        h.assertTrue(matrix != null, "Age-clock evaluator must produce the referenced root transform");
+        h.assertTrue(Math.abs(matrix.m30() - .008f) < 1e-6f,
+            "Age clock must preserve AnimationState/KeyframeAnimation integer-millisecond truncation: actual X=" + matrix.m30());
+        h.succeed();
+    }
+
+    @GameTest
     public void malformedAmplitudeTransformsFailClosedAtBind(GameTestHelper h) {
         var engine = CollisionEngines.pose(ENGINE).orElseThrow();
         var geometry = geometry();
