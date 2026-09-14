@@ -24,61 +24,31 @@ public final class PoseProgramEvaluator {
         public Optional<Map<String, Matrix4f>> evaluate(ModelGeometry geometry, float timeSeconds, float amplitude) {
             if (geometry == null || !Float.isFinite(timeSeconds) || !Float.isFinite(amplitude)) return Optional.empty();
             float time = normalize(program, timeSeconds);
-            Map<String, Accumulator> accumulators = new LinkedHashMap<>();
+            Map<String, ModelGeometry.Part> byId = new LinkedHashMap<>();
+            geometry.parts().forEach(part -> byId.put(part.id(), part));
+            Map<String, RuntimePose> poses = new LinkedHashMap<>();
+
             for (var track : program.tracks()) {
                 String partId = parts.get(track.bone());
                 if (partId == null) return Optional.empty();
+                var part = byId.get(partId);
+                if (part == null || part.sourcePose() == null) return Optional.empty();
                 var sampled = scale(sample(track, time), amplitude);
                 if (!sampled.finite()) return Optional.empty();
-                var accumulator = accumulators.computeIfAbsent(partId, ignored -> new Accumulator());
-                switch (track.target()) {
-                    case TRANSLATION -> {
-                        accumulator.translation = add(accumulator.translation, sampled);
-                        if (!accumulator.translation.finite()) return Optional.empty();
-                    }
-                    case ROTATION -> {
-                        accumulator.rotation = add(accumulator.rotation, sampled);
-                        if (!accumulator.rotation.finite()) return Optional.empty();
-                    }
-                    case SCALE -> {
-                        accumulator.scale = add(accumulator.scale, sampled);
-                        if (!accumulator.scale.finite()) return Optional.empty();
-                    }
-                }
+
+                // AnimationDefinition applies every channel directly to the ModelPart fields in channel order.
+                // Preserve that float-addition order instead of summing deltas separately and adding once later.
+                var pose = poses.computeIfAbsent(partId, ignored -> new RuntimePose(part.sourcePose()));
+                pose.apply(track.target(), sampled);
+                if (!pose.finite()) return Optional.empty();
             }
+
             Map<String, Matrix4f> out = new LinkedHashMap<>();
-            Map<String, ModelGeometry.Part> byId = new LinkedHashMap<>();
-            geometry.parts().forEach(part -> byId.put(part.id(), part));
-            for (var entry : accumulators.entrySet()) {
-                var part = byId.get(entry.getKey());
-                if (part == null || part.sourcePose() == null) return Optional.empty();
-                var source = part.sourcePose();
-                var position = new Vector3f(source.x() / 16f, source.y() / 16f, source.z() / 16f);
-                var rotation = new Quaternionf().rotationZYX(source.zRot(), source.yRot(), source.xRot());
-                var baseScale = new Vector3f(source.xScale(), source.yScale(), source.zScale());
-                var value = entry.getValue();
-                if (value.translation != null) {
-                    // ModelPart position fields are pixel-space; AnimationDefinition offsets those fields directly.
-                    position.add(value.translation.x() / 16f, value.translation.y() / 16f, value.translation.z() / 16f);
-                }
-                if (value.rotation != null) {
-                    // Exact ModelPart semantics: offsetRotation adds to the source Euler representative first,
-                    // then translateAndRotate constructs one ZYX quaternion. The local matrix cannot recover
-                    // which equivalent Euler representative was present in the source model.
-                    rotation = new Quaternionf().rotationZYX(
-                        source.zRot() + value.rotation.z(),
-                        source.yRot() + value.rotation.y(),
-                        source.xRot() + value.rotation.x());
-                }
-                if (value.scale != null) {
-                    // Exact ModelPart semantics: offsetScale adds component-wise to the signed source fields.
-                    // Matrix decomposition loses the original sign distribution, so use SourcePose authority.
-                    baseScale.add(value.scale.x(), value.scale.y(), value.scale.z());
-                    if (!Float.isFinite(baseScale.x) || !Float.isFinite(baseScale.y) || !Float.isFinite(baseScale.z)
-                            || Math.abs(baseScale.x) < 1e-12f || Math.abs(baseScale.y) < 1e-12f || Math.abs(baseScale.z) < 1e-12f)
-                        return Optional.empty();
-                }
-                out.put(entry.getKey(), new Matrix4f().translationRotateScale(position, rotation, baseScale));
+            for (var entry : poses.entrySet()) {
+                var pose = entry.getValue();
+                if (Math.abs(pose.xScale) < 1e-12f || Math.abs(pose.yScale) < 1e-12f || Math.abs(pose.zScale) < 1e-12f)
+                    return Optional.empty();
+                out.put(entry.getKey(), pose.matrix());
             }
             try {
                 geometry.transforms(out);
@@ -111,8 +81,53 @@ public final class PoseProgramEvaluator {
         return Optional.of(new Bound(program, resolved));
     }
 
-    private static final class Accumulator {
-        RuntimeVector translation, rotation, scale;
+    private static final class RuntimePose {
+        float x, y, z, xRot, yRot, zRot, xScale, yScale, zScale;
+
+        RuntimePose(ModelGeometry.SourcePose source) {
+            x = source.x();
+            y = source.y();
+            z = source.z();
+            xRot = source.xRot();
+            yRot = source.yRot();
+            zRot = source.zRot();
+            xScale = source.xScale();
+            yScale = source.yScale();
+            zScale = source.zScale();
+        }
+
+        void apply(PoseProgram.Target target, RuntimeVector value) {
+            switch (target) {
+                case TRANSLATION -> {
+                    x += value.x();
+                    y += value.y();
+                    z += value.z();
+                }
+                case ROTATION -> {
+                    xRot += value.x();
+                    yRot += value.y();
+                    zRot += value.z();
+                }
+                case SCALE -> {
+                    xScale += value.x();
+                    yScale += value.y();
+                    zScale += value.z();
+                }
+            }
+        }
+
+        boolean finite() {
+            return Float.isFinite(x) && Float.isFinite(y) && Float.isFinite(z)
+                && Float.isFinite(xRot) && Float.isFinite(yRot) && Float.isFinite(zRot)
+                && Float.isFinite(xScale) && Float.isFinite(yScale) && Float.isFinite(zScale);
+        }
+
+        Matrix4f matrix() {
+            return new Matrix4f().translationRotateScale(
+                new Vector3f(x / 16f, y / 16f, z / 16f),
+                new Quaternionf().rotationZYX(zRot, yRot, xRot),
+                new Vector3f(xScale, yScale, zScale));
+        }
     }
 
     /** Runtime math value; serialized {@link PoseProgram.Vector} bounds do not apply after interpolation/amplitude. */
@@ -128,9 +143,9 @@ public final class PoseProgramEvaluator {
 
     private static float normalize(PoseProgram program, float time) {
         if (program.loop()) {
-            float duration = program.durationSeconds();
-            float result = time % duration;
-            return result < 0 ? result + duration : result;
+            // KeyframeAnimation uses Java remainder directly. Negative clocks stay negative and
+            // subsequently clamp to the first interpolation segment rather than wrapping positive.
+            return time % program.durationSeconds();
         }
         return Math.clamp(time, 0, program.durationSeconds());
     }
@@ -166,10 +181,6 @@ public final class PoseProgramEvaluator {
                 yield catmull(p0, p1, p2, p3, t);
             }
         };
-    }
-
-    private static RuntimeVector add(RuntimeVector a, RuntimeVector b) {
-        return a == null ? b : new RuntimeVector(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
     }
 
     private static RuntimeVector scale(RuntimeVector value, float scale) {
