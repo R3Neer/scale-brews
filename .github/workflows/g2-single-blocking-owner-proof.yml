@@ -8,7 +8,11 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
-      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/integration/CollisionRules.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/G2SingleBlockingOwnerReadyTests.java'
   workflow_dispatch:
 
@@ -85,6 +89,7 @@ jobs:
           PY
       - name: require mutant to fail for the geometric-owner assertion
         run: |
+          mkdir -p "$GITHUB_WORKSPACE/build"
           set +e
           ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/g2-single-blocking-owner-mutant-junit.xml" 2>&1 | tee "$GITHUB_WORKSPACE/build/g2-single-blocking-owner-mutant.log"
           code=${PIPESTATUS[0]}
@@ -93,7 +98,7 @@ jobs:
             echo 'Pair-suppression mutant survived: oracle does not prove single geometric ownership.' >&2
             exit 1
           fi
-          if ! grep -R -F 'Eligible Entity.move must pass through the replaced vanilla support AABB' build/run/gameTest/logs "$GITHUB_WORKSPACE/build/g2-single-blocking-owner-mutant.log" >/dev/null 2>&1; then
+          if ! grep -R -F 'Eligible Entity.move must pass through the replaced rigid vanilla support AABB' build/run/gameTest/logs "$GITHUB_WORKSPACE/build/g2-single-blocking-owner-mutant.log" >/dev/null 2>&1; then
             echo 'Mutant failed, but not at the intended single-owner assertion.' >&2
             exit 1
           fi
