@@ -71,7 +71,10 @@ public final class AuthorityPoseTracker {
             channels.put("unhappy",villager.getUnhappyCounter()>0?1f:0f);
         if(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep)
             channels.put("grazing",sheep.getHeadEatPositionScale(1));
-        state.inputs=new PoseEngine.Inputs(state.walk.position(),state.walk.speed(),entity.tickCount,
+        // END_LEVEL_TICK observes the completed entity endpoint. All interpolated fields above use
+        // partialTicks=1/current state; vanilla EntityRenderer uses tickCount + partialTicks for age.
+        float endpointAge=(float)entity.tickCount+1f;
+        state.inputs=new PoseEngine.Inputs(state.walk.position(),state.walk.speed(),endpointAge,
             Mth.wrapDegrees(entity.yHeadRot-entity.yBodyRot),entity.getXRot(),supportedPose,channels);
         return state.inputs;
     }
