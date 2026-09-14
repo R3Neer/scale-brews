@@ -11,7 +11,8 @@ import org.joml.Matrix4f;
 
 /** Common/dedicated evaluator for revision-bound neutral Mojang keyframe programs. */
 public final class MojangKeyframePoseEngine implements PoseEngine {
-    private static final Set<String> PARAMETERS = Set.of("program", "clock", "clock_scale", "amplitude");
+    private static final Set<String> PARAMETERS = Set.of(
+        "program", "clock", "clock_scale", "amplitude", "amplitude_scale", "amplitude_max");
 
     @Override
     public Optional<Map<String, Matrix4f>> evaluate(ModelGeometry geometry, Inputs inputs, Map<String, String> parameters) {
@@ -49,18 +50,35 @@ public final class MojangKeyframePoseEngine implements PoseEngine {
             if (!Float.isFinite(clockScale) || Math.abs(clockScale) > 1_000_000) return Optional.empty();
         }
 
+        float amplitudeScale = 1;
+        if (parameters.containsKey("amplitude_scale")) {
+            try { amplitudeScale = Float.parseFloat(parameters.get("amplitude_scale")); }
+            catch (RuntimeException invalid) { return Optional.empty(); }
+            if (!Float.isFinite(amplitudeScale) || Math.abs(amplitudeScale) > 1_000_000) return Optional.empty();
+        }
+        Float amplitudeMax = null;
+        if (parameters.containsKey("amplitude_max")) {
+            try { amplitudeMax = Float.parseFloat(parameters.get("amplitude_max")); }
+            catch (RuntimeException invalid) { return Optional.empty(); }
+            if (!Float.isFinite(amplitudeMax) || Math.abs(amplitudeMax) > 1_000_000) return Optional.empty();
+        }
+
         var required = new LinkedHashSet<>(requiredChannels);
         var clock = clock(clockText, clockScale, required).orElse(null);
-        var amplitude = amplitude(amplitudeText, required).orElse(null);
+        var amplitudeSource = amplitude(amplitudeText, required).orElse(null);
         // Selectors can add channels beyond those declared by the binding. Validate the effective,
         // deduplicated set because PoseEngine.Inputs itself is bounded to 64 channels.
-        if (clock == null || amplitude == null || required.size() > 64
+        if (clock == null || amplitudeSource == null || required.size() > 64
                 || required.stream().anyMatch(name -> name == null || !name.matches("[a-z0-9_.-]{1,64}")))
             return Optional.empty();
         Set<String> requiredCopy = Set.copyOf(required);
+        final float amplitudeFactor = amplitudeScale;
+        final Float amplitudeCeiling = amplitudeMax;
         return Optional.of(inputs -> {
             if (inputs == null || !inputs.ordinary() || !inputs.channels().keySet().containsAll(requiredCopy)) return Optional.empty();
-            float time = clock.value(inputs), scale = amplitude.value(inputs);
+            float time = clock.value(inputs);
+            float scale = amplitudeSource.value(inputs) * amplitudeFactor;
+            if (amplitudeCeiling != null) scale = Math.min(scale, amplitudeCeiling);
             if (!Float.isFinite(time) || !Float.isFinite(scale)) return Optional.empty();
             return evaluator.evaluate(geometry, time, scale);
         });
@@ -72,9 +90,15 @@ public final class MojangKeyframePoseEngine implements PoseEngine {
         return switch (text) {
             case "static" -> Optional.of(inputs -> 0);
             case "age" -> Optional.of(inputs -> inputs.age() * .05f * scale);
-            case "walk_phase" -> Optional.of(inputs -> inputs.walkPhase() * scale);
+            case "walk_phase" -> Optional.of(inputs -> quantizedWalkSeconds(inputs.walkPhase(), scale));
             default -> channelSelector(text, "channel:", scale, required);
         };
+    }
+
+    /** Minecraft applyWalk truncates its phase-derived clock to integer milliseconds before sampling. */
+    private static float quantizedWalkSeconds(float phase, float secondsPerPhase) {
+        float milliseconds = phase * secondsPerPhase * 1000.0f;
+        return ((long)milliseconds) / 1000.0f;
     }
 
     private static Optional<Selector> amplitude(String text, Set<String> required) {
