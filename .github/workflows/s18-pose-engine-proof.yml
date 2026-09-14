@@ -7,6 +7,7 @@ on:
       - '.github/workflows/s18-pose-engine-proof.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseHistory.java'
