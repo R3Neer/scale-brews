@@ -52,7 +52,7 @@ public record PoseProgram(int schema, String source, String version, float durat
     public PoseProgram {
         if (schema != SCHEMA_VERSION || source == null || source.isBlank() || source.length() > 512
                 || version == null || version.isBlank() || version.length() > 128
-                || !Float.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 3600
+                || !Float.isFinite(durationSeconds) || durationSeconds < 0 || durationSeconds > 3600
                 || tracks == null || tracks.isEmpty() || tracks.size() > MAX_TRACKS)
             throw new IllegalArgumentException("Invalid pose program");
         tracks = List.copyOf(tracks);
