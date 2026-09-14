@@ -11,6 +11,7 @@ on:
       - 'src/client/java/io/github/r3neer/scalebrews/client/ScaleBrewsClient.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S17ModelPartGeometryEngineTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S17ModelPartGeometryEngineClientTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S17OriginalModelStructuralParityClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
@@ -59,14 +60,17 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: isolate S17 client test
+      - name: isolate S17 client tests
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests']
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests',
+            'io.github.r3neer.scalebrews.test.S17OriginalModelStructuralParityClientTests'
+          ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: run real client preparation proof
@@ -78,6 +82,7 @@ jobs:
           name: S17-model-part-client-proof
           path: |
             build/run/clientGameTest/logs/
+            build/run/clientGameTest/s17-retro-snapshots/
             build/resources/gametest/fabric.mod.json
 
   original-model-export:
