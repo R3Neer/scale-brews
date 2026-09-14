@@ -65,7 +65,8 @@ public interface PoseEngine {
 
         public Inputs(float walkPhase, float walkAmount, float age, float headYaw, float headPitch,
                       boolean ordinary, Map<String, Float> channels) {
-            if (!Float.isFinite(walkPhase + walkAmount + age + headYaw + headPitch) || walkAmount < 0)
+            if (!Float.isFinite(walkPhase) || !Float.isFinite(walkAmount) || !Float.isFinite(age)
+                    || !Float.isFinite(headYaw) || !Float.isFinite(headPitch) || walkAmount < 0)
                 throw new IllegalArgumentException("Invalid pose inputs");
             if (channels == null || channels.size() > 64) throw new IllegalArgumentException("Invalid pose channels");
             var copy = new TreeMap<String, Float>();
