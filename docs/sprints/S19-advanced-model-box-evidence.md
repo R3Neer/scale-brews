@@ -71,7 +71,9 @@ Una tercera inspección de bytecode contra el mismo jar fijado cerró la semánt
 - si `scaleChildren == false`, antes de renderizar los hijos el renderer aplica `scale(1/max(scaleX, 1e-4), 1/max(scaleY, 1e-4), 1/max(scaleZ, 1e-4))`, cancelando la escala local del padre para la rama descendiente mientras conserva la traslación y rotaciones ya compuestas;
 - el `1e-4` observado aquí es un guard del renderer para la **operación inversa de escala**. No debe reinterpretarse como permiso para inventar espesor físico a primitivas planas ni como reparación genérica de geometría corrupta; el contrato estricto de S19 sobre primitivas/validez permanece intacto.
 
-Consecuencia: un traversal que acumule siempre la matriz local completa del padre hacia los hijos no reproduce el renderer cuando `scaleChildren == false`. La extracción debe distinguir el transform usado para la geometría propia del nodo del transform que se propaga a descendientes.
+El mismo bytecode muestra que `render(...)` retorna antes de recorrer cubos o hijos cuando `showModel == false`. En este dialecto la visibilidad es por tanto estructural y oculta el subárbol renderizado. Es una semántica distinta de un `AnatomyFilter` declarativo: excluir una part/piece por política no autoriza a propagar esa exclusión a descendientes físicos que no coincidan con el filtro.
+
+Consecuencia: un traversal que acumule siempre la matriz local completa del padre hacia los hijos no reproduce el renderer cuando `scaleChildren == false`. La extracción debe distinguir el transform usado para la geometría propia del nodo del transform que se propaga a descendientes, y debe mantener separadas visibilidad estructural y selección declarativa.
 
 ## Semántica exacta de `ModelBox`
 
@@ -84,7 +86,7 @@ La representación renderizada del cubo se inspeccionó también contra el mismo
 - los ocho `PositionTextureVertex` usados para construir los seis `TexturedQuad` se calculan después de restar/sumar los tres inflates por eje;
 - cuando `mirror` es verdadero se intercambian los extremos X usados para los vértices, pero ello no convierte el tamaño fuente almacenado en otro valor.
 
-Consecuencia adversarial: el extractor no debe decidir si una dimensión fuente era positiva, cero o negativa a partir de un `min/max` posterior que ya haya normalizado orientación e inflation. Para paridad de forma, los vértices/quads materializados son la autoridad geométrica; para validar la intención dimensional del dialecto, los `pos1/pos2` conservan la dimensión fuente previa a inflation. Una dimensión fuente negativa no debe transformarse accidentalmente en una `Piece` positiva sólo porque `min/max` produzca una AABB ordenada, mientras una dimensión fuente exactamente cero puede seguir clasificándose como render-only si el caso exacto del dialecto lo demuestra.
+Consecuencia adversarial: el extractor no debe decidir si una dimensión fuente era positiva, cero o negativa a partir de un `min/max` posterior que ya haya normalizado orientación e inflation. Para paridad de forma, los vértices/quads materializados son la autoridad geométrica; para validar la intención dimensional del dialecto, los `pos1/pos2` conservan la dimensión fuente previa a inflation. Una dimensión fuente negativa no debe transformarse accidentalmente en una `Piece` positiva sólo porque `min/max` produzca una AABB ordenada. A la inversa, una dimensión fuente exactamente cero **no implica por sí sola** una primitiva plana después de inflation: con delta positivo los vertices pueden delimitar volumen. Sólo un caso cuyo volumen renderizado siga siendo plano puede clasificarse render-only; Gazelle lo demuestra con profundidad e inflation ambas `0.0f`.
 
 ## Primitiva plana exacta de Gazelle
 
