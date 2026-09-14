@@ -4,6 +4,8 @@ Estado: **PLAN CERRADO / IMPLEMENTACIÓN PENDIENTE**.
 
 Snapshot pre-implementación: **`b5ce86a54f8954afcb2d2f5eddff587f7a874720`**.
 
+Freeze common contract: **`9c8e93f2a0dfb7e91e1b348339de3c22bc5a2f8d`**.
+
 ## Tesis
 
 Al terminar S19, `AdvancedModelBox` será una familia `GeometryEngine` real y reutilizable, identificada en common pero preparada sólo desde tooling/cliente, sin lógica productiva por especie y con geometría estrictamente validada. La misma familia deberá exportar y reproducir la geometría original de **Grizzly Bear** y **Gazelle** de Alex's Mobs Continued **2.1.9** mediante el mismo engine, sin convertir Alex/Citadel en dependencia obligatoria del core.
@@ -47,10 +49,11 @@ El `GrizzlyPose` de GameTest sigue siendo un oracle H1. No se promociona a engin
 4. `GeometryExtractor.alex(...)` sigue siendo un helper reflectivo legacy, no un engine de familia.
 5. El helper actual ya conserva jerarquía, pivots, cubos, rotaciones y escala Citadel mediante reflexión, pero mezcla extracción con exclusiones y contiene semánticas demasiado permisivas.
 6. `AnatomyFilter` ya puede incluir/excluir por `piece.id` o `piece.part`; por tanto una exclusión declarativa no necesita destruir geometría durante extracción.
-7. El extractor Alex actual propaga la exclusión del padre a todos los descendientes y descarta silenciosamente cubos vacíos/degenerados. Eso no satisface FR-020/021.
+7. El extractor Alex actual propaga la exclusión del padre a todos los descendientes y descarta silenciosamente primitivas vacías/degeneradas sin distinguir entre decoración render-only legítima y geometría física inválida. Eso no satisface FR-020/021.
 8. El proof cliente existente usa el modelo Grizzly original 2.1.9, compara vertices y 80 poses, pero llama directamente a `GeometryExtractor.alex(...)` y excluye `hat`/`microphone` durante extracción.
 9. `PrepareAnatomyProof.ps1` ya fija Alex's Mobs Continued **2.1.9** cuando ejecuta esa prueba opcional y registra hashes de inputs, pero la CI ordinaria no aporta esos jars.
 10. No existe todavía una segunda especie real que demuestre FR-017 en la familia `AdvancedModelBox`.
+11. Gazelle 2.1.9 contiene al menos una primitiva visual plana de profundidad cero; por tanto S19 debe distinguir explícitamente una primitiva **render-only no volumétrica** de una `Piece` física degenerada, sin inventarle espesor ni rechazar por ello un modelo fuente válido completo.
 
 ## Estado objetivo
 
@@ -97,10 +100,18 @@ Debe validar antes de producir `ModelGeometry`:
 - nombres/IDs válidos y no ambiguos;
 - ciclos/duplicación de objeto;
 - profundidad/trabajo/tamaños máximos explícitos;
-- volumen estrictamente positivo de cada cubo físico;
+- volumen estrictamente positivo de cada **pieza física** materializada;
 - ausencia de alias de nombres que produzcan IDs iguales.
 
-Un cubo degenerado/NaN/∞ no se omite: **falla la preparación**. Una jerarquía cíclica o sobredimensionada tampoco publica un prefijo parcial.
+La clasificación de primitivas no volumétricas es explícita:
+
+- una primitiva legítimamente plana/render-only del dialecto fijado puede omitirse de `ModelGeometry.pieces()` porque no representa volumen físico;
+- dicha omisión debe ser observable/determinista en el proof o diagnóstico de preparación y no puede depender de un `return` silencioso accidental;
+- el extractor **no** puede inventar epsilon/espesor para convertir una primitiva 2D en collider;
+- una primitiva que pretende ser volumétrica pero resulta negativa/corrupta, o cualquier vertex/transform/scale NaN/∞, **falla la preparación completa**;
+- una `ModelGeometry.Piece` producida nunca puede ser degenerada, reforzando la validación común ya existente.
+
+Una jerarquía cíclica o sobredimensionada tampoco publica un prefijo parcial.
 
 ### 4. Filtros y visibilidad
 
@@ -128,6 +139,8 @@ El mismo ID `scalebrews:advanced_model_box` prepara al menos:
 
 Para ambos, el proof cliente usa el modelo/renderer original de la versión fijada y compara geometría exportada con la geometría/render source real. No se acepta una réplica sintética como sustituto de NFR-029.
 
+Gazelle debe demostrar además que una primitiva render-only plana no se convierte en collider artificial ni invalida el resto de una fuente válida.
+
 Grizzly conserva además el oracle histórico de pose como regresión, pero esa comparación no convierte la pose en alcance de S19.
 
 ## Plan convergido
@@ -136,10 +149,10 @@ Grizzly conserva además el oracle histórico de pose como regresión, pero esa 
 - [ ] **I2** Crear `AdvancedModelBoxGeometryEngine` client/tooling con registry de fuentes acotado, determinista, repeat-safe y sin selección por especie.
 - [ ] **I3** Crear `AdvancedModelBoxGeometryExtractor` como única autoridad de extracción de la familia, con validación estricta y límites N/N+1.
 - [ ] **I4** Separar exclusión declarativa de extracción: exportar la jerarquía física completa y dejar include/exclude a `AnatomyFilter`, conservando sólo metadata de visibilidad estructural justificable.
-- [ ] **I5** Rechazar degenerados, no-finitos, ciclos, IDs/nombres ambiguos, jerarquías/cubos oversized y dialectos incompletos sin publicar resultado parcial.
+- [ ] **I5** Clasificar explícitamente primitivas render-only no volumétricas sin crear `Piece`, y rechazar no-finitos, primitivas físicas inválidas, ciclos, IDs/nombres ambiguos, jerarquías/cubos oversized y dialectos incompletos sin publicar resultado parcial.
 - [ ] **I6** Hacer que el transform de modelo/renderer forme parte de la fuente reusable y no de un post-procesado Grizzly-specific.
 - [ ] **I7** Reducir `GeometryExtractor.alex(...)` a adapter deprecated hacia la nueva autoridad o eliminarlo si ya no tiene consumidores; no puede conservar un segundo algoritmo.
-- [ ] **I8** Migrar el proof original Grizzly 2.1.9 al engine de familia y añadir Gazelle 2.1.9 como segundo modelo real del mismo engine.
+- [ ] **I8** Migrar el proof original Grizzly 2.1.9 al engine de familia y añadir Gazelle 2.1.9 como segundo modelo real del mismo engine, incluyendo su primitiva plana render-only como caso de aceptación explícito.
 - [ ] **I9** Añadir lane reproducible externa que fija jars/versiones/SHA-256 de Alex 2.1.9 + dependencias, ejecuta client/original-model y dedicated/common sin convertir esos jars en dependencia ordinaria.
 - [ ] **I10** Ejecutar ordinary sin Alex + focal common/dedicated + client original Grizzly/Gazelle + malformed/bounds/determinism holdouts.
 - [ ] **I11** Segunda lectura completa hasta cero cambios productivos; actualizar sprint/VALIDATION. G3 tarea 5 permanece abierta para el sprint de pose Citadel.
@@ -166,24 +179,26 @@ Grizzly conserva además el oracle histórico de pose como regresión, pero esa 
 
 La identidad debe proceder de la jerarquía/nombres canónicos de la tecnología, no del orden accidental de `getDeclaredFields()`.
 
-### Geometría inválida y límites
+### Geometría inválida, render-only y límites
 
 - part/cube exactamente en N y N+1;
 - profundidad N/N+1;
 - ciclo directo e indirecto;
 - child repetido bajo dos parents;
-- cube vacío o con dimensión 0/negativa tras inflation;
+- primitiva plana legítima de Gazelle confundida con corrupción y rechazo total del modelo;
+- primitiva plana a la que se inventa epsilon y acaba creando un collider inexistente;
+- cubo volumétrico con dimensión negativa/corrupta tras inflation tratado erróneamente como render-only;
 - vertex/scale/pivot/rotation NaN o ∞;
 - escala cero/casi cero que el código intenta «arreglar» con epsilon y termina inventando collider;
 - transform singular/no finito;
 - excepción a mitad de recorrido después de haber acumulado pieces.
 
-Todo fallo debe abortar el resultado entero; no se publica un prefijo válido de una fuente inválida.
+Una omisión render-only legítima debe estar clasificada explícitamente y no producir `Piece`. Todo fallo físico/corrupto debe abortar el resultado entero; no se publica un prefijo válido de una fuente inválida.
 
 ### Filtrado / descendientes
 
 - excluir `head/hat` no puede excluir automáticamente un descendiente físico ajeno;
-- incluir explícitamente una pieza no puede revivir un degenerado;
+- incluir explícitamente una pieza no puede revivir un degenerado ni una primitiva render-only sin volumen;
 - `showModel=false` en una parte debe seguir la semántica real del dialecto, no una regla inventada por el extractor;
 - filtros equivalentes por part/piece deben producir selección determinista;
 - `hat`/`microphone` Grizzly deben desaparecer por filtro declarativo sin cambiar la geometría base exportada.
@@ -223,7 +238,7 @@ Antes de implementación se reservarán escenarios concretos para no programar c
 1. **genericidad real**: segundo modelo 2.1.9 con una forma estructural distinta a Grizzly;
 2. **identidad**: jerarquía equivalente construida/registrada en orden diferente;
 3. **filtrado**: exclusión de parent con descendiente físico válido;
-4. **fail-closed**: degenerado/no-finito después de material ya recorrido;
+4. **clasificación/fail-closed**: render-only legítimo frente a corrupción/no-finitud después de material ya recorrido;
 5. **dialecto**: objeto que satisface parte de la reflexión pero no el contrato completo;
 6. **ownership**: legacy adapter no puede ejecutar un algoritmo distinto del engine canónico.
 
@@ -235,10 +250,10 @@ Los casos concretos se revelan después de leer la implementación. No se añadi
 | --- | --- | --- |
 | ID built-in / ownership / no id theft | common GameTest | verde |
 | constant pool common sin cliente/Alex/Citadel | common/static + dedicated | verde |
-| malformed/cycles/degenerate/N/N+1 | common/client fixture según seam | rechazo exacto |
+| malformed/cycles/physical-degenerate/render-only/N/N+1 | common/client fixture según seam | clasificación/rechazo exactos |
 | determinismo y orden de registro | client/tooling | bytes/ModelGeometry equivalentes |
 | Grizzly 2.1.9 engine geometry vs original | real client | paridad |
-| Gazelle 2.1.9 mismo engine vs original | real client | paridad |
+| Gazelle 2.1.9 mismo engine vs original | real client | paridad + plano render-only sin collider artificial |
 | filtro parent/child y hat/microphone | GameTest/client | selección declarativa correcta |
 | build ordinario sin jars externos | ordinary CI | suite completa verde |
 | catálogo/binding fail-closed | common/dedicated | conserva snapshot aceptado |
@@ -250,12 +265,10 @@ S19 sólo cierra si:
 
 1. `AdvancedModelBox` es un `GeometryEngine` de familia real con ID common y preparación client/tooling;
 2. no existe lógica productiva Grizzly/Gazelle ni segundo algoritmo legacy;
-3. el extractor conserva geometría/hierarquía relevante y rechaza inválidos sin resultado parcial;
+3. el extractor conserva geometría/hierarquía relevante, clasifica explícitamente primitivas render-only no volumétricas y rechaza geometría física inválida sin resultado parcial;
 4. filtros nombrados son declarativos y no destruyen descendientes por accidente;
 5. Grizzly **y Gazelle** 2.1.9 usan el mismo engine y pasan comparación contra modelo/renderer original exacto;
 6. common/dedicated no cargan clases cliente/Alex/Citadel y el build ordinario no necesita esos jars;
 7. inputs externos de aceptación quedan versionados/hasheados/reproducibles;
 8. ordinary + focal + real-client externo están verdes;
 9. una segunda pasada adversarial produce cero cambios de producción.
-
-Cerrar S19 **no** marca G3 tarea 5 como `[x]`. Esa tarea sólo cerrará cuando la pose Citadel reusable quede implementada y demostrada en un sprint posterior.
