@@ -61,7 +61,7 @@ public record PoseProgram(int schema, String source, String version, float durat
             Objects.requireNonNull(track, "track");
             total = Math.addExact(total, track.keyframes().size());
             if (total > MAX_KEYFRAMES) throw new IllegalArgumentException("Pose program has too many keyframes");
-            for (var frame : track.keyframes()) if (frame.timestamp() > durationSeconds + 1e-5f)
+            for (var frame : track.keyframes()) if (frame.timestamp() > durationSeconds)
                 throw new IllegalArgumentException("Pose-program keyframe exceeds duration");
         }
     }
