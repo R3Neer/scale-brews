@@ -131,6 +131,20 @@ public final class S18PoseEngineBehaviorTests {
         h.succeed();
     }
 
+    @GameTest
+    public void beeGroundChannelMatchesMojangMovingGroundSemantics(GameTestHelper h) {
+        var bee = h.spawn(net.minecraft.world.entity.EntityTypes.BEE, 1, 2, 1);
+        bee.setOnGround(true);
+        bee.setDeltaMovement(new net.minecraft.world.phys.Vec3(.02, 0, 0));
+        h.assertTrue(bee.onGround() && bee.getDeltaMovement().lengthSqr() > 1e-7,
+            "Holdout precondition: bee must touch ground while still moving fast enough for BeeRenderer to classify it as airborne");
+
+        var inputs = new AuthorityPoseTracker().tick(bee, h.getLevel().getGameTime(), true);
+        h.assertTrue(inputs.channel("on_ground", Float.NaN) == 0f,
+            "Authority bee on_ground must match BeeRenderer: onGround && velocity^2 < 1e-7; moving ground-contact bees still use the airborne model pose");
+        h.succeed();
+    }
+
     private static ModelGeometry quadrupedGeometry() {
         var identity = ModelGeometry.values(new Matrix4f());
         return new ModelGeometry(1, "minecraft:cow", "26.2",
