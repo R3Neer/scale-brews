@@ -84,6 +84,36 @@ jobs:
           PY
       - name: run signed scaleChildren proof against pinned real Citadel model
         run: xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-signed-scale-inputs/mods"
+      - name: inject raw-reciprocal mutant in checkout only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java')
+          text=p.read_text()
+          old='''            float ix = 1f / Math.max(sx, 1.0e-4f);\n            float iy = 1f / Math.max(sy, 1.0e-4f);\n            float iz = 1f / Math.max(sz, 1.0e-4f);'''
+          new='''            float ix = 1f / sx;\n            float iy = 1f / sy;\n            float iz = 1f / sz;'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 Citadel clamp mutant target drifted; refusing a non-causal mutation')
+          p.write_text(text.replace(old,new))
+          print('Injected S19 raw-reciprocal scaleChildren mutant into ephemeral checkout')
+          PY
+      - name: require signed proof to kill raw-reciprocal mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-signed-scale-inputs/mods" > build/s19-signed-scale-mutant.log 2>&1
+          status=$?
+          set -e
+          cat build/s19-signed-scale-mutant.log
+          if [ "$status" -eq 0 ]; then
+            echo 'S19 raw-reciprocal mutant survived: signed-scale oracle did not protect the pinned Citadel clamp'
+            exit 1
+          fi
+          if ! grep -Fq 'Signed scaleChildren helper diverges from the exact pinned Citadel clamp' build/s19-signed-scale-mutant.log; then
+            echo 'S19 raw-reciprocal mutant died for a non-causal reason'
+            exit 1
+          fi
+          echo 'S19 raw-reciprocal mutant killed causally by exact pinned Citadel clamp oracle'
       - name: capture signed-scale evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -92,3 +122,4 @@ jobs:
           path: |
             build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
+            build/s19-signed-scale-mutant.log
