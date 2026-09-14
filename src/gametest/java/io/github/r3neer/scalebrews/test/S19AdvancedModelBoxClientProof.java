@@ -45,7 +45,7 @@ public final class S19AdvancedModelBoxClientProof implements FabricClientGameTes
                 return;
             }
             prove(Identifier.parse("alexsmobs:grizzly_bear"), GRIZZLY, true);
-            prove(Identifier.parse("alexsmobs:gazelle"), GAZELLE, false);
+            prove(Identifier.parse("alexsmobs:gazelle"), GAZELLE, true);
         });
     }
 
