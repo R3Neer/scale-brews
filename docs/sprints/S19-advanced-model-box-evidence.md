@@ -53,6 +53,26 @@ Consecuencias adversariales:
 
 La genericidad no se demuestra con un solo modelo favorable y la compatibilidad reflectiva no puede reducirse a «existe un field con este nombre».
 
+## Semántica exacta de transforms locales y `scaleChildren`
+
+Una tercera inspección de bytecode contra el mismo jar fijado cerró la semántica de transformación que el extractor debe reproducir. Evidencia: run `34832565884`, job `103939039210`, artifact `10341929614`, SHA-256 `2c0b01598130a658d6ae03a42b20d800bbc98f93886c0ee15d02fe55ed96e511`.
+
+`AdvancedModelBox.translateAndRotate(PoseStack)` compone, en este orden:
+
+1. `translate(rotationPointX / 16, rotationPointY / 16, rotationPointZ / 16)`;
+2. rotación alrededor de Z si `rotateAngleZ != 0`;
+3. rotación alrededor de Y si `rotateAngleY != 0`;
+4. rotación alrededor de X si `rotateAngleX != 0`;
+5. `scale(scaleX, scaleY, scaleZ)`.
+
+`AdvancedModelBox.render(...)` hace `pushPose()`, aplica ese transform local y renderiza su propio `cubeList`. La herencia hacia hijos depende después de `scaleChildren`:
+
+- si `scaleChildren == true`, los hijos reciben la escala del padre normalmente;
+- si `scaleChildren == false`, antes de renderizar los hijos el renderer aplica `scale(1/max(scaleX, 1e-4), 1/max(scaleY, 1e-4), 1/max(scaleZ, 1e-4))`, cancelando la escala local del padre para la rama descendiente mientras conserva la traslación y rotaciones ya compuestas;
+- el `1e-4` observado aquí es un guard del renderer para la **operación inversa de escala**. No debe reinterpretarse como permiso para inventar espesor físico a primitivas planas ni como reparación genérica de geometría corrupta; el contrato estricto de S19 sobre primitivas/validez permanece intacto.
+
+Consecuencia: un traversal que acumule siempre la matriz local completa del padre hacia los hijos no reproduce el renderer cuando `scaleChildren == false`. La extracción debe distinguir el transform usado para la geometría propia del nodo del transform que se propaga a descendientes.
+
 ## Primitiva plana exacta de Gazelle
 
 La excepción render-only del plan también fue comprobada contra el jar exacto del lock, no contra otra rama de source. Evidencia: run `34828802003`, job `103926989818`, artifact `10340938164`, SHA-256 `4683707be2d3a3820c39309333223b964ddc9ebe5bd5e4c349b7c6e59385c1f6`.
