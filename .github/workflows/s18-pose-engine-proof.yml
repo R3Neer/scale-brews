@@ -12,6 +12,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseHistory.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseEligibility.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/ModelGeometryProvider.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java'
