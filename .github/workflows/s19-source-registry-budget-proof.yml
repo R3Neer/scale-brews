@@ -38,6 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p build
           xvfb-run -a ./gradlew runClientGameTest --console=plain \
             2>&1 | tee build/s19-source-budget-normal.log
           mkdir -p build/s19-source-budget-logs-normal
@@ -52,8 +53,8 @@ jobs:
           from pathlib import Path
           import sys
           p=Path(sys.argv[1]); text=p.read_text()
-          old='''        if (INSTANCE.sources.size() >= MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox sources");'''
-          new='''        if (INSTANCE.sources.size() > MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox sources"); // adversarial mutant: N+1 admitted'''
+          old='''        if (INSTANCE.sources.size() >= MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox geometry sources");'''
+          new='''        if (INSTANCE.sources.size() > MAX_SOURCES)\n            throw new IllegalArgumentException("Too many AdvancedModelBox geometry sources"); // adversarial mutant: N+1 admitted'''
           if text.count(old) != 1:
               raise SystemExit('S19 source-budget boundary mutation target drifted')
           p.write_text(text.replace(old,new,1))
@@ -86,8 +87,8 @@ jobs:
           from pathlib import Path
           import sys
           p=Path(sys.argv[1]); text=p.read_text()
-          old='''        if (INSTANCE.sources.containsKey(source)) throw new IllegalArgumentException("Duplicate AdvancedModelBox source " + source);'''
-          new='''        if (false && INSTANCE.sources.containsKey(source)) throw new IllegalArgumentException("Duplicate AdvancedModelBox source " + source); // adversarial mutant'''
+          old='''        if (INSTANCE.sources.containsKey(model))\n            throw new IllegalArgumentException("Duplicate AdvancedModelBox geometry source: " + model);'''
+          new='''        if (false && INSTANCE.sources.containsKey(model))\n            throw new IllegalArgumentException("Duplicate AdvancedModelBox geometry source: " + model); // adversarial mutant'''
           if text.count(old) != 1:
               raise SystemExit('S19 duplicate-source registration mutation target drifted')
           p.write_text(text.replace(old,new,1))
