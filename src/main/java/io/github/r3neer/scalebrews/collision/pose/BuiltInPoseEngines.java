@@ -21,7 +21,7 @@ public final class BuiltInPoseEngines {
         result.put(id("villager"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.VILLAGER));
         result.put(id("iron_golem"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.IRON_GOLEM));
         result.put(id("ghast"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.GHAST));
-        result.put(id("feline"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.FELINE));
+        result.put(id("feline"), new FelinePoseEngine());
         result.put(id("equine"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.EQUINE));
         result.put(id("bee"), new VanillaFamilyPoseEngine(VanillaFamilyPoseEngine.Family.BEE));
         result.put(id("static"), (geometry, inputs, parameters) ->
