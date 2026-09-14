@@ -1,0 +1,94 @@
+name: s19-signed-scale-children-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-signed-scale-children-proof.yml'
+      - 'tools/s19-external-inputs.lock.json'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19SignedScaleChildrenClientProof.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  signed-scale-children:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve pinned S19 external inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-signed-scale-inputs"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          if lock.get('schema') != 1 or lock.get('minecraft') != '26.2':
+              raise SystemExit('Unsupported S19 external input lock')
+          inputs = lock.get('inputs')
+          if not isinstance(inputs, list) or sorted(item.get('modId') for item in inputs) != ['alexsmobs', 'cloth-config', 'codxlib']:
+              raise SystemExit('Unexpected S19 external input set')
+          deps = '\n'.join(f"    proofInputs '{item['coordinate']}'" for item in inputs)
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-signed-scale-inputs'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{
+              maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }}
+          }}
+          configurations {{ proofInputs {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{
+          {deps}
+          }}
+          tasks.register('copyProofInputs', Copy) {{
+              from configurations.proofInputs
+              into layout.buildDirectory.dir('proof-inputs')
+          }}
+          """)
+          PY
+          ./gradlew -p "$probe" copyProofInputs --console=plain
+          mkdir -p build/s19-signed-scale-inputs/mods
+          cp "$probe"/build/proof-inputs/*.jar build/s19-signed-scale-inputs/mods/
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          mods = pathlib.Path('build/s19-signed-scale-inputs/mods')
+          for item in lock['inputs']:
+              _, artifact, version = item['coordinate'].split(':')
+              jar = mods / f'{artifact}-{version}.jar'
+              actual = hashlib.sha256(jar.read_bytes()).hexdigest()
+              if actual != item['sha256']:
+                  raise SystemExit(f"Pinned input hash mismatch for {jar.name}: {actual}")
+          PY
+      - name: isolate signed scaleChildren client proof
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S19SignedScaleChildrenClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run signed scaleChildren proof against pinned real Citadel model
+        run: xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-signed-scale-inputs/mods"
+      - name: capture signed-scale evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-signed-scale-children-proof
+          path: |
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
