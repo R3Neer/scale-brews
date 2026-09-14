@@ -3,6 +3,12 @@ package io.github.r3neer.scalebrews.collision.internal;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines;
+import io.github.r3neer.scalebrews.collision.pose.MojangKeyframePoseEngine;
+import io.github.r3neer.scalebrews.collision.pose.PlayerWalkingPoseEngine;
+import io.github.r3neer.scalebrews.collision.pose.QuadrupedPoseEngine;
+import io.github.r3neer.scalebrews.collision.pose.VanillaFamilyPoseEngine;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -32,6 +38,35 @@ public final class S18ImplementerRegressionTests {
             rejectedInfinity = true;
         }
         h.assertTrue(rejectedInfinity, "Non-finite pose inputs must still fail closed");
+        h.succeed();
+    }
+
+    @GameTest
+    public void builtInPoseInitializationIsIdempotentAndKeepsCanonicalOwners(GameTestHelper h) {
+        var ids = List.of(
+            Identifier.parse("scalebrews:player_walking"), Identifier.parse("scalebrews:quadruped"),
+            Identifier.parse("scalebrews:chicken"), Identifier.parse("scalebrews:villager"),
+            Identifier.parse("scalebrews:iron_golem"), Identifier.parse("scalebrews:ghast"),
+            Identifier.parse("scalebrews:feline"), Identifier.parse("scalebrews:equine"),
+            Identifier.parse("scalebrews:bee"), Identifier.parse("scalebrews:static"),
+            Identifier.parse("scalebrews:mojang_keyframes"));
+        var before = new LinkedHashMap<Identifier, PoseEngine>();
+        for (var id : ids) before.put(id, CollisionEngines.pose(id).orElseThrow());
+
+        BuiltInPoseEngines.initialize();
+        for (var entry : before.entrySet())
+            h.assertTrue(CollisionEngines.pose(entry.getKey()).orElseThrow() == entry.getValue(),
+                "Repeated built-in initialization must preserve the exact canonical owner: " + entry.getKey());
+
+        h.assertTrue(before.get(Identifier.parse("scalebrews:player_walking")) instanceof PlayerWalkingPoseEngine,
+            "player_walking must be owned by PlayerWalkingPoseEngine");
+        h.assertTrue(before.get(Identifier.parse("scalebrews:quadruped")) instanceof QuadrupedPoseEngine,
+            "quadruped must be owned by QuadrupedPoseEngine");
+        for (String path : List.of("chicken", "villager", "iron_golem", "ghast", "feline", "equine", "bee"))
+            h.assertTrue(before.get(Identifier.fromNamespaceAndPath("scalebrews", path)) instanceof VanillaFamilyPoseEngine,
+                path + " must be owned by the canonical VanillaFamilyPoseEngine");
+        h.assertTrue(before.get(Identifier.parse("scalebrews:mojang_keyframes")) instanceof MojangKeyframePoseEngine,
+            "mojang_keyframes must be owned by the common canonical keyframe engine");
         h.succeed();
     }
 
