@@ -53,6 +53,22 @@ public final class S18ImplementerRegressionTests {
     }
 
     @GameTest
+    public void authorityWalkPhasePreservesVanillaBabyPositionScale(GameTestHelper h) {
+        var cow = h.spawn(net.minecraft.world.entity.EntityTypes.COW, 1, 2, 1);
+        cow.setBaby(true);
+        var tracker = new AuthorityPoseTracker();
+        long tick = h.getLevel().getGameTime();
+        tracker.tick(cow, tick, true);
+        cow.setPos(cow.position().add(.25, 0, 0));
+        var inputs = tracker.tick(cow, tick + 1, true);
+        h.assertTrue(Math.abs(inputs.walkAmount() - .4f) < 1e-6f,
+            "Vanilla walk smoothing must keep the 0.4 update factor at the current endpoint");
+        h.assertTrue(Math.abs(inputs.walkPhase() - 1.2f) < 1e-6f,
+            "Baby LivingEntity walkAnimation uses positionScale=3; authority must not animate baby legs at adult phase speed");
+        h.succeed();
+    }
+
+    @GameTest
     public void builtInPoseInitializationIsIdempotentAndKeepsCanonicalOwners(GameTestHelper h) {
         var ids = List.of(
             Identifier.parse("scalebrews:player_walking"), Identifier.parse("scalebrews:quadruped"),
