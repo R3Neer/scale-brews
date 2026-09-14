@@ -263,9 +263,11 @@ public final class WorldAnatomyCatalog {
     }
 
     private static boolean touchesCompatibilityBridge(CollisionBinding binding) {
+        // G3.3/G3.4 replace geometry and pose before G3.6 replaces the root provider. ENTITY_ROOT
+        // therefore remains a legitimate transitional root for otherwise canonical bindings; only
+        // the legacy geometry/pose pair is inseparable and must fail closed when partially selected.
         return binding.geometry().engine().equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY)
-            || binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER)
-            || binding.rootTransform().equals(LegacyCollisionData.ENTITY_ROOT);
+            || binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER);
     }
 
     private static void validateFilter(CollisionBinding binding, ModelGeometry model) {
