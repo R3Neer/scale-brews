@@ -35,16 +35,18 @@ public final class G2SingleBlockingOwnerReadyTests {
             ModelGeometry.values(new Matrix4f()));
     }
 
-    private static PlatformDefinition cowProfile() {
-        return new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(.85),List.of(),
+    private static PlatformDefinition shulkerProfile() {
+        return new PlatformDefinition(Identifier.parse("minecraft:shulker"),true,.6,Optional.of(.85),List.of(),
             Optional.of(new AnatomyDefinition(MODEL,STATIC_POSE,AnatomyFilter.DEFAULT)));
     }
 
     @GameTest
     public void entityMoveSuppressesVanillaAabbAndStopsAtSelectedAnatomy(GameTestHelper h) {
         var server=h.getLevel().getServer();
-        AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("cow",cowProfile()));
-        var support=h.spawn(EntityTypes.COW,6,20,2);
+        AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("shulker",shulkerProfile()));
+        // Shulkers, unlike ordinary mobs such as cows, are rigid vanilla entity blockers. This
+        // makes revived vanilla AABB ownership observable when the pair-suppression route is mutated.
+        var support=h.spawn(EntityTypes.SHULKER,6,20,2);
         var body=h.makeMockPlayer(GameType.SURVIVAL);
         try {
             support.setNoAi(true);support.setNoGravity(true);
@@ -72,14 +74,14 @@ public final class G2SingleBlockingOwnerReadyTests {
             AABB startBox=body.getBoundingBox();
             Vec3 requested=new Vec3(wall.bounds().maxX-startX+1,0,0);
             h.assertTrue(startBox.expandTowards(requested).intersects(supportBox),
-                "Precondition: the actual Entity.move path must cross the support's vanilla AABB");
+                "Precondition: the actual Entity.move path must cross the support's rigid vanilla AABB");
             h.assertTrue(wall.bounds().minX>supportBox.maxX+.5,
                 "Precondition: selected anatomy must sit distinctly beyond the vanilla support AABB");
 
             body.move(MoverType.SELF,requested);
 
             h.assertTrue(body.getX()>supportBox.maxX+.5,
-                "Eligible Entity.move must pass through the replaced vanilla support AABB before reaching anatomy: supportMax="
+                "Eligible Entity.move must pass through the replaced rigid vanilla support AABB before reaching anatomy: supportMax="
                     +supportBox.maxX+" finalX="+body.getX());
             h.assertTrue(!wall.overlaps(body.getBoundingBox()),
                 "Entity.move must stop non-penetrating at the selected anatomical blocker");
