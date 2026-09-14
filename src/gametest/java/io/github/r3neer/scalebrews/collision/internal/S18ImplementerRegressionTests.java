@@ -7,6 +7,7 @@ import io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines;
 import io.github.r3neer.scalebrews.collision.pose.FelinePoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.MojangKeyframePoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.PlayerWalkingPoseEngine;
+import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import io.github.r3neer.scalebrews.collision.pose.QuadrupedPoseEngine;
 import io.github.r3neer.scalebrews.collision.pose.VanillaFamilyPoseEngine;
 import java.util.LinkedHashMap;
@@ -39,6 +40,33 @@ public final class S18ImplementerRegressionTests {
             rejectedInfinity = true;
         }
         h.assertTrue(rejectedInfinity, "Non-finite pose inputs must still fail closed");
+        h.succeed();
+    }
+
+    @GameTest
+    public void poseProgramRejectsAnyTimestampBeyondDeclaredDuration(GameTestHelper h) {
+        var zero = new PoseProgram.Vector(0, 0, 0);
+        boolean tinyOverflowRejected = false;
+        try {
+            new PoseProgram(PoseProgram.SCHEMA_VERSION, "proof:tiny_duration_overflow", "26.2", 1f, false, List.of(
+                new PoseProgram.Track("root", PoseProgram.Target.TRANSLATION, List.of(
+                    new PoseProgram.Keyframe(1.000001f, zero, zero, PoseProgram.Interpolation.LINEAR)))));
+        } catch (IllegalArgumentException expected) {
+            tinyOverflowRejected = true;
+        }
+        h.assertTrue(tinyOverflowRejected,
+            "A keyframe even microscopically past duration is out of range and must fail closed instead of being hidden by an epsilon");
+
+        boolean zeroDurationOverflowRejected = false;
+        try {
+            new PoseProgram(PoseProgram.SCHEMA_VERSION, "proof:zero_duration_overflow", "26.2", 0f, true, List.of(
+                new PoseProgram.Track("root", PoseProgram.Target.TRANSLATION, List.of(
+                    new PoseProgram.Keyframe(0.000001f, zero, zero, PoseProgram.Interpolation.LINEAR)))));
+        } catch (IllegalArgumentException expected) {
+            zeroDurationOverflowRejected = true;
+        }
+        h.assertTrue(zeroDurationOverflowRejected,
+            "A zero-duration program may contain timestamp-zero static keys only; positive keys would make looping time normalization undefined");
         h.succeed();
     }
 
