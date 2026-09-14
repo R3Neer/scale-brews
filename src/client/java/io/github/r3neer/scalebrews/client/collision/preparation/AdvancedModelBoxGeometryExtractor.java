@@ -110,27 +110,27 @@ final class AdvancedModelBoxGeometryExtractor {
         if (!visited.add(part)) throw new IllegalArgumentException("Cyclic or multiply-parented AdvancedModelBox hierarchy");
         if (visited.size() > MAX_PARTS) throw new IllegalArgumentException("Too many AdvancedModelBox parts");
 
-        String name = validName(string(dialect.boxName.get(part), "boxName"));
+        String name = validName(string(read(dialect.boxName, part, "boxName"), "boxName"));
         String id = parent == null ? name : parent + "/" + name;
         requireId(id);
         if (!partIds.add(id)) throw new IllegalArgumentException("Ambiguous AdvancedModelBox part id " + id);
 
-        float px = number(dialect.rotationPointX.get(part), "rotationPointX");
-        float py = number(dialect.rotationPointY.get(part), "rotationPointY");
-        float pz = number(dialect.rotationPointZ.get(part), "rotationPointZ");
-        float rx = number(dialect.rotateAngleX.get(part), "rotateAngleX");
-        float ry = number(dialect.rotateAngleY.get(part), "rotateAngleY");
-        float rz = number(dialect.rotateAngleZ.get(part), "rotateAngleZ");
-        float sx = number(dialect.scaleX.get(part), "scaleX");
-        float sy = number(dialect.scaleY.get(part), "scaleY");
-        float sz = number(dialect.scaleZ.get(part), "scaleZ");
+        float px = number(read(dialect.rotationPointX, part, "rotationPointX"), "rotationPointX");
+        float py = number(read(dialect.rotationPointY, part, "rotationPointY"), "rotationPointY");
+        float pz = number(read(dialect.rotationPointZ, part, "rotationPointZ"), "rotationPointZ");
+        float rx = number(read(dialect.rotateAngleX, part, "rotateAngleX"), "rotateAngleX");
+        float ry = number(read(dialect.rotateAngleY, part, "rotateAngleY"), "rotateAngleY");
+        float rz = number(read(dialect.rotateAngleZ, part, "rotateAngleZ"), "rotateAngleZ");
+        float sx = number(read(dialect.scaleX, part, "scaleX"), "scaleX");
+        float sy = number(read(dialect.scaleY, part, "scaleY"), "scaleY");
+        float sz = number(read(dialect.scaleZ, part, "scaleZ"), "scaleZ");
         var sourcePose = new ModelGeometry.SourcePose(px, py, pz, rx, ry, rz, sx, sy, sz);
         Matrix4f local = sourcePose.matrix();
         verifyRendererTransform(part, local);
         addPart(new ModelGeometry.Part(id, parent, ModelGeometry.values(local), sourcePose));
 
-        boolean hidden = structurallyHidden || !bool(dialect.showModel.get(part), "showModel");
-        Iterable<?> cubes = iterable(dialect.cubeList.get(part), "AdvancedModelBox.cubeList");
+        boolean hidden = structurallyHidden || !bool(read(dialect.showModel, part, "showModel"), "showModel");
+        Iterable<?> cubes = iterable(read(dialect.cubeList, part, "cubeList"), "AdvancedModelBox.cubeList");
         int cubeIndex = 0;
         for (Object cube : cubes) {
             if (!dialect.modelBox.isInstance(cube))
@@ -140,7 +140,7 @@ final class AdvancedModelBoxGeometryExtractor {
             extractCube(cube, id + "/cube_" + cubeIndex++, id, hidden);
         }
 
-        boolean scaleChildren = bool(dialect.scaleChildren.get(part), "scaleChildren");
+        boolean scaleChildren = bool(read(dialect.scaleChildren, part, "scaleChildren"), "scaleChildren");
         String childParent = id;
         if (!scaleChildren && !identityScale(sx, sy, sz)) {
             // This is the renderer's exact propagation rule, not a physical epsilon repair. A zero
@@ -156,7 +156,7 @@ final class AdvancedModelBoxGeometryExtractor {
             addPart(new ModelGeometry.Part(childParent, id, ModelGeometry.values(new Matrix4f().scaling(ix, iy, iz))));
         }
 
-        Iterable<?> children = iterable(dialect.childModels.get(part), "AdvancedModelBox.childModels");
+        Iterable<?> children = iterable(read(dialect.childModels, part, "childModels"), "AdvancedModelBox.childModels");
         for (Object child : children) {
             if (!dialect.advancedBox.isInstance(child))
                 throw new IllegalArgumentException("AdvancedModelBox childModels contains a non-AdvancedModelBox child");
@@ -166,12 +166,12 @@ final class AdvancedModelBoxGeometryExtractor {
 
     private void extractCube(Object cube, String pieceId, String partId, boolean hidden) {
         requireId(pieceId);
-        double x1 = number(dialect.posX1.get(cube), "posX1");
-        double y1 = number(dialect.posY1.get(cube), "posY1");
-        double z1 = number(dialect.posZ1.get(cube), "posZ1");
-        double x2 = number(dialect.posX2.get(cube), "posX2");
-        double y2 = number(dialect.posY2.get(cube), "posY2");
-        double z2 = number(dialect.posZ2.get(cube), "posZ2");
+        double x1 = number(read(dialect.posX1, cube, "posX1"), "posX1");
+        double y1 = number(read(dialect.posY1, cube, "posY1"), "posY1");
+        double z1 = number(read(dialect.posZ1, cube, "posZ1"), "posZ1");
+        double x2 = number(read(dialect.posX2, cube, "posX2"), "posX2");
+        double y2 = number(read(dialect.posY2, cube, "posY2"), "posY2");
+        double z2 = number(read(dialect.posZ2, cube, "posZ2"), "posZ2");
         double[] nominal = {x2 - x1, y2 - y1, z2 - z1};
         boolean nominalFlat = false;
         for (double dimension : nominal) {
@@ -180,7 +180,7 @@ final class AdvancedModelBoxGeometryExtractor {
             nominalFlat |= dimension == 0;
         }
 
-        Object quadsValue = dialect.quads.get(cube);
+        Object quadsValue = read(dialect.quads, cube, "quads");
         if (!(quadsValue instanceof Object[] quads) || quads.length == 0)
             throw new IllegalArgumentException("AdvancedModelBox ModelBox has no materialized quads");
         double[] low = {Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY};
@@ -189,13 +189,13 @@ final class AdvancedModelBoxGeometryExtractor {
         for (Object quad : quads) {
             if (quad == null || !dialect.texturedQuad.isInstance(quad))
                 throw new IllegalArgumentException("Invalid AdvancedModelBox textured quad");
-            Object verticesValue = dialect.vertexPositions.get(quad);
+            Object verticesValue = read(dialect.vertexPositions, quad, "vertexPositions");
             if (!(verticesValue instanceof Object[] vertices) || vertices.length != 4)
                 throw new IllegalArgumentException("Invalid AdvancedModelBox quad vertices");
             for (Object vertex : vertices) {
                 if (vertex == null || !dialect.positionVertex.isInstance(vertex))
                     throw new IllegalArgumentException("Invalid AdvancedModelBox vertex dialect");
-                Object position = dialect.position.get(vertex);
+                Object position = read(dialect.position, vertex, "position");
                 if (!(position instanceof Vector3fc vector))
                     throw new IllegalArgumentException("AdvancedModelBox vertex has incompatible position");
                 double[] values = {vector.x() / 16d, vector.y() / 16d, vector.z() / 16d};
@@ -269,6 +269,14 @@ final class AdvancedModelBoxGeometryExtractor {
             return method.invoke(owner);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException failure) {
             throw new IllegalArgumentException("Missing/incompatible AdvancedModelBox model method " + name, failure);
+        }
+    }
+
+    private static Object read(Field field, Object owner, String label) {
+        try {
+            return field.get(owner);
+        } catch (IllegalAccessException failure) {
+            throw new IllegalArgumentException("Cannot read AdvancedModelBox " + label, failure);
         }
     }
 
