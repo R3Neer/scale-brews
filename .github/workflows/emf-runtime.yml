@@ -1,0 +1,84 @@
+name: emf-runtime-proof
+
+on:
+  push:
+    branches:
+      - diagnostic/mount-emf-runtime
+  workflow_dispatch:
+
+jobs:
+  emf-runtime:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: download pinned VanillaPlus EMF stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .compat/emf build/run/clientGameTest/resourcepacks
+
+          curl --fail --location --retry 3 \
+            'https://cdn.modrinth.com/data/4I1XuqiY/versions/p8M0c1vN/entity_model_features-3.3.5-26.2-fabric.jar' \
+            -o '.compat/emf/entity_model_features-3.3.5-26.2-fabric.jar'
+          echo 'ee598e0703cb15166ed35f93e2d19e69d5bee160721c50ccde2001afecee24470744bd2efe9125e908211e58f60a54074e915f2b726cb6ee70dc3e98f4698c7b  .compat/emf/entity_model_features-3.3.5-26.2-fabric.jar' | sha512sum --check --strict
+
+          curl --fail --location --retry 3 \
+            'https://cdn.modrinth.com/data/BVzZfTc1/versions/URB7DuXS/entity_texture_features-7.2-26.2-fabric.jar' \
+            -o '.compat/emf/entity_texture_features-7.2-26.2-fabric.jar'
+          echo '58da97a72614a41c28d8639fa63a98f775d6a5f101ac30c33213ee63a25b5d41e50c77fc24e269a19e2a54f2dfb4083a8d4e51411eac2ee6efe099e7bf93fa88  .compat/emf/entity_texture_features-7.2-26.2-fabric.jar' | sha512sum --check --strict
+
+          curl --fail --location --retry 3 \
+            'https://cdn.modrinth.com/data/50dA9Sha/versions/RGIzA5em/FreshAnimations_v1.10.5.zip' \
+            -o 'build/run/clientGameTest/resourcepacks/FreshAnimations_v1.10.5.zip'
+          echo 'f4f2a1d294c2e0afe245b6987fea4a84ff120f131a7f2cfb16779e9cc5d0a00b3d49bf1585ac827d6690c36421e8dda203b0c6e642bb0c6aa067c5921dd8dc30  build/run/clientGameTest/resourcepacks/FreshAnimations_v1.10.5.zip' | sha512sum --check --strict
+
+      - name: select Fresh Animations in client GameTest runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          options = Path('build/run/clientGameTest/options.txt')
+          options.parent.mkdir(parents=True, exist_ok=True)
+          existing = options.read_text(encoding='utf-8').splitlines() if options.exists() else []
+          replace = {'resourcePacks', 'incompatibleResourcePacks'}
+          kept = [line for line in existing if line.split(':', 1)[0] not in replace]
+          kept.append('resourcePacks:' + json.dumps(['vanilla', 'file/FreshAnimations_v1.10.5.zip'], separators=(',', ':')))
+          kept.append('incompatibleResourcePacks:[]')
+          options.write_text('\n'.join(kept) + '\n', encoding='utf-8')
+          PY
+          grep -E '^(resourcePacks|incompatibleResourcePacks):' build/run/clientGameTest/options.txt
+
+      - name: run real EMF Fresh Animations client proof
+        shell: bash
+        env:
+          SCALEBREWS_EMF_PROOF: 'true'
+        run: |
+          set -euo pipefail
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain \
+            -PscalebrewsCompatMods="$PWD/.compat/emf"
+
+      - name: capture EMF proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: EMF-runtime-proof
+          path: |
+            build/run/clientGameTest/options.txt
+            build/run/clientGameTest/logs/latest.log
+            build/run/clientGameTest/screenshots/*.png
+            build/libs/
+          if-no-files-found: warn
