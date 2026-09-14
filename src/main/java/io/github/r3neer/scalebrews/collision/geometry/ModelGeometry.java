@@ -30,8 +30,10 @@ public record ModelGeometry(int format,String source,String version,List<Part> p
                 throw new IllegalArgumentException("Degenerate source scale");
         }
         public Matrix4f matrix() {
-            return new Matrix4f().translationRotateScale(x/16f,y/16f,z/16f,
-                new org.joml.Quaternionf().rotationZYX(zRot,yRot,xRot),xScale,yScale,zScale);
+            return new Matrix4f().translationRotateScale(
+                new org.joml.Vector3f(x/16f,y/16f,z/16f),
+                new org.joml.Quaternionf().rotationZYX(zRot,yRot,xRot),
+                new org.joml.Vector3f(xScale,yScale,zScale));
         }
     }
 
