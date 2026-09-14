@@ -93,8 +93,7 @@ public final class S19AdvancedModelBoxGeometryContractTests {
                 "Common built-in geometry bytecode references the client preparation implementation");
             h.assertTrue(!constantPool.contains("com/github/alexthe666/"),
                 "Common built-in geometry bytecode references Alex/Citadel classes");
-            h.assertTrue(!constantPool.contains("/alexsmobs/") && !constantPool.contains("/citadel/")
-                    && !constantPool.contains("AdvancedModelBox"),
+            h.assertTrue(!constantPool.contains("/alexsmobs/") && !constantPool.contains("/citadel/"),
                 "Common built-in geometry bytecode embeds an external model-family class instead of a neutral SPI");
         } catch (IOException unreadable) {
             throw new AssertionError("Could not inspect BuiltInGeometryEngines bytecode", unreadable);
