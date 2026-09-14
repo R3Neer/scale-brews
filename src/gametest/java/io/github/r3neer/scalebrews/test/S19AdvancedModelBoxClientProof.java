@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.r3neer.scalebrews.client.collision.preparation.AdvancedModelBoxGeometryEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +23,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /** Real optional-mod acceptance proof for the S19 AdvancedModelBox family. */
@@ -50,7 +52,7 @@ public final class S19AdvancedModelBoxClientProof implements FabricClientGameTes
     private static void prove(Identifier id, String modelClass, boolean adultGrizzly) {
         Supplier<Object> factory = () -> fresh(modelClass, adultGrizzly);
         AdvancedModelBoxGeometryEngine.registerSource(id,
-            new AdvancedModelBoxGeometryEngine.Source(factory, Matrix4f::new));
+            new AdvancedModelBoxGeometryEngine.Source(factory, () -> sourceModelTransform(id)));
         var engine = (AdvancedModelBoxGeometryEngine) clientDelegate();
         var prepared = engine.prepareDetailed(new GeometryEngine.Request(id)).orElseThrow();
         var repeated = engine.prepareDetailed(new GeometryEngine.Request(id)).orElseThrow();
@@ -60,6 +62,11 @@ public final class S19AdvancedModelBoxClientProof implements FabricClientGameTes
         Object oracleModel = fresh(modelClass, adultGrizzly);
         Oracle oracle = oracle(oracleModel);
         var geometry = prepared.geometry();
+        Matrix4f expectedModelTransform = sourceModelTransform(id);
+        if (!geometry.modelTransform().equals(ModelGeometry.values(expectedModelTransform)))
+            throw new AssertionError("S19 serialized concrete renderer modelTransform mismatch for " + id
+                + ": expected=" + ModelGeometry.values(expectedModelTransform)
+                + " actual=" + geometry.modelTransform());
         Set<String> actualPieces = new HashSet<>();
         geometry.pieces().forEach(piece -> actualPieces.add(piece.id()));
         if (!actualPieces.equals(oracle.volumetricPieces))
@@ -73,22 +80,46 @@ public final class S19AdvancedModelBoxClientProof implements FabricClientGameTes
         for (String piece : actualPieces) if (piece.contains("/unscaled_children/"))
             throw new AssertionError("Transform-only scaleChildren helper leaked into stable source piece id: " + piece);
 
-        List<Vec3> rendered = renderVertices(oracleModel);
-        if (rendered.isEmpty()) throw new AssertionError("S19 reference renderer emitted no vertices for " + id);
-        var boxes = geometry.evaluate(new Matrix4f(), Map.of(), AnatomyFilter.DEFAULT);
+        // The independent renderer oracle emits local model vertices under an identity PoseStack.
+        // Apply the frozen concrete renderer transform separately, rather than reading it back from
+        // the exported DTO, so a lost modelTransform cannot be hidden by two matching mistakes.
+        List<Vec3> renderedLocal = renderVertices(oracleModel);
+        if (renderedLocal.isEmpty()) throw new AssertionError("S19 reference renderer emitted no vertices for " + id);
+        List<Vec3> renderedCommon = renderedLocal.stream()
+            .map(vertex -> transform(vertex, expectedModelTransform)).toList();
+        var boxes = geometry.evaluate(expectedModelTransform, Map.of(), AnatomyFilter.DEFAULT);
         for (var entry : boxes.entrySet()) {
             for (Vec3 vertex : entry.getValue().vertices()) {
-                if (rendered.stream().noneMatch(reference -> reference.distanceToSqr(vertex) <= EPS2))
-                    throw new AssertionError("S19 collider vertex is absent from real renderer for " + id
+                if (renderedCommon.stream().noneMatch(reference -> reference.distanceToSqr(vertex) <= EPS2))
+                    throw new AssertionError("S19 collider vertex is absent from independently transformed real renderer for " + id
                         + " piece=" + entry.getKey() + " vertex=" + vertex);
             }
         }
         if (id.getPath().equals("gazelle") && actualOmissions.isEmpty())
             throw new AssertionError("Gazelle proof did not exercise any source render-only non-volume primitive");
+        if (id.getPath().equals("gazelle") && Math.abs(expectedModelTransform.getScale(new Vector3f()).x() - .8f) > 1e-6f)
+            throw new AssertionError("Gazelle proof lost the pinned renderer.scale(0.8) precondition");
         System.out.println("S19_ADVANCED_MODEL_BOX " + id + " parts=" + geometry.parts().size()
             + " pieces=" + actualPieces.size() + " omissions=" + actualOmissions.size()
-            + " renderVertices=" + rendered.size() + " scaleChildrenCompensations=" + oracle.compensatedScales
-            + " nominalFlatInflated=" + oracle.nominalFlatInflated);
+            + " renderVertices=" + renderedLocal.size() + " scaleChildrenCompensations=" + oracle.compensatedScales
+            + " nominalFlatInflated=" + oracle.nominalFlatInflated
+            + " modelTransformScale=" + expectedModelTransform.getScale(new Vector3f()));
+    }
+
+    /**
+     * Pinned adult render-space transform. Both models inherit the common living-model flip/base
+     * translation; Gazelle's concrete renderer additionally applies scale(0.8), while Grizzly does
+     * not override that hook. This belongs to the reusable source descriptor, not the extractor.
+     */
+    private static Matrix4f sourceModelTransform(Identifier id) {
+        Matrix4f transform = new Matrix4f().scaling(-1f, -1f, 1f).translate(0f, -1.501f, 0f);
+        if (id.getPath().equals("gazelle")) transform.scale(.8f, .8f, .8f);
+        return transform;
+    }
+
+    private static Vec3 transform(Vec3 source, Matrix4f transform) {
+        Vector3f value = transform.transformPosition((float)source.x, (float)source.y, (float)source.z, new Vector3f());
+        return new Vec3(value.x(), value.y(), value.z());
     }
 
     /** Retrieve the installed client singleton through its public source view, without adding a second engine registry. */
