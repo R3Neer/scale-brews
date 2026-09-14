@@ -71,8 +71,7 @@ jobs:
             echo 'S19 N+1 source-budget mutant survived.' >&2
             exit 1
           fi
-          if ! grep -R -F 'S19 source registry accepted N+1 entry beyond limit 64' \
-              build/run/clientGameTest/logs build/s19-source-budget-overflow-mutant.log >/dev/null 2>&1; then
+          if ! grep -Fq 'S19 source registry accepted N+1 entry beyond limit' build/s19-source-budget-overflow-mutant.log; then
             echo 'S19 N+1 source-budget mutant died for a non-causal reason.' >&2
             exit 1
           fi
@@ -105,8 +104,7 @@ jobs:
             echo 'S19 duplicate-source registration mutant survived.' >&2
             exit 1
           fi
-          if ! grep -R -F 'S19 duplicate source registration was accepted' \
-              build/run/clientGameTest/logs build/s19-source-budget-duplicate-mutant.log >/dev/null 2>&1; then
+          if ! grep -Fq 'S19 duplicate source registration was accepted' build/s19-source-budget-duplicate-mutant.log; then
             echo 'S19 duplicate-source registration mutant died for a non-causal reason.' >&2
             exit 1
           fi
