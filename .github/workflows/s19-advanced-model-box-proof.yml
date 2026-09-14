@@ -84,6 +84,20 @@ jobs:
               raise SystemExit('S19 external proof mods became mandatory fabric.mod.json dependencies: ' + ', '.join(leaked))
           print('S19 ordinary metadata keeps Alex/Codx/Cloth optional')
           PY
+      - name: verify ordinary Gradle classpaths exclude external family jars
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s19-external-inputs
+          ./gradlew dependencies --configuration compileClasspath --console=plain > build/s19-external-inputs/compile-classpath.txt
+          ./gradlew dependencies --configuration runtimeClasspath --console=plain > build/s19-external-inputs/runtime-classpath.txt
+          pattern='curse\.maven|alexs-mobs-continued|alexsmobs|codxlib|cloth-config'
+          if grep -Eiq "$pattern" build/s19-external-inputs/compile-classpath.txt build/s19-external-inputs/runtime-classpath.txt; then
+            echo 'S19 ordinary Gradle classpath unexpectedly contains an external proof mod'
+            grep -Ein "$pattern" build/s19-external-inputs/compile-classpath.txt build/s19-external-inputs/runtime-classpath.txt || true
+            exit 1
+          fi
+          echo 'S19 ordinary compile/runtime classpaths exclude external proof mods'
       - name: validate lock and build isolated resolver
         shell: bash
         run: |
@@ -176,3 +190,5 @@ jobs:
           path: |
             tools/s19-external-inputs.lock.json
             build/s19-external-inputs/manifest.txt
+            build/s19-external-inputs/compile-classpath.txt
+            build/s19-external-inputs/runtime-classpath.txt
