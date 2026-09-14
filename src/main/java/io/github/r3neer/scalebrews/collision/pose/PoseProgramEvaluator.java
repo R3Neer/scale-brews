@@ -103,17 +103,25 @@ public final class PoseProgramEvaluator {
 
     private static PoseProgram.Vector sample(PoseProgram.Track track, float time) {
         var frames = track.keyframes();
-        if (frames.size() == 1) return time < frames.getFirst().timestamp() ? frames.getFirst().preTarget() : frames.getFirst().postTarget();
-        if (time < frames.getFirst().timestamp()) return frames.getFirst().preTarget();
-        if (time >= frames.getLast().timestamp()) return frames.getLast().postTarget();
+        if (frames.size() == 1) {
+            var only = frames.getFirst();
+            return time <= only.timestamp() ? only.preTarget() : only.postTarget();
+        }
+        var first = frames.getFirst();
+        var last = frames.getLast();
+        if (time <= first.timestamp()) return first.preTarget();
+        if (time > last.timestamp()) return last.postTarget();
+        if (time == last.timestamp()) return last.preTarget();
+
         int next = 1;
-        while (next < frames.size() && time >= frames.get(next).timestamp()) next++;
+        while (next < frames.size() && time > frames.get(next).timestamp()) next++;
+        var b = frames.get(next);
+        if (time == b.timestamp()) return b.preTarget();
+
         int previous = next - 1;
         var a = frames.get(previous);
-        var b = frames.get(next);
-        if (time == a.timestamp()) return a.postTarget();
         float span = b.timestamp() - a.timestamp();
-        if (!(span > 0)) return b.postTarget();
+        if (!(span > 0)) return b.preTarget();
         float t = Math.clamp((time - a.timestamp()) / span, 0, 1);
         return switch (b.interpolation()) {
             case LINEAR -> lerp(a.postTarget(), b.preTarget(), t);
