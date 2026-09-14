@@ -1,74 +1,53 @@
 # S18 — Evidencia adversarial de paridad procedural equine
 
-Estado: **ROJO / FIX PARCIAL INSUFICIENTE**.
+Estado: **ORACLE DE STANDING RETRACTADO / ORACLE ORDINARY EN REEVALUACIÓN**.
 
-## Alcance
+## Corrección adversarial de alcance
 
-Esta evidencia responde a producción S18 real. No amplía el contrato pre-implementación: `AuthorityPoseTracker` ya publica estado equine autoritativo (`eat`, `stand`, `mouth`, `tail`, `water`) y el criterio S18 exige que los `PoseEngine` vanilla canónicos reproduzcan la pose material de Minecraft 26.2 para inputs soportados.
+La primera versión de esta evidencia usó `standAnimation=1` con `ordinary=true`. Esa fixture era inválida para el runtime actual: `AnatomyPoseEligibility` rechaza explícitamente equines cuando `eat`, `stand` o `mouth` son distintos de cero, o cuando el caballo está en agua. Esos estados deben llegar como `ordinary=false` y fallar cerrados, no ser reproducidos por el `PoseEngine` canónico.
 
-Oracle original-source: `S18EquineProceduralSemanticClientTests`, usando `HorseModel` / `AbstractEquineModel` 26.2 reales y geometría extraída por `GeometryExtractor`.
+Por tanto los rojos de los runs `34865530067` y `34865788558` **no se consideran evidencia normativa de un bug de producción**. Se conservan abajo únicamente como historial de cómo se detectó y después se invalidó el oracle. El ADVERSARY no exige soporte para standing/rearing mientras esa frontera de elegibilidad siga vigente.
 
-Fixture principal:
+El oracle cliente se corrigió en `0378ffa8081ec613caa9d070e446389ef8bac77f` para ejercer sólo el dominio realmente elegible:
 
 - caballo adulto;
 - `ordinary=true`;
-- `walkAnimationPos=0`, `walkAnimationSpeed=0`;
-- `xRot=0`, `yRot=0`;
-- `eatAnimation=0`;
-- `standAnimation=1`;
-- `feedingAnimation=0`;
-- `animateTail=false`;
-- `isInWater=false`;
-- los cinco channels autoritativos se entregan al engine.
+- `eat=0`, `stand=0`, `mouth=0`, `water=0`;
+- walking no trivial (`walkAnimationPos=2.3`, `walkAnimationSpeed=0.45`);
+- cabeza no trivial (`xRot=12`, `yRot=15`);
+- cola animada (`tail=1`);
+- `ageScale=1` para el modelo adulto.
 
-Las precondiciones verifican antes de comparar que Minecraft mueve `root/body` y `root/right_front_leg` fuera de rest pose. Son piezas volumétricas ordinarias, no decoración degenerada ni una excepción de filtro.
+Este oracle sigue comparando directamente contra `HorseModel` / `AbstractEquineModel` 26.2 originales y exige paridad sólo para piezas volumétricas del estado soportado.
 
-## Rojo inicial
+## Historial del oracle retractado
 
-Snapshot adversarial: `b7f429a4309ccacd7117454ed0093ffbaae7c8e2`.
+### Rojo inicial, no normativo tras la corrección de alcance
 
-Workflow `s18-equine-procedural-parity-proof`, run `34865530067`, job `104048291973`: setup, compilación, aislamiento y captura de evidencia verdes; falla únicamente el oracle semántico.
+Snapshot `b7f429a4309ccacd7117454ed0093ffbaae7c8e2`, run `34865530067`, job `104048291973`:
 
-Primer contraejemplo:
+- `root/body`, `matrix[5]`: Mojang `0.7071067`, neutral `1.0`;
+- artifact `10356269340`;
+- SHA-256 `1c41e4ed541eb4e8c7dd653f1826a76487296bf9b29f8069e5563fd3c9ffa872`.
 
-- parte: `root/body`;
-- `matrix[5]` Mojang: `0.7071067`;
-- `matrix[5]` neutral: `1.0`.
+Producción respondió con `20036150fd68939b19c973bc35b22063b760ccaf`, añadiendo semántica de `eat/stand/mouth/water`.
 
-Minecraft aplica `body.xRot = -pi/4` cuando `standAnimation=1`; el engine anterior ignoraba `stand` y dejaba el cuerpo en reposo.
+### Segundo rojo del mismo oracle, también no normativo tras la corrección
 
-Artifact `10356269340`.
-SHA-256 `1c41e4ed541eb4e8c7dd653f1826a76487296bf9b29f8069e5563fd3c9ffa872`.
+Run `34865788558`, job `104049181157`:
 
-## Respuesta del implementador y segunda lectura
+- `root/right_front_leg`, `matrix[5]`: Mojang `0.9962148`, neutral `-0.42282853`;
+- artifact `10357181405`;
+- SHA-256 `ab64cb900bf799526e4ccdf02f061f291115e8b62f06fb3c15cd7f577b48ae0b`.
 
-Producción respondió en `20036150fd68939b19c973bc35b22063b760ccaf` (`fix(s18): honor authoritative equine standing pose`). El fix pasa a requerir/consumir `eat`, `stand`, `mouth`, `tail` y `water`, y corrige el cuerpo, cabeza y colocación de patas.
+La inspección source mostró además que el fix parcial intercambiaba la asignación de las expresiones izquierda/derecha de las patas delanteras. Esa observación sólo será un defecto vigente si el oracle **ordinary** corregido la reproduce dentro del dominio elegible.
 
-La segunda ejecución del mismo oracle demuestra que el fix es todavía incompleto. Run `34865788558`, job `104049181157`: de nuevo sólo falla el oracle semántico.
+## Frontera adicional pendiente, no clasificada todavía
 
-Nuevo primer contraejemplo, después de que `root/body` ya coincida:
+Minecraft copia `state.ageScale` desde `entity.getAgeScale()` y `AbstractEquineModel` lo usa en los offsets Y/Z de la cola. Un `LivingEntity` bebé usa por defecto `ageScale=0.5`, y Minecraft selecciona además un `BabyHorseModel` con constantes de pose distintas.
 
-- parte: `root/right_front_leg`;
-- `matrix[5]` Mojang: `0.9962148`;
-- `matrix[5]` neutral: `-0.42282853`.
+El engine actual consulta `in.channel("age_scale", 1f)`, pero `AuthorityPoseTracker` no publica `age_scale`. No se clasifica aún como rojo: primero debe demostrarse que una geometría baby ligada a `scalebrews:equine` pertenece al dominio soportado del catálogo/runtime.
 
-Causa aislada por inspección original-source:
+## Regla TM vigente
 
-- Minecraft calcula `rlegRot = (offset + bob) * standing + walk * (1-standing)` y lo asigna a **`leftFrontLeg`**;
-- calcula `llegRot = (offset - bob) * standing - walk * (1-standing)` y lo asigna a **`rightFrontLeg`**;
-- el fix parcial calcula ambas ramas pero las aplica al lado homónimo, intercambiando la semántica izquierda/derecha respecto a Mojang.
-
-Artifact `10357181405`.
-SHA-256 `ab64cb900bf799526e4ccdf02f061f291115e8b62f06fb3c15cd7f577b48ae0b`.
-
-## Frontera adicional observada, aún no clasificada como rojo independiente
-
-Minecraft obtiene `state.ageScale` desde `entity.getAgeScale()` y `AbstractEquineModel` lo usa para los offsets Y/Z de la cola. Para un `LivingEntity` bebé el valor por defecto es `0.5`, no `1.0`.
-
-El fix parcial consulta `in.channel("age_scale", 1f)`, pero `AuthorityPoseTracker` no publica actualmente `age_scale`. Esto merece una sonda separada sólo después de cerrar el rojo de standing, para no mezclar causas.
-
-## Clasificación TM
-
-**Defecto de paridad procedural en el owner canónico `scalebrews:equine`, con autoridad ya disponible.** No es un gap de wire ni de ownership y no requiere introducir estado cliente. El arreglo debe reproducir la semántica material de `AbstractEquineModel` para los channels autoritativos aceptados, o fallar `UNAVAILABLE` si un estado no puede representarse; no debe congelar ni aproximar silenciosamente una pose distinta.
-
-S18/G3.4 permanece abierto hasta que este oracle quede verde y pase una segunda lectura de los estados equine restantes.
+La evidencia válida para cerrar o reabrir S18 debe proceder del oracle ordinary corregido o de una nueva sonda que respete `AnatomyPoseEligibility`. Los runs de standing anteriores no bloquean por sí solos G3.4.
