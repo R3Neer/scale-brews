@@ -8,13 +8,14 @@ on:
       - 'tools/s19-external-inputs.lock.json'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/AnatomyFilter.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19HiddenHierarchyClientProof.java'
   workflow_dispatch:
 
 jobs:
   hidden-hierarchy:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v6
       - uses: gradle/actions/wrapper-validation@v6
@@ -130,6 +131,41 @@ jobs:
             echo 'S19 hidden-propagation mutant died for a non-causal reason.' >&2
             exit 1
           fi
+          git checkout -- "$file"
+
+      - name: require source-hidden revival mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/main/java/io/github/r3neer/scalebrews/collision/geometry/AnatomyFilter.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if(piece.excluded()!=null)return piece.excluded(); // Equipment/cosmetic roles never become anatomy.'''
+          new='''        if(piece.excluded()!=null && !(include.contains(piece.id()) || include.contains(piece.part())))return piece.excluded(); // adversarial mutant: explicit include may revive source-hidden geometry'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 source-hidden revival mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-hidden-hierarchy/mods" \
+            2>&1 | tee build/s19-hidden-hierarchy/source-hidden-revival-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-hidden-hierarchy/logs-source-hidden-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-hidden-hierarchy/logs-source-hidden-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 source-hidden revival mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -R -E 'S19 explicit (piece|part) include revived source_hidden collider' \
+              build/run/clientGameTest/logs build/s19-hidden-hierarchy/source-hidden-revival-mutant.log >/dev/null 2>&1; then
+            echo 'S19 source-hidden revival mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
 
       - name: capture hidden hierarchy evidence
         if: always()
@@ -140,5 +176,6 @@ jobs:
             build/s19-hidden-hierarchy/*.log
             build/s19-hidden-hierarchy/logs-normal/
             build/s19-hidden-hierarchy/logs-mutant/
+            build/s19-hidden-hierarchy/logs-source-hidden-mutant/
             build/resources/gametest/fabric.mod.json
             tools/s19-external-inputs.lock.json
