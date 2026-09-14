@@ -8,6 +8,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/**'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseEligibility.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18ImplementerRegressionTests.java'
       - 'src/gametest/resources/fabric.mod.json'
