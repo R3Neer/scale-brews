@@ -53,6 +53,16 @@ Consecuencias adversariales:
 
 La genericidad no se demuestra con un solo modelo favorable y la compatibilidad reflectiva no puede reducirse a «existe un field con este nombre».
 
+## Raíces e identidad observadas en los modelos de aceptación
+
+Una inspección adicional del mismo jar fijado separó explícitamente la frontera de render (`parts()`) del catálogo plano (`getAllParts()`) y comprobó cómo se materializan los nombres de pieza. Evidencia: run `34833347197`, job `103941521300`, artifact `10342916772`, SHA-256 `77087e1b6bb99d138f15dd37441da4687ba17429f58b3d2db7039f63429088fe`.
+
+- `ModelGazelle.parts()` devuelve únicamente `body`; `getAllParts()` devuelve las 13 `AdvancedModelBox` del modelo.
+- `ModelGrizzlyBear.parts()` devuelve únicamente `root`; `getAllParts()` devuelve las 13 `AdvancedModelBox` del modelo, incluidas piezas no públicas como `hat` y `microphone`.
+- En ambos constructores inspeccionados, todas las `AdvancedModelBox` observadas se crean mediante `AdvancedModelBox(model, String)` con nombres explícitos como `body`, `neck`, `head`, `root`, `left_arm`, etc.; esos nombres alimentan `boxName` y no dependen de que el field correspondiente sea público.
+
+Consecuencia: `parts()` representa las raíces desde las que debe reconstruirse la jerarquía renderizada; `getAllParts()` es útil como catálogo/cobertura, pero no puede tratarse como una lista de raíces y volver después a recorrer `childModels`, porque eso reintroduciría nodos ya contenidos en el árbol. Para los dos modelos exactos de aceptación, `boxName` ofrece identidad tecnológica independiente de la visibilidad de fields del modelo concreto. Una implementación genérica no debe volver a depender de `getDeclaredFields()` como autoridad de nombres para compensar que Gazelle los declare privados.
+
 ## Semántica exacta de transforms locales y `scaleChildren`
 
 Una tercera inspección de bytecode contra el mismo jar fijado cerró la semántica de transformación que el extractor debe reproducir. Evidencia: run `34832565884`, job `103939039210`, artifact `10341929614`, SHA-256 `2c0b01598130a658d6ae03a42b20d800bbc98f93886c0ee15d02fe55ed96e511`.
