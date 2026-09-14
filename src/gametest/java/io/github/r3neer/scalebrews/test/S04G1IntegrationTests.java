@@ -149,10 +149,10 @@ public final class S04G1IntegrationTests {
     public void capabilitiesVersionTheNewG1Contract(GameTestHelper h) {
         long required = AnatomyApi.mask(AnatomyApi.Capability.ENGINE_REGISTRY,
             AnatomyApi.Capability.VERSIONED_BINDINGS, AnatomyApi.Capability.BODY_ADAPTERS);
-        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 4 && AnatomyApi.DATA_SCHEMA_VERSION == 1,
+        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 5 && AnatomyApi.DATA_SCHEMA_VERSION == 1,
             "Public/wire protocol generation and canonical data schema must be explicit");
-        h.assertTrue(AnatomyApi.compatible(4, required), "Current peer must advertise every G1 extension capability under the S16 wire generation");
-        h.assertTrue(!AnatomyApi.compatible(3, required), "Pre-S16 wire generation must fail compatibility explicitly");
+        h.assertTrue(AnatomyApi.compatible(5, required), "Current peer must advertise every G1 extension capability under the S18 wire generation");
+        h.assertTrue(!AnatomyApi.compatible(4, required), "Pre-S18 wire generation must fail compatibility explicitly");
         h.succeed();
     }
 
