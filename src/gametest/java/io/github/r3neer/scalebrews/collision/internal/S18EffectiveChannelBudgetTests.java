@@ -2,13 +2,18 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -17,16 +22,13 @@ import net.minecraft.resources.Identifier;
 public final class S18EffectiveChannelBudgetTests {
     private static final Identifier ENGINE = Identifier.parse("scalebrews:mojang_keyframes");
     private static final Identifier PROGRAM = Identifier.parse("scalebrews_test:s18_channel_budget");
+    private static final Identifier MODEL = Identifier.parse("proof:s18-channel-budget");
 
     @GameTest
     public void selectorChannelsCannotCreateAnUnrepresentableRequiredSet(GameTestHelper h) {
         var engine = CollisionEngines.pose(ENGINE).orElseThrow();
         PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program()) : Optional.empty();
-        var parameters = Map.of(
-            "program", PROGRAM.toString(),
-            "clock", "channel:clock",
-            "clock_scale", "1",
-            "amplitude", "one");
+        var parameters = parameters();
 
         var required64 = channels("gate", 64);
         var input64 = values(required64);
@@ -52,11 +54,7 @@ public final class S18EffectiveChannelBudgetTests {
     public void effectiveChannelBudgetAcceptsExactly64AndDeduplicatesSelectors(GameTestHelper h) {
         var engine = CollisionEngines.pose(ENGINE).orElseThrow();
         PoseEngine.Resources resources = id -> id.equals(PROGRAM) ? Optional.of(program()) : Optional.empty();
-        var parameters = Map.of(
-            "program", PROGRAM.toString(),
-            "clock", "channel:clock",
-            "clock_scale", "1",
-            "amplitude", "one");
+        var parameters = parameters();
 
         // 63 declared + one selector-added channel = exactly 64: this must remain bindable.
         var required63 = channels("gate", 63);
@@ -82,6 +80,51 @@ public final class S18EffectiveChannelBudgetTests {
         h.succeed();
     }
 
+    @GameTest
+    public void catalogRejectsEffectiveChannelOverflowAtomically(GameTestHelper h) {
+        var catalog = new WorldAnatomyCatalog();
+        var epoch = UUID.randomUUID();
+        var model = geometry();
+        var program = program();
+
+        // Publish one legal revision first so atomicity is observable by object identity and prepared-bundle reuse.
+        var legalChannels = channels("gate", 63);
+        var legal = binding(legalChannels);
+        var accepted = catalog.replaceAtRevision(41, Map.of(MODEL.toString(), model), Map.of(PROGRAM.toString(), program), List.of(legal));
+        var prepared = catalog.preparedPackets(epoch);
+
+        var overflowing = binding(channels("gate", 64));
+        boolean rejected = false;
+        try {
+            catalog.replaceAtRevision(42, Map.of(MODEL.toString(), model), Map.of(PROGRAM.toString(), program), List.of(overflowing));
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+
+        h.assertTrue(rejected,
+            "A candidate revision whose selector-added channel makes the effective live contract 65-wide must be rejected before publication");
+        h.assertTrue(catalog.snapshot() == accepted,
+            "Effective-channel overflow must retain the exact previously accepted catalog snapshot");
+        h.assertTrue(catalog.preparedPackets(epoch) == prepared,
+            "Effective-channel overflow must retain the exact prepared S15 bundle paired with the accepted snapshot");
+        h.succeed();
+    }
+
+    private static CollisionBinding binding(java.util.Set<String> channels) {
+        return new CollisionBinding(CollisionBinding.SCHEMA_VERSION, Identifier.parse("minecraft:cow"), Map.of(),
+            new CollisionBinding.Geometry(BuiltInGeometryEngines.MODEL_PART, MODEL, Map.of(), AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(ENGINE, parameters(), channels),
+            LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, java.util.Set.of());
+    }
+
+    private static Map<String,String> parameters() {
+        return Map.of(
+            "program", PROGRAM.toString(),
+            "clock", "channel:clock",
+            "clock_scale", "1",
+            "amplitude", "one");
+    }
+
     private static LinkedHashSet<String> channels(String prefix, int count) {
         var result = new LinkedHashSet<String>();
         for (int i = 0; i < count; i++) result.add(prefix + i);
@@ -96,7 +139,7 @@ public final class S18EffectiveChannelBudgetTests {
 
     private static ModelGeometry geometry() {
         var pose = new ModelGeometry.SourcePose(0, 0, 0, 0, 0, 0, 1, 1, 1);
-        return new ModelGeometry(2, "proof:s18-channel-budget", "26.2",
+        return new ModelGeometry(2, MODEL.toString(), "26.2",
             List.of(new ModelGeometry.Part("root", null, ModelGeometry.values(pose.matrix()), pose)),
             List.of(new ModelGeometry.Piece("piece", "root", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)),
             ModelGeometry.values(new org.joml.Matrix4f()));
