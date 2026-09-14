@@ -22,6 +22,8 @@ import org.joml.Matrix4f;
 /** Red-first S18 holdouts for canonical pose-engine and keyframe-program authority. */
 public final class S18PoseEngineAuthorityTests {
     private static final String LEGACY_PROVIDERS = "io.github.r3neer.scalebrews.collision.pose.PoseProviders";
+    private static final String LEGACY_PROVIDER = "io.github.r3neer.scalebrews.collision.pose.PoseProvider";
+    private static final String LEGACY_INPUTS = LEGACY_PROVIDER + "$Inputs";
     private static final List<String> VANILLA_ENGINES = List.of(
         "scalebrews:player_walking",
         "scalebrews:quadruped",
@@ -108,10 +110,11 @@ public final class S18PoseEngineAuthorityTests {
             if (adapter instanceof PoseEngine poseEngine) {
                 legacy = poseEngine.evaluate(geometry, canonicalInputs, Map.of()).orElse(null);
             } else {
-                var evaluate = Arrays.stream(adapter.getClass().getMethods())
-                    .filter(method -> method.getName().equals("evaluate") && method.getParameterCount() == 2)
-                    .findFirst().orElseThrow();
-                var inputType = evaluate.getParameterTypes()[1];
+                // Invoke through the public compatibility interface, not through the synthetic lambda class.
+                // Java 25 correctly refuses reflective access through a package-private hidden lambda implementation.
+                var providerType = Class.forName(LEGACY_PROVIDER);
+                var inputType = Class.forName(LEGACY_INPUTS);
+                var evaluate = providerType.getMethod("evaluate", ModelGeometry.class, inputType);
                 var constructor = inputType.getDeclaredConstructor(float.class, float.class, float.class, float.class, float.class, boolean.class, Map.class);
                 constructor.setAccessible(true);
                 Object legacyInputs = constructor.newInstance(1.25f, .7f, 42f, 17f, -8f, true, Map.of());
