@@ -1,0 +1,52 @@
+name: s08-s09-visual-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s08-s09-visual-proof.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/testutil/AdversarialSnapshotWriter.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S08VisualSnapshotTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S09VisualSnapshotTests.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnchoredTransportPlanner.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/**'
+  workflow_dispatch:
+
+jobs:
+  visual-material-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S08/S09 visual backfill
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S08VisualSnapshotTests',
+            'io.github.r3neer.scalebrews.test.S09VisualSnapshotTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S08/S09 visual material proof
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s08-s09-visual-junit.xml"
+      - name: capture visual evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S08-S09-adversarial-visual-proof
+          path: |
+            build/s08-s09-visual-junit.xml
+            build/run/gameTest/adversarial-snapshots/
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
