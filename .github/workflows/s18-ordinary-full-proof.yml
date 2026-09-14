@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/s18-ordinary-full-proof.yml'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramOwnershipTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyGeometryTests.java'
   workflow_dispatch:
 
 jobs:
