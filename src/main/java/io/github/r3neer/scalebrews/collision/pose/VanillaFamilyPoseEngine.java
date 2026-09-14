@@ -35,7 +35,7 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case EQUINE -> equine(geometry, in, out);
             case BEE -> bee(geometry, in, out);
         }
-        return out.isEmpty() ? Optional.empty() : Optional.of(Collections.unmodifiableMap(out));
+        return complete(out) ? Optional.of(Collections.unmodifiableMap(out)) : Optional.empty();
     }
 
     private boolean supportsSource(String source) {
@@ -47,6 +47,26 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case EQUINE -> EQUINE_SOURCES.contains(source);
             case BEE -> "minecraft:bee".equals(source);
         };
+    }
+
+    private boolean complete(Map<String, Matrix4f> out) {
+        return switch (family) {
+            case CHICKEN -> has(out, "head", "right_leg", "left_leg", "right_wing", "left_wing");
+            case VILLAGER -> has(out, "head", "right_leg", "left_leg");
+            case IRON_GOLEM -> has(out, "head", "right_arm", "left_arm", "right_leg", "left_leg");
+            case GHAST -> has(out, "tentacle0", "tentacle1", "tentacle2", "tentacle3", "tentacle4", "tentacle5", "tentacle6", "tentacle7", "tentacle8");
+            case EQUINE -> has(out, "body", "head_parts", "left_hind_leg", "right_hind_leg", "left_front_leg", "right_front_leg", "tail");
+            case BEE -> has(out, "bone", "right_wing", "left_wing", "front_legs", "middle_legs", "back_legs", "left_antenna", "right_antenna");
+        };
+    }
+
+    private static boolean has(Map<String, Matrix4f> out, String... names) {
+        for (String wanted : names) {
+            boolean present = false;
+            for (String id : out.keySet()) if (id.substring(id.lastIndexOf('/') + 1).equals(wanted)) { present = true; break; }
+            if (!present) return false;
+        }
+        return true;
     }
 
     private static void chicken(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
@@ -71,10 +91,10 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case "head" -> {
                 boolean unhappy = in.flag("unhappy");
                 put(out, p, 0, 0, 0, unhappy ? .4f : in.headPitch() * Mth.DEG_TO_RAD,
-                    in.headYaw() * Mth.DEG_TO_RAD, unhappy ? .3f * Mth.sin(.45f * in.age()) : KEEP);
+                    in.headYaw() * Mth.DEG_TO_RAD, unhappy ? .3f * Mth.sin(.45f * in.age()) : 0f);
             }
-            case "right_leg" -> put(out, p, 0, 0, 0, a, KEEP, KEEP);
-            case "left_leg" -> put(out, p, 0, 0, 0, b, KEEP, KEEP);
+            case "right_leg" -> put(out, p, 0, 0, 0, a, 0f, KEEP);
+            case "left_leg" -> put(out, p, 0, 0, 0, b, 0f, KEEP);
         }
     }
 
@@ -89,8 +109,8 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case "head" -> put(out, p, 0, 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, KEEP);
             case "right_arm" -> put(out, p, 0, 0, 0, rightArm, KEEP, KEEP);
             case "left_arm" -> put(out, p, 0, 0, 0, leftArm, KEEP, KEEP);
-            case "right_leg" -> put(out, p, 0, 0, 0, -1.5f * wave * speed, KEEP, KEEP);
-            case "left_leg" -> put(out, p, 0, 0, 0, 1.5f * wave * speed, KEEP, KEEP);
+            case "right_leg" -> put(out, p, 0, 0, 0, -1.5f * wave * speed, 0f, KEEP);
+            case "left_leg" -> put(out, p, 0, 0, 0, 1.5f * wave * speed, 0f, KEEP);
         }
     }
 
@@ -101,7 +121,6 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
                 put(out, p, 0, 0, 0, .2f * Mth.sin(in.age() * .3f + index) + .4f, KEEP, KEEP);
             } catch (NumberFormatException ignored) {}
         }
-        if (out.isEmpty()) for (var p : g.parts()) if (name(p).equals("body")) { putRest(out, p); break; }
     }
 
     private static void equine(ModelGeometry g, Inputs in, Map<String, Matrix4f> out) {
@@ -219,7 +238,6 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     }
 
     private static String name(ModelGeometry.Part p) { return p.id().substring(p.id().lastIndexOf('/') + 1); }
-    private static void putRest(Map<String, Matrix4f> out, ModelGeometry.Part p) { out.put(p.id(), ModelGeometry.matrix(p.transform())); }
     private static void put(Map<String, Matrix4f> out, ModelGeometry.Part p, float dx, float dy, float dz, float x, float y, float z) {
         var source = p.sourcePose();
         if (source != null) {
