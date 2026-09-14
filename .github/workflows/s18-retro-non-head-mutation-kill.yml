@@ -1,0 +1,72 @@
+name: s18-retro-non-head-mutation-kill
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-retro-non-head-mutation-kill.yml'
+  workflow_dispatch:
+
+jobs:
+  non-head-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: apply test-only non-head omission mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AnimationDefinitionCompiler.java')
+          text=p.read_text()
+          needle='''        for (var bone : bones.entrySet()) {\n            String boneName = bone.getKey();'''
+          replacement='''        for (var bone : bones.entrySet()) {\n            if (!"head".equals(bone.getKey())) continue;\n            String boneName = bone.getKey();'''
+          if text.count(needle) != 1:
+              raise SystemExit('compiler bone loop not found exactly once')
+          p.write_text(text.replace(needle,replacement))
+          PY
+          git diff -- src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AnimationDefinitionCompiler.java
+      - name: isolate S18 semantic original-source oracle
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S18AnimationDefinitionSemanticClientTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: require causal mutation kill
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p build/s18-retro-non-head-kill
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain 2>&1 | tee build/s18-retro-non-head-kill/client.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Non-head omission mutation unexpectedly survived' >&2
+            exit 1
+          fi
+          grep -F 'Compiler must preserve a non-head animation track' build/s18-retro-non-head-kill/client.log
+          echo 'S18_RETRO_MUTATION_KILLED multi-bone original-source oracle rejected non-head omission'
+      - name: capture mutation-kill evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-retro-non-head-mutation-kill
+          path: |
+            build/s18-retro-non-head-kill/
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
