@@ -41,7 +41,15 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.takeScreenshot("scale-brews-bee-player-inventory");
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
+            captureMountAngles(context, "bee");
+            server.runCommand("data merge entity @e[tag=menu_bee,limit=1] {NoAI:0b}");
+            server.runCommand("item replace entity @a weapon.mainhand with scalebrews:flower_on_a_stick");
+            captureMotionFrames(context, "bee", -20);
+            server.runCommand("item replace entity @a weapon.mainhand with minecraft:air");
+            server.runCommand("data merge entity @e[tag=menu_bee,limit=1] {NoAI:1b}");
+            server.runCommand("tp @e[tag=menu_bee,limit=1] -3 -60 2");
             server.runCommand("ride @a[limit=1] dismount");
+            captureUnmountedSide(context, server, "bee", -6, 2);
 
             // Vanilla saddles are shearable. Exercise the real client->server entity interaction so
             // the server handles it with a genuine ServerPlayer, exactly as normal gameplay does.
@@ -81,6 +89,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
                     throw new AssertionError("Shearing the bee did not drop its saddle like pig/strider");
             });
             server.runCommand("item replace entity @a weapon.mainhand with minecraft:air");
+            server.runCommand("kill @e[tag=menu_bee,limit=1]");
             server.runCommand("tp @a 0 -60 0 0 0");
 
             server.runCommand("summon minecraft:chicken 0 -60 2 {Tags:[menu_chicken],NoAI:1b}");
@@ -98,7 +107,13 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.takeScreenshot("scale-brews-chicken-equipment-menu");
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
+            captureMountAngles(context, "chicken");
+            server.runCommand("data merge entity @e[tag=menu_chicken,limit=1] {NoAI:0b}");
+            captureMotionFrames(context, "chicken", 0);
+            server.runCommand("data merge entity @e[tag=menu_chicken,limit=1] {NoAI:1b}");
+            server.runCommand("tp @e[tag=menu_chicken,limit=1] 0 -60 2");
             server.runCommand("ride @a[limit=1] dismount");
+            captureUnmountedSide(context, server, "chicken", -3, 2);
             // Native dismount placement is free to choose a safe point. Pin this networking test
             // inside the server's entity-interaction reach so it tests inventory grammar, not dismount geometry.
             server.runCommand("tp @a 0 -60 1 0 0");
@@ -139,6 +154,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             });
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
+            server.runCommand("kill @e[tag=menu_chicken,limit=1]");
 
             server.runCommand("summon minecraft:wolf 3 -60 2 {Tags:[menu_wolf],NoAI:1b}");
             // 26.2 derives tame state from Owner when loading entity data. Copy the test player's
@@ -165,7 +181,13 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
             context.takeScreenshot("scale-brews-wolf-equipment-menu");
             context.getInput().pressKey(options -> options.keyInventory);
             context.waitForScreen(null);
+            captureMountAngles(context, "wolf");
+            server.runCommand("data merge entity @e[tag=menu_wolf,limit=1] {NoAI:0b}");
+            captureMotionFrames(context, "wolf", 0);
+            server.runCommand("data merge entity @e[tag=menu_wolf,limit=1] {NoAI:1b}");
+            server.runCommand("tp @e[tag=menu_wolf,limit=1] 3 -60 2");
             server.runCommand("ride @a[limit=1] dismount");
+            captureUnmountedSide(context, server, "wolf", 0, 2);
 
             server.runCommand("effect clear @a");
             context.waitTicks(30);
@@ -193,14 +215,50 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
         if (!(client.player.getVehicle() instanceof net.minecraft.world.entity.animal.equine.Horse horse))
             throw new AssertionError("Horse acceptance fixture lost its rider");
         var state = client.getEntityRenderDispatcher().getRenderer(client.player).createRenderState(client.player, 1);
-        var pose = ((RiderPoseState)state).scalebrews$riderPose();
-        if (pose == null) throw new AssertionError("Native horse did not publish a rider attachment pose");
+        if (((RiderPoseState)state).scalebrews$vehicleId() != -1)
+            throw new AssertionError("Native horse was incorrectly enrolled in Tiny Mount visual attachments");
         if (requireMotion) {
             float stand = horse.getStandAnim(1);
             if (stand <= .02F) throw new AssertionError("Forced native horse standing pose did not animate");
-            var moved = pose.transformPosition(new Vector3f(0, 0, 1));
-            if (moved.distance(new Vector3f(0, 0, 1)) <= .001F)
-                throw new AssertionError("Animated horse body did not move the rider attachment");
         }
+    }
+
+    private static void captureMountAngles(ClientGameTestContext context, String name) {
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
+        context.getInput().lookAt(180, 15);
+        context.waitTicks(4);
+        context.takeScreenshot("scale-brews-" + name + "-mounted-rear");
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT));
+        context.waitTicks(4);
+        context.takeScreenshot("scale-brews-" + name + "-mounted-front");
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
+        context.getInput().lookAt(180, 75);
+        context.waitTicks(4);
+        context.takeScreenshot("scale-brews-" + name + "-mounted-top");
+        context.getInput().lookAt(0, 0);
+    }
+
+    private static void captureMotionFrames(ClientGameTestContext context, String name, float pitch) {
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
+        context.getInput().lookAt(0, pitch);
+        context.getInput().holdKey(options -> options.keyUp);
+        context.waitTicks(3);
+        context.takeScreenshot("scale-brews-" + name + "-motion-a");
+        context.waitTicks(5);
+        context.takeScreenshot("scale-brews-" + name + "-motion-b");
+        context.getInput().releaseKey(options -> options.keyUp);
+        context.waitTicks(2);
+        context.getInput().lookAt(0, 0);
+    }
+
+    private static void captureUnmountedSide(ClientGameTestContext context,
+                                              net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext server,
+                                              String name, int x, int z) {
+        context.waitTicks(6);
+        server.runCommand("tp @a " + x + " -60 " + z);
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON));
+        context.getInput().lookAt(-90, 20);
+        context.waitTicks(6);
+        context.takeScreenshot("scale-brews-" + name + "-unmounted-side");
     }
 }

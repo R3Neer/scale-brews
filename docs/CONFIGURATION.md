@@ -37,6 +37,14 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 
 Defaults live at `data/scalebrews/scalebrews/tiny_mount/chicken.json`, `bee.json` and `wolf.json`. Override the same path to change a built-in definition. For another entity, add a new file under `data/<namespace>/scalebrews/tiny_mount/<name>.json`; use just one definition per entity.
 
+An ordinary ground creature needs only its entity ID:
+
+```json
+{ "entity": "modid:creature" }
+```
+
+Missing fields default to `family: direct`, `movement: ground`, `speed: 0.18`, `max_rider_scale_ratio: 0.53`, `ability: none` and `enabled: true`. Add only the gameplay differences the creature actually needs. `item_steered` still requires `steering_item`, and `body_equipment` remains invalid for that family.
+
 ```json
 {
   "entity": "minecraft:bee",
@@ -97,13 +105,33 @@ Effective values include external modifiers and the current blend step. Existing
 
 Only adult mounts are eligible for Tiny Mount equipment/riding rules. Native controller overrides on pigs, horses, striders and other entity classes are not replaced. Mods that inject a controller into the common `Mob` class, or completely replace movement/rendering, need separate compatibility testing.
 
-## Saddle resources
+## Saddle resources and visual profiles
 
-Every Tiny Mount family requires `saddle_visual`; `item_steered` additionally requires `steering_item`. The client renders separate saddle geometry only while a vanilla saddle occupies the equipment slot. Its texture is a resource identifier pointing to a PNG, not a filesystem path or URL. Textures are **not** transferred by the datapack: distribute custom PNGs in a resource pack to clients (or use the bundled textures).
+Visual fitting is client-owned resource-pack data; it is deliberately absent from the synchronized gameplay registry. `saddle_visual` is now a deprecated compatibility input: old definitions still decode and keep their texture, while `body` / `bone` are only legacy hints. New definitions should omit it. Without a visual profile, Scale Brews traverses the final `ModelPart` hierarchy, chooses a large central upper face and uses the bundled generic 64×32 saddle texture.
 
-The reusable anchors currently supported are `body` (chicken-style quarter-turned torso) and `bone` (bee-style body animation group). Both use the supplied 64×32 UV layout. The base model must expose the selected root child. A new body shape may need an additional model adapter; changing an identifier alone cannot fit arbitrary anatomy. A missing anchor skips the saddle layer rather than crashing the renderer. Chicken variants and bee anger/nectar states keep their vanilla base textures.
+Optional overrides live at `assets/<entity namespace>/scalebrews/tiny_mount_visual/<entity path>.json` and reload with F3+T. For `minecraft:cow`, the path is `assets/minecraft/scalebrews/tiny_mount_visual/cow.json`:
 
-Supported living Tiny Mounts share the mount model's final rendered attachment transform with both the saddle and passenger, after vanilla `setupAnim` and optional model animation have run. This keeps the saddle and rider on one animation source instead of reconstructing species-specific poses. Bees retain natural bobbing and rolling while ridden; the same path covers chicken, wolf and vanilla horse body animation. The pinned optional-mod proof passed with EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5. Custom renderers that replace the expected model/root structure still need separate compatibility testing.
+```json
+{
+  "anchor": {
+    "path": "root/body/body_rotation",
+    "point": [0.5, 1.0, 0.5],
+    "offset": [0.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0]
+  },
+  "saddle": {
+    "texture": "modid:textures/entity/saddle/creature.png",
+    "width": 1.0,
+    "length": 1.0,
+    "strap_length": 1.0,
+    "seat_height": 1.0
+  }
+}
+```
+
+Every field is optional. `point` is normalized within the chosen upper face. `offset` is measured in model pixels in the normalized right/up/front frame, rotations are degrees, and saddle dimensions are multipliers. A missing or geometry-less explicit `path` falls back to autodetection. An invalid reload keeps that resource's last valid profile, warns once and never aborts entity rendering.
+
+The resulting `SeatFrame` contains the complete current animated chain, including nested EMF/Fresh Animations groups. Saddle, rider and translation-only camera tracking consume the same seat. Model scale follows the saddle, but the rider receives only translation and orthonormal rotation. Only registered Tiny Mounts enter this path; native horse, pig and Strider rendering is untouched. JSON supports `LivingEntityRenderer` models backed by `ModelPart`; completely custom render engines must register an explicit client adapter rather than relying on reflective guessing. See `examples/tiny-mount-addon` for a minimal datapack plus optional resource pack.
 
 ### Steering-item attraction
 

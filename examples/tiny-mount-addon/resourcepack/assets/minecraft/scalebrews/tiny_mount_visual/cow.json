@@ -1,0 +1,12 @@
+{
+  "anchor": {
+    "path": "root/body",
+    "point": [0.5, 1.0, 0.5]
+  },
+  "saddle": {
+    "width": 1.0,
+    "length": 1.0,
+    "strap_length": 1.0,
+    "seat_height": 1.0
+  }
+}

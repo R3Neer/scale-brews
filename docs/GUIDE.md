@@ -127,7 +127,7 @@ Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chi
 
 *The three default tiny mounts, shown with saddles. Equipping a saddle does not require Shrinking; riding depends on relative size.*
 
-Saddles and mounted riders consume the mount model's **final rendered attachment transform**, so they follow the same finished animation instead of reconstructing a separate pose. Bees therefore keep their natural bobbing and rolling while ridden, and the same path covers chicken, wolf and vanilla horse body animation. The optional-mod proof also passed with EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5. First-person camera and collision physics remain separate and stable.
+Saddles and mounted riders consume one **final rendered seat frame**, discovered from the registered Tiny Mount's complete model hierarchy. Nested Fresh Animations groups therefore move the body, saddle and rider together. Visual fitting is optional resource-pack JSON and reloads with F3+T; gameplay definitions stay in the server datapack. Native horses, pigs and other unregistered mounts never enter this renderer path. Camera correction is translation-only; collision physics and server position remain authoritative.
 
 A tamed wolf can be shared by compatible riders without changing its owner. Its default maximum rider/mount scale ratio is **0.76**.
 
@@ -167,7 +167,7 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, family-driven Tiny Mount mounting/inventory rules, saddle shearing and dispenser equipment, animated saddle/rider transforms, wolf controls and unmounted steering-item attraction. The beta.7 prerelease lane passed **154 required server GameTests** plus the full client suite; the pinned EMF/Fresh Animations proof is a separate optional-mod lane rather than a hard dependency.
+The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, family-driven Tiny Mount mounting/inventory rules, saddle shearing and dispenser equipment, animated saddle/rider transforms, wolf controls and unmounted steering-item attraction. The released beta.7 evidence remains recorded in [Validation](VALIDATION.md). Changes after beta.7 require a fresh base-client run, the pinned EMF/Fresh Animations lane and manual visual acceptance before release.
 
 Both run with the base Fabric setup and were also tested with **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**, including their required dependencies. Targeted checks cover weapon-dependent reach, attack knockback, tendon brewing, modded-mob landings, small-player corner collision and elytra eligibility.
 

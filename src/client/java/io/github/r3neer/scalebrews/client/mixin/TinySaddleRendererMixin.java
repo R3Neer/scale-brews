@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,12 +36,16 @@ public abstract class TinySaddleRendererMixin<S extends LivingEntityRenderState,
     private void scalebrews$extract(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         var definition = TinyMounts.definition(entity);
         var saddle = (SaddleState) state;
-        saddle.scalebrews$saddlePose(null);
-        saddle.scalebrews$saddle(definition != null && entity.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)
-                ? definition.saddleVisual().orElse(null) : null);
+        boolean equipped = definition != null && entity.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
+        var legacy = definition == null ? null : definition.saddleVisual().orElse(null);
+        var entityType = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        saddle.scalebrews$seatFrame(null);
+        saddle.scalebrews$hasSaddle(equipped);
+        saddle.scalebrews$saddle(equipped ? legacy : null);
+        saddle.scalebrews$visualProfile(definition == null ? null : io.github.r3neer.scalebrews.client.render.TinyMountVisualProfile.resolve(entityType, legacy));
         var mount = (MountPoseState) state;
         mount.scalebrews$entityId(entity.getId());
-        mount.scalebrews$hasPassengers(entity.isVehicle());
-        mount.scalebrews$mountAnchor(definition == null ? null : definition.saddleVisual().map(v -> v.anchor()).orElse(null));
+        mount.scalebrews$tinyMount(definition != null);
+        mount.scalebrews$mountType(definition == null ? null : entityType);
     }
 }

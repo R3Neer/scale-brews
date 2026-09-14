@@ -15,6 +15,7 @@ public class ScaleBrewsClientTests implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         try (var world = context.worldBuilder().create()) {
             world.getConnection().waitForChunksRender();
+            context.runOnClient(client -> TinyMountVisualTests.run());
             context.runOnClient(ScaleCameraChecks::run);
             context.setScreen(() -> {
                 var client = net.minecraft.client.Minecraft.getInstance();

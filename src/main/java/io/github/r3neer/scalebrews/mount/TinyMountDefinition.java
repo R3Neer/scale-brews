@@ -15,10 +15,10 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
         Identifier.CODEC.fieldOf("entity").forGetter(TinyMountDefinition::entity),
         // Legacy files without a ratio adopt the current Tiny Mount size policy.
         MountSizePolicy.RATIO.optionalFieldOf("max_rider_scale_ratio", 0.53).forGetter(TinyMountDefinition::maxRiderScaleRatio),
-        StringRepresentable.fromEnum(Family::values).fieldOf("family").forGetter(TinyMountDefinition::family),
-        StringRepresentable.fromEnum(Movement::values).fieldOf("movement").forGetter(TinyMountDefinition::movement),
+        StringRepresentable.fromEnum(Family::values).optionalFieldOf("family", Family.DIRECT).forGetter(TinyMountDefinition::family),
+        StringRepresentable.fromEnum(Movement::values).optionalFieldOf("movement", Movement.GROUND).forGetter(TinyMountDefinition::movement),
         Identifier.CODEC.optionalFieldOf("steering_item").forGetter(TinyMountDefinition::steeringItem),
-        Codec.floatRange(.01F, 1F).fieldOf("speed").forGetter(TinyMountDefinition::speed),
+        Codec.floatRange(.01F, 1F).optionalFieldOf("speed", .18F).forGetter(TinyMountDefinition::speed),
         Codec.floatRange(0F, 75F).optionalFieldOf("max_pitch", 60F).forGetter(TinyMountDefinition::maxPitch),
         Codec.floatRange(.01F, .5F).optionalFieldOf("max_vertical_speed", .15F).forGetter(TinyMountDefinition::maxVerticalSpeed),
         StringRepresentable.fromEnum(Ability::values).optionalFieldOf("ability", Ability.NONE).forGetter(TinyMountDefinition::ability),
@@ -26,8 +26,6 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
         SaddleVisual.CODEC.optionalFieldOf("saddle_visual").forGetter(TinyMountDefinition::saddleVisual),
         BodyEquipment.CODEC.optionalFieldOf("body_equipment").forGetter(TinyMountDefinition::bodyEquipment)
     ).apply(i, TinyMountDefinition::new)).validate(d -> {
-        if (d.saddleVisual().isEmpty())
-            return com.mojang.serialization.DataResult.error(() -> "Tiny Mount families require saddle_visual (texture and anchor)");
         if (d.family().usesSteeringItem() != d.steeringItem().isPresent())
             return com.mojang.serialization.DataResult.error(() -> d.family().usesSteeringItem()
                     ? "item_steered requires steering_item"
@@ -37,7 +35,7 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
         return com.mojang.serialization.DataResult.success(d);
     });
 
-    /** Java-source compatibility only. Saddle is now an invariant of every Tiny Mount family, not a JSON option. */
+    /** Saddle inventory/interaction remains family-driven; its visual is now an optional client hint. */
     public boolean saddle() { return true; }
     /** Java-source compatibility only. Control is derived from family and is no longer independently configurable. */
     public Control control() { return family == Family.ITEM_STEERED ? Control.ITEM_STEERED : Control.DIRECT; }
@@ -45,10 +43,7 @@ public record TinyMountDefinition(Identifier entity, double maxRiderScaleRatio,
     public record SaddleVisual(Identifier texture, String anchor) {
         public static final Codec<SaddleVisual> CODEC = RecordCodecBuilder.create(i -> i.group(
             Identifier.CODEC.fieldOf("texture").forGetter(SaddleVisual::texture),
-            Codec.STRING.validate(s -> s.equals("body") || s.equals("bone")
-                ? com.mojang.serialization.DataResult.success(s)
-                : com.mojang.serialization.DataResult.error(() -> "Saddle anchor must be body or bone"))
-                .fieldOf("anchor").forGetter(SaddleVisual::anchor)
+            Codec.STRING.optionalFieldOf("anchor", "").forGetter(SaddleVisual::anchor)
         ).apply(i, SaddleVisual::new));
     }
 

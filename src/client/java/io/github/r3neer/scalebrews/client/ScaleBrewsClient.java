@@ -8,6 +8,7 @@ public class ScaleBrewsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         io.github.r3neer.scalebrews.client.platform.anatomy.AnatomyClientNetworking.initialize();
+        io.github.r3neer.scalebrews.client.render.TinyMountVisualProfile.initialize();
         io.github.r3neer.scalebrews.client.platform.PlatformClient.initialize();
         WolfPounceFeedback.initialize();
         MenuScreens.register(TinyMountInventory.MENU, TinyMountScreen::new);

@@ -109,8 +109,15 @@ public final class TinyMountFamilyTests {
                 "Item-steered family requires a steering item");
         h.assertTrue(rejects("{\"entity\":\"minecraft:cow\",\"family\":\"item_steered\",\"movement\":\"ground\",\"speed\":0.2,\"steering_item\":\"minecraft:stick\",\"body_equipment\":{\"item\":\"minecraft:wolf_armor\",\"slot_icon\":\"scalebrews:container/slot/wolf_armor\"}," + SADDLE_VISUAL + "}"),
                 "Item-steered family rejects mount-inventory BODY equipment");
-        h.assertTrue(rejects("{\"entity\":\"minecraft:cow\",\"family\":\"direct\",\"movement\":\"ground\",\"speed\":0.2}"),
-                "Every saddle family requires its visual contract");
+        var minimal = TinyMountDefinition.CODEC.parse(JsonOps.INSTANCE,
+                JsonParser.parseString("{\"entity\":\"minecraft:cow\"}")).getOrThrow();
+        h.assertTrue(minimal.family() == TinyMountDefinition.Family.DIRECT
+                        && minimal.movement() == TinyMountDefinition.Movement.GROUND
+                        && Math.abs(minimal.speed() - .18F) < .0001F
+                        && Math.abs(minimal.maxRiderScaleRatio() - .53) < .0001
+                        && minimal.ability() == TinyMountDefinition.Ability.NONE
+                        && minimal.enabled() && minimal.saddleVisual().isEmpty(),
+                "Entity-only Tiny Mount definition receives every safe default");
         h.succeed();
     }
 
