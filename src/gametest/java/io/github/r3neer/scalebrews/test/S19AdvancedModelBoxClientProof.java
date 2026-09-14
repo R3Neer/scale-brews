@@ -107,14 +107,13 @@ public final class S19AdvancedModelBoxClientProof implements FabricClientGameTes
     }
 
     /**
-     * Pinned adult render-space transform. Both models inherit the common living-model flip/base
-     * translation; Gazelle's concrete renderer additionally applies scale(0.8), while Grizzly does
-     * not override that hook. This belongs to the reusable source descriptor, not the extractor.
+     * Pinned adult render-space transform. Bytecode order is flip, concrete renderer scale, then
+     * the common -1.501 translation. Source-specific transforms belong here, not in the extractor.
      */
     private static Matrix4f sourceModelTransform(Identifier id) {
-        Matrix4f transform = new Matrix4f().scaling(-1f, -1f, 1f).translate(0f, -1.501f, 0f);
+        Matrix4f transform = new Matrix4f().scaling(-1f, -1f, 1f);
         if (id.getPath().equals("gazelle")) transform.scale(.8f, .8f, .8f);
-        return transform;
+        return transform.translate(0f, -1.501f, 0f);
     }
 
     private static Vec3 transform(Vec3 source, Matrix4f transform) {
