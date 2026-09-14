@@ -24,6 +24,7 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionCompilerClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionSemanticClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18NonUnitRestScaleSemanticClientTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18EulerRepresentativeSemanticClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
       - 'src/gametest/resources/fabric.mod.json'
       - 'docs/sprints/S18-vanilla-pose-keyframe-engine.md'
@@ -137,6 +138,40 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: S18-non-unit-rest-scale-proof
+          path: |
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  client-euler-representative:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate Euler representative semantic holdout
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S18EulerRepresentativeSemanticClientTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run Euler representative semantic holdout
+        run: xvfb-run -a ./gradlew runClientGameTest --console=plain
+      - name: capture Euler representative evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S18-euler-representative-proof
           path: |
             build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
