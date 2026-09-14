@@ -53,8 +53,12 @@ public final class G2SingleBlockingOwnerReadyTests {
 
             AABB supportBox=support.getBoundingBox();
             double wallMinX=supportBox.maxX+1.25;
-            var wall=ConvexBox.of(new AABB(wallMinX,supportBox.minY-1,support.getZ()-1,
-                wallMinX+.2,supportBox.maxY+1,support.getZ()+1),new Matrix4f());
+            // Build the thin wall near the origin before translating it. ConvexBox.of uses the
+            // model-style float matrix path, so embedding multi-million-block world coordinates
+            // directly in the AABB can collapse a 0.2-block thickness to zero at float precision.
+            double wallHeight=supportBox.getYsize()+2;
+            var wall=ConvexBox.of(new AABB(0,0,-1,.2,wallHeight,1),new Matrix4f())
+                .move(new Vec3(wallMinX,supportBox.minY-1,support.getZ()));
             GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("wall",wall)));
             AnatomyMovement.register(support,provider);
 
