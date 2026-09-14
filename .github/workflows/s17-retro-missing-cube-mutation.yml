@@ -46,6 +46,7 @@ jobs:
           data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S17OriginalModelStructuralParityClientTests']
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
+          mkdir -p build
           set +e
           xvfb-run -a ./gradlew runClientGameTest --console=plain > build/s17-retro-mutation.log 2>&1
           status=$?
