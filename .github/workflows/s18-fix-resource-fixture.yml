@@ -18,6 +18,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: chatgpt-editing
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
       - name: patch historical ResourceManager fixture
         shell: bash
         run: |
