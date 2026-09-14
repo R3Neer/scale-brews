@@ -1,14 +1,20 @@
 package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
+import io.github.r3neer.scalebrews.platform.PlatformDefinition;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
@@ -17,10 +23,25 @@ import org.joml.Matrix4f;
 
 /** Adversarial FR-053 holdout: READY anatomy support must not consume vanilla Entity.push. */
 public final class G2VanillaPushReadyTests {
+    private static final Identifier MODEL=Identifier.parse("test:g2_push_model");
+    private static final Identifier STATIC_POSE=Identifier.parse("scalebrews:static");
+
+    private static ModelGeometry catalogModel() {
+        return new ModelGeometry(1,"test:g2_push_model","1",
+            List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            List.of(new ModelGeometry.Piece("floor","root",List.of(-1d,-.1d,-1d),List.of(1d,.1d,1d),null)),
+            ModelGeometry.values(new Matrix4f()));
+    }
+
+    private static PlatformDefinition cowProfile() {
+        return new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(.85),List.of(),
+            Optional.of(new AnatomyDefinition(MODEL,STATIC_POSE,AnatomyFilter.DEFAULT)));
+    }
+
     @GameTest
     public void readyMaterialSupportPreservesVanillaEntityPush(GameTestHelper h) {
         var server=h.getLevel().getServer();
-        AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
+        AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("cow",cowProfile()));
         var support=h.spawn(EntityTypes.COW,2,20,2);
         var body=h.makeMockPlayer(GameType.SURVIVAL);
         try {
@@ -32,6 +53,8 @@ public final class G2VanillaPushReadyTests {
 
             h.assertTrue(AnatomyApi.ready(body) && AnatomyApi.ready(support),
                 "Holdout must traverse the production READY guard used by PlatformEntityMixin.push");
+            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
+                "Holdout must use a canonically eligible body/support pair, not a fixture-only provider rejected by READY policy");
 
             body.setPos(support.getX()+.2,floor.bounds().maxY+.5,support.getZ());
             body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
