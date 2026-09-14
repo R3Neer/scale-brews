@@ -22,6 +22,7 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramOwnershipTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseEngineSpiCompatibilityTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18PoseProgramExecutionTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S18SourcePoseCatalogBoundaryTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionCompilerClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18AnimationDefinitionSemanticClientTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S18NonUnitRestScaleSemanticClientTests.java'
@@ -59,7 +60,8 @@ jobs:
             'io.github.r3neer.scalebrews.collision.internal.S18RuntimePoseEngineBoundaryTests',
             'io.github.r3neer.scalebrews.collision.internal.S18PoseProgramOwnershipTests',
             'io.github.r3neer.scalebrews.collision.internal.S18PoseEngineSpiCompatibilityTests',
-            'io.github.r3neer.scalebrews.collision.internal.S18PoseProgramExecutionTests'
+            'io.github.r3neer.scalebrews.collision.internal.S18PoseProgramExecutionTests',
+            'io.github.r3neer.scalebrews.collision.internal.S18SourcePoseCatalogBoundaryTests'
           ]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
