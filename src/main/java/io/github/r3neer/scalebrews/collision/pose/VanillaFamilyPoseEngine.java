@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 /** Canonical server-safe Minecraft 26.2 pose formulae for reusable ordinary model families. */
 public final class VanillaFamilyPoseEngine implements PoseEngine {
     public enum Family { CHICKEN, VILLAGER, IRON_GOLEM, GHAST, EQUINE, BEE }
+    private static final float KEEP = Float.NaN;
     private static final Set<String> EQUINE_SOURCES = Set.of(
         "minecraft:horse", "minecraft:donkey", "minecraft:mule", "minecraft:skeleton_horse", "minecraft:zombie_horse");
     private final Family family;
@@ -54,11 +55,11 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
         float b = Mth.cos(in.walkPhase() * .6662f + (float)Math.PI) * 1.4f * in.walkAmount();
         float flap = (Mth.sin(in.channel("flap", 0)) + 1) * in.channel("flap_speed", 0);
         for (var p : g.parts()) switch (name(p)) {
-            case "head" -> put(out, p, 0, 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, 0);
-            case "right_leg" -> put(out, p, 0, 0, 0, a, 0, 0);
-            case "left_leg" -> put(out, p, 0, 0, 0, b, 0, 0);
-            case "right_wing" -> put(out, p, 0, 0, 0, 0, 0, flap);
-            case "left_wing" -> put(out, p, 0, 0, 0, 0, 0, -flap);
+            case "head" -> put(out, p, 0, 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, KEEP);
+            case "right_leg" -> put(out, p, 0, 0, 0, a, KEEP, KEEP);
+            case "left_leg" -> put(out, p, 0, 0, 0, b, KEEP, KEEP);
+            case "right_wing" -> put(out, p, 0, 0, 0, KEEP, KEEP, flap);
+            case "left_wing" -> put(out, p, 0, 0, 0, KEEP, KEEP, -flap);
         }
     }
 
@@ -70,10 +71,10 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             case "head" -> {
                 boolean unhappy = in.flag("unhappy");
                 put(out, p, 0, 0, 0, unhappy ? .4f : in.headPitch() * Mth.DEG_TO_RAD,
-                    in.headYaw() * Mth.DEG_TO_RAD, unhappy ? .3f * Mth.sin(.45f * in.age()) : 0);
+                    in.headYaw() * Mth.DEG_TO_RAD, unhappy ? .3f * Mth.sin(.45f * in.age()) : KEEP);
             }
-            case "right_leg" -> put(out, p, 0, 0, 0, a, 0, 0);
-            case "left_leg" -> put(out, p, 0, 0, 0, b, 0, 0);
+            case "right_leg" -> put(out, p, 0, 0, 0, a, KEEP, KEEP);
+            case "left_leg" -> put(out, p, 0, 0, 0, b, KEEP, KEEP);
         }
     }
 
@@ -85,11 +86,11 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
         else if (flower > 0) { rightArm = -.8f + .025f * Mth.triangleWave(flower, 70); leftArm = 0; }
         else { rightArm = (-.2f + 1.5f * wave) * speed; leftArm = (-.2f - 1.5f * wave) * speed; }
         for (var p : g.parts()) switch (name(p)) {
-            case "head" -> put(out, p, 0, 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, 0);
-            case "right_arm" -> put(out, p, 0, 0, 0, rightArm, 0, 0);
-            case "left_arm" -> put(out, p, 0, 0, 0, leftArm, 0, 0);
-            case "right_leg" -> put(out, p, 0, 0, 0, -1.5f * wave * speed, 0, 0);
-            case "left_leg" -> put(out, p, 0, 0, 0, 1.5f * wave * speed, 0, 0);
+            case "head" -> put(out, p, 0, 0, 0, in.headPitch() * Mth.DEG_TO_RAD, in.headYaw() * Mth.DEG_TO_RAD, KEEP);
+            case "right_arm" -> put(out, p, 0, 0, 0, rightArm, KEEP, KEEP);
+            case "left_arm" -> put(out, p, 0, 0, 0, leftArm, KEEP, KEEP);
+            case "right_leg" -> put(out, p, 0, 0, 0, -1.5f * wave * speed, KEEP, KEEP);
+            case "left_leg" -> put(out, p, 0, 0, 0, 1.5f * wave * speed, KEEP, KEEP);
         }
     }
 
@@ -97,7 +98,7 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
         for (var p : g.parts()) if (name(p).startsWith("tentacle")) {
             try {
                 int index = Integer.parseInt(name(p).substring("tentacle".length()));
-                put(out, p, 0, 0, 0, .2f * Mth.sin(in.age() * .3f + index) + .4f, 0, 0);
+                put(out, p, 0, 0, 0, .2f * Mth.sin(in.age() * .3f + index) + .4f, KEEP, KEEP);
             } catch (NumberFormatException ignored) {}
         }
         if (out.isEmpty()) for (var p : g.parts()) if (name(p).equals("body")) { putRest(out, p); break; }
@@ -138,27 +139,20 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
             switch (name(p)) {
                 case "body" -> {
                     float restX = source == null ? 0f : source.xRot();
-                    put(out, p, 0, 0, 0, standing * (float)(-Math.PI / 4) + iStanding * restX,
-                        source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                    put(out, p, 0, 0, 0, standing * (float)(-Math.PI / 4) + iStanding * restX, KEEP, KEEP);
                 }
                 case "head_parts" -> {
                     float sourceZ = source == null ? -12f : source.z();
                     float desiredZ = Mth.lerp(standing, sourceZ, -4f);
-                    put(out, p, 0, headDy, desiredZ - sourceZ, headX, headY,
-                        source == null ? 0f : source.zRot());
+                    put(out, p, 0, headDy, desiredZ - sourceZ, headX, headY, KEEP);
                 }
-                case "left_hind_leg" -> put(out, p, 0, 0, 0, leftHindX,
-                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
-                case "right_hind_leg" -> put(out, p, 0, 0, 0, rightHindX,
-                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
-                case "left_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, rightFrontX,
-                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
-                case "right_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, leftFrontX,
-                    source == null ? 0f : source.yRot(), source == null ? 0f : source.zRot());
+                case "left_hind_leg" -> put(out, p, 0, 0, 0, leftHindX, KEEP, KEEP);
+                case "right_hind_leg" -> put(out, p, 0, 0, 0, rightHindX, KEEP, KEEP);
+                case "left_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, rightFrontX, KEEP, KEEP);
+                case "right_front_leg" -> put(out, p, 0, -12f * standing, 4f * standing, leftFrontX, KEEP, KEEP);
                 case "tail" -> put(out, p, 0, animationSpeed * ageScale, animationSpeed * 2f * ageScale,
                     (float)Math.PI / 6f + animationSpeed * .75f,
-                    in.flag("tail") ? Mth.cos(in.age() * .7f) : 0f,
-                    source == null ? 0f : source.zRot());
+                    in.flag("tail") ? Mth.cos(in.age() * .7f) : 0f, KEEP);
             }
         }
     }
@@ -170,41 +164,53 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
         float wave = Mth.cos(age * .18f);
         float wing = Mth.cos(age * 2.1f) * (float)Math.PI * .15f;
 
-        float rightWingY, leftWingY, rightWingZ, leftWingZ;
-        float frontLegX, middleLegX, backLegX;
-        if (ground) {
-            rightWingY = -.2618f;
-            leftWingY = .2618f;
-            rightWingZ = leftWingZ = 0;
-            frontLegX = middleLegX = backLegX = 0;
-        } else {
-            rightWingY = leftWingY = 0;
+        float boneX = KEEP, boneDy = 0f;
+        float rightWingX = KEEP, rightWingY = KEEP, rightWingZ = KEEP;
+        float leftWingX = KEEP, leftWingY = KEEP, leftWingZ = KEEP;
+        float frontLegX = KEEP, middleLegX = KEEP, backLegX = KEEP;
+        float antennaX = KEEP;
+        if (!ground) {
+            rightWingY = 0f;
             rightWingZ = wing;
+            leftWingX = sourceRotation(g, "right_wing", 0);
+            leftWingY = 0f;
             leftWingZ = -wing;
-            frontLegX = middleLegX = backLegX = .7853982f;
+            frontLegX = middleLegX = backLegX = (float)Math.PI / 4f;
         }
-
-        float boneX = 0, boneDy = 0, antennaX = 0;
         if (!angry && !ground) {
             boneX = .1f + wave * (float)Math.PI * .025f;
-            antennaX = wave * (float)Math.PI * .03f;
-            frontLegX = -wave * (float)Math.PI * .1f + .3926991f;
-            backLegX = -wave * (float)Math.PI * .05f + .7853982f;
             boneDy = -wave * .9f;
+            frontLegX = -wave * (float)Math.PI * .1f + (float)Math.PI / 8f;
+            backLegX = -wave * (float)Math.PI * .05f + (float)Math.PI / 4f;
+            antennaX = wave * (float)Math.PI * .03f;
         }
         float roll = in.channel("roll", 0);
-        if (roll > 0)
-            boneX += roll * (float)Math.atan2(Math.sin(3.0915928f - boneX), Math.cos(3.0915928f - boneX));
+        if (roll > 0) {
+            float current = Float.isNaN(boneX) ? sourceRotation(g, "bone", 0) : boneX;
+            boneX = Mth.rotLerpRad(roll, current, 3.0915928f);
+        }
 
         for (var p : g.parts()) switch (name(p)) {
-            case "bone" -> put(out, p, 0, boneDy, 0, boneX, 0, 0);
-            case "right_wing" -> put(out, p, 0, 0, 0, 0, rightWingY, rightWingZ);
-            case "left_wing" -> put(out, p, 0, 0, 0, 0, leftWingY, leftWingZ);
-            case "front_legs" -> put(out, p, 0, 0, 0, frontLegX, 0, 0);
-            case "middle_legs" -> put(out, p, 0, 0, 0, middleLegX, 0, 0);
-            case "back_legs" -> put(out, p, 0, 0, 0, backLegX, 0, 0);
-            case "left_antenna", "right_antenna" -> put(out, p, 0, 0, 0, antennaX, 0, 0);
+            case "bone" -> put(out, p, 0, boneDy, 0, boneX, KEEP, KEEP);
+            case "right_wing" -> put(out, p, 0, 0, 0, rightWingX, rightWingY, rightWingZ);
+            case "left_wing" -> put(out, p, 0, 0, 0, leftWingX, leftWingY, leftWingZ);
+            case "front_legs" -> put(out, p, 0, 0, 0, frontLegX, KEEP, KEEP);
+            case "middle_legs" -> put(out, p, 0, 0, 0, middleLegX, KEEP, KEEP);
+            case "back_legs" -> put(out, p, 0, 0, 0, backLegX, KEEP, KEEP);
+            case "left_antenna", "right_antenna" -> put(out, p, 0, 0, 0, antennaX, KEEP, KEEP);
         }
+    }
+
+    private static float sourceRotation(ModelGeometry geometry, String partName, int axis) {
+        for (var part : geometry.parts()) if (name(part).equals(partName) && part.sourcePose() != null) {
+            return switch (axis) {
+                case 0 -> part.sourcePose().xRot();
+                case 1 -> part.sourcePose().yRot();
+                case 2 -> part.sourcePose().zRot();
+                default -> throw new IllegalArgumentException("Invalid rotation axis");
+            };
+        }
+        return 0f;
     }
 
     private static boolean required(Inputs in, String... names) {
@@ -217,14 +223,20 @@ public final class VanillaFamilyPoseEngine implements PoseEngine {
     private static void put(Map<String, Matrix4f> out, ModelGeometry.Part p, float dx, float dy, float dz, float x, float y, float z) {
         var source = p.sourcePose();
         if (source != null) {
+            float rx = Float.isNaN(x) ? source.xRot() : x;
+            float ry = Float.isNaN(y) ? source.yRot() : y;
+            float rz = Float.isNaN(z) ? source.zRot() : z;
             out.put(p.id(), new Matrix4f().translation(
                     source.x() / 16f + dx / 16f, source.y() / 16f + dy / 16f, source.z() / 16f + dz / 16f)
-                .rotateZYX(z, y, x).scale(source.xScale(), source.yScale(), source.zScale()));
+                .rotateZYX(rz, ry, rx).scale(source.xScale(), source.yScale(), source.zScale()));
             return;
         }
         Matrix4f rest = ModelGeometry.matrix(p.transform());
         Vector3f translation = rest.getTranslation(new Vector3f()), scale = rest.getScale(new Vector3f());
+        float rx = Float.isNaN(x) ? 0f : x;
+        float ry = Float.isNaN(y) ? 0f : y;
+        float rz = Float.isNaN(z) ? 0f : z;
         out.put(p.id(), new Matrix4f().translation(translation.x + dx / 16, translation.y + dy / 16, translation.z + dz / 16)
-            .rotateZYX(z, y, x).scale(scale));
+            .rotateZYX(rz, ry, rx).scale(scale));
     }
 }
