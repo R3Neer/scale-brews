@@ -38,7 +38,8 @@ public final class AuthorityPoseTracker {
         else {
             Vec3 delta=position.subtract(state.previous).subtract(transport.appliedDelta());
             double distance=gravity.tangent(delta).length();
-            if(entity.isAlive() && !entity.isPassenger())state.walk.update(Math.min((float)distance*4,1),.4f,1);
+            if(entity.isAlive() && !entity.isPassenger())
+                state.walk.update(Math.min((float)distance*4,1),.4f,entity.isBaby()?3f:1f);
             else state.walk.stop();
         }
         state.previous=position;state.tick=tick;state.gravity=gravity;state.transportGeneration=transportGeneration;
