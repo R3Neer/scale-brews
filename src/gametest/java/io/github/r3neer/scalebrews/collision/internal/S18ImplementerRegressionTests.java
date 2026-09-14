@@ -117,6 +117,22 @@ public final class S18ImplementerRegressionTests {
     }
 
     @GameTest
+    public void equineAgeScaleIsARequiredSemanticChannel(GameTestHelper h) {
+        var equine = CollisionEngines.pose(Identifier.parse("scalebrews:equine")).orElseThrow();
+        var geometry = ordinaryGeometry("minecraft:horse",
+            List.of("body", "head_parts", "left_hind_leg", "right_hind_leg", "left_front_leg", "right_front_leg", "tail"));
+        var missing = new PoseEngine.Inputs(1, .5f, 10, 0, 0, true,
+            Map.of("eat", 0f, "stand", 0f, "mouth", 0f, "tail", 0f, "water", 0f));
+        h.assertTrue(equine.evaluate(geometry, missing, Map.of()).isEmpty(),
+            "Equine age_scale changes vanilla tail translation and must not silently default to adult scale when absent");
+        var complete = new PoseEngine.Inputs(1, .5f, 10, 0, 0, true,
+            Map.of("eat", 0f, "stand", 0f, "mouth", 0f, "tail", 0f, "water", 0f, "age_scale", 1f));
+        h.assertTrue(equine.evaluate(geometry, complete, Map.of()).isPresent(),
+            "Equine required-channel fixture must remain otherwise executable");
+        h.succeed();
+    }
+
+    @GameTest
     public void proceduralPoseFamiliesPreserveExactSignedSourceScale(GameTestHelper h) {
         float yaw = 17f;
         float pitch = -8f;
