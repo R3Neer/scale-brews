@@ -1,0 +1,95 @@
+package io.github.r3neer.scalebrews.collision.internal;
+
+import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import java.util.List;
+import java.util.Map;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import org.joml.Matrix4f;
+
+/** Implementer-owned S18 regression coverage discovered during the final architecture reread. */
+public final class S18ImplementerRegressionTests {
+    private static final float EPS = 2e-6f;
+    private static final ModelGeometry.SourcePose SIGNED_HEAD = new ModelGeometry.SourcePose(
+        16f, 8f, -4f, 0f, 0f, 0f, -1.5f, .75f, 1.25f);
+
+    @GameTest
+    public void finitePoseInputsDoNotBecomeInvalidOnlyBecauseTheirSumOverflows(GameTestHelper h) {
+        var inputs = new PoseEngine.Inputs(
+            Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, Float.MAX_VALUE, true, Map.of());
+        h.assertTrue(Float.isFinite(inputs.walkPhase()) && Float.isFinite(inputs.walkAmount())
+                && Float.isFinite(inputs.age()) && Float.isFinite(inputs.headYaw()) && Float.isFinite(inputs.headPitch()),
+            "PoseEngine.Inputs must validate each finite authoritative component independently instead of summing them first");
+
+        boolean rejectedInfinity = false;
+        try {
+            new PoseEngine.Inputs(Float.POSITIVE_INFINITY, 0, 0, 0, 0, true, Map.of());
+        } catch (IllegalArgumentException expected) {
+            rejectedInfinity = true;
+        }
+        h.assertTrue(rejectedInfinity, "Non-finite pose inputs must still fail closed");
+        h.succeed();
+    }
+
+    @GameTest
+    public void proceduralPoseFamiliesPreserveExactSignedSourceScale(GameTestHelper h) {
+        float yaw = 17f;
+        float pitch = -8f;
+        var expectedHead = new Matrix4f().translation(
+                SIGNED_HEAD.x() / 16f, SIGNED_HEAD.y() / 16f, SIGNED_HEAD.z() / 16f)
+            .rotateZYX(0f, yaw * Mth.DEG_TO_RAD, pitch * Mth.DEG_TO_RAD)
+            .scale(SIGNED_HEAD.xScale(), SIGNED_HEAD.yScale(), SIGNED_HEAD.zScale());
+
+        assertHead(h, "scalebrews:quadruped", ordinaryGeometry("minecraft:cow",
+            List.of("head", "right_hind_leg", "left_hind_leg", "right_front_leg", "left_front_leg")),
+            new PoseEngine.Inputs(1.25f, .6f, 20f, yaw, pitch, true), expectedHead);
+
+        assertHead(h, "scalebrews:player_walking", ordinaryGeometry("minecraft:player_wide",
+            List.of("head", "right_arm", "left_arm", "right_leg", "left_leg")),
+            new PoseEngine.Inputs(1.25f, .6f, 20f, yaw, pitch, true), expectedHead);
+
+        assertHead(h, "scalebrews:chicken", ordinaryGeometry("minecraft:chicken",
+            List.of("head", "right_leg", "left_leg", "right_wing", "left_wing")),
+            new PoseEngine.Inputs(1.25f, .6f, 20f, yaw, pitch, true, Map.of("flap", .4f, "flap_speed", .8f)), expectedHead);
+        h.succeed();
+    }
+
+    private static void assertHead(GameTestHelper h, String engineId, ModelGeometry geometry,
+                                   PoseEngine.Inputs inputs, Matrix4f expected) {
+        var engine = CollisionEngines.pose(Identifier.parse(engineId)).orElseThrow();
+        var result = engine.evaluate(geometry, inputs, Map.of()).orElseThrow();
+        var actual = result.get("root/head");
+        h.assertTrue(actual != null, "Procedural engine must publish the animated head: " + engineId);
+        assertMatrixNear(h, expected, actual, engineId + " must preserve exact signed SourcePose scale and translation");
+        h.assertTrue(actual.determinant3x3() < 0f,
+            "Procedural engine must not erase a reflected rest part while applying its ordinary rotation: " + engineId);
+    }
+
+    private static ModelGeometry ordinaryGeometry(String source, List<String> animatedParts) {
+        var identity = ModelGeometry.values(new Matrix4f());
+        var parts = new java.util.ArrayList<ModelGeometry.Part>();
+        parts.add(new ModelGeometry.Part("root", null, identity));
+        for (String name : animatedParts) {
+            if (name.equals("head")) {
+                parts.add(new ModelGeometry.Part("root/head", "root", ModelGeometry.values(SIGNED_HEAD.matrix()), SIGNED_HEAD));
+            } else {
+                parts.add(new ModelGeometry.Part("root/" + name, "root", identity));
+            }
+        }
+        return new ModelGeometry(2, source, "26.2", parts,
+            List.of(new ModelGeometry.Piece("piece", "root", List.of(0d, 0d, 0d), List.of(1d, 1d, 1d), null)),
+            identity);
+    }
+
+    private static void assertMatrixNear(GameTestHelper h, Matrix4f expected, Matrix4f actual, String message) {
+        float[] a = expected.get(new float[16]);
+        float[] b = actual.get(new float[16]);
+        for (int i = 0; i < a.length; i++)
+            h.assertTrue(Math.abs(a[i] - b[i]) <= EPS,
+                message + " at matrix[" + i + "]: expected=" + a[i] + " actual=" + b[i]);
+    }
+}
