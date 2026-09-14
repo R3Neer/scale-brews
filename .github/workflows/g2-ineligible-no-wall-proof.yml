@@ -5,9 +5,15 @@ on:
     branches: [chatgpt-editing]
     paths:
       - '.github/workflows/g2-ineligible-no-wall-proof.yml'
-      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomySession.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/data/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/integration/BodyClassification.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/integration/CollisionRules.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/G2EligibilityNoWallReadyTests.java'
   workflow_dispatch:
 
