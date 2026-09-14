@@ -126,7 +126,14 @@ public final class AnatomyCatalogTransfer {
         Objects.requireNonNull(models,"models");Objects.requireNonNull(programs,"programs");
         var canonical=new CollisionBindingCatalog(bindings);
         var validatedPrograms=new TreeMap<String,PoseProgram>();
-        programs.forEach((id,program)->validatedPrograms.put(id,PoseProgram.validatedCopy(program)));
+        programs.forEach((id,program)->{
+            final String canonicalId;
+            try { canonicalId=net.minecraft.resources.Identifier.parse(id).toString(); }
+            catch(RuntimeException invalid){throw new IllegalArgumentException("Invalid pose-program id "+id,invalid);}
+            var validated=PoseProgram.validatedCopy(program);
+            if(validatedPrograms.putIfAbsent(canonicalId,validated)!=null)
+                throw new IllegalArgumentException("Duplicate canonical pose-program id "+canonicalId);
+        });
         var bundle=new com.google.gson.JsonObject();
         bundle.add("models",new Gson().toJsonTree(new TreeMap<>(models)));
         bundle.add("pose_programs",new Gson().toJsonTree(validatedPrograms));
