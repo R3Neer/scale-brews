@@ -1,0 +1,61 @@
+name: s19-dialect-probe
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-dialect-probe.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect-exact-2-1-9-dialect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: resolve exact Alex 2.1.9 jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-dialect-probe"
+          mkdir -p "$probe"
+          cat > "$probe/settings.gradle" <<'EOF'
+          rootProject.name = 's19-dialect-probe'
+          EOF
+          cat > "$probe/build.gradle" <<'EOF'
+          repositories {
+              maven { url = 'https://cursemaven.com/'; content { includeGroup 'curse.maven' } }
+          }
+          configurations { probe { canBeConsumed = false; canBeResolved = true; transitive = false } }
+          dependencies { probe 'curse.maven:alexs-mobs-continued-1635121:8772801' }
+          tasks.register('copyProbe', Copy) { from configurations.probe; into layout.buildDirectory.dir('probe') }
+          EOF
+          ./gradlew -p "$probe" copyProbe --console=plain
+          jar="$(find "$probe/build/probe" -name '*.jar' -print -quit)"
+          test "$(sha256sum "$jar" | awk '{print $1}')" = 'b810e1b7ac925f1f1ba6a2a87e742e30b33fafad4d164ff64192f21f46f6154c'
+          mkdir -p build/s19-dialect-probe
+          {
+            echo '=== relevant classes ==='
+            jar tf "$jar" | grep -E 'AdvancedModelBox|ModelGrizzlyBear|ModelGazelle|BasicModelPart|AdvancedEntityModel' | sort
+            echo
+            for cls in \
+              com.github.alexthe666.citadel.client.model.AdvancedModelBox \
+              com.github.alexthe666.citadel.client.model.AdvancedEntityModel \
+              com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear \
+              com.github.alexthe666.alexsmobs.client.model.ModelGazelle; do
+              echo "=== javap -private $cls ==="
+              javap -private -classpath "$jar" "$cls" || true
+              echo
+            done
+          } | tee build/s19-dialect-probe/dialect.txt
+      - name: capture dialect evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-dialect-probe
+          path: build/s19-dialect-probe/dialect.txt
