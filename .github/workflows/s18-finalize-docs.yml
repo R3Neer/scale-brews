@@ -1,0 +1,133 @@
+name: s18-finalize-docs
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s18-finalize-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-s18-docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: close S18/G3.4 documentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Sprint record: preserve the full red-before-green history and append the final closure.
+          p = Path('docs/sprints/S18-vanilla-pose-keyframe-engine.md')
+          t = p.read_text()
+          old_status = 'Estado: **REABIERTO / G3.4 PENDIENTE POR PARIDAD MOJANG**.'
+          new_status = 'Estado: **CERRADO / G3.4 COMPLETADO TRAS REAPERTURA ADVERSARIAL**.'
+          assert old_status in t, 'unexpected S18 status'
+          t = t.replace(old_status, new_status, 1)
+          t = t.replace('Clasificación TM actual: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**.',
+                        'Clasificación TM en esa reapertura: **gap de arquitectura/modelo de datos en la frontera geometry↔pose de `mojang_keyframes`**.', 1)
+          t = t.replace('Por tanto **G3.4 permanece abierto**. El cierre histórico no autoriza avanzar el estado global como si esta paridad estuviera resuelta, y S19/G3.5 no puede declararse cerrado por delante de esta dependencia.',
+                        'En ese punto **G3.4 quedó reabierto**. El cierre histórico no autorizaba avanzar el estado global como si esa paridad estuviera resuelta, y S19/G3.5 no podía declararse cerrado por delante de esta dependencia.', 1)
+          marker = '## Cierre definitivo tras reapertura — 2026-09-14'
+          assert marker not in t, 'final S18 closure already present'
+          t += '''\n\n## Cierre definitivo tras reapertura — 2026-09-14
+
+La reapertura retroactiva queda cerrada por causa, sin rebajar los oráculos. La solución final conserva en `ModelGeometry.SourcePose` los fields locales exactos de `ModelPart` que una matriz no puede representar de forma unívoca, incluidos representantes Euler y escalas con signo. `PoseProgramEvaluator` parte de esos fields y aplica los tracks secuencialmente con la semántica aditiva nativa de POSITION/ROTATION/SCALE, conservando `preTarget/postTarget`, límites de keyframe, Catmull-Rom con targets `post`, remainder Java para loop negativo y aritmética runtime no limitada por los bounds del DTO serializado.
+
+Los clocks/amplitudes son datos explícitos del binding. `applyWalk` conserva su truncación a milisegundos y su `min(animationSpeed * scaleFactor, 1)` mediante `clock_scale`, `amplitude_scale` y `amplitude_max`; el clock `age` reproduce además las dos truncaciones enteras de `AnimationState.getTimeInMillis(...)` y `KeyframeAnimation.apply(..., speedFactor)`. La segunda lectura también cerró estados procedurales que podían divergir del renderer original, entre ellos la transición residual de swim del player y el default adulto `age_scale=1` de equinos.
+
+### Candidato y evidencia final
+
+El último cambio de producción S18 es **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`** (`fix(s18): preserve AnimationState millisecond clock semantics`). Sobre ese snapshot se ejecutaron **17 workflows relacionados y 17 concluyeron `success`**; la consulta de runs con `status=failure` devolvió **0**.
+
+La lane focal **`34876662857`** quedó completamente verde en sus seis jobs: `common-authority`, `client-compiler-boundary`, `client-euler-representative`, `client-non-unit-rest-scale`, `client-signed-rest-scale` y `client-signed-scale-representative`. En el mismo snapshot también quedaron verdes las lanes aisladas de `applyWalk`, cuantización del clock, duplicate-target, límites Catmull/primer/single keyframe, negative loop, effective channel budget, paridad procedural vanilla/equina/abeja, regresiones del implementador, S16 y el `build` ordinario **`34876662817`**.
+
+El commit posterior **`6a72c9f96bd4d19b1c1a02b0fa5a474cbb7fe884`** añadió únicamente el regression test que fija la doble truncación de milisegundos del clock `age`; su build ordinario **`34876732944`** terminó `success`. No cambió producción.
+
+### Segunda lectura final / convergencia TM
+
+La pasada final revisó de nuevo `PoseEngine`/`CollisionEngines`, built-ins procedurales, adapter legacy, `PoseProgram`, evaluator, `SourcePose` y extracción `ModelPart`, compiler cliente, catálogo/program ownership, protocolo v5, tracker/history/payload, provider bound y runtime. No produjo ningún cambio bajo `src/main` ni `src/client`.
+
+Desde **`3ff54a7...`** hasta el checkpoint previo a este cierre documental **`4afcc19dcdb9c683125e874ec1e3f16894e7ebec`** sólo entraron el test S18 `6a72c9f...` y cambios de documentación/CI ajenos de G2. Por tanto el mismo producto que pasó la campaña verde sigue siendo el producto revisado al cerrar.
+
+**Resultado:** los criterios de cierre 1–11 quedan satisfechos. **S18 y G3.4 quedan cerrados.** El primer gate productivo abierto de G3 pasa a ser la tarea 5 / S19 (Citadel/Alex reusable), sin atribuir a S18 el trabajo posterior de root/lifecycle.
+'''
+          p.write_text(t)
+
+          # Canonical plan: close task 4 and advance the first productive gate to task 5.
+          p = Path('docs/ENTITY_COLLISIONS_PLAN.md')
+          t = p.read_text()
+          old_task = '4. [ ] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;'
+          new_task = '4. [x] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;'
+          assert old_task in t, 'G3 task 4 not open as expected'
+          t = t.replace(old_task, new_task, 1)
+          start = t.index('**S18 continúa ABIERTO en segunda lectura adversarial:**')
+          end = t.index('\n\n**Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.', start)
+          replacement = '''**S18 cerrado tras reapertura adversarial:** G3 tarea 4 queda completada. La reparación final conserva `SourcePose` exacto para representantes Euler/escalas con signo, reproduce la aplicación secuencial de targets y bordes Mojang, mantiene programs revision-local sin registry global, y expresa clocks/amplitudes autoritativos con las truncaciones de milisegundos de `applyWalk` y `AnimationState`. El último cambio productivo es `3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`. Sobre él, los **17 workflows** de la campaña final terminaron verdes y no existe ningún run fallido; la lane focal `34876662857` pasó common authority, compiler boundary, Euler representative, non-unit rest scale y ambos signed-scale holdouts. El regression test posterior `6a72c9f...` dejó también verde el build `34876732944`. La segunda lectura final no produjo cambios de producción y el compare hasta `4afcc19...` contiene sólo test/documentación/CI posteriores. Detalle completo en `docs/sprints/S18-vanilla-pose-keyframe-engine.md` y `VALIDATION.md`.
+
+**Prioridad G3 vigente:** tarea **5** es ahora el primer trabajo productivo abierto. S19/G3.5 deja de estar bloqueado por G3.4 y puede continuar con Citadel/Alex reusable; root/lifecycle siguen perteneciendo a sus tareas posteriores y no se arrastran artificialmente al cierre S18.'''
+          t = t[:start] + replacement + t[end:]
+          p.write_text(t)
+
+          # Validation is append-only in spirit: relabel the old closure as historical and record the reclosure.
+          p = Path('docs/VALIDATION.md')
+          t = p.read_text()
+          old_header = '## G3 / S18 vanilla PoseEngine + Mojang keyframe program — closure 2026-09-14'
+          hist_header = '## G3 / S18 vanilla PoseEngine + Mojang keyframe program — historical closure 2026-09-14'
+          assert old_header in t, 'historical S18 validation header missing'
+          t = t.replace(old_header, hist_header, 1)
+          t = t.replace('S18 closed G3 task 4. Vanilla procedural families now have canonical `PoseEngine` ownership',
+                        'This was the first S18 closure and was later reopened by stronger original-source rest-transform oracles. At that historical point, vanilla procedural families had canonical `PoseEngine` ownership', 1)
+          old_final = '**S18 is closed. G3 remains open for tasks 5–12.**'
+          assert old_final in t, 'historical S18 validation conclusion missing'
+          t = t.replace(old_final,
+                        '**Historical conclusion only:** this closure was later superseded by the retroactive reopening recorded below; its evidence remains valid for the coverage it actually exercised.', 1)
+          marker = '## G3 / S18 retroactive reopening and final reclosure — 2026-09-14'
+          assert marker not in t, 'final S18 reclosure validation already present'
+          t += '''\n\n## G3 / S18 retroactive reopening and final reclosure — 2026-09-14
+
+The historical S18 closure above was reopened after stronger client oracles proved that a local affine matrix is insufficient authority for Mojang animation semantics: distinct Euler representatives and signed/non-unit rest scales can be matrix-equivalent at rest yet diverge after `ModelPart.offsetRotation` / `offsetScale`. This was a real model-data gap, not a test-only disagreement.
+
+The repair campaign converged on exact neutral source fields plus native sequential application. `ModelGeometry.SourcePose` now preserves local position/Euler/scale fields; the keyframe evaluator applies tracks in source order from those fields; keyframe interval selection, `preTarget/postTarget`, Catmull-Rom edge control points, negative Java remainder, duplicate-target accumulation and finite runtime vectors match the original source semantics. Bindings also preserve `applyWalk` clock/amplitude transforms explicitly and the final production repair **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`** reproduces `AnimationState`'s age-clock integer-millisecond truncation rather than approximating it with continuous seconds.
+
+### Exact final campaign
+
+On production snapshot **`3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`**, GitHub Actions reported **17 workflow runs, all successful**, and a filtered query for failures returned **0 runs**.
+
+Focal run **`34876662857`** passed all six jobs:
+
+- `common-authority` — job **`104085426886`**;
+- `client-compiler-boundary` — job **`104085426627`**;
+- `client-euler-representative` — job **`104085426367`**;
+- `client-non-unit-rest-scale` — job **`104085426719`**;
+- `client-signed-rest-scale` — job **`104085426792`**;
+- `client-signed-scale-representative` — job **`104085426707`**.
+
+The same production snapshot also passed the isolated `applyWalk`, apply-walk clock quantization, duplicate-target order, Catmull first/right boundary, first-keyframe exact/boundary, single-keyframe, negative-loop, effective-channel-budget, vanilla/equine/bee procedural parity, implementer-regression and S16 catalog lanes. Ordinary build run **`34876662817`** was green as well.
+
+A later test-only commit, **`6a72c9f96bd4d19b1c1a02b0fa5a474cbb7fe884`**, permanently locks the age-clock double-truncation case. It changed no production and its ordinary build run **`34876732944`** completed successfully.
+
+### Final zero-change review
+
+The closing TM reread re-inspected the canonical registry/SAM, built-in procedural engines, legacy read-only adapter, `PoseProgram`, evaluator, exact `SourcePose` export, client compiler, revision-local catalog/program ownership, protocol-v5 bundle, authoritative tracker/history/payload, bound provider and runtime bridge. It identified **no further production change**.
+
+The compare from the last production change `3ff54a7...` to pre-documentation checkpoint **`4afcc19dcdb9c683125e874ec1e3f16894e7ebec`** contains only the S18 regression test plus documentation/CI work; there is no later `src/main` or `src/client` S18 modification. The transitional S16 execution bridge remains intentionally outside this closure's replacement scope: it already binds the canonical `PoseEngine.Bound`; generic root/lifecycle removal belongs to later G3 tasks.
+
+**Final conclusion:** S18 satisfies its 11 closure criteria and **G3 task 4 is closed again after the retroactive reopening**. G3 remains open for tasks 5–12, with task 5 / S19 as the next productive gate.
+'''
+          p.write_text(t)
+          PY
+          git diff --check
+          git diff -- docs/sprints/S18-vanilla-pose-keyframe-engine.md docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+          git config user.name 'ChatGPT Implementer'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/sprints/S18-vanilla-pose-keyframe-engine.md docs/ENTITY_COLLISIONS_PLAN.md docs/VALIDATION.md
+          git commit -m 'docs(s18): close final G3.4 parity campaign'
+          git pull --rebase origin chatgpt-editing
+          git push origin HEAD:chatgpt-editing
