@@ -24,7 +24,7 @@ public final class AnatomyPoseEligibility {
         return switch(provider.toString()) {
             case "scalebrews:static"->true;
             case "scalebrews:quadruped"->java.util.Set.of(EntityTypes.COW,EntityTypes.PIG,EntityTypes.SHEEP,EntityTypes.LLAMA,EntityTypes.TRADER_LLAMA).contains(entity.getType())
-                && entity.getPose()==Pose.STANDING && (!(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep) || sheep.getHeadEatPositionScale(1)==0);
+                && entity.getPose()==Pose.STANDING && (!(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep) || sheepOrdinary(sheep));
             case "scalebrews:chicken"->entity.getType()==EntityTypes.CHICKEN && entity.getPose()==Pose.STANDING;
             case "scalebrews:villager"->entity.getType()==EntityTypes.VILLAGER && entity.getPose()==Pose.STANDING;
             case "scalebrews:iron_golem"->entity.getType()==EntityTypes.IRON_GOLEM && entity.getPose()==Pose.STANDING;
@@ -38,5 +38,12 @@ public final class AnatomyPoseEligibility {
                 && entity.getMainHandItem().isEmpty() && entity.getOffhandItem().isEmpty();
             default->{diagnose(provider.toString());yield false;}
         };
+    }
+
+    private static boolean sheepOrdinary(net.minecraft.world.entity.animal.sheep.Sheep sheep) {
+        float position = sheep.getHeadEatPositionScale(1f);
+        float angle = sheep.getHeadEatAngleScale(1f);
+        float ordinaryAngle = sheep.getXRot() * net.minecraft.util.Mth.DEG_TO_RAD;
+        return Math.abs(position) <= 1e-7f && Math.abs(angle - ordinaryAngle) <= 1e-6f;
     }
 }
