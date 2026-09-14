@@ -9,7 +9,15 @@ import java.util.Set;
 import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 
-/** Common/dedicated evaluator for revision-bound neutral Mojang keyframe programs. */
+/**
+ * Common/dedicated evaluator for revision-bound neutral Mojang keyframe programs.
+ *
+ * <p>Bindings select a revision-local {@code program}, an explicit clock source and amplitude source.
+ * {@code clock_scale} converts the selected clock into seconds; {@code walk_phase} additionally mirrors
+ * Minecraft's millisecond truncation before sampling. {@code amplitude_scale} and {@code amplitude_max}
+ * are optional post-selector transforms so callers can reproduce helpers such as {@code applyWalk}
+ * without hiding source-specific formulas inside the generic {@code walk_amount} selector.</p>
+ */
 public final class MojangKeyframePoseEngine implements PoseEngine {
     private static final Set<String> PARAMETERS = Set.of(
         "program", "clock", "clock_scale", "amplitude", "amplitude_scale", "amplitude_max");
