@@ -15,15 +15,36 @@ import net.minecraft.world.phys.Vec3;
 
 /** Common geometry source. Missing/unsupported poses return empty, never an entity AABB. */
 public interface GeometryProvider {
-    /** Runtime-supplied causal descriptor; never derive model id from ModelGeometry.source(). */
-    record GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,long bindingGeneration) {
+    /** Pre-S21 compatibility default; canonical runtime registrations always carry the binding's explicit root provider. */
+    Identifier DEFAULT_ROOT_PROVIDER = Identifier.parse("scalebrews:entity_root");
+
+    /** Runtime-supplied causal descriptor; never derive model/provider ids from ModelGeometry.source(). */
+    record GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration) {
+        /** Source-compatible pre-S21 constructor. Canonical runtime code must pass the binding root provider explicitly. */
+        public GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,long bindingGeneration) {
+            this(epoch,revision,model,poseProvider,DEFAULT_ROOT_PROVIDER,bindingGeneration);
+        }
         /** Server-only compatibility constructor: registration allocates the authoritative generation. */
-        public GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider) {this(epoch,revision,model,poseProvider,0);}
-        public GeometryIdentityDescriptor {if(epoch==null || revision<0 || model==null || poseProvider==null || bindingGeneration<0)throw new IllegalArgumentException("Invalid geometry descriptor");}
+        public GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider) {
+            this(epoch,revision,model,poseProvider,DEFAULT_ROOT_PROVIDER,0);
+        }
+        public GeometryIdentityDescriptor {
+            if(epoch==null || revision<0 || model==null || poseProvider==null || rootProvider==null || bindingGeneration<0)
+                throw new IllegalArgumentException("Invalid geometry descriptor");
+        }
     }
     record GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
-            Identifier model,Identifier poseProvider,long bindingGeneration,long localRegistrationGeneration) {
-        public GeometryIdentity {if(dimension==null || support==null || entityId<0 || epoch==null || revision<0 || model==null || poseProvider==null || bindingGeneration<1 || localRegistrationGeneration<1)throw new IllegalArgumentException("Invalid geometry identity");}
+            Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration,long localRegistrationGeneration) {
+        /** Source-compatible pre-S21 constructor; canonical production identities always pass rootProvider. */
+        public GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
+                Identifier model,Identifier poseProvider,long bindingGeneration,long localRegistrationGeneration) {
+            this(dimension,support,entityId,epoch,revision,model,poseProvider,DEFAULT_ROOT_PROVIDER,bindingGeneration,localRegistrationGeneration);
+        }
+        public GeometryIdentity {
+            if(dimension==null || support==null || entityId<0 || epoch==null || revision<0 || model==null || poseProvider==null
+                    || rootProvider==null || bindingGeneration<1 || localRegistrationGeneration<1)
+                throw new IllegalArgumentException("Invalid geometry identity");
+        }
         /** Exact live support instance coordinates required before a handle can be certified or queued. */
         public boolean matches(LivingEntity entity) {
             return entity!=null && dimension.equals(entity.level().dimension()) && support.equals(entity.getUUID()) && entityId==entity.getId();
