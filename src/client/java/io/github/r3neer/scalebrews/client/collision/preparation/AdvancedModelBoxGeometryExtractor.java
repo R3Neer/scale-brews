@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -93,6 +94,7 @@ final class AdvancedModelBoxGeometryExtractor {
         }
         if (catalog.isEmpty()) throw new IllegalArgumentException("AdvancedModelBox source has no parts");
 
+        var orderedRoots = new ArrayList<Object>();
         int rootCount = 0;
         for (Object root : roots) {
             rootCount++;
@@ -100,9 +102,11 @@ final class AdvancedModelBoxGeometryExtractor {
             if (!dialect.advancedBox.isInstance(root))
                 throw new IllegalArgumentException("parts() contains a non-AdvancedModelBox root");
             if (!catalog.contains(root)) throw new IllegalArgumentException("AdvancedModelBox root is absent from getAllParts()");
-            extractPart(root, null, null, false, 0);
+            orderedRoots.add(root);
         }
         if (rootCount == 0) throw new IllegalArgumentException("AdvancedModelBox source has no render roots");
+        orderedRoots.sort(Comparator.comparing(this::stablePartName));
+        for (Object root : orderedRoots) extractPart(root, null, null, false, 0);
         if (visited.size() != catalog.size() || !visited.containsAll(catalog))
             throw new IllegalArgumentException("AdvancedModelBox getAllParts() contains detached or multiply-owned nodes");
     }
@@ -161,9 +165,16 @@ final class AdvancedModelBoxGeometryExtractor {
         }
 
         Iterable<?> children = iterable(read(dialect.childModels, part, "childModels"), "AdvancedModelBox.childModels");
+        var orderedChildren = new ArrayList<Object>();
         for (Object child : children) {
             if (!dialect.advancedBox.isInstance(child))
                 throw new IllegalArgumentException("AdvancedModelBox childModels contains a non-AdvancedModelBox child");
+            if (orderedChildren.size() >= MAX_PARTS)
+                throw new IllegalArgumentException("Too many AdvancedModelBox parts");
+            orderedChildren.add(child);
+        }
+        orderedChildren.sort(Comparator.comparing(this::stablePartName));
+        for (Object child : orderedChildren) {
             // The helper is transform-only. Stable source ids continue to follow the boxName hierarchy.
             extractPart(child, id, childTransformParent, hidden, depth + 1);
         }
@@ -243,6 +254,10 @@ final class AdvancedModelBoxGeometryExtractor {
     private void addPart(ModelGeometry.Part part) {
         if (parts.size() >= MAX_PARTS) throw new IllegalArgumentException("Too many prepared AdvancedModelBox parts");
         parts.add(part);
+    }
+
+    private String stablePartName(Object part) {
+        return validName(string(read(dialect.boxName, part, "boxName"), "boxName"));
     }
 
     private static boolean identityScale(float x, float y, float z) {
