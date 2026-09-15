@@ -116,8 +116,28 @@ jobs:
           PY
 
       - name: compare shared engine with original Grizzly and Gazelle setupAnim
+        id: oracle
+        continue-on-error: true
         shell: bash
-        run: xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s20-external-inputs/mods"
+        run: |
+          set -o pipefail
+          mkdir -p build/s20-proof
+          xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s20-external-inputs/mods" 2>&1 \
+            | tee build/s20-proof/console.log
+
+      - name: extract focused oracle diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p build/s20-proof
+          if [ -f build/s20-proof/console.log ]; then
+            grep -E 'S20 pinned|S20_CITADEL_REAL|AssertionError|Caused by:|Game test .* failed|java\.lang\.' build/s20-proof/console.log \
+              | tail -n 120 > build/s20-proof/diagnostics.txt || true
+          fi
+          if [ ! -s build/s20-proof/diagnostics.txt ]; then
+            printf 'No focused S20 diagnostic line was captured.\n' > build/s20-proof/diagnostics.txt
+          fi
+          cat build/s20-proof/diagnostics.txt
 
       - name: capture S20 real-model evidence
         if: always()
@@ -127,5 +147,10 @@ jobs:
           path: |
             tools/s19-external-inputs.lock.json
             build/s20-external-inputs/manifest.txt
-            build/run/clientGameTest/logs/
+            build/s20-proof/diagnostics.txt
             build/resources/gametest/fabric.mod.json
+
+      - name: enforce real-model oracle result
+        if: steps.oracle.outcome != 'success'
+        shell: bash
+        run: exit 1
