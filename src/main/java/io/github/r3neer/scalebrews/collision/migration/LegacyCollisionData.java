@@ -4,9 +4,9 @@ import io.github.r3neer.scalebrews.ScaleBrews;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
-import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
+import io.github.r3neer.scalebrews.collision.internal.BuiltInRootTransformProviders;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import io.github.r3neer.scalebrews.platform.PlatformPolicy;
 import java.util.LinkedHashMap;
@@ -26,18 +26,17 @@ public final class LegacyCollisionData {
 
     public static final Identifier PRECOMPUTED_GEOMETRY = Identifier.parse("scalebrews:precomputed_geometry");
     public static final Identifier LEGACY_POSE_PROVIDER = Identifier.parse("scalebrews:legacy_pose_provider");
-    public static final Identifier ENTITY_ROOT = Identifier.parse("scalebrews:entity_root");
+    /** Compatibility alias; S21 makes this an executable built-in instead of a migration sentinel. */
+    public static final Identifier ENTITY_ROOT = BuiltInRootTransformProviders.ENTITY_ROOT;
     private static final Set<Identifier> WARNED_LEGACY_PLANES = ConcurrentHashMap.newKeySet();
 
     /*
-     * Transitional registry sentinels. S16 needs migrated bindings to pass the
-     * canonical registry fence, but the actual precomputed execution bridge is
-     * still WorldAnatomyCatalog-owned until G3.3-G3.6 replace it with engines.
-     * Direct SPI execution therefore fails closed instead of becoming fallback.
+     * Transitional registry sentinels. S16 needs migrated geometry/pose bindings to pass the
+     * canonical registry fence, but those two execution bridges remain WorldAnatomyCatalog-owned.
+     * Root authority is no longer a sentinel: S21 registers scalebrews:entity_root as a real provider.
      */
     private static final GeometryEngine PRECOMPUTED_SENTINEL = request -> Optional.empty();
     private static final PoseEngine LEGACY_POSE_SENTINEL = (geometry, inputs, parameters) -> Optional.empty();
-    private static final RootTransformProvider ENTITY_ROOT_SENTINEL = entity -> Optional.empty();
 
     public static synchronized void initializeCompatibilityEngines() {
         var geometry = CollisionEngines.geometry(PRECOMPUTED_GEOMETRY);
@@ -50,10 +49,8 @@ public final class LegacyCollisionData {
         else if (pose.orElseThrow() != LEGACY_POSE_SENTINEL)
             throw new IllegalStateException("Legacy compatibility pose id is already owned by another engine: " + LEGACY_POSE_PROVIDER);
 
-        var root = CollisionEngines.rootTransform(ENTITY_ROOT);
-        if (root.isEmpty()) CollisionEngines.registerRootTransform(ENTITY_ROOT, ENTITY_ROOT_SENTINEL);
-        else if (root.orElseThrow() != ENTITY_ROOT_SENTINEL)
-            throw new IllegalStateException("Legacy compatibility root id is already owned by another provider: " + ENTITY_ROOT);
+        if (CollisionEngines.rootTransform(ENTITY_ROOT).isEmpty())
+            throw new IllegalStateException("Built-in entity root provider must initialize before legacy migration");
     }
 
     public record Visual(String part, double x, double y, double z) {}
@@ -85,8 +82,7 @@ public final class LegacyCollisionData {
         if (WARNED_LEGACY_PLANES.add(source.entity())) {
             ScaleBrews.LOGGER.warn("Entity collision profile {} uses legacy one-sided surfaces; migrating them as explicit planes, not anatomical geometry", source.entity());
         }
-        var decoded = source.surfaces().stream().map(surface -> new Plane(surface.id(), surface.x(), surface.y(), surface.z(),
-            surface.width(), surface.depth(), surface.visual().map(visual -> new Visual(visual.part(), visual.x(), visual.y(), visual.z())))).toList();
+        var decoded = source.surfaces().stream().map(surface -> new Plane(surface.id(), surface.x(), surface.y(), surface.z(), surface.width(), surface.depth(), surface.visual().map(visual -> new Visual(visual.part(), visual.x(), visual.y(), visual.z())))).toList();
         return new Decoded(Optional.empty(), Optional.of(new LegacyPlanes(source.entity(), source.enabled(), source.friction(), source.maxRatio(), decoded)));
     }
 
