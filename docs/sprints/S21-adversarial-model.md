@@ -45,11 +45,121 @@ The adversarial pass treats these properties as mandatory:
    - teleport/discontinuity does not interpolate through stale root authority;
    - entity removal and world/session teardown cannot keep a causal root endpoint alive.
 
-## First holdout tranche
+## First holdout tranche — SPI contract
 
-The first independent holdout covers the already-implemented SPI surface only: DTO normalization/immutability/invalid-state rejection and registry ownership. It intentionally does not pretend that runtime integration exists yet.
+The first independent holdout covers the SPI surface: DTO normalization/immutability/invalid-state rejection and registry ownership.
 
-A second holdout tranche is reserved for the first commit that wires root authority into `ModelGeometryProvider`/`AnatomyRuntime`. That tranche will attack sampling count, stale fallback, root-only cache invalidation, gravity independence and replay/lifecycle identity.
+Evidence:
+
+- `S21AdversarialRootTransformContractTests`;
+- workflow `s21-adversarial-root-contract`;
+- run `35013695077`: **SUCCESS**.
+
+This tranche proves the DTO/registry contract only. It does not imply runtime convergence.
+
+## Second holdout tranche — runtime causal integration
+
+The first live root-authority integration was attacked through independent focused workflows rather than one aggregate red test. Current findings are intentionally separated so a partial production repair cannot hide another authority leak.
+
+### A. Causal publication loses the custom root quaternion — RED
+
+`S21AdversarialRootCausalityTests.transverseRootMustSurviveCausalPublication` samples a provider returning a transverse quaternion, verifies that `ModelGeometryProvider` captured it once, then asks `AnatomyMovement` for the causal query frame.
+
+The published/query geometry differs from the reference geometry produced with the accepted root DTO. The production route reconstructs the world root through the legacy gravity+yaw path instead of consuming the sampled provider root.
+
+Evidence:
+
+- workflow `s21-adversarial-root-causality`;
+- corrected-fixture run `35017750952`: **FAIL** on causal publication;
+- root-only joint-reuse property in the same holdout passes.
+
+An earlier red from this holdout was discarded because the adversarial fixture incorrectly supplied piece size where `ModelGeometry.Piece` expects min/max bounds. It is not counted as product evidence.
+
+### B. Presentation discards transported root authority — RED
+
+`evaluatePresentation(...)` is required to consume accepted causal authority. The holdout constructs an endpoint carrying a transverse `rootTransform` and compares presentation geometry to an explicit-root reference sample.
+
+Evidence:
+
+- workflow `s21-adversarial-root-causality`;
+- run `35018354591`: **FAIL** on `presentationMustConsumeTransportedRootTransform`.
+
+### C. Motion interval discards both transported endpoint roots — RED
+
+The motion holdout builds two accepted endpoints with unchanged local joints and different root quaternions, then certifies a `MotionIntervalHandle`. The expected end geometry is the explicit after-root sample. The current interval route rebuilds legacy roots from the joint samples instead of consuming `before.rootTransform()` / `after.rootTransform()`.
+
+Evidence:
+
+- workflow `s21-adversarial-root-causality`;
+- run `35018354591`: **FAIL** on `motionIntervalMustConsumeBothTransportedRootTransforms`.
+
+The same run leaves the independent NFR-009 root-only joint-cache test green.
+
+### D. Changing only `root_transform` can make a valid binding non-executable — RED
+
+FR-031/FR-033 require geometry, pose and root authority to remain independently selectable. The binding holdout keeps geometry and pose unchanged and substitutes only a registered custom root provider.
+
+The current catalog route rejects that candidate as an incomplete legacy compatibility binding rather than preparing an executable canonical binding.
+
+Evidence:
+
+- `S21AdversarialRootBindingTests`;
+- workflow `s21-adversarial-root-binding`;
+- run `35017973596`: **FAIL** on custom-root executable binding;
+- the independent unknown-root atomic rejection property passes.
+
+### E. Root authority is missing from the pose wire contract — RED / I4
+
+The wire holdout protects both authority value and authority identity:
+
+1. a custom quaternion must survive `PublishedFrame -> AnatomyPosePayload -> AnatomyFrameHistory -> CausalEndpoint`;
+2. the payload must carry the canonical root-provider id.
+
+The current v4 pose packet reconstructs root from legacy origin/yaw/scale/gravity and has no root-provider accessor/field.
+
+Evidence:
+
+- `S21AdversarialRootWireTests`;
+- workflow `s21-adversarial-root-wire`;
+- run `35018498220`: **FAIL**, with both independent properties red.
+
+This is an expected implementation gate while I4 is open, but it must not be marked complete until the holdout is green.
+
+### F. Root loss removes local geometry but does not publish remote invalidation — RED
+
+FR-029 requires an unavailable indispensable authority to mark the endpoint `UNAVAILABLE`, so a previously valid collider cannot remain frozen. `PublishedFrame` is explicitly capable of transporting unavailable endpoints, while `QueryFrame` is only legal for AVAILABLE geometry.
+
+The availability holdout first establishes a valid endpoint and then makes the root provider either return `Optional.empty()` or throw. Both cases correctly remove local authoritative/query geometry, but `publishedFrame()` becomes empty rather than advancing causal identity with an `UNAVAILABLE` endpoint. A remote consumer therefore receives no explicit clearing event from this path.
+
+Evidence:
+
+- `S21AdversarialRootAvailabilityTests`;
+- workflow `s21-adversarial-root-availability`;
+- run `35019382819`: **FAIL** in both empty-provider and throwing-provider cases at the missing `UNAVAILABLE` publication assertion.
+
+The repair property is external, not prescriptive about DTO internals: after authority loss there must be no query collider and there must be a new causal publication that marks the endpoint unavailable without treating stale root data as valid authority.
+
+## Properties currently green
+
+The second tranche has also established useful negative evidence:
+
+- root-only orientation changes can reuse already evaluated local joints in `ModelGeometryProvider`;
+- quaternion sign canonicalization prevents `q` / `-q` from creating false identity/cache churn;
+- unknown root-provider ids reject candidate catalog revisions atomically rather than replacing the accepted snapshot;
+- a root provider throwing during direct sampling is caught by `ModelGeometryProvider` and does not itself resurrect direct geometry.
+
+These green properties do not compensate for the red causal/wire/catalog paths above.
+
+## Next adversarial targets
+
+After production changes land, the existing red holdouts must be rerun before adding more surface. The next independent targets are:
+
+1. same-tick root-only spatial mutation advances causal identity without reevaluating joints;
+2. transverse external root orientation remains independent from the supported body's physical `GravityFrame` (FR-032);
+3. reload/rebind changes root-provider identity/generation without retaining an obsolete sampled root;
+4. teleport/discontinuity never interpolates across stale root authority;
+5. client accepted snapshot/binding matching includes root-provider identity and consumes only transported root DTOs;
+6. entity removal/session teardown leaves no live causal root endpoint.
 
 ## Gate rule
 
@@ -59,4 +169,6 @@ S21 must not be considered adversarially converged while:
 - the ordinary build is red for S20/S21 harness defects;
 - runtime root integration is absent;
 - any root failure path can publish or reuse stale causal truth;
-- a root-only change forces local-joint reevaluation without a demonstrated reason.
+- a root-only change forces local-joint reevaluation without a demonstrated reason;
+- any causal/presentation/motion/wire path reconstructs a legacy gravity+yaw root after a custom provider root has already been accepted;
+- canonical bindings cannot swap root authority independently of geometry and pose.
