@@ -133,6 +133,40 @@ jobs:
           fi
           git checkout -- "$file"
 
+      - name: require cascading parent-filter mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/main/java/io/github/r3neer/scalebrews/collision/geometry/AnatomyFilter.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if(exclude.contains(piece.id()) || exclude.contains(piece.part()))return "explicit_exclusion";'''
+          new='''        if(exclude.stream().anyMatch(id -> piece.id().equals(id) || piece.part().equals(id) || piece.id().startsWith(id + "/") || piece.part().startsWith(id + "/")))return "explicit_exclusion"; // adversarial mutant: parent exclusion cascades through hierarchy'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 parent-filter cascade mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-hidden-hierarchy/mods" \
+            2>&1 | tee build/s19-hidden-hierarchy/parent-filter-cascade-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-hidden-hierarchy/logs-parent-filter-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-hidden-hierarchy/logs-parent-filter-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 cascading parent-filter mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -Fq 'S19 parent AnatomyFilter exclusion cascaded into descendant collider' build/s19-hidden-hierarchy/parent-filter-cascade-mutant.log; then
+            echo 'S19 parent-filter cascade mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
+          git checkout -- "$file"
+
       - name: require source-hidden revival mutant to die
         shell: bash
         run: |
@@ -176,6 +210,7 @@ jobs:
             build/s19-hidden-hierarchy/*.log
             build/s19-hidden-hierarchy/logs-normal/
             build/s19-hidden-hierarchy/logs-mutant/
+            build/s19-hidden-hierarchy/logs-parent-filter-mutant/
             build/s19-hidden-hierarchy/logs-source-hidden-mutant/
             build/resources/gametest/fabric.mod.json
             tools/s19-external-inputs.lock.json
