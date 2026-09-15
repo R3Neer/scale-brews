@@ -17,8 +17,8 @@ import net.minecraft.world.phys.Vec3;
 public final class AnatomyApi {
     private AnatomyApi() {}
 
-    /** v5 adds revision-local neutral pose programs to the authoritative catalog bundle. */
-    public static final int PROTOCOL_VERSION = 5;
+    /** v6 adds revision-local neutral Citadel pose programs to the authoritative catalog bundle. */
+    public static final int PROTOCOL_VERSION = 6;
     /** Canonical collision binding/policy data schema understood by this API generation. */
     public static final int DATA_SCHEMA_VERSION = 1;
 
