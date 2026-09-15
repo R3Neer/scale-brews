@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
+import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
@@ -26,7 +27,8 @@ public final class AnatomyMovement {
     private static <K,V> Map<K,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());}
     private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
     /** Server-owned material endpoint serial; it advances for a root or joint endpoint change. */
-    private record EndpointStamp(long jointSampleTick,RootFrame root,AnatomyPoseHistory.Sample sample,long revision,GeometryProvider.Availability availability) {}
+    private record EndpointStamp(long jointSampleTick,RootFrame root,RootTransformProvider.RootTransform rootTransform,
+            AnatomyPoseHistory.Sample sample,long revision,GeometryProvider.Availability availability) {}
     /** Retains the whole endpoint, including its original authority time, for a material serial. */
     private record EndpointSerial(EndpointStamp stamp,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot,boolean invalidated) {}
     private static final Map<LivingEntity,EndpointSerial> FRAME_SERIALS=entityMap();
@@ -73,7 +75,11 @@ public final class AnatomyMovement {
     public static synchronized void spatialMutation(LivingEntity support) {
         if(support==null || !ACTIVE.contains(support.level()) || !AnatomyBindingState.hasProvider(support))return;
         observeRoot(support);
-        if(AnatomyBindingState.causal(support))queryFrame(support);else refreshSpatialEntry(support);
+        if(AnatomyBindingState.causal(support)) {
+            var provider=AnatomyBindingState.provider(support);
+            if(provider instanceof ModelGeometryProvider model)model.refreshRoot(support);
+            queryFrame(support);
+        } else refreshSpatialEntry(support);
     }
     public static boolean suspended(Entity body,LivingEntity support) {
         var generation=AnatomyContactState.suspensionGeneration(body,support);
@@ -186,13 +192,16 @@ public final class AnatomyMovement {
         }
         if(!(provider instanceof ModelGeometryProvider model))return Optional.empty();
         var joints=model.authoritativeFrame(support).orElse(null);
-        if(!captureCurrent(support,capture) || joints==null)return Optional.empty();
-        var root=observeRoot(support);
         if(!captureCurrent(support,capture))return Optional.empty();
-        var sample=new AnatomyPoseHistory.Sample(joints.sample().inputs(),root.origin(),root.yaw(),root.scale(),root.gravity());
-        var snapshot=sample.inputs().ordinary()?model.sampleAt(support,sample).orElse(null):null;
+        if(joints==null)return unavailableServerEndpoint(support);
+        var observed=observeRoot(support);
         if(!captureCurrent(support,capture))return Optional.empty();
-        return Optional.of(serverEndpoint(support,joints.tick(),root,sample,snapshot));
+        var rootAuthority=joints.root();
+        var sample=joints.sample();
+        var root=new RootFrame(observed.sequence(),observed.tick(),rootAuthority.origin(),sample.yaw(),rootAuthority.scale(),sample.gravity());
+        var snapshot=sample.inputs().ordinary()?model.sampleAt(support,sample,rootAuthority).orElse(null):null;
+        if(!captureCurrent(support,capture))return Optional.empty();
+        return Optional.of(serverEndpoint(support,joints.tick(),root,rootAuthority,sample,snapshot));
     }
     private static boolean captureBindingCurrent(LivingEntity support,CaptureStamp capture) {
         var binding=AnatomyBindingState.snapshot(support);
@@ -216,12 +225,27 @@ public final class AnatomyMovement {
         clearSupportContacts(support);removeSpatialEntry(support);
         return Optional.empty();
     }
-    private static synchronized GeometryProvider.CausalEndpoint serverEndpoint(LivingEntity support,long jointSampleTick,RootFrame root,AnatomyPoseHistory.Sample sample,GeometryProvider.Snapshot snapshot) {
+    private static synchronized Optional<GeometryProvider.CausalEndpoint> unavailableServerEndpoint(LivingEntity support) {
+        var old=FRAME_SERIALS.get(support);
+        if(old==null || old.invalidated())return Optional.empty();
+        if(old.endpoint().availability()==GeometryProvider.Availability.UNAVAILABLE)return Optional.of(old.endpoint());
+        var prior=old.endpoint();
+        long next=Math.incrementExact(prior.frameSerial());
+        var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),prior.jointSampleTick(),
+            prior.root(),prior.rootTransform(),prior.sample(),GeometryProvider.Availability.UNAVAILABLE);
+        var stamp=new EndpointStamp(prior.jointSampleTick(),prior.root(),prior.rootTransform(),prior.sample(),-1,
+            GeometryProvider.Availability.UNAVAILABLE);
+        clearSupportContacts(support);removeSpatialEntry(support);
+        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,null,false));
+        return Optional.of(endpoint);
+    }
+    private static synchronized GeometryProvider.CausalEndpoint serverEndpoint(LivingEntity support,long jointSampleTick,RootFrame root,
+            RootTransformProvider.RootTransform rootTransform,AnatomyPoseHistory.Sample sample,GeometryProvider.Snapshot snapshot) {
         var availability=snapshot==null?GeometryProvider.Availability.UNAVAILABLE:GeometryProvider.Availability.AVAILABLE;
-        var stamp=new EndpointStamp(jointSampleTick,root,sample,snapshot==null?-1:snapshot.revision(),availability);var old=FRAME_SERIALS.get(support);
+        var stamp=new EndpointStamp(jointSampleTick,root,rootTransform,sample,snapshot==null?-1:snapshot.revision(),availability);var old=FRAME_SERIALS.get(support);
         if(old!=null && !old.invalidated() && old.stamp()!=null && old.stamp().equals(stamp))return old.endpoint();
         long next=old==null?1:Math.incrementExact(old.endpoint().frameSerial());
-        var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),jointSampleTick,root,sample,availability);
+        var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),jointSampleTick,root,rootTransform,sample,availability);
         if(availability==GeometryProvider.Availability.UNAVAILABLE && old!=null && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)
             clearSupportContacts(support);
         FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));refreshSpatialEntry(support);return endpoint;
