@@ -19,11 +19,16 @@ public final class S21RootTransformProviderTests {
             var provider = CollisionEngines.rootTransform(BuiltInRootTransformProviders.ENTITY_ROOT).orElseThrow();
             var sampled = provider.sample(entity).orElseThrow();
 
-            Matrix4f expected = new Matrix4f().translation(entity.position())
+            Matrix4f expected = new Matrix4f()
+                .translation((float)entity.getX(), (float)entity.getY(), (float)entity.getZ())
                 .mul(new Matrix4f(AnatomyMovement.gravity(entity).matrix())
                     .rotateY((float)Math.toRadians(180.0 - entity.yBodyRot))
                     .scale(entity.getScale()));
-            assertNear(h, expected, sampled.matrix(),
+            Matrix4f actual = new Matrix4f()
+                .translation((float)sampled.origin().x, (float)sampled.origin().y, (float)sampled.origin().z)
+                .rotate(sampled.quaternion())
+                .scale(sampled.scale());
+            assertNear(h, expected, actual,
                 "scalebrews:entity_root must preserve the exact pre-S21 root matrix");
         } finally {
             entity.discard();
