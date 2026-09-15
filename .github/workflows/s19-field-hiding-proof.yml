@@ -1,0 +1,135 @@
+name: s19-field-hiding-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-field-hiding-proof.yml'
+      - 'tools/s19-external-inputs.lock.json'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19AdvancedModelBoxClientProof.java'
+  workflow_dispatch:
+
+jobs:
+  field-hiding:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: resolve pinned S19 external inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-field-hiding-inputs"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          if lock.get('schema') != 1 or lock.get('minecraft') != '26.2':
+              raise SystemExit('Unexpected S19 external input lock')
+          inputs = lock.get('inputs')
+          if not isinstance(inputs, list) or sorted(item.get('modId') for item in inputs) != ['alexsmobs', 'cloth-config', 'codxlib']:
+              raise SystemExit('Unexpected S19 external input set')
+          deps = '\n'.join(f"    proofInputs '{item['coordinate']}'" for item in inputs)
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-field-hiding-inputs'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{
+              maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }}
+          }}
+          configurations {{ proofInputs {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{
+          {deps}
+          }}
+          tasks.register('copyProofInputs', Copy) {{
+              from configurations.proofInputs
+              into layout.buildDirectory.dir('proof-inputs')
+          }}
+          """)
+          PY
+          ./gradlew -p "$probe" copyProofInputs --console=plain
+          mkdir -p build/s19-field-hiding/mods
+          cp "$probe"/build/proof-inputs/*.jar build/s19-field-hiding/mods/
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          lock=json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          mods=pathlib.Path('build/s19-field-hiding/mods')
+          for item in lock['inputs']:
+              _,artifact,version=item['coordinate'].split(':')
+              jar=mods/f'{artifact}-{version}.jar'
+              if not jar.is_file(): raise SystemExit(f'Missing pinned proof jar {jar.name}')
+              actual=hashlib.sha256(jar.read_bytes()).hexdigest()
+              if actual != item['sha256']: raise SystemExit(f'Pinned input hash mismatch for {jar.name}: {actual}')
+              with zipfile.ZipFile(jar) as archive: metadata=json.loads(archive.read('fabric.mod.json'))
+              if metadata.get('id') != item['modId'] or str(metadata.get('version')) != item['version']:
+                  raise SystemExit(f'Pinned input identity mismatch for {jar.name}')
+          PY
+
+      - name: isolate real-model client proof
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: inject BasicModelPart cubeList binding mutant
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''            cubeList = field(advancedBox, "cubeList");'''
+          new='''            cubeList = field(basicPart, "cubeList"); // adversarial mutant: binds hidden base field instead of renderer-authoritative AdvancedModelBox field'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 cubeList field-hiding mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+
+      - name: require real-model oracle to kill hidden-field mutant
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s19-field-hiding
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-field-hiding/mods" \
+            2>&1 | tee build/s19-field-hiding/cube-list-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-field-hiding/logs-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-field-hiding/logs-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 BasicModelPart cubeList field-hiding mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -R -F 'S19 source cube coverage mismatch' \
+              build/run/clientGameTest/logs build/s19-field-hiding/cube-list-mutant.log >/dev/null 2>&1; then
+            echo 'S19 cubeList field-hiding mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
+
+      - name: capture field-hiding evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-field-hiding-proof
+          path: |
+            build/s19-field-hiding/*.log
+            build/s19-field-hiding/logs-mutant/
+            build/resources/gametest/fabric.mod.json
+            tools/s19-external-inputs.lock.json
