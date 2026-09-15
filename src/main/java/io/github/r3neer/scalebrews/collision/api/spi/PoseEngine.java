@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.collision.api.spi;
 
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram;
 import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -46,6 +47,8 @@ public interface PoseEngine {
     @FunctionalInterface
     interface Resources {
         Optional<PoseProgram> program(Identifier id);
+        /** Additive resource family; default keeps existing external Resources lambdas source-compatible. */
+        default Optional<CitadelPoseProgram> citadelProgram(Identifier id) { return Optional.empty(); }
         static Resources empty() { return ignored -> Optional.empty(); }
     }
 
