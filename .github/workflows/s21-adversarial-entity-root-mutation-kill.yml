@@ -47,25 +47,26 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import os
+          import os,re
           from pathlib import Path
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInRootTransformProviders.java')
           s=p.read_text()
           m=os.environ['MUTANT']
           if m=='drop-gravity':
-              old='new Quaternionf().setFromNormalized(new Matrix3f(AnatomyMovement.gravity(entity).matrix()))'
-              new='new Quaternionf()'
+              pattern=r'new Quaternionf\(\)\s*\.setFromNormalized\(new Matrix3f\(AnatomyMovement\.gravity\(entity\)\.matrix\(\)\)\)'
+              replacement='new Quaternionf()'
           elif m=='wrong-yaw':
-              old='(float)Math.toRadians(180.0-entity.yBodyRot)'
-              new='(float)Math.toRadians(entity.yBodyRot)'
+              pattern=r'\(float\)Math\.toRadians\(180\.0\s*-\s*entity\.yBodyRot\)'
+              replacement='(float)Math.toRadians(entity.yBodyRot)'
           elif m=='drop-scale':
-              old='new RootTransformProvider.RootTransform(entity.position(),rotation,entity.getScale())'
-              new='new RootTransformProvider.RootTransform(entity.position(),rotation,1.0f)'
+              pattern=r'new RootTransformProvider\.RootTransform\(entity\.position\(\),\s*rotation,\s*scale\)'
+              replacement='new RootTransformProvider.RootTransform(entity.position(), rotation, 1.0f)'
           else:
               raise SystemExit('unknown mutant '+m)
-          if old not in s:
-              raise SystemExit('mutation target not found for '+m)
-          p.write_text(s.replace(old,new,1))
+          mutated,count=re.subn(pattern,replacement,s,count=1,flags=re.MULTILINE)
+          if count!=1:
+              raise SystemExit(f'mutation target count for {m}: {count}, expected exactly 1')
+          p.write_text(mutated)
           PY
       - name: mutant must compile
         run: ./gradlew compileJava compileGametestJava --console=plain
