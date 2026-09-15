@@ -70,7 +70,7 @@ public final class PlatformPhysics {
         if (c==null) return vanilla;
         state.support=c.support; state.surface=c.surface; state.frame=PlatformGeometry.frame(c.support);
         state.contact=state.frame.local(new Vec3(e.getX()+vanilla.x,c.y,e.getZ()+vanilla.z));
-        state.landed=true;
+        state.landed=true;Platforms.trackLegacyParticipant(e);
         return new Vec3(vanilla.x,c.y-e.getBoundingBox().minY,vanilla.z);
     }
     public static void afterMove(Entity e) {
@@ -148,7 +148,7 @@ public final class PlatformPhysics {
                 var state=Platforms.state(body);
                 state.support=support; state.surface=surface; state.frame=before;
                 var local=now.local(body.position());
-                state.contact=new Vec3(local.x,surface.y(),local.z);
+                state.contact=new Vec3(local.x,surface.y(),local.z);Platforms.trackLegacyParticipant(body);
                 carry(body);
                 break;
             }
