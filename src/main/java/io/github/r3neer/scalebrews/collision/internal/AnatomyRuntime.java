@@ -184,7 +184,8 @@ public final class AnatomyRuntime {
             && identity.epoch().equals(AnatomyNetworking.epoch(server))
             && identity.revision()==state.catalog.snapshot().revision()
             && identity.model().equals(selection.geometry().model())
-            && identity.poseProvider().equals(selection.pose().engine());
+            && identity.poseProvider().equals(selection.pose().engine())
+            && identity.rootProvider().equals(selection.rootTransform());
     }
     /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
     public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
@@ -211,7 +212,7 @@ public final class AnatomyRuntime {
             long bindingGeneration=state.allocateBindingGeneration();
             state.entities.put(living,new Active(binding,provider,bindingGeneration));
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
-                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),bindingGeneration),selection);
+                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),selection.rootTransform(),bindingGeneration),selection);
         }
     }
     public static void publish(ServerLevel level) {
