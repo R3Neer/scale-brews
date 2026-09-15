@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.collision.api;
 
 import io.github.r3neer.scalebrews.collision.api.spi.BodyAdapter;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseChannelAdapter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -12,11 +13,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-/** Public init-time registry for body adapters; registration never transfers physics ownership. */
+/** Public init-time registry for reusable body and authoritative pose-channel adapters. */
 public final class CollisionAdapters {
     private CollisionAdapters() {}
 
     private static final Map<Identifier, BodyAdapter> BODIES = new LinkedHashMap<>();
+    private static final Map<Identifier, PoseChannelAdapter> POSE_CHANNELS = new LinkedHashMap<>();
 
     public static synchronized void registerBody(Identifier entityType, BodyAdapter adapter) {
         Objects.requireNonNull(entityType, "entityType");
@@ -35,13 +37,34 @@ public final class CollisionAdapters {
         BODIES.put(entityType, stable);
     }
 
+    /**
+     * Registers the sole authoritative scalar-channel provider for one entity type.
+     * The adapter runs on the authority side and must not depend on renderer/client state.
+     */
+    public static synchronized void registerPoseChannels(Identifier entityType, PoseChannelAdapter adapter) {
+        Objects.requireNonNull(entityType, "entityType");
+        Objects.requireNonNull(adapter, "adapter");
+        if (POSE_CHANNELS.putIfAbsent(entityType, adapter) != null)
+            throw new IllegalArgumentException("Duplicate pose channel adapter: " + entityType);
+    }
+
     public static synchronized Optional<BodyAdapter> body(Identifier entityType) {
         return Optional.ofNullable(BODIES.get(entityType));
+    }
+
+    public static synchronized Optional<PoseChannelAdapter> poseChannels(Identifier entityType) {
+        return Optional.ofNullable(POSE_CHANNELS.get(entityType));
     }
 
     public static synchronized Map<Identifier, BodyAdapter> bodySnapshot() {
         var sorted = new TreeMap<Identifier, BodyAdapter>(Comparator.comparing(Identifier::toString));
         sorted.putAll(BODIES);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(sorted));
+    }
+
+    public static synchronized Map<Identifier, PoseChannelAdapter> poseChannelSnapshot() {
+        var sorted = new TreeMap<Identifier, PoseChannelAdapter>(Comparator.comparing(Identifier::toString));
+        sorted.putAll(POSE_CHANNELS);
         return Collections.unmodifiableMap(new LinkedHashMap<>(sorted));
     }
 }
