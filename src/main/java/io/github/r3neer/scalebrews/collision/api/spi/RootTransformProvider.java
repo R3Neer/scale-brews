@@ -12,8 +12,11 @@ public interface RootTransformProvider {
 
     /** Immutable quaternion components avoid exposing a mutable JOML object through the public DTO. */
     record RootTransform(Vec3 origin, float qx, float qy, float qz, float qw, float scale) {
+        /** Shared authority/wire bound; a transform valid in authority must always be serializable. */
+        public static final float MAX_SCALE = 1024f;
         public RootTransform {
-            if (origin == null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(qx + qy + qz + qw + scale) || scale <= 0)
+            if (origin == null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(qx + qy + qz + qw + scale)
+                    || scale <= 0 || scale > MAX_SCALE)
                 throw new IllegalArgumentException("Invalid root transform");
             float length = (float)Math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
             if (!Float.isFinite(length) || length < 1e-6f) throw new IllegalArgumentException("Invalid root rotation");
