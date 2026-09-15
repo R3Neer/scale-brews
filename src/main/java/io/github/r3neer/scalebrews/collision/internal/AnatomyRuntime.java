@@ -59,6 +59,12 @@ public final class AnatomyRuntime {
                 try{reload(server);}catch(RuntimeException invalid){ScaleBrews.LOGGER.error("Anatomical reload rejected; accepted catalog retained",invalid);}
             }
         });
+        // New entities are the only steady-state source of new canonical bindings. Existing entities
+        // are enumerated once at start/reload by reset(), never on every tick.
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity,level)->{
+            var state=STATES.get(level.getServer());
+            if(state!=null && entity instanceof LivingEntity living)bindIfEligible(state,living);
+        });
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             var state=STATES.get(player.level().getServer());
             if(state!=null)generation(state,player,entity.getUUID());
@@ -106,9 +112,26 @@ public final class AnatomyRuntime {
         // Materialize the immutable packet list now so the first player does no catalog preparation work.
         state.catalog.preparedPackets(AnatomyNetworking.epoch(server));
         for(var level:server.getAllLevels()){
-            AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepare(level);
+            AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepareExisting(level,state);
         }
         for(var player:server.getPlayerList().getPlayers())catalog(state,player);
+    }
+    /** One-time start/reload enumeration; explicitly not part of steady tick orchestration. */
+    private static void prepareExisting(ServerLevel level,State state) {
+        for(var entity:level.getAllEntities())if(entity instanceof LivingEntity living)bindIfEligible(state,living);
+    }
+    private static void bindIfEligible(State state,LivingEntity living) {
+        if(state==null || living==null || living.isRemoved() || state.entities.containsKey(living))return;
+        var snapshot=state.catalog.snapshot();
+        var binding=snapshot.bindings().get(BuiltInRegistries.ENTITY_TYPE.getKey(living.getType()));
+        if(binding==null || binding.selection().policy().enabled().orElse(true)==false)return;
+        var selection=binding.selection();
+        var provider=new ModelGeometryProvider(binding.model(),binding.poses(),binding.root(),selection.geometry().filter(),snapshot.revision())
+            .serverDriven(e->AnatomyPoseEligibility.supported(binding.legacyPoseProvider(),e));
+        long bindingGeneration=state.allocateBindingGeneration();
+        state.entities.put(living,new Active(binding,provider,bindingGeneration));
+        AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
+            AnatomyNetworking.epoch(living.level().getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),selection.rootTransform(),bindingGeneration),selection);
     }
     public static void stop(MinecraftServer server) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
@@ -201,19 +224,8 @@ public final class AnatomyRuntime {
     /** Called before the shared core's once-per-level pose/carry tick, never from render queries. */
     public static void prepare(ServerLevel level) {
         var state=STATES.get(level.getServer());if(state==null)return;
+        // New bindings arrive through ENTITY_LOAD. Steady tick only retires dead participants.
         state.entities.entrySet().removeIf(e->!e.getKey().isAlive() || e.getKey().isRemoved());
-        var snapshot=state.catalog.snapshot();
-        for(var entity:level.getAllEntities())if(entity instanceof LivingEntity living && !state.entities.containsKey(living)) {
-            var binding=snapshot.bindings().get(BuiltInRegistries.ENTITY_TYPE.getKey(living.getType()));
-            if(binding==null || binding.selection().policy().enabled().orElse(true)==false)continue;
-            var selection=binding.selection();
-            var provider=new ModelGeometryProvider(binding.model(),binding.poses(),binding.root(),selection.geometry().filter(),snapshot.revision())
-                .serverDriven(e->AnatomyPoseEligibility.supported(binding.legacyPoseProvider(),e));
-            long bindingGeneration=state.allocateBindingGeneration();
-            state.entities.put(living,new Active(binding,provider,bindingGeneration));
-            AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
-                AnatomyNetworking.epoch(level.getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),selection.rootTransform(),bindingGeneration),selection);
-        }
     }
     public static void publish(ServerLevel level) {
         var state=STATES.get(level.getServer());if(state==null)return;
@@ -225,7 +237,20 @@ public final class AnatomyRuntime {
             if(entity instanceof ServerPlayer player)players.add(player);
             for(var player:players)send(entity,player);
         }
-        for(var body:level.getAllEntities()) {
+        // Contact publication is participant-local: current material contacts plus previously-published
+        // non-null contacts that may need one clearing packet. Null tracking watermarks are retained for
+        // sequence causality but never heartbeat-scanned.
+        var bodies=Collections.newSetFromMap(new IdentityHashMap<Entity,Boolean>());
+        for(var body:AnatomyContactState.contactBodies())if(body.level()==level && !body.isRemoved())bodies.add(body);
+        for(var recipientEntry:new ArrayList<>(state.contacts.entrySet())) {
+            var recipient=recipientEntry.getKey();
+            if(recipient==null || recipient.level()!=level)continue;
+            for(var known:recipientEntry.getValue().entrySet())if(known.getValue()!=null && known.getValue().key()!=null) {
+                var body=level.getEntity(known.getKey());
+                if(body!=null && !body.isRemoved())bodies.add(body);
+            }
+        }
+        for(var body:bodies) {
             var interested=new HashSet<>(PlayerLookup.tracking(body));
             if(body instanceof ServerPlayer player)interested.add(player);
             for(var player:interested)contact(body,player,false);
