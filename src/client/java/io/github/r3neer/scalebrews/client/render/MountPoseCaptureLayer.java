@@ -40,7 +40,9 @@ public final class MountPoseCaptureLayer<S extends LivingEntityRenderState, M ex
                     frame.riderRotationDelta(), frame.width(), frame.depth(), frame.strapLength(), frame.seatHeight(), frame.serial());
         }
         saddle.scalebrews$seatFrame(frame);
-        MountRenderFrame.capture(snapshot.scalebrews$entityId(), frame);
-        TinyMountCamera.capture(snapshot.scalebrews$entityId(), frame);
+        if (MountRenderFrame.contains(state)) {
+            MountRenderFrame.capture(snapshot.scalebrews$entityId(), frame);
+            TinyMountCamera.capture(snapshot.scalebrews$entityId(), frame);
+        }
     }
 }

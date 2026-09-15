@@ -17,6 +17,7 @@ import org.joml.Vector3f;
 public final class TinyMountClientAcceptance implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        context.runOnClient(client -> TinyMountVisualTests.run());
         try (var world = context.worldBuilder().create()) {
             world.getConnection().waitForChunksRender();
             var server = world.getServer();
@@ -224,6 +225,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
     }
 
     private static void captureMountAngles(ClientGameTestContext context, String name) {
+        context.runOnClient(client -> MountFrameProbe.start(client.player.getVehicle().getId()));
         context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
         context.getInput().lookAt(180, 15);
         context.waitTicks(4);
@@ -235,6 +237,16 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
         context.getInput().lookAt(180, 75);
         context.waitTicks(4);
         context.takeScreenshot("scale-brews-" + name + "-mounted-top");
+        context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON));
+        for (int pitch : new int[]{45,80}) {
+            context.getInput().lookAt(180,pitch);
+            context.waitTicks(6);
+            context.takeScreenshot("scale-brews-" + name + "-first-person-" + pitch);
+        }
+        context.getInput().lookAt(0,80);
+        context.waitTicks(10);
+        context.takeScreenshot("scale-brews-" + name + "-first-person-forward-down");
+        context.runOnClient(client -> MountFrameProbe.finish(net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("firstperson")));
         context.getInput().lookAt(0, 0);
     }
 

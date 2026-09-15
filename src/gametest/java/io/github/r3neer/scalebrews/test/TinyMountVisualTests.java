@@ -28,6 +28,11 @@ public final class TinyMountVisualTests {
         profilesAreValidated();
         nestedAnimatedPartOwnsTheSeat();
         frameStateIsOrderedAndNeverStale();
+        selectionDoesNotDependOnFirstRender();
+        var target=new Quaternionf().rotationY(2);
+        var smoothed=MountRenderFrame.interpolateRotation(new Quaternionf(),target,1.0/60);
+        if (!(smoothed.angle()>0 && smoothed.angle()<target.angle()))
+            throw new AssertionError("Rider rotation did not interpolate");
     }
 
     private static void profilesAreValidated() {
@@ -95,11 +100,15 @@ public final class TinyMountVisualTests {
         if (ordered.get(0) != mount || ordered.get(1) != rider)
             throw new AssertionError("Tiny Mount was not submitted before its rider");
         MountRenderFrame.begin(input);
+        var preview = new LivingEntityRenderState();
+        ((RiderPoseState)preview).scalebrews$vehicleId(41);
         long serial = MountRenderFrame.serial();
         MountRenderFrame.capture(41, new SeatFrame("root/body", new Matrix4f(), new Vector3f(1, 2, 3), new Vector3f(0, 1, 0),
                 new Matrix4f(), 1, 1, 1, 1, serial));
         if (MountRenderFrame.riderTransform((RiderPoseState)rider, rider, new PoseStack()) == null)
             throw new AssertionError("Same-frame rider did not receive its captured SeatFrame");
+        if (MountRenderFrame.riderTransform((RiderPoseState)preview, preview, new PoseStack()) != null)
+            throw new AssertionError("Inventory preview consumed a world attachment");
         rider.boundingBoxHeight = 2;
         var rotated = new PoseStack();
         rotated.translate(7, 4, -2);
@@ -108,9 +117,40 @@ public final class TinyMountVisualTests {
         Vector3f correctedOrigin = new Matrix4f(rotated.last().pose()).mul(correction).getTranslation(new Vector3f());
         if (correctedOrigin.distance(new Vector3f(1, 1.2F, 3)) > 1E-4F)
             throw new AssertionError("Rotated rider stack moved to " + correctedOrigin + " instead of the world-space seat");
+        io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+        ((RiderPoseState)rider).scalebrews$firstPersonOffset(new net.minecraft.world.phys.Vec3(.2,0,0));
+        rider.scale=.5F;
+        var firstPersonCorrection=MountRenderFrame.riderTransform((RiderPoseState)rider,rider,rotated);
+        var firstPersonOrigin=new Matrix4f(rotated.last().pose()).mul(firstPersonCorrection).getTranslation(new Vector3f());
+        if(firstPersonOrigin.distance(new Vector3f(6.9F,4,-2))>1E-4F)
+            throw new AssertionError("FirstPerson lost its scaled extraction origin or consumed the unbounded seat target");
         MountRenderFrame.end();
         if (MountRenderFrame.riderTransform((RiderPoseState)rider, rider, new PoseStack()) != null)
             throw new AssertionError("SeatFrame survived the end of its render frame");
+    }
+
+    private static void selectionDoesNotDependOnFirstRender() {
+        var mesh = new MeshDefinition();
+        var group = mesh.getRoot().addOrReplaceChild("bone", CubeListBuilder.create(), PartPose.ZERO);
+        group.addOrReplaceChild("body", CubeListBuilder.create().addBox(-3,-4,-5,6,8,10), PartPose.ZERO);
+        var baked = LayerDefinition.create(mesh, 32,32).bakeRoot();
+        var profile = TinyMountVisualProfile.parse(JsonParser.parseString("{\"anchor\":{\"path\":\"bone\"}}").getAsJsonObject());
+        var outer = new Matrix4f().scale(-1,-1,1);
+        var first = TinyMountSeatResolver.resolve(baked,outer,profile,1,"group rest");
+        if (!first.path().equals("root/bone/body")) throw new AssertionError("Group anchor must resolve descendants");
+        baked.getChild("bone").xRot=1.2F;
+        TinyMountSeatResolver.clearCaches();
+        var second=TinyMountSeatResolver.resolve(baked,new Matrix4f().rotateY(2).mul(outer),profile,2,"rotated first render");
+        if (!first.path().equals(second.path()) || Math.abs(first.width()-second.width())>1E-5
+                || Math.abs(first.depth()-second.depth())>1E-5)
+            throw new AssertionError("First render orientation changed saddle geometry");
+        float angle=second.riderRotationDelta().getUnnormalizedRotation(new Quaternionf()).angle();
+        if (angle<1) throw new AssertionError("Large animation was abruptly rebased instead of retained");
+        var replacement=LayerDefinition.create(mesh,32,32).bakeRoot().getChild("bone");
+        ((io.github.r3neer.scalebrews.client.mixin.ModelPartAccess)(Object)baked).scalebrews$children().put("bone",replacement);
+        var replaced=TinyMountSeatResolver.resolve(baked,outer,profile,3,"same-shape replacement");
+        if (replaced.cameraPosition().distance(first.cameraPosition())>1E-5)
+            throw new AssertionError("Cached chain retained a replaced model variant");
     }
 
     private static void assertInvalid(String json) {

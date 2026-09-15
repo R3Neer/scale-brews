@@ -6,19 +6,15 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 @Mixin(LevelRenderer.class)
 public class TinyMountRenderFrameMixin {
-    @Inject(method = "submitEntities", at = @At("HEAD"))
-    private void scalebrews$begin(PoseStack poses, LevelRenderState state, SubmitNodeCollector collector, CallbackInfo ci) {
+    @WrapMethod(method = "submitEntities")
+    private void scalebrews$frame(PoseStack poses, LevelRenderState state, SubmitNodeCollector collector, Operation<Void> original) {
         MountRenderFrame.begin(state.entityRenderStates);
-    }
-
-    @Inject(method = "submitEntities", at = @At("RETURN"))
-    private void scalebrews$end(PoseStack poses, LevelRenderState state, SubmitNodeCollector collector, CallbackInfo ci) {
-        MountRenderFrame.end();
+        try { original.call(poses, state, collector); }
+        finally { MountRenderFrame.end(); }
     }
 }

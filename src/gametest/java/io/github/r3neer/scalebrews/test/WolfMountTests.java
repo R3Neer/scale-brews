@@ -25,7 +25,7 @@ public class WolfMountTests {
         rider.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SADDLE));
         wolf.interact(rider, InteractionHand.MAIN_HAND, Vec3.ZERO);
         rider.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        rider.setShiftKeyDown(true);
+        rider.setShiftKeyDown(false);
         wolf.interact(rider, InteractionHand.MAIN_HAND, Vec3.ZERO);
         h.assertTrue(rider.getVehicle() == wolf && TinyMounts.controller(wolf) == rider, "Borrowed wolf directly controlled");
         h.assertFalse(wolf.isClientAuthoritative(), "Server owns mount movement");

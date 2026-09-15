@@ -42,7 +42,7 @@ public class WolfClientProof implements FabricClientGameTest {
             });
             server.runCommand("tp @a 0 -60 2.5");
             context.waitTicks(25);
-            context.runOnClient(client->client.options.keyShift.setDown(true));
+            context.runOnClient(client->client.options.keyShift.setDown(false));
             context.waitTicks(5);
             server.runCommand("execute as @a at @s anchored eyes run tp @s ~ ~ ~ facing entity @e[tag=wolf_proof,limit=1] eyes");
             context.waitTicks(5);
@@ -53,7 +53,7 @@ public class WolfClientProof implements FabricClientGameTest {
             context.getInput().holdKeyFor(options -> options.keyUse, 1);
             context.waitTicks(8);
             server.runOnServer(s->{if(s.getPlayerList().getPlayers().getFirst().getVehicle()==null)
-                throw new AssertionError("Actual crouch + use did not mount/stay mounted on sitting wolf");});
+                throw new AssertionError("Actual use did not mount/stay mounted on saddled sitting wolf");});
             server.runOnServer(s->{
                 var player=s.getPlayerList().getPlayers().getFirst();
                 var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
@@ -124,17 +124,18 @@ public class WolfClientProof implements FabricClientGameTest {
                 if(client.player.isPassenger())throw new AssertionError("New Shift press did not dismount");
             });
             context.runOnClient(client->client.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON));
-            for (var held : java.util.List.of(Items.STONE, Items.BEEF, Items.SADDLE)) {
+            for (var held : java.util.List.of(Items.AIR, Items.SADDLE, Items.AIR)) {
                 server.runOnServer(s->{
                     var player=s.getPlayerList().getPlayers().getFirst();
                     var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
                     wolf.setNoAi(true);
+                    wolf.setItemSlot(EquipmentSlot.SADDLE,new ItemStack(Items.SADDLE));
                     player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,new ItemStack(held,2));
                 });
                 server.runCommand("tp @e[tag=wolf_proof,limit=1] 0 -60 4");
                 server.runCommand("tp @a 0 -60 2.5");
                 context.waitTicks(10);
-                context.runOnClient(client->client.options.keyShift.setDown(true));
+                context.runOnClient(client->client.options.keyShift.setDown(false));
                 context.waitTicks(5);
                 server.runCommand("execute as @a at @s anchored eyes run tp @s ~ ~ ~ facing entity @e[tag=wolf_proof,limit=1] eyes");
                 context.waitTicks(5);
@@ -143,9 +144,9 @@ public class WolfClientProof implements FabricClientGameTest {
                 server.runOnServer(s->{
                     var player=s.getPlayerList().getPlayers().getFirst();
                     var wolf=(Wolf)s.overworld().getEntity(wolfId[0]);
-                    if(player.getVehicle()!=wolf || player.getMainHandItem().getCount()!=2 || wolf.isInLove()
-                        || !wolf.getItemBySlot(EquipmentSlot.SADDLE).isEmpty())
-                        throw new AssertionError("Repeated real Shift + click with "+held+" failed or used item");
+                    if(player.getVehicle()!=wolf || (held!=Items.AIR && player.getMainHandItem().getCount()!=2) || wolf.isInLove()
+                        || !wolf.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE))
+                        throw new AssertionError("Repeated real click with "+held+" failed or used item");
                 });
                 context.runOnClient(client->client.options.keyShift.setDown(false));context.waitTicks(5);
                 context.runOnClient(client->client.options.keyShift.setDown(true));context.waitTicks(5);

@@ -72,11 +72,11 @@ public class MountPlaytestTests {
         owner.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         wolf.setOrderedToSit(false);
         wolf.interact(owner, InteractionHand.MAIN_HAND, Vec3.ZERO);
-        h.assertTrue(wolf.isOrderedToSit() && !owner.isPassenger(), "Normal click retains sit command despite rider size");
+        h.assertTrue(!wolf.isOrderedToSit() && !owner.isPassenger(), "Oversized rider cannot mount or toggle a saddled wolf");
         guest.getAttribute(Attributes.SCALE).setBaseValue(.52);
-        guest.setShiftKeyDown(true); // Still holding the spare saddle from equipment above.
+        guest.setShiftKeyDown(false); // Still holding the spare saddle from equipment above.
         wolf.interact(guest, InteractionHand.MAIN_HAND, Vec3.ZERO);
-        h.assertTrue(guest.getVehicle() == wolf && !wolf.isOrderedToSit(), "Shift click mounts borrowed wolf");
+        h.assertTrue(guest.getVehicle() == wolf && !wolf.isOrderedToSit(), "Ordinary click mounts borrowed saddled wolf");
         h.assertTrue(guest.getMainHandItem().is(Items.SADDLE) && guest.getMainHandItem().getCount() == 1,
                 "Mounting an equipped wolf does not consume the held saddle");
         wolf.setItemSlot(EquipmentSlot.SADDLE, ItemStack.EMPTY); TinyMounts.enforceRider(guest);

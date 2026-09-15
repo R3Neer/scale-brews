@@ -1,5 +1,15 @@
 # Scale Brews — active work
 
+## Mount rendering and wolf gestures — 2026-09-16
+
+- [x] Stabilize model-space seat selection and isolate world attachment state from GUI previews.
+- [x] Replace abrupt rider rebasing with quaternion interpolation.
+- [x] Tamed wolf: Use mounts when saddled, vanilla sit/stand when unsaddled; Crouch + Use opens equipment.
+- [x] Integrate hand-drawn wolf armor slot and its reproducible pixel source.
+- [x] Verify FirstPerson body/camera alignment, mounted paperdoll and animated saddles with the installed compatibility stack.
+- [x] Finish iterative TM reviews and document automated versus manual acceptance in `docs/MOUNT_RENDER_FIX_TM.md`.
+- [ ] Human acceptance in the complete VanillaPlus profile, including long-session flicker and the originally reported intermittent paperdoll/heart symptoms.
+
 ## Beta.7 Tiny Mount families and documentation audit — 2026-09-14
 
 - [x] Merge the validated mount-polish work into `main`: data-driven `direct` / `tameable_direct` / `item_steered` families, generic SADDLE/BODY inventory, vanilla shearing/dispensers, wolf gamefeel and final animated mount attachment transforms.

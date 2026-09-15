@@ -119,18 +119,20 @@ public final class TinyMounts {
         boolean holdingSaddle = held.is(Items.SADDLE);
         boolean alreadySaddled = mob.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE);
 
-        // DIRECT can copy Camel's secondary-use inventory grammar exactly. TAMEABLE_DIRECT keeps
-        // Crouch+Use as its existing mount gesture so wolf sitting/feeding can remain on normal Use.
-        if (family == TinyMountDefinition.Family.DIRECT && player.isSecondaryUseActive()
+        boolean tamedWolf = mob instanceof Wolf wolf && wolf.isTame();
+        // Tamed wolves use the ordinary mount inventory gesture. Wild ride-taming
+        // and other configured tameables keep their established gesture.
+        if ((family == TinyMountDefinition.Family.DIRECT || tamedWolf) && player.isSecondaryUseActive()
                 && TinyMountInventory.canOpen(player, mob)) {
             if (!mob.level().isClientSide() && player instanceof ServerPlayer serverPlayer)
                 TinyMountInventory.open(serverPlayer, mob);
             return InteractionResult.SUCCESS;
         }
 
-        boolean tameableMountGesture = family == TinyMountDefinition.Family.TAMEABLE_DIRECT && player.isSecondaryUseActive();
+        boolean tameableMountGesture = family == TinyMountDefinition.Family.TAMEABLE_DIRECT
+                && !tamedWolf && player.isSecondaryUseActive();
 
-        // Tameable mounts reserve Crouch+Use for mounting so held food/item use keeps its vanilla meaning otherwise.
+        // The retained wild/other-tameable gesture must not consume held equipment.
         if (holdingSaddle && !alreadySaddled && !tameableMountGesture) {
             if (mob.isBaby()) return reject(mob, player, "mount_too_young");
             if (!equipmentAvailable(mob, definition)) {
@@ -166,7 +168,9 @@ public final class TinyMounts {
         boolean mounting = switch (family) {
             case DIRECT -> !player.isSecondaryUseActive()
                     && (held.isEmpty() || (holdingSaddle && alreadySaddled));
-            case TAMEABLE_DIRECT -> tameableMountGesture;
+            case TAMEABLE_DIRECT -> tamedWolf
+                    ? !player.isSecondaryUseActive() && alreadySaddled && (held.isEmpty() || holdingSaddle)
+                    : tameableMountGesture;
             case ITEM_STEERED -> !player.isSecondaryUseActive() && alreadySaddled
                     && (held.isEmpty() || holdingSaddle || TinyMountTemptation.matches(definition, held));
         };

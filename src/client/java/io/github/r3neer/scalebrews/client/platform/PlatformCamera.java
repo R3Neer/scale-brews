@@ -11,12 +11,14 @@ public final class PlatformCamera {
     private static Object world;
     private static long nanos;
     private static Vec3 smoothed=Vec3.ZERO, lastPhysical=Vec3.ZERO;
+    private static Vec3 applied=Vec3.ZERO;
+    public static Vec3 appliedOffset() { return applied; }
     private PlatformCamera() {}
-    public static void reset() { previous=null;world=null;nanos=0;smoothed=Vec3.ZERO;lastPhysical=Vec3.ZERO; }
+    public static void reset() { previous=null;world=null;nanos=0;smoothed=Vec3.ZERO;lastPhysical=Vec3.ZERO;applied=Vec3.ZERO; }
     public static Vec3 offset(Camera camera,float partial) {
         Entity e=camera.entity();
         if(e==null || camera.isDetached() || camera.isPanoramicMode()) {
-            previous=null; smoothed=Vec3.ZERO; return Vec3.ZERO;
+            previous=null; smoothed=Vec3.ZERO; applied=Vec3.ZERO; return Vec3.ZERO;
         }
         long now=System.nanoTime();
         if(previous!=e || world!=e.level() || e.position().distanceToSqr(lastPhysical)>16) smoothed=Vec3.ZERO;
@@ -35,6 +37,7 @@ public final class PlatformCamera {
             if(hit.getType()!=HitResult.Type.MISS && smoothed.length()>1e-8)
                 fraction=Math.min(fraction,Math.max(0,(hit.getLocation().distanceTo(start)-.02)/smoothed.length()));
         }
-        return smoothed.scale(fraction);
+        applied=smoothed.scale(fraction);
+        return applied;
     }
 }

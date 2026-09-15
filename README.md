@@ -27,7 +27,7 @@ Brew an **Awkward Potion with a Slime Ball** to begin growing, then try a Fermen
 
 The brewing stand has more to offer. When you want the answers, the **[player guide](docs/GUIDE.md)** contains recipes, exact numbers, controls and all the less-obvious interactions. It is deliberately spoiler-rich.
 
-One control worth knowing: for wolves, use **Crouch + Use** to mount, leaving ordinary Use for feeding, sitting and equipping. These follow your configured bindings, not hardcoded keys.
+One control worth knowing: ordinary **Use** mounts a saddled tame wolf with an empty hand; without a saddle it keeps sit/stand. **Crouch + Use** opens its equipment inventory. Feeding and other item interactions retain their vanilla meaning. Wild ride-taming still uses Crouch + Use. These follow your configured bindings, not hardcoded keys.
 
 ## Install
 

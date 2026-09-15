@@ -104,6 +104,17 @@ public class GenerateArt {
 
     public static void main(String[] args) throws Exception {
         Path assets = Path.of("src/main/resources/assets/scalebrews");
+        if (args.length == 1 && args[0].equals("wolf-slot")) {
+            // Hand-placed Piskel design: vanilla empty-slot grey, transparent background.
+            var slot = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+            int[][] pixels = {{3,2},{5,2},{6,2},{7,2},{8,2},{9,2},
+                    {1,3},{2,3},{3,3},{11,3},{12,3},{13,3},{14,3},{1,4},{14,4},
+                    {2,5},{14,5},{3,6},{14,6},{3,7},{5,7},{6,7},{7,7},{8,7},{9,7},{12,7},
+                    {7,8},{12,8},{4,10},{5,10},{12,10},{13,10},{4,11},{12,11}};
+            for (int[] pixel : pixels) slot.setRGB(pixel[0], pixel[1], 0xff7c7c7c);
+            save(slot, assets.resolve("textures/gui/sprites/container/slot/wolf_armor.png"));
+            return;
+        }
         save(saddle(false), assets.resolve("textures/entity/saddle/chicken.png"));
         save(saddle(true), assets.resolve("textures/entity/saddle/bee.png"));
         save(saddle(false), assets.resolve("textures/entity/saddle/wolf.png"));

@@ -20,6 +20,9 @@ public class TinySaddleStateMixin implements SaddleState, RiderPoseState, MountP
     @Unique private boolean scalebrews$hasSaddle;
     @Unique private int scalebrews$entityId;
     @Unique private int scalebrews$vehicleId = -1;
+    @Unique private net.minecraft.world.phys.Vec3 scalebrews$firstPersonOffset;
+    public net.minecraft.world.phys.Vec3 scalebrews$firstPersonOffset() { return scalebrews$firstPersonOffset; }
+    public void scalebrews$firstPersonOffset(net.minecraft.world.phys.Vec3 offset) { scalebrews$firstPersonOffset = offset; }
     @Unique private boolean scalebrews$tinyMount;
     @Unique private Identifier scalebrews$mountType;
     @Unique private float scalebrews$wolfScaleX = 1, scalebrews$wolfScaleY = 1, scalebrews$wolfScaleZ = 1;
