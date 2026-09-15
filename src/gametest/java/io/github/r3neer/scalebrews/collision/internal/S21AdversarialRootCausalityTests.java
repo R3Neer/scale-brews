@@ -105,7 +105,7 @@ public final class S21AdversarialRootCausalityTests {
         return new ModelGeometry(1, MODEL.toString(), "1",
             List.of(new ModelGeometry.Part("root", null, ModelGeometry.values(new Matrix4f()))),
             List.of(new ModelGeometry.Piece("probe", "root",
-                List.of(2d, .25d, .1d), List.of(.5d, 1.25d, .3d), null)),
+                List.of(2d, .25d, .1d), List.of(2.5d, 1.5d, .4d), null)),
             ModelGeometry.values(new Matrix4f()));
     }
 }
