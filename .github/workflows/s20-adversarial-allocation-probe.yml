@@ -8,6 +8,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgramEvaluator.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgram.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseEngine.java'
+      - 'src/main/resources/data/alexsmobs/scalebrews/citadel_pose_programs/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S20AdversarialAllocationProbeTests.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
