@@ -39,6 +39,10 @@ Requires **Minecraft 26.2**, **Java 25**, **Fabric Loader 0.19.5+** and **Fabric
 
 No other mod is required. English and Spanish translations are included. World owners can tune or disable optional mechanics through [JSON configuration](docs/CONFIGURATION.md).
 
+## Optional Alchemical Leather integration
+
+When Alchemical Leather is installed, Scale Brews owns the compatibility declarations for its own potion effects. Growth and Shrinking are mapped to chestplate infusions, and both explicitly declare `wear: none`: maintaining a size state does not consume armor durability merely because time passes. The integration is data-only and adds no hard dependency, so Scale Brews behaves normally when Alchemical Leather is absent. The implementation and validation record lives in [the TM compatibility note](docs/TM_ALCHEMICAL_LEATHER_COMPAT.md).
+
 ## Before you jump in
 
 This is a **beta**, not a promise of compatibility with every pack. Back up worlds before updating. See [tested behavior and remaining QA](docs/VALIDATION.md).
@@ -51,6 +55,7 @@ Living platforms currently provide upper support surfaces, **not full-body colli
 
 - [Player guide / wiki](docs/GUIDE.md) — the full reference, with spoilers.
 - [World configuration](docs/CONFIGURATION.md) — make the rules fit your world.
+- [Alchemical Leather compatibility](docs/TM_ALCHEMICAL_LEATHER_COMPAT.md) — owned slot/wear declarations and validation evidence.
 - [Effective-gravity integration](docs/GRAVITY_INTEGRATION.md) — how mount-generated movement composes with optional gravity providers.
 - [Build and contribute](docs/GUIDE.md#development) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/R3Neer/scale-brews/issues)
 
