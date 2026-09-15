@@ -38,7 +38,12 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     }
     @Inject(method="refreshDimensions",at=@At("RETURN"))
     private void scalebrews$spatialDimensions(CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living)AnatomyMovement.spatialMutation(living);
+        if((Object)this instanceof LivingEntity living) {
+            // Search-margin metadata changes only when dimensions/scale change; update this support
+            // locally instead of rescanning every entity at END_LEVEL_TICK.
+            Platforms.noteSupport(living);
+            AnatomyMovement.spatialMutation(living);
+        }
     }
     @WrapMethod(method="move")
     private void scalebrews$move(MoverType type, Vec3 delta, Operation<Void> original) {
