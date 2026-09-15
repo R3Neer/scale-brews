@@ -207,7 +207,7 @@ public final class AnatomyRuntime {
             var binding=snapshot.bindings().get(BuiltInRegistries.ENTITY_TYPE.getKey(living.getType()));
             if(binding==null || binding.selection().policy().enabled().orElse(true)==false)continue;
             var selection=binding.selection();
-            var provider=new ModelGeometryProvider(binding.model(),binding.poses(),selection.geometry().filter(),snapshot.revision())
+            var provider=new ModelGeometryProvider(binding.model(),binding.poses(),binding.root(),selection.geometry().filter(),snapshot.revision())
                 .serverDriven(e->AnatomyPoseEligibility.supported(binding.legacyPoseProvider(),e));
             long bindingGeneration=state.allocateBindingGeneration();
             state.entities.put(living,new Active(binding,provider,bindingGeneration));
