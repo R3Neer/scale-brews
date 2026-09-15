@@ -32,6 +32,12 @@ public final class Platforms {
 
     private static final Map<Level,Double> MARGINS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Entity,PlatformDefinition> AUTOMATIC=Collections.synchronizedMap(new WeakHashMap<>());
+    /**
+     * Bodies participating in the legacy platform path. This replaces the former two full-level scans per
+     * steady server tick. Weak membership is sufficient because the world/entity lifecycle owns the bodies;
+     * a stale member is also pruned deterministically on the next tick.
+     */
+    private static final Map<Level,Set<Entity>> LEGACY_PARTICIPANTS=Collections.synchronizedMap(new WeakHashMap<>());
     /** @deprecated Use {@link CollisionAdapters#registerBody(Identifier, BodyAdapter)}. */
     @Deprecated
     public static void registerAdapter(Identifier type, PhysicalAdapter adapter) { CollisionAdapters.registerBody(type, adapter); }
@@ -50,6 +56,27 @@ public final class Platforms {
     }
     public static PlatformState state(Entity e) { return ((PlatformBody)e).scalebrews$platform(); }
     public static boolean simulates(Entity e) { return !e.level().isClientSide() || e.isLocalInstanceAuthoritative(); }
+    /** Mark a body only when it actually acquires legacy support. */
+    static void trackLegacyParticipant(Entity e) {
+        if(e==null)return;
+        synchronized(LEGACY_PARTICIPANTS) {
+            LEGACY_PARTICIPANTS.computeIfAbsent(e.level(),ignored->Collections.newSetFromMap(new WeakHashMap<>())).add(e);
+        }
+    }
+    private static void untrackLegacyParticipant(Entity e) {
+        if(e==null)return;
+        synchronized(LEGACY_PARTICIPANTS) {
+            var set=LEGACY_PARTICIPANTS.get(e.level());
+            if(set==null)return;
+            set.remove(e);if(set.isEmpty())LEGACY_PARTICIPANTS.remove(e.level());
+        }
+    }
+    private static List<Entity> legacyParticipants(Level level) {
+        synchronized(LEGACY_PARTICIPANTS) {
+            var set=LEGACY_PARTICIPANTS.get(level);
+            return set==null?List.of():List.copyOf(set);
+        }
+    }
     public static void noteSupport(Entity e) {
         // An active shared-anatomy session must never derive live support metadata from the legacy platform catalog.
         if(!(e instanceof LivingEntity living) || AnatomyApi.ownsSharedPhysics(e)) return;
@@ -160,16 +187,22 @@ public final class Platforms {
         // Provider cadence is simultaneous. Drain the canonical joint batch immediately after
         // publication, before legacy end-of-tick carry or later world work can observe it stale.
         io.github.r3neer.scalebrews.collision.internal.MaterialPhysicsRuntime.drain(level);
-        for(Entity e:level.getAllEntities()) noteSupport(e);
-        for (Entity e : level.getAllEntities()) {
+        // Legacy carry/networking is participant-local. ENTITY_LOAD and refreshDimensions update
+        // support metadata; only bodies that have actually acquired a legacy support need this pass.
+        for(Entity e:legacyParticipants(level)) {
+            if(e.isRemoved() || e.level()!=level) {untrackLegacyParticipant(e);continue;}
+            var state=state(e);
             if(AnatomyApi.ownsSharedPhysics(e)) {
-                state(e).clear();state(e).published=false;continue;
+                state.clear();state.published=false;untrackLegacyParticipant(e);continue;
             }
-            if(state(e).support == null && !state(e).published)continue;
+            // A previously published body with a now-cleared support must remain for one pass so
+            // clients receive the clearing packet. A never-published idle body has no tick work.
+            if(state.support==null && !state.published) {untrackLegacyParticipant(e);continue;}
             PlatformPhysics.carry(e);
             PlatformNetworking.broadcast(e);
-            state(e).published = state(e).support != null;
-            state(e).transported = net.minecraft.world.phys.Vec3.ZERO;
+            state.published=state.support!=null;
+            state.transported=net.minecraft.world.phys.Vec3.ZERO;
+            if(state.support==null && !state.published)untrackLegacyParticipant(e);
         }
     }
 }
