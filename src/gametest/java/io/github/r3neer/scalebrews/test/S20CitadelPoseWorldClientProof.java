@@ -13,7 +13,7 @@ public final class S20CitadelPoseWorldClientProof implements FabricClientGameTes
     @Override
     public void runTest(ClientGameTestContext context) {
         try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
-            singleplayer.getClientWorld().waitForChunksRender();
+            singleplayer.getConnection().waitForChunksRender();
             new S20CitadelPoseClientProof().runTest(context);
         }
     }
