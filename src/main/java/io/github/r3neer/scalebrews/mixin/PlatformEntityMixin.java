@@ -71,7 +71,6 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     @Inject(method="push(Lnet/minecraft/world/entity/Entity;)V",at=@At("HEAD"),cancellable=true)
     private void scalebrews$supportContact(Entity other,CallbackInfo ci) {
         Entity self=(Entity)(Object)this;
-        if(Platforms.state(self).support==other || Platforms.state(other).support==self
-            || AnatomyApi.ready(self) && AnatomyMovement.suppressesPush(self,other)) ci.cancel();
+        if(Platforms.state(self).support==other || Platforms.state(other).support==self) ci.cancel();
     }
 }
