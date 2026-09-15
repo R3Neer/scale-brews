@@ -19,7 +19,8 @@ public final class AnatomyFrameHistory {
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
                     || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
-                    || !current.provider().equals(next.provider()) || current.bindingGeneration()!=next.bindingGeneration())
+                    || !current.provider().equals(next.provider()) || !current.rootProvider().equals(next.rootProvider())
+                    || current.bindingGeneration()!=next.bindingGeneration())
                 throw new IllegalArgumentException("Causal frame identity changed without rebind");
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
                     || next.jointSampleTick()<current.jointSampleTick())return false;
@@ -37,7 +38,7 @@ public final class AnatomyFrameHistory {
     }
     public Optional<GeometryProvider.CausalEndpoint> endpoint() {
         if(current==null)return Optional.empty();
-        return Optional.of(new GeometryProvider.CausalEndpoint(current.frameSerial(),current.authorityTick(),current.jointSampleTick(),root(),sample(),
+        return Optional.of(new GeometryProvider.CausalEndpoint(current.frameSerial(),current.authorityTick(),current.jointSampleTick(),root(),current.rootTransform(),sample(),
             current.available()?GeometryProvider.Availability.AVAILABLE:GeometryProvider.Availability.UNAVAILABLE));
     }
 }
