@@ -86,18 +86,22 @@ public final class AuthorityPoseTracker {
         return state.inputs;
     }
 
-    /** External channel failures localize to this endpoint instead of crashing the server or publishing partial truth. */
+    /** External channel sampling is transactional: failure cannot publish any prefix of adapter output. */
     static boolean sampleExternalChannels(Identifier entityType,LivingEntity entity,Map<String,Float> channels) {
         var adapter=CollisionAdapters.poseChannels(entityType).orElse(null);
         if(adapter==null)return true;
+        Map<String,Float> staged=new HashMap<>();
         try {
             adapter.sample(entity,(name,value)->{
                 if(name==null || !name.matches("[a-z0-9_.-]{1,64}") || !Float.isFinite(value))
                     throw new IllegalArgumentException("Invalid external pose channel");
-                if(channels.containsKey(name))throw new IllegalArgumentException("Duplicate authoritative pose channel "+name);
-                if(channels.size()>=64)throw new IllegalArgumentException("Too many authoritative pose channels");
-                channels.put(name,value);
+                if(channels.containsKey(name) || staged.containsKey(name))
+                    throw new IllegalArgumentException("Duplicate authoritative pose channel "+name);
+                if(channels.size()+staged.size()>=64)
+                    throw new IllegalArgumentException("Too many authoritative pose channels");
+                staged.put(name,value);
             });
+            channels.putAll(staged);
             return true;
         } catch(RuntimeException invalid) {
             return false;
