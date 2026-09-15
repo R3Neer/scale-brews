@@ -109,8 +109,8 @@ jobs:
           import json
           from pathlib import Path
 
-          # The real-model oracle is a focused proof. Compile only its two harness classes so a
-          # broken GameTest from a later sprint cannot turn S20 evidence red for an unrelated reason.
+          # Compile only the S20 oracle harness. Later-sprint GameTests, fixtures and test mixins
+          # are deliberately absent from this proof so they cannot contaminate S20 evidence.
           gametest_root=Path('src/gametest/java')
           keep={
               Path('io/github/r3neer/scalebrews/test/S20CitadelPoseClientProof.java'),
@@ -122,6 +122,8 @@ jobs:
 
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
+          data['mixins']=[]
+          data['entrypoints']['main']=[]
           data['entrypoints']['fabric-gametest']=[]
           data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S20CitadelPoseWorldClientProof']
           p.write_text(json.dumps(data,indent=2)+'\n')
