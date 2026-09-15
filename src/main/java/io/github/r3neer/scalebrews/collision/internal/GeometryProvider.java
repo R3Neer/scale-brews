@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
@@ -12,6 +13,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3f;
+import org.joml.Quaternionf;
 
 /** Common geometry source. Missing/unsupported poses return empty, never an entity AABB. */
 public interface GeometryProvider {
@@ -51,26 +54,39 @@ public interface GeometryProvider {
         }
     }
     /**
-     * A sampled causal endpoint.  The provider (or a server-side adapter) owns the
-     * tick and root serial: callers must never fill these fields from live client
-     * entity state.  This is an instantaneous convex frame, not a sweep interval.
+     * A sampled causal endpoint. The joint sample and root DTO are independent authority values captured
+     * for one material endpoint. Callers must never rebuild {@code rootTransform} from live client state.
      */
-    /** Pose/root is publishable even when this endpoint deliberately has no convex geometry. */
     enum Availability {AVAILABLE,UNAVAILABLE}
-    record CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,AnatomyPoseHistory.Sample sample,Availability availability) {
+    record CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,
+            RootTransformProvider.RootTransform rootTransform,AnatomyPoseHistory.Sample sample,Availability availability) {
+        /** Source-compatible pre-S21 constructor using the exact former gravity+yaw root convention. */
+        public CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,
+                AnatomyPoseHistory.Sample sample,Availability availability) {
+            this(frameSerial,authorityTick,jointSampleTick,root,legacyRoot(root),sample,availability);
+        }
         public CausalEndpoint {
-            if(frameSerial<1 || authorityTick<0 || jointSampleTick<0 || root==null || sample==null || availability==null
+            if(frameSerial<1 || authorityTick<0 || jointSampleTick<0 || root==null || rootTransform==null || sample==null || availability==null
                     || jointSampleTick>authorityTick || root.tick()>authorityTick
                     || !root.origin().equals(sample.origin()) || Float.compare(root.yaw(),sample.yaw())!=0
-                    || Float.compare(root.scale(),sample.scale())!=0 || !root.gravity().equals(sample.gravity()))
+                    || Float.compare(root.scale(),sample.scale())!=0 || !root.gravity().equals(sample.gravity())
+                    || !rootTransform.origin().equals(root.origin()) || Float.compare(rootTransform.scale(),root.scale())!=0)
                 throw new IllegalArgumentException("Invalid causal endpoint");
         }
+    }
+    /** Exact compatibility conversion used only by pre-S21 constructors/fixtures. */
+    private static RootTransformProvider.RootTransform legacyRoot(AnatomyMovement.RootFrame root) {
+        if(root==null)throw new IllegalArgumentException("Missing root frame");
+        Quaternionf rotation=new Quaternionf().setFromNormalized(new Matrix3f(root.gravity().matrix()))
+            .rotateY((float)Math.toRadians(180.0-root.yaw()));
+        return new RootTransformProvider.RootTransform(root.origin(),rotation,root.scale());
     }
     /** Current immutable convex endpoint; it never implies a historical sweep. */
     record QueryFrame(GeometryIdentity identity,CausalEndpoint endpoint,Snapshot snapshot) {
         public QueryFrame {if(identity==null || endpoint==null || snapshot==null || endpoint.availability()!=Availability.AVAILABLE || snapshot.revision()!=identity.revision())throw new IllegalArgumentException("Invalid query frame");}
         public long authorityTick(){return endpoint.authorityTick();}
         public AnatomyMovement.RootFrame root(){return endpoint.root();}
+        public RootTransformProvider.RootTransform rootTransform(){return endpoint.rootTransform();}
         public AnatomyPoseHistory.Sample sample(){return endpoint.sample();}
     }
     /** Wire/publication handle; unlike QueryFrame it represents a valid unavailable pose too. */
