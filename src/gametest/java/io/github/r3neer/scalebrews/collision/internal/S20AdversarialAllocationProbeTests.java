@@ -82,18 +82,18 @@ public final class S20AdversarialAllocationProbeTests {
     private static void measurePinned(GameTestHelper h, com.sun.management.ThreadMXBean allocations, String name) {
         var program = resource(name);
         var bound = bind(program, Identifier.parse("scalebrews_test:alloc_" + name));
-        var ordinary = inputs(program, false);
-        var clip = inputs(program, true);
+        var ordinary = sample(program, null);
+        var clip = sample(program, bestClip(program));
 
-        consume(bound, ordinary, 8_000);
-        consume(bound, clip.inputs, 8_000);
-        double ordinaryBytes = bytesPerEvaluation(allocations, bound, ordinary, 20_000);
-        double clipBytes = bytesPerEvaluation(allocations, bound, clip.inputs, 20_000);
+        consume(bound, ordinary.inputs(), 8_000);
+        consume(bound, clip.inputs(), 8_000);
+        double ordinaryBytes = bytesPerEvaluation(allocations, bound, ordinary.inputs(), 20_000);
+        double clipBytes = bytesPerEvaluation(allocations, bound, clip.inputs(), 20_000);
 
         System.out.printf(java.util.Locale.ROOT,
             "S20_ALLOC_REAL model=%s operations=%d clips=%d referenced_bones=%d ordinary_bytes_per_eval=%.2f clip_animation=%d clip_tick=%d clip_union_bones=%d clip_bytes_per_eval=%.2f blackhole=%d%n",
             name, program.operations().size(), program.clips().size(), referencedBones(program).size(),
-            ordinaryBytes, clip.animation, clip.tick, clip.unionBones, clipBytes, BLACKHOLE);
+            ordinaryBytes, clip.animation(), clip.tick(), clip.unionBones(), clipBytes, BLACKHOLE);
 
         h.assertTrue(ordinaryBytes >= 0 && clipBytes >= 0,
             "Pinned-program allocation accounting must remain non-negative for " + name);
@@ -179,18 +179,14 @@ public final class S20AdversarialAllocationProbeTests {
 
     private record ClipSample(PoseEngine.Inputs inputs, int animation, int tick, int unionBones) {}
 
-    private static PoseEngine.Inputs inputs(CitadelPoseProgram program, boolean activeClip) {
-        return inputs(program, activeClip ? bestClip(program) : null).inputs;
-    }
-
-    private static ClipSample inputs(CitadelPoseProgram program, ClipChoice choice) {
+    private static ClipSample sample(CitadelPoseProgram program, ClipChoice choice) {
         var channels = new LinkedHashMap<String, Float>();
         for (var channel : program.requiredChannels()) channels.put(channel, 0f);
         int animation = 0, tick = 0, union = 0;
         if (choice != null) {
-            animation = choice.animation;
-            tick = choice.tick;
-            union = choice.unionBones;
+            animation = choice.animation();
+            tick = choice.tick();
+            union = choice.unionBones();
             channels.put(CitadelPoseProgram.ANIMATION_CHANNEL, (float) animation);
             channels.put(CitadelPoseProgram.ANIMATION_TICK_CHANNEL, (float) tick);
             channels.put(CitadelPoseProgram.ANIMATION_PARTIAL_CHANNEL, .5f);
@@ -211,7 +207,7 @@ public final class S20AdversarialAllocationProbeTests {
                 for (var delta : frame.deltas()) current.add(delta.bone());
                 var union = new LinkedHashSet<>(previous);
                 union.addAll(current);
-                if (best == null || union.size() > best.unionBones)
+                if (best == null || union.size() > best.unionBones())
                     best = new ClipChoice(clip.animation(), start, union.size());
                 if (!frame.stationary()) previous = Set.copyOf(current);
                 start += frame.durationTicks();
