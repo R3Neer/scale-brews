@@ -32,20 +32,22 @@ public final class AnatomyClientNetworking {
         if(entity==null)return null;
         return session.catalog().snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
     }
-    /** Wire identity is canonical selection identity, not the bridge's legacy provider implementation id. */
+    /** Wire identity is the complete canonical selection identity, including root authority. */
     private static boolean bindingMatches(net.minecraft.world.entity.LivingEntity entity,AnatomyPosePayload packet) {
         var binding=binding(entity);if(binding==null)return false;
         var selection=binding.selection();
-        return selection.geometry().model().equals(packet.model()) && selection.pose().engine().equals(packet.provider());
+        return selection.geometry().model().equals(packet.model()) && selection.pose().engine().equals(packet.provider())
+            && selection.rootTransform().equals(packet.rootProvider());
     }
     /** Client-only, server-confirmed material data for residual camera presentation. */
     public record PresentationContact(net.minecraft.world.entity.Entity body,net.minecraft.world.entity.LivingEntity support,
             SurfaceContact surface,GeometryProvider.Snapshot geometry,long serverTick) {}
     /** Server identity attached to a drawable original-model frame; no local adapter generation is protocol state. */
     public record PresentationIdentity(java.util.UUID epoch,net.minecraft.resources.Identifier dimension,java.util.UUID support,int entityId,
-            long revision,net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,long bindingGeneration) {
+            long revision,net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,
+            net.minecraft.resources.Identifier rootProvider,long bindingGeneration) {
         public PresentationIdentity {
-            if(epoch==null || dimension==null || support==null || entityId<0 || revision<0 || model==null || provider==null || bindingGeneration<1)
+            if(epoch==null || dimension==null || support==null || entityId<0 || revision<0 || model==null || provider==null || rootProvider==null || bindingGeneration<1)
                 throw new IllegalArgumentException("Invalid presentation identity");
         }
     }
@@ -124,7 +126,7 @@ public final class AnatomyClientNetworking {
             if(providers.containsKey(packet.entity()))continue;
             var provider=new ClientGeometryProvider(packet.entity());providers.put(packet.entity(),provider);
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
-                packet.model(),packet.provider(),packet.bindingGeneration()),binding(living).selection());
+                packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration()),binding(living).selection());
         }
         for(var packet:contacts.pending().values()) {
             var body=poseLevel.getEntity(packet.bodyId());
@@ -137,20 +139,19 @@ public final class AnatomyClientNetworking {
             if(AnatomyMovement.confirm(body,living,surface)) {presentationContacts.put(packet.body(),packet);contacts.consume(packet);}
         }
     }
-    /** Shared collision/presentation query; never reads local model animations or resource packs. */
+    /** Exact accepted collision geometry. Root interpolation is not invented from local/client state. */
     public static java.util.Optional<GeometryProvider.Snapshot> geometry(net.minecraft.world.entity.LivingEntity entity,double serverTick) {
-        var history=poses.get(entity.getUUID());
-        if(history==null || staleFrames.contains(entity.getUUID()) || entity.level()!=poseLevel || history.current()==null)return java.util.Optional.empty();
-        var packet=history.current();
-        var frame=frames.get(entity.getUUID());
-        if(packet.entityId()!=entity.getId() || frame==null || frame.current()==null || !frame.current().available())return java.util.Optional.empty();
-        return evaluator(entity,packet).flatMap(evaluator->evaluator.sampleInterpolated(entity,history,serverTick));
+        var history=frames.get(entity.getUUID());var packet=history==null?null:history.current();
+        if(packet==null || staleFrames.contains(entity.getUUID()) || entity.level()!=poseLevel || !packet.available())return java.util.Optional.empty();
+        return currentSnapshot(entity,entity.getUUID());
     }
     /** Exact current endpoint used by local collision, never by a renderer fraction. */
     private static java.util.Optional<GeometryProvider.Snapshot> currentSnapshot(net.minecraft.world.entity.LivingEntity entity,java.util.UUID support) {
         var frame=frames.get(support);var packet=frame==null?null:frame.current();
         if(packet==null || staleFrames.contains(support) || !packet.available() || !support.equals(entity.getUUID()) || packet.entityId()!=entity.getId() || entity.level()!=poseLevel)return java.util.Optional.empty();
-        return evaluator(entity,packet).flatMap(evaluator->evaluator.sampleAt(entity,frame.sample()));
+        var endpoint=frame.endpoint().orElse(null);
+        if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
+        return evaluator(entity,packet).flatMap(evaluator->evaluator.sampleAt(entity,endpoint.sample(),endpoint.rootTransform()));
     }
     /** Current query provenance from one accepted frame; absent wire data fails closed. */
     private static java.util.Optional<GeometryProvider.CausalEndpoint> currentEndpoint(net.minecraft.world.entity.LivingEntity entity,java.util.UUID support) {
@@ -163,8 +164,8 @@ public final class AnatomyClientNetworking {
         if(!transfer.ready() || binding==null || !bindingMatches(entity,packet))return java.util.Optional.empty();
         var evaluator=evaluators.get(entity.getUUID());
         if(evaluator==null) {
-            // The packet carries canonical pose-engine identity. The executable bridge keeps
-            // the already-validated legacy PoseProvider implementation private to the catalog.
+            // Root authority is transported in the endpoint. The evaluator never needs to
+            // sample a local external provider to materialize current client geometry.
             evaluator=new ModelGeometryProvider(binding.model(),binding.poses(),binding.selection().geometry().filter(),packet.revision());
             evaluators.put(entity.getUUID(),evaluator);
         }
@@ -188,7 +189,7 @@ public final class AnatomyClientNetworking {
         if(packet==null || !packet.available() || !presentationIdentityMatches(support,packet))return java.util.Optional.empty();
         var endpoint=history.endpoint().orElse(null);
         if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
-        var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.bindingGeneration());
+        var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration());
         var key=new PresentationCacheKey(identity,endpoint.frameSerial());
         var cached=presentationFrames.get(support.getUUID());
         if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
@@ -312,8 +313,9 @@ public final class AnatomyClientNetworking {
                 if(!framesForSupport.accept(packet))return;
                 receivedAt.put(packet.entity(),clientTick);
                 if(!packet.available()) {
-                    // A server-declared unknown/ineligible pose is a material
-                    // discontinuity, never a request to reuse the last convexes.
+                    // A server-declared unknown/ineligible root or pose is a material
+                    // discontinuity. Root DTO bytes remain only inside the causal
+                    // watermark and are never materialized while unavailable.
                     staleFrames.add(packet.entity());
                     discardSupportMaterial(level,packet.entity(),packet.entityId());
                     return;
