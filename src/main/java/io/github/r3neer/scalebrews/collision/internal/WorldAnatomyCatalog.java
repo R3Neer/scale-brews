@@ -3,6 +3,7 @@ package io.github.r3neer.scalebrews.collision.internal;
 import com.google.gson.Gson;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.catalog.CollisionBindingCatalog;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
@@ -26,12 +27,14 @@ import net.minecraft.resources.Identifier;
 
 /** Publish canonical bindings and prepared geometry/programs together, only after every reference has validated. */
 public final class WorldAnatomyCatalog {
-    /** Executable S16 bridge for the precomputed legacy backend; authority lives in {@code selection}. */
-    public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine.Bound poses, Identifier legacyPoseProvider) {
+    /** Executable bridge with geometry, joint evaluator, and root authority resolved for one accepted revision. */
+    public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine.Bound poses,
+                          RootTransformProvider root, Identifier legacyPoseProvider) {
         public Binding {
             Objects.requireNonNull(selection, "selection");
             Objects.requireNonNull(model, "model");
             Objects.requireNonNull(poses, "poses");
+            Objects.requireNonNull(root, "root");
             Objects.requireNonNull(legacyPoseProvider, "legacyPoseProvider");
         }
     }
@@ -222,6 +225,7 @@ public final class WorldAnatomyCatalog {
 
         var validated = new GeometryCatalog().replace(models, references);
         validateCanonicalPoseBindings(canonical.bindings(), validated.models(), resources);
+        validateRootBindings(canonical.bindings());
         Map<CollisionBinding, Binding> preparedBridge = new HashMap<>();
         for (var candidate : canonical.bindings()) {
             if (!compatibilityBridge(candidate)) continue;
@@ -306,6 +310,12 @@ public final class WorldAnatomyCatalog {
         }
     }
 
+    private static void validateRootBindings(Collection<CollisionBinding> bindings) {
+        for (var candidate : bindings)
+            if (CollisionEngines.rootTransform(candidate.rootTransform()).isEmpty())
+                throw new IllegalArgumentException("Missing root transform provider " + candidate.rootTransform() + " for " + selector(candidate));
+    }
+
     private static Binding prepareBridge(CollisionBinding selection, Map<String, ModelGeometry> models, PoseEngine.Resources resources) {
         String modelId = selection.geometry().model().toString();
         var model = models.get(modelId);
@@ -322,8 +332,10 @@ public final class WorldAnatomyCatalog {
             .orElseThrow(() -> new IllegalArgumentException("Missing pose engine " + providerId + " for " + selector(selection)));
         var bound = engine.bind(model, Map.of(), selection.pose().channels(), resources)
             .orElseThrow(() -> new IllegalArgumentException("Pose engine cannot bind model/version for " + selector(selection)));
+        var root = CollisionEngines.rootTransform(selection.rootTransform())
+            .orElseThrow(() -> new IllegalArgumentException("Missing root transform provider " + selection.rootTransform() + " for " + selector(selection)));
         validateFilter(selection, model);
-        return new Binding(selection, model, bound, providerId);
+        return new Binding(selection, model, bound, root, providerId);
     }
 
     private static String selector(CollisionBinding binding) {
