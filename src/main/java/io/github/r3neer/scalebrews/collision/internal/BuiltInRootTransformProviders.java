@@ -31,6 +31,9 @@ public final class BuiltInRootTransformProviders {
         }
     };
 
+    /** Source/fixture compatibility seam; canonical runtime bindings resolve their provider from the accepted catalog. */
+    static RootTransformProvider entityRoot() { return ENTITY; }
+
     public static synchronized void initialize() {
         var existing = CollisionEngines.rootTransform(ENTITY_ROOT);
         if (existing.isEmpty()) {
