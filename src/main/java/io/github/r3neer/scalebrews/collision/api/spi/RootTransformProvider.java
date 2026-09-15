@@ -18,6 +18,13 @@ public interface RootTransformProvider {
             float length = (float)Math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
             if (!Float.isFinite(length) || length < 1e-6f) throw new IllegalArgumentException("Invalid root rotation");
             qx /= length; qy /= length; qz /= length; qw /= length;
+            // q and -q encode the same orientation. Canonicalize the sign at the DTO boundary so
+            // caches/causal comparisons cannot manufacture a root change from an equivalent quaternion.
+            boolean flip = qw < 0f
+                || (qw == 0f && qz < 0f)
+                || (qw == 0f && qz == 0f && qy < 0f)
+                || (qw == 0f && qz == 0f && qy == 0f && qx < 0f);
+            if (flip) { qx = -qx; qy = -qy; qz = -qz; qw = -qw; }
         }
 
         public RootTransform(Vec3 origin, Quaternionf rotation, float scale) {
