@@ -1,5 +1,6 @@
 name: retro-performance-locality-proof
 
+# Structural locality probe: keep this lane independent from wall-clock benchmark noise.
 on:
   push:
     branches: [chatgpt-editing]
