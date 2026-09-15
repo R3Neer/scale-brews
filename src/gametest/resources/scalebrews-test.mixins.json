@@ -18,7 +18,8 @@
     "TestArrowAccess",
     "TestMobGoalsAccess",
     "TestTemptGoalAccess",
-    "TestTinyDefinitionMixin"
+    "TestTinyDefinitionMixin",
+    "TestCollisionEntityScanMixin"
   ],
   "client": [
     "TestPackStartupTimeoutMixin",
