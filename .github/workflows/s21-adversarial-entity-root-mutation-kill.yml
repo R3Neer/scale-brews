@@ -1,0 +1,92 @@
+name: s21-adversarial-entity-root-mutation-kill
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s21-adversarial-entity-root-mutation-kill.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInRootTransformProviders.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S21AdversarialEntityRootCompatibilityTests.java'
+  workflow_dispatch:
+
+jobs:
+  mutation-kill:
+    strategy:
+      fail-fast: false
+      matrix:
+        mutant: [drop-gravity, wrong-yaw, drop-scale]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate compatibility holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S21AdversarialEntityRootCompatibilityTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: prove baseline green
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s21-entity-root-baseline-${{ matrix.mutant }}.xml"
+      - name: apply semantic mutant
+        env:
+          MUTANT: ${{ matrix.mutant }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInRootTransformProviders.java')
+          s=p.read_text()
+          m=os.environ['MUTANT']
+          if m=='drop-gravity':
+              old='new Quaternionf().setFromNormalized(new Matrix3f(AnatomyMovement.gravity(entity).matrix()))'
+              new='new Quaternionf()'
+          elif m=='wrong-yaw':
+              old='(float)Math.toRadians(180.0-entity.yBodyRot)'
+              new='(float)Math.toRadians(entity.yBodyRot)'
+          elif m=='drop-scale':
+              old='new RootTransformProvider.RootTransform(entity.position(),rotation,entity.getScale())'
+              new='new RootTransformProvider.RootTransform(entity.position(),rotation,1.0f)'
+          else:
+              raise SystemExit('unknown mutant '+m)
+          if old not in s:
+              raise SystemExit('mutation target not found for '+m)
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: compatibility holdout must kill mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s21-entity-root-mutant-${{ matrix.mutant }}.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: ${{ matrix.mutant }}"
+            exit 1
+          fi
+          echo "KILLED: ${{ matrix.mutant }}"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S21-entity-root-mutant-${{ matrix.mutant }}
+          path: |
+            build/s21-entity-root-baseline-${{ matrix.mutant }}.xml
+            build/s21-entity-root-mutant-${{ matrix.mutant }}.xml
+            build/run/gameTest/logs/
