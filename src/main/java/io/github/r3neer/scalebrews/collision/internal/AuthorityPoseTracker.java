@@ -7,6 +7,7 @@ import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
 
 import java.util.*;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.Vec3;
@@ -75,7 +76,8 @@ public final class AuthorityPoseTracker {
         if(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep)
             channels.put("grazing",sheep.getHeadEatPositionScale(1));
 
-        boolean externalChannelsAvailable=sampleExternalChannels(entity,channels);
+        Identifier entityType=BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        boolean externalChannelsAvailable=sampleExternalChannels(entityType,entity,channels);
         // END_LEVEL_TICK observes the completed entity endpoint. All interpolated fields above use
         // partialTicks=1/current state; vanilla EntityRenderer uses tickCount + partialTicks for age.
         float endpointAge=(float)entity.tickCount+1f;
@@ -85,8 +87,8 @@ public final class AuthorityPoseTracker {
     }
 
     /** External channel failures localize to this endpoint instead of crashing the server or publishing partial truth. */
-    private static boolean sampleExternalChannels(LivingEntity entity,Map<String,Float> channels) {
-        var adapter=CollisionAdapters.poseChannels(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())).orElse(null);
+    static boolean sampleExternalChannels(Identifier entityType,LivingEntity entity,Map<String,Float> channels) {
+        var adapter=CollisionAdapters.poseChannels(entityType).orElse(null);
         if(adapter==null)return true;
         try {
             adapter.sample(entity,(name,value)->{
