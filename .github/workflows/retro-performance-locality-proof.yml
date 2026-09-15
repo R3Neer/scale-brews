@@ -1,0 +1,54 @@
+name: retro-performance-locality-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/retro-performance-locality-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/CollisionPerformanceProbe.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/RetroPerformanceLocalityTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestCollisionEntityScanMixin.java'
+      - 'src/gametest/resources/scalebrews-test.mixins.json'
+      - 'src/gametest/resources/fabric.mod.json'
+      - 'docs/ENTITY_COLLISIONS_ADVERSARIAL_PERFORMANCE.md'
+      - 'docs/sprints/RETRO-S00-S19-adversarial-performance-audit.md'
+  workflow_dispatch:
+
+jobs:
+  steady-tick-locality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate retro performance locality holdouts
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.test.RetroPerformanceLocalityTests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run steady tick locality proof
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/retro-performance-locality-junit.xml"
+      - name: capture locality evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: retro-performance-locality-proof
+          path: |
+            build/retro-performance-locality-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
