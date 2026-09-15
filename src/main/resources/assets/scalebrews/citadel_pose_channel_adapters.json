@@ -3,6 +3,7 @@
   "adapters": [
     {
       "mod": "alexsmobs",
+      "version": "2.1.9",
       "entity": "alexsmobs:gazelle",
       "className": "com.github.alexthe666.alexsmobs.entity.EntityGazelle",
       "channels": {
@@ -21,6 +22,7 @@
     },
     {
       "mod": "alexsmobs",
+      "version": "2.1.9",
       "entity": "alexsmobs:grizzly_bear",
       "className": "com.github.alexthe666.alexsmobs.entity.EntityGrizzlyBear",
       "channels": {
