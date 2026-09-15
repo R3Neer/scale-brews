@@ -70,6 +70,7 @@ public final class PlatformPlacement {
         if (!level.addFreshEntity(body)) { body.discard(); return InteractionResult.FAIL; }
         var state = Platforms.state(body);
         state.support=support; state.surface=surface; state.frame=frame; state.contact=frame.local(position);
+        Platforms.trackLegacyParticipant(body);
         body.setOnGround(true); body.resetFallDistance();
         PlatformNetworking.broadcast(body);
         player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
