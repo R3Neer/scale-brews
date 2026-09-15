@@ -125,14 +125,15 @@ jobs:
           xvfb-run -a ./gradlew runClientGameTest --console=plain -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s20-external-inputs/mods" 2>&1 \
             | tee build/s20-proof/console.log
 
-      - name: extract focused oracle diagnostics
+      - name: extract oracle diagnostics
         if: always()
         shell: bash
         run: |
           mkdir -p build/s20-proof
           if [ -f build/s20-proof/console.log ]; then
-            grep -E 'S20 pinned|S20_CITADEL_REAL|AssertionError|Caused by:|Game test .* failed|java\.lang\.' build/s20-proof/console.log \
-              | tail -n 120 > build/s20-proof/diagnostics.txt || true
+            tail -n 300 build/s20-proof/console.log > build/s20-proof/console-tail.txt
+            grep -Ei 'S20|AssertionError|Exception|Caused by:|failed|failure|error' build/s20-proof/console.log \
+              | tail -n 180 > build/s20-proof/diagnostics.txt || true
           fi
           if [ ! -s build/s20-proof/diagnostics.txt ]; then
             printf 'No focused S20 diagnostic line was captured.\n' > build/s20-proof/diagnostics.txt
@@ -148,6 +149,7 @@ jobs:
             tools/s19-external-inputs.lock.json
             build/s20-external-inputs/manifest.txt
             build/s20-proof/diagnostics.txt
+            build/s20-proof/console-tail.txt
             build/resources/gametest/fabric.mod.json
 
       - name: enforce real-model oracle result
