@@ -1,0 +1,63 @@
+name: s20-adversarial-allocation-probe
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s20-adversarial-allocation-probe.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgramEvaluator.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgram.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseEngine.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S20AdversarialAllocationProbeTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  allocation-slope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S20 allocation probe
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S20AdversarialAllocationProbeTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: measure evaluator allocations
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/s20-allocation-proof
+          ./gradlew runGameTest --console=plain \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s20-allocation-proof/junit.xml" 2>&1 \
+            | tee build/s20-allocation-proof/console.log
+      - name: extract allocation evidence
+        if: always()
+        shell: bash
+        run: |
+          grep 'S20_ALLOC' build/s20-allocation-proof/console.log > build/s20-allocation-proof/measurement.txt || true
+          cat build/s20-allocation-proof/measurement.txt || true
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S20-adversarial-allocation-probe
+          path: |
+            build/s20-allocation-proof/
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
