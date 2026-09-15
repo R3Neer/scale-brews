@@ -1,0 +1,197 @@
+name: s19-extraction-limits-proof
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s19-extraction-limits-proof.yml'
+      - 'tools/s19-external-inputs.lock.json'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S19ExtractionLimitsClientProof.java'
+  workflow_dispatch:
+
+jobs:
+  extraction-limits:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: resolve pinned S19 external inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/s19-extraction-limits-inputs"
+          mkdir -p "$probe"
+          python3 - "$probe" <<'PY'
+          import json, pathlib, sys
+          probe = pathlib.Path(sys.argv[1])
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          if lock.get('schema') != 1 or lock.get('minecraft') != '26.2':
+              raise SystemExit('Unexpected S19 external input lock')
+          inputs = lock.get('inputs')
+          if not isinstance(inputs, list) or sorted(item.get('modId') for item in inputs) != ['alexsmobs', 'cloth-config', 'codxlib']:
+              raise SystemExit('Unexpected S19 external input set')
+          deps = '\n'.join(f"    proofInputs '{item['coordinate']}'" for item in inputs)
+          (probe / 'settings.gradle').write_text("rootProject.name = 's19-extraction-limits-inputs'\n")
+          (probe / 'build.gradle').write_text(f"""repositories {{
+              maven {{ url = 'https://cursemaven.com/'; content {{ includeGroup 'curse.maven' }} }}
+          }}
+          configurations {{ proofInputs {{ canBeConsumed = false; canBeResolved = true; transitive = false }} }}
+          dependencies {{
+          {deps}
+          }}
+          tasks.register('copyProofInputs', Copy) {{
+              from configurations.proofInputs
+              into layout.buildDirectory.dir('proof-inputs')
+          }}
+          """)
+          PY
+          ./gradlew -p "$probe" copyProofInputs --console=plain
+          mkdir -p build/s19-extraction-limits/mods
+          cp "$probe"/build/proof-inputs/*.jar build/s19-extraction-limits/mods/
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          lock = json.loads(pathlib.Path('tools/s19-external-inputs.lock.json').read_text())
+          mods = pathlib.Path('build/s19-extraction-limits/mods')
+          for item in lock['inputs']:
+              _, artifact, version = item['coordinate'].split(':')
+              jar = mods / f'{artifact}-{version}.jar'
+              if not jar.is_file(): raise SystemExit(f'Missing pinned proof jar {jar.name}')
+              actual = hashlib.sha256(jar.read_bytes()).hexdigest()
+              if actual != item['sha256']: raise SystemExit(f'Pinned input hash mismatch for {jar.name}: {actual}')
+              with zipfile.ZipFile(jar) as archive: metadata = json.loads(archive.read('fabric.mod.json'))
+              if metadata.get('id') != item['modId'] or str(metadata.get('version')) != item['version']:
+                  raise SystemExit(f'Pinned input identity mismatch for {jar.name}')
+          PY
+
+      - name: isolate extraction limits proof
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S19ExtractionLimitsClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run exact N and N+1 limits proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s19-extraction-limits
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-extraction-limits/mods" \
+            2>&1 | tee build/s19-extraction-limits/normal.log
+          mkdir -p build/s19-extraction-limits/logs-normal
+          cp -r build/run/clientGameTest/logs/. build/s19-extraction-limits/logs-normal/ || true
+
+      - name: require part-limit off-by-one mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''            if (catalogCount > MAX_PARTS) throw new IllegalArgumentException("Too many AdvancedModelBox parts");'''
+          new='''            if (catalogCount >= MAX_PARTS) throw new IllegalArgumentException("Too many AdvancedModelBox parts"); // adversarial mutant: rejects exact N'''
+          if text.count(old) != 1: raise SystemExit('S19 part-limit mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-extraction-limits/mods" \
+            2>&1 | tee build/s19-extraction-limits/part-limit-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-extraction-limits/logs-part-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-extraction-limits/logs-part-mutant/ || true
+          if [ "$code" -eq 0 ]; then echo 'S19 part-limit off-by-one mutant survived.' >&2; exit 1; fi
+          if ! grep -R -F 'S19 exact part limit N was rejected' build/run/clientGameTest/logs build/s19-extraction-limits/part-limit-mutant.log >/dev/null 2>&1; then
+            echo 'S19 part-limit mutant died for a non-causal reason.' >&2; exit 1
+          fi
+          git checkout -- "$file"
+
+      - name: require depth-limit off-by-one mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if (depth > MAX_DEPTH) throw new IllegalArgumentException("AdvancedModelBox hierarchy too deep");'''
+          new='''        if (depth >= MAX_DEPTH) throw new IllegalArgumentException("AdvancedModelBox hierarchy too deep"); // adversarial mutant: rejects exact N'''
+          if text.count(old) != 1: raise SystemExit('S19 depth-limit mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-extraction-limits/mods" \
+            2>&1 | tee build/s19-extraction-limits/depth-limit-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-extraction-limits/logs-depth-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-extraction-limits/logs-depth-mutant/ || true
+          if [ "$code" -eq 0 ]; then echo 'S19 depth-limit off-by-one mutant survived.' >&2; exit 1; fi
+          if ! grep -R -F 'S19 exact hierarchy depth N was rejected' build/run/clientGameTest/logs build/s19-extraction-limits/depth-limit-mutant.log >/dev/null 2>&1; then
+            echo 'S19 depth-limit mutant died for a non-causal reason.' >&2; exit 1
+          fi
+          git checkout -- "$file"
+
+      - name: require primitive-limit off-by-one mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''            if (primitiveCount > MAX_PRIMITIVES) throw new IllegalArgumentException("Too many AdvancedModelBox primitives");'''
+          new='''            if (primitiveCount >= MAX_PRIMITIVES) throw new IllegalArgumentException("Too many AdvancedModelBox primitives"); // adversarial mutant: rejects exact N'''
+          if text.count(old) != 1: raise SystemExit('S19 primitive-limit mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-extraction-limits/mods" \
+            2>&1 | tee build/s19-extraction-limits/primitive-limit-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-extraction-limits/logs-primitive-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-extraction-limits/logs-primitive-mutant/ || true
+          if [ "$code" -eq 0 ]; then echo 'S19 primitive-limit off-by-one mutant survived.' >&2; exit 1; fi
+          if ! grep -R -F 'S19 exact primitive limit N was rejected' build/run/clientGameTest/logs build/s19-extraction-limits/primitive-limit-mutant.log >/dev/null 2>&1; then
+            echo 'S19 primitive-limit mutant died for a non-causal reason.' >&2; exit 1
+          fi
+          git checkout -- "$file"
+
+      - name: capture extraction limit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S19-extraction-limits-proof
+          path: |
+            build/s19-extraction-limits/*.log
+            build/s19-extraction-limits/logs-normal/
+            build/s19-extraction-limits/logs-part-mutant/
+            build/s19-extraction-limits/logs-depth-mutant/
+            build/s19-extraction-limits/logs-primitive-mutant/
+            build/resources/gametest/fabric.mod.json
+            tools/s19-external-inputs.lock.json
