@@ -6,7 +6,6 @@ import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -46,7 +45,7 @@ public final class S19ChildOrderDeterminismClientProof implements FabricClientGa
             AdvancedModelBoxGeometryEngine.registerSource(PERMUTED,
                 new AdvancedModelBoxGeometryEngine.Source(alternatingOrder, Matrix4f::new));
 
-            AdvancedModelBoxGeometryEngine.Prepared permuted;
+            AdvancedModelBoxGeometryEngine.Preparation permuted;
             try {
                 permuted = engine.prepareDetailed(new GeometryEngine.Request(PERMUTED)).orElseThrow();
             } catch (IllegalArgumentException failure) {
