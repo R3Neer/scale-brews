@@ -97,7 +97,7 @@ public final class G2VanillaPushReadyTests {
                     +"support->body vanilla body="+vanillaSupportCallerBody+" support="+vanillaSupportCallerSupport
                     +" managed body="+managedSupportCallerBody+" support="+managedSupportCallerSupport
                     +"; body->support vanilla body="+vanillaBodyCallerBody+" support="+vanillaBodyCallerSupport
-                    +" managed body="+managedBodyCallerBody+" support="+managedSupportCallerSupport);
+                    +" managed body="+managedBodyCallerBody+" support="+managedBodyCallerSupport);
         } finally {
             body.discard();support.discard();AnatomyRuntime.stop(server);
         }
