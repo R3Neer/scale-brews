@@ -21,7 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** Adversarial FR-053 holdout: READY anatomy support must not consume vanilla Entity.push. */
+/** Adversarial FR-053/FR-093 holdout: READY anatomy support must preserve vanilla Entity.push exactly once. */
 public final class G2VanillaPushReadyTests {
     private static final Identifier MODEL=Identifier.parse("test:g2_push_model");
     private static final Identifier STATIC_POSE=Identifier.parse("scalebrews:static");
@@ -57,6 +57,9 @@ public final class G2VanillaPushReadyTests {
                 "Holdout must use a canonically eligible body/support pair, not a fixture-only provider rejected by READY policy");
 
             body.setPos(support.getX()+.2,floor.bounds().maxY+.5,support.getZ());
+            h.assertTrue(!AnatomyMovement.supported(body) && AnatomyMovement.contact(body)==null
+                    && !AnatomyMovement.suppressesPush(body,support),
+                "Pre-contact control must remain outside the managed material relation before measuring vanilla push");
 
             body.setDeltaMovement(Vec3.ZERO);support.setDeltaMovement(Vec3.ZERO);
             support.push(body);
@@ -94,7 +97,7 @@ public final class G2VanillaPushReadyTests {
                     +"support->body vanilla body="+vanillaSupportCallerBody+" support="+vanillaSupportCallerSupport
                     +" managed body="+managedSupportCallerBody+" support="+managedSupportCallerSupport
                     +"; body->support vanilla body="+vanillaBodyCallerBody+" support="+vanillaBodyCallerSupport
-                    +" managed body="+managedBodyCallerBody+" support="+managedBodyCallerSupport);
+                    +" managed body="+managedBodyCallerBody+" support="+managedSupportCallerSupport);
         } finally {
             body.discard();support.discard();AnatomyRuntime.stop(server);
         }
