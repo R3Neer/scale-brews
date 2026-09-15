@@ -61,11 +61,18 @@ public final class S19HiddenHierarchyClientProof implements FabricClientGameTest
 
             // Source renderer metadata is authoritative. A user include may override thickness/aspect/
             // volume filtering, but it must never resurrect a piece that the source model itself hides.
+            // Exercise AnatomyFilter directly with positive model volume as well as through evaluate():
+            // otherwise an all-hidden fixture can accidentally mask a source_hidden regression behind
+            // the independent degenerate-volume rejection.
             var hiddenPiece = bodyPieces.getFirst();
             var forcePiece = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.id()), Set.of());
+            if (!"source_hidden".equals(forcePiece.rejection(hiddenPiece, 1d)))
+                throw new AssertionError("S19 explicit piece include revived source_hidden collider decision: " + hiddenPiece.id());
             if (geometry.evaluate(new Matrix4f(), Map.of(), forcePiece).containsKey(hiddenPiece.id()))
                 throw new AssertionError("S19 explicit piece include revived source_hidden collider: " + hiddenPiece.id());
             var forcePart = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.part()), Set.of());
+            if (!"source_hidden".equals(forcePart.rejection(hiddenPiece, 1d)))
+                throw new AssertionError("S19 explicit part include revived source_hidden collider decision: " + hiddenPiece.id());
             if (geometry.evaluate(new Matrix4f(), Map.of(), forcePart).containsKey(hiddenPiece.id()))
                 throw new AssertionError("S19 explicit part include revived source_hidden collider: " + hiddenPiece.id());
 
