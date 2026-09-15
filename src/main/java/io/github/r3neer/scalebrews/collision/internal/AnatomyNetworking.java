@@ -27,25 +27,33 @@ public final class AnatomyNetworking {
         PayloadTypeRegistry.clientboundPlay().register(AnatomyPosePayload.TYPE,AnatomyPosePayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);
     }
-    /** Builds v4 only from one immutable, server-authoritative published endpoint. */
+    /** Builds v5 only from one immutable, server-authoritative published endpoint. */
     public static AnatomyPosePayload posePayload(GeometryProvider.PublishedFrame frame) {
         if(frame==null)throw new IllegalArgumentException("Missing authoritative published frame");
         var identity=frame.identity();var endpoint=frame.endpoint();var sample=endpoint.sample();var root=endpoint.root();
         return new AnatomyPosePayload(identity.epoch(),identity.revision(),identity.dimension().identifier(),identity.entityId(),identity.support(),
-            identity.model(),identity.poseProvider(),endpoint.frameSerial(),endpoint.authorityTick(),endpoint.jointSampleTick(),root.sequence(),root.tick(),
-            identity.bindingGeneration(),endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down());
+            identity.model(),identity.poseProvider(),identity.rootProvider(),endpoint.frameSerial(),endpoint.authorityTick(),endpoint.jointSampleTick(),root.sequence(),root.tick(),
+            identity.bindingGeneration(),endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down(),
+            endpoint.rootTransform());
     }
     /** Typed fixture factory; production must pass {@link GeometryProvider.PublishedFrame}. */
     public static AnatomyPosePayload posePayload(UUID epoch,long revision,net.minecraft.resources.Identifier dimension,int entityId,UUID entity,
             net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,long bindingGeneration,GeometryProvider.CausalEndpoint endpoint) {
-        if(endpoint==null || bindingGeneration<1)throw new IllegalArgumentException("Missing causal binding frame");
+        return posePayload(epoch,revision,dimension,entityId,entity,model,provider,GeometryProvider.DEFAULT_ROOT_PROVIDER,bindingGeneration,endpoint);
+    }
+    /** S21 fixture seam with explicit root-provider identity. */
+    public static AnatomyPosePayload posePayload(UUID epoch,long revision,net.minecraft.resources.Identifier dimension,int entityId,UUID entity,
+            net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,net.minecraft.resources.Identifier rootProvider,
+            long bindingGeneration,GeometryProvider.CausalEndpoint endpoint) {
+        if(endpoint==null || bindingGeneration<1 || rootProvider==null)throw new IllegalArgumentException("Missing causal binding frame");
         var sample=endpoint.sample();var root=endpoint.root();
-        return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,endpoint.frameSerial(),endpoint.authorityTick(),endpoint.jointSampleTick(),
-            root.sequence(),root.tick(),bindingGeneration,endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down());
+        return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,rootProvider,endpoint.frameSerial(),endpoint.authorityTick(),endpoint.jointSampleTick(),
+            root.sequence(),root.tick(),bindingGeneration,endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down(),
+            endpoint.rootTransform());
     }
     /** Sends exactly one immutable server published endpoint; never reads live TRS after capture. */
     public static void sendPose(ServerPlayer recipient,GeometryProvider.PublishedFrame frame) {
-        if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose protocol v4");
+        if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose/root protocol v5");
         ServerPlayNetworking.send(recipient,posePayload(frame));
     }
     /** Hot recipient path: packets were serialized, hashed and fragmented when the revision was accepted. */
