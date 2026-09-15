@@ -32,7 +32,7 @@ public final class S21AdversarialRootGravityIndependenceTests {
         var commonOrigin = new Vec3(12.25, 7.5, -3.75);
         RootTransformProvider roots = entity -> {
             calls.incrementAndGet();
-            return Optional.of(new RootTransformProvider.RootTransform(commonOrigin, expectedQuaternion, 1.0));
+            return Optional.of(new RootTransformProvider.RootTransform(commonOrigin, expectedQuaternion, 1.0f));
         };
         PoseEngine.Bound poses = inputs -> Optional.of(Map.of("root", new Matrix4f()));
         var provider = new ModelGeometryProvider(model(), poses, roots, AnatomyFilter.DEFAULT, 17);
