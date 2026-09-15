@@ -21,10 +21,11 @@ public class ScaleBrews implements ModInitializer {
 		// Client-only model/animation preparation implementations are installed separately.
 		io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines.initialize();
 		io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines.initialize();
+		io.github.r3neer.scalebrews.collision.internal.BuiltInRootTransformProviders.initialize();
 		// Optional model-family bridges are descriptor-driven and compile external MethodHandles
 		// only at server start, after installed compatibility mods have initialized.
 		io.github.r3neer.scalebrews.collision.internal.OptionalPoseChannelAdapters.initialize();
-		// Canonical catalogs validate engine ids during construction. Register the
+		// Canonical catalogs validate engine ids during construction. Register the remaining
 		// one-way legacy migration sentinels before any runtime/resource catalog can load.
 		io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData.initializeCompatibilityEngines();
 		ScaleEffects.initialize();
