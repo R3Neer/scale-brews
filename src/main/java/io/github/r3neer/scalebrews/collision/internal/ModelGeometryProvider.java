@@ -143,7 +143,27 @@ public final class ModelGeometryProvider implements GeometryProvider {
             .map(m->new MotionSnapshot(revision,handle.before().authorityTick(),handle.after().authorityTick(),
                 handle.before().rootTransform().origin(),handle.after().rootTransform().origin(),m.pieces()));
     }
-    public Optional<AuthoritativeFrame> authoritativeFrame(LivingEntity entity) {var frame=tickFrames.get(entity);return frame==null?Optional.empty():Optional.of(new AuthoritativeFrame(frame.tick,frame.sample,frame.root));}
+    /**
+     * The legacy entity_root is defined directly by live entity origin/yaw/scale/gravity. Those fields can
+     * change later in the same tick without an explicit mutation hook, so preserve the pre-S21 observation
+     * semantics only for that singleton. Generic providers remain endpoint-driven and are never re-sampled
+     * by an ordinary query.
+     */
+    public Optional<AuthoritativeFrame> authoritativeFrame(LivingEntity entity) {
+        var frame=tickFrames.get(entity);if(frame==null)return Optional.empty();
+        if(roots==BuiltInRootTransformProviders.entityRoot() && entityRootChanged(entity,frame)) {
+            if(refreshRoot(entity).isEmpty())return Optional.empty();
+            frame=tickFrames.get(entity);if(frame==null)return Optional.empty();
+        }
+        return Optional.of(new AuthoritativeFrame(frame.tick,frame.sample,frame.root));
+    }
+    private static boolean entityRootChanged(LivingEntity entity,TickFrame frame) {
+        var sample=frame.sample;
+        return !frame.root.origin().equals(entity.position())
+            || Float.compare(frame.root.scale(),entity.getScale())!=0
+            || Float.compare(sample.yaw(),entity.yBodyRot)!=0
+            || !sample.gravity().equals(AnatomyMovement.gravity(entity));
+    }
     @Deprecated public Optional<AuthoritativeInputs> authoritativeInputs(LivingEntity entity) {return authoritativeFrame(entity).map(frame->new AuthoritativeInputs(frame.tick(),frame.sample().inputs()));}
     public long evaluations(){return evaluations;} public long jointEvaluations(){return jointEvaluations;}
     public int cachedJointEndpoints(LivingEntity entity) {synchronized(jointCache){var endpoints=jointCache.get(entity);return endpoints==null?0:(endpoints.previous==null?0:1)+(endpoints.current==null?0:1);}}
