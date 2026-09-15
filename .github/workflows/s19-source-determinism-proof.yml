@@ -167,6 +167,41 @@ jobs:
           fi
           git checkout -- "$file"
 
+      - name: require late-failure prefix-publication mutant to die
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java'
+          python3 - "$file" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); text=p.read_text()
+          old='''        if (!(quadsValue instanceof Object[] quads) || quads.length == 0)\n            throw new IllegalArgumentException("AdvancedModelBox ModelBox has no materialized quads");'''
+          new='''        if (!(quadsValue instanceof Object[] quads) || quads.length == 0)\n            return; // adversarial mutant: late malformed cube is silently omitted and the valid prefix is published'''
+          if text.count(old) != 1:
+              raise SystemExit('S19 late-failure atomicity mutation target drifted')
+          p.write_text(text.replace(old,new,1))
+          PY
+          rm -rf build/run/clientGameTest
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsCompatMods="$GITHUB_WORKSPACE/build/s19-source-determinism/mods" \
+            2>&1 | tee build/s19-source-determinism/late-failure-prefix-mutant.log
+          code=${PIPESTATUS[0]}
+          set -e
+          mkdir -p build/s19-source-determinism/logs-late-failure-mutant
+          cp -r build/run/clientGameTest/logs/. build/s19-source-determinism/logs-late-failure-mutant/ || true
+          if [ "$code" -eq 0 ]; then
+            echo 'S19 late-failure prefix-publication mutant survived.' >&2
+            exit 1
+          fi
+          if ! grep -R -F 'S19 late malformed cube published a partial geometry prefix' \
+              build/run/clientGameTest/logs build/s19-source-determinism/late-failure-prefix-mutant.log >/dev/null 2>&1; then
+            echo 'S19 late-failure prefix-publication mutant died for a non-causal reason.' >&2
+            exit 1
+          fi
+          git checkout -- "$file"
+
       - name: require caller-owned transform reference mutant to die
         shell: bash
         run: |
@@ -247,6 +282,7 @@ jobs:
             build/s19-source-determinism/logs-normal/
             build/s19-source-determinism/logs-reused-mutant/
             build/s19-source-determinism/logs-geometry-mutant/
+            build/s19-source-determinism/logs-late-failure-mutant/
             build/s19-source-determinism/logs-transform-reference-mutant/
             build/s19-source-determinism/logs-source-order-mutant/
             build/resources/gametest/fabric.mod.json
