@@ -2,8 +2,10 @@ package io.github.r3neer.scalebrews.test;
 
 import io.github.r3neer.scalebrews.client.collision.preparation.AdvancedModelBoxGeometryEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.GeometryEngine;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -15,9 +17,10 @@ import org.joml.Matrix4f;
 
 /**
  * Adversarial S19 lifecycle proof: source preparation must be history-independent and fail closed
- * when tooling supplies reused mutable model identity, unstable root transforms, or alternating
- * fresh model geometry. The tooling source view must also be deterministic regardless of
- * registration order, and caller-owned mutable transform objects must be materialized defensively.
+ * when tooling supplies reused mutable model identity, unstable root transforms, alternating fresh
+ * model geometry, or malformed geometry discovered only after a valid traversal prefix. The tooling
+ * source view must also be deterministic regardless of registration order, and caller-owned mutable
+ * transform objects must be materialized defensively.
  */
 public final class S19SourceDeterminismClientProof implements FabricClientGameTest {
     private static final String GRIZZLY = "com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear";
@@ -25,6 +28,7 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
     private static final Identifier REUSED = Identifier.parse("test:s19_reused_model_identity");
     private static final Identifier TRANSFORM = Identifier.parse("test:s19_unstable_model_transform");
     private static final Identifier GEOMETRY = Identifier.parse("test:s19_unstable_model_geometry");
+    private static final Identifier LATE_MALFORMED = Identifier.parse("test:s19_late_malformed_geometry");
     private static final Identifier ORDER_Z = Identifier.parse("test:s19_order_z");
     private static final Identifier ORDER_A = Identifier.parse("test:s19_order_a");
     private static final Identifier ORDER_M = Identifier.parse("test:s19_order_m");
@@ -74,6 +78,14 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
             requireFailure(engine, GEOMETRY, "source factory is not deterministic",
                 "S19 alternating fresh model geometry was accepted");
 
+            // Corrupt only the LAST cube in the actual depth-first renderer hierarchy. Valid parts
+            // and cubes have already been traversed before this empty-quad primitive is discovered.
+            // The whole source must fail closed; publishing the prefix already accumulated is forbidden.
+            AdvancedModelBoxGeometryEngine.registerSource(LATE_MALFORMED,
+                new AdvancedModelBoxGeometryEngine.Source(S19SourceDeterminismClientProof::freshLateMalformedGrizzly, Matrix4f::new));
+            requireFailure(engine, LATE_MALFORMED, "ModelBox has no materialized quads",
+                "S19 late malformed cube published a partial geometry prefix");
+
             // Registration order is deliberately Z, A, M. The public tooling view must expose the
             // same canonical ordering independent of insertion history.
             AdvancedModelBoxGeometryEngine.registerSource(ORDER_Z,
@@ -90,7 +102,7 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
                 throw new AssertionError("S19 source registry view depends on registration order: expected="
                     + expectedOrder + " actual=" + order);
 
-            System.out.println("S19_SOURCE_DETERMINISM PASS control=repeated reused=closed transform=closed geometry=closed order=canonical");
+            System.out.println("S19_SOURCE_DETERMINISM PASS control=repeated reused=closed transform=closed geometry=closed lateMalformed=closed order=canonical");
         });
     }
 
@@ -118,11 +130,61 @@ public final class S19SourceDeterminismClientProof implements FabricClientGameTe
         try {
             Object model = Class.forName(GRIZZLY).getConstructor().newInstance();
             try { model.getClass().getField("young").setBoolean(model, false); }
-            catch (NoSuchFieldException ignored) { /* exact pinned dialect may not expose age here */ }
+            catch (NoSuchFieldException ignored) { /* exact pinned dialect may not expose age state here */ }
             return model;
         } catch (ReflectiveOperationException failure) {
             throw new AssertionError("Cannot instantiate pinned Grizzly source", failure);
         }
+    }
+
+    private static Object freshLateMalformedGrizzly() {
+        try {
+            Object model = freshAdultGrizzly();
+            Method parts = model.getClass().getMethod("parts");
+            Object rootsValue = parts.invoke(model);
+            if (!(rootsValue instanceof Iterable<?> roots))
+                throw new AssertionError("Pinned Grizzly parts() is not iterable");
+
+            var cubes = new ArrayList<Object>();
+            for (Object root : roots) collectCubesDepthFirst(root, cubes);
+            if (cubes.size() < 2)
+                throw new AssertionError("Pinned Grizzly does not provide a valid traversal prefix before malformed tail cube");
+
+            Object tailCube = cubes.getLast();
+            Field quads = field(tailCube.getClass(), "quads");
+            Class<?> component = quads.getType().getComponentType();
+            if (component == null)
+                throw new AssertionError("Pinned Grizzly ModelBox quads field is not an array");
+            quads.set(tailCube, Array.newInstance(component, 0));
+            if (Array.getLength(quads.get(tailCube)) != 0)
+                throw new AssertionError("Could not establish late malformed empty-quad cube fixture");
+            return model;
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError("Cannot prepare late malformed pinned Grizzly source", failure);
+        }
+    }
+
+    private static void collectCubesDepthFirst(Object part, List<Object> cubes) throws ReflectiveOperationException {
+        Object cubeValue = field(part.getClass(), "cubeList").get(part);
+        if (!(cubeValue instanceof Iterable<?> cubeList))
+            throw new AssertionError("Pinned Grizzly AdvancedModelBox cubeList is not iterable");
+        for (Object cube : cubeList) cubes.add(cube);
+
+        Object childrenValue = field(part.getClass(), "childModels").get(part);
+        if (!(childrenValue instanceof Iterable<?> children))
+            throw new AssertionError("Pinned Grizzly AdvancedModelBox childModels is not iterable");
+        for (Object child : children) collectCubesDepthFirst(child, cubes);
+    }
+
+    private static Field field(Class<?> type, String name) throws NoSuchFieldException {
+        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+            try {
+                Field field = current.getDeclaredField(name);
+                field.setAccessible(true);
+                return field;
+            } catch (NoSuchFieldException ignored) {}
+        }
+        throw new NoSuchFieldException(type.getName() + "." + name);
     }
 
     private static void setBodyScale(Object model, float x, float y, float z) {
