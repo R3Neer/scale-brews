@@ -207,15 +207,17 @@ public final class CitadelPoseProgramEvaluator {
             case BOB -> {
                 float clock = scalar(operation.clock(), inputs);
                 float amount = scalar(operation.amount(), inputs);
-                float value = Mth.cos(clock * operation.speed()) * operation.degree() * amount;
-                if (operation.bounce()) value = -Math.abs(value);
+                float wave = (float) Math.sin(clock * operation.speed()) * amount * operation.degree();
+                float value = operation.bounce() ? -Math.abs(wave) : wave - amount * operation.degree();
                 var pose = pose(rest, poses, operation.bone());
                 pose.y += value;
                 return pose.valid();
             }
             case FACE_TARGET -> {
-                float yaw = inputs.headYaw() * Mth.DEG_TO_RAD / operation.divisor();
-                float pitch = inputs.headPitch() * Mth.DEG_TO_RAD / operation.divisor();
+                float effectiveDivisor = operation.divisor() * operation.bones().size();
+                if (!Float.isFinite(effectiveDivisor) || effectiveDivisor == 0) return false;
+                float yaw = inputs.headYaw() * Mth.DEG_TO_RAD / effectiveDivisor;
+                float pitch = inputs.headPitch() * Mth.DEG_TO_RAD / effectiveDivisor;
                 for (var bone : operation.bones()) {
                     var pose = pose(rest, poses, bone);
                     pose.yRot += yaw;
@@ -225,21 +227,19 @@ public final class CitadelPoseProgramEvaluator {
                 return true;
             }
             case PROGRESS_ROTATION -> {
-                var base = rest.get(operation.bone());
                 var pose = pose(rest, poses, operation.bone());
                 float progress = scalar(operation.progress(), inputs) / operation.divisor();
-                pose.xRot += progress * (scalar(operation.x(), inputs) - base.xRot());
-                pose.yRot += progress * (scalar(operation.y(), inputs) - base.yRot());
-                pose.zRot += progress * (scalar(operation.z(), inputs) - base.zRot());
+                pose.xRot += progress * scalar(operation.x(), inputs);
+                pose.yRot += progress * scalar(operation.y(), inputs);
+                pose.zRot += progress * scalar(operation.z(), inputs);
                 return pose.valid();
             }
             case PROGRESS_POSITION -> {
-                var base = rest.get(operation.bone());
                 var pose = pose(rest, poses, operation.bone());
                 float progress = scalar(operation.progress(), inputs) / operation.divisor();
-                pose.x += progress * (scalar(operation.x(), inputs) - base.x());
-                pose.y += progress * (scalar(operation.y(), inputs) - base.y());
-                pose.z += progress * (scalar(operation.z(), inputs) - base.z());
+                pose.x += progress * scalar(operation.x(), inputs);
+                pose.y += progress * scalar(operation.y(), inputs);
+                pose.z += progress * scalar(operation.z(), inputs);
                 return pose.valid();
             }
         }
