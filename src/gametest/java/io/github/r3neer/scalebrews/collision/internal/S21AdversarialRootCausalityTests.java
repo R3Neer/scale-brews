@@ -56,11 +56,8 @@ public final class S21AdversarialRootCausalityTests {
             var actualBox = published.snapshot().pieces().get("probe");
             h.assertTrue(actualBox != null, "Published causal sample must contain the probe piece");
 
-            var expectedCenter = expectedBox.bounds().getCenter();
-            var actualCenter = actualBox.bounds().getCenter();
-            h.assertTrue(actualCenter.distanceToSqr(expectedCenter) < 1e-8,
-                "Causal publication discarded the accepted RootTransformProvider quaternion: expected center "
-                    + expectedCenter + " but published " + actualCenter);
+            assertSameCenter(h, expectedBox, actualBox,
+                "Causal publication discarded the accepted RootTransformProvider quaternion");
             h.assertTrue(calls.get() == 1,
                 "Publishing/querying one causal endpoint must consume the already sampled root instead of resampling its provider");
         } finally {
@@ -99,6 +96,96 @@ public final class S21AdversarialRootCausalityTests {
             support.discard();
         }
         h.succeed();
+    }
+
+    @GameTest
+    public void presentationMustConsumeTransportedRootTransform(GameTestHelper h) {
+        var support = h.spawn(EntityTypes.ARMOR_STAND, 4, 2, 4);
+        PoseEngine.Bound poses = inputs -> Optional.of(Map.of("root", new Matrix4f()));
+        var provider = new ModelGeometryProvider(fixtureModel(), poses,
+            BuiltInRootTransformProviders.entityRoot(), AnatomyFilter.DEFAULT, 1);
+        var inputs = new PoseEngine.Inputs(0, 0, 0, 0, 0, true);
+
+        try {
+            support.yBodyRot = 0;
+            long tick = support.level().getGameTime();
+            var gravity = AnatomyMovement.gravity(support);
+            var rootFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+                support.getScale(), gravity);
+            var sample = new AnatomyPoseHistory.Sample(inputs, rootFrame.origin(), rootFrame.yaw(),
+                rootFrame.scale(), rootFrame.gravity());
+            var transverseRoot = new RootTransformProvider.RootTransform(support.position(),
+                new Quaternionf().rotateZ((float)(Math.PI * .5)), support.getScale());
+            var expected = provider.sampleAt(support, sample, transverseRoot).orElseThrow();
+            var endpoint = new GeometryProvider.CausalEndpoint(1, tick, tick, rootFrame,
+                transverseRoot, sample, GeometryProvider.Availability.AVAILABLE);
+
+            var presentation = provider.evaluatePresentation(support, endpoint).orElseThrow();
+            assertSameCenter(h, expected.pieces().get("probe"), presentation.pieces().get("probe"),
+                "Presentation rebuilt a legacy gravity+yaw root instead of consuming endpoint.rootTransform()");
+        } finally {
+            support.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void motionIntervalMustConsumeBothTransportedRootTransforms(GameTestHelper h) {
+        var support = h.spawn(EntityTypes.ARMOR_STAND, 5, 2, 5);
+        PoseEngine.Bound poses = inputs -> Optional.of(Map.of("root", new Matrix4f()));
+        var provider = new ModelGeometryProvider(fixtureModel(), poses,
+            BuiltInRootTransformProviders.entityRoot(), AnatomyFilter.DEFAULT, 1);
+        var inputs = new PoseEngine.Inputs(0, 0, 0, 0, 0, true);
+
+        try {
+            support.yBodyRot = 0;
+            long tick = support.level().getGameTime();
+            var gravity = AnatomyMovement.gravity(support);
+            var beforeFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+                support.getScale(), gravity);
+            var afterFrame = new AnatomyMovement.RootFrame(2, tick + 1, support.position(), support.yBodyRot,
+                support.getScale(), gravity);
+            var beforeSample = new AnatomyPoseHistory.Sample(inputs, beforeFrame.origin(), beforeFrame.yaw(),
+                beforeFrame.scale(), beforeFrame.gravity());
+            var afterSample = new AnatomyPoseHistory.Sample(inputs, afterFrame.origin(), afterFrame.yaw(),
+                afterFrame.scale(), afterFrame.gravity());
+
+            var beforeRoot = BuiltInRootTransformProviders.entityRoot().sample(support).orElseThrow();
+            var afterRoot = new RootTransformProvider.RootTransform(support.position(),
+                new Quaternionf(beforeRoot.quaternion()).rotateZ((float)(Math.PI * .5)), support.getScale());
+            var beforeSnapshot = provider.sampleAt(support, beforeSample, beforeRoot).orElseThrow();
+            var afterSnapshot = provider.sampleAt(support, afterSample, afterRoot).orElseThrow();
+
+            var identity = new GeometryProvider.GeometryIdentity(support.level().dimension(), support.getUUID(),
+                support.getId(), UUID.randomUUID(), 1, MODEL, POSE, ROOT, 1, 1);
+            var beforeEndpoint = new GeometryProvider.CausalEndpoint(1, tick, tick, beforeFrame,
+                beforeRoot, beforeSample, GeometryProvider.Availability.AVAILABLE);
+            var afterEndpoint = new GeometryProvider.CausalEndpoint(2, tick + 1, tick + 1, afterFrame,
+                afterRoot, afterSample, GeometryProvider.Availability.AVAILABLE);
+            var beforeQuery = new GeometryProvider.QueryFrame(identity, beforeEndpoint, beforeSnapshot);
+            var afterQuery = new GeometryProvider.QueryFrame(identity, afterEndpoint, afterSnapshot);
+            var handle = new GeometryProvider.MotionIntervalHandle(identity, 1, beforeQuery, afterQuery);
+
+            var motion = provider.interval(support, handle).orElseThrow();
+            var piece = motion.pieces().get("probe");
+            h.assertTrue(piece != null, "Root-only interval must retain the probe motion");
+            assertSameCenter(h, afterSnapshot.pieces().get("probe"), piece.at().apply(1.0),
+                "Motion interval rebuilt legacy roots instead of consuming both transported rootTransform endpoints");
+        } finally {
+            support.discard();
+        }
+        h.succeed();
+    }
+
+    private static void assertSameCenter(GameTestHelper h,
+            io.github.r3neer.scalebrews.collision.geometry.ConvexBox expected,
+            io.github.r3neer.scalebrews.collision.geometry.ConvexBox actual,
+            String message) {
+        h.assertTrue(expected != null && actual != null, message + ": missing probe piece");
+        var expectedCenter = expected.bounds().getCenter();
+        var actualCenter = actual.bounds().getCenter();
+        h.assertTrue(actualCenter.distanceToSqr(expectedCenter) < 1e-8,
+            message + ": expected center " + expectedCenter + " but got " + actualCenter);
     }
 
     private static ModelGeometry fixtureModel() {
