@@ -107,7 +107,7 @@ public final class S20CitadelPoseClientProof implements FabricClientGameTest {
         if (label.startsWith("gazelle/")) invoke(entity, "setRunning", new Class[]{boolean.class}, false);
         else grizzlyState(entity, 0, 0, false);
         setAnimation(entity, animationField, tick);
-        float partial = Minecraft.getInstance().getFrameTime();
+        float partial = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
         var channels = new LinkedHashMap<>(custom);
         channels.put(CitadelPoseProgram.ANIMATION_CHANNEL, (float) token);
         channels.put(CitadelPoseProgram.ANIMATION_TICK_CHANNEL, (float) tick);
