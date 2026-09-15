@@ -63,4 +63,55 @@ public final class S20AdversarialPoseChannelAtomicityTests {
         }
         h.succeed();
     }
+
+    @GameTest
+    public void duplicateInsideAdapterRollsBackWholeSample(GameTestHelper h) {
+        var entity = h.spawn(EntityTypes.COW, 2, 2, 2);
+        try {
+            Identifier adapterId = Identifier.parse("scalebrews_test:s20_adversarial_atomic_internal_duplicate");
+            CollisionAdapters.registerPoseChannels(adapterId, (ignored, sink) -> {
+                sink.put("citadel.duplicate", 1f);
+                sink.put("citadel.valid_prefix", 2f);
+                sink.put("citadel.duplicate", 3f);
+            });
+
+            var channels = new HashMap<String, Float>();
+            channels.put("crouching", 0f);
+            var before = new HashMap<>(channels);
+            boolean accepted = AuthorityPoseTracker.sampleExternalChannels(adapterId, entity, channels);
+
+            h.assertTrue(!accepted,
+                "An adapter must not be allowed to overwrite one of its own authoritative channels");
+            h.assertTrue(channels.equals(before),
+                "Internal duplicate failure must roll back every staged channel, not just the duplicate key");
+        } finally {
+            entity.discard();
+        }
+        h.succeed();
+    }
+
+    @GameTest
+    public void lateChannelBudgetOverflowRollsBackWholeSample(GameTestHelper h) {
+        var entity = h.spawn(EntityTypes.COW, 2, 2, 2);
+        try {
+            Identifier adapterId = Identifier.parse("scalebrews_test:s20_adversarial_atomic_budget");
+            CollisionAdapters.registerPoseChannels(adapterId, (ignored, sink) -> {
+                sink.put("citadel.fills_last_slot", 1f);
+                sink.put("citadel.over_budget", 2f);
+            });
+
+            var channels = new HashMap<String, Float>();
+            for (int i = 0; i < 63; i++) channels.put("scale.preexisting." + i, (float)i);
+            var before = new HashMap<>(channels);
+            boolean accepted = AuthorityPoseTracker.sampleExternalChannels(adapterId, entity, channels);
+
+            h.assertTrue(!accepted,
+                "The 65th authoritative channel must fail the external adapter endpoint closed");
+            h.assertTrue(channels.equals(before),
+                "Late channel-budget overflow must not publish the staged value that filled slot 64");
+        } finally {
+            entity.discard();
+        }
+        h.succeed();
+    }
 }
