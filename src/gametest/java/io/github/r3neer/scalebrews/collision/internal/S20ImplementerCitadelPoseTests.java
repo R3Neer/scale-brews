@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
@@ -9,6 +10,7 @@ import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram.Delta;
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram.Keyframe;
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram.Operation;
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram.Scalar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EntityTypes;
 import org.joml.Matrix4f;
 
 /** Implementer regression coverage for the reusable common Citadel evaluator. */
@@ -27,6 +30,40 @@ public final class S20ImplementerCitadelPoseTests {
     public void builtInCitadelEngineIsRegistered(GameTestHelper h) {
         h.assertTrue(CollisionEngines.pose(Identifier.parse("scalebrews:citadel_program")).isPresent(),
             "Reusable Citadel pose family must be registered in common");
+        h.succeed();
+    }
+
+    @GameTest
+    public void externalPoseChannelAdapterPublishesScalarsAndFailsClosedOnInvalidOwnership(GameTestHelper h) {
+        var support = h.spawn(EntityTypes.COW, 2, 2, 2);
+        try {
+            var validId = Identifier.parse("scalebrews_test:s20_pose_channels_valid");
+            CollisionAdapters.registerPoseChannels(validId, (entity, sink) -> {
+                sink.put("citadel.progress", 4.5f);
+                sink.put("citadel.flag", 1f);
+            });
+            var valid = new HashMap<String, Float>();
+            valid.put("crouching", 0f);
+            h.assertTrue(AuthorityPoseTracker.sampleExternalChannels(validId, support, valid),
+                "External authoritative channel adapter must be consumable without renderer transforms");
+            h.assertTrue(Float.compare(valid.get("citadel.progress"), 4.5f) == 0 && Float.compare(valid.get("citadel.flag"), 1f) == 0,
+                "Adapter scalars must cross the validated authority boundary unchanged");
+
+            var duplicateId = Identifier.parse("scalebrews_test:s20_pose_channels_duplicate");
+            CollisionAdapters.registerPoseChannels(duplicateId, (entity, sink) -> sink.put("crouching", 1f));
+            var duplicate = new HashMap<String, Float>();
+            duplicate.put("crouching", 0f);
+            h.assertTrue(!AuthorityPoseTracker.sampleExternalChannels(duplicateId, support, duplicate)
+                    && Float.compare(duplicate.get("crouching"), 0f) == 0,
+                "External adapters cannot steal an authoritative channel already owned by Scale");
+
+            var invalidId = Identifier.parse("scalebrews_test:s20_pose_channels_invalid");
+            CollisionAdapters.registerPoseChannels(invalidId, (entity, sink) -> sink.put("citadel.bad", Float.NaN));
+            h.assertTrue(!AuthorityPoseTracker.sampleExternalChannels(invalidId, support, new HashMap<>()),
+                "Non-finite external channel output must fail the endpoint closed instead of entering pose evaluation");
+        } finally {
+            support.discard();
+        }
         h.succeed();
     }
 
