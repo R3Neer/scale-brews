@@ -93,7 +93,7 @@ public final class ModelGeometryProvider implements GeometryProvider {
     public ModelGeometryProvider serverDriven(java.util.function.Predicate<LivingEntity> eligibility) {
         poseEligibility=Objects.requireNonNull(eligibility);return this;
     }
-    /** Sample the bound root authority without evaluating or invalidating local joints. */
+    /** Root authority sampling boundary. Callers that only consume an accepted endpoint must not invoke this again. */
     public Optional<RootTransformProvider.RootTransform> root(LivingEntity entity) {
         if(entity==null)return Optional.empty();
         try {
@@ -102,6 +102,20 @@ public final class ModelGeometryProvider implements GeometryProvider {
         } catch(RuntimeException rejectedRoot) {
             return Optional.empty();
         }
+    }
+    /**
+     * Refresh only root authority while preserving the last accepted joint sample/tick.
+     * This is the S21 same-tick mutation seam: it never evaluates local joints.
+     */
+    public Optional<RootTransformProvider.RootTransform> refreshRoot(LivingEntity entity) {
+        if(entity==null)return Optional.empty();
+        var previous=tickFrames.get(entity);if(previous==null)return Optional.empty();
+        var root=root(entity).orElse(null);
+        if(root==null){tickFrames.remove(entity);tickMotions.remove(entity);return Optional.empty();}
+        var sample=new AnatomyPoseHistory.Sample(previous.sample.inputs(),root.origin(),entity.yBodyRot,root.scale(),AnatomyMovement.gravity(entity));
+        tickFrames.put(entity,new TickFrame(previous.tick,sample,root));
+        tickMotions.put(entity,Optional.empty());
+        return Optional.of(root);
     }
     public void tick(LivingEntity entity,long tick) {
         if(entity==null || tick<0)throw new IllegalArgumentException("Invalid authority tick");
@@ -125,8 +139,9 @@ public final class ModelGeometryProvider implements GeometryProvider {
     @Override public Optional<MotionSnapshot> interval(LivingEntity entity,MotionIntervalHandle handle) {
         if(entity==null || handle==null || !handle.identity().matches(entity) || handle.identity().revision()!=revision
                 || handle.before().snapshot().revision()!=revision || handle.after().snapshot().revision()!=revision)return Optional.empty();
-        // Pre-I4 compatibility path. Once the transported endpoint owns an explicit root DTO this method consumes it directly.
-        return motionBetween(entity,handle.before().sample(),handle.after().sample()).map(m->new MotionSnapshot(revision,handle.before().authorityTick(),handle.after().authorityTick(),handle.before().root().origin(),handle.after().root().origin(),m.pieces()));
+        return motionBetween(entity,handle.before().sample(),handle.before().rootTransform(),handle.after().sample(),handle.after().rootTransform())
+            .map(m->new MotionSnapshot(revision,handle.before().authorityTick(),handle.after().authorityTick(),
+                handle.before().rootTransform().origin(),handle.after().rootTransform().origin(),m.pieces()));
     }
     public Optional<AuthoritativeFrame> authoritativeFrame(LivingEntity entity) {var frame=tickFrames.get(entity);return frame==null?Optional.empty():Optional.of(new AuthoritativeFrame(frame.tick,frame.sample,frame.root));}
     @Deprecated public Optional<AuthoritativeInputs> authoritativeInputs(LivingEntity entity) {return authoritativeFrame(entity).map(frame->new AuthoritativeInputs(frame.tick(),frame.sample().inputs()));}
@@ -143,8 +158,9 @@ public final class ModelGeometryProvider implements GeometryProvider {
     public Optional<HierarchyMotion.EvaluatedFrame> evaluatePresentation(LivingEntity cacheKey,GeometryProvider.CausalEndpoint endpoint) {
         if(cacheKey==null || endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return Optional.empty();
         var sample=endpoint.sample();var transforms=joints(cacheKey,sample.inputs());if(transforms.isEmpty())return Optional.empty();
-        Matrix4f root=rootMatrix(legacyRoot(sample));evaluations++;
-        try{return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,sample.origin(),sample.origin(),filter).evaluate(1));}catch(RuntimeException rejectedGeometry){return Optional.empty();}
+        var rootAuthority=endpoint.rootTransform();Matrix4f root=rootMatrix(rootAuthority);evaluations++;
+        try{return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,
+            rootAuthority.origin(),rootAuthority.origin(),filter).evaluate(1));}catch(RuntimeException rejectedGeometry){return Optional.empty();}
     }
     public Optional<HierarchyMotion> motionBetween(AnatomyPoseHistory.Sample before,AnatomyPoseHistory.Sample after) {
         return motionBetween(before,legacyRoot(before),after,legacyRoot(after),evaluateJoints(before.inputs()),evaluateJoints(after.inputs()));
