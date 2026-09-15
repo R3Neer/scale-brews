@@ -19,10 +19,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** Real-Citadel holdout for showModel=false propagation through an AdvancedModelBox subtree. */
+/** Real-Citadel holdout for source visibility and non-cascading anatomy filtering. */
 public final class S19HiddenHierarchyClientProof implements FabricClientGameTest {
     private static final String GRIZZLY = "com.github.alexthe666.alexsmobs.client.model.ModelGrizzlyBear";
-    private static final Identifier SOURCE = Identifier.parse("test:s19_hidden_grizzly_body");
+    private static final Identifier HIDDEN_SOURCE = Identifier.parse("test:s19_hidden_grizzly_body");
+    private static final Identifier FILTER_SOURCE = Identifier.parse("test:s19_filter_grizzly_body");
     private static final double EPS2 = 2.5e-9;
 
     @Override
@@ -31,70 +32,119 @@ public final class S19HiddenHierarchyClientProof implements FabricClientGameTest
             if (!FabricLoader.getInstance().isModLoaded("alexsmobs"))
                 throw new AssertionError("S19 hidden-hierarchy proof requires the pinned Alex external input");
 
-            Supplier<Object> factory = S19HiddenHierarchyClientProof::freshHiddenBodyGrizzly;
-            AdvancedModelBoxGeometryEngine.registerSource(SOURCE,
-                new AdvancedModelBoxGeometryEngine.Source(factory, Matrix4f::new));
-            var geometry = clientDelegate().prepareDetailed(new GeometryEngine.Request(SOURCE)).orElseThrow().geometry();
-
-            String bodyId = geometry.parts().stream()
-                .map(part -> part.id())
-                .filter(id -> id.equals("body") || id.endsWith("/body"))
-                .findFirst().orElseThrow(() -> new AssertionError("Hidden Grizzly fixture lost structural body id"));
-
-            var bodyPieces = geometry.pieces().stream()
-                .filter(piece -> piece.part().equals(bodyId) || piece.part().startsWith(bodyId + "/"))
-                .toList();
-            if (bodyPieces.isEmpty())
-                throw new AssertionError("Hidden Grizzly body fixture contains no physical source pieces");
-            long descendantPieces = bodyPieces.stream().filter(piece -> piece.part().startsWith(bodyId + "/")).count();
-            if (descendantPieces == 0)
-                throw new AssertionError("Hidden Grizzly body fixture does not exercise descendant geometry");
-            for (var piece : bodyPieces) {
-                if (!"source_hidden".equals(piece.excluded()))
-                    throw new AssertionError("S19 hidden ancestor did not propagate source_hidden to subtree piece: "
-                        + piece.id() + " part=" + piece.part() + " excluded=" + piece.excluded());
-            }
-
-            var evaluated = geometry.evaluate(new Matrix4f(), Map.of(), AnatomyFilter.DEFAULT);
-            for (var piece : bodyPieces) if (evaluated.containsKey(piece.id()))
-                throw new AssertionError("S19 hidden ancestor leaked descendant collider into evaluated anatomy: " + piece.id());
-
-            // Source renderer metadata is authoritative. A user include may override thickness/aspect/
-            // volume filtering, but it must never resurrect a piece that the source model itself hides.
-            // Exercise AnatomyFilter directly with positive model volume as well as through evaluate():
-            // otherwise an all-hidden fixture can accidentally mask a source_hidden regression behind
-            // the independent degenerate-volume rejection.
-            var hiddenPiece = bodyPieces.getFirst();
-            var forcePiece = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.id()), Set.of());
-            if (!"source_hidden".equals(forcePiece.rejection(hiddenPiece, 1d)))
-                throw new AssertionError("S19 explicit piece include revived source_hidden collider decision: " + hiddenPiece.id());
-            if (geometry.evaluate(new Matrix4f(), Map.of(), forcePiece).containsKey(hiddenPiece.id()))
-                throw new AssertionError("S19 explicit piece include revived source_hidden collider: " + hiddenPiece.id());
-            var forcePart = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.part()), Set.of());
-            if (!"source_hidden".equals(forcePart.rejection(hiddenPiece, 1d)))
-                throw new AssertionError("S19 explicit part include revived source_hidden collider decision: " + hiddenPiece.id());
-            if (geometry.evaluate(new Matrix4f(), Map.of(), forcePart).containsKey(hiddenPiece.id()))
-                throw new AssertionError("S19 explicit part include revived source_hidden collider: " + hiddenPiece.id());
-
-            Object oracleModel = freshHiddenBodyGrizzly();
-            List<Vec3> rendered = renderVertices(oracleModel);
-            for (var entry : evaluated.entrySet()) for (Vec3 vertex : entry.getValue().vertices()) {
-                if (rendered.stream().noneMatch(reference -> reference.distanceToSqr(vertex) <= EPS2))
-                    throw new AssertionError("S19 evaluated collider is absent from hidden real renderer: piece="
-                        + entry.getKey() + " vertex=" + vertex);
-            }
-
-            System.out.println("S19_HIDDEN_HIERARCHY PASS body=" + bodyId + " hiddenPieces=" + bodyPieces.size()
-                + " hiddenDescendantPieces=" + descendantPieces + " retainedPieces=" + evaluated.size()
-                + " includeCannotRevive=true renderVertices=" + rendered.size());
+            proveHiddenHierarchy();
+            proveParentFilterDoesNotCascade();
         });
     }
 
-    private static Object freshHiddenBodyGrizzly() {
+    private static void proveHiddenHierarchy() {
+        Supplier<Object> factory = S19HiddenHierarchyClientProof::freshHiddenBodyGrizzly;
+        AdvancedModelBoxGeometryEngine.registerSource(HIDDEN_SOURCE,
+            new AdvancedModelBoxGeometryEngine.Source(factory, Matrix4f::new));
+        var geometry = clientDelegate().prepareDetailed(new GeometryEngine.Request(HIDDEN_SOURCE)).orElseThrow().geometry();
+
+        String bodyId = bodyId(geometry);
+        var bodyPieces = geometry.pieces().stream()
+            .filter(piece -> piece.part().equals(bodyId) || piece.part().startsWith(bodyId + "/"))
+            .toList();
+        if (bodyPieces.isEmpty())
+            throw new AssertionError("Hidden Grizzly body fixture contains no physical source pieces");
+        long descendantPieces = bodyPieces.stream().filter(piece -> piece.part().startsWith(bodyId + "/")).count();
+        if (descendantPieces == 0)
+            throw new AssertionError("Hidden Grizzly body fixture does not exercise descendant geometry");
+        for (var piece : bodyPieces) {
+            if (!"source_hidden".equals(piece.excluded()))
+                throw new AssertionError("S19 hidden ancestor did not propagate source_hidden to subtree piece: "
+                    + piece.id() + " part=" + piece.part() + " excluded=" + piece.excluded());
+        }
+
+        var evaluated = geometry.evaluate(new Matrix4f(), Map.of(), AnatomyFilter.DEFAULT);
+        for (var piece : bodyPieces) if (evaluated.containsKey(piece.id()))
+            throw new AssertionError("S19 hidden ancestor leaked descendant collider into evaluated anatomy: " + piece.id());
+
+        // Source renderer metadata is authoritative. A user include may override thickness/aspect/
+        // volume filtering, but it must never resurrect a piece that the source model itself hides.
+        // Exercise AnatomyFilter directly with positive model volume as well as through evaluate():
+        // otherwise an all-hidden fixture can accidentally mask a source_hidden regression behind
+        // the independent degenerate-volume rejection.
+        var hiddenPiece = bodyPieces.getFirst();
+        var forcePiece = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.id()), Set.of());
+        if (!"source_hidden".equals(forcePiece.rejection(hiddenPiece, 1d)))
+            throw new AssertionError("S19 explicit piece include revived source_hidden collider decision: " + hiddenPiece.id());
+        if (geometry.evaluate(new Matrix4f(), Map.of(), forcePiece).containsKey(hiddenPiece.id()))
+            throw new AssertionError("S19 explicit piece include revived source_hidden collider: " + hiddenPiece.id());
+        var forcePart = new AnatomyFilter(0, 0, 0, Set.of(hiddenPiece.part()), Set.of());
+        if (!"source_hidden".equals(forcePart.rejection(hiddenPiece, 1d)))
+            throw new AssertionError("S19 explicit part include revived source_hidden collider decision: " + hiddenPiece.id());
+        if (geometry.evaluate(new Matrix4f(), Map.of(), forcePart).containsKey(hiddenPiece.id()))
+            throw new AssertionError("S19 explicit part include revived source_hidden collider: " + hiddenPiece.id());
+
+        Object oracleModel = freshHiddenBodyGrizzly();
+        List<Vec3> rendered = renderVertices(oracleModel);
+        for (var entry : evaluated.entrySet()) for (Vec3 vertex : entry.getValue().vertices()) {
+            if (rendered.stream().noneMatch(reference -> reference.distanceToSqr(vertex) <= EPS2))
+                throw new AssertionError("S19 evaluated collider is absent from hidden real renderer: piece="
+                    + entry.getKey() + " vertex=" + vertex);
+        }
+
+        System.out.println("S19_HIDDEN_HIERARCHY PASS body=" + bodyId + " hiddenPieces=" + bodyPieces.size()
+            + " hiddenDescendantPieces=" + descendantPieces + " retainedPieces=" + evaluated.size()
+            + " includeCannotRevive=true renderVertices=" + rendered.size());
+    }
+
+    private static void proveParentFilterDoesNotCascade() {
+        AdvancedModelBoxGeometryEngine.registerSource(FILTER_SOURCE,
+            new AdvancedModelBoxGeometryEngine.Source(S19HiddenHierarchyClientProof::freshVisibleGrizzly, Matrix4f::new));
+        var geometry = clientDelegate().prepareDetailed(new GeometryEngine.Request(FILTER_SOURCE)).orElseThrow().geometry();
+        String bodyId = bodyId(geometry);
+
+        var permissive = new AnatomyFilter(0, 0, 0, Set.of(), Set.of());
+        var baseline = geometry.evaluate(new Matrix4f(), Map.of(), permissive);
+        var excludedParent = new AnatomyFilter(0, 0, 0, Set.of(), Set.of(bodyId));
+        var filtered = geometry.evaluate(new Matrix4f(), Map.of(), excludedParent);
+
+        var directPieces = geometry.pieces().stream()
+            .filter(piece -> piece.excluded() == null && piece.part().equals(bodyId) && baseline.containsKey(piece.id()))
+            .toList();
+        var descendantPieces = geometry.pieces().stream()
+            .filter(piece -> piece.excluded() == null && piece.part().startsWith(bodyId + "/") && baseline.containsKey(piece.id()))
+            .toList();
+        if (directPieces.isEmpty())
+            throw new AssertionError("Pinned Grizzly body has no direct visible collider to exercise parent exclusion");
+        if (descendantPieces.isEmpty())
+            throw new AssertionError("Pinned Grizzly body has no visible descendant collider to exercise non-cascading filter semantics");
+
+        for (var piece : directPieces) if (filtered.containsKey(piece.id()))
+            throw new AssertionError("S19 explicit parent AnatomyFilter exclusion failed to remove direct parent collider: " + piece.id());
+        for (var piece : descendantPieces) if (!filtered.containsKey(piece.id()))
+            throw new AssertionError("S19 parent AnatomyFilter exclusion cascaded into descendant collider: "
+                + piece.id() + " descendantPart=" + piece.part() + " excludedParent=" + bodyId);
+
+        System.out.println("S19_FILTER_NON_CASCADE PASS body=" + bodyId + " directRemoved=" + directPieces.size()
+            + " descendantsRetained=" + descendantPieces.size());
+    }
+
+    private static String bodyId(io.github.r3neer.scalebrews.collision.geometry.ModelGeometry geometry) {
+        return geometry.parts().stream()
+            .map(part -> part.id())
+            .filter(id -> id.equals("body") || id.endsWith("/body"))
+            .findFirst().orElseThrow(() -> new AssertionError("Grizzly fixture lost structural body id"));
+    }
+
+    private static Object freshVisibleGrizzly() {
         try {
             Object model = Class.forName(GRIZZLY).getConstructor().newInstance();
             try { model.getClass().getField("young").setBoolean(model, false); }
             catch (NoSuchFieldException ignored) { /* exact pinned dialect may not expose age here */ }
+            return model;
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError("Cannot prepare pinned visible Grizzly fixture", failure);
+        }
+    }
+
+    private static Object freshHiddenBodyGrizzly() {
+        try {
+            Object model = freshVisibleGrizzly();
             Object body = model.getClass().getField("body").get(model);
             Field children = field(body.getClass(), "childModels");
             Object rawChildren = children.get(body);
