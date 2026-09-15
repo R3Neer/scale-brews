@@ -45,6 +45,7 @@ public final class S19SyntheticHelperNamespaceClientProof implements FabricClien
 
             var prepared = clientDelegate().prepareDetailed(new GeometryEngine.Request(SOURCE)).orElseThrow();
             var geometry = prepared.geometry();
+            assertDisjointHelperNamespace(geometry);
             var boxes = geometry.evaluate(new Matrix4f(), Map.of(), AnatomyFilter.DEFAULT);
             if (boxes.isEmpty())
                 throw new AssertionError("Valid helper-name collision fixture prepared no physical geometry");
@@ -63,6 +64,43 @@ public final class S19SyntheticHelperNamespaceClientProof implements FabricClien
             System.out.println("S19_HELPER_NAMESPACE PASS pieces=" + boxes.size()
                 + " comparedVertices=" + compared + " renderVertices=" + rendered.size());
         });
+    }
+
+    private static void assertDisjointHelperNamespace(io.github.r3neer.scalebrews.collision.geometry.ModelGeometry geometry) {
+        String canonicalChildId = "root/body/unscaled_children";
+        if (!sourceNamespacePath(canonicalChildId))
+            throw new AssertionError("Helper proof canonical source path fixture is invalid");
+
+        var sourceChild = geometry.parts().stream()
+            .filter(part -> canonicalChildId.equals(part.id()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Valid source child lost canonical id " + canonicalChildId));
+        if (sourceChild.sourcePose() == null)
+            throw new AssertionError("Canonical source child was replaced by a transform-only helper");
+
+        String helperId = sourceChild.parent();
+        if (helperId == null)
+            throw new AssertionError("scaleChildren=false source child has no compensation parent");
+        if (sourceNamespacePath(helperId))
+            throw new AssertionError("Synthetic helper leaked into valid Citadel source namespace: " + helperId);
+
+        var helper = geometry.parts().stream()
+            .filter(part -> helperId.equals(part.id()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing scaleChildren=false transform-only helper " + helperId));
+        if (!"root/body".equals(helper.parent()))
+            throw new AssertionError("Synthetic helper has wrong structural parent: " + helper.parent());
+        if (helper.sourcePose() != null)
+            throw new AssertionError("Synthetic helper incorrectly carries source pose metadata");
+        if (geometry.pieces().stream().anyMatch(piece -> helperId.equals(piece.part())))
+            throw new AssertionError("Synthetic helper incorrectly owns physical source pieces");
+    }
+
+    private static boolean sourceNamespacePath(String id) {
+        if (id == null || id.isBlank()) return false;
+        for (String segment : id.split("/", -1))
+            if (!segment.matches("[A-Za-z0-9_.-]{1,64}")) return false;
+        return true;
     }
 
     private static Object freshCollidingNameGrizzly() {
