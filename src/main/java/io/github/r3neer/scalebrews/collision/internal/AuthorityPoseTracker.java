@@ -1,10 +1,12 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
 
 import java.util.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.Vec3;
@@ -72,12 +74,33 @@ public final class AuthorityPoseTracker {
             channels.put("unhappy",villager.getUnhappyCounter()>0?1f:0f);
         if(entity instanceof net.minecraft.world.entity.animal.sheep.Sheep sheep)
             channels.put("grazing",sheep.getHeadEatPositionScale(1));
+
+        boolean externalChannelsAvailable=sampleExternalChannels(entity,channels);
         // END_LEVEL_TICK observes the completed entity endpoint. All interpolated fields above use
         // partialTicks=1/current state; vanilla EntityRenderer uses tickCount + partialTicks for age.
         float endpointAge=(float)entity.tickCount+1f;
         state.inputs=new PoseEngine.Inputs(state.walk.position(),state.walk.speed(),endpointAge,
-            Mth.wrapDegrees(entity.yHeadRot-entity.yBodyRot),entity.getXRot(),supportedPose,channels);
+            Mth.wrapDegrees(entity.yHeadRot-entity.yBodyRot),entity.getXRot(),supportedPose&&externalChannelsAvailable,channels);
         return state.inputs;
     }
+
+    /** External channel failures localize to this endpoint instead of crashing the server or publishing partial truth. */
+    private static boolean sampleExternalChannels(LivingEntity entity,Map<String,Float> channels) {
+        var adapter=CollisionAdapters.poseChannels(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType())).orElse(null);
+        if(adapter==null)return true;
+        try {
+            adapter.sample(entity,(name,value)->{
+                if(name==null || !name.matches("[a-z0-9_.-]{1,64}") || !Float.isFinite(value))
+                    throw new IllegalArgumentException("Invalid external pose channel");
+                if(channels.containsKey(name))throw new IllegalArgumentException("Duplicate authoritative pose channel "+name);
+                if(channels.size()>=64)throw new IllegalArgumentException("Too many authoritative pose channels");
+                channels.put(name,value);
+            });
+            return true;
+        } catch(RuntimeException invalid) {
+            return false;
+        }
+    }
+
     public Optional<PoseEngine.Inputs> current(LivingEntity entity){return Optional.ofNullable(states.get(entity)).map(s->s.inputs);}
 }
