@@ -16,6 +16,7 @@ on:
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/**'
       - 'src/main/resources/data/alexsmobs/scalebrews/citadel_pose_programs/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S20CitadelPoseClientProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S20CitadelPoseWorldClientProof.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
@@ -110,7 +111,7 @@ jobs:
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-gametest']=[]
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S20CitadelPoseClientProof']
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S20CitadelPoseWorldClientProof']
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
 
