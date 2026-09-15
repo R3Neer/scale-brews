@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "adapters": [
+    {
+      "mod": "alexsmobs",
+      "entity": "alexsmobs:gazelle",
+      "className": "com.github.alexthe666.alexsmobs.entity.EntityGazelle",
+      "channels": {
+        "alexsmobs.running": { "kind": "BOOLEAN_METHOD", "member": "isRunning" }
+      },
+      "animation": {
+        "valueMethod": "getAnimation",
+        "tickMethod": "getAnimationTick",
+        "tokens": {
+          "0": { "owner": "com.github.alexthe666.alexsmobs.citadel.animation.IAnimatedEntity", "field": "NO_ANIMATION" },
+          "1": { "field": "ANIMATION_FLICK_TAIL" },
+          "2": { "field": "ANIMATION_FLICK_EARS" },
+          "3": { "field": "ANIMATION_EAT_GRASS" }
+        }
+      }
+    },
+    {
+      "mod": "alexsmobs",
+      "entity": "alexsmobs:grizzly_bear",
+      "className": "com.github.alexthe666.alexsmobs.entity.EntityGrizzlyBear",
+      "channels": {
+        "alexsmobs.stand_progress": { "kind": "FLOAT_FIELD", "member": "standProgress" },
+        "alexsmobs.sit_progress": { "kind": "FLOAT_FIELD", "member": "sitProgress" },
+        "alexsmobs.freddy": { "kind": "BOOLEAN_METHOD", "member": "isFreddy" },
+        "alexsmobs.eating": { "kind": "BOOLEAN_METHOD", "member": "isEating" }
+      },
+      "animation": {
+        "valueMethod": "getAnimation",
+        "tickMethod": "getAnimationTick",
+        "tokens": {
+          "0": { "owner": "com.github.alexthe666.alexsmobs.citadel.animation.IAnimatedEntity", "field": "NO_ANIMATION" },
+          "1": { "field": "ANIMATION_MAUL" },
+          "2": { "field": "ANIMATION_SWIPE_R" },
+          "3": { "field": "ANIMATION_SWIPE_L" },
+          "4": { "field": "ANIMATION_SNIFF" }
+        }
+      }
+    }
+  ]
+}
