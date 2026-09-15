@@ -23,7 +23,7 @@ public final class S21AdversarialRootAvailabilityTests {
     private static final Identifier ROOT = Identifier.parse("scalebrews_test:s21_root_availability_provider");
 
     @GameTest
-    public void emptyRootAfterValidSampleMustNotReuseStaleEndpoint(GameTestHelper h) {
+    public void emptyRootAfterValidSampleMustPublishUnavailableWithoutStaleFallback(GameTestHelper h) {
         var mode = new AtomicInteger(0);
         RootTransformProvider roots = entity -> mode.get() == 0
             ? Optional.of(new RootTransformProvider.RootTransform(entity.position(), new Quaternionf(), entity.getScale()))
@@ -32,7 +32,7 @@ public final class S21AdversarialRootAvailabilityTests {
     }
 
     @GameTest
-    public void throwingRootAfterValidSampleMustFailClosedWithoutStaleFallback(GameTestHelper h) {
+    public void throwingRootAfterValidSampleMustPublishUnavailableWithoutStaleFallback(GameTestHelper h) {
         var mode = new AtomicInteger(0);
         RootTransformProvider roots = entity -> {
             if (mode.get() != 0) throw new IllegalStateException("adversarial root provider failure");
@@ -55,8 +55,11 @@ public final class S21AdversarialRootAvailabilityTests {
 
             h.assertTrue(provider.authoritativeFrame(support).isPresent(),
                 "Fixture must establish one valid authoritative root before loss");
+            var before = AnatomyMovement.publishedFrame(support).orElseThrow();
+            h.assertTrue(before.endpoint().availability() == GeometryProvider.Availability.AVAILABLE,
+                "Fixture must publish one available causal endpoint before root loss");
             h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),
-                "Fixture must publish one valid causal endpoint before root loss");
+                "Fixture must expose available query geometry before root loss");
 
             mode.set(1);
             provider.tick(support, tick + 1);
@@ -67,8 +70,13 @@ public final class S21AdversarialRootAvailabilityTests {
                 "Root loss must make direct geometry sampling unavailable");
             h.assertTrue(AnatomyMovement.queryFrame(support).isEmpty(),
                 "Root loss must make causal query geometry unavailable instead of reusing the previously accepted endpoint");
-            h.assertTrue(AnatomyMovement.publishedFrame(support).isEmpty(),
-                "Without a fresh authoritative root, the causal publication path must not resurrect a stale endpoint");
+
+            var after = AnatomyMovement.publishedFrame(support).orElseThrow(
+                () -> new AssertionError("FR-029/S21: root loss must publish an UNAVAILABLE endpoint so clients can clear stale geometry"));
+            h.assertTrue(after.endpoint().availability() == GeometryProvider.Availability.UNAVAILABLE,
+                "Root loss must publish endpoint UNAVAILABLE, not another AVAILABLE collider");
+            h.assertTrue(after.endpoint().frameSerial() > before.endpoint().frameSerial(),
+                "Root-loss invalidation must advance causal identity rather than replay the previous endpoint serial");
         } finally {
             support.discard();
         }
