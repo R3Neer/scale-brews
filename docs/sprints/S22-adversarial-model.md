@@ -95,27 +95,30 @@ A caller can therefore:
 1. discover the correct target ids;
 2. create one manual row for every id;
 3. mark every row `FULL`;
-4. provide `bindings=[]` and an arbitrary reason;
-5. construct an `Artifact` whose membership exactly matches discovery;
+4. attach locally plausible but invented `BindingEvidence` (variant plus geometry/pose/root ids) to every row;
+5. construct an `Artifact` whose membership exactly matches discovery and whose rows look structurally valid;
 6. call `requireResolved()` successfully because there are no `UNRESOLVED` rows.
 
-This bypass does not omit anything. It forges the classification itself while satisfying the completeness repair.
+This bypass does not omit anything and does not depend on empty evidence. It forges the classification itself while satisfying the completeness repair and any shallow rule such as “FULL requires at least one binding”.
 
-Independent holdout:
+Independent holdout progression:
 
 - `S22AdversarialCoverageProvenanceTests.completeMembershipCannotForgeFullCoverageWithoutCanonicalEvidence`;
-- test commit **`1d11409f4a61f013727ef922c9e4ae4b01d4d534`**;
+- initial test commit **`1d11409f4a61f013727ef922c9e4ae4b01d4d534`**;
 - workflow commit **`e3e67f24dc1523053bf63b47878faa298ed88b2f`**;
-- ordinary build on the workflow head: run **`35106752431`**, job **`104829855709`**: **SUCCESS**;
-- adversarial run **`35106752630`**, job **`104829857809`**: **FAIL** only in the forged-provenance holdout.
+- initial ordinary build: run **`35106752431`**, job **`104829855709`**: **SUCCESS**;
+- initial adversarial run **`35106752630`**, job **`104829857809`**: **FAIL** only in the forged-provenance holdout;
+- hardened holdout commit **`fe613bbf630276753789b80c6edc1e5acf6bf547`** replaces empty evidence with non-empty plausible forged `BindingEvidence` for every discovered row;
+- hardened ordinary build run **`35107336639`**, job **`104831843804`**: **SUCCESS**;
+- hardened adversarial run **`35107336649`**, job **`104831844562`**: **FAIL** at the unchanged semantic gate.
 
 The failure property is:
 
-> FR-038 / NFR-032 / NFR-036: an acceptance artifact must not satisfy the resolved gate merely because its row ids match automatic discovery. `FULL`, `SAFE_PARTIAL` and `EXCLUDED` acceptance claims must be bound to canonical scanner/catalog evidence rather than arbitrary caller-authored rows.
+> FR-038 / NFR-032 / NFR-036: an acceptance artifact must not satisfy the resolved gate merely because its row ids and local row shape match expectations. `FULL`, `SAFE_PARTIAL` and `EXCLUDED` acceptance claims must be bound to canonical scanner/catalog evidence rather than arbitrary caller-authored rows.
 
 The adversary does not prescribe the implementation. A repair may bind artifacts to canonical scanner output, make trusted construction non-forgeable, or use another fail-closed provenance mechanism, but it must preserve deterministic reproducibility and the already-green completeness gate.
 
-The holdout remains unchanged and RED until production closes this property. Mutation adequacy comes only after baseline green.
+The hardened holdout remains unchanged and RED until production closes this property. Mutation adequacy comes only after baseline green.
 
 ## 6. Mixed default/variant state gaps — PASS
 
@@ -161,7 +164,7 @@ No production claim is made from that red. The test/workflow were removed in com
 S22 is now deliberately reduced to one product gate:
 
 1. keep `s22-adversarial-coverage-provenance` RED and unchanged while the implementer repairs provenance/authenticity;
-2. rerun that same holdout after the repair;
+2. rerun that same hardened holdout after the repair;
 3. only after baseline green, add a semantic mutant that recreates a self-authored classification bypass;
 4. rerun completeness, digest and residual lanes against the repaired tree;
 5. perform the final zero-change read and then reconcile S22 sprint/plan/VALIDATION.
