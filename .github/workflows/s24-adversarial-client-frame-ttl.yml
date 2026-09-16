@@ -1,4 +1,5 @@
 name: s24-adversarial-client-frame-ttl
+# Re-trigger after workflow registration: this lane is expected RED until NFR-011 retention is repaired.
 
 on:
   push:
