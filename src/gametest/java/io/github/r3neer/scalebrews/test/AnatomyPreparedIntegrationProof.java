@@ -56,8 +56,9 @@ public final class AnatomyPreparedIntegrationProof {
             // prepared server session; it is not an AnatomyRuntime active binding and setPos
             // therefore creates no certified ROOT/JOINT interval for the dispatcher to own.
             // The legacy endpoint carry remains the required fallback until a material interval
-            // actually exists. Session-level ownership must not suppress this relation.
-            AnatomyGeometryTests.anatomicalRootTransportOncePrepared(h);
+            // actually exists. Its expectation is derived from the exact SurfaceContact.localPoint
+            // published at acquisition, not from the entity origin pretending to be that anchor.
+            S08PreparedLegacyEndpointCarryProof.run(h);
             AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h);
             AnatomyGeometryTests.exportedCowActualMovementPrepared(h);
             AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
