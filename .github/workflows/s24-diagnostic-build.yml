@@ -1,0 +1,36 @@
+name: s24-diagnostic-build
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-diagnostic-build.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnostic-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: capture gradle build
+        shell: bash
+        run: |
+          mkdir -p build
+          set +e
+          ./gradlew build --stacktrace --console=plain > build/s24-build.log 2>&1
+          status=$?
+          cat build/s24-build.log
+          exit "$status"
+      - name: upload diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: s24-diagnostic-build-log
+          path: build/s24-build.log
