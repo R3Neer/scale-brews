@@ -1,6 +1,6 @@
 # S22 adversarial model — coverage classification kernel
 
-Status: **OPEN — canonical coverage digest RED**.
+Status: **OPEN — forged classification provenance RED**.
 
 > Role: adversarial verification only. This document does not authorize production changes.
 >
@@ -8,7 +8,7 @@ Status: **OPEN — canonical coverage digest RED**.
 
 ## 1. Threat model
 
-S22 turns discovered entity ids plus canonical binding evidence into a reproducible acceptance artifact. The dangerous failures are therefore omissions, optimistic classification and non-injective artifact identity.
+S22 turns discovered entity ids plus canonical binding evidence into a reproducible acceptance artifact. The dangerous failures are omissions, optimistic classification, forged semantic rows, non-injective identity and accidental runtime coupling.
 
 The adversarial pass treats these properties as mandatory:
 
@@ -16,123 +16,160 @@ The adversarial pass treats these properties as mandatory:
    - every discovered target id appears exactly once;
    - duplicate discovery entries cannot manufacture duplicate rows;
    - no binding/exclusion state can silently disappear from the classification.
-2. **Fail-closed semantics**
+2. **Fail-closed semantics and provenance**
    - missing evidence remains `UNRESOLVED`;
    - explicit `SAFE_PARTIAL` cannot manufacture coverage;
    - explicit `EXCLUDED` cannot hide canonical bindings;
-   - known state gaps on any applicable binding cannot be promoted to `FULL` by a cleaner sibling binding.
+   - known state gaps on any applicable binding cannot be promoted to `FULL` by a cleaner sibling binding;
+   - exact discovery membership is necessary but not sufficient: an acceptance artifact may not trust a manually fabricated `FULL/SAFE_PARTIAL/EXCLUDED` classification that did not come from canonical scanner evidence.
 3. **Determinism**
    - discovery order, map insertion order and binding insertion order do not change equivalent output;
    - reasons/evidence use stable ordering;
    - target version/input identity participates in the acceptance artifact.
 4. **Injective canonical identity**
    - semantically distinct evidence must not serialize to the same canonical preimage;
-   - delimiter characters allowed by canonical data must be escaped or length-framed;
+   - every accepted variable-length field is unambiguously framed;
    - digest equality may represent equivalent canonical evidence, never an ambiguity introduced before SHA-256.
 5. **Discovery/acceptance coupling**
    - tooling discovers the intended `LivingEntity` target without spawning entities;
    - namespace scoping happens as part of discovery;
-   - an acceptance artifact cannot claim `resolved` while omitting ids from the target's automatic discovery;
-   - discovery/scanning remains outside runtime hot paths.
+   - an acceptance artifact cannot claim `resolved` while omitting ids from automatic discovery;
+   - discovery/scanning remains outside runtime/hot paths.
 
-## 2. Current implementation status
+## 2. Current reconciled status
 
-The implementer kernel covers default/variant/state classification, unresolved gating, explicit exclusions, deterministic ordering, target input identity and automatic registry discovery. Commit `b1b2681` aggregates excluded states across all applicable bindings so a clean default cannot hide a variant state gap. Commit `4bea96b` moved LivingEntity discovery to `DefaultAttributes.hasSupplier(type)`, and `74217f5` added implementer proof for that boundary.
+Current classification on the `chatgpt-editing` lineage:
 
-The former acceptance-completeness bypass is now closed independently and mutation-protected. The remaining confirmed S22 blocker is the ambiguous canonical pre-hash encoding described below.
+- scanner base semantics and deterministic row ordering: **PASS**;
+- mixed default + multiple variant state-gap aggregation: **PASS**;
+- automatic registry discovery without entity spawning: **PASS**;
+- target/version/input identity: **PASS**;
+- exact discovery membership in `Artifact`: **PASS + MUTATION ADEQUATE**;
+- canonical digest framing: **PASS after repair**;
+- no production runtime callers of discovery/scanner: **PASS + structural mutation kill**;
+- acceptance classification provenance/authenticity: **RED / current blocker**.
 
-## 3. Canonical digest ambiguity — RED / CURRENT BLOCKER
+S22 therefore has one confirmed blocker. The artifact verifies *which entity ids* appear, but not yet *who is authoritative for the semantic classifications attached to those ids*.
 
-`CollisionBinding` permits arbitrary variant **values** up to the configured length. Variant keys are restricted, but values may legally contain `,` and `=`.
+## 3. Canonical digest ambiguity — HISTORICAL RED → PASS
 
-`CollisionCoverageScanner.BindingEvidence.canonical()` currently serializes each selector entry as:
+`CollisionBinding` permits arbitrary variant values, including delimiter characters. The original canonical preimage concatenated selector fields using delimiters, so semantically different selectors could alias before SHA-256.
 
-`escape(key) + "=" + escape(value) + ","`
-
-while `escape()` escapes backslash, `|`, newline and carriage return, but not `=` or `,`.
-
-Therefore these two valid, semantically different selectors alias before hashing:
-
-- `{a = "b,c=d"}`
-- `{a = "b", c = "d"}`
-
-Both produce the same selector fragment:
-
-`a=b,c=d,`
-
-With otherwise identical binding evidence they produce the same complete coverage canonical text and consequently the same SHA-256 digest. This is not a cryptographic collision; it is an ambiguous preimage encoding.
-
-Independent holdout:
+Historical holdout:
 
 - `S22AdversarialCoverageDigestTests.distinctVariantSelectorsMustNotAliasCanonicalCoverageDigest`;
 - test commit `7b75b86`, `test(s22): expose ambiguous coverage digest encoding`;
 - workflow `s22-adversarial-coverage-digest`;
-- workflow commit `246e226`, `ci(s22): run adversarial coverage digest holdout`;
-- ordinary build on the same SHA: run `35098294841` **SUCCESS**;
+- ordinary build `35098294841`: **SUCCESS**;
 - adversarial run `35098295265`: **FAIL**.
 
-The failure is exact and occurs after both reports have retained distinct semantic selector evidence:
-
-`NFR-028/NFR-036: distinct selector evidence must not alias in canonical coverage serialization; escape or length-frame variant key/value boundaries before hashing`
-
-Repair property, intentionally non-prescriptive:
-
-> The canonical coverage preimage must be injective over every value accepted by the canonical binding schema. Two semantically distinct binding-evidence records must not become byte-identical merely because allowed data contains serialization delimiters.
-
-The adversarial test remains red until production satisfies that property. Mutation adequacy should be added only after the unchanged baseline becomes green.
+Production repair **`8972f6243dbe8c574dbe4d98611f1d0bb11c0cf2`** replaced delimiter escaping with length framing (`collision-coverage-v2`) for variable-length fields and binding evidence. The unchanged digest holdout then passed; implementer evidence records run **`35101622368`** as **success**. No digest blocker remains.
 
 ## 4. Acceptance completeness — HISTORICAL RED → PASS + MUTATION ADEQUATE
 
-FR-038 requires the reproducible report to enumerate every automatically discovered target exactly once and forbids silently omitted rows. FR-039/FR-040 then use `UNRESOLVED=0` as an acceptance condition.
+The first canonical `scan(...)` path was complete, but `CollisionCoverageDiscovery.Artifact` could be assembled from a partial `Report` and `requireResolved()` only checked absence of `UNRESOLVED`. An empty report therefore looked resolved.
 
-The initial canonical `scan(...)` path was complete, but `CollisionCoverageDiscovery.Artifact` could be directly assembled from an arbitrary `Report`, and its gate only checked for `UNRESOLVED` rows. An empty report therefore passed despite omitting the target's discovered population.
-
-Historical red evidence:
+Historical red:
 
 - `S22AdversarialCoverageCompletenessTests.manuallyAssembledArtifactCannotResolveWhileOmittingDiscoveredTargets`;
-- test commit `569324e`, `test(s22): reject incomplete resolved coverage artifacts`;
-- initial workflow commit `0c6dffd`, `ci(s22): run coverage completeness holdout`;
-- ordinary build on that SHA: run `35098751232` **SUCCESS**;
-- adversarial run `35098751358`: **FAIL** exactly at:
+- test commit `569324e`;
+- ordinary build `35098751232`: **SUCCESS**;
+- adversarial run `35098751358`: **FAIL**.
 
-`FR-038/FR-039/FR-040: an acceptance artifact that silently omits discovered LivingEntity rows must not satisfy requireResolved(); completeness must be tied to automatic discovery`
+Implementer repair **`4484fd7`** rediscovered the target in the `Artifact` constructor and requires exact ordered equality between discovered ids and report-row ids. The unchanged holdout passed in **`35099137468`**.
 
-The implementer repair `4484fd7` (`fix(s22): bind artifact completeness to discovery`) makes the `Artifact` constructor rediscover the declared target and require exact ordered equality between discovered ids and report-row ids. The unchanged adversarial holdout then passed:
+Mutation adequacy in workflow lineage `80a946e` replaces automatic expected membership with the report's own row ids, recreating a self-justifying report. Run **`35099430830`**: baseline **SUCCESS**, mutation-kill **SUCCESS**.
 
-- run `35099137468`: **SUCCESS**.
+Completeness is therefore closed. That repair is intentionally distinct from the provenance blocker below.
 
-Mutation adequacy was added in workflow lineage `80a946e`. The semantic mutant replaces discovery-backed expected membership with the report's own row ids, recreating a self-justifying incomplete artifact while preserving the public API. It compiles and is killed by the same unchanged holdout:
+## 5. Forged classification provenance — RED / CURRENT BLOCKER
 
-- run `35099430830`: baseline **SUCCESS**, mutation-kill **SUCCESS**.
+Exact membership does not authenticate the semantic content of the rows.
 
-This closes the acceptance-completeness bypass independently. It is no longer an S22 blocker.
+`CollisionCoverageScanner.Row` and `Report` are publicly constructible. `Artifact` currently re-discovers the target and checks only this equality:
 
-## 5. Discarded discovery-parity experiment — TEST ORACLE INVALID
+`coverage.rows().map(Row::entity) == discover(target).livingEntityTypes()`.
 
-An attempted exhaustive cross-check compared attribute-backed discovery against `LivingEntity.class.isAssignableFrom(type.getBaseClass())`. Run `35099359378` was red, but the reference set was empty while attribute-backed discovery contained the expected vanilla living population. In Minecraft 26.2, `EntityType.getBaseClass()` is therefore not a valid static oracle for LivingEntity membership in this context.
+A caller can therefore:
 
-No production claim is made from that red. The test and workflow were removed in commits `a44992b` and `fae7089` so a known-invalid oracle does not remain as fake debt.
+1. discover the correct target ids;
+2. create one manual row for every id;
+3. mark every row `FULL`;
+4. provide `bindings=[]` and an arbitrary reason;
+5. construct an `Artifact` whose membership exactly matches discovery;
+6. call `requireResolved()` successfully because there are no `UNRESOLVED` rows.
 
-The current discovery evidence remains the production criterion plus its implementer smoke/boundary tests until an actually independent, non-instantiating oracle is available.
+This bypass does not omit anything. It forges the classification itself while satisfying the completeness repair.
 
-## 6. Next adversarial targets
+Independent holdout:
 
-The remaining S22 sequence is deliberately narrow:
+- `S22AdversarialCoverageProvenanceTests.completeMembershipCannotForgeFullCoverageWithoutCanonicalEvidence`;
+- test commit **`1d11409f4a61f013727ef922c9e4ae4b01d4d534`**;
+- workflow commit **`e3e67f24dc1523053bf63b47878faa298ed88b2f`**;
+- ordinary build on the workflow head: run **`35106752431`**, job **`104829855709`**: **SUCCESS**;
+- adversarial run **`35106752630`**, job **`104829857809`**: **FAIL** only in the forged-provenance holdout.
 
-1. keep `s22-adversarial-coverage-digest` red and unchanged while the implementer repairs canonical framing;
-2. rerun that same digest holdout after the fix and add a semantic mutant that restores ambiguous framing;
-3. audit deterministic state-gap aggregation across mixed default + multiple variant bindings without duplicating existing implementer cases;
-4. verify no other low-level/public acceptance path can bypass target membership by supplying foreign or partial rows;
-5. perform a final read-through proving discovery/scanning remains absent from runtime/hot-tick paths.
+The failure property is:
 
-S21 remains independently open on its entity-removal lifecycle red; S22 progress does not waive that gate.
+> FR-038 / NFR-032 / NFR-036: an acceptance artifact must not satisfy the resolved gate merely because its row ids match automatic discovery. `FULL`, `SAFE_PARTIAL` and `EXCLUDED` acceptance claims must be bound to canonical scanner/catalog evidence rather than arbitrary caller-authored rows.
 
-## 7. Gate rule
+The adversary does not prescribe the implementation. A repair may bind artifacts to canonical scanner output, make trusted construction non-forgeable, or use another fail-closed provenance mechanism, but it must preserve deterministic reproducibility and the already-green completeness gate.
 
-S22 must not be considered adversarially converged while:
+The holdout remains unchanged and RED until production closes this property. Mutation adequacy comes only after baseline green.
 
-- semantically distinct accepted binding evidence can alias in canonical serialization or digest identity;
-- an acceptance artifact can omit discovered target ids and still satisfy the resolved gate;
-- a clean binding can hide a known state gap from another applicable binding;
-- discovery or coverage scanning leaks into runtime/hot-tick code;
-- target namespace/version/input identity is not represented deterministically in the acceptance artifact.
+## 6. Mixed default/variant state gaps — PASS
+
+The implementer already covered one clean default plus one variant gap. The final adversarial residual adds multiple applicable variants with overlapping excluded-state sets, changes binding insertion order and requires exact deterministic union.
+
+`S22AdversarialCoverageResidualTests.multipleVariantStateGapsDowngradeDefaultWithoutOrderOrDuplicateNoise` asserts:
+
+- a clean default cannot hide any state gap from sibling variants;
+- union is deduplicated and lexically ordered (`angry,grazing,sleeping`);
+- every applicable binding remains present in evidence;
+- canonical text and digest are invariant under binding insertion order.
+
+Evidence:
+
+- test commit **`bcb6119db5662ffe955d988793255e2fe5e87431`**;
+- residual workflow run **`35106870440`**, job **`104830262947`**: **SUCCESS**.
+
+No production change was needed.
+
+## 7. Runtime / HOT_TICK boundary — PASS + MUTATION ADEQUATE
+
+S22 discovery and classification are tooling/acceptance mechanisms. They must not become runtime work merely because the implementation classes live under `src/main`.
+
+`tools/s22_coverage_hotpath_gate.py` scans production Java and rejects references to `CollisionCoverageDiscovery` or `CollisionCoverageScanner` outside their two tooling implementation files.
+
+Evidence:
+
+- gate commit **`1eab17b3668ce017e1e3ea964bcf78e1fcde8cf2`**;
+- workflow **`s22-adversarial-coverage-residuals`**;
+- run **`35106870440`**, job **`104830262565`**: baseline source boundary **SUCCESS**;
+- same run, job **`104830316050`**: **SUCCESS** after compiling an ephemeral mutant that injects a production reference to `CollisionCoverageScanner` into `AnatomyRuntime`; the source gate kills the mutant.
+
+This is a structural boundary proof, not a performance benchmark. It establishes absence of production callers of the coverage tooling in the current tree.
+
+## 8. Discarded discovery-parity experiment — TEST ORACLE INVALID
+
+An attempted exhaustive cross-check compared attribute-backed discovery against `LivingEntity.class.isAssignableFrom(type.getBaseClass())`. Run `35099359378` was red, but the reference set was empty while attribute-backed discovery contained the expected vanilla living population. In Minecraft 26.2, `EntityType.getBaseClass()` is not a valid static oracle for LivingEntity membership here.
+
+No production claim is made from that red. The test/workflow were removed in commits `a44992b` and `fae7089`.
+
+## 9. Remaining adversarial sequence
+
+S22 is now deliberately reduced to one product gate:
+
+1. keep `s22-adversarial-coverage-provenance` RED and unchanged while the implementer repairs provenance/authenticity;
+2. rerun that same holdout after the repair;
+3. only after baseline green, add a semantic mutant that recreates a self-authored classification bypass;
+4. rerun completeness, digest and residual lanes against the repaired tree;
+5. perform the final zero-change read and then reconcile S22 sprint/plan/VALIDATION.
+
+S21 is independently closed; it no longer blocks S22. G3.8 remains open until this provenance blocker is closed.
+
+## 10. Gate rule
+
+S22 must not be considered adversarially converged while any caller can construct an acceptance artifact that passes `requireResolved()` with classifications not causally bound to canonical scanner/catalog evidence.
+
+All other currently known S22 threats in this model are green or mutation-protected. The remaining RED is intentionally singular and must not be waived by the ordinary build being green.
