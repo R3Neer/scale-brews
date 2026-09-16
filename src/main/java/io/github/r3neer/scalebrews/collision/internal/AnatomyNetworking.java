@@ -73,7 +73,9 @@ public final class AnatomyNetworking {
         if(recipient==null || frame==null)return;
         var identity=frame.identity();var entity=recipient.level().getEntity(identity.entityId());
         if(entity==null || !entity.getUUID().equals(identity.support()))return;
-        sendPose(recipient,frame,AnatomyRuntime.trackingGeneration(recipient,entity));
+        long generation=AnatomyRuntime.trackingGeneration(recipient,entity);
+        if(generation<1)return; // Bounded ledger saturation fails closed for this pair.
+        sendPose(recipient,frame,generation);
     }
     /** Sends exactly one immutable server published endpoint in the recipient's current tracking generation. */
     public static void sendPose(ServerPlayer recipient,GeometryProvider.PublishedFrame frame,long trackingGeneration) {
