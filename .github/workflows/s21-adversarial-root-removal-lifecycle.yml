@@ -51,3 +51,67 @@ jobs:
             build/s21-adversarial-root-removal-lifecycle-junit.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  removal-fence-mutation-kill:
+    needs: root-removal-lifecycle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S21 root removal lifecycle holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S21AdversarialRootRemovalLifecycleTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: remove the immediate entity-removal identity fence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='if(entity==null || handle==null || entity.isRemoved())return false;'
+          new='if(entity==null || handle==null)return false;'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: removal holdout must kill missing identity fence
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s21-removal-fence-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: a certified interval remained accepted after entity removal without the identity fence"
+            exit 1
+          fi
+          echo "KILLED: immediate entity-removal identity fence is semantically required"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S21-removal-fence-mutant
+          path: |
+            build/s21-removal-fence-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
