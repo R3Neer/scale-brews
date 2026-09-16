@@ -32,6 +32,9 @@ public final class AnatomyFrameHistory {
      * Binding generation identifies the server binding; tracking generation identifies this
      * recipient's visibility window. Neither axis may roll back, and an explicitly retired
      * tracking window cannot be revived merely by advancing the binding generation.
+     *
+     * <p>This method does not mutate the history. A {@link #RESTART} authorizes the receiver to
+     * create a fresh history; it does not make an identity change valid inside this history.</p>
      */
     public LifecycleTransition transition(AnatomyPosePayload next) {
         if(next==null)throw new IllegalArgumentException("Missing causal frame");
@@ -57,12 +60,21 @@ public final class AnatomyFrameHistory {
         return current.entityId()==next.entityId() && current.model().equals(next.model())
             && current.provider().equals(next.provider()) && current.rootProvider().equals(next.rootProvider());
     }
+    /**
+     * Accepts only another publication belonging to the exact same causal history identity.
+     * Lifecycle changes are never silently folded into one history: callers must classify them
+     * with {@link #transition(AnatomyPosePayload)} and, for {@link LifecycleTransition#RESTART},
+     * install a fresh history before accepting the new packet.
+     */
     public boolean accept(AnatomyPosePayload next) {
-        var lifecycle=transition(next);
-        if(lifecycle==LifecycleTransition.REJECT)return false;
-        if(lifecycle==LifecycleTransition.RESTART)
-            throw new IllegalArgumentException("Causal frame lifecycle changed without receiver restart");
+        if(next==null)throw new IllegalArgumentException("Missing causal frame");
+        if(next.trackingGeneration()<=retiredTrackingGeneration)return false;
         if(current!=null) {
+            if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
+                    || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
+                    || !current.provider().equals(next.provider()) || !current.rootProvider().equals(next.rootProvider())
+                    || current.bindingGeneration()!=next.bindingGeneration() || current.trackingGeneration()!=next.trackingGeneration())
+                throw new IllegalArgumentException("Causal frame identity changed without receiver restart");
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
                     || next.jointSampleTick()<current.jointSampleTick())return false;
         }
