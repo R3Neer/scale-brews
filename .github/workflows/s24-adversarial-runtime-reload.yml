@@ -1,0 +1,139 @@
+name: s24-adversarial-runtime-reload
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-runtime-reload.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24RuntimeReloadTests.java'
+  workflow_dispatch:
+
+jobs:
+  reload-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - &isolate
+        name: isolate S24 runtime reload tests
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S24RuntimeReloadTests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: baseline must pass
+        run: ./gradlew runGameTest --no-daemon --console=plain
+
+  binding-generation-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - *isolate
+      - name: force binding generation reuse
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='            return nextBindingGeneration++;\n'
+          assert s.count(old)==1, 'binding allocator seam drifted'
+          p.write_text(s.replace(old,'            return nextBindingGeneration;\n'))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --no-daemon --console=plain
+      - name: accepted-rebind holdout must kill reused binding generation
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --no-daemon --console=plain 2>&1 | tee mutation.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Binding-generation reuse mutant survived S24 runtime reload tests.' >&2
+            exit 1
+          fi
+          if ! grep -F 'Accepted rebind must allocate a fresh provider, local registration generation, and server binding generation' mutation.log >/dev/null; then
+            echo 'Mutant died, but not at the intended accepted-rebind invariant.' >&2
+            exit 1
+          fi
+      - name: capture binding mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-reload-binding-mutation
+          path: |
+            mutation.log
+            build/run/gameTest/logs/
+
+  rejected-candidate-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - *isolate
+      - name: corrupt accepted runtime before candidate validation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='        var state=STATES.get(server);if(state==null)return;\n        state.catalog.reload(resources); // Candidate fully validates and swaps before any live runtime state is reset.\n'
+          assert s.count(old)==1, 'transaction seam drifted'
+          new='        var state=STATES.get(server);if(state==null)return;\n        state.entities.clear(); // MUTANT: destroys accepted authority before candidate validation.\n        state.catalog.reload(resources); // Candidate fully validates and swaps before any live runtime state is reset.\n'
+          p.write_text(s.replace(old,new))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --no-daemon --console=plain
+      - name: rejected-candidate holdout must kill prevalidation mutation
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --no-daemon --console=plain 2>&1 | tee mutation.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Prevalidation runtime-corruption mutant survived S24 runtime reload tests.' >&2
+            exit 1
+          fi
+          if ! grep -F 'Rejected candidate must leave the accepted support runtime-owned' mutation.log >/dev/null; then
+            echo 'Mutant died, but not at the intended rejected-candidate atomicity invariant.' >&2
+            exit 1
+          fi
+      - name: capture rejected-candidate mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-reload-rejected-candidate-mutation
+          path: |
+            mutation.log
+            build/run/gameTest/logs/
