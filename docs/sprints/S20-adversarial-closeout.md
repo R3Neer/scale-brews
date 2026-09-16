@@ -156,11 +156,11 @@ Independent boundedness holdout:
 - test: `S20AdversarialConditionBudgetTests.publishedGlobalConditionBudgetMustAcceptLimitAndRejectLimitPlusOne`;
 - workflow: `s20-adversarial-condition-budget`;
 - baseline failing run: **35060266298**, SHA `2394538bc8c7767365ace2fe9dd53bb6c4fb05a1`;
-- failure: no public explicit condition-node budget exists on `CitadelPoseProgram` (`found []`).
+- failure: no explicit immutable integer condition-node budget is declared on `CitadelPoseProgram` (`found []`).
 
-The holdout derives its boundary from production instead of hard-coding the intended final limit. It requires:
+The holdout derives its boundary from production instead of hard-coding the intended final limit. Its reflection is visibility-neutral: the bound may remain implementation-private. It requires:
 
-1. exactly one public immutable integer condition-node budget;
+1. exactly one explicit `static final int` condition-node budget;
 2. a positive limit below the measured 33825-node pathological fixture;
 3. exactly `limit` nodes accepted;
 4. `limit + 1` nodes in one tree rejected fail-closed;
