@@ -146,12 +146,16 @@ public final class AnatomyRuntime {
     /**
      * Internal support-binding ownership, intentionally narrower than {@link #owns(Entity)}.
      * A prepared/running session must not suppress the fixture/local fallback for a manually registered support;
-     * only a support present in the runtime's active binding table has certified material intervals to own its carry.
+     * only the exact live provider/descriptor installed by this runtime has certified material intervals to own its carry.
      */
     static boolean owns(LivingEntity support) {
         var server=support.level().getServer();
         var state=server==null?null:STATES.get(server);
-        return state!=null && state.entities.containsKey(support);
+        if(state==null)return false;
+        var active=state.entities.get(support);
+        var descriptor=AnatomyBindingState.descriptor(support);
+        return active!=null && AnatomyBindingState.provider(support)==active.provider()
+            && descriptor!=null && descriptor.bindingGeneration()==active.bindingGeneration();
     }
     /**
      * Canonical default selection for this entity type in the accepted server catalog.
