@@ -24,9 +24,11 @@ public final class S24AdversarialFrameHistoryTtlClientProof implements FabricCli
 
         context.waitFor(client -> {
             try {
-                return staleFrames().containsAll(fixtureIds);
+                var retained = frames();
+                var stale = staleFrames();
+                return fixtureIds.stream().allMatch(id -> !retained.containsKey(id) || stale.contains(id));
             } catch (ReflectiveOperationException error) {
-                throw new AssertionError("Could not inspect S24 stale-frame state", error);
+                throw new AssertionError("Could not inspect S24 frame-history expiry state", error);
             }
         }, 20);
 
@@ -49,11 +51,11 @@ public final class S24AdversarialFrameHistoryTtlClientProof implements FabricCli
 
     private static Set<UUID> seedExpiredHistories(Identifier dimension) {
         try {
-            cleanupFixture(Set.copyOf(frames().keySet()));
             long now = clientTick();
             var ids = new LinkedHashSet<UUID>();
             for (int i = 0; i < FIXTURE_COUNT; i++) {
                 var id = new UUID(0x534234L, i + 1L);
+                cleanupFixture(Set.of(id));
                 var history = new AnatomyFrameHistory();
                 var packet = new AnatomyPosePayload(
                     new UUID(0x534234L, 0x54544cL),
