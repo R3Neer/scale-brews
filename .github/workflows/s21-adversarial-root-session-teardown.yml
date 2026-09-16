@@ -96,10 +96,16 @@ jobs:
               old=stop_line
               new='if(STATES.get(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);'
           elif mutant=='retain-pending':
-              old='''public static void stop(MinecraftServer server) {
-        MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);'''
-              new='''public static void stop(MinecraftServer server) {
-        MaterialPhysicsRuntime.clear(server);'''
+              marker='public static void stop(MinecraftServer server) {'
+              start=s.index(marker)
+              prefix=s[:start]
+              tail=s[start:]
+              old='MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);'
+              count=tail.count(old)
+              if count!=1:
+                  raise SystemExit(f'mutation target count for {mutant}: {count}, expected exactly 1 inside stop()')
+              p.write_text(prefix+tail.replace(old,'MaterialPhysicsRuntime.clear(server);',1))
+              raise SystemExit(0)
           elif mutant=='keep-movement-active':
               old=stop_line
               new='STATES.remove(server);'
