@@ -8,7 +8,7 @@ import java.util.List;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-/** S20 PERF-004 holdout: compound conditions need one explicit practical global node budget. */
+/** S20 PERF-004 holdout: compound conditions need one explicit practical program-wide node budget. */
 public final class S20AdversarialConditionBudgetTests {
     private static final int MAX_SCHEMA_DEPTH = 16;
     private static final int MEASURED_PATHOLOGICAL_NODES = 33_825;
@@ -21,18 +21,32 @@ public final class S20AdversarialConditionBudgetTests {
         h.assertTrue(limit < MEASURED_PATHOLOGICAL_NODES,
             "S20 PERF-004: the global condition-node limit must exclude the measured 33825-node ~0.296ms/eval fixture; limit=" + limit);
 
-        var atLimit = programWithConditionNodes(limit);
+        var atLimit = programWithOperationConditionNodes(limit);
         h.assertTrue(atLimit != null,
             "S20 PERF-004: a program exactly at the published condition-node budget must remain valid");
 
-        boolean rejected = false;
+        boolean singleTreeRejected = false;
         try {
-            programWithConditionNodes(Math.addExact(limit, 1));
+            programWithOperationConditionNodes(Math.addExact(limit, 1));
         } catch (IllegalArgumentException expected) {
-            rejected = true;
+            singleTreeRejected = true;
         }
-        h.assertTrue(rejected,
-            "S20 PERF-004: limit + 1 condition nodes must fail closed during DTO validation; limit=" + limit);
+        h.assertTrue(singleTreeRejected,
+            "S20 PERF-004: limit + 1 nodes in one condition tree must fail closed during DTO validation; limit=" + limit);
+
+        int left = Math.max(1, limit / 2);
+        int right = Math.addExact(limit, 1) - left;
+        h.assertTrue(left <= limit && right <= limit,
+            "Adversarial aggregate fixture must keep every individual operation within the published limit");
+        boolean aggregateRejected = false;
+        try {
+            programWithOperationConditionNodes(left, right);
+        } catch (IllegalArgumentException expected) {
+            aggregateRejected = true;
+        }
+        h.assertTrue(aggregateRejected,
+            "S20 PERF-004: the budget must apply across the whole program, not independently per operation; "
+                + left + "+" + right + "=" + (left + right) + " nodes for limit=" + limit);
         h.succeed();
     }
 
@@ -57,15 +71,20 @@ public final class S20AdversarialConditionBudgetTests {
         }
     }
 
-    private static CitadelPoseProgram programWithConditionNodes(int nodes) {
-        var operation = new CitadelPoseProgram.Operation(
+    private static CitadelPoseProgram programWithOperationConditionNodes(int... nodesPerOperation) {
+        var operations = new ArrayList<CitadelPoseProgram.Operation>(nodesPerOperation.length);
+        for (int nodes : nodesPerOperation) operations.add(operationWithConditionNodes(nodes));
+        return new CitadelPoseProgram(CitadelPoseProgram.SCHEMA_VERSION,
+            "scalebrews_test:condition_budget", "1", List.of(), operations);
+    }
+
+    private static CitadelPoseProgram.Operation operationWithConditionNodes(int nodes) {
+        return new CitadelPoseProgram.Operation(
             CitadelPoseProgram.OperationType.ADD_ROTATION,
             "root", List.of(), exactTree(nodes, MAX_SCHEMA_DEPTH),
             CitadelPoseProgram.Scalar.constant(.01f), CitadelPoseProgram.Scalar.constant(0),
             CitadelPoseProgram.Scalar.constant(0), null, null, null,
             0, 0, 0, 0, 0, false, false);
-        return new CitadelPoseProgram(CitadelPoseProgram.SCHEMA_VERSION,
-            "scalebrews_test:condition_budget", "1", List.of(), List.of(operation));
     }
 
     /** Build exactly {@code nodes} condition nodes while respecting the existing <=32 children / depth<=16 schema. */
