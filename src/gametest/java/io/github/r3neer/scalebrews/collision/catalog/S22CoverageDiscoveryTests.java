@@ -33,22 +33,32 @@ public final class S22CoverageDiscoveryTests {
 
     @GameTest
     public void targetInputIdentityParticipatesInArtifactDigest(GameTestHelper h) {
-        var cow = id("minecraft:cow");
-        var report = CollisionCoverageScanner.scan(List.of(cow), new CollisionBindingCatalog(List.of()), Map.of(cow,
-            new CollisionCoverageScanner.ExceptionRule(CollisionCoverageScanner.Status.EXCLUDED,
-                "fixture exclusion used only to isolate target identity")));
+        var firstTarget = target("26.2", Map.of("minecraft", "26.2", "fabric-loader", "0.19.5"));
+        var sameTarget = target("26.2", Map.of("fabric-loader", "0.19.5", "minecraft", "26.2"));
+        var changedTarget = target("26.2", Map.of("minecraft", "26.2", "fabric-loader", "0.19.6"));
 
-        var first = new CollisionCoverageDiscovery.Artifact(target("26.2", Map.of(
-            "minecraft", "26.2", "fabric-loader", "0.19.5")), report);
-        var same = new CollisionCoverageDiscovery.Artifact(target("26.2", Map.of(
-            "fabric-loader", "0.19.5", "minecraft", "26.2")), report);
-        var changed = new CollisionCoverageDiscovery.Artifact(target("26.2", Map.of(
-            "minecraft", "26.2", "fabric-loader", "0.19.6")), report);
+        var first = unresolvedArtifact(firstTarget);
+        var same = unresolvedArtifact(sameTarget);
+        var changed = unresolvedArtifact(changedTarget);
 
         h.assertTrue(first.digest().equals(same.digest()),
             "Target input insertion order must not affect the reproducible artifact digest");
         h.assertTrue(!first.digest().equals(changed.digest()),
             "Changing any declared target input identity must change the acceptance artifact digest");
+        h.succeed();
+    }
+
+    @GameTest
+    public void artifactRejectsCoverageThatOmitsDiscoveredTargets(GameTestHelper h) {
+        var target = target("26.2", Map.of("minecraft", "26.2"));
+        boolean rejected = false;
+        try {
+            new CollisionCoverageDiscovery.Artifact(target, new CollisionCoverageScanner.Report(List.of()));
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+        h.assertTrue(rejected,
+            "Acceptance Artifact must reject incomplete row membership even when the incomplete report has no UNRESOLVED rows");
         h.succeed();
     }
 
@@ -84,6 +94,12 @@ public final class S22CoverageDiscoveryTests {
         }
         h.assertTrue(badNamespace, "Coverage target namespaces must use canonical registry namespace syntax");
         h.succeed();
+    }
+
+    private static CollisionCoverageDiscovery.Artifact unresolvedArtifact(CollisionCoverageDiscovery.Target target) {
+        var discovered = CollisionCoverageDiscovery.discover(target);
+        var report = CollisionCoverageScanner.scan(discovered.livingEntityTypes(), new CollisionBindingCatalog(List.of()), Map.of());
+        return new CollisionCoverageDiscovery.Artifact(target, report);
     }
 
     private static CollisionCoverageDiscovery.Target target(String version, Map<String, String> inputs) {

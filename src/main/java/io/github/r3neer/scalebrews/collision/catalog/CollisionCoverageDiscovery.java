@@ -90,14 +90,29 @@ public final class CollisionCoverageDiscovery {
         }
     }
 
-    /** Target metadata and coverage rows share one acceptance identity. */
+    /**
+     * Target metadata and coverage rows share one acceptance identity.
+     *
+     * <p>The constructor re-runs target discovery and requires exact row membership. This prevents a
+     * manually assembled report with no UNRESOLVED rows from passing acceptance while silently
+     * omitting target entity types.</p>
+     */
     public record Artifact(Target target, CollisionCoverageScanner.Report coverage) {
         public Artifact {
             Objects.requireNonNull(target, "target");
             Objects.requireNonNull(coverage, "coverage");
-            for (var row : coverage.rows()) {
-                if (!target.namespaces().contains(row.entity().getNamespace()))
-                    throw new IllegalArgumentException("Coverage row is outside target namespaces: " + row.entity());
+
+            var expected = discover(target).livingEntityTypes();
+            var actual = coverage.rows().stream().map(CollisionCoverageScanner.Row::entity).toList();
+            if (!actual.equals(expected)) {
+                var missing = new TreeSet<Identifier>(Comparator.comparing(Identifier::toString));
+                missing.addAll(expected);
+                missing.removeAll(actual);
+                var unexpected = new TreeSet<Identifier>(Comparator.comparing(Identifier::toString));
+                unexpected.addAll(actual);
+                unexpected.removeAll(expected);
+                throw new IllegalArgumentException("Coverage report does not exactly match discovered target; missing="
+                    + missing + ", unexpected=" + unexpected);
             }
         }
 
