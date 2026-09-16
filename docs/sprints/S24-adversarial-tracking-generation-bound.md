@@ -2,48 +2,70 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **BLOCKER DE DISEÑO / SIN UMBRAL INVENTADO**.
+Estado: **BOUND LEVANTADO ADVERSARIALMENTE / INTEGRATION-REVIVAL SEAM AÚN ABIERTO**.
 
-## 1. Hallazgo
+## 1. Hallazgo original
 
-El nuevo fencing S24 introduce en `AnatomyRuntime.State` un ledger server-side por receptor:
+S24 introdujo inicialmente un ledger server-side por receptor equivalente a:
 
 ```text
 ServerPlayer -> (support UUID -> trackingGeneration)
 ```
 
-El outer map usa weak keys, pero el mapa interior es un `HashMap<UUID,Long>` ordinario. En el estado actual:
+con crecimiento monotónico durante toda la conexión. `STOP_TRACKING` conservaba una entrada por cada UUID retirada y sólo reload/disconnect vaciaban el mapa. Eso preservaba replay fencing a costa de violar NFR-011 bajo sesiones largas.
 
-- `generation(...)` inserta una entrada para cada UUID visto por el receptor;
-- `STOP_TRACKING` **no elimina** la entrada: avanza su generación y la conserva como fence anti-replay;
-- no existe TTL, cap, poda ni outcome de saturación para el mapa interior;
-- el mapa completo sólo desaparece en reset/reload o disconnect del receptor.
+## 2. Reparación implementer
 
-Por tanto, una conexión larga que recorra suficientes zonas puede acumular una entrada por cada entidad distinta observada durante toda la sesión. El weak outer key no acota ese crecimiento mientras el jugador siga conectado.
+Producción sustituyó ese mapa interior por `TrackingGenerationLedger`:
 
-## 2. Requisitos afectados
+- `MAX_ACTIVE = 4096` ventanas simultáneamente activas por receptor;
+- `UNAVAILABLE = 0` como outcome fail-closed;
+- mapa activo `UUID -> generation` acotado;
+- contador escalar `nextGeneration` monotónico por ledger/conexión;
+- `release(UUID)` elimina la UUID retirada del mapa activo sin rebobinar el contador;
+- al saturarse el mapa o agotarse el contador, `acquire` devuelve `UNAVAILABLE` y no amplía memoria.
 
-- **NFR-011** exige TTL y caps constantes documentados para histories/estado temporal y que una entrada expirada no vuelva a ser autoritativa;
-- **FR-080** exige validar `trackingGeneration` antes de materializar frames/contactos;
-- **FR-082** y **NFR-017** convierten tracking loss, dimension/disconnect y otras discontinuidades en barreras causales cuyos eventos anteriores no pueden revivir.
+El ledger quedó conectado a `AnatomyRuntime`: START adquiere una ventana; STOP la libera; pose/contact/receipts no deben emitirse sin generación válida.
 
-Esto crea una tensión real: borrar tombstones sin diseño acotaría memoria pero reabriría replays; conservarlos para siempre preserva replay safety pero viola el requisito de memoria estable.
+## 3. Campaña adversarial
 
-## 3. Qué NO fija este adversario
+Holdout: `S24AdversarialTrackingGenerationLedgerTests`, commit `49b02b9ad301757b507b494be3d0745dc7a76224`.
 
-No se inventa un límite numérico como `4096`, `16384` o un TTL arbitrario. El contrato canónico no proporciona ese número y elegirlo desde el test sería convertir una decisión de diseño en dogma accidental.
+Workflow adversarial, inicialmente creado en `e5dd89b76cb6cfd4a3f6406d3d46ad64c5047238` y reejecutado tras el cableado runtime en `3d06e663aeeaf8c2730933bbcc035a36b79a52fb`.
 
-Tampoco se exige que la solución sea un `Map` podado. Son válidos otros diseños, por ejemplo un esquema de generación/nonce que permita demostrar obsolescencia sin conservar indefinidamente cada UUID, siempre que respete autoridad server-side y replay safety.
+Se atacaron dos propiedades distintas:
 
-## 4. Factura mínima para levantar el blocker
+1. **generation reuse mutant**: `release(...)` reinicia indebidamente el contador a `1`, permitiendo reutilizar una generación retirada;
+2. **cap off-by-one mutant**: cambia `>= MAX_ACTIVE` por `> MAX_ACTIVE`, permitiendo una ventana activa adicional.
 
-Antes de cerrar G3.9 debe existir una política explícita y demostrable para este ledger:
+Ambos mutantes compilaron antes de ejecutarse contra el holdout.
 
-1. límite/TTL constante y documentado o representación equivalente de memoria estable;
-2. stress con muchas UUID distintas donde el estado por receptor deje de crecer con el tiempo;
-3. un paquete de una tracking window retirada no puede recuperar autoridad por el mero hecho de que su entrada individual haya sido podada;
-4. saturación/poda debe tener outcome conservador y no degradar a un scan global;
-5. disconnect debe seguir retirando toda autoridad de la conexión anterior;
-6. la solución no puede reutilizar `bindingGeneration` como sustituto de `trackingGeneration`.
+### Evidencia
 
-Hasta que exista ese diseño y su holdout, S24 puede estar verde en tracking/dimensión funcional y seguir **abierto** respecto a NFR-011.
+Run adversarial **`35121129121`**:
+
+- `bounded-ledger-holdout`, job **`104878892384`**: **success**;
+- `generation-reuse-mutation-kill`, job **`104878892076`**: **success**, mutante compiló y murió;
+- `cap-off-by-one-mutation-kill`, job **`104878892457`**: **success**, mutante compiló y murió.
+
+Build general del mismo snapshot: run **`35121128960`**: **success**.
+
+## 4. Propiedades demostradas
+
+Queda demostrado adversarialmente que:
+
+- churn de UUID retiradas no obliga a retener una entrada por UUID para siempre;
+- una UUID retirada puede desaparecer del mapa activo sin que su número de generación vuelva a reutilizarse dentro del ledger;
+- el número de entradas activas está acotado exactamente por `MAX_ACTIVE`;
+- saturación falla cerrada sin ampliar el mapa;
+- liberar una ventana recupera capacidad sin reciclar generaciones anteriores.
+
+Esto levanta el blocker original de **memoria estable vs replay fencing** de NFR-011 a nivel del kernel de tracking-generation y su cableado básico en runtime.
+
+## 5. Costura que sigue abierta
+
+Este cierre **no** certifica todavía todo el lifecycle S24. En particular, la API pública/interna `AnatomyRuntime.trackingGeneration(...)` debe auditarse porque actualmente puede adquirir una ventana al ser consultada, no sólo observar la autoridad ya existente.
+
+Eso importa después de `STOP_TRACKING`: si un consumer tardío pudiera llamar a una lectura con efectos laterales y recrear una ventana ya retirada, el sistema conservaría memoria acotada pero violaría FR-080/FR-082/NFR-017 por revival de autoridad. La reparación correcta puede ser separar adquisición de consulta o cualquier diseño equivalente; el adversario no prescribe la arquitectura.
+
+Además permanecen abiertos reconnect, replay explícito A→B→A y reload/barriers completos.
