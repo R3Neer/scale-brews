@@ -43,20 +43,32 @@ public final class TinyMountSeatResolver {
                 variants.put(variantKey, selection);
             }
         }
-        Matrix4f currentPart = chain(selection.chain, false);
-        Matrix4f referencePart = new Matrix4f(selection.referencePart);
+        boolean staticGeneratedBasis = generatedRotationWrapper(selection);
+        List<ModelPart> animatedChain = selection.chain;
+        Matrix4f bakedModelBasis = new Matrix4f();
+        if (staticGeneratedBasis) {
+            // EMF may animate both its generated suffix and the vanilla-named
+            // body container with the converted basis. Keep the stable model
+            // root and bake the complete authored rest chain below it.
+            int basisStart = 1;
+            animatedChain = selection.chain.subList(0, basisStart);
+            bakedModelBasis = chain(selection.chain.subList(basisStart, selection.chain.size()), true);
+        }
+        Matrix4f currentPart = chain(animatedChain, staticGeneratedBasis);
+        Matrix4f referencePart = staticGeneratedBasis
+                ? chain(animatedChain, true) : new Matrix4f(selection.referencePart);
         var anchor = profile.anchor();
         Vector3f local = new Vector3f(selection.right).mul(lerp(selection.rightMin, selection.rightMax, anchor.point().x))
                 .add(new Vector3f(selection.up).mul(lerp(selection.upMin, selection.upMax, anchor.point().y)))
                 .add(new Vector3f(selection.front).mul(lerp(selection.frontMin, selection.frontMax, anchor.point().z)));
-        Matrix4f localSeat = new Matrix4f().identity()
+        Matrix4f localSeat = bakedModelBasis.mul(new Matrix4f().identity()
                 .setColumn(0, new Vector4f(selection.right, 0))
                 .setColumn(1, new Vector4f(new Vector3f(selection.up).negate(), 0))
                 .setColumn(2, new Vector4f(selection.front, 0))
                 .setColumn(3, new Vector4f(local, 1))
                 .translate(anchor.offset().x / 16F, -anchor.offset().y / 16F, anchor.offset().z / 16F)
                 .rotateXYZ((float)Math.toRadians(anchor.rotation().x), (float)Math.toRadians(anchor.rotation().y),
-                        (float)Math.toRadians(anchor.rotation().z));
+                        (float)Math.toRadians(anchor.rotation().z)));
         Matrix4f currentAbsolute = new Matrix4f(outer).mul(currentPart).mul(localSeat);
         Matrix4f referenceAbsolute = new Matrix4f(outer).mul(referencePart).mul(localSeat);
         Matrix4f relative = new Matrix4f(currentAbsolute).mul(new Matrix4f(referenceAbsolute).invert());
@@ -79,9 +91,21 @@ public final class TinyMountSeatResolver {
             Node explicit = nodes.stream().filter(n -> n.path.equals(normalized)).findFirst().orElse(null);
             if (explicit != null) {
                 List<Face> candidates = new ArrayList<>();
-                for (Node node : nodes)
-                    if (node.path.equals(normalized) || node.path.startsWith(normalized + "/"))
-                        collectFaces(node, outer, candidates);
+                int nearestGeometryDepth = Integer.MAX_VALUE;
+                for (Node node : nodes) {
+                    if (!node.path.equals(normalized) && !node.path.startsWith(normalized + "/")) continue;
+                    List<Face> local = new ArrayList<>();
+                    collectFaces(node, outer, local);
+                    if (local.isEmpty()) continue;
+                    int depth = node.chain.size();
+                    if (depth < nearestGeometryDepth) {
+                        nearestGeometryDepth = depth;
+                        candidates.clear();
+                    }
+                    if (depth == nearestGeometryDepth) candidates.addAll(local);
+                }
+                if (candidates.stream().anyMatch(face -> !accessoryPath(face.node.path)))
+                    candidates.removeIf(face -> accessoryPath(face.node.path));
                 Selection found = candidates.stream().max(Comparator.comparingDouble(f -> f.area))
                         .map(Face::selection).orElse(null);
                 if (found != null) return found;
@@ -163,6 +187,18 @@ public final class TinyMountSeatResolver {
         for (ModelPart part : selection.chain) if (!part.visible) return false;
         ModelPart selected = selection.chain.getLast();
         return !selected.skipDraw && !((ModelPartAccess)(Object)selected).scalebrews$cubes().isEmpty();
+    }
+
+    private static boolean accessoryPath(String path) {
+        String lower = path.toLowerCase(java.util.Locale.ROOT);
+        return lower.contains("head") || lower.contains("mane") || lower.contains("tail")
+                || lower.contains("leg") || lower.contains("wing");
+    }
+
+    /** EMF uses these generated leaf parts to convert model coordinates, not as animated torso bones. */
+    private static boolean generatedRotationWrapper(Selection selection) {
+        String leaf = selection.path.substring(selection.path.lastIndexOf('/') + 1).toLowerCase(java.util.Locale.ROOT);
+        return selection.chain.size() > 1 && leaf.startsWith("emf_") && leaf.contains("rotation");
     }
 
     /** Includes replacement parts/cubes, but never walks polygon data or animated poses. */

@@ -132,7 +132,9 @@ public final class TinyMountVisualTests {
     private static void selectionDoesNotDependOnFirstRender() {
         var mesh = new MeshDefinition();
         var group = mesh.getRoot().addOrReplaceChild("bone", CubeListBuilder.create(), PartPose.ZERO);
-        group.addOrReplaceChild("body", CubeListBuilder.create().addBox(-3,-4,-5,6,8,10), PartPose.ZERO);
+        var body = group.addOrReplaceChild("body", CubeListBuilder.create().addBox(-3,-4,-5,6,8,10), PartPose.ZERO);
+        body.addOrReplaceChild("mane_shake", CubeListBuilder.create().addBox(-8,-8,-8,16,16,16), PartPose.ZERO);
+        group.addOrReplaceChild("head2", CubeListBuilder.create().addBox(-8,-8,-8,16,16,16), PartPose.ZERO);
         var baked = LayerDefinition.create(mesh, 32,32).bakeRoot();
         var profile = TinyMountVisualProfile.parse(JsonParser.parseString("{\"anchor\":{\"path\":\"bone\"}}").getAsJsonObject());
         var outer = new Matrix4f().scale(-1,-1,1);

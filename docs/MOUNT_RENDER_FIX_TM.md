@@ -136,5 +136,57 @@ checked gestures through real networked input and native horse isolation; no
 changes. Repeated adversarial reviews 1 and 2: no further findings in the scoped
 changes. This closes automated TM delivery, not whole-pack human acceptance.
 
-The JAR is a local development build with the unchanged beta.8 metadata, not a
-new published version. No profile installation, tag, release or push was performed.
+The initial TM closure used a local development JAR with beta.8 metadata. A
+separate, explicitly authorized publication step subsequently promotes the same
+validated hotfix as beta.9; profile installation remains outside this work.
+
+## Post-closure visual regression R-prime
+
+The release was stopped before push, tag or publication when human review found
+the player mounted incorrectly in third person. The compatibility screenshots
+confirmed two production failures which the previous finite/stability probe did
+not reject: Chicken inherited a 171.1-degree generated-model basis rotation, and
+Wolf selected accessory geometry (`mane_shake`, later `head2`) below its explicit
+`body` group. Vanilla captures remained correct, localizing the regression to the
+EMF/Fresh Animations hierarchy rather than camera placement or rider scale.
+
+R-prime first validated the reviewer: a real-frame test failed on the Chicken
+tilt and a semantic anchor assertion failed on the Wolf accessory path. Returning
+to architecture established that threshold correction and first-frame calibration
+were invalid: both introduced state-dependent boundaries as EMF interpolated its
+coordinate wrapper. The revised architecture instead chooses the nearest
+non-accessory torso geometry and treats a terminal `EMF_*rotation` hierarchy as
+a coordinate conversion. Its complete authored rest chain is baked into the seat;
+internal EMF animation is isolated while entity position, yaw and external gravity
+remain in the outer render transform. Bee `EMF_torso` animation is unaffected.
+
+Architecture reviews 1 and 2 checked vanilla fallback, custom group anchors,
+resource reloads and the intentional tradeoff of stable Chicken/Wolf seats over
+Fresh Animations body bobbing; no changes. Implementation review found and removed
+an obsolete calculated-basis helper. Follow-up implementation reviews 1 and 2
+checked cache identity, root/rest composition, saddle/rider shared frames and the
+Bee exclusion; no further changes.
+
+Tests R-prime now require a stationary rider tilt below 45 degrees, reject
+Wolf/Chicken accessory paths, and include oversized same-depth and deeper
+accessories in the synthetic group-anchor fixture. The directed compatibility
+acceptance passed with Chicken 200 frames at 0 degrees on
+`root/body/EMF_body/EMF_rotation`, Wolf 203 frames at 0 degrees on
+`root/body/EMF_body/EMF_body_rotation`, and Bee retaining its animated torso.
+Manual rear, front and top capture review found both Chicken and Wolf upright,
+centred and seated over the saddle. Directed vanilla acceptance also passed with
+the ordinary `root/body` anchors unchanged.
+
+Final post-regression gate (2026-09-16): `build`, 154/154 server GameTests with
+zero failures/errors/skips, and all five client entrypoints passed with the full
+compatibility stack. Final probes: Bee 204/132 frames at 6.37 degrees on
+`EMF_torso`; Chicken 209/132 at 0 degrees on `EMF_rotation`; Wolf 197/127 at
+0 degrees on `EMF_body_rotation` (total/FirstPerson). The packaged beta.9 JAR
+contains no test classes and has local SHA-256
+`2AB4362CBA70582FA463D9DB7EC2F7EA1235A7C217AE0CC5F128C96A27FAF181`.
+
+Adversarial review 1 rechecked that the new assertions fail the captured old
+frames and that the implementation, rather than a weakened test, makes them
+pass; no changes. Review 2 checked the executed manifest, JAR boundary, version,
+changelog and publication scope; no changes. This closes the reopened automated
+TM cycle. Visual approval in arbitrary gameplay remains human QA.

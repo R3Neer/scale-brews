@@ -225,7 +225,7 @@ public final class TinyMountClientAcceptance implements FabricClientGameTest {
     }
 
     private static void captureMountAngles(ClientGameTestContext context, String name) {
-        context.runOnClient(client -> MountFrameProbe.start(client.player.getVehicle().getId()));
+        context.runOnClient(client -> MountFrameProbe.start(client.player.getVehicle().getId(), name));
         context.runOnClient(client -> client.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
         context.getInput().lookAt(180, 15);
         context.waitTicks(4);
