@@ -2,88 +2,164 @@
 
 Rol activo: **IMPLEMENTER**.
 
-Estado: **EN CURSO / subcontrato de tracking+binding verde**. Este documento no cierra G3 tarea 9 ni modifica el estado canónico del plan. Registra únicamente el trabajo implementador ya demostrado y el siguiente alcance pendiente para revisión/adversario.
+Estado: **IMPLEMENTACIÓN DE G3.9–G3.12 VERDE / PENDIENTE DE CIERRE ADVERSARIAL**. Este documento registra el candidato implementer y su evidencia. No modifica por sí solo los checkboxes canónicos de `ENTITY_COLLISIONS_PLAN.md` ni sustituye la revisión adversarial independiente.
 
-## 1. Alcance de este tramo
+## 1. Alcance consolidado
 
-G3.9 exige que reload, tracking/unload, rebind, dimensión, reconnect y reutilización de identidad no permitan reutilizar estado temporal de otra vida causal. El primer hueco aislado estaba en el stream de pose: el payload transportaba la generación del binding físico, pero no la generación de tracking específica del receptor.
+S24 empezó aislando la identidad temporal de pose y terminó cubriendo los cuatro trabajos G3 que dependen de lifecycle estable:
 
-`bindingGeneration` y `trackingGeneration` son ejes distintos:
+- **G3.9** — reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;
+- **G3.10** — estados no soportados publican `UNAVAILABLE` y recuperan sin freeze;
+- **G3.11** — lifecycle/order sobre runtime y packets reales;
+- **G3.12** — separación final de ownership root/endpoint que G2 dejó deliberadamente para G3.
 
-- `bindingGeneration`: vida del binding físico server-side de la entidad;
-- `trackingGeneration`: ventana de visibilidad de una pareja receptor+UUID;
-- ninguno puede sustituir al otro ni legitimar rollback del otro.
+La regla común es que ninguna vida temporal puede legitimarse usando sólo UUID, network id, revision o una generación del eje equivocado.
 
-## 2. Wire y autoridad server-side
+## 2. Dos ejes lifecycle: binding y tracking
 
-El payload de pose pasó a `anatomy_pose_v6` y transporta ambos ejes. La ruta live no usa un contador local del cliente:
+El wire de pose `anatomy_pose_v6` transporta dos generaciones independientes:
 
-1. `AnatomyRuntime` mantiene `trackingGenerations` por `ServerPlayer + UUID`;
-2. `STOP_TRACKING` publica/limpia con la generación vigente y avanza la siguiente;
-3. `AnatomyNetworking.sendPose(...)` resuelve la generación del receptor justo antes de construir el payload;
-4. los overloads con tracking fijo existen sólo como fixtures/diagnóstico.
+- `bindingGeneration`: vida causal del binding físico server-side;
+- `trackingGeneration`: ventana de visibilidad específica de receptor + UUID.
 
-La generación de binding sigue siendo monotónica por epoch/server runtime y no se reutiliza como tracking.
+`AnatomyFrameHistory.transition(...)` clasifica continuidad/restart/reject sin convertir `accept(...)` en una segunda state machine. Un `RESTART` obliga al receiver a crear un historial nuevo; `accept(...)` conserva el contrato S00 de identidad exacta.
 
-## 3. Unload y replay tardío
+La autoridad server-side de tracking usa `TrackingGenerationLedger`:
 
-`AnatomyFrameHistory` conserva un watermark `retiredTrackingGeneration`. `ENTITY_UNLOAD` retira la generación aceptada antes de descartar material. Un paquete tardío de esa misma ventana se rechaza aunque tenga serial superior.
+- scalar monotónico que no rebobina al liberar UUIDs;
+- mapa sólo de ventanas activas;
+- `MAX_ACTIVE = 4096`;
+- saturación fail-closed sin eviction de otra ventana autoritativa;
+- `STOP_TRACKING` libera la entrada sin conservar tombstones server-side;
+- disconnect/reset limpian los ledgers del receptor.
 
-Se detectó además un cruce más sutil: un paquete podía avanzar `bindingGeneration` manteniendo una `trackingGeneration` ya retirada; el receiver creaba un historial nuevo y con ello perdía el tombstone. La reparación final hace que `transition(...)` consulte primero el watermark retirado, de forma que **binding++ nunca revive tracking retirado**.
+La prueba de estrés recorre 50 000 ventanas secuenciales y demuestra memoria constante y no reutilización de generation.
 
-## 4. State machine de los dos ejes
+## 3. Replay fences cliente y lifecycle por dimensión
 
-`AnatomyFrameHistory.transition(...)` clasifica un paquete ya filtrado por sesión como:
+El cliente conserva dos niveles distintos de estado:
 
-- `CONTINUE`: misma identidad de binding y misma tracking generation;
-- `RESTART`: avance lifecycle autorizado que requiere un historial nuevo;
-- `REJECT`: rollback, tracking retirado o combinación de identidad incompatible.
+- **material del `ClientLevel`**: poses, geometry providers, evaluators, presentation frames y pending contacts;
+- **causalidad de la conexión**: replay fences y watermarks que deben sobrevivir a un cambio de level, pero no a disconnect/revision replacement.
 
-La matriz implementer cubre:
+`TrackingReplayFence` retira por `(UUID, dimension)` en lugar de un único tombstone global. Esto permite A→B→A sin aceptar un paquete antiguo de la primera vida en A y sin bloquear el estado legítimo de B.
 
-- continuidad;
-- retrack puro (`tracking++`, binding estable);
-- rebind puro (`binding++`, tracking estable mientras siga viva);
-- avance conjunto;
-- rollback de binding aunque tracking avance;
-- rollback de tracking aunque binding avance;
-- cambio de network id bajo retrack puro rechazado;
-- cambio de network id con rebind explícito permitido como `RESTART`;
-- `binding++` dentro de una tracking generation retirada rechazado.
+Los tombstones retienen la identidad causal necesaria para impedir resurrection tardía: epoch/revision/entity id/UUID/model/providers/binding generation/tracking generation/frame serial y authority/sample ticks. La capacidad es acotada y la saturación queda sticky/fail-closed hasta reset de conexión.
 
-## 5. Reutilización de network id
+Para contactos, `AnatomyContactInbox.clearPending()` elimina sólo material pendiente al cruzar nivel; los watermarks de la conexión permanecen. `clear()` sigue reservado a replacement de conexión/catálogo.
 
-El tick cliente ya detectaba que un `entityId` conocido podía pertenecer a otro UUID y descartaba material. S24 endurece esa transición: una sustitución **observada** de network id retira también la tracking generation antigua. Un timeout ordinario no lo hace, porque ausencia de paquetes no concede autoridad lifecycle al cliente.
+## 4. Contactos y rebind del soporte
 
-## 6. Regresión S00 descubierta y corrección
+Se encontró un replay real adicional: un contacto viejo podía conservar el mismo support UUID/entity id/piece y reinterpretarse después de un rebind del soporte.
 
-La primera extracción del state machine hizo que `accept(...)` devolviera `false` para ciertos cambios de identidad o tratara un avance generation como restart implícito. El build general detectó correctamente la regresión en `S00CausalTests.frameHistoryRejectsEachIdentityAxisAtomically`: un historial individual debe rechazar atómicamente cualquier cambio de epoch/revision/dimension/entityId/UUID/model/provider/binding sin que el caller pueda mezclar vidas causales.
+La solución fue identidad de protocolo, no heurística local:
 
-La solución final separa responsabilidades:
+- `AnatomyContactPayload` pasó a `anatomy_contact_v6`;
+- un contacto presente transporta `supportBindingGeneration >= 1`;
+- producción obtiene esa generation del descriptor vivo del soporte;
+- el cliente sólo materializa/presenta el contacto si coincide con el binding generation del frame vivo del soporte;
+- el watermark se conserva aunque el contacto material viejo se consuma y descarte.
 
-- `transition(...)` **sólo clasifica** si el receiver puede conservar, reiniciar o rechazar;
-- `accept(...)` **sólo acepta continuidad de identidad exacta**;
-- un `RESTART` obliga al receiver a crear un `AnatomyFrameHistory` nuevo antes de aceptar el paquete.
+La lane adversarial de mutación `35130851057` pasó tanto el baseline como el mutant que elimina exclusivamente esos fences: el holdout mata el mutant. La recuperación con contacto fresco tras rebind también permanece verde.
 
-Así se conserva el contrato S00 sin perder el lifecycle explícito de S24.
+## 5. Dimensión, reconnect, reload y reutilización
 
-## 7. Evidencia final de este subcontrato
+La suite integrada cubre ahora:
 
-Candidato: `4f20fac40c85a97032c0238c5214c397fd388565`.
+- **dimensión**: material del level anterior desaparece, pero la causalidad de conexión impide replay A→B→A;
+- **reconnect**: catálogo/pose/contact/replay state de la conexión anterior no legitima la nueva sesión;
+- **unload/retrack**: una tracking generation retirada no revive aunque binding avance;
+- **network-id reuse**: la sustitución observada retira la generación antigua; un timeout ordinario no se interpreta como lifecycle authority;
+- **reload válido**: rebind transaccional a la nueva revisión/identidad;
+- **reload inválido**: el snapshot/revisión aceptados continúan intactos;
+- **bootstrap/reset con múltiples receptores incompatibles**: `AnatomyRuntime.reset` itera un snapshot del player list, no la lista viva que `catalog(...)` puede modificar al desconectar receptores.
 
-- S24 focal `s24-lifecycle-generation`: run `35118836247`, job `104871104804`, **success**;
-- build general: run `35118836489`, job `104871106614`, **success**, incluido el holdout S00 que había detectado la regresión;
-- la workflow diagnóstica temporal usada para capturar el primer rojo se eliminó después de obtener la causa; no forma parte de la infraestructura permanente.
+La corrección del player-list quedó revalidada sobre el holdout adversarial sin modificarlo en run `35131477985`. Esa lane es evidencia implementer adicional, no una declaración de cierre adversarial.
 
-## 8. Pendiente antes de considerar G3.9 listo para handoff adversarial
+## 6. G3.10 — `UNAVAILABLE` real y recuperación
 
-Este verde no equivale a cerrar G3 tarea 9. Falta demostrar sobre lifecycle/runtime real, no sólo sobre kernels:
+`S24UnavailableRecoveryClientProof` usa una vaca real con el perfil `scalebrews:quadruped` y la transición runtime:
 
-1. cambio de dimensión: catálogo de conexión sobrevive; poses/contactos/providers del `ClientLevel` anterior no;
-2. disconnect/reconnect: epoch/catalog/poses/contactos/tombstones de la conexión previa no sobreviven;
-3. reload válido: nueva revisión reemplaza temporal state de forma atómica y rebind real usa identidad nueva;
-4. reload inválido: snapshot/revisión aceptados y estado útil anterior permanecen;
-5. orden real START/STOP/unload/replacement con packets live y reutilización de identidad;
-6. revisión adversarial posterior y performance/lifecycle pass sin cambios de producción.
+`STANDING → SLEEPING → STANDING`.
 
-El siguiente trabajo implementer continúa por esos ejes, empezando por dimensión/reconnect sobre el harness cliente integrado.
+La fase no soportada demuestra simultáneamente:
+
+- la sesión/catálogo siguen READY y con el mismo epoch/revision;
+- el soporte conserva UUID/entity id/binding/tracking identity;
+- `presentationFrame` y geometry desaparecen fail-closed;
+- no se exige retener una pose material stale: el receiver puede descartar material mientras conserva causalidad.
+
+Al volver a `STANDING`, llega un endpoint `AVAILABLE` fresco con `frameSerial` mayor y reaparecen presentation + geometry sin rebind/retrack artificial.
+
+Evidencia implementer corregida: run `35131733393`, **success**; build del mismo candidato `35131733233`, **success**. Tras la extracción de endpoint/root ownership, el mismo proof volvió a pasar en `35135583002`.
+
+## 7. G3.11 — late tracking y orden real de packets
+
+`S24LateTrackingOrderClientProof` cubre un observador que empieza a trackear tarde una entidad que ya lleva tiempo viva y tickeando:
+
+1. el primer paquete aceptado materializa directamente estado actual (`frameSerial > 1`), no una reproducción desde el nacimiento de la entidad;
+2. dentro de esa misma tracking window se captura un frame real aceptado;
+3. llega un frame más nuevo;
+4. se reinyecta el frame anterior a través del receiver real;
+5. serial/authority/presentation no retroceden.
+
+Primer verde implementer: `35133536245`. Tras extraer los ledgers de task 12, el proof volvió a pasar en `35135606727`.
+
+## 8. G3.12 — ownership root/endpoint fuera del orquestador
+
+G2 había dejado explícitamente root history + endpoint serials dentro de `AnatomyMovement` porque `GeometryProvider.CausalEndpoint` dependía de `AnatomyMovement.RootFrame`. Tras estabilizar root/lifecycle en S21/S24 esa dependencia dejó de ser necesaria.
+
+El corte final se hizo en dos pasos, cada uno compilado y revalidado antes del siguiente:
+
+### 8.1 Root provenance
+
+- `collision.runtime.RootFrame` es el DTO neutral;
+- `collision.runtime.RootFrameLedger` posee sequence/history/retención/dedupe/discontinuity;
+- conserva semántica previa: secuencia inicial 0, máximo 64 frames, ventana 20 ticks, discontinuidad por salto >4 bloques o cambio de gravedad;
+- el ledger **no** limpia contactos ni conoce física; devuelve `discontinuity` y `AnatomyMovement` decide la reacción.
+
+`S24RootFrameLedgerTests` fija dedupe, monotonicidad, stale-before, discontinuidad y boundedness de forma directa.
+
+### 8.2 Endpoint serial ownership
+
+- `collision.internal.AnatomyEndpointLedger` posee stamp/endpoint/snapshot/invalidated y el mapa weak-key por entidad;
+- `AnatomyMovement` conserva las decisiones de aceptación, quarantine, unavailable, contactos y spatial refresh;
+- no queda `FRAME_SERIALS`, `EndpointStamp` ni `EndpointSerial` como ownership anidado del orquestador.
+
+Se mantuvo `AnatomyEndpointLedger` en `collision.internal` de forma deliberada: sus entradas dependen de `GeometryProvider`/`AnatomyPoseHistory`; moverlo a `collision.runtime` habría creado una dependencia inversa `runtime → internal` y una falsa separación.
+
+La migración automática del segundo corte compiló `main + client + gametest` antes del push y el commit resultante `4511bdc403856185bb14eed963eadca62eef3c03` modificó únicamente `AnatomyMovement.java`.
+
+## 9. Evidencia de regresión relevante
+
+Verdes posteriores a los fences de dimensión/contact-v6:
+
+- lifecycle generation `35130391549`;
+- TTL/replay fence `35130391552`;
+- reconnect `35130391598`;
+- dimension lifecycle `35130391647`;
+- ordinary build `35130391596`;
+- pose dimension replay `35130391518`;
+- contact dimension replay `35130391543`;
+- contact support-rebind replay `35130391795`.
+
+Verdes posteriores a la separación estructural G3.12:
+
+- unavailable recovery `35135583002`;
+- late tracking/order `35135606727`;
+- lifecycle generation + root ledger contract `35135695700`;
+- ordinary build `35135695698`.
+
+Todos ellos son evidencia sobre la rama integrada. Los verdes implementer no sustituyen mutation/holdout/zero-change adversarial cuando el gate lo exija.
+
+## 10. Handoff adversarial
+
+No hay un bug productivo S24 conocido pendiente en tasks 9-12 al final de este tramo. El handoff debe atacar, sin cambiar expectativas para obtener verde:
+
+1. mutaciones que eliminen fences de generation/dimension/rebind/unavailable;
+2. replay/out-of-order sobre runtime y packets reales;
+3. unload/reconnect/entity-id reuse tras largas sesiones y saturación bounded;
+4. ownership estructural: reintroducir root/endpoint history en `AnatomyMovement` debe ser detectable;
+5. final zero-change read.
+
+Hasta esa revisión, **G3.9–G3.12 permanecen formalmente abiertos en el plan canónico aunque el candidato implementer esté verde**.
