@@ -41,7 +41,8 @@ public final class AnatomyRuntime {
         final Map<LivingEntity,Active> entities=weakIdentityMap();
         final Map<ServerPlayer,Long> sent=weakIdentityMap();
         final Map<ServerPlayer,Map<UUID,PublishedContact>> contacts=weakIdentityMap();
-        final Map<ServerPlayer,Map<UUID,Long>> trackingGenerations=weakIdentityMap();
+        /** One bounded active-window ledger per live recipient; retired UUIDs are never retained. */
+        final Map<ServerPlayer,TrackingGenerationLedger> trackingGenerations=weakIdentityMap();
         /** Monotonic for this server epoch; survives reload/reset and object reuse. */
         long nextBindingGeneration=1;
         long allocateBindingGeneration() {
@@ -67,7 +68,7 @@ public final class AnatomyRuntime {
         });
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             var state=STATES.get(player.level().getServer());
-            if(state!=null)generation(state,player,entity.getUUID());
+            if(state!=null && generation(state,player,entity.getUUID())<1)return;
             if(entity instanceof LivingEntity living)send(living,player);
             contact(entity,player,true);
         });
@@ -76,8 +77,8 @@ public final class AnatomyRuntime {
             if(state!=null) {
                 clearContact(state,entity,player);
                 state.contacts.computeIfPresent(player,(recipient,known)->{known.remove(entity.getUUID());return known;});
-                state.trackingGenerations.computeIfAbsent(player,ignored->new HashMap<>()).compute(entity.getUUID(),
-                    (ignored,current)->nextTrackingGeneration(current==null?1:current));
+                var generations=state.trackingGenerations.get(player);
+                if(generations!=null)generations.release(entity.getUUID());
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler,sender,server)->{
@@ -268,7 +269,7 @@ public final class AnatomyRuntime {
         var map=state.contacts.computeIfAbsent(recipient,p->new HashMap<>());var old=map.get(body.getUUID());
         long tick=body.level().getGameTime();
         if(!force && Objects.equals(old==null?null:old.key(),key) && old!=null && tick-old.sentTick()<CONTACT_HEARTBEAT_TICKS)return;
-        long generation=generation(state,recipient,body.getUUID());
+        long generation=generation(state,recipient,body.getUUID());if(generation<1)return;
         long sequence=old==null || old.generation()!=generation?1:old.sequence()+1;var epoch=AnatomyNetworking.epoch(recipient.level().getServer());long revision=state.catalog.snapshot().revision();
         AnatomyContactPayload payload;
         if(surface==null)payload=AnatomyContactPayload.clear(epoch,revision,body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,sequence,tick);
@@ -280,9 +281,13 @@ public final class AnatomyRuntime {
         ServerPlayNetworking.send(recipient,payload);map.put(body.getUUID(),new PublishedContact(key,generation,sequence,tick));
     }
     private static long generation(State state,ServerPlayer recipient,UUID body) {
-        return state.trackingGenerations.computeIfAbsent(recipient,ignored->new HashMap<>()).computeIfAbsent(body,ignored->1L);
+        return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger()).acquire(body);
     }
-    /** Server-owned tracking transition; packet consumers never synthesize this counter. */
+    private static long currentGeneration(State state,ServerPlayer recipient,UUID body) {
+        var generations=state.trackingGenerations.get(recipient);
+        return generations==null?TrackingGenerationLedger.UNAVAILABLE:generations.current(body);
+    }
+    /** Server-owned tracking transition utility retained for packet/order fixtures. */
     public static long nextTrackingGeneration(long current) {
         if(current<1)throw new IllegalArgumentException("Invalid tracking generation");
         return Math.incrementExact(current);
@@ -293,10 +298,10 @@ public final class AnatomyRuntime {
         var state=STATES.get(recipient.level().getServer());
         return state==null?1:generation(state,recipient,body.getUUID());
     }
-    /** Clear with the current generation before STOP advances the next START generation. */
+    /** Clear with the current active generation; STOP then releases the UUID without retaining a tombstone. */
     private static void clearContact(State state,Entity body,ServerPlayer recipient) {
         if(!catalog(state,recipient) || !ServerPlayNetworking.canSend(recipient,AnatomyContactPayload.TYPE))return;
-        long generation=generation(state,recipient,body.getUUID());
+        long generation=currentGeneration(state,recipient,body.getUUID());if(generation<1)return;
         var known=state.contacts.computeIfAbsent(recipient,ignored->new HashMap<>());var old=known.get(body.getUUID());
         long sequence=old==null || old.generation()!=generation?1:old.sequence()+1;
         long tick=body.level().getGameTime();
