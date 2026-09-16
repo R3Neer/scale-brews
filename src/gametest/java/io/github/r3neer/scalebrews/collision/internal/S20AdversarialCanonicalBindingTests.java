@@ -22,6 +22,7 @@ public final class S20AdversarialCanonicalBindingTests {
     private static final Identifier GAZELLE = Identifier.parse("alexsmobs:gazelle");
     private static final Identifier GRIZZLY = Identifier.parse("alexsmobs:grizzly_bear");
     private static final Identifier CITADEL = Identifier.parse("scalebrews:citadel_program");
+    private static final String PROBE_CHANNEL = "probe";
 
     @GameTest
     public void representativeCitadelBindingsMustBecomeExecutableWithoutExternalClasses(GameTestHelper h) {
@@ -44,8 +45,14 @@ public final class S20AdversarialCanonicalBindingTests {
                 "Representative S20 executable binding must retain the selected model identity for " + entity);
             h.assertTrue(executable.root() != null,
                 "Representative S20 binding must retain resolved root authority without external mod classes");
-            h.assertTrue(executable.poses().evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true)).isPresent(),
-                "S20 I9: prepared Citadel binding must execute its neutral bound pose program for " + entity);
+
+            var missingChannel = executable.poses().evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true));
+            h.assertTrue(missingChannel.isEmpty(),
+                "S20 I9: prepared canonical binding must retain its declared required channels for " + entity);
+            var evaluated = executable.poses().evaluate(
+                new PoseEngine.Inputs(0, 0, 0, 0, 0, true, Map.of(PROBE_CHANNEL, .25f)));
+            h.assertTrue(evaluated.isPresent() && evaluated.orElseThrow().containsKey("root"),
+                "S20 I9: prepared Citadel binding must execute its selected program and channel contract for " + entity);
         }
         h.succeed();
     }
@@ -80,9 +87,19 @@ public final class S20AdversarialCanonicalBindingTests {
 
     private static Map<String, CitadelPoseProgram> programs() {
         var result = new LinkedHashMap<String, CitadelPoseProgram>();
-        result.put(GAZELLE.toString(), new CitadelPoseProgram(1, GAZELLE.toString(), "2.1.9", List.of(), List.of()));
-        result.put(GRIZZLY.toString(), new CitadelPoseProgram(1, GRIZZLY.toString(), "2.1.9", List.of(), List.of()));
+        result.put(GAZELLE.toString(), program(GAZELLE));
+        result.put(GRIZZLY.toString(), program(GRIZZLY));
         return Map.copyOf(result);
+    }
+
+    private static CitadelPoseProgram program(Identifier entity) {
+        var operation = new CitadelPoseProgram.Operation(
+            CitadelPoseProgram.OperationType.ADD_ROTATION,
+            "root", List.of(), CitadelPoseProgram.Condition.always(),
+            CitadelPoseProgram.Scalar.channel(PROBE_CHANNEL), CitadelPoseProgram.Scalar.constant(0),
+            CitadelPoseProgram.Scalar.constant(0), null, null, null,
+            0, 0, 0, 0, 0, false, false);
+        return new CitadelPoseProgram(1, entity.toString(), "2.1.9", List.of(), List.of(operation));
     }
 
     private static List<CollisionBinding> bindings() {
@@ -92,7 +109,7 @@ public final class S20AdversarialCanonicalBindingTests {
     private static CollisionBinding binding(Identifier entity) {
         return new CollisionBinding(CollisionBinding.SCHEMA_VERSION, entity, Map.of(),
             new CollisionBinding.Geometry(BuiltInGeometryEngines.ADVANCED_MODEL_BOX, entity, Map.of(), AnatomyFilter.DEFAULT),
-            new CollisionBinding.Pose(CITADEL, Map.of("program", entity.toString()), Set.of()),
+            new CollisionBinding.Pose(CITADEL, Map.of("program", entity.toString()), Set.of(PROBE_CHANNEL)),
             LegacyCollisionData.ENTITY_ROOT, CollisionPolicy.Patch.EMPTY, Set.of());
     }
 
