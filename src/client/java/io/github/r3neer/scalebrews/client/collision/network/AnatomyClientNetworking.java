@@ -246,9 +246,10 @@ public final class AnatomyClientNetworking {
             if(frames.size()>=4096 && !frames.containsKey(packet.entity()))return;
             var framesForSupport=frames.computeIfAbsent(packet.entity(),id->new AnatomyFrameHistory());
             try {
-                var previous=framesForSupport.current();
-                if(previous!=null && (previous.trackingGeneration()!=packet.trackingGeneration() || previous.bindingGeneration()!=packet.bindingGeneration())) {
-                    if(packet.trackingGeneration()<previous.trackingGeneration() || packet.bindingGeneration()<previous.bindingGeneration())return;
+                var lifecycle=framesForSupport.transition(packet);
+                if(lifecycle==AnatomyFrameHistory.LifecycleTransition.REJECT)return;
+                if(lifecycle==AnatomyFrameHistory.LifecycleTransition.RESTART) {
+                    var previous=framesForSupport.current();
                     discardSupportMaterial(level,packet.entity(),previous.entityId());
                     framesForSupport=new AnatomyFrameHistory();frames.put(packet.entity(),framesForSupport);
                 }
