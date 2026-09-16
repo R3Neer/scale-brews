@@ -107,6 +107,7 @@ public final class S24RuntimeReloadTests {
     private record Fixture(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
         ModelGeometry model(){return models.values().iterator().next();}
         PlatformDefinition profile(){return profiles.values().iterator().next();}
+        Identifier modelId(){return Identifier.parse(models.keySet().iterator().next());}
     }
     private static Fixture fixture(String modelId) {
         var model=new ModelGeometry(2,modelId,"26.2",
@@ -121,10 +122,10 @@ public final class S24RuntimeReloadTests {
     private static ResourceManager validResourceManager(ResourceManager installed,Fixture fixture) {
         String modelJson=AnatomyCodecs.GEOMETRY.encodeStart(JsonOps.INSTANCE,fixture.model()).getOrThrow().toString();
         String profileJson=PlatformDefinition.CODEC.encodeStart(JsonOps.INSTANCE,fixture.profile()).getOrThrow().toString();
-        var pack=installed.listPacks().findFirst().orElseThrow();
+        var pack=installed.listPacks().findFirst().orElseThrow();var modelId=fixture.modelId();
         return proxy(installed,directory->{
             if(directory.equals("scalebrews/entity_geometry"))
-                return resource(pack,"scalebrews_test:scalebrews/entity_geometry/cow.json",modelJson);
+                return resource(pack,modelId.getNamespace()+":scalebrews/entity_geometry/"+modelId.getPath()+".json",modelJson);
             if(directory.equals("scalebrews/entity_platform"))
                 return resource(pack,"scalebrews_test:scalebrews/entity_platform/cow.json",profileJson);
             return Map.of();
