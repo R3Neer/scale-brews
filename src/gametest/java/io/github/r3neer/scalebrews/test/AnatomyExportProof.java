@@ -355,13 +355,19 @@ public class AnatomyExportProof implements FabricClientGameTest {
             var feline=new net.minecraft.client.model.animal.feline.AdultFelineModel(felineRoot);var felineState=new net.minecraft.client.renderer.entity.state.FelineRenderState();common(felineState,walk,speed,age,yaw,pitch);
             felineState.ageScale=1;felineState.isCrouching=tick%3==0;felineState.isSprinting=tick%3==1;
             checkPose("feline "+tick,felineRoot,feline,felineState,new VanillaFamilyPose(VanillaFamilyPose.Family.FELINE),
-                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("crouching",felineState.isCrouching?1f:0f,"sprinting",felineState.isSprinting?1f:0f)),Set.of());
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                    "crouching",felineState.isCrouching?1f:0f,"sprinting",felineState.isSprinting?1f:0f,
+                    "sitting",felineState.isSitting?1f:0f,"lie",felineState.lieDownAmount,"lie_tail",felineState.lieDownAmountTail,
+                    "relax",felineState.relaxStateOneAmount,"age_scale",felineState.ageScale)),Set.of());
 
             var horseRoot=LayerDefinition.create(net.minecraft.client.model.animal.equine.AbstractEquineModel.createBodyMesh(CubeDeformation.NONE),64,64).bakeRoot();
             var horse=new net.minecraft.client.model.animal.equine.HorseModel(horseRoot);var horseState=new net.minecraft.client.renderer.entity.state.EquineRenderState();common(horseState,walk,speed,age,yaw,pitch);
             horseState.ageScale=1;horseState.animateTail=tick%2==0;
             checkPose("equine "+tick,horseRoot,horse,horseState,new VanillaFamilyPose(VanillaFamilyPose.Family.EQUINE),
-                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("tail",horseState.animateTail?1f:0f)),Set.of("left_bit","right_bit","left_rein","right_rein","head_saddle","mouth_saddle_wrap"));
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                    "eat",horseState.eatAnimation,"stand",horseState.standAnimation,"mouth",horseState.feedingAnimation,
+                    "tail",horseState.animateTail?1f:0f,"water",horseState.isInWater?1f:0f,"age_scale",horseState.ageScale)),
+                Set.of("left_bit","right_bit","left_rein","right_rein","head_saddle","mouth_saddle_wrap"));
 
             var beeRoot=net.minecraft.client.model.animal.bee.AdultBeeModel.createBodyLayer().bakeRoot();
             var bee=new net.minecraft.client.model.animal.bee.AdultBeeModel(beeRoot);var beeState=new net.minecraft.client.renderer.entity.state.BeeRenderState();common(beeState,walk,speed,age,yaw,pitch);
