@@ -33,9 +33,13 @@ public final class G2VanillaPushReadyTests {
             ModelGeometry.values(new Matrix4f()));
     }
 
-    private static PlatformDefinition cowProfile() {
-        return new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.of(.85),List.of(),
+    private static PlatformDefinition profile(String entity) {
+        return new PlatformDefinition(Identifier.parse(entity),true,.6,Optional.of(.85),List.of(),
             Optional.of(new AnatomyDefinition(MODEL,STATIC_POSE,AnatomyFilter.DEFAULT)));
+    }
+
+    private static PlatformDefinition cowProfile() {
+        return profile("minecraft:cow");
     }
 
     @GameTest
@@ -100,6 +104,84 @@ public final class G2VanillaPushReadyTests {
                     +" managed body="+managedBodyCallerBody+" support="+managedBodyCallerSupport);
         } finally {
             body.discard();support.discard();AnatomyRuntime.stop(server);
+        }
+
+        // Transition holdout: a legitimate legacy support relation must not keep suppressing vanilla push
+        // during the same-tick handoff to READY anatomy ownership. Waiting for Platforms.tick would hide
+        // a stale-state ownership bug rather than certify the transition boundary.
+        var transitionSupport=h.spawn(EntityTypes.GHAST,4,20,4);
+        var transitionBody=h.makeMockPlayer(GameType.SURVIVAL);
+        try {
+            transitionSupport.setNoAi(true);transitionSupport.setNoGravity(true);
+            transitionBody.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);
+            transitionBody.refreshDimensions();
+
+            transitionBody.setPos(transitionSupport.getX()+.2,transitionSupport.getY()+.6,transitionSupport.getZ());
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionSupport.push(transitionBody);
+            Vec3 transitionVanillaSupportCallerBody=transitionBody.getDeltaMovement();
+            Vec3 transitionVanillaSupportCallerSupport=transitionSupport.getDeltaMovement();
+
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionBody.push(transitionSupport);
+            Vec3 transitionVanillaBodyCallerBody=transitionBody.getDeltaMovement();
+            Vec3 transitionVanillaBodyCallerSupport=transitionSupport.getDeltaMovement();
+
+            h.assertTrue(transitionVanillaSupportCallerBody.lengthSqr()>1e-12
+                    || transitionVanillaSupportCallerSupport.lengthSqr()>1e-12,
+                "Transition holdout precondition: support.push(body) must have a measurable vanilla response");
+            h.assertTrue(transitionVanillaBodyCallerBody.lengthSqr()>1e-12
+                    || transitionVanillaBodyCallerSupport.lengthSqr()>1e-12,
+                "Transition holdout precondition: body.push(support) must have a measurable vanilla response");
+
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionBody.setPos(transitionSupport.position().add(.2,5,0));
+            transitionBody.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-2,0));
+            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.state(transitionBody).support==transitionSupport,
+                "Transition holdout must acquire stale state through the production legacy movement path");
+
+            AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("ghast",profile("minecraft:ghast")));
+            var transitionFloor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(transitionSupport.position());
+            GeometryProvider transitionProvider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("floor",transitionFloor)));
+            AnatomyMovement.register(transitionSupport,transitionProvider);
+
+            h.assertTrue(AnatomyApi.ready(transitionBody) && AnatomyApi.ready(transitionSupport),
+                "Transition holdout must enter READY anatomy ownership before the legacy participant cleanup tick");
+            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.state(transitionBody).support==transitionSupport,
+                "Transition holdout requires the naturally acquired legacy support relation to survive until handoff is exercised");
+
+            transitionBody.setPos(transitionSupport.getX()+.2,transitionFloor.bounds().maxY+.5,transitionSupport.getZ());
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            var transitionLanding=AnatomyMovement.collide(transitionBody,new Vec3(0,-1,0));
+            transitionBody.setPos(transitionBody.position().add(transitionLanding));
+            AnatomyMovement.afterMove(transitionBody);
+            h.assertTrue(AnatomyMovement.supported(transitionBody)
+                    && AnatomyMovement.contact(transitionBody)!=null
+                    && AnatomyMovement.contact(transitionBody).support()==transitionSupport
+                    && AnatomyMovement.suppressesPush(transitionBody,transitionSupport),
+                "Transition holdout must establish the canonical material pair before probing Entity.push");
+
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionSupport.push(transitionBody);
+            Vec3 transitionManagedSupportCallerBody=transitionBody.getDeltaMovement();
+            Vec3 transitionManagedSupportCallerSupport=transitionSupport.getDeltaMovement();
+
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionBody.push(transitionSupport);
+            Vec3 transitionManagedBodyCallerBody=transitionBody.getDeltaMovement();
+            Vec3 transitionManagedBodyCallerSupport=transitionSupport.getDeltaMovement();
+
+            h.assertTrue(transitionManagedSupportCallerBody.distanceToSqr(transitionVanillaSupportCallerBody)<=1e-12
+                    && transitionManagedSupportCallerSupport.distanceToSqr(transitionVanillaSupportCallerSupport)<=1e-12
+                    && transitionManagedBodyCallerBody.distanceToSqr(transitionVanillaBodyCallerBody)<=1e-12
+                    && transitionManagedBodyCallerSupport.distanceToSqr(transitionVanillaBodyCallerSupport)<=1e-12,
+                "READY handoff must invalidate stale legacy push suppression immediately, without waiting for Platforms.tick: "
+                    +"support->body vanilla body="+transitionVanillaSupportCallerBody+" support="+transitionVanillaSupportCallerSupport
+                    +" managed body="+transitionManagedSupportCallerBody+" support="+transitionManagedSupportCallerSupport
+                    +"; body->support vanilla body="+transitionVanillaBodyCallerBody+" support="+transitionVanillaBodyCallerSupport
+                    +" managed body="+transitionManagedBodyCallerBody+" support="+transitionManagedBodyCallerSupport);
+        } finally {
+            transitionBody.discard();transitionSupport.discard();AnatomyRuntime.stop(server);
         }
         h.succeed();
     }
