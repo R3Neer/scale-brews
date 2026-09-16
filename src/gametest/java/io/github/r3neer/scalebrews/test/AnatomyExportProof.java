@@ -376,7 +376,19 @@ public class AnatomyExportProof implements FabricClientGameTest {
     }
     @SuppressWarnings({"rawtypes","unchecked"})
     private static void checkPose(String label,ModelPart root,net.minecraft.client.model.EntityModel model,Object state,PoseProvider provider,PoseProvider.Inputs inputs,Set<String> excluded) {
-        var geometry=GeometryExtractor.vanilla("proof:"+label.substring(0,label.indexOf(' ')),"26.2",root,excluded);
+        String family=label.substring(0,label.indexOf(' '));
+        String source=switch(family) {
+            case "chicken" -> "minecraft:chicken";
+            case "llama" -> "minecraft:llama";
+            case "villager" -> "minecraft:villager";
+            case "iron_golem" -> "minecraft:iron_golem";
+            case "ghast" -> "minecraft:ghast";
+            case "feline" -> "minecraft:cat";
+            case "equine" -> "minecraft:horse";
+            case "bee" -> "minecraft:bee";
+            default -> throw new AssertionError("Unknown vanilla family proof label: "+family);
+        };
+        var geometry=GeometryExtractor.vanilla(source,"26.2",root,excluded);
         model.setupAnim(state);
         compare(geometry.evaluate(new Matrix4f(),provider.evaluate(geometry,inputs).orElseThrow(),AnatomyFilter.DEFAULT),
             GeometryExtractor.vanilla(geometry.source(),"26.2",root,excluded).evaluate(new Matrix4f(),Map.of(),AnatomyFilter.DEFAULT),label);
