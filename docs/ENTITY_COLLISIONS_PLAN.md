@@ -125,8 +125,8 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 2. [x] preparar/serializar una vez por revisión y reutilizar bundle por receptor;
 3. [x] consolidar `ModelPart` GeometryEngine;
 4. [x] consolidar engines de pose vanilla y engine general de `AnimationDefinition`;
-5. [ ] convertir Citadel/Alex a engine/pose-program reusable;
-6. [ ] añadir `RootTransformProvider` genérico y fixture externo;
+5. [x] convertir Citadel/Alex a engine/pose-program reusable;
+6. [x] añadir `RootTransformProvider` genérico y fixture externo;
 7. [x] mantener `DisplayRig` como SPI hasta target real;
 8. [ ] scanner/coverage FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;
 9. [ ] reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;
@@ -142,9 +142,15 @@ El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo int
 
 **S18 cerrado tras reapertura adversarial:** G3 tarea 4 queda completada. La reparación final conserva `SourcePose` exacto para representantes Euler/escalas con signo, reproduce la aplicación secuencial de targets y bordes Mojang, mantiene programs revision-local sin registry global, y expresa clocks/amplitudes autoritativos con las truncaciones de milisegundos de `applyWalk` y `AnimationState`. El último cambio productivo es `3ff54a708e0c0ac93f81dc0f26d4b6be13e44897`. Sobre él, los **17 workflows** de la campaña final terminaron verdes y no existe ningún run fallido; la lane focal `34876662857` pasó common authority, compiler boundary, Euler representative, non-unit rest scale y ambos signed-scale holdouts. El regression test posterior `6a72c9f...` dejó también verde el build `34876732944`. La segunda lectura final no produjo cambios de producción y el compare hasta `4afcc19...` contiene sólo test/documentación/CI posteriores. Detalle completo en `docs/sprints/S18-vanilla-pose-keyframe-engine.md` y `VALIDATION.md`.
 
+**S20 cerrado adversarialmente:** G3 tarea 5 queda completada. `scalebrews:citadel_program` queda aceptado como pose-program reusable y data-backed para Citadel/Alex sin reintroducir Java nominal por especie ni dependencia hard de Alex/Citadel. La campaña independiente cerró atomicidad de pose channels, oracle de modelo real, boundedness/allocation/CPU, catálogo v6, materialización canónica y ejecución runtime con mutation-kill. Evidencia de cierre: `s20-adversarial-canonical-binding` run `35073158624` verde; `s20-adversarial-canonical-runtime` run `35079377725` verde con mutation kill; condition-budget `35070996485` verde; real-model `35014694555` verde; pose-channel atomicity `35012624020` verde; ordinary build `35081094083` verde. Detalle en `docs/sprints/S20-adversarial-closeout.md`.
+
+**S21 cerrado adversarialmente:** G3 tarea 6 queda completada. El root DTO/registry, binding, wire, availability, gravedad independiente, compatibilidad exacta, same-tick, rebind, teleport y teardown quedaron convergidos; el último RED real fue removal inmediato. `c481194bb6156906768c12c499fc6ad8650a6595` añadió el fence `entity.isRemoved()` en `AnatomyRuntime.acceptsIntervalIdentity(...)`. El adversario probó su necesidad en run `35105998877`: baseline job `104827240871` verde y mutation-kill job `104827781422` verde tras eliminar sólo ese fence; ordinary del mismo snapshot `35105998939`, job `104827241696`, también verde. La segunda lectura PREPARATION/HOT_TICK y root/joint cache no produjo cambios de producto. Detalle en `docs/sprints/S21-root-transform-provider.md` y `docs/sprints/S21-adversarial-model.md`.
+
 **S23 cerrado adversarialmente:** G3 tarea 7 queda completada sin introducir un target ficticio en producción. El proof implementer demuestra que una familia sintética atraviesa `GeometryEngine -> ModelGeometry -> ConvexBox`; el cierre independiente añade un holdout metamórfico de opacidad entre familias y dos mutation-kills que impiden tanto branch físico por `ModelGeometry.source()` como hardcode nominal de `DisplayRig`/display-composite en producción. Evidencia final adversarial: run `35104624130` sobre `2ffeb627bc9b397b417393eba6454c49a2a714e9`, jobs `104822510244`, `104823016011` y `104823015908`, todos verdes. Detalle en `docs/sprints/S23-display-rig-spi-proof.md` y `VALIDATION.md`.
 
-**Prioridad G3 vigente:** tarea **5** es ahora el primer trabajo productivo abierto. S19/G3.5 deja de estar bloqueado por G3.4 y puede continuar con Citadel/Alex reusable; root/lifecycle siguen perteneciendo a sus tareas posteriores y no se arrastran artificialmente al cierre S18.
+**S22 abierto / único blocker adversarial vigente:** G3 tarea 8 permanece abierta. Digest, completitud exacta, agregación multi-variante/state-gaps y frontera tooling/hot-path están verdes; sin embargo `S22AdversarialCoverageProvenanceTests` demuestra que un `Artifact` puede contener exactamente todos los ids descubiertos y aun así aceptar clasificaciones `FULL` fabricadas por el caller con evidencia local plausible no procedente del catálogo/scanner. Red inicial: run `35106752630`, job `104829857809`, mientras ordinary `35106752431`, job `104829855709`, quedó verde. Detalle vivo en `docs/sprints/S22-adversarial-model.md`.
+
+**Prioridad G3 vigente:** tarea **8** es el primer trabajo productivo abierto y tiene un blocker adversarial singular de provenance/autenticidad. Tras su cierre, las tareas 9-12 retoman lifecycle/order/separación interna.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
