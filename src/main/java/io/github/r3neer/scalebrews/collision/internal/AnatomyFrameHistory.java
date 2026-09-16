@@ -10,6 +10,9 @@ import java.util.Optional;
  * sample, and must not cause a second pose-provider evaluation.
  */
 public final class AnatomyFrameHistory {
+    /** Receiver action for one already session-filtered pose packet. */
+    public enum LifecycleTransition { CONTINUE, RESTART, REJECT }
+
     private AnatomyPosePayload current;
     /** Highest recipient tracking generation retired by an explicit tracking discontinuity. */
     private long retiredTrackingGeneration;
@@ -24,15 +27,42 @@ public final class AnatomyFrameHistory {
     public void retireCurrentTrackingGeneration() {
         if(current!=null)retiredTrackingGeneration=Math.max(retiredTrackingGeneration,current.trackingGeneration());
     }
-    public boolean accept(AnatomyPosePayload next) {
+    /**
+     * Classifies the two independent lifecycle axes before the receiver mutates local material.
+     * Binding generation identifies the server binding; tracking generation identifies this
+     * recipient's visibility window. Neither axis may roll back, and an explicitly retired
+     * tracking window cannot be revived merely by advancing the binding generation.
+     */
+    public LifecycleTransition transition(AnatomyPosePayload next) {
         if(next==null)throw new IllegalArgumentException("Missing causal frame");
-        if(next.trackingGeneration()<=retiredTrackingGeneration)return false;
+        if(next.trackingGeneration()<=retiredTrackingGeneration)return LifecycleTransition.REJECT;
+        if(current==null)return LifecycleTransition.CONTINUE;
+        if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
+                || !current.entity().equals(next.entity()))return LifecycleTransition.REJECT;
+        if(next.bindingGeneration()<current.bindingGeneration() || next.trackingGeneration()<current.trackingGeneration())
+            return LifecycleTransition.REJECT;
+
+        boolean bindingChanged=next.bindingGeneration()!=current.bindingGeneration();
+        boolean trackingChanged=next.trackingGeneration()!=current.trackingGeneration();
+        if(!bindingChanged && !trackingChanged) {
+            return stableBindingIdentity(next)?LifecycleTransition.CONTINUE:LifecycleTransition.REJECT;
+        }
+        // A pure retrack is the same physical server binding. Network id/model/provider/root
+        // therefore cannot change under tracking generation alone; replacement/rebind must
+        // advance binding generation as well.
+        if(!bindingChanged && !stableBindingIdentity(next))return LifecycleTransition.REJECT;
+        return LifecycleTransition.RESTART;
+    }
+    private boolean stableBindingIdentity(AnatomyPosePayload next) {
+        return current.entityId()==next.entityId() && current.model().equals(next.model())
+            && current.provider().equals(next.provider()) && current.rootProvider().equals(next.rootProvider());
+    }
+    public boolean accept(AnatomyPosePayload next) {
+        var lifecycle=transition(next);
+        if(lifecycle==LifecycleTransition.REJECT)return false;
+        if(lifecycle==LifecycleTransition.RESTART)
+            throw new IllegalArgumentException("Causal frame lifecycle changed without receiver restart");
         if(current!=null) {
-            if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
-                    || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
-                    || !current.provider().equals(next.provider()) || !current.rootProvider().equals(next.rootProvider())
-                    || current.bindingGeneration()!=next.bindingGeneration() || current.trackingGeneration()!=next.trackingGeneration())
-                throw new IllegalArgumentException("Causal frame identity changed without rebind/retrack");
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
                     || next.jointSampleTick()<current.jointSampleTick())return false;
         }
