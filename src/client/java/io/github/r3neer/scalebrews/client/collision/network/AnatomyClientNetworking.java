@@ -210,9 +210,10 @@ public final class AnatomyClientNetworking {
             useLevel(client.level);clientTick++;
             if(poseLevel!=null)contacts.prune(poseLevel.getGameTime(),100);
             frames.entrySet().removeIf(entry->{
-                var packet=entry.getValue().current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
+                var history=entry.getValue();var packet=history.current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
                 boolean expired=clientTick-receivedAt.getOrDefault(entry.getKey(),0L)>100;
                 boolean wrongIdentity=entity!=null && !entity.getUUID().equals(entry.getKey());
+                if(wrongIdentity)history.retireCurrentTrackingGeneration();
                 if(expired || wrongIdentity){
                     if(staleFrames.add(entry.getKey())) {discardSupportMaterial(poseLevel,entry.getKey(),packet.entityId());receivedAt.remove(entry.getKey());}
                     return false;
