@@ -19,8 +19,9 @@ public final class S24AdversarialFrameHistoryTtlClientProof implements FabricCli
     private static final int FIXTURE_COUNT = 3;
 
     @Override public void runTest(ClientGameTestContext context) {
-        context.waitFor(client -> client.level != null && client.player != null, 160);
-        Set<UUID> fixtureIds = context.computeOnClient(client -> seedExpiredHistories(client.level.dimension().identifier()));
+        // This proof exercises the global END_CLIENT_TICK retention policy, which also runs on the title screen.
+        // Requiring an attached ClientLevel would add an unrelated integrated-world bootstrap dependency.
+        Set<UUID> fixtureIds = context.computeOnClient(client -> seedExpiredHistories(Identifier.parse("minecraft:overworld")));
 
         context.waitFor(client -> {
             try {
