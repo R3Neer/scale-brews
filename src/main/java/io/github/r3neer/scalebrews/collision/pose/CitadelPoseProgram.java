@@ -22,6 +22,7 @@ public record CitadelPoseProgram(int schema, String source, String version,
     public static final int MAX_DELTAS = 8192;
     public static final int MAX_OPERATIONS = 2048;
     public static final int MAX_CONDITION_DEPTH = 16;
+    public static final int MAX_CONDITION_NODES = 4096;
     public static final String ANIMATION_CHANNEL = "citadel.animation";
     public static final String ANIMATION_TICK_CHANNEL = "citadel.animation_tick";
     public static final String ANIMATION_PARTIAL_CHANNEL = "citadel.animation_partial";
@@ -176,9 +177,12 @@ public record CitadelPoseProgram(int schema, String source, String version,
                 if (deltas > MAX_DELTAS) throw new IllegalArgumentException("Too many Citadel keyframe deltas");
             }
         }
+        int conditionNodes = 0;
         for (var operation : operations) {
             Objects.requireNonNull(operation, "operation");
-            validateConditionDepth(operation.when(), 0);
+            conditionNodes = Math.addExact(conditionNodes, validateConditionDepth(operation.when(), 0));
+            if (conditionNodes > MAX_CONDITION_NODES)
+                throw new IllegalArgumentException("Too many Citadel condition nodes");
         }
     }
 
@@ -247,9 +251,11 @@ public record CitadelPoseProgram(int schema, String source, String version,
         if (scalar != null && scalar.source() == ScalarSource.CHANNEL) result.add(scalar.channel());
     }
 
-    private static void validateConditionDepth(Condition condition, int depth) {
+    private static int validateConditionDepth(Condition condition, int depth) {
         if (condition == null || depth > MAX_CONDITION_DEPTH) throw new IllegalArgumentException("Invalid Citadel condition depth");
-        for (var term : condition.terms()) validateConditionDepth(term, depth + 1);
+        int nodes = 1;
+        for (var term : condition.terms()) nodes = Math.addExact(nodes, validateConditionDepth(term, depth + 1));
+        return nodes;
     }
     private static void requireBone(String bone) {
         if (!validBone(bone)) throw new IllegalArgumentException("Invalid Citadel bone id");
