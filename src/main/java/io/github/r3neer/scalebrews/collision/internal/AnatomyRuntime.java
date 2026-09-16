@@ -127,7 +127,7 @@ public final class AnatomyRuntime {
         if(binding==null || binding.selection().policy().enabled().orElse(true)==false)return;
         var selection=binding.selection();
         var provider=new ModelGeometryProvider(binding.model(),binding.poses(),binding.root(),selection.geometry().filter(),snapshot.revision())
-            .serverDriven(e->AnatomyPoseEligibility.supported(binding.legacyPoseProvider(),e));
+            .serverDriven(binding::supportsAuthorityPose);
         long bindingGeneration=state.allocateBindingGeneration();
         state.entities.put(living,new Active(binding,provider,bindingGeneration));
         AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(

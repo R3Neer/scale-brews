@@ -24,10 +24,11 @@ import java.util.TreeMap;
 import java.util.UUID;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.LivingEntity;
 
 /** Publish canonical bindings and prepared geometry/programs together, only after every reference has validated. */
 public final class WorldAnatomyCatalog {
-    /** Executable bridge with geometry, joint evaluator, and root authority resolved for one accepted revision. */
+    /** Executable binding with geometry, joint evaluator, and root authority resolved for one accepted revision. */
     public record Binding(CollisionBinding selection, ModelGeometry model, PoseEngine.Bound poses,
                           RootTransformProvider root, Identifier legacyPoseProvider) {
         public Binding {
@@ -35,11 +36,16 @@ public final class WorldAnatomyCatalog {
             Objects.requireNonNull(model, "model");
             Objects.requireNonNull(poses, "poses");
             Objects.requireNonNull(root, "root");
-            Objects.requireNonNull(legacyPoseProvider, "legacyPoseProvider");
+            // Null is deliberate for canonical/data-backed bindings. Only the compatibility bridge
+            // carries a nominal legacy provider and therefore inherits legacy pose-eligibility guards.
+        }
+
+        boolean supportsAuthorityPose(LivingEntity entity) {
+            return legacyPoseProvider == null || AnatomyPoseEligibility.supported(legacyPoseProvider, entity);
         }
     }
 
-    /** Full canonical catalog plus revision-local pose programs and the subset executable by the S16 bridge. */
+    /** Full canonical catalog plus revision-local pose programs and default executable bindings. */
     public record Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
                            Map<String, CitadelPoseProgram> citadelPosePrograms,
                            CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
@@ -226,17 +232,19 @@ public final class WorldAnatomyCatalog {
         var validated = new GeometryCatalog().replace(models, references);
         validateCanonicalPoseBindings(canonical.bindings(), validated.models(), resources);
         validateRootBindings(canonical.bindings());
-        Map<CollisionBinding, Binding> preparedBridge = new HashMap<>();
+        Map<CollisionBinding, Binding> preparedBindings = new HashMap<>();
         for (var candidate : canonical.bindings()) {
-            if (!compatibilityBridge(candidate)) continue;
-            preparedBridge.put(candidate, prepareBridge(candidate, validated.models(), resources));
+            Binding prepared = compatibilityBridge(candidate)
+                ? prepareBridge(candidate, validated.models(), resources)
+                : prepareCanonical(candidate, validated.models(), resources);
+            if (prepared != null) preparedBindings.put(candidate, prepared);
         }
 
         Map<Identifier, Binding> executable = new HashMap<>();
         for (var entity : canonical.snapshot().keySet()) {
             var selected = canonical.resolve(entity, Map.of()).orElse(null);
             if (selected == null) continue;
-            var prepared = preparedBridge.get(selected);
+            var prepared = preparedBindings.get(selected);
             if (prepared != null) executable.put(entity, prepared);
         }
 
@@ -336,6 +344,23 @@ public final class WorldAnatomyCatalog {
             .orElseThrow(() -> new IllegalArgumentException("Missing root transform provider " + selection.rootTransform() + " for " + selector(selection)));
         validateFilter(selection, model);
         return new Binding(selection, model, bound, root, providerId);
+    }
+
+    /**
+     * Materialize a canonical binding from the exact accepted selection. Optional external bindings whose
+     * geometry/engine are both absent remain catalog-only; any binding that validated as executable is prepared
+     * here during revision acceptance, never lazily in HOT_TICK.
+     */
+    private static Binding prepareCanonical(CollisionBinding selection, Map<String, ModelGeometry> models, PoseEngine.Resources resources) {
+        var model = models.get(selection.geometry().model().toString());
+        var engine = CollisionEngines.pose(selection.pose().engine()).orElse(null);
+        if (model == null || engine == null) return null;
+        var bound = engine.bind(model, selection.pose().parameters(), selection.pose().channels(), resources)
+            .orElseThrow(() -> new IllegalArgumentException("Pose engine cannot bind accepted revision for " + selector(selection)));
+        var root = CollisionEngines.rootTransform(selection.rootTransform())
+            .orElseThrow(() -> new IllegalArgumentException("Missing root transform provider " + selection.rootTransform() + " for " + selector(selection)));
+        validateFilter(selection, model);
+        return new Binding(selection, model, bound, root, null);
     }
 
     private static String selector(CollisionBinding binding) {
