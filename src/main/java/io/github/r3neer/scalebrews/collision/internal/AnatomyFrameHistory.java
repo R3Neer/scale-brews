@@ -11,28 +11,28 @@ import java.util.Optional;
  */
 public final class AnatomyFrameHistory {
     private AnatomyPosePayload current;
-    /** Highest server binding generation retired by an explicit tracking discontinuity. */
-    private long retiredBindingGeneration;
+    /** Highest recipient tracking generation retired by an explicit tracking discontinuity. */
+    private long retiredTrackingGeneration;
 
     public AnatomyPosePayload current(){return current;}
-    public void clear(){current=null;retiredBindingGeneration=0;}
+    public void clear(){current=null;retiredTrackingGeneration=0;}
     /**
-     * Seals the currently accepted tracking generation without discarding its ordering watermark.
-     * Late packets from the retired generation must not resurrect material after unload; a strictly
-     * newer server-owned binding generation is accepted by the caller as a fresh history.
+     * Seals the currently accepted recipient tracking generation without discarding its ordering
+     * watermark. Late packets from the retired tracking window must not resurrect material after
+     * unload; only a strictly newer server-owned tracking generation can start a fresh history.
      */
-    public void retireCurrentGeneration() {
-        if(current!=null)retiredBindingGeneration=Math.max(retiredBindingGeneration,current.bindingGeneration());
+    public void retireCurrentTrackingGeneration() {
+        if(current!=null)retiredTrackingGeneration=Math.max(retiredTrackingGeneration,current.trackingGeneration());
     }
     public boolean accept(AnatomyPosePayload next) {
         if(next==null)throw new IllegalArgumentException("Missing causal frame");
-        if(next.bindingGeneration()<=retiredBindingGeneration)return false;
+        if(next.trackingGeneration()<=retiredTrackingGeneration)return false;
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
                     || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
                     || !current.provider().equals(next.provider()) || !current.rootProvider().equals(next.rootProvider())
-                    || current.bindingGeneration()!=next.bindingGeneration())
-                throw new IllegalArgumentException("Causal frame identity changed without rebind");
+                    || current.bindingGeneration()!=next.bindingGeneration() || current.trackingGeneration()!=next.trackingGeneration())
+                throw new IllegalArgumentException("Causal frame identity changed without rebind/retrack");
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
                     || next.jointSampleTick()<current.jointSampleTick())return false;
         }
