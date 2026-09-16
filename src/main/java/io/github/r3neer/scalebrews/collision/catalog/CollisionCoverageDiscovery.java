@@ -93,14 +93,28 @@ public final class CollisionCoverageDiscovery {
     /**
      * Target metadata and coverage rows share one acceptance identity.
      *
-     * <p>The constructor re-runs target discovery and requires exact row membership. This prevents a
-     * manually assembled report with no UNRESOLVED rows from passing acceptance while silently
-     * omitting target entity types.</p>
+     * <p>Construction always re-runs target discovery and requires exact row membership. Directly
+     * constructed artifacts remain useful as deterministic inspection/digest values, but only the
+     * canonical {@link #scan(Target, CollisionBindingCatalog, Map)} path can issue the private
+     * provenance capability required by {@link #requireResolved()}. Caller-authored rows therefore
+     * cannot become acceptance evidence merely by matching discovered ids or locally plausible row
+     * shape.</p>
      */
-    public record Artifact(Target target, CollisionCoverageScanner.Report coverage) {
-        public Artifact {
-            Objects.requireNonNull(target, "target");
-            Objects.requireNonNull(coverage, "coverage");
+    public static final class Artifact {
+        private static final Object SCANNER_PROVENANCE = new Object();
+
+        private final Target target;
+        private final CollisionCoverageScanner.Report coverage;
+        private final Object provenance;
+
+        public Artifact(Target target, CollisionCoverageScanner.Report coverage) {
+            this(target, coverage, null);
+        }
+
+        private Artifact(Target target, CollisionCoverageScanner.Report coverage, Object provenance) {
+            this.target = Objects.requireNonNull(target, "target");
+            this.coverage = Objects.requireNonNull(coverage, "coverage");
+            this.provenance = provenance;
 
             var expected = discover(target).livingEntityTypes();
             var actual = coverage.rows().stream().map(CollisionCoverageScanner.Row::entity).toList();
@@ -114,6 +128,18 @@ public final class CollisionCoverageDiscovery {
                 throw new IllegalArgumentException("Coverage report does not exactly match discovered target; missing="
                     + missing + ", unexpected=" + unexpected);
             }
+        }
+
+        private static Artifact scannerIssued(Target target, CollisionCoverageScanner.Report coverage) {
+            return new Artifact(target, coverage, SCANNER_PROVENANCE);
+        }
+
+        public Target target() {
+            return target;
+        }
+
+        public CollisionCoverageScanner.Report coverage() {
+            return coverage;
         }
 
         public String canonicalText() {
@@ -130,6 +156,8 @@ public final class CollisionCoverageDiscovery {
         }
 
         public void requireResolved() {
+            if (provenance != SCANNER_PROVENANCE)
+                throw new IllegalStateException("Coverage artifact lacks canonical scanner provenance");
             coverage.requireResolved();
         }
     }
@@ -152,7 +180,8 @@ public final class CollisionCoverageDiscovery {
     public static Artifact scan(Target target, CollisionBindingCatalog catalog,
                                 Map<Identifier, CollisionCoverageScanner.ExceptionRule> exceptions) {
         var discovery = discover(target);
-        return new Artifact(target, CollisionCoverageScanner.scan(discovery.livingEntityTypes(), catalog, exceptions));
+        var coverage = CollisionCoverageScanner.scan(discovery.livingEntityTypes(), catalog, exceptions);
+        return Artifact.scannerIssued(target, coverage);
     }
 
     private static String checkedValue(String value, String label) {
