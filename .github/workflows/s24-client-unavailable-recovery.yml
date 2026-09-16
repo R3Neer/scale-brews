@@ -1,0 +1,68 @@
+name: s24-client-unavailable-recovery
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-client-unavailable-recovery.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24UnavailableRecoveryClientProof.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseEligibility.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/ModelGeometryProvider.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  unavailable-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: isolate S24 unavailable recovery client proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24UnavailableRecoveryClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run integrated unavailable recovery proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s24-unavailable-recovery
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s24-unavailable-recovery/client.log
+          if ! grep -R -F 'S24_UNAVAILABLE_RECOVERY PASS' \
+              build/run/clientGameTest/logs build/s24-unavailable-recovery/client.log >/dev/null 2>&1; then
+            echo 'S24 unavailable recovery proof did not emit its causal PASS marker.' >&2
+            exit 1
+          fi
+
+      - name: capture unavailable recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-client-unavailable-recovery
+          path: |
+            build/s24-unavailable-recovery/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
