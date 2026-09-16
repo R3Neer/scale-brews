@@ -53,11 +53,6 @@ public final class AnatomyClientNetworking {
     }
     /** Reserved for Q2's explicit VerifiedInterval; Q1 creates only CURRENT_ENDPOINT. */
     public enum PresentationKind { CURRENT_ENDPOINT, CERTIFIED_INTERVAL }
-    /**
-     * Immutable original-model presentation result. Its constructor is private
-     * so callers cannot fabricate a CERTIFIED_INTERVAL without the future core
-     * event; the current Q1 factory always has before==after and fraction 1.
-     */
     public static final class PresentationFrame {
         private final PresentationIdentity identity;
         private final GeometryProvider.CausalEndpoint before,after;
@@ -85,7 +80,6 @@ public final class AnatomyClientNetworking {
     }
     private record PresentationCacheKey(PresentationIdentity identity,long frameSerial) {}
     private record CachedPresentationFrame(PresentationCacheKey key,PresentationFrame frame) {}
-    /** Client half of {@link AnatomySession}; metadata-only, never evaluates a model per query. */
     public static AnatomyMode mode(net.minecraft.world.entity.Entity entity) {
         return entity==null?AnatomyMode.DISABLED:session.mode(entity.level());
     }
@@ -96,11 +90,6 @@ public final class AnatomyClientNetworking {
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();
     }
-    /**
-     * Clears material derived from one support without clearing the inbox
-     * watermark for bodies it used to support. A delayed contact cannot regain
-     * authority merely because this support was rebound or became unavailable.
-     */
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId) {
         poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);
         var support=level==null?null:level.getEntity(entityId);
@@ -109,10 +98,7 @@ public final class AnatomyClientNetworking {
         contacts.discardPendingSupport(supportId);
         presentationContacts.entrySet().removeIf(entry->supportId.equals(entry.getValue().support()));
     }
-    /** Physics reads the latest confirmed pose, never a renderer or an extrapolated animation. */
     private static void bindPhysics() {
-        // A replacement may retain an accepted catalog in memory, but BINDING has
-        // no usable material route. Do not let old providers answer while it transfers.
         var transfer=session.catalog();
         if(poseLevel==null || !transfer.ready() || transfer.snapshot().bindings().isEmpty()) {
             if(poseLevel!=null && transfer.binding())AnatomyMovement.deactivate(poseLevel);
@@ -139,13 +125,11 @@ public final class AnatomyClientNetworking {
             if(AnatomyMovement.confirm(body,living,surface)) {presentationContacts.put(packet.body(),packet);contacts.consume(packet);}
         }
     }
-    /** Exact accepted collision geometry. Root interpolation is not invented from local/client state. */
     public static java.util.Optional<GeometryProvider.Snapshot> geometry(net.minecraft.world.entity.LivingEntity entity,double serverTick) {
         var history=frames.get(entity.getUUID());var packet=history==null?null:history.current();
         if(packet==null || staleFrames.contains(entity.getUUID()) || entity.level()!=poseLevel || !packet.available())return java.util.Optional.empty();
         return currentSnapshot(entity,entity.getUUID());
     }
-    /** Exact current endpoint used by local collision, never by a renderer fraction. */
     private static java.util.Optional<GeometryProvider.Snapshot> currentSnapshot(net.minecraft.world.entity.LivingEntity entity,java.util.UUID support) {
         var frame=frames.get(support);var packet=frame==null?null:frame.current();
         if(packet==null || staleFrames.contains(support) || !packet.available() || !support.equals(entity.getUUID()) || packet.entityId()!=entity.getId() || entity.level()!=poseLevel)return java.util.Optional.empty();
@@ -153,7 +137,6 @@ public final class AnatomyClientNetworking {
         if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
         return evaluator(entity,packet).flatMap(evaluator->evaluator.sampleAt(entity,endpoint.sample(),endpoint.rootTransform()));
     }
-    /** Current query provenance from one accepted frame; absent wire data fails closed. */
     private static java.util.Optional<GeometryProvider.CausalEndpoint> currentEndpoint(net.minecraft.world.entity.LivingEntity entity,java.util.UUID support) {
         if(staleFrames.contains(support))return java.util.Optional.empty();
         var frame=frames.get(support);
@@ -164,25 +147,17 @@ public final class AnatomyClientNetworking {
         if(!transfer.ready() || binding==null || !bindingMatches(entity,packet))return java.util.Optional.empty();
         var evaluator=evaluators.get(entity.getUUID());
         if(evaluator==null) {
-            // Root authority is transported in the endpoint. The evaluator never needs to
-            // sample a local external provider to materialize current client geometry.
             evaluator=new ModelGeometryProvider(binding.model(),binding.poses(),binding.selection().geometry().filter(),packet.revision());
             evaluators.put(entity.getUUID(),evaluator);
         }
         return java.util.Optional.of(evaluator);
     }
-    /** Persistent adapter: its local registration is never sent or compared with server binding generation. */
     private static final class ClientGeometryProvider implements GeometryProvider {
         private final java.util.UUID support;
         ClientGeometryProvider(java.util.UUID support){this.support=support;}
         public java.util.Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity entity){return currentSnapshot(entity,support);}
         public java.util.Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity){return currentEndpoint(entity,support);}
     }
-    /**
-     * Current authoritative original-model view. Q1 deliberately exposes no
-     * time parameter: the accepted endpoint's authority tick is the only
-     * domain available without inventing a root/joint interval from packets.
-     */
     public static java.util.Optional<PresentationFrame> presentationFrame(net.minecraft.world.entity.LivingEntity support) {
         if(support==null || support.level()!=poseLevel || !ready(support) || staleFrames.contains(support.getUUID()))return java.util.Optional.empty();
         var history=frames.get(support.getUUID());var packet=history==null?null:history.current();
@@ -199,8 +174,6 @@ public final class AnatomyClientNetworking {
             return frame;
         });
     }
-
-    /** Full server/catalog/binding identity must agree before a model is drawable. */
     private static boolean presentationIdentityMatches(net.minecraft.world.entity.LivingEntity support,AnatomyPosePayload packet) {
         var transfer=session.catalog();
         if(!transfer.ready() || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
@@ -208,10 +181,6 @@ public final class AnatomyClientNetworking {
                 || !packet.entity().equals(support.getUUID()) || !transfer.snapshot().models().containsKey(packet.model().toString()))return false;
         return bindingMatches(support,packet);
     }
-    /**
-     * Narrow presentation view: no local-render pose, AABB fallback or C2S
-     * state. Missing/stale material contact is deliberately an empty result.
-     */
     public static java.util.Optional<PresentationContact> presentationContact(net.minecraft.world.entity.Entity body,double serverTick) {
         if(!ready(body))return java.util.Optional.empty();
         var packet=presentationContacts.get(body.getUUID());
@@ -219,20 +188,12 @@ public final class AnatomyClientNetworking {
         var supportEntity=poseLevel.getEntity(packet.supportId());
         if(!(supportEntity instanceof net.minecraft.world.entity.LivingEntity support) || !support.getUUID().equals(packet.support()))return java.util.Optional.empty();
         var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
-        // Do not route rendering through geometry(PoseHistory,...): root-only
-        // endpoint changes can share a joint tick, so Q1 must use the exact
-        // full accepted endpoint and the matching evaluated local transforms.
         return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
     private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}
     private static void useLevel(net.minecraft.client.multiplayer.ClientLevel level){
-        if(poseLevel!=level){
-            // Catalog epoch/revision belongs to the connection, whereas poses,
-            // contacts and provider cursors belong to a ClientLevel/dimension.
-            // The server does not resend an unchanged catalog merely for a portal.
-            clearPoses();poseLevel=level;session.useLevel(level);
-        }
+        if(poseLevel!=level){clearPoses();poseLevel=level;session.useLevel(level);}
     }
     public static void initialize() {
         AnatomySession.installClientMode(AnatomyClientNetworking::mode);
@@ -240,101 +201,69 @@ public final class AnatomyClientNetworking {
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
             if(entity instanceof net.minecraft.world.entity.LivingEntity living && frames.containsKey(living.getUUID())) {
-                frames.get(living.getUUID()).retireCurrentGeneration();
+                frames.get(living.getUUID()).retireCurrentTrackingGeneration();
                 staleFrames.add(living.getUUID());
                 discardSupportMaterial(level,living.getUUID(),living.getId());
             }
         });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client->{
-            useLevel(client.level);
-            clientTick++;
+            useLevel(client.level);clientTick++;
             if(poseLevel!=null)contacts.prune(poseLevel.getGameTime(),100);
             frames.entrySet().removeIf(entry->{
-                var packet=entry.getValue().current();
-                var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
+                var packet=entry.getValue().current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
                 boolean expired=clientTick-receivedAt.getOrDefault(entry.getKey(),0L)>100;
                 boolean wrongIdentity=entity!=null && !entity.getUUID().equals(entry.getKey());
                 if(expired || wrongIdentity){
-                    // Do not erase a live support's accepted frame serial. It
-                    // remains the replay fence; only geometry/contact material
-                    // expires. ENTITY_UNLOAD supplies the explicit tracking
-                    // barrier and a connection/catalog reset clears it all.
-                    if(staleFrames.add(entry.getKey())) {
-                        discardSupportMaterial(poseLevel,entry.getKey(),packet.entityId());
-                        receivedAt.remove(entry.getKey());
-                    }
+                    if(staleFrames.add(entry.getKey())) {discardSupportMaterial(poseLevel,entry.getKey(),packet.entityId());receivedAt.remove(entry.getKey());}
                     return false;
                 }
                 return false;
             });
             presentationContacts.entrySet().removeIf(entry->{
-                var packet=entry.getValue();var body=poseLevel==null?null:poseLevel.getEntity(packet.bodyId());
-                var support=poseLevel==null?null:poseLevel.getEntity(packet.supportId());
+                var packet=entry.getValue();var body=poseLevel==null?null:poseLevel.getEntity(packet.bodyId());var support=poseLevel==null?null:poseLevel.getEntity(packet.supportId());
                 return poseLevel==null || packet.tick()+100<poseLevel.getGameTime() || body==null || !body.getUUID().equals(packet.body())
                     || !(support instanceof net.minecraft.world.entity.LivingEntity) || !support.getUUID().equals(packet.support());
             });
             bindPhysics();
             if(poseLevel!=null) {
                 AnatomyMovement.tickGeometry(poseLevel);
-                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)
-                    AnatomyMovement.carry(entity);
+                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
-            useLevel(context.client().level);
-            var transfer=session.catalog();
+            useLevel(context.client().level);var transfer=session.catalog();
             try{if(transfer.accept(packet))clearPoses();}
             catch(RuntimeException invalid){transfer.rejectPending();io.github.r3neer.scalebrews.ScaleBrews.LOGGER.error("Rejected anatomical catalog; previous revision retained",invalid);}
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
-            var level=context.client().level;
-            useLevel(level);
-            var transfer=session.catalog();
+            var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
                 || !transfer.snapshot().models().containsKey(packet.model().toString()))return;
             var entity=level.getEntity(packet.entityId());
             if(entity!=null) {
-                if(!entity.getUUID().equals(packet.entity()) || !(entity instanceof net.minecraft.world.entity.LivingEntity living)
-                        || !bindingMatches(living,packet))return;
+                if(!entity.getUUID().equals(packet.entity()) || !(entity instanceof net.minecraft.world.entity.LivingEntity living) || !bindingMatches(living,packet))return;
             }
-            // Frames are the ordering/watermark source, including unavailable
-            // supports, so they—not the geometry-only pose map—are bounded.
             if(frames.size()>=4096 && !frames.containsKey(packet.entity()))return;
             var framesForSupport=frames.computeIfAbsent(packet.entity(),id->new AnatomyFrameHistory());
             try {
                 var previous=framesForSupport.current();
-                if(previous!=null && previous.bindingGeneration()!=packet.bindingGeneration()) {
-                    // Binding generation is server authority. A stale earlier
-                    // binding is ignored; a later binding atomically clears all
-                    // local material before its first endpoint is accepted.
-                    if(packet.bindingGeneration()<previous.bindingGeneration())return;
+                if(previous!=null && (previous.trackingGeneration()!=packet.trackingGeneration() || previous.bindingGeneration()!=packet.bindingGeneration())) {
+                    if(packet.trackingGeneration()<previous.trackingGeneration() || packet.bindingGeneration()<previous.bindingGeneration())return;
                     discardSupportMaterial(level,packet.entity(),previous.entityId());
                     framesForSupport=new AnatomyFrameHistory();frames.put(packet.entity(),framesForSupport);
                 }
                 if(!framesForSupport.accept(packet))return;
                 receivedAt.put(packet.entity(),clientTick);
-                if(!packet.available()) {
-                    // A server-declared unknown/ineligible root or pose is a material
-                    // discontinuity. Root DTO bytes remain only inside the causal
-                    // watermark and are never materialized while unavailable.
-                    staleFrames.add(packet.entity());
-                    discardSupportMaterial(level,packet.entity(),packet.entityId());
-                    return;
-                }
+                if(!packet.available()) {staleFrames.add(packet.entity());discardSupportMaterial(level,packet.entity(),packet.entityId());return;}
                 staleFrames.remove(packet.entity());
                 var history=poses.computeIfAbsent(packet.entity(),id->new AnatomyPoseHistory());
-                // Root-only endpoints retain their frame but never re-evaluate or
-                // overwrite the joint interpolation clock.
                 if(history.current()==null || packet.jointSampleTick()>history.current().jointSampleTick())history.accept(packet);
             } catch(IllegalArgumentException invalid) {
-                // Identity changes other than a strictly newer binding are not
-                // a valid rebind. Keep the accepted watermark/state intact.
                 io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Rejected causal pose frame for {}",packet.entity(),invalid);
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyContactPayload.TYPE,(packet,context)->{
-            var level=context.client().level;useLevel(level);
-            var transfer=session.catalog();
+            var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
                     || packet.tick()+100<level.getGameTime())return;
             if(contacts.accept(level.dimension().identifier(),packet))presentationContacts.remove(packet.body());
