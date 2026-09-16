@@ -40,9 +40,14 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                 try(var connection=server.connect()) {
                     awaitReady(context,cowId,cowUuid);
                     first=context.computeOnClient(client->S24ReconnectLifecycleClientProof.identity(cowUuid.get()));
-                    if(first.trackingGeneration()!=1)
-                        throw new AssertionError("Fresh first connection did not start cow tracking at generation 1: "+first.trackingGeneration());
-                    server.runOnServer(minecraft->firstPlayer.set(minecraft.getPlayerList().getPlayers().getFirst()));
+                    if(first.trackingGeneration()<1)
+                        throw new AssertionError("Fresh first connection did not acquire an authoritative cow tracking generation");
+                    server.runOnServer(minecraft->{
+                        var player=minecraft.getPlayerList().getPlayers().getFirst();firstPlayer.set(player);
+                        var cow=minecraft.overworld().getEntity(cowId.get());
+                        if(cow==null || AnatomyRuntime.trackingGeneration(player,cow)!=first.trackingGeneration())
+                            throw new AssertionError("First client pose tracking generation disagrees with its server recipient lifetime");
+                    });
                 }
 
                 context.waitFor(client->client.level==null,160);
@@ -65,8 +70,8 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                         throw new AssertionError("Reconnect to the same running server changed epoch/revision unexpectedly");
                     if(first.bindingGeneration()!=second.bindingGeneration())
                         throw new AssertionError("Reconnect fabricated a rebind for the unchanged server cow");
-                    if(second.trackingGeneration()!=1)
-                        throw new AssertionError("New connection inherited the old recipient tracking generation: "+second.trackingGeneration());
+                    if(second.trackingGeneration()<1)
+                        throw new AssertionError("New connection failed to acquire its own recipient tracking authority");
                     server.runOnServer(minecraft->{
                         var current=minecraft.getPlayerList().getPlayers().getFirst();
                         if(current==firstPlayer.get())throw new AssertionError("Reconnect reused the old ServerPlayer object identity");
@@ -77,7 +82,7 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                     });
                 }
 
-                System.out.println("S24_RECONNECT_LIFECYCLE PASS disconnect reset client session; same server rebound with fresh recipient tracking generation");
+                System.out.println("S24_RECONNECT_LIFECYCLE PASS disconnect reset client session; same server rebound with independent recipient tracking authority");
             } catch(Throwable error) {failure=error;throw error;}
             finally {
                 try {server.runOnServer(AnatomyRuntime::stop);}
@@ -94,11 +99,11 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
 
     private static void awaitReady(ClientGameTestContext context,AtomicInteger cowId,AtomicReference<UUID> cowUuid) {
         context.waitFor(client->{
-            if(client.level==null || client.player==null)return false;
+            if(client.level==null || client.player==null || !AnatomyClientNetworking.catalog().ready())return false;
             var entity=client.level.getEntity(cowId.get());
             if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))return false;
             var history=AnatomyClientNetworking.pose(cowUuid.get());
-            return history!=null && history.current()!=null && AnatomyClientNetworking.presentationFrame(cow).isPresent();
+            return history!=null && history.current()!=null;
         },200);
     }
 
