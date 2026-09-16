@@ -41,19 +41,12 @@ jobs:
           assert text.count(old)==1, 'unexpected AnatomyMovement runtime import shape'
           text=text.replace(old,new)
 
-          old='''    /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
-          public record RootFrame(long sequence,long tick,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
-              public RootFrame {
-                  if(sequence<0 || tick<0 || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
-                      throw new IllegalArgumentException("Invalid root frame");
-              }
-          }
-          private static final class RootHistory {final ArrayDeque<RootFrame> frames=new ArrayDeque<>();}
-          private static final Map<LivingEntity,RootHistory> ROOTS=entityMap();
-          '''
-          assert text.count(old)==1, 'unexpected nested RootFrame/ROOTS block'
-          text=text.replace(old,'')
+          root_start=text.index('    /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */')
+          root_end=text.index('    /** Per-support live maintenance.',root_start)
+          text=text[:root_start]+text[root_end:]
 
+          replaced=text.count('FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);')
+          assert replaced==2, f'expected two registration root resets, found {replaced}'
           text=text.replace('FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);',
                             'FRAME_SERIALS.remove(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);')
           assert 'ROOTS.remove(support)' in text, 'expected invalidateRoot ROOTS removal missing'
