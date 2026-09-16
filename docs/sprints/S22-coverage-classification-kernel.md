@@ -1,6 +1,6 @@
 # S22 — Coverage classification kernel
 
-Estado: **OPEN / IMPLEMENTATION ACTIVE**.
+Estado: **READY FOR INDEPENDENT ADVERSARIAL CLOSE**.
 
 Rol principal: **IMPLEMENTER**. Holdouts, mutation checks y cierre independiente siguen siendo propiedad del adversario.
 
@@ -53,15 +53,26 @@ El preimage del coverage report usa desde `8972f624` framing por longitud (`coll
 - [x] I3 — exponer counts, `requireResolved()` y SHA-256 sobre una representación canónica estable e inyectiva sobre los datos admitidos.
 - [x] I4 — tests implementer para FULL derivado, variant/state partial, exclusión técnica, unresolved gate, orden y digest.
 - [x] I5 — conectar discovery de tooling al registry objetivo usando `DefaultAttributes.hasSupplier`, con target/version/input identity y sin scans en runtime/hot path.
-- [ ] I6 — ejecutar build/GameTests del corte completo y registrar únicamente evidencia realmente ejecutada.
-- [ ] I7 — revisión implementer completa; cualquier holdout adversarial permanece independiente.
+- [x] I6 — ejecutar build/GameTests del corte completo y registrar únicamente evidencia realmente ejecutada.
+- [x] I7 — revisión implementer completa; cualquier holdout adversarial permanece independiente.
 
 ## 6. Hallazgos adversariales ya absorbidos por producción
 
 1. **Completeness bypass**: un `Artifact` ensamblado manualmente con report parcial podía aparentar `UNRESOLVED=0`. `4484fd7` ligó completitud a discovery automático y el holdout adversarial pasó después sin cambios.
-2. **Canonical digest alias**: selectores semánticamente distintos como `{a="b,c=d"}` y `{a="b", c="d"}` producían el mismo preimage delimitado. `8972f624` sustituyó el escaping parcial por framing de longitud integral. La prueba adversarial original permanece sin modificar y debe certificar el cierre antes de considerar convergido S22.
+2. **Canonical digest alias**: selectores semánticamente distintos como `{a="b,c=d"}` y `{a="b", c="d"}` producían el mismo preimage delimitado. `8972f624` sustituyó el escaping parcial por framing de longitud integral. La prueba adversarial original permaneció sin modificar y quedó verde sobre el repair.
 
-## 7. Fuera de scope de este corte
+## 7. Evidencia implementer del candidato
+
+Snapshot productivo **`8972f6243dbe8c574dbe4d98611f1d0bb11c0cf2`**:
+
+- build ordinary **`35101622307`**, job **`104812202516`**: `compileJava`, `compileClientJava` y `compileGametestJava` correctos; servidor Minecraft 26.2 ejecutó **424/424 required GameTests** y terminó `BUILD SUCCESSFUL`;
+- proof focal S22 **`35101622424`**: **success**;
+- holdout adversarial de completitud **`35101622304`**: **success**;
+- holdout adversarial de digest **`35101622368`**: **success**, sin modificar la prueba que había producido el rojo previo.
+
+La revisión implementer no identifica otro cambio de producción S22. Este documento no cierra el sprint: el cierre formal y cualquier nueva mutación/holdout siguen siendo decisión independiente del ADVERSARY.
+
+## 8. Fuera de scope de este corte
 
 - G6: completar y cerrar exhaustivamente cada fila de todos los `LivingEntity` Minecraft 26.2;
 - completar familias/engines que el reporte revele como parciales o unresolved;
