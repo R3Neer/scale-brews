@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/s24-adversarial-tracking-ledger.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24AdversarialTrackingGenerationLedgerTests.java'
   workflow_dispatch:
 
@@ -35,6 +38,15 @@ jobs:
           PY
       - name: run bounded ledger holdout
         run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-tracking-ledger-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-adversarial-tracking-ledger
+          path: |
+            build/s24-tracking-ledger-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
 
   generation-reuse-mutation-kill:
     runs-on: ubuntu-24.04
@@ -87,6 +99,15 @@ jobs:
             exit 1
           fi
           echo 'KILLED: generation reuse mutant'
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-generation-reuse-mutant
+          path: |
+            build/s24-generation-reuse-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
 
   cap-off-by-one-mutation-kill:
     runs-on: ubuntu-24.04
@@ -139,3 +160,12 @@ jobs:
             exit 1
           fi
           echo 'KILLED: active-window cap off-by-one mutant'
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-cap-off-by-one-mutant
+          path: |
+            build/s24-cap-off-by-one-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
