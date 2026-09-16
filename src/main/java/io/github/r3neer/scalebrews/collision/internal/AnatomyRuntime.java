@@ -123,7 +123,8 @@ public final class AnatomyRuntime {
         for(var level:server.getAllLevels()){
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepareExisting(level,state);
         }
-        for(var player:server.getPlayerList().getPlayers())catalog(state,player);
+        // catalog(...) may disconnect an incompatible recipient, mutating the live player list.
+        for(var player:new ArrayList<>(server.getPlayerList().getPlayers()))catalog(state,player);
     }
     /** One-time start/reload enumeration; explicitly not part of steady tick orchestration. */
     private static void prepareExisting(ServerLevel level,State state) {
