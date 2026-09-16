@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import com.mojang.serialization.JsonOps;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
@@ -20,7 +21,7 @@ public final class S24RuntimeReloadTests {
     @GameTest
     public void acceptedRealResourceReloadRetiresPreviousRuntimeAuthority(GameTestHelper h) {
         var server=h.getLevel().getServer();var cow=h.spawn(EntityTypes.COW,2,20,2);cow.setNoAi(true);cow.setNoGravity(true);
-        var fixture=fixture();
+        var fixture=fixture("scalebrews_test:s24_reload_cow");
         try {
             AnatomyRuntime.startPrepared(server,fixture.models(),fixture.profiles());
             var before=AnatomyBindingState.snapshot(cow);
@@ -45,9 +46,39 @@ public final class S24RuntimeReloadTests {
     }
 
     @GameTest
+    public void acceptedCandidateReloadRebindsSameEntityWithNewCausalIdentity(GameTestHelper h) {
+        var server=h.getLevel().getServer();var cow=h.spawn(EntityTypes.COW,2,20,2);cow.setNoAi(true);cow.setNoGravity(true);
+        var beforeFixture=fixture("scalebrews_test:s24_reload_cow_v1");
+        var afterFixture=fixture("scalebrews_test:s24_reload_cow_v2");
+        try {
+            AnatomyRuntime.startPrepared(server,beforeFixture.models(),beforeFixture.profiles());
+            var before=AnatomyBindingState.snapshot(cow);h.assertTrue(before!=null && before.causal(),"Baseline reload fixture must be causal");
+            long beforeRevision=AnatomyNetworking.revision(server);long beforeBinding=before.descriptor().bindingGeneration();
+            var uuid=cow.getUUID();int entityId=cow.getId();
+
+            AnatomyRuntime.reload(server,validResourceManager(server.getResourceManager(),afterFixture));
+
+            var after=AnatomyBindingState.snapshot(cow);
+            h.assertTrue(after!=null && after.causal() && AnatomyRuntime.owns(cow),
+                "Accepted executable candidate must rebind the still-live cow into the new runtime revision");
+            h.assertTrue(cow.getUUID().equals(uuid) && cow.getId()==entityId,
+                "Runtime rebind must preserve Minecraft UUID/network identity rather than replacing the entity");
+            h.assertTrue(AnatomyNetworking.revision(server)==beforeRevision+1 && after.descriptor().revision()==beforeRevision+1,
+                "Accepted rebind must move catalog publication and causal descriptor to the same next revision");
+            h.assertTrue(after.provider()!=before.provider() && after.generation()>before.generation()
+                    && after.descriptor().bindingGeneration()>beforeBinding,
+                "Accepted rebind must allocate a fresh provider, local registration generation, and server binding generation");
+            h.assertTrue(!AnatomyBindingState.current(cow,before),"The pre-reload runtime slot must no longer be current after rebind");
+            h.assertTrue(after.descriptor().model().equals(Identifier.parse("scalebrews_test:s24_reload_cow_v2")),
+                "Rebind must select geometry from the accepted candidate rather than retaining the prepared baseline model");
+        } finally {AnatomyRuntime.stop(server);cow.discard();}
+        h.succeed();
+    }
+
+    @GameTest
     public void rejectedCandidateReloadPreservesExactAcceptedRuntimeAuthority(GameTestHelper h) {
         var server=h.getLevel().getServer();var cow=h.spawn(EntityTypes.COW,2,20,2);cow.setNoAi(true);cow.setNoGravity(true);
-        var fixture=fixture();
+        var fixture=fixture("scalebrews_test:s24_reload_cow");
         try {
             AnatomyRuntime.startPrepared(server,fixture.models(),fixture.profiles());
             var before=AnatomyBindingState.snapshot(cow);
@@ -73,9 +104,11 @@ public final class S24RuntimeReloadTests {
         h.succeed();
     }
 
-    private record Fixture(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {}
-    private static Fixture fixture() {
-        var modelId="scalebrews_test:s24_reload_cow";
+    private record Fixture(Map<String,ModelGeometry> models,Map<String,PlatformDefinition> profiles) {
+        ModelGeometry model(){return models.values().iterator().next();}
+        PlatformDefinition profile(){return profiles.values().iterator().next();}
+    }
+    private static Fixture fixture(String modelId) {
         var model=new ModelGeometry(2,modelId,"26.2",
             List.of(new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
             List.of(new ModelGeometry.Piece("body","root",List.of(-.5d,0d,-.5d),List.of(.5d,1d,.5d),null)),
@@ -85,20 +118,34 @@ public final class S24RuntimeReloadTests {
         return new Fixture(Map.of(modelId,model),Map.of("scalebrews_test:s24_reload",profile));
     }
 
+    private static ResourceManager validResourceManager(ResourceManager installed,Fixture fixture) {
+        String modelJson=AnatomyCodecs.GEOMETRY.encodeStart(JsonOps.INSTANCE,fixture.model()).getOrThrow().toString();
+        String profileJson=PlatformDefinition.CODEC.encodeStart(JsonOps.INSTANCE,fixture.profile()).getOrThrow().toString();
+        var pack=installed.listPacks().findFirst().orElseThrow();
+        return proxy(installed,directory->{
+            if(directory.equals("scalebrews/entity_geometry"))
+                return resource(pack,"scalebrews_test:scalebrews/entity_geometry/cow.json",modelJson);
+            if(directory.equals("scalebrews/entity_platform"))
+                return resource(pack,"scalebrews_test:scalebrews/entity_platform/cow.json",profileJson);
+            return Map.of();
+        });
+    }
+
     private static ResourceManager invalidResourceManager(ResourceManager installed) {
         var pack=installed.listPacks().findFirst().orElseThrow();
+        return proxy(installed,directory->directory.equals("scalebrews/entity_geometry")
+            ? resource(pack,"scalebrews_test:scalebrews/entity_geometry/broken.json","{") : Map.of());
+    }
+
+    private static ResourceManager proxy(ResourceManager installed,java.util.function.Function<String,Map<Identifier,Resource>> listings) {
         return (ResourceManager)java.lang.reflect.Proxy.newProxyInstance(ResourceManager.class.getClassLoader(),new Class<?>[]{ResourceManager.class},(proxy,method,args)->{
-            if(method.getName().equals("listResources")) {
-                String directory=(String)args[0];
-                if(directory.equals("scalebrews/entity_geometry")) {
-                    byte[] malformed="{".getBytes(StandardCharsets.UTF_8);
-                    return Map.of(Identifier.parse("scalebrews_test:scalebrews/entity_geometry/broken.json"),
-                        new Resource(pack,()->new java.io.ByteArrayInputStream(malformed)));
-                }
-                return Map.of();
-            }
+            if(method.getName().equals("listResources"))return listings.apply((String)args[0]);
             if(method.getName().equals("listPacks"))return installed.listPacks();
             throw new UnsupportedOperationException(method.toString());
         });
+    }
+    private static Map<Identifier,Resource> resource(net.minecraft.server.packs.PackResources pack,String id,String json) {
+        byte[] bytes=json.getBytes(StandardCharsets.UTF_8);
+        return Map.of(Identifier.parse(id),new Resource(pack,()->new java.io.ByteArrayInputStream(bytes)));
     }
 }
