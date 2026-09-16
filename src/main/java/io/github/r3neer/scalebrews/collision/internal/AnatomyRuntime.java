@@ -101,8 +101,16 @@ public final class AnatomyRuntime {
         STATES.put(server,state);reset(server,state);
     }
     public static void reload(MinecraftServer server) {
+        reload(server,server.getResourceManager());
+    }
+    /**
+     * Single transactional runtime reload path. Package visibility permits failure injection without
+     * changing the server's installed packs; production always calls the public overload above.
+     */
+    static void reload(MinecraftServer server,net.minecraft.server.packs.resources.ResourceManager resources) {
+        Objects.requireNonNull(server,"server");Objects.requireNonNull(resources,"resources");
         var state=STATES.get(server);if(state==null)return;
-        state.catalog.reload(server.getResourceManager()); // Throws before any contact/provider is replaced.
+        state.catalog.reload(resources); // Candidate fully validates and swaps before any live runtime state is reset.
         reset(server,state);
     }
     private static void reset(MinecraftServer server,State state) {
@@ -283,25 +291,21 @@ public final class AnatomyRuntime {
     private static long generation(State state,ServerPlayer recipient,UUID body) {
         return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger()).acquire(body);
     }
-    private static long currentGeneration(State state,ServerPlayer recipient,UUID body) {
-        var generations=state.trackingGenerations.get(recipient);
-        return generations==null?TrackingGenerationLedger.UNAVAILABLE:generations.current(body);
-    }
-    /** Server-owned tracking transition utility retained for packet/order fixtures. */
+    /** Server-owned tracking transition helper retained for fixture/source compatibility. */
     public static long nextTrackingGeneration(long current) {
         if(current<1)throw new IllegalArgumentException("Invalid tracking generation");
         return Math.incrementExact(current);
     }
-    /** Current recipient/body tracking generation for a server receipt; never client authority. */
+    /** Current recipient/body tracking generation for a server receipt; never client authority. Zero means saturated/no active authority. */
     public static long trackingGeneration(ServerPlayer recipient,Entity body) {
         if(recipient==null || body==null)return 1;
         var state=STATES.get(recipient.level().getServer());
         return state==null?1:generation(state,recipient,body.getUUID());
     }
-    /** Clear with the current active generation; STOP then releases the UUID without retaining a tombstone. */
+    /** Clear with the active generation before STOP releases the UUID; no retired UUID tombstone is retained server-side. */
     private static void clearContact(State state,Entity body,ServerPlayer recipient) {
         if(!catalog(state,recipient) || !ServerPlayNetworking.canSend(recipient,AnatomyContactPayload.TYPE))return;
-        long generation=currentGeneration(state,recipient,body.getUUID());if(generation<1)return;
+        var ledger=state.trackingGenerations.get(recipient);long generation=ledger==null?0:ledger.current(body.getUUID());if(generation<1)return;
         var known=state.contacts.computeIfAbsent(recipient,ignored->new HashMap<>());var old=known.get(body.getUUID());
         long sequence=old==null || old.generation()!=generation?1:old.sequence()+1;
         long tick=body.level().getGameTime();
@@ -323,6 +327,7 @@ public final class AnatomyRuntime {
     private static void send(LivingEntity entity,ServerPlayer player) {
         var state=STATES.get(player.level().getServer());if(state==null)return;
         var active=state.entities.get(entity);if(active==null || !catalog(state,player))return;
-        AnatomyMovement.publishedFrame(entity).ifPresent(frame->AnatomyNetworking.sendPose(player,frame));
+        long generation=generation(state,player,entity.getUUID());if(generation<1)return;
+        AnatomyMovement.publishedFrame(entity).ifPresent(frame->AnatomyNetworking.sendPose(player,frame,generation));
     }
 }
