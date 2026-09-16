@@ -1,6 +1,6 @@
 # S20 — Modelo adversarial de rendimiento para Citadel pose
 
-Estado: **OPEN**.  
+Estado: **OPEN por cierre funcional I9; rendimiento S20 clasificado**.  
 Rol: **ADVERSARY**.  
 Protocolo transversal: `docs/ENTITY_COLLISIONS_ADVERSARIAL_PERFORMANCE.md`.
 
@@ -23,9 +23,12 @@ NFR-009 sigue siendo obligatorio: una pose física del soporte se evalúa como m
 - hasta `512` deltas por keyframe;
 - hasta `64` huesos en `FACE_TARGET`;
 - condiciones de hasta `32` términos por nodo y profundidad `<= 16`;
+- **hasta `4096` nodos de condición en total por programa, sumados entre todas las operaciones**;
 - hasta `64` channels requeridos.
 
-**Gap adversarial descubierto el 2026-09-16:** los límites de condición son locales por nodo/profundidad, pero no existe un presupuesto global de nodos de condición por programa ni por operación. Por tanto el coste HOT_TICK sigue siendo finito en sentido matemático, pero no está acotado por un límite práctico explícito del schema. S20 no debe cerrar con PERF-004 como `BOUNDED` hasta que exista y se pruebe ese presupuesto global.
+El gap adversarial descubierto el 2026-09-16 quedó cerrado en producción por `b3e2c47` (`fix(s20): bound program-wide condition nodes`). El constructor de `CitadelPoseProgram` suma el número de nodos de cada condición y rechaza fail-closed en cuanto el total supera `MAX_CONDITION_NODES = 4096`. El límite es program-wide, no un cap por operación que pueda multiplicarse hasta `MAX_OPERATIONS`.
+
+El holdout final es deliberadamente conductual y no inspecciona constantes, nombres ni visibilidad. Workflow `s20-adversarial-condition-budget`, run **35070996485**, **SUCCESS**: descubre la frontera aceptada mediante comportamiento, comprueba que `limit + 1` se rechaza y que dos operaciones individualmente válidas cuyo total supera la frontera también se rechazan.
 
 ## 3. Frontera preparation/runtime
 
@@ -36,9 +39,10 @@ Segunda lectura actual:
 - evaluator common sin clases Citadel/Alex/render;
 - clips compilados una vez a `CompiledClip`/`CompiledFrame`;
 - selección temporal mediante offsets precompilados y búsqueda binaria;
-- no hay parsing/reflection/resource lookup dentro de `evaluate`.
+- no hay parsing/reflection/resource lookup dentro de `evaluate`;
+- el nuevo presupuesto de condiciones se valida al construir/copiar el programa, no se recalcula como política en cada sample HOT_TICK.
 
-**Estado:** `PASS estructural`, pendiente únicamente de mantenerlo en la pasada final.
+**Estado:** `PASS estructural`, pendiente únicamente de repetir la pasada final después del arreglo funcional I9 para asegurar que esa integración no reintroduce trabajo de preparación en caliente.
 
 ## 4. Riesgos hot y evidencia
 
@@ -96,9 +100,7 @@ El workload aumenta ×64 entre 32 y 2048 operaciones mientras el tiempo medido a
 
 ### S20-PERF-004 — condiciones compuestas
 
-`ALL`/`ANY` se evalúan recursivamente en HOT_TICK. Cada nodo admite hasta 32 términos y la profundidad está limitada a 16, pero actualmente **no hay límite total de nodos**. El constructor valida profundidad y cardinalidad local; `requiredChannels()` y el evaluator vuelven a recorrer recursivamente el árbol completo.
-
-El mismo run **35059646199** midió árboles válidos que fuerzan recorrido completo (`ALL` con leaves true):
+`ALL`/`ANY` se evalúan recursivamente en HOT_TICK. El probe previo, run **35059646199**, midió árboles válidos que fuerzan recorrido completo (`ALL` con leaves true):
 
 | Profundidad del fixture | Nodos | ns/evaluación | ns/nodo |
 |---:|---:|---:|---:|
@@ -107,9 +109,11 @@ El mismo run **35059646199** midió árboles válidos que fuerzan recorrido comp
 | 2 | 1057 | 9232.50 | 8.7346 |
 | 3 | 33825 | 295741.31 | 8.7433 |
 
-El tramo grande también escala de forma aproximadamente lineal, pero eso precisamente demuestra el problema: un único árbol de **33825 nodos**, perfectamente válido con el schema actual y muy lejos de la profundidad máxima 16, cuesta ya alrededor de **0.296 ms por evaluación** sólo en condiciones. El probe confirmó además `explicit_global_node_limit=false`.
+El tramo grande escala aproximadamente lineal. Precisamente por eso el antiguo schema era peligroso: un árbol válido de 33825 nodos costaba alrededor de **0.296 ms/evaluación** sólo en condiciones.
 
-**Estado:** `BLOCKER / MEASURED / GLOBAL BOUND MISSING`. La solución debe introducir un presupuesto total explícito y verificable de nodos de condición, no sólo confiar en profundidad/cardinalidad local ni en el tamaño accidental del payload.
+El arreglo `b3e2c47` fija ahora un presupuesto total de **4096 nodos de condición por programa**. El holdout `S20AdversarialConditionBudgetTests.programWideConditionBudgetMustRejectPathologicalAndBoundaryPlusOne` prueba la frontera por comportamiento, incluido el caso agregado entre múltiples operaciones. Run **35070996485**, **SUCCESS**.
+
+**Estado:** `PASS / MEASURED / BOUNDED`; el coste sigue siendo lineal, pero ahora el schema impone un límite práctico total antes de HOT_TICK.
 
 ### S20-PERF-005 — búsqueda del frame activo
 
@@ -129,17 +133,18 @@ No se duplica el mismo test sustituyendo el engine por Citadel porque no añadir
 
 **Estado:** `PASS`.
 
-## 5. Evidencia todavía necesaria antes del cierre
+## 5. Evidencia todavía necesaria antes del cierre global de S20
 
-1. **condition tree global bound**: añadir un presupuesto global de nodos verificable y un holdout que rechace `limit + 1` atómicamente;
-2. pasada final de frontera sin parsing, reflection ni resource lookup hot;
-3. revalidar los workflows funcionales S20 sobre la misma línea de commits después de la reparación de I9 y del bound de condiciones.
+1. reparar y revalidar I9 canonical executable binding;
+2. repetir la pasada final de frontera PREPARATION/HOT_TICK después de I9;
+3. revalidar los workflows funcionales S20 sobre la misma línea de commits final.
 
-Evidencia ya satisfecha:
+Evidencia de rendimiento ya satisfecha:
 
 - allocations reales Grizzly/Gazelle: run `35014967562`;
 - operations CPU scaling: run `35059646199`;
 - condition-tree cost baseline: run `35059646199`;
+- condition-tree program-wide bound: run `35070996485`;
 - consumer reuse / NFR-009: cobertura existente de cache causal de joints;
 - selección temporal de keyframes: implementación binaria precompilada.
 
@@ -153,7 +158,8 @@ Los wall-clock absolutos de GitHub Actions no son gate estable. Se prefieren con
 - evaluar una vez por observador en lugar de una vez por authority sample;
 - degradar selección temporal a scan lineal de clips/frames;
 - introducir caches por sample sin bound con crecimiento de memoria;
-- aceptar un árbol de condiciones por encima del presupuesto global definido.
+- convertir el presupuesto de condiciones en un límite por operación que pueda multiplicarse por `MAX_OPERATIONS`;
+- aceptar `MAX_CONDITION_NODES + 1` de forma parcial o no determinista.
 
 ## 7. Gate adversarial de rendimiento S20
 
@@ -163,6 +169,6 @@ Los wall-clock absolutos de GitHub Actions no son gate estable. Se prefieren con
 - [x] scaling CPU de operaciones clasificado;
 - [x] búsqueda temporal de keyframes clasificada y no lineal;
 - [x] allocations reales Grizzly/Gazelle medidas y clasificadas;
-- [ ] presupuesto global de nodos de condición impuesto y probado en `limit + 1`;
-- [ ] ninguna regresión observada aplazada sin clasificación;
-- [ ] pasada final adversarial sin cambios productivos ni gaps S20 pendientes.
+- [x] presupuesto global de nodos de condición impuesto y probado por comportamiento, incluido agregado multi-operación;
+- [x] todos los riesgos de rendimiento S20 observados están clasificados;
+- [ ] pasada final adversarial después del arreglo funcional I9.
