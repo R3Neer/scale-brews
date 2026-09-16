@@ -14,8 +14,10 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,AnatomyPoseHistory> poses=new java.util.HashMap<>();
     /** Root/joint endpoint order is independent of joint-history interpolation. */
     private static final java.util.Map<java.util.UUID,AnatomyFrameHistory> frames=new java.util.HashMap<>();
-    /** Ordering barriers retained after geometry becomes unavailable or stale. */
+    /** Current unavailable histories plus UUIDs represented by compact retired replay fences. */
     private static final java.util.Set<java.util.UUID> staleFrames=new java.util.HashSet<>();
+    /** Bounded replay watermarks survive frame-history eviction without retaining full histories. */
+    private static final TrackingReplayFence frameReplayFence=new TrackingReplayFence();
     private static final java.util.Map<java.util.UUID,Long> receivedAt=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ModelGeometryProvider> evaluators=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ClientGeometryProvider> providers=new java.util.HashMap<>();
@@ -88,7 +90,7 @@ public final class AnatomyClientNetworking {
     }
     private static void clearPoses(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
-        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();
+        poses.clear();frames.clear();staleFrames.clear();frameReplayFence.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId) {
         poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);
@@ -97,6 +99,16 @@ public final class AnatomyClientNetworking {
             AnatomyMovement.invalidateSupport(living);
         contacts.discardPendingSupport(supportId);
         presentationContacts.entrySet().removeIf(entry->supportId.equals(entry.getValue().support()));
+    }
+    /** Compresses one dead full history into a bounded ordering fence before releasing its material state. */
+    private static void retireFrameHistory(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,AnatomyFrameHistory history) {
+        if(history==null)return;var packet=history.current();if(packet==null)return;
+        history.retireCurrentTrackingGeneration();
+        boolean wasSaturated=frameReplayFence.saturated();boolean fenced=frameReplayFence.retire(packet);
+        if(fenced)staleFrames.add(supportId);else staleFrames.remove(supportId);
+        discardSupportMaterial(level,supportId,packet.entityId());receivedAt.remove(supportId);
+        if(!wasSaturated && frameReplayFence.saturated())
+            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client anatomy frame replay fence saturated; rejecting poses until lifecycle reset");
     }
     private static void bindPhysics() {
         var transfer=session.catalog();
@@ -200,10 +212,9 @@ public final class AnatomyClientNetworking {
         ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
-            if(entity instanceof net.minecraft.world.entity.LivingEntity living && frames.containsKey(living.getUUID())) {
-                frames.get(living.getUUID()).retireCurrentTrackingGeneration();
-                staleFrames.add(living.getUUID());
-                discardSupportMaterial(level,living.getUUID(),living.getId());
+            if(entity instanceof net.minecraft.world.entity.LivingEntity living) {
+                var history=frames.remove(living.getUUID());
+                if(history!=null)retireFrameHistory(level,living.getUUID(),history);
             }
         });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client->{
@@ -213,11 +224,7 @@ public final class AnatomyClientNetworking {
                 var history=entry.getValue();var packet=history.current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
                 boolean expired=clientTick-receivedAt.getOrDefault(entry.getKey(),0L)>100;
                 boolean wrongIdentity=entity!=null && !entity.getUUID().equals(entry.getKey());
-                if(wrongIdentity)history.retireCurrentTrackingGeneration();
-                if(expired || wrongIdentity){
-                    if(staleFrames.add(entry.getKey())) {discardSupportMaterial(poseLevel,entry.getKey(),packet.entityId());receivedAt.remove(entry.getKey());}
-                    return false;
-                }
+                if(expired || wrongIdentity){retireFrameHistory(poseLevel,entry.getKey(),history);return true;}
                 return false;
             });
             presentationContacts.entrySet().removeIf(entry->{
@@ -239,7 +246,7 @@ public final class AnatomyClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
             var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
-                || !transfer.snapshot().models().containsKey(packet.model().toString()))return;
+                || !transfer.snapshot().models().containsKey(packet.model().toString()) || frameReplayFence.rejects(packet))return;
             var entity=level.getEntity(packet.entityId());
             if(entity!=null) {
                 if(!entity.getUUID().equals(packet.entity()) || !(entity instanceof net.minecraft.world.entity.LivingEntity living) || !bindingMatches(living,packet))return;
@@ -255,7 +262,7 @@ public final class AnatomyClientNetworking {
                     framesForSupport=new AnatomyFrameHistory();frames.put(packet.entity(),framesForSupport);
                 }
                 if(!framesForSupport.accept(packet))return;
-                receivedAt.put(packet.entity(),clientTick);
+                frameReplayFence.accepted(packet);receivedAt.put(packet.entity(),clientTick);
                 if(!packet.available()) {staleFrames.add(packet.entity());discardSupportMaterial(level,packet.entity(),packet.entityId());return;}
                 staleFrames.remove(packet.entity());
                 var history=poses.computeIfAbsent(packet.entity(),id->new AnatomyPoseHistory());
