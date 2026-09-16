@@ -1,0 +1,141 @@
+name: s24-adversarial-tracking-ledger
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-tracking-ledger.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24AdversarialTrackingGenerationLedgerTests.java'
+  workflow_dispatch:
+
+jobs:
+  bounded-ledger-holdout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate bounded tracking ledger holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run bounded ledger holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-tracking-ledger-junit.xml"
+
+  generation-reuse-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate bounded tracking ledger holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: recycle scalar sequence on release
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java')
+          s=p.read_text()
+          old='if(entity!=null)active.remove(entity);'
+          new='if(entity!=null){active.remove(entity);nextGeneration=1;}'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: holdout must kill generation reuse mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-generation-reuse-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: retired tracking generations became reusable'
+            exit 1
+          fi
+          echo 'KILLED: generation reuse mutant'
+
+  cap-off-by-one-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate bounded tracking ledger holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: admit one entry beyond MAX_ACTIVE
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java')
+          s=p.read_text()
+          old='if(active.size()>=MAX_ACTIVE || nextGeneration<1 || nextGeneration==Long.MAX_VALUE)return UNAVAILABLE;'
+          new='if(active.size()>MAX_ACTIVE || nextGeneration<1 || nextGeneration==Long.MAX_VALUE)return UNAVAILABLE;'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: holdout must kill cap off-by-one mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-cap-off-by-one-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: recipient admitted MAX_ACTIVE+1 tracking windows'
+            exit 1
+          fi
+          echo 'KILLED: active-window cap off-by-one mutant'
