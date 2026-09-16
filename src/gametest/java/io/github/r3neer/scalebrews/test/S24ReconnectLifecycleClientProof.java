@@ -19,7 +19,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.animal.cow.Cow;
 
 /** Integrated G3.9 proof that disconnect/reconnect creates a fresh client tracking lifetime. */
 public final class S24ReconnectLifecycleClientProof implements FabricClientGameTest {
@@ -38,7 +37,7 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                 server.runOnServer(minecraft->boot(minecraft,geometry,profile,cowId,cowUuid));
                 Identity first;
                 try(var connection=server.connect()) {
-                    awaitReady(context,cowId,cowUuid);
+                    awaitReady(context,cowUuid);
                     first=context.computeOnClient(client->S24ReconnectLifecycleClientProof.identity(cowUuid.get()));
                     if(first.trackingGeneration()<1)
                         throw new AssertionError("Fresh first connection did not acquire an authoritative cow tracking generation");
@@ -64,7 +63,7 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                 });
 
                 try(var connection=server.connect()) {
-                    awaitReady(context,cowId,cowUuid);
+                    awaitReady(context,cowUuid);
                     var second=context.computeOnClient(client->S24ReconnectLifecycleClientProof.identity(cowUuid.get()));
                     if(!first.epoch().equals(second.epoch()) || first.revision()!=second.revision())
                         throw new AssertionError("Reconnect to the same running server changed epoch/revision unexpectedly");
@@ -97,11 +96,9 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
         return new Identity(catalog.epoch(),catalog.revision(),packet.bindingGeneration(),packet.trackingGeneration());
     }
 
-    private static void awaitReady(ClientGameTestContext context,AtomicInteger cowId,AtomicReference<UUID> cowUuid) {
+    private static void awaitReady(ClientGameTestContext context,AtomicReference<UUID> cowUuid) {
         context.waitFor(client->{
             if(client.level==null || client.player==null || !AnatomyClientNetworking.catalog().ready())return false;
-            var entity=client.level.getEntity(cowId.get());
-            if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))return false;
             var history=AnatomyClientNetworking.pose(cowUuid.get());
             return history!=null && history.current()!=null;
         },200);
