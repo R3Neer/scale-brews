@@ -8,7 +8,7 @@ This document records the independent adversarial state of S20 after the Citadel
 
 S20's reusable Citadel evaluator, optional authoritative-channel boundary, catalog transfer format, representative program data and real-model oracle are materially present. The adversarial closeout currently has two blockers:
 
-1. an accepted canonical `scalebrews:citadel_program` binding is validated and transferred but is not materialized into `WorldAnatomyCatalog.Snapshot.bindings()`, so `AnatomyRuntime` cannot execute it through the canonical runtime path;
+1. an accepted canonical `scalebrews:citadel_program` binding is validated and transferred but is not materialized into `WorldAnatomyCatalog.Snapshot.bindings()`, so `AnatomyRuntime` cannot execute it through the canonical runtime path; the eventual repair must also remove the unconditional dependency on legacy pose eligibility for canonical bindings;
 2. compound conditions have per-node cardinality and depth limits but no **program-wide** node budget, leaving HOT_TICK work without a practical schema bound.
 
 The independent closeout therefore classifies:
@@ -124,17 +124,23 @@ The holdout now protects more than map presence. Once materialization exists it 
 - rejects evaluation when the required `probe` channel is absent;
 - successfully evaluates the neutral bound program when that channel is present.
 
-This is not an oracle/harness/compile failure. The isolated run compiled, started the dedicated GameTest server and failed only the I9 runtime-executability property; the separate catalog bundle round-trip test survives.
+A further adversarial source read found a second I9 boundary that the materialization fix must not miss. `AnatomyRuntime.bindIfEligible(...)` currently creates the server-driven provider with:
 
-Required repair property, without prescribing implementation:
+`AnatomyPoseEligibility.supported(binding.legacyPoseProvider(), entity)`.
+
+`AnatomyPoseEligibility` only owns legacy procedural provider guards; an unknown provider, including `scalebrews:citadel_program`, fails closed. `ModelGeometryProvider.tick(...)` feeds that predicate into `AuthorityPoseTracker.tick(...)`, which combines it with external-adapter availability to set `PoseEngine.Inputs.ordinary()`. Therefore merely inserting canonical bindings into `Snapshot.bindings()` is insufficient if the canonical runtime still requires a legacy provider id to become pose-eligible.
+
+Required repair properties, without prescribing implementation:
 
 > Any accepted canonical binding whose geometry, pose engine/program, declared channels and root provider all validate must be materialized into the executable accepted revision. Executability must not be restricted to the legacy compatibility bridge, and preparation must preserve the exact selected parameters/channels/root rather than rebuild a legacy-shaped approximation.
 
-After the implementer changes that path, the existing I9 workflow must turn green without weakening the test.
+> Canonical bindings must not depend on a nominal legacy pose provider for runtime eligibility. Legacy state guards may remain on the legacy compatibility bridge, while canonical/data-backed bindings must derive availability from their canonical common-side inputs, declared channels/adapters and bound-engine fail-closed contract.
+
+After the implementer changes that path, the existing I9 workflow must turn green without weakening the test. The adversary must then add/execute a live-runtime holdout proving that a canonical bound sample is not suppressed by legacy eligibility before I9 is closed.
 
 ## 9. No hard Alex/Citadel dependency
 
-The normal production dependency metadata continues to require Minecraft/Fabric rather than Alex's Mobs or Citadel. Family-specific proof dependencies are CI/test inputs, while common-side runtime structures are neutral Scale DTOs/engines. The I9 blocker is therefore catalog/runtime preparation, not a hard-dependency failure.
+The normal production dependency metadata continues to require Minecraft/Fabric rather than Alex's Mobs or Citadel. Family-specific proof dependencies are CI/test inputs, while common-side runtime structures are neutral Scale DTOs/engines. The I9 blocker is therefore catalog/runtime preparation and lifecycle ownership, not a hard-dependency failure.
 
 ## 10. I10 — authoring guidance exists, program-wide condition bound does not
 
@@ -153,33 +159,35 @@ The adversarial CPU probe found that the currently documented condition limits a
 
 Independent boundedness holdout:
 
-- test: `S20AdversarialConditionBudgetTests.publishedGlobalConditionBudgetMustAcceptLimitAndRejectLimitPlusOne`;
+- test: `S20AdversarialConditionBudgetTests.programWideConditionBudgetMustRejectPathologicalAndBoundaryPlusOne`;
 - workflow: `s20-adversarial-condition-budget`;
-- baseline failing run: **35060266298**, SHA `2394538bc8c7767365ace2fe9dd53bb6c4fb05a1`;
-- failure: no explicit immutable integer condition-node budget is declared on `CitadelPoseProgram` (`found []`).
+- behavior-only failing run: **35068925788**, SHA `f929d66158b43b15634b52e640eaf9e84ff563c6`;
+- general build on the same SHA: **SUCCESS**;
+- failure: production accepts the measured **33825-node** condition tree.
 
-The holdout derives its boundary from production instead of hard-coding the intended final limit. Its reflection is visibility-neutral: the bound may remain implementation-private. It requires:
+The final holdout is deliberately implementation-neutral. It does not inspect constants, fields, names or visibility. It requires only observable schema behavior:
 
-1. exactly one explicit `static final int` condition-node budget;
-2. a positive limit below the measured 33825-node pathological fixture;
-3. exactly `limit` nodes accepted;
-4. `limit + 1` nodes in one tree rejected fail-closed;
-5. **program-wide aggregation**: two operations that are each individually within the limit but whose combined condition nodes equal `limit + 1` must also be rejected.
+1. a one-node condition program remains valid;
+2. the measured 33825-node pathological fixture is rejected;
+3. the largest accepted boundary below it is discovered behaviorally;
+4. exactly that boundary is accepted and `boundary + 1` is rejected fail-closed;
+5. **program-wide aggregation**: two operations that are each individually within the discovered boundary but whose combined condition nodes equal `boundary + 1` must also be rejected.
 
-The aggregate case prevents a cosmetic per-operation cap from leaving the whole program's HOT_TICK work effectively unbounded.
+The aggregate case prevents a cosmetic per-operation cap from leaving the whole program's HOT_TICK work effectively unbounded, while the behavior-only discovery leaves the implementer free to choose the concrete limit and representation.
 
-I10 therefore remains open until production defines and enforces that explicit total program condition-node budget and the hardened holdout passes.
+I10 therefore remains open until production enforces a practical total program condition-node budget and the behavior-only holdout passes.
 
 ## 11. Closeout gate
 
 Do not mark S20 `CLOSED` until all of the following are true in the same branch lineage:
 
 1. `s20-adversarial-canonical-binding` is green;
-2. the program-wide condition-node bound exists and the hardened boundary/aggregation holdout is green;
-3. the real-model oracle remains green;
-4. the pose-channel transaction holdout remains green;
-5. operation CPU scaling remains classified as non-superlinear and allocation evidence remains accepted;
-6. build is green;
-7. the PREPARATION/HOT_TICK second read is repeated after the production fixes and remains clean;
-8. the canonical S20 checklist/evidence is updated to reflect the actual implementation;
-9. no S21 change regresses the S20 executable binding path.
+2. a live canonical runtime sample is proven not to depend on legacy pose eligibility;
+3. the program-wide condition-node bound exists and the behavior-only boundary/aggregation holdout is green;
+4. the real-model oracle remains green;
+5. the pose-channel transaction holdout remains green;
+6. operation CPU scaling remains classified as non-superlinear and allocation evidence remains accepted;
+7. build is green;
+8. the PREPARATION/HOT_TICK second read is repeated after the production fixes and remains clean;
+9. the canonical S20 checklist/evidence is updated to reflect the actual implementation;
+10. no S21 change regresses the S20 executable binding path.
