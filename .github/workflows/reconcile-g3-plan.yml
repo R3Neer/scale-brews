@@ -27,39 +27,40 @@ jobs:
           p=Path('docs/ENTITY_COLLISIONS_PLAN.md')
           text=p.read_text()
 
-          replacements=[
-          (
-          '''El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo interno deba salir de `collision.internal`. Tras S14 permanece como orquestador/query live y conserva `FRAME_SERIALS` + root history porque `GeometryProvider.CausalEndpoint` todavía contiene `AnatomyMovement.RootFrame`; separar ese bloque ahora exigiría una dependencia inversa o adelantar el rediseño de root/lifecycle de G3. La tarea 9 exige precisamente **no** mover tipos hasta que queden realmente desacoplados.''',
-          '''El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecido ni exigía mover tipos antes de tener una frontera acíclica. Tras S14, `FRAME_SERIALS` + root history quedaron deliberadamente dentro del orquestador porque `GeometryProvider.CausalEndpoint` todavía contenía `AnatomyMovement.RootFrame`. **Ese aplazamiento ya fue resuelto posteriormente en G3.12**: `RootFrame`/`RootFrameLedger` poseen provenance root y `AnatomyEndpointLedger` posee endpoint serial state, mientras `AnatomyMovement` conserva decisiones físicas/query. Esto actualiza el árbol actual sin reescribir el criterio histórico de cierre G2.'''
-          ),
-          (
-          '''**S22 abierto / único blocker adversarial vigente:** G3 tarea 8 permanece abierta. Digest, completitud exacta, agregación multi-variante/state-gaps y frontera tooling/hot-path están verdes; sin embargo `S22AdversarialCoverageProvenanceTests` demuestra que un `Artifact` puede contener exactamente todos los ids descubiertos y aun así aceptar clasificaciones `FULL` fabricadas por el caller con evidencia local plausible no procedente del catálogo/scanner. Red inicial: run `35106752630`, job `104829857809`, mientras ordinary `35106752431`, job `104829855709`, quedó verde. Detalle vivo en `docs/sprints/S22-adversarial-model.md`.
+          old_g2='El cierre no afirma que `AnatomyMovement` haya desaparecido ni que todo tipo interno deba salir de `collision.internal`. Tras S14 permanece como orquestador/query live y conserva `FRAME_SERIALS` + root history porque `GeometryProvider.CausalEndpoint` todavía contiene `AnatomyMovement.RootFrame`; separar ese bloque ahora exigiría una dependencia inversa o adelantar el rediseño de root/lifecycle de G3. La tarea 9 exige precisamente **no** mover tipos hasta que queden realmente desacoplados.'
+          new_g2='El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecido ni exigía mover tipos antes de tener una frontera acíclica. Tras S14, `FRAME_SERIALS` + root history quedaron deliberadamente dentro del orquestador porque `GeometryProvider.CausalEndpoint` todavía contenía `AnatomyMovement.RootFrame`. **Ese aplazamiento ya fue resuelto posteriormente en G3.12**: `RootFrame`/`RootFrameLedger` poseen provenance root y `AnatomyEndpointLedger` posee endpoint serial state, mientras `AnatomyMovement` conserva decisiones físicas/query. Esto actualiza el árbol actual sin reescribir el criterio histórico de cierre G2.'
+          assert text.count(old_g2)==1, 'historical G2 ownership paragraph drifted'
+          text=text.replace(old_g2,new_g2)
 
-**Prioridad G3 vigente:** tarea **8** es el primer trabajo productivo abierto y tiene un blocker adversarial singular de provenance/autenticidad. Tras su cierre, las tareas 9-12 retoman lifecycle/order/separación interna.''',
-          '''**S22 reparado en baseline / cierre adversarial aún pendiente:** G3 tarea 8 permanece formalmente abierta porque el plan exige mutation adequacy y lectura final independiente, pero el blocker productivo de provenance/autenticidad ya no está RED. `8f72e5e8dc6637b2f6f01800ef617d949b1be448` enlazó los artifacts resueltos con provenance del scanner y `50296a6792f523e57fcd8daa71ba6f598254a6e6` separó correctamente los gates de completeness y provenance. Sobre `50296a6`, provenance `35109432100`, completeness `35109432255`, residuals `35109431905`, coverage proof `35109431948` y ordinary build `35109431854` terminaron **success**. Lo pendiente ya no es reparar el RED original, sino la campaña adversarial posterior de mutación + zero-change que autorice marcar task 8 `[x]`.
+          s22_start=text.index('**S22 abierto / único blocker adversarial vigente:**')
+          s22_end=text.index('\n\n**Salida:** catálogo general reproducible',s22_start)
+          old_s22=text[s22_start:s22_end]
+          assert '**Prioridad G3 vigente:** tarea **8** es el primer trabajo productivo abierto' in old_s22, 'unexpected S22 priority block'
+          new_s22=(
+              '**S22 reparado en baseline / cierre adversarial aún pendiente:** G3 tarea 8 permanece formalmente abierta porque el plan exige mutation adequacy y lectura final independiente, pero el blocker productivo de provenance/autenticidad ya no está RED. '
+              '`8f72e5e8dc6637b2f6f01800ef617d949b1be448` enlazó los artifacts resueltos con provenance del scanner y `50296a6792f523e57fcd8daa71ba6f598254a6e6` separó correctamente los gates de completeness y provenance. '
+              'Sobre `50296a6`, provenance `35109432100`, completeness `35109432255`, residuals `35109431905`, coverage proof `35109431948` y ordinary build `35109431854` terminaron **success**. '
+              'Lo pendiente ya no es reparar el RED original, sino la campaña adversarial posterior de mutación + zero-change que autorice marcar task 8 `[x]`.\n\n'
+              '**S24 implementer handoff:** las tareas 9-12 han avanzado sin saltarse el estado formal de task 8 y tienen candidato implementer verde. Lifecycle/replay/reconnect/dimension/rebind, `UNAVAILABLE` real con recuperación, late tracking/order y la extracción final de root/endpoint ownership están documentados en `docs/sprints/S24-lifecycle-generation-fencing.md`. '
+              'Evidencia post-separación: unavailable `35135583002`, late tracking/order `35135606727`, lifecycle generation + root-ledger contract `35135695700` y ordinary build `35135695698`, todos **success**. Los checkboxes 9-12 permanecen abiertos hasta revisión adversarial independiente.\n\n'
+              '**Prioridad G3 vigente:** completar el cierre adversarial de task **8** (mutation adequacy + zero-change) y, en paralelo de revisión, someter el candidato S24 de tasks **9-12** a mutaciones/holdouts independientes. No hay un blocker productivo implementer conocido en 9-12 al final de S24.'
+          )
+          text=text[:s22_start]+new_s22+text[s22_end:]
 
-**S24 implementer handoff:** las tareas 9-12 han avanzado sin saltarse el estado formal de task 8 y tienen candidato implementer verde. Lifecycle/replay/reconnect/dimension/rebind, `UNAVAILABLE` real con recuperación, late tracking/order y la extracción final de root/endpoint ownership están documentados en `docs/sprints/S24-lifecycle-generation-fencing.md`. Evidencia post-separación: unavailable `35135583002`, late tracking/order `35135606727`, lifecycle generation + root-ledger contract `35135695700` y ordinary build `35135695698`, todos **success**. Los checkboxes 9-12 permanecen abiertos hasta revisión adversarial independiente.
+          old_bottom='La partición G2 de `AnatomyMovement` se considera completa **para el alcance estructural Q2**. Sigue conservando activación, endpoint serials, root history, sweep metrics y la orquestación/query live. Eso no se interpreta como un nuevo owner redundante: endpoint/root forman todavía una unidad causal porque `GeometryProvider.CausalEndpoint` usa `AnatomyMovement.RootFrame`, mientras la generalización de root y lifecycle pertenece a G3. Las métricas y activación aisladas no justifican una extracción propia. El siguiente cambio de ownership sólo se hará desde G3 cuando root/catalog/lifecycle produzcan una frontera real.'
+          new_bottom='La partición G2 de `AnatomyMovement` se considera completa **para el alcance estructural Q2**. Históricamente conservó activación, endpoint serials, root history, sweep metrics y la orquestación/query live porque endpoint/root todavía formaban una unidad causal y su separación pertenecía a G3. Ese siguiente corte ya existe en el árbol actual: `collision.runtime.RootFrame` + `RootFrameLedger` poseen provenance root y `collision.internal.AnatomyEndpointLedger` posee serial/snapshot/invalidated state; `AnatomyMovement` conserva activación, sweep metrics y decisiones/orquestación/query live. Las métricas y activación aisladas siguen sin justificar una extracción propia.'
+          assert text.count(old_bottom)==1, 'bottom ownership paragraph drifted'
+          text=text.replace(old_bottom,new_bottom)
 
-**Prioridad G3 vigente:** completar el cierre adversarial de task **8** (mutation adequacy + zero-change) y, en paralelo de revisión, someter el candidato S24 de tasks **9-12** a mutaciones/holdouts independientes. No hay un blocker productivo implementer conocido en 9-12 al final de S24.'''
-          ),
-          (
-          '''La partición G2 de `AnatomyMovement` se considera completa **para el alcance estructural Q2**. Sigue conservando activación, endpoint serials, root history, sweep metrics y la orquestación/query live. Eso no se interpreta como un nuevo owner redundante: endpoint/root forman todavía una unidad causal porque `GeometryProvider.CausalEndpoint` usa `AnatomyMovement.RootFrame`, mientras la generalización de root y lifecycle pertenece a G3. Las métricas y activación aisladas no justifican una extracción propia. El siguiente cambio de ownership sólo se hará desde G3 cuando root/catalog/lifecycle produzcan una frontera real.''',
-          '''La partición G2 de `AnatomyMovement` se considera completa **para el alcance estructural Q2**. Históricamente conservó activación, endpoint serials, root history, sweep metrics y la orquestación/query live porque endpoint/root todavía formaban una unidad causal y su separación pertenecía a G3. Ese siguiente corte ya existe en el árbol actual: `collision.runtime.RootFrame` + `RootFrameLedger` poseen provenance root y `collision.internal.AnatomyEndpointLedger` posee serial/snapshot/invalidated state; `AnatomyMovement` conserva activación, sweep metrics y decisiones/orquestación/query live. Las métricas y activación aisladas siguen sin justificar una extracción propia.'''
-          )]
-
-          for old,new in replacements:
-              count=text.count(old)
-              assert count==1, f'expected exactly one canonical paragraph, found {count}: {old[:80]!r}'
-              text=text.replace(old,new)
-
-          # Formal closure remains adversarial-owned: do not flip G3.8-G3.12 checkboxes here.
-          for task in (
+          # Formal closure remains adversarial-owned: do not flip G3.8-G3.12 here.
+          tasks=(
               '8. [ ] scanner/coverage FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;',
               '9. [ ] reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;',
               '10. [ ] unsupported states publican unavailable y recuperan sin freeze;',
               '11. [ ] lifecycle/order sobre runtime y packets reales;',
               '12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.'
-          ):
+          )
+          for task in tasks:
               assert task in text, f'formal G3 task state changed unexpectedly: {task}'
 
           p.write_text(text)
