@@ -95,7 +95,8 @@
       "io.github.r3neer.scalebrews.test.S23DisplayRigSpiTests",
       "io.github.r3neer.scalebrews.test.S23AdversarialGeometryEngineOpacityTests",
       "io.github.r3neer.scalebrews.collision.internal.S24LifecycleGenerationTests",
-      "io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests"
+      "io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests",
+      "io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
