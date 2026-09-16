@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
@@ -23,7 +24,7 @@ public final class S00RuntimeTests {
         Provider(LivingEntity support){update(1,support.level().getGameTime(),support.position());}
         void update(long serial,long tick,Vec3 origin) {
             var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
-            var root=new AnatomyMovement.RootFrame(serial,tick,origin,0,1,GravityFrame.VANILLA);
+            var root=new RootFrame(serial,tick,origin,0,1,GravityFrame.VANILLA);
             endpoint=new CausalEndpoint(serial,tick,tick,root,new AnatomyPoseHistory.Sample(inputs,origin,0,1),Availability.AVAILABLE);
             snapshot=new Snapshot(1,Map.of("piece",box(UNIT).move(origin)));
         }

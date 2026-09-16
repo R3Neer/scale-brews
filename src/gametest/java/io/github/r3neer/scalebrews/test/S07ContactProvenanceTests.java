@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -134,7 +135,7 @@ public final class S07ContactProvenanceTests {
 
     private static GeometryProvider.QueryFrame frame(GeometryProvider.GeometryIdentity identity,long serial,long tick,
             Vec3 origin,ConvexBox box) {
-        var root=new AnatomyMovement.RootFrame(serial,tick,origin,0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(serial,tick,origin,0,1,GravityFrame.VANILLA);
         var sample=new AnatomyPoseHistory.Sample(INPUTS,origin,0,1,GravityFrame.VANILLA);
         var endpoint=new GeometryProvider.CausalEndpoint(serial,tick,tick,root,sample,GeometryProvider.Availability.AVAILABLE);
         return new GeometryProvider.QueryFrame(identity,endpoint,new GeometryProvider.Snapshot(identity.revision(),Map.of("body",box)));

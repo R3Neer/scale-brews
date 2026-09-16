@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
 import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
@@ -173,7 +174,7 @@ public final class S24ContactSupportRebindReplayClientProof implements FabricCli
 
     private static GeometryProvider.PublishedFrame rebound(GeometryProvider.PublishedFrame prior,long serial,long bindingGeneration) {
         var old=prior.endpoint();var identity=prior.identity();var sample=old.sample();
-        var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,
+        var root=new RootFrame(old.root().sequence()+1,old.root().tick()+1,
             sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick()+1,old.jointSampleTick(),root,sample,GeometryProvider.Availability.AVAILABLE);
         var rebound=new GeometryProvider.GeometryIdentity(identity.dimension(),identity.support(),identity.entityId(),identity.epoch(),identity.revision(),

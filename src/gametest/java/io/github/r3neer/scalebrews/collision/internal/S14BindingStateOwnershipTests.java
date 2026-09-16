@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import java.io.IOException;
@@ -182,7 +183,7 @@ public final class S14BindingStateOwnershipTests {
     }
 
     private static GeometryProvider.CausalEndpoint endpoint(LivingEntity entity,long serial) {
-        var root=new AnatomyMovement.RootFrame(serial,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),AnatomyMovement.gravity(entity));
+        var root=new RootFrame(serial,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),AnatomyMovement.gravity(entity));
         var sample=new AnatomyPoseHistory.Sample(INPUTS,root.origin(),root.yaw(),root.scale(),root.gravity());
         return new GeometryProvider.CausalEndpoint(serial,entity.level().getGameTime(),entity.level().getGameTime(),root,sample,GeometryProvider.Availability.AVAILABLE);
     }

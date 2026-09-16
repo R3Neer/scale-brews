@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
@@ -33,7 +34,7 @@ public final class S00LifecycleTests {
         int endpointCalls;
         Provider(LivingEntity entity,long serial,double shift) {
             var origin=entity.position().add(shift,0,0);var gravity=AnatomyMovement.gravity(entity);long tick=entity.level().getGameTime();
-            var root=new AnatomyMovement.RootFrame(serial,tick,origin,0,1,gravity);
+            var root=new RootFrame(serial,tick,origin,0,1,gravity);
             var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
             endpoint=new CausalEndpoint(serial,tick,tick,root,new AnatomyPoseHistory.Sample(inputs,origin,0,1,gravity),Availability.AVAILABLE);
             double width=entity.getBbWidth();

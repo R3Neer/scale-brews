@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.test.mixin.TestFoodAccess;
@@ -40,7 +41,7 @@ public final class S08PassiveTransportStateTests {
             int fallStat=stats.getValue(Stats.CUSTOM.get(Stats.FALL_ONE_CM));
 
             Vec3 applied=new Vec3(.25,0,0);body.setPos(body.position().add(applied));
-            var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,AnatomyMovement.gravity(support));
+            var root=new RootFrame(1,tick,support.position(),0,1,AnatomyMovement.gravity(support));
             h.assertTrue(AnatomyMovement.recordCertifiedTransport(body,support,surface,root,applied,material,material.move(applied)),
                 "Certified passive transport accounting must accept the retained relation");
             h.assertTrue(body.getDeltaMovement().equals(voluntary),

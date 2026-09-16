@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -119,8 +120,8 @@ public final class S07BudgetFailureLocalizationTests {
         long registration=AnatomyMovement.registrationGeneration(support);
         var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),97,
             Identifier.parse("test:s07_budget_model"),Identifier.parse("test:s07_budget_pose"),1,registration);
-        var beforeRoot=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
-        var afterRoot=new AnatomyMovement.RootFrame(2,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var beforeRoot=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var afterRoot=new RootFrame(2,tick,support.position(),0,1,GravityFrame.VANILLA);
         var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,beforeRoot.origin(),0,1,GravityFrame.VANILLA);
         var afterSample=new AnatomyPoseHistory.Sample(INPUTS,afterRoot.origin(),0,1,GravityFrame.VANILLA);
         var before=new GeometryProvider.QueryFrame(identity,

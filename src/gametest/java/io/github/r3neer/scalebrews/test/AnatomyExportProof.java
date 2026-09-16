@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import com.google.gson.GsonBuilder;
 import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.client.collision.preparation.ModelPartGeometryEngine;
@@ -99,7 +100,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 AnatomyMovement.gravity(player,new GravityFrame(net.minecraft.core.Direction.EAST));
                 long authorityTick=server.overworld().getGameTime();
                 var sample=new AnatomyPoseHistory.Sample(sentPose,player.position(),player.yBodyRot,player.getScale(),AnatomyMovement.gravity(player));
-                var root=new AnatomyMovement.RootFrame(1,authorityTick,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
+                var root=new RootFrame(1,authorityTick,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
                 var identity=new GeometryProvider.GeometryIdentity(player.level().dimension(),player.getUUID(),player.getId(),
                     AnatomyNetworking.epoch(server),1,net.minecraft.resources.Identifier.parse("minecraft:player_wide"),
                     net.minecraft.resources.Identifier.parse("scalebrews:player_walking"),1,1);
@@ -156,7 +157,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             world.getServer().runOnServer(server->{
                 var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
                 var unavailable=new GeometryProvider.CausalEndpoint(2,endpoint.authorityTick()+1,endpoint.jointSampleTick()+1,
-                    new AnatomyMovement.RootFrame(2,root.tick()+1,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.UNAVAILABLE);
+                    new RootFrame(2,root.tick()+1,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.UNAVAILABLE);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(first.identity(),unavailable));
             });
             context.waitTicks(5);
@@ -173,7 +174,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             world.getServer().runOnServer(server->{
                 var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
                 var restored=new GeometryProvider.CausalEndpoint(3,endpoint.authorityTick()+2,endpoint.jointSampleTick()+2,
-                    new AnatomyMovement.RootFrame(3,root.tick()+2,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
+                    new RootFrame(3,root.tick()+2,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(first.identity(),restored));
             });
             context.waitTicks(5);
@@ -188,7 +189,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 var reboundIdentity=new GeometryProvider.GeometryIdentity(first.identity().dimension(),first.identity().support(),first.identity().entityId(),
                     first.identity().epoch(),first.identity().revision(),first.identity().model(),first.identity().poseProvider(),2,2);
                 var rebound=new GeometryProvider.CausalEndpoint(4,endpoint.authorityTick()+3,endpoint.jointSampleTick()+3,
-                    new AnatomyMovement.RootFrame(4,root.tick()+3,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
+                    new RootFrame(4,root.tick()+3,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(reboundIdentity,rebound));
             });
             context.waitTicks(5);

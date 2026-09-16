@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -21,8 +22,8 @@ import org.joml.Matrix4f;
 
 /** Q2 helper coverage: no mixin, Level entity query, receipt, or network path is enabled here. */
 public class AnatomyMaterialEventDispatcherTests {
-    private static AnatomyMovement.RootFrame root(long sequence,long tick,double x) {
-        return new AnatomyMovement.RootFrame(sequence,tick,new Vec3(x,0,0),0,1,GravityFrame.VANILLA);
+    private static RootFrame root(long sequence,long tick,double x) {
+        return new RootFrame(sequence,tick,new Vec3(x,0,0),0,1,GravityFrame.VANILLA);
     }
     private static MaterialEventDispatcher.MaterialInterval interval(GameTestHelper h,long materialSerial) {
         var identity=new GeometryProvider.GeometryIdentity(Level.OVERWORLD,UUID.randomUUID(),1,UUID.randomUUID(),1,

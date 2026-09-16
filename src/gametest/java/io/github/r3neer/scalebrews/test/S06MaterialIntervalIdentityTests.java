@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -270,14 +271,14 @@ public final class S06MaterialIntervalIdentityTests {
 
     private static GeometryProvider endpointProvider(long revision,Function<net.minecraft.world.entity.LivingEntity,PoseProvider.Inputs> inputs) {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;
+            private RootFrame previous;
             private PoseProvider.Inputs previousInputs;
             private long serial;
             @Override public Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity entity) {
                 return Optional.of(new Snapshot(revision,Map.of("body",ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(entity.position()))));
             }
             @Override public Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
-                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
+                var observed=new RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
                 boolean sameRoot=previous!=null && previous.origin().equals(observed.origin()) && previous.yaw()==observed.yaw()
                     && previous.scale()==observed.scale() && previous.gravity().equals(observed.gravity());
                 if(!sameRoot)previous=observed;
@@ -305,7 +306,7 @@ public final class S06MaterialIntervalIdentityTests {
     }
 
     private static GeometryProvider.QueryFrame frame(GeometryProvider.GeometryIdentity id,long serial,long authority,long joint,Vec3 origin,GravityFrame gravity) {
-        var root = new AnatomyMovement.RootFrame(serial,authority,origin,0,1,gravity);
+        var root = new RootFrame(serial,authority,origin,0,1,gravity);
         var sample = new AnatomyPoseHistory.Sample(INPUTS,origin,0,1,gravity);
         var endpoint = new GeometryProvider.CausalEndpoint(serial,authority,joint,root,sample,GeometryProvider.Availability.AVAILABLE);
         var snapshot = new GeometryProvider.Snapshot(id.revision(),Map.of("body",ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(origin)));

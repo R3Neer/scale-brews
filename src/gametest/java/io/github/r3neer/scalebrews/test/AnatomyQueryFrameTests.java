@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -30,7 +31,7 @@ public class AnatomyQueryFrameTests {
             Function<net.minecraft.world.entity.LivingEntity,PoseEngine.Inputs> causalInputs,
             Function<net.minecraft.world.entity.LivingEntity,GeometryProvider.Availability> availability,Optional<GeometryProvider.MotionSnapshot> historical) {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;
+            private RootFrame previous;
             private PoseEngine.Inputs previousInputs;
             private GeometryProvider.Availability previousAvailability;
             private long serial;
@@ -40,7 +41,7 @@ public class AnatomyQueryFrameTests {
             @Override public Optional<GeometryProvider.Snapshot> sample(net.minecraft.world.entity.LivingEntity entity) {return Optional.of(snapshot(entity));}
             @Override public Optional<GeometryProvider.MotionSnapshot> motion(net.minecraft.world.entity.LivingEntity entity) {return historical;}
             @Override public Optional<GeometryProvider.CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
-                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
+                var observed=new RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
                 boolean sameRoot=previous!=null && previous.origin().equals(observed.origin()) && previous.yaw()==observed.yaw() && previous.scale()==observed.scale() && previous.gravity().equals(observed.gravity());
                 if(!sameRoot)previous=observed;
                 var inputs=causalInputs.apply(entity);
@@ -84,7 +85,7 @@ public class AnatomyQueryFrameTests {
             h.assertTrue(AnatomyMovement.spaceClear(body,first.bounds().inflate(.01))
                     && !AnatomyMovement.spaceClear(body,second.bounds().inflate(.01)),
                 "Same-revision rebind invalidates the prior identity generation and spatial frame");
-            var changedGravity=new AnatomyMovement.RootFrame(rebound.root().sequence()+1,rebound.root().tick(),rebound.root().origin(),rebound.root().yaw(),rebound.root().scale(),new GravityFrame(net.minecraft.core.Direction.EAST));
+            var changedGravity=new RootFrame(rebound.root().sequence()+1,rebound.root().tick(),rebound.root().origin(),rebound.root().yaw(),rebound.root().scale(),new GravityFrame(net.minecraft.core.Direction.EAST));
             var changedSample=new AnatomyPoseHistory.Sample(rebound.sample().inputs(),changedGravity.origin(),changedGravity.yaw(),changedGravity.scale(),changedGravity.gravity());
             var changedFrame=new GeometryProvider.QueryFrame(rebound.identity(),new GeometryProvider.CausalEndpoint(rebound.endpoint().frameSerial()+1,rebound.authorityTick(),rebound.endpoint().jointSampleTick(),changedGravity,changedSample,GeometryProvider.Availability.AVAILABLE),rebound.snapshot());
             boolean gravityRejected=false;try {new GeometryProvider.MotionIntervalHandle(rebound.identity(),1,rebound,changedFrame);} catch(IllegalArgumentException expected) {gravityRejected=true;}

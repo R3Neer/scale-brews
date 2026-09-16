@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -118,8 +119,8 @@ public final class S08DerivedChainCausalityTests {
         var identity=new GeometryProvider.GeometryIdentity(Level.OVERWORLD,UUID.randomUUID(),1,UUID.randomUUID(),312,
             Identifier.parse("test:s08_chain"),Identifier.parse("test:s08_chain_pose"),1,1);
         var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
-        var beforeRoot=new AnatomyMovement.RootFrame(1,1,Vec3.ZERO,0,1,GravityFrame.VANILLA);
-        var afterRoot=new AnatomyMovement.RootFrame(2,1,new Vec3(.1,0,0),0,1,GravityFrame.VANILLA);
+        var beforeRoot=new RootFrame(1,1,Vec3.ZERO,0,1,GravityFrame.VANILLA);
+        var afterRoot=new RootFrame(2,1,new Vec3(.1,0,0),0,1,GravityFrame.VANILLA);
         var beforeSample=new AnatomyPoseHistory.Sample(inputs,beforeRoot.origin(),0,1,GravityFrame.VANILLA);
         var afterSample=new AnatomyPoseHistory.Sample(inputs,afterRoot.origin(),0,1,GravityFrame.VANILLA);
         var box=ConvexBox.of(new AABB(0,0,0,1,1,1),new Matrix4f());

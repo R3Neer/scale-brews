@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -82,8 +83,8 @@ public final class S08PassengerOnceTests {
         long tick=support.level().getGameTime();var origin=support.position();
         var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),313,
             Identifier.parse("test:s08_passenger"),Identifier.parse("test:s08_passenger_pose"),1,1);
-        var rootA=new AnatomyMovement.RootFrame(1,tick,origin,0,1,GravityFrame.VANILLA);
-        var rootB=new AnatomyMovement.RootFrame(2,tick,origin.add(.1,0,0),0,1,GravityFrame.VANILLA);
+        var rootA=new RootFrame(1,tick,origin,0,1,GravityFrame.VANILLA);
+        var rootB=new RootFrame(2,tick,origin.add(.1,0,0),0,1,GravityFrame.VANILLA);
         var sampleA=new AnatomyPoseHistory.Sample(INPUTS,rootA.origin(),0,1,GravityFrame.VANILLA);
         var sampleB=new AnatomyPoseHistory.Sample(INPUTS,rootB.origin(),0,1,GravityFrame.VANILLA);
         var box=ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(origin);

@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.BodyPath;
@@ -32,7 +33,7 @@ final class AnchoredTransportPlanner {
     enum Status {NOT_APPLICABLE,COMPLETE,RELEASE,EXHAUSTED}
     private enum ObstacleStatus {CLEAR,RELEASE,EXHAUSTED}
     record Evidence(MaterialEventDispatcher.EventId parent,LivingEntity support,SurfaceContact surface,
-            AnatomyMovement.RootFrame root,ConvexBox materialBefore,ConvexBox materialAfter) {
+            RootFrame root,ConvexBox materialBefore,ConvexBox materialAfter) {
         Evidence {
             if(parent==null || support==null || surface==null || root==null || materialBefore==null || materialAfter==null)
                 throw new IllegalArgumentException("Missing anchored transport evidence");

@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -37,7 +38,7 @@ public final class S06SupportedMembershipCausalityTests {
         var piece=ConvexBox.of(new AABB(-.5,0,-.5,.5,.5,.5),new Matrix4f()).move(remote);
         var snapshot=new GeometryProvider.Snapshot(1,Map.of("body",piece));
         var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
-        var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,support.getScale(),GravityFrame.VANILLA);
+        var root=new RootFrame(1,tick,support.position(),0,support.getScale(),GravityFrame.VANILLA);
         var sample=new AnatomyPoseHistory.Sample(inputs,root.origin(),root.yaw(),root.scale(),root.gravity());
         var unavailableEndpoint=new GeometryProvider.CausalEndpoint(1,tick,tick,root,sample,GeometryProvider.Availability.UNAVAILABLE);
         var availableEndpoint=new GeometryProvider.CausalEndpoint(2,tick,tick,root,sample,GeometryProvider.Availability.AVAILABLE);

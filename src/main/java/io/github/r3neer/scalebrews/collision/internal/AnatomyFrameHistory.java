@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 
 import java.util.Optional;
@@ -85,9 +86,9 @@ public final class AnatomyFrameHistory {
         if(current==null)throw new IllegalStateException("No causal frame");
         return new AnatomyPoseHistory.Sample(current.inputs(),current.origin(),current.yaw(),current.scale(),new GravityFrame(current.gravity()));
     }
-    public AnatomyMovement.RootFrame root() {
+    public RootFrame root() {
         if(current==null)throw new IllegalStateException("No causal frame");
-        return new AnatomyMovement.RootFrame(current.rootFrameSequence(),current.rootFrameTick(),current.origin(),current.yaw(),current.scale(),new GravityFrame(current.gravity()));
+        return new RootFrame(current.rootFrameSequence(),current.rootFrameTick(),current.origin(),current.yaw(),current.scale(),new GravityFrame(current.gravity()));
     }
     public Optional<GeometryProvider.CausalEndpoint> endpoint() {
         if(current==null)return Optional.empty();

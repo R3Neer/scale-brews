@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
@@ -17,7 +18,7 @@ import static io.github.r3neer.scalebrews.test.S00Fixtures.*;
 public final class S00ReceiptTests {
     private static final Vec3 UP=new Vec3(0,1,0),POINT=new Vec3(.5,1,.5),DELTA=new Vec3(.125,0,0);
     private static AnatomyTransportReceipts.Receipt receipt(Vec3 point,Vec3 normal,Vec3 before,Vec3 after,long rootSequence,long rootTick,long surfaceTick) {
-        var root=new AnatomyMovement.RootFrame(2,rootTick,Vec3.ZERO,0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(2,rootTick,Vec3.ZERO,0,1,GravityFrame.VANILLA);
         return new AnatomyTransportReceipts.Receipt(EPOCH,1,Identifier.parse("minecraft:overworld"),1,new UUID(0,3),1,
             SUPPORT,"piece",3,point,normal,surfaceTick,1,rootSequence,1,10,before,after,root,box(UNIT),box(UNIT).move(DELTA),DELTA);
     }
@@ -39,7 +40,7 @@ public final class S00ReceiptTests {
     private static void record(ServerPlayer body,LivingEntity support,long tick,long sequence) {
         var surface=new SurfaceContact(support.getUUID(),1,"piece",3,POINT,UP,Math.min(tick,body.level().getGameTime()));
         var contact=new AnatomyMovement.Contact(support,"piece",1,UP,1);
-        var root=new AnatomyMovement.RootFrame(1,body.level().getGameTime(),support.position(),0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(1,body.level().getGameTime(),support.position(),0,1,GravityFrame.VANILLA);
         var material=box(UNIT).move(support.position());
         AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,sequence,1,Vec3.ZERO,Vec3.ZERO),material,material);
     }

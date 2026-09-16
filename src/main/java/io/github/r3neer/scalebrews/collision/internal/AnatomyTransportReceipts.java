@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
@@ -30,7 +31,7 @@ public final class AnatomyTransportReceipts {
     public record Receipt(UUID epoch,long catalogRevision,Identifier dimension,int bodyNetworkId,UUID body,long trackingGeneration,
             UUID support,String piece,int face,Vec3 localPoint,Vec3 normal,long surfaceTick,long contactSequence,
             long rootFrameSequence,long transportSequence,long tick,Vec3 bodyBefore,Vec3 bodyAfter,
-            AnatomyMovement.RootFrame rootFrame,ConvexBox materialBefore,ConvexBox materialAfter,Vec3 appliedDelta) {
+            RootFrame rootFrame,ConvexBox materialBefore,ConvexBox materialAfter,Vec3 appliedDelta) {
         public Receipt {
             if(epoch==null || catalogRevision<0 || dimension==null || bodyNetworkId<0 || body==null || trackingGeneration<1 || support==null
                     || piece==null || piece.isBlank() || face<0 || face>5 || localPoint==null || normal==null
@@ -56,7 +57,7 @@ public final class AnatomyTransportReceipts {
 
     /** Called only after P1 has moved the root and refreshed every vanilla baseline. */
     public static synchronized void record(Entity body,AnatomyMovement.Contact contact,SurfaceContact surface,
-            AnatomyMovement.RootFrame root,SupportTransport transport,ConvexBox materialBefore,ConvexBox materialAfter) {
+            RootFrame root,SupportTransport transport,ConvexBox materialBefore,ConvexBox materialAfter) {
         if(body==null || contact==null || surface==null || root==null || transport==null || materialBefore==null || materialAfter==null || body.level().isClientSide())return;
         if(!contact.support().getUUID().equals(surface.support()) || contact.revision()!=surface.revision()
                 || !contact.piece().equals(surface.piece()))return;

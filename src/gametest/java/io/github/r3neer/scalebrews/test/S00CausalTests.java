@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
@@ -33,7 +34,7 @@ public final class S00CausalTests {
         rejects(()->new SurfaceContact(SUPPORT,0,"piece",3,null,UP,0));h.succeed();
     }
     @GameTest public void rootFrameRejectsNegativeTime(GameTestHelper h) {
-        rejects(()->new AnatomyMovement.RootFrame(0,-1,Vec3.ZERO,0,1,GravityFrame.VANILLA));h.succeed();
+        rejects(()->new RootFrame(0,-1,Vec3.ZERO,0,1,GravityFrame.VANILLA));h.succeed();
     }
     @GameTest public void transportRejectsNegativeTimeAndMissingDelta(GameTestHelper h) {
         rejects(()->new SupportTransport(-1,1,0,Vec3.ZERO,Vec3.ZERO));
@@ -56,7 +57,7 @@ public final class S00CausalTests {
         rejects(()->packet(10,10,11,10,1,0));rejects(()->packet(10,10,10,11,1,0));h.succeed();
     }
     @GameTest public void endpointCannotPublishFutureJointOrRoot(GameTestHelper h) {
-        var root=new AnatomyMovement.RootFrame(1,10,Vec3.ZERO,0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(1,10,Vec3.ZERO,0,1,GravityFrame.VANILLA);
         var sample=new AnatomyPoseHistory.Sample(INPUTS,Vec3.ZERO,0,1);
         rejects(()->new GeometryProvider.CausalEndpoint(1,10,11,root,sample,GeometryProvider.Availability.AVAILABLE));
         rejects(()->new GeometryProvider.CausalEndpoint(1,9,9,root,sample,GeometryProvider.Availability.AVAILABLE));h.succeed();

@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
@@ -110,7 +111,7 @@ public final class S21AdversarialRootCausalityTests {
             support.yBodyRot = 0;
             long tick = support.level().getGameTime();
             var gravity = AnatomyMovement.gravity(support);
-            var rootFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+            var rootFrame = new RootFrame(1, tick, support.position(), support.yBodyRot,
                 support.getScale(), gravity);
             var sample = new AnatomyPoseHistory.Sample(inputs, rootFrame.origin(), rootFrame.yaw(),
                 rootFrame.scale(), rootFrame.gravity());
@@ -141,9 +142,9 @@ public final class S21AdversarialRootCausalityTests {
             support.yBodyRot = 0;
             long tick = support.level().getGameTime();
             var gravity = AnatomyMovement.gravity(support);
-            var beforeFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+            var beforeFrame = new RootFrame(1, tick, support.position(), support.yBodyRot,
                 support.getScale(), gravity);
-            var afterFrame = new AnatomyMovement.RootFrame(2, tick + 1, support.position(), support.yBodyRot,
+            var afterFrame = new RootFrame(2, tick + 1, support.position(), support.yBodyRot,
                 support.getScale(), gravity);
             var beforeSample = new AnatomyPoseHistory.Sample(inputs, beforeFrame.origin(), beforeFrame.yaw(),
                 beforeFrame.scale(), beforeFrame.gravity());

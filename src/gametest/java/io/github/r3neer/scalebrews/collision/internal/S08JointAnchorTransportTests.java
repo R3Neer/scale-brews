@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -58,7 +59,7 @@ public final class S08JointAnchorTransportTests {
             long registration=AnatomyMovement.registrationGeneration(support);
             var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
                 Identifier.parse("test:s08_joint_anchor"),Identifier.parse("test:s08_joint_anchor_pose"),1,registration);
-            var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+            var root=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
             var input0=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",0f));
             var input1=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",1f));
             var sample0=new AnatomyPoseHistory.Sample(input0,root.origin(),root.yaw(),root.scale(),root.gravity());

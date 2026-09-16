@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -58,13 +59,13 @@ public final class S08RejectedDerivedIntervalNoDebtTests {
 
     private static GeometryProvider provider() {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;private PoseProvider.Inputs previousInputs;private long serial;
+            private RootFrame previous;private PoseProvider.Inputs previousInputs;private long serial;
             @Override public Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity entity) {
                 return Optional.of(new Snapshot(REVISION,Map.of("body",
                     ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(entity.position()))));
             }
             @Override public Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
-                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),
+                var observed=new RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),
                     entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
                 boolean sameRoot=previous!=null && previous.origin().equals(observed.origin()) && previous.yaw()==observed.yaw()
                     && previous.scale()==observed.scale() && previous.gravity().equals(observed.gravity());

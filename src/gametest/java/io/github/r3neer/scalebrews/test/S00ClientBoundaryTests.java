@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
@@ -54,7 +55,7 @@ public final class S00ClientBoundaryTests implements FabricClientGameTest {
                 long tick=client.level.getGameTime();var material=box(UNIT).move(support.position());
                 var contact=new AnatomyMovement.Contact(support,"piece",1,UP,1);
                 var surface=new SurfaceContact(support.getUUID(),1,"piece",3,POINT,UP,tick);
-                var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+                var root=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
                 AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,999,1,Vec3.ZERO,Vec3.ZERO),material,material);
             });
             world.getServer().runOnServer(server->{
@@ -71,7 +72,7 @@ public final class S00ClientBoundaryTests implements FabricClientGameTest {
         long tick=body.level().getGameTime();var material=box(UNIT).move(support.position());
         var contact=new AnatomyMovement.Contact(support,"piece",1,UP,1);
         var surface=new SurfaceContact(support.getUUID(),1,"piece",3,POINT,UP,tick);
-        var root=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
         AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,sequence,1,delta,delta),material,material.move(delta));
     }
 }

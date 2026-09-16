@@ -10,6 +10,8 @@ import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
+import io.github.r3neer.scalebrews.collision.runtime.RootFrameLedger;
 import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
 
 import io.github.r3neer.scalebrews.platform.Platforms;
@@ -32,15 +34,6 @@ public final class AnatomyMovement {
     /** Retains the whole endpoint, including its original authority time, for a material serial. */
     private record EndpointSerial(EndpointStamp stamp,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot,boolean invalidated) {}
     private static final Map<LivingEntity,EndpointSerial> FRAME_SERIALS=entityMap();
-    /** Rigid root provenance is independent of 20 Hz joint-pose evaluation. */
-    public record RootFrame(long sequence,long tick,Vec3 origin,float yaw,float scale,GravityFrame gravity) {
-        public RootFrame {
-            if(sequence<0 || tick<0 || origin==null || gravity==null || !Double.isFinite(origin.lengthSqr()) || !Float.isFinite(yaw) || !Float.isFinite(scale) || scale<=0)
-                throw new IllegalArgumentException("Invalid root frame");
-        }
-    }
-    private static final class RootHistory {final ArrayDeque<RootFrame> frames=new ArrayDeque<>();}
-    private static final Map<LivingEntity,RootHistory> ROOTS=entityMap();
     /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
     private static synchronized void removeSpatialEntry(LivingEntity support) {
         if(support==null)return;
@@ -122,7 +115,7 @@ public final class AnatomyMovement {
         requireServerThread(support.level());
         var binding=AnatomyRuntime.catalogBinding(support).orElse(AnatomyBindingState.binding(support));
         AnatomyBindingState.rebind(support,provider,null,binding);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        FRAME_SERIALS.remove(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
         refreshSpatialEntry(support);
     }
     /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
@@ -136,7 +129,7 @@ public final class AnatomyMovement {
         if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
         requireServerThread(support.level());
         AnatomyBindingState.rebind(support,provider,descriptor,binding);
-        FRAME_SERIALS.remove(support);ROOTS.remove(support);clearSupportContacts(support);removeSpatialEntry(support);
+        FRAME_SERIALS.remove(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
         queryFrame(support);
     }
     private static void requireServerThread(Level level) {
@@ -389,7 +382,7 @@ public final class AnatomyMovement {
         FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
         io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);
         AnatomyContactState.deactivate(level);
-        ROOTS.keySet().removeIf(e->e.level()==level);
+        RootFrameLedger.deactivate(level);
         TransportLedger.deactivate(level);
         METRICS.remove(level);
         AnatomySpatialIndex.deactivate(level);
@@ -399,61 +392,43 @@ public final class AnatomyMovement {
         return new Contact(contact.support(),contact.piece(),contact.revision(),contact.normal(),contact.sequence());
     }
     /** Capture before a root move; no pose channels are read or evaluated. */
-    public static RootFrame captureRoot(LivingEntity support){return observeRoot(support);}
-    /**
-     * Record a continuous rigid transform segment after move/setPos/yaw/scale. The
-     * caller may provide the before frame captured above; stale callers are safely
-     * reduced to the canonical history rather than inventing a second segment.
-     */
-    public static synchronized RootFrame observeRoot(LivingEntity support,RootFrame before) {
-        var history=ROOTS.computeIfAbsent(support,ignored->new RootHistory());
-        var last=history.frames.peekLast();
-        // A stale callback must not invent a segment across an unrelated move.
-        // A current capture is the explicit START/before -> after provenance edge.
-        if(before==null || last==null || before.sequence()!=last.sequence() || !sameRoot(before,last))return observeRoot(support);
-        return appendRootFrame(support,history,last);
-    }
-    /** Cheap deduplicated observation for query/tick paths that bypass Entity.move. */
-    public static synchronized RootFrame observeRoot(LivingEntity support) {
-        var history=ROOTS.computeIfAbsent(support,ignored->new RootHistory());var last=history.frames.peekLast();
-        return appendRootFrame(support,history,last);
-    }
-    private static RootFrame appendRootFrame(LivingEntity support,RootHistory history,RootFrame last) {
-        if(last==null) {var initial=rootFrame(support,0);history.frames.add(initial);return initial;}
-        var current=rootFrame(support,last.sequence()+1);
-        if(sameRoot(last,current))return last;
-        if(last.origin().distanceToSqr(current.origin())>16 || !last.gravity().equals(current.gravity())) {
-            clearSupportContacts(support);history.frames.clear();history.frames.add(current);return current;
-        }
-        history.frames.add(current);trimRootHistory(history,current.tick());return current;
-    }
-    /** Explicit teleport/dimension/removal lifecycle hook; even a small jump is discontinuous. */
-    public static synchronized void invalidateRoot(LivingEntity support) {
-        // The support can itself be standing on another support.  Clear that anchor too, so a
-        // sub-four-block teleport cannot pull it through air on the next carry pass.
-        invalidateBody(support,true);
-        // Do not reset the binding's serial: a receiver/cursor must distinguish
-        // this discontinuity from an old endpoint with the same transform.
-        FRAME_SERIALS.computeIfPresent(support,(ignored,old)->new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
-        clearSupportContacts(support);ROOTS.remove(support);removeSpatialEntry(support);
-    }
-    /**
-     * An accepted unavailable pose keeps its endpoint watermark, but every body
-     * anchored to that support must stop immediately.  Client lifecycle code uses
-     * this without deactivating the whole level or resetting binding serials.
-     */
-    public static synchronized void invalidateSupport(LivingEntity support) {
-        clearSupportContacts(support);removeSpatialEntry(support);
-    }
-    private static RootFrame rootFrame(LivingEntity support,long sequence) {
-        return new RootFrame(sequence,support.level().getGameTime(),support.position(),support.yBodyRot,support.getScale(),gravity(support));
-    }
-    private static boolean sameRoot(RootFrame a,RootFrame b) {
-        return a.origin().equals(b.origin()) && Float.compare(a.yaw(),b.yaw())==0 && Float.compare(a.scale(),b.scale())==0 && a.gravity().equals(b.gravity());
-    }
-    private static void trimRootHistory(RootHistory history,long tick) {
-        while(history.frames.size()>64 || history.frames.peekFirst()!=null && history.frames.peekFirst().tick()<tick-20)history.frames.removeFirst();
-    }
+public static RootFrame captureRoot(LivingEntity support){return observeRoot(support);}
+/**
+ * Record a continuous rigid transform segment after move/setPos/yaw/scale. Sequence and
+ * bounded provenance live in RootFrameLedger; this orchestrator owns only the physical
+ * reaction to a discontinuity.
+ */
+public static synchronized RootFrame observeRoot(LivingEntity support,RootFrame before) {
+    var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
+        support.getScale(),gravity(support),before);
+    if(observed.discontinuity())clearSupportContacts(support);
+    return observed.frame();
+}
+/** Cheap deduplicated observation for query/tick paths that bypass Entity.move. */
+public static synchronized RootFrame observeRoot(LivingEntity support) {
+    var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
+        support.getScale(),gravity(support));
+    if(observed.discontinuity())clearSupportContacts(support);
+    return observed.frame();
+}
+/** Explicit teleport/dimension/removal lifecycle hook; even a small jump is discontinuous. */
+public static synchronized void invalidateRoot(LivingEntity support) {
+    // The support can itself be standing on another support. Clear that anchor too, so a
+    // sub-four-block teleport cannot pull it through air on the next carry pass.
+    invalidateBody(support,true);
+    // Do not reset the binding's serial: a receiver/cursor must distinguish
+    // this discontinuity from an old endpoint with the same transform.
+    FRAME_SERIALS.computeIfPresent(support,(ignored,old)->new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
+    clearSupportContacts(support);RootFrameLedger.clear(support);removeSpatialEntry(support);
+}
+/**
+ * An accepted unavailable pose keeps its endpoint watermark, but every body
+ * anchored to that support must stop immediately. Client lifecycle code uses
+ * this without deactivating the whole level or resetting binding serials.
+ */
+public static synchronized void invalidateSupport(LivingEntity support) {
+    clearSupportContacts(support);removeSpatialEntry(support);
+}
     private static void clearSupportContacts(LivingEntity support) {
         for(var body:AnatomyContactState.bodiesSupportedBy(support))
             // A support discontinuity is also a body discontinuity, but the body may need its

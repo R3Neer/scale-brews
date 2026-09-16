@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import java.lang.reflect.Method;
@@ -23,7 +24,7 @@ public final class S21AdversarialRootWireTests {
             support.yBodyRot = 0;
             long tick = support.level().getGameTime();
             var gravity = AnatomyMovement.gravity(support);
-            var rootFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+            var rootFrame = new RootFrame(1, tick, support.position(), support.yBodyRot,
                 support.getScale(), gravity);
             var sample = new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(0, 0, 0, 0, 0, true),
                 rootFrame.origin(), rootFrame.yaw(), rootFrame.scale(), rootFrame.gravity());
@@ -52,7 +53,7 @@ public final class S21AdversarialRootWireTests {
         var support = h.spawn(EntityTypes.ARMOR_STAND, 3, 2, 3);
         try {
             long tick = support.level().getGameTime();
-            var rootFrame = new AnatomyMovement.RootFrame(1, tick, support.position(), support.yBodyRot,
+            var rootFrame = new RootFrame(1, tick, support.position(), support.yBodyRot,
                 support.getScale(), AnatomyMovement.gravity(support));
             var sample = new AnatomyPoseHistory.Sample(new PoseEngine.Inputs(0, 0, 0, 0, 0, true),
                 rootFrame.origin(), rootFrame.yaw(), rootFrame.scale(), rootFrame.gravity());

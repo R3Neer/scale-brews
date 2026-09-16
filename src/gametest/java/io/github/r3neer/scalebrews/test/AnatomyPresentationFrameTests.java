@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
 import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
@@ -130,14 +131,14 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
     private static GeometryProvider.PublishedFrame rootOnly(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,float yaw) {
         var old=prior.endpoint();var sample=old.sample();
         var nextSample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
-        var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick(),origin,yaw,sample.scale(),sample.gravity());
+        var root=new RootFrame(old.root().sequence()+1,old.root().tick(),origin,yaw,sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick(),old.jointSampleTick(),root,nextSample,GeometryProvider.Availability.AVAILABLE);
         return new GeometryProvider.PublishedFrame(prior.identity(),endpoint);
     }
 
     private static GeometryProvider.PublishedFrame unavailable(GeometryProvider.PublishedFrame prior,long serial) {
         var old=prior.endpoint();var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick()+1,old.jointSampleTick()+1,
-            new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,old.root().origin(),old.root().yaw(),old.root().scale(),old.root().gravity()),
+            new RootFrame(old.root().sequence()+1,old.root().tick()+1,old.root().origin(),old.root().yaw(),old.root().scale(),old.root().gravity()),
             old.sample(),GeometryProvider.Availability.UNAVAILABLE);
         return new GeometryProvider.PublishedFrame(prior.identity(),endpoint);
     }
@@ -146,7 +147,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
     private static GeometryProvider.PublishedFrame availableAfterGap(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,float yaw) {
         var old=prior.endpoint();var sample=old.sample();
         var nextSample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(sample.inputs(),origin,yaw,sample.scale(),sample.gravity());
-        var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,yaw,sample.scale(),sample.gravity());
+        var root=new RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,yaw,sample.scale(),sample.gravity());
         // The joint sample remains the last accepted one; only the endpoint
         // authority/root advances. This is a static reacquisition, not a
         // fabricated motion interval across the unavailable gap.
@@ -157,7 +158,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
     private static GeometryProvider.PublishedFrame rebound(GeometryProvider.PublishedFrame prior,long serial,Vec3 origin,long bindingGeneration) {
         var old=prior.endpoint();var identity=prior.identity();var sample=new io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory.Sample(
             old.sample().inputs(),origin,old.sample().yaw(),old.sample().scale(),old.sample().gravity());
-        var root=new AnatomyMovement.RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,sample.yaw(),sample.scale(),sample.gravity());
+        var root=new RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick()+1,old.jointSampleTick(),root,sample,GeometryProvider.Availability.AVAILABLE);
         var rebound=new GeometryProvider.GeometryIdentity(identity.dimension(),identity.support(),identity.entityId(),identity.epoch(),identity.revision(),identity.model(),identity.poseProvider(),bindingGeneration,identity.localRegistrationGeneration()+1);
         return new GeometryProvider.PublishedFrame(rebound,endpoint);

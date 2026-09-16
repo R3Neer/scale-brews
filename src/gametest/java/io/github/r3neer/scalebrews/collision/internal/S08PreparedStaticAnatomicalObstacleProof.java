@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -124,8 +125,8 @@ public final class S08PreparedStaticAnatomicalObstacleProof {
         long registration=AnatomyMovement.registrationGeneration(support);
         var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
             Identifier.parse("test:s08_static_anatomical_obstacle"),Identifier.parse("test:s08_static_anatomical_obstacle_pose"),1,registration);
-        var root0=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
-        var root1=new AnatomyMovement.RootFrame(2,tick,support.position().add(motion.linearTranslation()),0,1,GravityFrame.VANILLA);
+        var root0=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var root1=new RootFrame(2,tick,support.position().add(motion.linearTranslation()),0,1,GravityFrame.VANILLA);
         var sample0=new AnatomyPoseHistory.Sample(INPUTS,root0.origin(),0,1,GravityFrame.VANILLA);
         var sample1=new AnatomyPoseHistory.Sample(INPUTS,root1.origin(),0,1,GravityFrame.VANILLA);
         var before=new GeometryProvider.QueryFrame(identity,

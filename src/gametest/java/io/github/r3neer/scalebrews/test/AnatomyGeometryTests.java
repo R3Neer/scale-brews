@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.*;
@@ -425,7 +426,7 @@ public class AnatomyGeometryTests {
         var evaluator=new ModelGeometryProvider(model,(geometry,inputs)->java.util.Optional.of(java.util.Map.of("root",new Matrix4f().rotateZ(inputs.walkAmount()))),AnatomyFilter.DEFAULT,1);
         var entity=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var inputs=new PoseEngine.Inputs(.3f,0,0,0,0,true);var sample=new AnatomyPoseHistory.Sample(inputs,new Vec3(3,4,5),35,1.1f);
-        var root=new AnatomyMovement.RootFrame(1,7,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
+        var root=new RootFrame(1,7,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(1,9,8,root,sample,GeometryProvider.Availability.AVAILABLE);
         entity.setPos(-20,30,40);entity.yBodyRot=-120;
         var frame=evaluator.evaluatePresentation(entity,endpoint).orElseThrow();var expected=evaluator.sampleAt(entity,sample).orElseThrow();

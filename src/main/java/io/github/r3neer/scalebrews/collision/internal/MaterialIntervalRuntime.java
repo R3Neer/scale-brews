@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,7 @@ public final class MaterialIntervalRuntime {
                 throw new IllegalArgumentException("Invalid pending material interval");
         }
     }
-    public record RootCapture(AnatomyMovement.RootFrame root,GeometryProvider.QueryFrame before) {
+    public record RootCapture(RootFrame root,GeometryProvider.QueryFrame before) {
         public RootCapture {if(root==null)throw new IllegalArgumentException("Missing root capture");}
     }
 

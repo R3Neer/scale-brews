@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPosePayload;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyFrameHistory;
@@ -196,7 +197,7 @@ public final class AnatomyNetworkingTests {
         support.setPos(9,25,9);support.yBodyRot=125;
         support.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(2);support.refreshDimensions();
         AnatomyMovement.gravity(support,new GravityFrame(net.minecraft.core.Direction.DOWN));
-        var root=new AnatomyMovement.RootFrame(17,tick,expected.origin(),expected.yaw(),expected.scale(),expected.gravity());
+        var root=new RootFrame(17,tick,expected.origin(),expected.yaw(),expected.scale(),expected.gravity());
         var snapshot=evaluator.sampleAt(support,expected).orElseThrow();
         var endpoint=new GeometryProvider.CausalEndpoint(23,tick+1,frame.tick(),root,expected,GeometryProvider.Availability.AVAILABLE);
         var packet=AnatomyNetworking.posePayload(UUID.randomUUID(),7,h.getLevel().dimension().identifier(),support.getId(),support.getUUID(),
@@ -222,7 +223,7 @@ public final class AnatomyNetworkingTests {
         var normal=new Vec3(0,1,0);
         var contact=new AnatomyMovement.Contact(support,"body",7,normal,3);
         var surface=new SurfaceContact(support.getUUID(),7,"body",3,new Vec3(.5,1,.5),normal,tick);
-        var root=new AnatomyMovement.RootFrame(4,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(4,tick,support.position(),0,1,GravityFrame.VANILLA);
         var materialBefore=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new org.joml.Matrix4f()).move(support.position());
         var materialAfter=materialBefore.move(delta);
         var first=new SupportTransport(tick,11,root.sequence(),delta,delta);
@@ -282,7 +283,7 @@ public final class AnatomyNetworkingTests {
         long tick=body.level().getGameTime();var normal=new Vec3(0,1,0);
         var contact=new AnatomyMovement.Contact(support,"body",7,normal,3);
         var surface=new SurfaceContact(support.getUUID(),7,"body",3,new Vec3(.5,1,.5),normal,tick);
-        var root=new AnatomyMovement.RootFrame(sequenceBase,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(sequenceBase,tick,support.position(),0,1,GravityFrame.VANILLA);
         var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new org.joml.Matrix4f()).move(support.position());
         for(int index=0;index<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;index++) {
             var transport=new SupportTransport(tick,sequenceBase+index,root.sequence(),Vec3.ZERO,Vec3.ZERO);

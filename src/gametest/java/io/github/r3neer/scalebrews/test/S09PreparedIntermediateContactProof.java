@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
@@ -177,7 +178,7 @@ final class S09PreparedIntermediateContactProof {
     private static GeometryProvider.MotionSnapshot hypotheticalRootMotion(net.minecraft.world.entity.LivingEntity support,
             GeometryProvider.QueryFrame before,float yawDelta) {
         var root0=before.root();
-        var root1=new AnatomyMovement.RootFrame(root0.sequence()+1,root0.tick(),root0.origin(),root0.yaw()+yawDelta,root0.scale(),root0.gravity());
+        var root1=new RootFrame(root0.sequence()+1,root0.tick(),root0.origin(),root0.yaw()+yawDelta,root0.scale(),root0.gravity());
         var sample0=before.sample();
         var sample1=new AnatomyPoseHistory.Sample(sample0.inputs(),sample0.origin(),sample0.yaw()+yawDelta,sample0.scale(),sample0.gravity());
         var endpoint1=new GeometryProvider.CausalEndpoint(before.endpoint().frameSerial()+1,before.authorityTick(),before.endpoint().jointSampleTick(),

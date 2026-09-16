@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
@@ -38,7 +39,7 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
             var origin=support.position().add(shift);
             if(origin.equals(previous))return;
             previous=origin;long tick=support.level().getGameTime();serial++;
-            var root=new AnatomyMovement.RootFrame(serial,tick,origin,0,support.getScale(),GravityFrame.VANILLA);
+            var root=new RootFrame(serial,tick,origin,0,support.getScale(),GravityFrame.VANILLA);
             var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
             endpoint=new CausalEndpoint(serial,tick,tick,root,new AnatomyPoseHistory.Sample(inputs,origin,0,support.getScale(),GravityFrame.VANILLA),Availability.AVAILABLE);
             snapshot=new Snapshot(1,Map.of("piece",box(new AABB(-1,0,-1,1,height,1)).move(origin)));

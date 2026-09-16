@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
@@ -25,7 +26,7 @@ final class S00Fixtures {
     static GeometryProvider.GeometryIdentity identity(){return new GeometryProvider.GeometryIdentity(Level.OVERWORLD,SUPPORT,1,EPOCH,1,MODEL,STATIC,1,1);}
     static GeometryProvider.QueryFrame frame(long serial,long tick,long rootSequence,double x) {
         var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
-        var root=new AnatomyMovement.RootFrame(rootSequence,tick,new Vec3(x,0,0),0,1,GravityFrame.VANILLA);
+        var root=new RootFrame(rootSequence,tick,new Vec3(x,0,0),0,1,GravityFrame.VANILLA);
         var sample=new AnatomyPoseHistory.Sample(inputs,root.origin(),root.yaw(),root.scale(),root.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,tick,tick,root,sample,GeometryProvider.Availability.AVAILABLE);
         return new GeometryProvider.QueryFrame(identity(),endpoint,new GeometryProvider.Snapshot(1,Map.of("piece",box(UNIT).move(root.origin()))));

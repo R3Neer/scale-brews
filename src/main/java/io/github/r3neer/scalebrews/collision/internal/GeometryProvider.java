@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.spi.RootTransformProvider;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
@@ -58,10 +59,10 @@ public interface GeometryProvider {
      * for one material endpoint. Callers must never rebuild {@code rootTransform} from live client state.
      */
     enum Availability {AVAILABLE,UNAVAILABLE}
-    record CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,
+    record CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,RootFrame root,
             RootTransformProvider.RootTransform rootTransform,AnatomyPoseHistory.Sample sample,Availability availability) {
         /** Source-compatible pre-S21 constructor using the exact former gravity+yaw root convention. */
-        public CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,AnatomyMovement.RootFrame root,
+        public CausalEndpoint(long frameSerial,long authorityTick,long jointSampleTick,RootFrame root,
                 AnatomyPoseHistory.Sample sample,Availability availability) {
             this(frameSerial,authorityTick,jointSampleTick,root,legacyRoot(root),sample,availability);
         }
@@ -75,7 +76,7 @@ public interface GeometryProvider {
         }
     }
     /** Exact compatibility conversion used only by pre-S21 constructors/fixtures. */
-    private static RootTransformProvider.RootTransform legacyRoot(AnatomyMovement.RootFrame root) {
+    private static RootTransformProvider.RootTransform legacyRoot(RootFrame root) {
         if(root==null)throw new IllegalArgumentException("Missing root frame");
         Quaternionf rotation=new Quaternionf().setFromNormalized(new Matrix3f(root.gravity().matrix()))
             .rotateY((float)Math.toRadians(180.0-root.yaw()));
@@ -85,7 +86,7 @@ public interface GeometryProvider {
     record QueryFrame(GeometryIdentity identity,CausalEndpoint endpoint,Snapshot snapshot) {
         public QueryFrame {if(identity==null || endpoint==null || snapshot==null || endpoint.availability()!=Availability.AVAILABLE || snapshot.revision()!=identity.revision())throw new IllegalArgumentException("Invalid query frame");}
         public long authorityTick(){return endpoint.authorityTick();}
-        public AnatomyMovement.RootFrame root(){return endpoint.root();}
+        public RootFrame root(){return endpoint.root();}
         public RootTransformProvider.RootTransform rootTransform(){return endpoint.rootTransform();}
         public AnatomyPoseHistory.Sample sample(){return endpoint.sample();}
     }

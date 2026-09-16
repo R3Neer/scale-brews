@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -164,8 +165,8 @@ public final class S07MaterialBoundaryTests {
         long tick=support.level().getGameTime();
         var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),90,
             Identifier.parse("test:s07_model"),Identifier.parse("test:s07_pose"),1,1);
-        var beforeRoot=new AnatomyMovement.RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
-        var afterRoot=new AnatomyMovement.RootFrame(2,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var beforeRoot=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var afterRoot=new RootFrame(2,tick,support.position(),0,1,GravityFrame.VANILLA);
         var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,beforeRoot.origin(),0,1,GravityFrame.VANILLA);
         var afterSample=new AnatomyPoseHistory.Sample(INPUTS,afterRoot.origin(),0,1,GravityFrame.VANILLA);
         var before=new GeometryProvider.QueryFrame(identity,new GeometryProvider.CausalEndpoint(1,tick,tick,beforeRoot,beforeSample,GeometryProvider.Availability.AVAILABLE),
@@ -184,12 +185,12 @@ public final class S07MaterialBoundaryTests {
 
     private static GeometryProvider endpointProvider(long revision) {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;private long serial;
+            private RootFrame previous;private long serial;
             @Override public Optional<Snapshot> sample(LivingEntity entity) {
                 return Optional.of(new Snapshot(revision,Map.of("body",ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(entity.position()))));
             }
             @Override public Optional<CausalEndpoint> causalEndpoint(LivingEntity entity) {
-                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
+                var observed=new RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
                 boolean changed=previous==null || !previous.origin().equals(observed.origin()) || previous.yaw()!=observed.yaw() || previous.scale()!=observed.scale();
                 if(changed){previous=observed;serial++;}
                 var sample=new AnatomyPoseHistory.Sample(INPUTS,previous.origin(),previous.yaw(),previous.scale(),previous.gravity());

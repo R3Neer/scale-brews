@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -98,8 +99,8 @@ public final class S07LiveMaterialRuntimeTests {
         var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),70,
             Identifier.parse("test:s07_model"),Identifier.parse("test:s07_pose"),1,1);
         var origin=support.position();long tick=support.level().getGameTime();
-        var beforeRoot=new AnatomyMovement.RootFrame(1,tick,origin,0,1,GravityFrame.VANILLA);
-        var afterRoot=new AnatomyMovement.RootFrame(2,tick,origin,0,1,GravityFrame.VANILLA);
+        var beforeRoot=new RootFrame(1,tick,origin,0,1,GravityFrame.VANILLA);
+        var afterRoot=new RootFrame(2,tick,origin,0,1,GravityFrame.VANILLA);
         var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,origin,0,1,GravityFrame.VANILLA);
         var afterSample=new AnatomyPoseHistory.Sample(INPUTS,origin,0,1,GravityFrame.VANILLA);
         var box=ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(origin);
@@ -120,7 +121,7 @@ public final class S07LiveMaterialRuntimeTests {
 
     private static GeometryProvider endpointProvider(long revision) {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;
+            private RootFrame previous;
             private long serial;
 
             @Override public Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity entity) {
@@ -129,7 +130,7 @@ public final class S07LiveMaterialRuntimeTests {
             }
 
             @Override public Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
-                var observed = new AnatomyMovement.RootFrame(previous == null ? 0 : previous.sequence() + 1,
+                var observed = new RootFrame(previous == null ? 0 : previous.sequence() + 1,
                     entity.level().getGameTime(), entity.position(), entity.yBodyRot, entity.getScale(), GravityFrame.VANILLA);
                 boolean changed = previous == null || !previous.origin().equals(observed.origin())
                     || Float.compare(previous.yaw(), observed.yaw()) != 0

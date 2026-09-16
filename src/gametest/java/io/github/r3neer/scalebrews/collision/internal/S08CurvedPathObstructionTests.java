@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -187,8 +188,8 @@ public final class S08CurvedPathObstructionTests {
         long registration=AnatomyMovement.registrationGeneration(support);
         var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),UUID.randomUUID(),revision,
             Identifier.parse("test:s08_"+suffix),Identifier.parse("test:s08_"+suffix+"_pose"),1,registration);
-        var beforeRoot=new AnatomyMovement.RootFrame(1,tick,pivot,0,1,GravityFrame.VANILLA);
-        var afterRoot=new AnatomyMovement.RootFrame(2,tick,pivot,180,1,GravityFrame.VANILLA);
+        var beforeRoot=new RootFrame(1,tick,pivot,0,1,GravityFrame.VANILLA);
+        var afterRoot=new RootFrame(2,tick,pivot,180,1,GravityFrame.VANILLA);
         var beforeSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,0,1,GravityFrame.VANILLA);
         var afterSample=new AnatomyPoseHistory.Sample(INPUTS,pivot,180,1,GravityFrame.VANILLA);
         var before=new GeometryProvider.QueryFrame(identity,

@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -73,7 +74,7 @@ public final class S08DerivedRebindTests {
 
     private static GeometryProvider endpointProvider(long revision) {
         return new GeometryProvider() {
-            private AnatomyMovement.RootFrame previous;
+            private RootFrame previous;
             private PoseProvider.Inputs previousInputs;
             private long serial;
 
@@ -83,7 +84,7 @@ public final class S08DerivedRebindTests {
             }
 
             @Override public Optional<CausalEndpoint> causalEndpoint(net.minecraft.world.entity.LivingEntity entity) {
-                var observed=new AnatomyMovement.RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),
+                var observed=new RootFrame(previous==null?0:previous.sequence()+1,entity.level().getGameTime(),
                     entity.position(),entity.yBodyRot,entity.getScale(),GravityFrame.VANILLA);
                 boolean sameRoot=previous!=null && previous.origin().equals(observed.origin()) && previous.yaw()==observed.yaw()
                     && previous.scale()==observed.scale() && previous.gravity().equals(observed.gravity());
