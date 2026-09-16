@@ -63,4 +63,21 @@ jobs:
           echo "path=$catalog" >> "$GITHUB_OUTPUT"
           echo "Using prepared catalog at $catalog"
       - name: run isolated S08 prepared runtime proof
-        run: ./gradlew runGameTest -PscalebrewsAnatomyPreparedSuite=true -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}'
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/s08-prepared-proof
+          ./gradlew runGameTest --console=plain \
+            -PscalebrewsAnatomyPreparedSuite=true \
+            -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}' \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s08-prepared-proof/junit.xml" 2>&1 \
+            | tee build/s08-prepared-proof/console.log
+      - name: capture prepared proof evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S08-prepared-adversarial-proof
+          path: |
+            build/s08-prepared-proof/
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
