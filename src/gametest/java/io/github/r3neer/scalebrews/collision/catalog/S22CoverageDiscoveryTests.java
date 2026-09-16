@@ -4,19 +4,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 
 /** Implementation tests for S22 automatic target discovery and target identity. */
 public final class S22CoverageDiscoveryTests {
     @GameTest
-    public void minecraftDiscoveryUsesEntityTypeBaseClassNotSpeciesList(GameTestHelper h) {
+    public void minecraftDiscoveryUsesDefaultAttributeAuthorityNotSpeciesList(GameTestHelper h) {
         var discovery = CollisionCoverageDiscovery.discover(target("26.2", Map.of("minecraft", "26.2")));
         var ids = discovery.livingEntityTypes();
         h.assertTrue(ids.contains(id("minecraft:cow")), "Automatic discovery must include ordinary LivingEntity types");
-        h.assertTrue(ids.contains(id("minecraft:player")), "Automatic discovery must include the non-spawn-factory Player type");
+        h.assertTrue(ids.contains(id("minecraft:player")), "Automatic discovery must include Player without constructing it");
         h.assertTrue(!ids.contains(id("minecraft:item")), "Non-living entity types must not enter the coverage target");
         h.assertTrue(!ids.contains(id("minecraft:boat")), "Vehicles must not be misclassified as LivingEntity coverage targets");
+        h.assertTrue(DefaultAttributes.hasSupplier(BuiltInRegistries.ENTITY_TYPE.getValue(id("minecraft:cow"))),
+            "The discovery predicate must be backed by Minecraft's registered default-attribute authority");
+        h.assertTrue(!DefaultAttributes.hasSupplier(BuiltInRegistries.ENTITY_TYPE.getValue(id("minecraft:item"))),
+            "The attribute authority must distinguish non-living registry types in the real target");
         h.assertTrue(ids.stream().allMatch(value -> value.getNamespace().equals("minecraft")),
             "Namespace target must be enforced by discovery rather than filtered after classification");
         h.assertTrue(ids.equals(ids.stream().sorted(java.util.Comparator.comparing(Identifier::toString)).toList()),
