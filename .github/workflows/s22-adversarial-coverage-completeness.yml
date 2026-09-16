@@ -1,0 +1,49 @@
+name: s22-adversarial-coverage-completeness
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s22-adversarial-coverage-completeness.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageDiscovery.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageScanner.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/catalog/S22AdversarialCoverageCompletenessTests.java'
+  workflow_dispatch:
+
+jobs:
+  coverage-completeness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S22 adversarial coverage completeness holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.catalog.S22AdversarialCoverageCompletenessTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S22 adversarial coverage completeness holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s22-adversarial-coverage-completeness-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S22-adversarial-coverage-completeness
+          path: |
+            build/s22-adversarial-coverage-completeness-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
