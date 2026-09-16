@@ -1,0 +1,65 @@
+name: s24-client-late-tracking-order
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-client-late-tracking-order.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24LateTrackingOrderClientProof.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  late-tracking-order:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: isolate S24 late tracking order client proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24LateTrackingOrderClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run integrated late tracking order proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s24-late-tracking-order
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s24-late-tracking-order/client.log
+          if ! grep -R -F 'S24_LATE_TRACKING_ORDER PASS' \
+              build/run/clientGameTest/logs build/s24-late-tracking-order/client.log >/dev/null 2>&1; then
+            echo 'S24 late tracking order proof did not emit its causal PASS marker.' >&2
+            exit 1
+          fi
+
+      - name: capture late tracking order evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-client-late-tracking-order
+          path: |
+            build/s24-late-tracking-order/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
