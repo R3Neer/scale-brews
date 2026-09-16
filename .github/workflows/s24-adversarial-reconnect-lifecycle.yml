@@ -127,15 +127,15 @@ jobs:
           data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24AdversarialReconnectLifecycleProof']
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
-      - name: preserve dead connection pose histories
+      - name: neutralize all pose-history cleanup paths
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
           s=p.read_text()
-          old='private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}'
-          new='private static void reset(){session.resetConnection();poseLevel=null;clientTick=0;}'
+          old='poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();'
+          new='contacts.clear();presentationContacts.clear();'
           count=s.count(old)
           if count != 1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
@@ -151,7 +151,7 @@ jobs:
           code=$?
           set -e
           if [ "$code" -eq 0 ]; then
-            echo 'SURVIVED: disconnect retained the previous connection frame history'
+            echo 'SURVIVED: disconnect and level teardown retained previous connection frame histories'
             exit 1
           fi
           echo 'KILLED: stale connection history mutant'
