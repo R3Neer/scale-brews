@@ -1,0 +1,52 @@
+name: s23-display-rig-spi-proof
+# G3.7 / FR-018: prove a future display-composite family can use GeometryEngine + the existing solver.
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s23-display-rig-spi-proof.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionEngines.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/spi/GeometryEngine.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S23DisplayRigSpiTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  display-rig-spi:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S23 GameTest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.S23DisplayRigSpiTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S23 proof
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s23-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S23-display-rig-spi-proof
+          path: |
+            build/s23-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
