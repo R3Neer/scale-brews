@@ -10,6 +10,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24LifecycleGenerationTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingGenerationLedgerTests.java'
