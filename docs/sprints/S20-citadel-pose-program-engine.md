@@ -1,6 +1,6 @@
 # S20 — Citadel/Alex reusable pose-program engine
 
-Estado: **OPEN / IMPLEMENTATION ACTIVE**.
+Estado: **CLOSED / ADVERSARIAL ACCEPTED**.
 
 Rol principal de esta rama de trabajo: **IMPLEMENTER**. El adversario conserva ownership independiente de holdouts, mutantes, segunda lectura y gate de rendimiento.
 
@@ -68,12 +68,14 @@ El resultado del bind es un `PoseEngine.Bound` sin referencias a Citadel/Alex, s
 - [x] I2 — evaluador common de helpers Citadel y semántica `ModelAnimator`.
 - [x] I3 — `scalebrews:citadel_program` como `PoseEngine` reusable y bind revision-local.
 - [x] I4 — regresiones de implementador para helper, tween, unknown animation y `SourcePose` indispensable.
-- [ ] I5 — incorporar `CitadelPoseProgram` al snapshot atómico y bundle de catálogo; evolucionar protocolo explícitamente.
-- [ ] I6 — frontera reusable de canales autoritativos externos, sin `instanceof`/Java por mob dentro del core hot path.
-- [ ] I7 — programas declarativos representativos para Grizzly y Gazelle 2.1.9.
-- [ ] I8 — prueba client/tooling contra los modelos originales fijados, con muestreo ordinario + clips/condiciones cubiertas por los programas.
-- [ ] I9 — integrar los bindings representativos sin dependencia dura de Alex/Citadel.
-- [ ] I10 — documentación de runtime, límites, ownership y datos necesarios para añadir otra especie cubierta por la misma tecnología.
+- [x] I5 — incorporar `CitadelPoseProgram` al snapshot atómico y bundle de catálogo; evolucionar protocolo explícitamente.
+- [x] I6 — frontera reusable de canales autoritativos externos, sin `instanceof`/Java por mob dentro del core hot path.
+- [x] I7 — programas declarativos representativos para Grizzly y Gazelle 2.1.9.
+- [x] I8 — prueba client/tooling contra los modelos originales fijados, con muestreo ordinario + clips/condiciones cubiertas por los programas.
+- [x] I9 — integrar los bindings representativos sin dependencia dura de Alex/Citadel.
+- [x] I10 — documentación de runtime, límites, ownership y datos necesarios para añadir otra especie cubierta por la misma tecnología.
+
+El cierre adversarial independiente y la evidencia ejecutable de I5–I10 están registrados en `S20-adversarial-closeout.md`. En particular, I9 no se cerró sólo porque el catálogo pudiera materializar un binding: un holdout live-runtime atraviesa `AnatomyRuntime` y un mutation kill demuestra que un binding canónico ejecutable no depende de `AnatomyPoseEligibility` legacy.
 
 ## 5. Invariantes que S20 no puede romper
 
@@ -95,3 +97,5 @@ El implementador no declara S20 cerrado sólo por compilar. Antes de entrega al 
 6. evidencia de que `ModelGeometryProvider.jointEvaluations` conserva reuse causal de NFR-009.
 
 Después el **ADVERSARY** debe añadir holdouts/mutantes propios, auditoría de performance del nuevo hot path y una segunda lectura sin cambios productivos antes de cierre.
+
+Este gate fue completado. La segunda lectura posterior al fix I9 confirmó que parsing, resource lookup, resolución de engine/root y compilación permanecen en **PREPARATION**, mientras **HOT_TICK** consume bindings, evaluadores y adapters ya preparados. La trazabilidad detallada, incluidos runs, mutantes y la clasificación de lanes históricas, queda en `S20-adversarial-closeout.md`.
