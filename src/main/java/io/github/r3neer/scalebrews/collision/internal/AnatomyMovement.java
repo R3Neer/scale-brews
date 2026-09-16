@@ -28,12 +28,6 @@ public final class AnatomyMovement {
     // Weak identity keys keep server and client instances strictly separate.
     private static <K,V> Map<K,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());}
     private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
-    /** Server-owned material endpoint serial; it advances for a root or joint endpoint change. */
-    private record EndpointStamp(long jointSampleTick,RootFrame root,RootTransformProvider.RootTransform rootTransform,
-            AnatomyPoseHistory.Sample sample,long revision,GeometryProvider.Availability availability) {}
-    /** Retains the whole endpoint, including its original authority time, for a material serial. */
-    private record EndpointSerial(EndpointStamp stamp,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot,boolean invalidated) {}
-    private static final Map<LivingEntity,EndpointSerial> FRAME_SERIALS=entityMap();
     /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
     private static synchronized void removeSpatialEntry(LivingEntity support) {
         if(support==null)return;
@@ -48,7 +42,7 @@ public final class AnatomyMovement {
         GeometryProvider.Snapshot snapshot;RootFrame root;
         var descriptor=AnatomyBindingState.descriptor(support);
         if(descriptor!=null) {
-            var accepted=FRAME_SERIALS.get(support);
+            var accepted=AnatomyEndpointLedger.get(support);
             if(accepted==null || accepted.invalidated() || accepted.snapshot()==null
                     || accepted.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE
                     || accepted.snapshot().revision()!=descriptor.revision())return;
@@ -115,7 +109,7 @@ public final class AnatomyMovement {
         requireServerThread(support.level());
         var binding=AnatomyRuntime.catalogBinding(support).orElse(AnatomyBindingState.binding(support));
         AnatomyBindingState.rebind(support,provider,null,binding);
-        FRAME_SERIALS.remove(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
+        AnatomyEndpointLedger.clear(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
         refreshSpatialEntry(support);
     }
     /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
@@ -129,7 +123,7 @@ public final class AnatomyMovement {
         if(descriptor==null)throw new IllegalArgumentException("Missing geometry descriptor");
         requireServerThread(support.level());
         AnatomyBindingState.rebind(support,provider,descriptor,binding);
-        FRAME_SERIALS.remove(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
+        AnatomyEndpointLedger.clear(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
         queryFrame(support);
     }
     private static void requireServerThread(Level level) {
@@ -158,7 +152,7 @@ public final class AnatomyMovement {
     public static synchronized Optional<GeometryProvider.QueryFrame> queryFrame(LivingEntity support){
         var published=publishedFrame(support).orElse(null);
         if(published==null || published.endpoint().availability()!=GeometryProvider.Availability.AVAILABLE)return Optional.empty();
-        var cached=FRAME_SERIALS.get(support);var snapshot=cached==null?null:cached.snapshot();
+        var cached=AnatomyEndpointLedger.get(support);var snapshot=cached==null?null:cached.snapshot();
         if(snapshot==null || snapshot.revision()!=published.identity().revision())return Optional.empty();
         return Optional.of(new GeometryProvider.QueryFrame(published.identity(),published.endpoint(),snapshot));
     }
@@ -211,37 +205,37 @@ public final class AnatomyMovement {
     private static Optional<GeometryProvider.CausalEndpoint> rejectStaleCapture(LivingEntity support,CaptureStamp capture,
             GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot) {
         if(!captureBindingCurrent(support,capture))return Optional.empty();
-        var old=FRAME_SERIALS.get(support);
+        var old=AnatomyEndpointLedger.get(support);
         if(endpoint!=null && (old==null || endpoint.frameSerial()>old.endpoint().frameSerial()))
-            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,true));
-        else if(old!=null)FRAME_SERIALS.put(support,new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
+            AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(null,endpoint,snapshot,true));
+        else if(old!=null)AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(old.stamp(),old.endpoint(),old.snapshot(),true));
         clearSupportContacts(support);removeSpatialEntry(support);
         return Optional.empty();
     }
     private static synchronized Optional<GeometryProvider.CausalEndpoint> unavailableServerEndpoint(LivingEntity support) {
-        var old=FRAME_SERIALS.get(support);
+        var old=AnatomyEndpointLedger.get(support);
         if(old==null || old.invalidated())return Optional.empty();
         if(old.endpoint().availability()==GeometryProvider.Availability.UNAVAILABLE)return Optional.of(old.endpoint());
         var prior=old.endpoint();
         long next=Math.incrementExact(prior.frameSerial());
         var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),prior.jointSampleTick(),
             prior.root(),prior.rootTransform(),prior.sample(),GeometryProvider.Availability.UNAVAILABLE);
-        var stamp=new EndpointStamp(prior.jointSampleTick(),prior.root(),prior.rootTransform(),prior.sample(),-1,
+        var stamp=new AnatomyEndpointLedger.Stamp(prior.jointSampleTick(),prior.root(),prior.rootTransform(),prior.sample(),-1,
             GeometryProvider.Availability.UNAVAILABLE);
         clearSupportContacts(support);removeSpatialEntry(support);
-        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,null,false));
+        AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(stamp,endpoint,null,false));
         return Optional.of(endpoint);
     }
     private static synchronized GeometryProvider.CausalEndpoint serverEndpoint(LivingEntity support,long jointSampleTick,RootFrame root,
             RootTransformProvider.RootTransform rootTransform,AnatomyPoseHistory.Sample sample,GeometryProvider.Snapshot snapshot) {
         var availability=snapshot==null?GeometryProvider.Availability.UNAVAILABLE:GeometryProvider.Availability.AVAILABLE;
-        var stamp=new EndpointStamp(jointSampleTick,root,rootTransform,sample,snapshot==null?-1:snapshot.revision(),availability);var old=FRAME_SERIALS.get(support);
+        var stamp=new AnatomyEndpointLedger.Stamp(jointSampleTick,root,rootTransform,sample,snapshot==null?-1:snapshot.revision(),availability);var old=AnatomyEndpointLedger.get(support);
         if(old!=null && !old.invalidated() && old.stamp()!=null && old.stamp().equals(stamp))return old.endpoint();
         long next=old==null?1:Math.incrementExact(old.endpoint().frameSerial());
         var endpoint=new GeometryProvider.CausalEndpoint(next,support.level().getGameTime(),jointSampleTick,root,rootTransform,sample,availability);
         if(availability==GeometryProvider.Availability.UNAVAILABLE && old!=null && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)
             clearSupportContacts(support);
-        FRAME_SERIALS.put(support,new EndpointSerial(stamp,endpoint,snapshot,false));refreshSpatialEntry(support);return endpoint;
+        AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(stamp,endpoint,snapshot,false));refreshSpatialEntry(support);return endpoint;
     }
     /**
      * A wire/provider endpoint may be queried repeatedly.  Same material serial
@@ -251,9 +245,9 @@ public final class AnatomyMovement {
     private static synchronized Optional<GeometryProvider.CausalEndpoint> acceptEndpoint(LivingEntity support,GeometryProvider.CausalEndpoint endpoint,GeometryProvider.Snapshot snapshot) {
         if(endpoint.availability()==GeometryProvider.Availability.AVAILABLE && (snapshot==null || snapshot.revision()!=AnatomyBindingState.descriptor(support).revision()))return quarantineEndpoint(support);
         if(endpoint.availability()==GeometryProvider.Availability.UNAVAILABLE && snapshot!=null)return quarantineEndpoint(support);
-        var old=FRAME_SERIALS.get(support);
+        var old=AnatomyEndpointLedger.get(support);
         if(old==null) {
-            FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
+            AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
         }
         long prior=old.endpoint().frameSerial();
         if(old.invalidated()) {
@@ -266,13 +260,13 @@ public final class AnatomyMovement {
         if(endpoint.authorityTick()<old.endpoint().authorityTick() || endpoint.jointSampleTick()<old.endpoint().jointSampleTick())return quarantineEndpoint(support);
         if(endpoint.availability()==GeometryProvider.Availability.UNAVAILABLE && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)
             clearSupportContacts(support);
-        FRAME_SERIALS.put(support,new EndpointSerial(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
+        AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(null,endpoint,snapshot,false));refreshSpatialEntry(support);return Optional.of(endpoint);
     }
     /** Retain the rejected serial's fence; without one, quarantine this exact local registration until rebind. */
     private static Optional<GeometryProvider.CausalEndpoint> quarantineEndpoint(LivingEntity support) {
-        var old=FRAME_SERIALS.get(support);
+        var old=AnatomyEndpointLedger.get(support);
         if(old==null)AnatomyBindingState.quarantineCurrent(support);
-        else FRAME_SERIALS.put(support,new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
+        else AnatomyEndpointLedger.put(support,new AnatomyEndpointLedger.Entry(old.stamp(),old.endpoint(),old.snapshot(),true));
         clearSupportContacts(support);removeSpatialEntry(support);
         return Optional.empty();
     }
@@ -379,7 +373,7 @@ public final class AnatomyMovement {
     public static synchronized void deactivate(Level level){
         ACTIVE.remove(level);AnatomyBindingState.deactivate(level);
         // Local registration generation is a weak identity watermark and must not rewind on level lifecycle.
-        FRAME_SERIALS.keySet().removeIf(e->e.level()==level);
+        AnatomyEndpointLedger.deactivate(level);
         io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearTestOverrides(level);
         AnatomyContactState.deactivate(level);
         RootFrameLedger.deactivate(level);
@@ -392,43 +386,43 @@ public final class AnatomyMovement {
         return new Contact(contact.support(),contact.piece(),contact.revision(),contact.normal(),contact.sequence());
     }
     /** Capture before a root move; no pose channels are read or evaluated. */
-public static RootFrame captureRoot(LivingEntity support){return observeRoot(support);}
-/**
- * Record a continuous rigid transform segment after move/setPos/yaw/scale. Sequence and
- * bounded provenance live in RootFrameLedger; this orchestrator owns only the physical
- * reaction to a discontinuity.
- */
-public static synchronized RootFrame observeRoot(LivingEntity support,RootFrame before) {
-    var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
-        support.getScale(),gravity(support),before);
-    if(observed.discontinuity())clearSupportContacts(support);
-    return observed.frame();
-}
-/** Cheap deduplicated observation for query/tick paths that bypass Entity.move. */
-public static synchronized RootFrame observeRoot(LivingEntity support) {
-    var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
-        support.getScale(),gravity(support));
-    if(observed.discontinuity())clearSupportContacts(support);
-    return observed.frame();
-}
-/** Explicit teleport/dimension/removal lifecycle hook; even a small jump is discontinuous. */
-public static synchronized void invalidateRoot(LivingEntity support) {
-    // The support can itself be standing on another support. Clear that anchor too, so a
-    // sub-four-block teleport cannot pull it through air on the next carry pass.
-    invalidateBody(support,true);
-    // Do not reset the binding's serial: a receiver/cursor must distinguish
-    // this discontinuity from an old endpoint with the same transform.
-    FRAME_SERIALS.computeIfPresent(support,(ignored,old)->new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));
-    clearSupportContacts(support);RootFrameLedger.clear(support);removeSpatialEntry(support);
-}
-/**
- * An accepted unavailable pose keeps its endpoint watermark, but every body
- * anchored to that support must stop immediately. Client lifecycle code uses
- * this without deactivating the whole level or resetting binding serials.
- */
-public static synchronized void invalidateSupport(LivingEntity support) {
-    clearSupportContacts(support);removeSpatialEntry(support);
-}
+    public static RootFrame captureRoot(LivingEntity support){return observeRoot(support);}
+    /**
+     * Record a continuous rigid transform segment after move/setPos/yaw/scale. Sequence and
+     * bounded provenance live in RootFrameLedger; this orchestrator owns only the physical
+     * reaction to a discontinuity.
+     */
+    public static synchronized RootFrame observeRoot(LivingEntity support,RootFrame before) {
+        var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
+            support.getScale(),gravity(support),before);
+        if(observed.discontinuity())clearSupportContacts(support);
+        return observed.frame();
+    }
+    /** Cheap deduplicated observation for query/tick paths that bypass Entity.move. */
+    public static synchronized RootFrame observeRoot(LivingEntity support) {
+        var observed=RootFrameLedger.observe(support,support.level().getGameTime(),support.position(),support.yBodyRot,
+            support.getScale(),gravity(support));
+        if(observed.discontinuity())clearSupportContacts(support);
+        return observed.frame();
+    }
+    /** Explicit teleport/dimension/removal lifecycle hook; even a small jump is discontinuous. */
+    public static synchronized void invalidateRoot(LivingEntity support) {
+        // The support can itself be standing on another support. Clear that anchor too, so a
+        // sub-four-block teleport cannot pull it through air on the next carry pass.
+        invalidateBody(support,true);
+        // Do not reset the binding's serial: a receiver/cursor must distinguish
+        // this discontinuity from an old endpoint with the same transform.
+        AnatomyEndpointLedger.invalidate(support);
+        clearSupportContacts(support);RootFrameLedger.clear(support);removeSpatialEntry(support);
+    }
+    /**
+     * An accepted unavailable pose keeps its endpoint watermark, but every body
+     * anchored to that support must stop immediately. Client lifecycle code uses
+     * this without deactivating the whole level or resetting binding serials.
+     */
+    public static synchronized void invalidateSupport(LivingEntity support) {
+        clearSupportContacts(support);removeSpatialEntry(support);
+    }
     private static void clearSupportContacts(LivingEntity support) {
         for(var body:AnatomyContactState.bodiesSupportedBy(support))
             // A support discontinuity is also a body discontinuity, but the body may need its
