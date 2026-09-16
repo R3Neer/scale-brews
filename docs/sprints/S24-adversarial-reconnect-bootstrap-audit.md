@@ -1,83 +1,73 @@
-# S24 — adversarial reconnect bootstrap audit
+# S24 — adversarial reconnect lifecycle audit
 
 Rol activo: **ADVERSARY**.
 
-Estado: **PROOF IMPLEMENTER INVALIDADO COMO HARNESS / RECONNECT REAL EN RECERTIFICACIÓN ADVERSARIAL**.
+Estado: **SUBCONTRATO RECONNECT CERRADO ADVERSARIALMENTE**. Esto no cierra G3.9 completo.
 
-## 1. Candidato implementer
+## 1. Por qué los primeros rojos no eran producción
 
-`S24ReconnectLifecycleClientProof` intenta demostrar una desconexión/reconexión real contra el mismo dedicated server:
+El proof implementer `S24ReconnectLifecycleClientProof` intentaba demostrar dos conexiones sucesivas contra el mismo dedicated server, pero creaba la vaca canónica y arrancaba runtime **antes** de que existiera ningún jugador/conexión.
 
-1. arrancar runtime preparado con una vaca canónica;
-2. conectar cliente y alcanzar `READY` + pose + `presentationFrame`;
-3. cerrar la primera conexión;
-4. comprobar que catálogo/pose de la conexión vieja desaparecen;
-5. reconectar al mismo servidor y exigir mismo epoch/revision/binding y autoridad de tracking independiente para el nuevo receptor.
+Runs focales:
 
-El diseño causal es adecuado para FR-080/FR-082/NFR-017, pero el fixture original introduce una dependencia ajena a reconnect: crea el soporte antes de que exista ningún jugador/conexión en el dedicated test world.
+- `35120074913`, job `104875319948`: failure en el primer `awaitReady`, antes de la primera desconexión;
+- `35120983007`, job `104878391797`: mismo fallo tras retirar la asunción excesiva de que una conexión nueva deba recibir exactamente `trackingGeneration=1`.
 
-## 2. Rojos originales
+El adversario añadió `S24AdversarialReconnectBootstrapDiagnostics`, separando conexión, soporte server, frame autoritativo, canales, tracking vanilla, catálogo, pose y presentación.
 
-Primer workflow implementer `s24-client-reconnect-lifecycle`, run **`35120074913`**, job **`104875319948`**: **failure** en el primer `awaitReady`, antes de la primera desconexión.
-
-Tras retirar la asunción excesiva de que una conexión nueva deba recibir exactamente `trackingGeneration=1`, el rerun **`35120983007`**, job **`104878391797`**, volvió a fallar en el mismo primer `awaitReady`. Por tanto el ajuste de generation scope era correcto, pero no explicaba el rojo.
-
-Los builds generales correspondientes fueron verdes; eso no convierte una lane focal roja en evidencia de reconnect.
-
-## 3. Diagnóstico por etapas
-
-El adversario añadió `S24AdversarialReconnectBootstrapDiagnostics` y el workflow `s24-adversarial-reconnect-bootstrap-diagnostic` para separar:
-
-- conexión cliente;
-- existencia del `ServerPlayer` y del soporte;
-- frame autoritativo server;
-- negociación de canales catálogo/pose/contacto;
-- `PlayerLookup.tracking`;
-- catálogo announced/READY;
-- entidad visible en cliente;
-- pose history;
-- presentation frame.
-
-Run **`35121576945`**, job **`104880398209`**: **failure** con diagnóstico terminal exacto:
+Run `35121576945`, job `104880398209`, aisló el fallo exacto:
 
 ```text
 BOOTSTRAP_STAGE server-cow: canonical cow missing before publication
 ```
 
-La conexión cliente ya existía y `Player0` había entrado, pero la vaca que el fixture creó **antes** de conectar ya no estaba en el `ServerLevel`. El test abortó antes de comprobar canales, tracking, catálogo, pose o presentación.
+La vaca creada antes de conectar ya no existía cuando `Player0` entró. Por tanto esos rojos medían lifecycle de entidad/chunk en un dedicated world sin jugadores, no reconnect anatómico. Modificar producción para hacerlos verdes habría sido una reparación imaginaria.
 
-Los warnings/errores headless de narrator/OpenAL/servicios externos del log no son el fallo terminal.
+## 2. Proof reconnect limpio
 
-## 4. Clasificación adversarial
+`S24AdversarialReconnectLifecycleProof` elimina esa variable ajena:
 
-Los rojos implementer anteriores **no prueban un bug de producción en reconnect**. Prueban que el laboratorio mezclaba reconnect anatómico con lifecycle de entidad/chunk en un dedicated server todavía sin jugadores.
+1. arranca dedicated server;
+2. conecta primero el cliente;
+3. crea después el soporte cerca del `ServerPlayer`;
+4. lo marca persistente y mantiene su chunk forzado durante el hueco entre conexiones;
+5. arranca `AnatomyRuntime.startPrepared(...)` con receptor ya presente;
+6. demuestra primera sesión READY + pose + `presentationFrame`;
+7. cierra la primera conexión;
+8. exige desaparición de catálogo y pose/history cliente de la conexión muerta;
+9. comprueba que el mismo soporte server-side sobrevive;
+10. reconecta y exige mismo epoch/revision/binding cuando corresponde, nuevo `ServerPlayer` y nuevo objeto `AnatomyFrameHistory` cliente.
 
-Modificar `AnatomyRuntime`, networking o causal fencing para hacer verde ese escenario habría sido una reparación imaginaria.
+La primera ejecución compilable y limpia fue run `35122224022`, job `104882563084`: **success**.
 
-## 5. Recertificación limpia
+## 3. Mutation-kill
 
-Se creó `S24AdversarialReconnectLifecycleProof` con una separación explícita de responsabilidades:
+La primera campaña incluyó un mutante que eliminaba `clearPoses()` sólo de `reset()`. Ese mutante sobrevivió porque `useLevel(null)` proporciona una segunda ruta legítima de limpieza. Se descartó como **mutante semánticamente equivalente**, no como defecto del proof.
 
-1. arrancar dedicated server;
-2. conectar primero el cliente;
-3. sólo entonces crear el soporte cerca del `ServerPlayer`;
-4. marcarlo persistente y mantener su chunk forzado durante el hueco entre conexiones;
-5. arrancar `AnatomyRuntime.startPrepared(...)` con el receptor ya presente;
-6. demostrar primera sesión READY;
-7. desconectar y exigir borrado de catálogo/pose client-side;
-8. comprobar que el soporte server-side sigue siendo exactamente la misma entidad;
-9. reconectar y exigir mismo epoch/revision/binding, nueva vida de `ServerPlayer` y un `AnatomyFrameHistory` cliente nuevo.
+La campaña final reemplazó esa mutación por dos corrupciones observables:
 
-Este proof mide reconnect en lugar de la supervivencia accidental del soporte antes de la primera conexión. Su evidencia ejecutada se añadirá sólo cuando CI finalice.
+1. **stale catalog mutant**: disconnect deja de ejecutar `session.resetConnection()`;
+2. **stale history mutant**: se neutraliza la limpieza real de `poses/frames/staleFrames/receivedAt/evaluators/providers/presentationFrames` en `clearPoses()`, de modo que ni reset ni cambio de nivel pueden retirar el history de la conexión anterior.
 
-## 6. Factura de aceptación
+Ambos mutantes compilaron antes de ejecutar el proof.
 
-Reconnect permanece abierto hasta que:
+Run final **`35122952451`**:
 
-1. el proof dedicado limpio alcance la primera sesión READY de forma reproducible;
-2. ejecute realmente disconnect + segunda conexión;
-3. la segunda conexión no herede catálogo/frames/contactos/receipts de la primera;
-4. el mismo server/binding pueda conservar epoch/revision/binding cuando corresponda sin conservar autoridad del receptor muerto;
-5. una campaña mutation-kill demuestre sensibilidad al menos a conservar indebidamente catálogo y pose/history cliente al desconectar.
+- `reconnect-lifecycle`, job **`104884976784`**: **success**;
+- `stale-catalog-mutation-kill`, job **`104884976614`**: **success**, mutante compiló y murió;
+- `stale-history-mutation-kill`, job **`104884976378`**: **success**, mutante compiló y murió.
 
-El cleanup server-side por receptor se evaluará con mutantes sólo si afectan autoridad de la segunda conexión; no se añadirán mutantes decorativos que sobrevivan o mueran por GC de weak keys sin cambiar semántica observable.
+Build general del mismo snapshot: run **`35122952497`**, job **`104884976215`**: **success**.
+
+## 4. Propiedades demostradas
+
+Queda demostrado adversarialmente para reconnect real que:
+
+- disconnect retira autoridad cliente de la conexión anterior;
+- catálogo connection-scoped no sobrevive al cierre del enlace;
+- pose/frame histories de la conexión muerta no sobreviven por otra ruta de teardown;
+- una segunda conexión al mismo servidor no reutiliza el objeto `ServerPlayer` ni el `AnatomyFrameHistory` del receptor muerto;
+- el soporte y binding server-side pueden seguir siendo los mismos sin convertir eso en continuidad causal del receptor;
+- el proof es sensible precisamente a las dos corrupciones de cleanup que pretende certificar.
+
+Esto cubre el subcontrato reconnect de FR-080/FR-082/NFR-017. G3.9 sigue abierto por reload/barriers restantes, replay explícito A→B→A y el nuevo RED NFR-011 sobre retención TTL de histories cliente.
