@@ -95,10 +95,12 @@ public final class CollisionCoverageDiscovery {
      *
      * <p>Construction always re-runs target discovery and requires exact row membership. Directly
      * constructed artifacts remain useful as deterministic inspection/digest values, but only the
-     * canonical {@link #scan(Target, CollisionBindingCatalog, Map)} path can issue the private
-     * provenance capability required by {@link #requireResolved()}. Caller-authored rows therefore
-     * cannot become acceptance evidence merely by matching discovered ids or locally plausible row
-     * shape.</p>
+     * canonical {@link CollisionCoverageDiscovery#scan(Target, CollisionBindingCatalog, Map)} path
+     * can issue the private provenance capability required to accept caller-visible classification
+     * rows. Caller-authored rows therefore cannot become acceptance evidence merely by matching
+     * discovered ids or locally plausible row shape. A rowless artifact carries no classification
+     * claim; its validity rests entirely on the exact automatic-discovery completeness check above,
+     * so it can resolve only for a genuinely empty target.</p>
      */
     public static final class Artifact {
         private static final Object SCANNER_PROVENANCE = new Object();
@@ -156,7 +158,7 @@ public final class CollisionCoverageDiscovery {
         }
 
         public void requireResolved() {
-            if (provenance != SCANNER_PROVENANCE)
+            if (provenance != SCANNER_PROVENANCE && !coverage.rows().isEmpty())
                 throw new IllegalStateException("Coverage artifact lacks canonical scanner provenance");
             coverage.requireResolved();
         }
