@@ -1,0 +1,146 @@
+name: s24-adversarial-dimension-mutations
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-dimension-mutations.yml'
+      - '.github/workflows/s24-client-dimension-lifecycle.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24DimensionLifecycleClientProof.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyClientSession.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 dimension lifecycle proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24DimensionLifecycleClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run baseline dimension lifecycle proof
+        run: xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain
+
+  tracking-generation-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 dimension lifecycle proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24DimensionLifecycleClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: suppress STOP_TRACKING generation advance
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='(ignored,current)->nextTrackingGeneration(current==null?1:current));'
+          new='(ignored,current)->current==null?1:current);'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --no-daemon --console=plain
+      - name: dimension proof must kill tracking-generation mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: dimension re-tracking reused the previous tracking generation'
+            exit 1
+          fi
+          echo 'KILLED: missing STOP_TRACKING generation advance'
+
+  catalog-scope-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 dimension lifecycle proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24DimensionLifecycleClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: wrongly reset connection catalog on level switch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyClientSession.java')
+          s=p.read_text()
+          old='level=nextLevel;return true;'
+          new='catalog=new AnatomyCatalogTransfer();level=nextLevel;return true;'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --no-daemon --console=plain
+      - name: dimension proof must kill catalog-scope mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: same-connection level switch discarded the accepted catalog'
+            exit 1
+          fi
+          echo 'KILLED: catalog incorrectly scoped to ClientLevel'
