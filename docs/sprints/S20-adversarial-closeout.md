@@ -1,29 +1,29 @@
 # S20 — Adversarial closeout state
 
-Status: **NOT CLOSED — I9 RED**.
+Status: **CLOSED — INDEPENDENT ADVERSARIAL ACCEPTANCE COMPLETE**.
 
-This document records the independent adversarial state of S20 after the Citadel pose-program implementation reached real-model parity and the condition-runtime bound was repaired. It does not replace the canonical sprint checklist and deliberately does not mark S20 closed while the canonical executable-binding path is still failing.
+This document records the independent adversarial closeout of S20 after the Citadel pose-program implementation, the adversarial bug/fix cycles, the canonical runtime repair and the final PREPARATION/HOT_TICK reread. It complements the canonical sprint checklist in `S20-citadel-pose-program-engine.md`; both documents are now reconciled.
 
 ## 1. Executive result
 
-S20's reusable Citadel evaluator, optional authoritative-channel boundary, catalog transfer format, representative program data, real-model oracle and bounded hot-path program contract are materially present.
+S20's reusable Citadel evaluator, optional authoritative-channel boundary, catalog transfer format, representative program data, real-model oracle, executable canonical binding path and bounded hot-path program contract are accepted on this branch lineage.
 
-The independent closeout now classifies:
+Final classification:
 
 - I5 catalog/data transfer: **PASS**;
 - I6 external channel adapter boundary: **PASS after adversarial bug/fix cycle**;
 - I7 representative Grizzly/Gazelle program data: **PASS**;
 - I8 original-model parity oracle: **PASS**;
-- I9 canonical runtime integration without hard external dependency: **FAIL / OPEN**;
+- I9 canonical runtime integration without hard external dependency: **PASS after production repair + live-runtime mutation proof**;
 - I10 runtime/limits/authoring contract: **PASS after adversarial boundedness bug/fix cycle**.
 
-S20 has one remaining production blocker: accepted canonical `scalebrews:citadel_program` bindings are still not materialized into `WorldAnatomyCatalog.Snapshot.bindings()`, and the runtime path still carries unconditional legacy pose-eligibility assumptions that a canonical binding must not inherit.
+No unresolved S20 production blocker remains. The historical S08 cross-generation lane is still separate proof debt, but it is explicitly classified below with executable evidence and predates the S20 I9 repair.
 
 ## 2. External channel transaction bug and repair
 
 The adversarial pass found that `AuthorityPoseTracker.sampleExternalChannels` could previously publish an adapter's valid prefix and then return failure after a later non-finite value, ownership conflict, duplicate or budget overflow. That violated fail-closed semantics because partial authoritative truth escaped from a rejected adapter sample.
 
-The implementer changed publication to stage the whole adapter output, validate it completely and call `putAll` only after success. The independent holdout now covers:
+The implementer changed publication to stage the whole adapter output, validate it completely and call `putAll` only after success. The independent holdout covers:
 
 1. non-finite tail rollback;
 2. late ownership conflict rollback;
@@ -46,7 +46,7 @@ Evidence: workflow `s20-citadel-pose-real-proof`, run `35014694555`, **SUCCESS**
 
 ## 4. Performance and boundedness evidence
 
-The hot evaluator no longer reconstructs keyframe deltas on every sample: program binding compiles keyframe state up front and sample lookup uses binary search. Allocation and CPU scaling were measured independently rather than inferred from code shape.
+The hot evaluator does not reconstruct keyframe deltas on every sample: program binding compiles keyframe state up front and sample lookup uses binary search. Allocation and CPU scaling were measured independently rather than inferred from code shape.
 
 Allocation evidence, run `35014967562`:
 
@@ -85,13 +85,25 @@ Detailed cost evidence lives in `S20-adversarial-performance-model.md`.
 
 The accepted S20 protocol bundle carries the Citadel program map beside geometry, vanilla pose programs and canonical bindings. The receive side validates Citadel programs before committing a complete revision.
 
-The closeout holdout `citadelProgramsAndBindingsMustRoundTripAtomicallyInCatalogBundle` encodes and accepts a bundle containing representative Gazelle and Grizzly Citadel programs/bindings. The separate I9 executable-binding property remains the failing part.
+The closeout holdout `citadelProgramsAndBindingsMustRoundTripAtomicallyInCatalogBundle` encodes and accepts a bundle containing representative Gazelle and Grizzly Citadel programs/bindings.
 
-## 6. I6 — optional external adapter boundary
+The historical S18 proof briefly remained pinned to protocol v5 after the accepted bundle advanced to v6. That was a stale proof contract rather than a production regression. Test-only commit `5849637` advanced the proof expectation, and workflow `s18-pose-engine-proof`, run `35079429984`, is **SUCCESS**.
 
-External model/entity state is sampled through neutral `PoseChannelAdapter` registrations. Optional Alex/Citadel-specific discovery is outside the hot evaluator and does not introduce a required external runtime dependency into the ordinary Scale JAR. Reflection and `MethodHandle` discovery happen during adapter installation/preparation. HOT_TICK only invokes already-bound handles and publishes validated scalar channels. Rejected samples fail closed transactionally after the atomicity repair above.
+## 6. I6 — optional external adapter boundary and HOT_TICK reread
 
-A source-level adversarial read found no parsing, resource lookup or reflection discovery inside `CitadelPoseProgramEvaluator.evaluate(...)` or the bound Citadel engine path. This must be repeated once I9 changes production integration, because a clean evaluator does not excuse moving resource/preparation work into the runtime binding path.
+External model/entity state is sampled through neutral `PoseChannelAdapter` registrations. Optional Alex/Citadel-specific discovery is outside the hot evaluator and does not introduce a required external runtime dependency into the ordinary Scale JAR. Rejected samples fail closed transactionally after the atomicity repair above.
+
+The required PREPARATION/HOT_TICK adversarial read was repeated **after** the I9 production fix. Result: **clean**.
+
+The reread traced the relevant boundary as follows:
+
+- `WorldAnatomyCatalog.replaceValidated(...)` and `prepareCanonical(...)` validate and resolve model, engine, parameters, declared channels and root provider while accepting/preparing the revision;
+- `CitadelPoseEngine.bind(...)` resolves the revision-local program and validates the required channels;
+- `CitadelPoseProgramEvaluator.bind(...)` validates source/version/bones and precompiles immutable evaluator state, including clips and rest-pose data;
+- `AnatomyRuntime.bindIfEligible(...)` consumes the already-materialized accepted binding;
+- `ModelGeometryProvider.tick(...)`, the bound evaluator and `AuthorityPoseTracker.sampleExternalChannels(...)` consume prepared engines/providers/adapters and scalar channel values.
+
+No JSON parsing, filesystem/resource lookup, pose-engine binding, root-provider resolution or reflection discovery was found in the S20 **HOT_TICK** path. Reflection/`MethodHandle` discovery for optional adapters remains installation/preparation work.
 
 ## 7. I7/I8 — representative pair
 
@@ -102,48 +114,46 @@ Pinned program resources exist for:
 
 They are used by the real-model oracle, which proves the shared evaluator against the original family implementation rather than against another copy of Scale's formulas.
 
-## 8. I9 — sole remaining production blocker
+## 8. I9 — PASS after canonical materialization and live-runtime mutation proof
 
-Independent holdout:
+The adversarial I9 sequence deliberately preserved the original red before accepting the repair.
+
+Historical failing evidence:
 
 - test: `S20AdversarialCanonicalBindingTests.representativeCitadelBindingsMustBecomeExecutableWithoutExternalClasses`;
 - workflow: `s20-adversarial-canonical-binding`;
-- hardened failing run: **35060148157**, SHA `35e1e03cc41533384a31b887a979b1ed397e510a`;
-- general build on the same SHA: **SUCCESS**;
-- result: **FAIL**, exactly at the missing executable Gazelle binding.
+- failing run: `35060148157`, SHA `35e1e03cc41533384a31b887a979b1ed397e510a`;
+- failure: the accepted canonical binding was absent from executable `Snapshot.bindings()`.
 
-The accepted revision preserves canonical Citadel bindings and selection can resolve them, but the executable runtime map is still built only from the legacy compatibility bridge. The holdout fails before its stronger execution assertions because `snapshot.bindings().get(alexsmobs:gazelle)` is absent.
+Production repair:
 
-The holdout protects more than map presence. Once materialization exists it additionally requires that the prepared binding:
+- commit `4554cc0`, `fix(s20): materialize canonical pose bindings`;
+- `WorldAnatomyCatalog.prepareCanonical(...)` now materializes the accepted canonical binding using the exact selected model, pose engine, parameters, declared channels and root provider;
+- canonical bindings carry `legacyPoseProvider = null`;
+- `Binding.supportsAuthorityPose(...)` applies `AnatomyPoseEligibility` only when a legacy compatibility provider actually exists.
 
-- preserves the selected model identity;
-- preserves the selected root-provider id and resolved root authority;
-- uses the shared `scalebrews:citadel_program` engine;
-- retains `parameters.program` and the declared custom-channel contract;
-- rejects evaluation when the required `probe` channel is absent;
-- successfully evaluates the neutral bound program when that channel is present.
+The original canonical-binding holdout then turned green without weakening its execution assertions: workflow `s20-adversarial-canonical-binding`, run `35073158624`, **SUCCESS**.
 
-A second I9 boundary must be repaired at the same time. `AnatomyRuntime.bindIfEligible(...)` currently creates the server-driven provider with:
+That catalog-level green was intentionally not treated as sufficient. The adversary added `S20AdversarialCanonicalRuntimeTests` plus workflow `s20-adversarial-canonical-runtime`, which starts the real `AnatomyRuntime`, installs a synthetic canonical binding, crosses `bindIfEligible(...)`, observes the real `ModelGeometryProvider` and requires an authoritative ordinary pose sample.
 
-`AnatomyPoseEligibility.supported(binding.legacyPoseProvider(), entity)`.
+The same workflow contains a mutation kill that changes the canonical eligibility boundary so a legacy provider becomes mandatory. Baseline must stay green and the mutant must fail. This proves causality rather than merely observing a convenient green path.
 
-`AnatomyPoseEligibility` owns legacy procedural-provider guards and defaults unknown provider IDs to unsupported. `ModelGeometryProvider.tick(...)` feeds that predicate into `AuthorityPoseTracker.tick(...)`, where it contributes to the `ordinary`/supported-pose state. Consequently, merely inserting canonical Citadel bindings into `Snapshot.bindings()` is insufficient if canonical runtime execution still requires a nominal legacy pose-provider identity.
+Post-integration evidence: workflow `s20-adversarial-canonical-runtime`, run `35079377725`, **SUCCESS**, including mutation kill, after the later runtime ownership change at `6aa8a4a`.
 
-Required repair properties, without prescribing implementation:
+I9 therefore proves both required properties:
 
-> Any accepted canonical binding whose geometry, pose engine/program, declared channels and root provider all validate must be materialized into the executable accepted revision. Executability must not be restricted to the legacy compatibility bridge, and preparation must preserve the exact selected parameters/channels/model/root rather than rebuild a legacy-shaped approximation.
+1. an accepted canonical Citadel binding becomes executable with its exact accepted model/root/engine/parameters/channels;
+2. canonical runtime pose availability does **not** depend on nominal legacy pose eligibility.
 
-> Canonical bindings must not depend on a nominal legacy pose provider for runtime eligibility. Legacy state guards may remain on the compatibility bridge; canonical/data-backed bindings must derive availability from canonical inputs, declared channels/adapters and the bound engine's fail-closed contract.
-
-After the implementer changes that path, the existing I9 workflow must turn green **without weakening the test**. The adversary must then add/execute a live-runtime holdout proving that a canonical bound sample is not suppressed by legacy eligibility before I9 is closed.
+The adversarial agent did not patch production logic to obtain this result.
 
 ## 9. No hard Alex/Citadel dependency
 
-The normal production dependency metadata continues to require Minecraft/Fabric rather than Alex's Mobs or Citadel. Family-specific proof dependencies are CI/test inputs, while common-side runtime structures are neutral Scale DTOs/engines. The I9 blocker is catalog/runtime preparation and lifecycle ownership, not a hard-dependency failure.
+The normal production dependency metadata continues to require Minecraft/Fabric rather than Alex's Mobs or Citadel. Family-specific proof dependencies are CI/test inputs, while common-side runtime structures are neutral Scale DTOs/engines. S20's canonical runtime path is therefore data-backed without converting Alex/Citadel into a hard runtime dependency.
 
 ## 10. I10 — PASS after boundedness repair
 
-`S20-citadel-runtime-authoring-guide.md` now documents the complete accepted schema limits, including the **4096 condition-node total per program**. The adversarial condition-budget workflow verifies the contract by behavior rather than by inspecting the implementation.
+`S20-citadel-runtime-authoring-guide.md` documents the complete accepted schema limits, including the **4096 condition-node total per program**. The adversarial condition-budget workflow verifies the contract by behavior rather than by inspecting the implementation.
 
 I10 evidence:
 
@@ -153,32 +163,46 @@ I10 evidence:
 - unchanged behavior-only green after repair: run `35070996485`, **SUCCESS**;
 - updated authoring guidance and performance model describe the accepted 4096-node program-wide bound.
 
-I10 is therefore **PASS**. It is no longer a reason to hold S20 open.
+I10 is **PASS**.
 
-## 11. Prepared historical regression lane
+## 11. S08 historical cross-generation lane — classified, not an S20 blocker
 
-During closeout the cross-generation `s08-prepared-adversarial-proof` lane was found to have stale test assumptions and incomplete path triggers. The adversarial cleanup is test/CI-only and does not change production semantics:
+The cross-generation `s08-prepared-adversarial-proof` lane remains separate historical proof debt, but it no longer constitutes an unexplained S20 red.
 
-- family pose export now uses canonical source IDs instead of obsolete `proof:*` identities;
-- Feline/Equine fixtures now supply the complete canonical authoritative channel set from their render states;
-- the legacy endpoint-carry fallback proof now derives expected motion from the exact `SurfaceContact.localPoint()` published at acquisition rather than assuming an entity origin is the material anchor;
-- workflow paths now track the actual fixtures it executes;
-- workflow run evidence is now retained as JUnit/console/log artifacts even on failure.
+Chronology matters:
 
-The client export portion is already green through cow, 640 additional vanilla-family comparisons and player wide/slim. The prepared server batch still has a later red under investigation. This historical-lane cleanup does not create a new S20 production blocker, but the final branch should not silently carry an unexplained cross-generation regression.
+- first known red in the current lineage is run `35059084565`, run number 100, at commit `63101f5` (`fix(s21): decouple root authority from legacy bridge pair`), timestamped before the S20 I9 repair `4554cc0`;
+- that run failed earlier in `AnatomyExportProof.checkPose()` through `Optional.orElseThrow`, before the later occupied-boat carry assertion was even reached;
+- subsequent test/fixture cleanup exposed a different stale expectation in the prepared occupied-boat proof.
 
-## 12. Closeout gate
+Independent diagnostics then isolated the current behavior rather than inferring it from the final boat position:
 
-Do not mark S20 `CLOSED` until all of the following are true in the same branch lineage:
+- eligibility passes;
+- `replacesPair` passes;
+- the vanilla entity-collision query no longer contributes the giant support AABB;
+- the boat acquires a real anatomical `SurfaceContact`;
+- with the unfiltered exported player geometry, that contact is `root/head/hat/cube_0`, and the boat height matches the outer `hat` geometry rather than the vanilla entity box.
 
-1. `s20-adversarial-canonical-binding` is green;
-2. a live canonical runtime sample is proven not to depend on legacy pose eligibility;
-3. `s20-adversarial-condition-budget` remains green;
-4. the real-model oracle remains green;
-5. the pose-channel transaction holdout remains green;
-6. operation CPU scaling remains classified as non-superlinear and allocation evidence remains accepted;
-7. build is green;
-8. the PREPARATION/HOT_TICK adversarial read is repeated after the I9 production fix and remains clean;
-9. the canonical S20 checklist/evidence is reconciled with the actual implementation;
-10. the prepared cross-generation regression lane is either green or any remaining red is explicitly classified with independent evidence;
-11. no S21 change regresses the S20 executable binding path.
+Evidence: `s08-implementer-boat-contact-diagnostic`, run `35081094150`, **SUCCESS**.
+
+This classifies the later red as a fixture/physical-filter specificity issue: an exported player contains a visible second skin layer (`hat`, and analogous jacket/sleeve/pants parts), so an assertion hard-coded to `root/head/cube_0` is only valid when the physical anatomy filter explicitly excludes those cosmetic parts. Test-only commit `22a8658` codifies that FR-020 boundary without changing production semantics.
+
+Therefore the S08 lane is **historical cross-generation proof debt, independently classified and pre-existing before the S20 I9 fix**. It is not evidence that S20 fell back to a giant vanilla AABB and it is not an S20 canonical-pose regression.
+
+## 12. Closeout gate — SATISFIED
+
+All S20 closeout conditions are satisfied in the same branch lineage:
+
+1. `s20-adversarial-canonical-binding`: run `35073158624`, **SUCCESS**;
+2. live canonical runtime independent of legacy pose eligibility: `s20-adversarial-canonical-runtime`, run `35079377725`, **SUCCESS**, with mutation kill;
+3. `s20-adversarial-condition-budget`: run `35070996485`, **SUCCESS**;
+4. real-model oracle: run `35014694555`, **SUCCESS**;
+5. pose-channel transaction holdout: run `35012624020`, **SUCCESS**;
+6. CPU scaling remains non-superlinear and allocation evidence remains accepted: runs `35059646199` and `35014967562`;
+7. build after the relevant runtime/test integration: run `35081094083`, **SUCCESS**;
+8. PREPARATION/HOT_TICK adversarial reread repeated after `4554cc0`: **clean**, as recorded in section 6;
+9. canonical S20 checklist/evidence reconciled in `S20-citadel-pose-program-engine.md`;
+10. remaining S08 red explicitly classified with independent executable evidence, as recorded in section 11;
+11. later runtime ownership work does not regress the S20 executable binding path: post-change live-runtime run `35079377725` remains **SUCCESS**.
+
+S20 is therefore **CLOSED** on this branch lineage. Further S08 cleanup belongs to its historical/cross-generation proof work rather than reopening S20 unless new evidence demonstrates an actual S20 production regression.
