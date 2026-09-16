@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **RECONNECT SIN EVIDENCIA / PROOF FOCAL ROJO ANTES DE LA PRIMERA DESCONEXIÓN**.
+Estado: **PROOF IMPLEMENTER INVALIDADO COMO HARNESS / RECONNECT REAL EN RECERTIFICACIÓN ADVERSARIAL**.
 
 ## 1. Candidato implementer
 
@@ -12,48 +12,72 @@ Estado: **RECONNECT SIN EVIDENCIA / PROOF FOCAL ROJO ANTES DE LA PRIMERA DESCONE
 2. conectar cliente y alcanzar `READY` + pose + `presentationFrame`;
 3. cerrar la primera conexión;
 4. comprobar que catálogo/pose de la conexión vieja desaparecen;
-5. reconectar al mismo servidor y exigir mismo epoch/revision/binding, nueva identidad `ServerPlayer` y `trackingGeneration=1` para el nuevo receptor.
+5. reconectar al mismo servidor y exigir mismo epoch/revision/binding y autoridad de tracking independiente para el nuevo receptor.
 
-El diseño del proof es adecuado para FR-080/FR-082/NFR-017 si consigue ejecutar ambas vidas de conexión.
+El diseño causal es adecuado para FR-080/FR-082/NFR-017, pero el fixture original introduce una dependencia ajena a reconnect: crea el soporte antes de que exista ningún jugador/conexión en el dedicated test world.
 
-## 2. Resultado ejecutado
+## 2. Rojos originales
 
-Workflow `s24-client-reconnect-lifecycle`, run **`35120074913`**, job **`104875319948`**: **failure**.
+Primer workflow implementer `s24-client-reconnect-lifecycle`, run **`35120074913`**, job **`104875319948`**: **failure** en el primer `awaitReady`, antes de la primera desconexión.
 
-El fallo terminal es:
+Tras retirar la asunción excesiva de que una conexión nueva deba recibir exactamente `trackingGeneration=1`, el rerun **`35120983007`**, job **`104878391797`**, volvió a fallar en el mismo primer `awaitReady`. Por tanto el ajuste de generation scope era correcto, pero no explicaba el rojo.
+
+Los builds generales correspondientes fueron verdes; eso no convierte una lane focal roja en evidencia de reconnect.
+
+## 3. Diagnóstico por etapas
+
+El adversario añadió `S24AdversarialReconnectBootstrapDiagnostics` y el workflow `s24-adversarial-reconnect-bootstrap-diagnostic` para separar:
+
+- conexión cliente;
+- existencia del `ServerPlayer` y del soporte;
+- frame autoritativo server;
+- negociación de canales catálogo/pose/contacto;
+- `PlayerLookup.tracking`;
+- catálogo announced/READY;
+- entidad visible en cliente;
+- pose history;
+- presentation frame.
+
+Run **`35121576945`**, job **`104880398209`**: **failure** con diagnóstico terminal exacto:
 
 ```text
-java.lang.AssertionError: Timed out waiting for predicate
-  at S24ReconnectLifecycleClientProof.awaitReady(...:96)
-  at S24ReconnectLifecycleClientProof.runTest(...:41)
+BOOTSTRAP_STAGE server-cow: canonical cow missing before publication
 ```
 
-La línea 41 es el **primer** `awaitReady(...)`, dentro de la primera conexión. La primera desconexión del escenario todavía no ha ocurrido. El build general del mismo commit (`35120074766`) sí fue verde, por lo que esta evidencia focal no puede sustituirse por el build ordinario.
+La conexión cliente ya existía y `Player0` había entrado, pero la vaca que el fixture creó **antes** de conectar ya no estaba en el `ServerLevel`. El test abortó antes de comprobar canales, tracking, catálogo, pose o presentación.
 
-Los errores headless de narrator/OpenAL presentes en el log no son el fallo terminal: el cliente y dedicated server arrancan, `Player0` entra y permanece conectado hasta que el GameTest aborta por timeout.
+Los warnings/errores headless de narrator/OpenAL/servicios externos del log no son el fallo terminal.
 
-## 3. Clasificación adversarial
+## 4. Clasificación adversarial
 
-Este resultado **no demuestra una regresión de reconnect**, porque reconnect no llegó a ejecutarse. Tampoco permite declarar el proof verde por intención.
+Los rojos implementer anteriores **no prueban un bug de producción en reconnect**. Prueban que el laboratorio mezclaba reconnect anatómico con lifecycle de entidad/chunk en un dedicated server todavía sin jugadores.
 
-El bloqueo real es bootstrap del fixture dedicado: la sesión inicial no alcanza conjuntamente vaca cliente visible + catálogo/pose/presentation requerida por `awaitReady` dentro de 200 ticks.
+Modificar `AnatomyRuntime`, networking o causal fencing para hacer verde ese escenario habría sido una reparación imaginaria.
 
-Antes de modificar producción debe aislarse cuál etapa falta:
+## 5. Recertificación limpia
 
-- entidad visible en el cliente;
-- catálogo `READY`;
-- `AnatomyFrameHistory` recibido;
-- provider/presentation materializable;
-- server tracking window publicada al receptor.
+Se creó `S24AdversarialReconnectLifecycleProof` con una separación explícita de responsabilidades:
 
-## 4. Factura de aceptación
+1. arrancar dedicated server;
+2. conectar primero el cliente;
+3. sólo entonces crear el soporte cerca del `ServerPlayer`;
+4. marcarlo persistente y mantener su chunk forzado durante el hueco entre conexiones;
+5. arrancar `AnatomyRuntime.startPrepared(...)` con el receptor ya presente;
+6. demostrar primera sesión READY;
+7. desconectar y exigir borrado de catálogo/pose client-side;
+8. comprobar que el soporte server-side sigue siendo exactamente la misma entidad;
+9. reconectar y exigir mismo epoch/revision/binding, nueva vida de `ServerPlayer` y un `AnatomyFrameHistory` cliente nuevo.
+
+Este proof mide reconnect en lugar de la supervivencia accidental del soporte antes de la primera conexión. Su evidencia ejecutada se añadirá sólo cuando CI finalice.
+
+## 6. Factura de aceptación
 
 Reconnect permanece abierto hasta que:
 
-1. el proof dedicado alcance la primera sesión READY de forma reproducible;
+1. el proof dedicado limpio alcance la primera sesión READY de forma reproducible;
 2. ejecute realmente disconnect + segunda conexión;
 3. la segunda conexión no herede catálogo/frames/contactos/receipts de la primera;
 4. el mismo server/binding pueda conservar epoch/revision/binding cuando corresponda sin conservar autoridad del receptor muerto;
-5. una campaña mutation-kill demuestre sensibilidad al menos a omitir el reset cliente de conexión y a conservar indebidamente autoridad server-side del receptor antiguo.
+5. una campaña mutation-kill demuestre sensibilidad al menos a conservar indebidamente catálogo y pose/history cliente al desconectar.
 
-Hasta entonces el run rojo es diagnóstico útil, no evidencia de cumplimiento ni evidencia suficiente de fallo de producción.
+El cleanup server-side por receptor se evaluará con mutantes sólo si afectan autoridad de la segunda conexión; no se añadirán mutantes decorativos que sobrevivan o mueran por GC de weak keys sin cambiar semántica observable.
