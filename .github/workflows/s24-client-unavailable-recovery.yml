@@ -14,7 +14,10 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/ModelGeometryProvider.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrame.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrameLedger.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
