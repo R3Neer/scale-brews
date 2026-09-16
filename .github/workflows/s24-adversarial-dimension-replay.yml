@@ -1,0 +1,60 @@
+name: s24-adversarial-dimension-replay
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-dimension-replay.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24DimensionReplayClientProof.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  dimension-replay-barrier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 dimension replay holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24DimensionReplayClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run pre-barrier dimension replay holdout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s24-dimension-replay
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain \
+            2>&1 | tee build/s24-dimension-replay/client.log
+          if ! grep -R -F 'S24_DIMENSION_REPLAY PASS' \
+              build/run/clientGameTest/logs build/s24-dimension-replay/client.log >/dev/null 2>&1; then
+            echo 'S24 dimension replay proof did not emit its causal PASS marker.' >&2
+            exit 1
+          fi
+      - name: capture dimension replay evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-adversarial-dimension-replay
+          path: |
+            build/s24-dimension-replay/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
