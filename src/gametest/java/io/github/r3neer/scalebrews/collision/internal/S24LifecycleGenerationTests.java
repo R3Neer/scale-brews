@@ -124,6 +124,69 @@ public final class S24LifecycleGenerationTests {
         h.succeed();
     }
 
+    @GameTest
+    public void compactReplayFenceRejectsExpiredPacketButAllowsProvablyNewerContinuation(GameTestHelper h) {
+        var epoch=UUID.randomUUID();var entity=UUID.randomUUID();var dimension=h.getLevel().dimension().identifier();
+        var model=Identifier.parse("minecraft:cow");var provider=Identifier.parse("scalebrews:static");
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+        var expired=frame(epoch,dimension,7,entity,model,provider,10,100,5,7,inputs);
+        var delayed=frame(epoch,dimension,7,entity,model,provider,9,99,5,7,inputs);
+        var fresh=frame(epoch,dimension,7,entity,model,provider,11,101,5,7,inputs);
+        var forgedIdentity=frame(epoch,dimension,8,entity,model,provider,11,101,5,7,inputs);
+        var fence=new TrackingReplayFence();
+
+        h.assertTrue(fence.retire(expired) && fence.entries()==1,"Expiring a full frame history must leave one compact replay watermark");
+        h.assertTrue(fence.rejects(expired) && fence.rejects(delayed),"The expired packet and every older ordering watermark must remain rejected after history eviction");
+        h.assertTrue(fence.rejects(forgedIdentity),"The same lifecycle generation cannot change network identity after its full history was evicted");
+        h.assertTrue(!fence.rejects(fresh),"A strictly newer frame in the same still-valid tracking window may recover after a quiet TTL");
+        fence.accepted(fresh);
+        h.assertTrue(fence.entries()==0 && !fence.rejects(fresh),"Once a fresh live history owns the watermark, the compact tombstone must be released");
+        h.succeed();
+    }
+
+    @GameTest
+    public void compactReplayFencePreservesIndependentBindingAndTrackingSemantics(GameTestHelper h) {
+        var epoch=UUID.randomUUID();var entity=UUID.randomUUID();var dimension=h.getLevel().dimension().identifier();
+        var model=Identifier.parse("minecraft:cow");var provider=Identifier.parse("scalebrews:static");
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+        var expired=frame(epoch,dimension,7,entity,model,provider,10,100,5,7,inputs);
+        var pureRetrack=frame(epoch,dimension,7,entity,model,provider,1,101,5,8,inputs);
+        var smuggledReplacement=frame(epoch,dimension,8,entity,model,provider,1,101,5,8,inputs);
+        var explicitRebind=frame(epoch,dimension,8,entity,model,provider,1,101,6,7,inputs);
+        var trackingRollback=frame(epoch,dimension,8,entity,model,provider,20,102,6,6,inputs);
+        var fence=new TrackingReplayFence();h.assertTrue(fence.retire(expired),"Fixture tombstone must install");
+
+        h.assertTrue(!fence.rejects(pureRetrack),"A newer recipient tracking window may restart the same physical binding");
+        h.assertTrue(fence.rejects(smuggledReplacement),"Tracking generation alone cannot launder a changed network identity through the compact fence");
+        h.assertTrue(!fence.rejects(explicitRebind),"A newer server binding may legitimately replace network identity inside the same tracking window");
+        h.assertTrue(fence.rejects(trackingRollback),"A newer binding must not legalize rollback to an older recipient tracking generation");
+        h.succeed();
+    }
+
+    @GameTest
+    public void compactReplayFenceSaturatesWithoutEvictingAuthorityBarriers(GameTestHelper h) {
+        var epoch=UUID.randomUUID();var dimension=h.getLevel().dimension().identifier();
+        var model=Identifier.parse("minecraft:cow");var provider=Identifier.parse("scalebrews:static");
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());var fence=new TrackingReplayFence();
+        for(int i=0;i<TrackingReplayFence.MAX_RETIRED;i++) {
+            var id=new UUID(0x534234L,i+1L);
+            h.assertTrue(fence.retire(frame(epoch,dimension,7,id,model,provider,1,10,5,i+1L,inputs)),"Replay fence rejected an entry before its documented cap");
+        }
+        h.assertTrue(fence.entries()==TrackingReplayFence.MAX_RETIRED && !fence.saturated(),"Exactly MAX_RETIRED compact tombstones must fit without saturation");
+
+        var overflowId=new UUID(0x534234L,TrackingReplayFence.MAX_RETIRED+1L);
+        var overflow=frame(epoch,dimension,7,overflowId,model,provider,1,10,5,TrackingReplayFence.MAX_RETIRED+1L,inputs);
+        h.assertTrue(!fence.retire(overflow) && fence.saturated() && fence.entries()==TrackingReplayFence.MAX_RETIRED,
+            "The first excess tombstone must saturate conservatively without eviction or growth");
+        var arbitraryFresh=frame(epoch,dimension,7,UUID.randomUUID(),model,provider,999,999,99,999,inputs);
+        h.assertTrue(fence.rejects(arbitraryFresh),"A saturated replay fence must fail closed rather than inventing authority for an untracked packet");
+
+        fence.clear();
+        h.assertTrue(!fence.saturated() && fence.entries()==0 && !fence.rejects(arbitraryFresh),
+            "Only a full lifecycle reset may clear saturation and all prior-connection tombstones");
+        h.succeed();
+    }
+
     private static AnatomyPosePayload frame(UUID epoch,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,
                                              long serial,long tick,long bindingGeneration,long trackingGeneration,PoseProvider.Inputs inputs) {
         return new AnatomyPosePayload(epoch,3,dimension,entityId,entity,model,provider,serial,tick,tick,4,tick,bindingGeneration,trackingGeneration,true,
