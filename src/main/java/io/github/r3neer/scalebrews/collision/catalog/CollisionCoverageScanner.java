@@ -68,11 +68,25 @@ public final class CollisionCoverageScanner {
                 binding.rootTransform(), binding.excludedStates());
         }
 
+        /**
+         * Canonical evidence preimage. Every variable-length value is length-framed rather than
+         * delimiter-escaped so every string accepted by the binding schema has an injective encoding.
+         */
         String canonical() {
-            var text = new StringBuilder();
-            variant.forEach((key, value) -> text.append(escape(key)).append('=').append(escape(value)).append(','));
-            text.append('|').append(geometryEngine).append('|').append(poseEngine).append('|').append(rootTransform).append('|');
-            excludedStates.forEach(state -> text.append(escape(state)).append(','));
+            var text = new StringBuilder("binding-evidence-v2|");
+            text.append("variants:").append(variant.size()).append('|');
+            variant.forEach((key, value) -> {
+                appendFrame(text, key);
+                appendFrame(text, value);
+            });
+            text.append("geometry:");
+            appendFrame(text, geometryEngine.toString());
+            text.append("pose:");
+            appendFrame(text, poseEngine.toString());
+            text.append("root:");
+            appendFrame(text, rootTransform.toString());
+            text.append("excluded:").append(excludedStates.size()).append('|');
+            excludedStates.forEach(state -> appendFrame(text, state));
             return text.toString();
         }
     }
@@ -126,13 +140,18 @@ public final class CollisionCoverageScanner {
                 throw new IllegalStateException("Coverage report contains unresolved entity types: " + unresolved);
         }
 
-        /** Canonical line format used only as stable digest input, not as a user-facing file format. */
+        /** Canonical length-framed text used only as stable digest input, not as a user-facing file format. */
         public String canonicalText() {
-            var text = new StringBuilder("collision-coverage-v1\n");
+            var text = new StringBuilder("collision-coverage-v2|");
+            text.append("rows:").append(rows.size()).append('|');
             for (var row : rows) {
-                text.append(row.entity()).append('|').append(row.status()).append('|').append(escape(row.reason())).append('|');
-                for (var binding : row.bindings()) text.append('[').append(binding.canonical()).append(']');
-                text.append('\n');
+                var rowText = new StringBuilder("row-v2|");
+                appendFrame(rowText, row.entity().toString());
+                appendFrame(rowText, row.status().name());
+                appendFrame(rowText, row.reason());
+                rowText.append("bindings:").append(row.bindings().size()).append('|');
+                for (var binding : row.bindings()) appendFrame(rowText, binding.canonical());
+                appendFrame(text, rowText.toString());
             }
             return text.toString();
         }
@@ -233,7 +252,9 @@ public final class CollisionCoverageScanner {
         return reason;
     }
 
-    private static String escape(String value) {
-        return value.replace("\\", "\\\\").replace("|", "\\|").replace("\n", "\\n").replace("\r", "\\r");
+    private static void appendFrame(StringBuilder target, String value) {
+        Objects.requireNonNull(target, "target");
+        Objects.requireNonNull(value, "value");
+        target.append(value.length()).append(':').append(value);
     }
 }
