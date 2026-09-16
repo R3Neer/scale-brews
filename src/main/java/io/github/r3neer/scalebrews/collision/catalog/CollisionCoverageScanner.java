@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -152,8 +151,8 @@ public final class CollisionCoverageScanner {
      * Classifies exactly the discovered target ids against the canonical binding catalog.
      *
      * <ul>
-     *   <li>default binding + no known excluded states => FULL;</li>
-     *   <li>default binding with excluded states, or variant-only coverage => SAFE_PARTIAL;</li>
+     *   <li>default binding + no known excluded states in any applicable binding => FULL;</li>
+     *   <li>known excluded states, or variant-only coverage => SAFE_PARTIAL;</li>
      *   <li>explicit technical exclusion without a canonical binding => EXCLUDED;</li>
      *   <li>otherwise => UNRESOLVED.</li>
      * </ul>
@@ -212,9 +211,14 @@ public final class CollisionCoverageScanner {
             if (defaultBinding.isEmpty()) {
                 rows.add(new Row(entity, Status.SAFE_PARTIAL,
                     "canonical coverage exists only for explicit variants", evidence));
-            } else if (!defaultBinding.orElseThrow().excludedStates().isEmpty()) {
+                continue;
+            }
+
+            var excludedStates = new TreeSet<String>();
+            bindings.forEach(binding -> excludedStates.addAll(binding.excludedStates()));
+            if (!excludedStates.isEmpty()) {
                 rows.add(new Row(entity, Status.SAFE_PARTIAL,
-                    "default binding excludes states: " + String.join(",", defaultBinding.orElseThrow().excludedStates()), evidence));
+                    "canonical bindings exclude states: " + String.join(",", excludedStates), evidence));
             } else {
                 rows.add(new Row(entity, Status.FULL, "default canonical binding covers ordinary states", evidence));
             }
