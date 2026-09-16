@@ -1,0 +1,98 @@
+name: s22-adversarial-coverage-residuals
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s22-adversarial-coverage-residuals.yml'
+      - 'tools/s22_coverage_hotpath_gate.py'
+      - 'src/main/java/**'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/catalog/S22AdversarialCoverageResidualTests.java'
+  workflow_dispatch:
+
+jobs:
+  mixed-state-gaps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S22 mixed-state-gap holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.catalog.S22AdversarialCoverageResidualTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S22 mixed-state-gap holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s22-adversarial-coverage-residuals-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S22-adversarial-coverage-residuals
+          path: |
+            build/s22-adversarial-coverage-residuals-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  coverage-hotpath-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: verify coverage tooling has no production callers
+        run: python3 tools/s22_coverage_hotpath_gate.py
+
+  coverage-hotpath-mutation-kill:
+    needs: coverage-hotpath-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject a compiling runtime reference to coverage tooling
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          marker='public final class AnatomyRuntime {'
+          replacement=marker+'\n    private static final Class<?> S22_COVERAGE_RUNTIME_LEAK = io.github.r3neer.scalebrews.collision.catalog.CollisionCoverageScanner.class;'
+          count=s.count(marker)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,replacement,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: hot-path gate must kill production coverage reference
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s22_coverage_hotpath_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: runtime production reference to coverage tooling escaped the source gate"
+            exit 1
+          fi
+          echo "KILLED: runtime production reference to coverage tooling"
