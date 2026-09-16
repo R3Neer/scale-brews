@@ -708,3 +708,27 @@ The closing TM reread re-inspected the canonical registry/SAM, built-in procedur
 The compare from the last production change `3ff54a7...` to pre-documentation checkpoint **`4afcc19dcdb9c683125e874ec1e3f16894e7ebec`** contains only the S18 regression test plus documentation/CI work; there is no later `src/main` or `src/client` S18 modification. The transitional S16 execution bridge remains intentionally outside this closure's replacement scope: it already binds the canonical `PoseEngine.Bound`; generic root/lifecycle removal belongs to later G3 tasks.
 
 **Final conclusion:** S18 satisfies its 11 closure criteria and **G3 task 4 is closed again after the retroactive reopening**. G3 remains open for tasks 5–12, with task 5 / S19 as the next productive gate.
+
+## G3 / S23 DisplayRig generic-SPI proof — adversarial closure 2026-09-16
+
+S23 closes G3 task 7 / FR-018 without inventing a production DisplayRig target. The implementer proof registers a synthetic `GeometryEngine`, prepares common `ModelGeometry`, materializes ordinary `ConvexBox` geometry and exercises the existing raycast/overlap path. Its ordinary candidate evidence was run **`35103246319`**, job **`104817741616`**, with **425/425 required GameTests**; focal run **`35103246410`**, job **`104817742057`**, passed the isolated S23 proof.
+
+The independent adversarial close strengthened the oracle rather than changing production:
+
+- `ff074173e7a1b1e694f695fc52e4bbc8c4876d28` adds `S23AdversarialGeometryEngineOpacityTests`: two engines with different ids, model ids, parameters, `source` and `version` must materialize identical bounds and produce identical common raycast and `ConservativeSweep` results when their physical geometry is identical;
+- `199bff049506692a2d104518b2588770a3c0612c` adds `tools/s23_spi_only_gate.py`, which rejects nominal DisplayRig/display-composite knowledge under production `src/main` while no real target exists;
+- `a02e04f695944686f4cc1dcbf1619670c2e45cbb` adds the focal adversarial workflow and two directed mutation campaigns;
+- `d76194273874b5ca9697cd6cb075e843fd648d82` makes that workflow watch the permanent GameTest registration;
+- `2ffeb627bc9b397b417393eba6454c49a2a714e9` permanently registers the adversarial holdout in the ordinary suite.
+
+Final adversarial run **`35104624130`** on `2ffeb627bc9b397b417393eba6454c49a2a714e9` passed all three jobs:
+
+- **`104822510244`** `engine-opacity`: source gate clean and isolated physical holdout green;
+- **`104823016011`** `metadata-branch-mutation-kill`: a compiling mutant that makes `ModelGeometry.evaluate(...)` translate only `source=synthetic_display_composite` is **KILLED** by the holdout;
+- **`104823015908`** `source-boundary-mutation-kill`: an injected production `DisplayRigSpecialCase` is **KILLED** by the SPI-only source gate.
+
+The earlier full campaign run **`35104004704`** on `a02e04f...` was also green and killed both directed mutants before permanent registration. No production defect was exposed, so the adversary made no `src/main` repair: the weakness was the strength of the original proof, not observed runtime behavior.
+
+This evidence proves the current pre-target FR-018 boundary: after a geometry engine emits common geometry, physical behavior is family/metadata-opaque under the exercised raycast/sweep paths, and current production contains no DisplayRig/display-composite hardcode. It does **not** prove extraction or semantics of a future real DisplayRig target. The nominal source gate is intentionally temporary and must be refined or retired with new evidence when such a target actually lands, not bypassed with silent exceptions.
+
+**S23 is independently closed and G3 task 7 is closed.**
