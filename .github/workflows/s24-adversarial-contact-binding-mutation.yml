@@ -1,0 +1,95 @@
+name: s24-adversarial-contact-binding-mutation
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-contact-binding-mutation.yml'
+      - '.github/workflows/s24-adversarial-contact-rebind-replay.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24ContactSupportRebindReplayClientProof.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactPayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+  workflow_dispatch:
+
+jobs:
+  contact-binding-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - &isolate
+        name: isolate S24 contact support-binding proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24ContactSupportRebindReplayClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: production proof must pass
+        run: xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain
+
+  drop-support-binding-fence-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - *isolate
+      - name: remove support binding checks from client materialization and presentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          material='''            if(supportPacket.bindingGeneration()!=packet.supportBindingGeneration()) {\n                presentationContacts.remove(packet.body());contacts.consume(packet);continue;\n            }\n'''
+          assert s.count(material)==1, 'contact materialization binding fence seam drifted'
+          s=s.replace(material,'')
+          presentation=' && frame.identity().bindingGeneration()==packet.supportBindingGeneration()'
+          assert s.count(presentation)==1, 'presentation binding fence seam drifted'
+          s=s.replace(presentation,'')
+          p.write_text(s)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava --no-daemon --console=plain
+      - name: holdout must kill missing support-binding fence
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain 2>&1 | tee mutation.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Support-binding fence mutant survived the rebind holdout.' >&2
+            exit 1
+          fi
+          if ! grep -F 'Pre-rebind contact became authoritative against support binding N+1' mutation.log >/dev/null; then
+            echo 'Mutant died, but not at the intended stale-contact invariant.' >&2
+            exit 1
+          fi
+      - name: capture support-binding mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-contact-support-binding-mutation
+          path: |
+            mutation.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
