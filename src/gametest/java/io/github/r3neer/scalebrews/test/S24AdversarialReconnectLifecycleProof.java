@@ -96,7 +96,7 @@ public final class S24AdversarialReconnectLifecycleProof implements FabricClient
                 try {
                     server.runOnServer(minecraft->{
                         var chunk=forcedChunk.get();
-                        if(chunk!=null)minecraft.overworld().setChunkForced(chunk.x,chunk.z,false);
+                        if(chunk!=null)minecraft.overworld().setChunkForced(chunk.x(),chunk.z(),false);
                         AnatomyRuntime.stop(minecraft);
                     });
                 } catch(Throwable cleanup) {
@@ -140,8 +140,8 @@ public final class S24AdversarialReconnectLifecycleProof implements FabricClient
         cow.setNoGravity(true);
         cow.setPersistenceRequired();
         cow.setPos(player.getX()+2.0,player.getY(),player.getZ());
-        var chunk=new ChunkPos(cow.blockPosition());
-        server.overworld().setChunkForced(chunk.x,chunk.z,true);
+        var chunk=cow.chunkPosition();
+        server.overworld().setChunkForced(chunk.x(),chunk.z(),true);
         forcedChunk.set(chunk);
         server.overworld().addFreshEntity(cow);
         cowId.set(cow.getId());
