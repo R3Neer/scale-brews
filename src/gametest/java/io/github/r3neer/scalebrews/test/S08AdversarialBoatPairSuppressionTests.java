@@ -34,7 +34,7 @@ import net.minecraft.world.phys.Vec3;
  * anatomical sweep can see the exported head.</p>
  */
 public final class S08AdversarialBoatPairSuppressionTests {
-    private S08AdversarialBoatPairSuppressionTests() {}
+    public S08AdversarialBoatPairSuppressionTests() {}
 
     @GameTest(maxTicks = 80)
     public void occupiedBoatReplacementPairSuppressesVanillaSupportAabb(GameTestHelper h) throws IOException {
