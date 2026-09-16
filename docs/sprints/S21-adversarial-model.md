@@ -58,8 +58,8 @@ Current classification on the `chatgpt-editing` lineage:
 - same-tick root-only causal identity: **PASS**;
 - reload/rebind root lifecycle: **PASS**, including mutation adequacy;
 - external-root teleport discontinuity and recovery: **PASS**, including mutation adequacy;
-- entity-removal lifecycle: **RED / current blocker**;
-- session teardown: **not yet independently closed**.
+- session teardown: **PASS**, including mutation adequacy;
+- entity-removal lifecycle: **RED / current blocker**.
 
 The ordinary build is green on the removal-holdout SHA (`99364e4`, run `35088792862`). The removal red is therefore a behavioral product gate, not a compile or harness failure.
 
@@ -262,7 +262,29 @@ Repair property, intentionally non-prescriptive:
 
 The adversarial test must remain red until production satisfies that property. The adversary does not patch the production gate.
 
-## 8. Properties currently green
+## 8. Session teardown — PASS + MUTATION ADEQUATE
+
+`S21AdversarialRootSessionTeardownTests` exercises the real `AnatomyRuntime.stop(server)` boundary after first establishing a live causal root, a certified executable interval and queued material work. It then requires teardown to retire all three layers of authority immediately, and verifies that restarting the runtime does not resurrect the pre-stop handle.
+
+The final hardened lane proves three independent teardown responsibilities with semantic mutants applied only to an ephemeral CI checkout:
+
+1. **retain-state** replaces the destructive `STATES.remove(server)` with a non-destructive lookup, testing that session identity itself must be retired;
+2. **retain-pending** removes only `MaterialIntervalRuntime.clear(server)` from `stop()`, testing that already queued material work must not survive session teardown;
+3. **keep-movement-active** removes the per-level `AnatomyMovement.deactivate(level)` call while still removing runtime state, testing that local causal/query authority must also be retired.
+
+Evidence:
+
+- test commit `2d87418`, `test(s21): retire root authority on runtime stop`;
+- initial workflow commit `36f296f`, `ci(s21): run root session teardown holdout`;
+- initial baseline run `35089135904`: **SUCCESS**;
+- final hardened workflow lineage `61575d1`, `ci(s21): repair scoped teardown mutant harness`;
+- run `35097601316`: baseline **SUCCESS** and all three mutation-kill jobs **SUCCESS**.
+
+Two intermediate mutation-harness failures are discarded as non-product evidence: the first `retain-pending` selector was ambiguous between `reset()` and `stop()`, and the next multiline Python target made the workflow YAML invalid. Neither reached a semantic mutant. The final lane scopes the mutation from the `stop()` method boundary and compiles every mutant before running the holdout.
+
+Session teardown is therefore independently closed; it is no longer a blocker for S21.
+
+## 9. Properties currently green
 
 The current adversarial pass has independently established that:
 
@@ -276,29 +298,30 @@ The current adversarial pass has independently established that:
 - root-provider identity survives catalog binding, server causal identity, wire transport and client binding matching;
 - same-tick root-only mutation advances causal identity without joint recomputation;
 - runtime rebind fences obsolete provider/root generations;
-- real teleport fences transported external-root continuity and then recovers the tracker.
+- real teleport fences transported external-root continuity and then recovers the tracker;
+- full runtime stop retires session identity, pending material intervals and local movement authority, and old handles stay dead after restart.
 
 These green properties do not compensate for the entity-removal red.
 
-## 9. Next adversarial targets
+## 10. Next adversarial targets
 
-The immediate sequence is now deliberately narrow:
+The remaining S21 sequence is deliberately narrow:
 
 1. keep `s21-adversarial-root-removal-lifecycle` red and unchanged while the implementer repairs production;
 2. rerun that same holdout after the fix and add mutation adequacy only after baseline becomes green;
-3. independently prove full `AnatomyRuntime.stop()` / session teardown cannot leave accepted root handles or pending intervals alive;
-4. reconcile the canonical S21 checklist only after lifecycle/removal and teardown are green;
-5. perform a final read-through for PREPARATION/HOT_TICK and root/joint cache separation after the last production repair.
+3. perform the final PREPARATION/HOT_TICK and root/joint cache-separation read-through after the last production repair;
+4. reconcile the canonical S21 checklist and close the sprint only if those checks remain green.
 
-## 10. Gate rule
+S22 work may proceed in parallel, but it does not waive this S21 product gate.
+
+## 11. Gate rule
 
 S21 must not be considered adversarially converged while:
 
 - the removal holdout remains red;
-- session teardown lacks independent lifecycle proof;
 - any root failure/removal path can publish, execute or reuse stale causal truth;
 - a root-only change forces local-joint reevaluation without a demonstrated reason;
 - any causal/presentation/motion/wire path reconstructs legacy gravity+yaw authority after a custom root has already been accepted;
 - canonical bindings cannot swap root authority independently of geometry and pose;
 - same-tick external root-only mutations can remain causally invisible;
-- reload/rebind or teleport can preserve a stale external-root interval across a lifecycle boundary.
+- reload/rebind, teleport or session teardown can preserve a stale external-root interval across a lifecycle boundary.
