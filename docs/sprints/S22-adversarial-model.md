@@ -1,6 +1,6 @@
 # S22 adversarial model — coverage classification kernel
 
-Status: **OPEN — canonical digest + acceptance completeness RED**.
+Status: **OPEN — canonical coverage digest RED**.
 
 > Role: adversarial verification only. This document does not authorize production changes.
 >
@@ -37,12 +37,9 @@ The adversarial pass treats these properties as mandatory:
 
 ## 2. Current implementation status
 
-The implementer kernel already covers default/variant/state classification, unresolved gating, explicit exclusions, deterministic ordering, target input identity and automatic registry discovery. Commit `b1b2681` aggregates excluded states across all applicable bindings so a clean default cannot hide a variant state gap. Commit `4bea96b` moved LivingEntity discovery to `DefaultAttributes.hasSupplier(type)`, and `74217f5` added implementer proof for that boundary.
+The implementer kernel covers default/variant/state classification, unresolved gating, explicit exclusions, deterministic ordering, target input identity and automatic registry discovery. Commit `b1b2681` aggregates excluded states across all applicable bindings so a clean default cannot hide a variant state gap. Commit `4bea96b` moved LivingEntity discovery to `DefaultAttributes.hasSupplier(type)`, and `74217f5` added implementer proof for that boundary.
 
-Two independent adversarial blockers remain:
-
-1. canonical binding evidence has an ambiguous pre-hash encoding;
-2. the public acceptance `Artifact` can be directly assembled with an incomplete report and still satisfy `requireResolved()`.
+The former acceptance-completeness bypass is now closed independently and mutation-protected. The remaining confirmed S22 blocker is the ambiguous canonical pre-hash encoding described below.
 
 ## 3. Canonical digest ambiguity — RED / CURRENT BLOCKER
 
@@ -84,43 +81,58 @@ Repair property, intentionally non-prescriptive:
 
 The adversarial test remains red until production satisfies that property. Mutation adequacy should be added only after the unchanged baseline becomes green.
 
-## 4. Acceptance completeness bypass — RED / CURRENT BLOCKER
+## 4. Acceptance completeness — HISTORICAL RED → PASS + MUTATION ADEQUATE
 
 FR-038 requires the reproducible report to enumerate every automatically discovered target exactly once and forbids silently omitted rows. FR-039/FR-040 then use `UNRESOLVED=0` as an acceptance condition.
 
-The canonical `CollisionCoverageDiscovery.scan(...)` path is complete: it discovers target ids first and classifies that set. However, `CollisionCoverageDiscovery.Artifact` is publicly constructible from an arbitrary `Report`, and its `requireResolved()` delegates only to `Report.requireResolved()`. A report with zero rows therefore has zero `UNRESOLVED` rows and passes the gate even when automatic discovery for the declared target contains many LivingEntity ids.
+The initial canonical `scan(...)` path was complete, but `CollisionCoverageDiscovery.Artifact` could be directly assembled from an arbitrary `Report`, and its gate only checked for `UNRESOLVED` rows. An empty report therefore passed despite omitting the target's discovered population.
 
-Independent holdout:
+Historical red evidence:
 
 - `S22AdversarialCoverageCompletenessTests.manuallyAssembledArtifactCannotResolveWhileOmittingDiscoveredTargets`;
 - test commit `569324e`, `test(s22): reject incomplete resolved coverage artifacts`;
-- workflow `s22-adversarial-coverage-completeness`;
-- workflow commit `0c6dffd`, `ci(s22): run coverage completeness holdout`;
-- ordinary build on the same SHA: run `35098751232` **SUCCESS**;
-- adversarial run `35098751358`: **FAIL**.
-
-The fixture first executes real automatic discovery for the Minecraft 26.2 target and verifies that it contains `minecraft:cow` and multiple LivingEntity ids. It then directly constructs an empty `Artifact` and calls `requireResolved()`.
-
-The exact failure is:
+- initial workflow commit `0c6dffd`, `ci(s22): run coverage completeness holdout`;
+- ordinary build on that SHA: run `35098751232` **SUCCESS**;
+- adversarial run `35098751358`: **FAIL** exactly at:
 
 `FR-038/FR-039/FR-040: an acceptance artifact that silently omits discovered LivingEntity rows must not satisfy requireResolved(); completeness must be tied to automatic discovery`
 
-Repair property, intentionally non-prescriptive:
+The implementer repair `4484fd7` (`fix(s22): bind artifact completeness to discovery`) makes the `Artifact` constructor rediscover the declared target and require exact ordered equality between discovered ids and report-row ids. The unchanged adversarial holdout then passed:
 
-> Any object or operation presented as the S22 acceptance gate must prove report completeness against the declared target's discovered identity set. Omitting rows must fail closed; an empty/incomplete report must never become equivalent to `UNRESOLVED=0` merely because no unresolved rows were supplied.
+- run `35099137468`: **SUCCESS**.
 
-This does not require `Report` itself to perform registry discovery. The implementation may instead make complete artifacts constructible only through a discovery-backed path, carry/validate discovery identity in the artifact, or otherwise enforce the same property without moving discovery into runtime code.
+Mutation adequacy was added in workflow lineage `80a946e`. The semantic mutant replaces discovery-backed expected membership with the report's own row ids, recreating a self-justifying incomplete artifact while preserving the public API. It compiles and is killed by the same unchanged holdout:
 
-The adversarial holdout remains red until production satisfies that property. Mutation adequacy should be added only after the unchanged baseline becomes green.
+- run `35099430830`: baseline **SUCCESS**, mutation-kill **SUCCESS**.
 
-## 5. Next adversarial targets
+This closes the acceptance-completeness bypass independently. It is no longer an S22 blocker.
 
-After these two reds are repaired:
+## 5. Discarded discovery-parity experiment — TEST ORACLE INVALID
 
-1. rerun both unchanged holdouts and add semantic mutation adequacy for each repair;
-2. probe target/discovery identity for namespace and version-input ambiguity;
-3. audit deterministic state-gap aggregation across mixed default + multiple variant bindings;
-4. verify no low-level/public gate can bypass target membership by supplying duplicate, foreign or partial rows;
+An attempted exhaustive cross-check compared attribute-backed discovery against `LivingEntity.class.isAssignableFrom(type.getBaseClass())`. Run `35099359378` was red, but the reference set was empty while attribute-backed discovery contained the expected vanilla living population. In Minecraft 26.2, `EntityType.getBaseClass()` is therefore not a valid static oracle for LivingEntity membership in this context.
+
+No production claim is made from that red. The test and workflow were removed in commits `a44992b` and `fae7089` so a known-invalid oracle does not remain as fake debt.
+
+The current discovery evidence remains the production criterion plus its implementer smoke/boundary tests until an actually independent, non-instantiating oracle is available.
+
+## 6. Next adversarial targets
+
+The remaining S22 sequence is deliberately narrow:
+
+1. keep `s22-adversarial-coverage-digest` red and unchanged while the implementer repairs canonical framing;
+2. rerun that same digest holdout after the fix and add a semantic mutant that restores ambiguous framing;
+3. audit deterministic state-gap aggregation across mixed default + multiple variant bindings without duplicating existing implementer cases;
+4. verify no other low-level/public acceptance path can bypass target membership by supplying foreign or partial rows;
 5. perform a final read-through proving discovery/scanning remains absent from runtime/hot-tick paths.
 
 S21 remains independently open on its entity-removal lifecycle red; S22 progress does not waive that gate.
+
+## 7. Gate rule
+
+S22 must not be considered adversarially converged while:
+
+- semantically distinct accepted binding evidence can alias in canonical serialization or digest identity;
+- an acceptance artifact can omit discovered target ids and still satisfy the resolved gate;
+- a clean binding can hide a known state gap from another applicable binding;
+- discovery or coverage scanning leaks into runtime/hot-tick code;
+- target namespace/version/input identity is not represented deterministically in the acceptance artifact.
