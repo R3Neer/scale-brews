@@ -1,0 +1,67 @@
+name: s08-implementer-boat-contact-diagnostic
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s08-implementer-boat-contact-diagnostic.yml'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S08ImplementerBoatContactDiagnostic.java'
+  workflow_dispatch:
+
+jobs:
+  boat-contact-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: export original player geometry
+        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+
+      - name: locate exported catalog
+        id: catalog
+        shell: bash
+        run: |
+          catalog="$(find . -type d -name anatomy-export -print -quit)"
+          test -n "$catalog"
+          echo "path=$catalog" >> "$GITHUB_OUTPUT"
+
+      - name: isolate implementer diagnostic
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.S08ImplementerBoatContactDiagnostic'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run implementer diagnostic
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/s08-implementer-boat-contact
+          ./gradlew runGameTest --console=plain \
+            -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}' \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s08-implementer-boat-contact/junit.xml" 2>&1 \
+            | tee build/s08-implementer-boat-contact/console.log
+
+      - name: capture implementer diagnostic
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S08-implementer-boat-contact-diagnostic
+          path: |
+            build/s08-implementer-boat-contact/
+            build/run/gameTest/logs/
