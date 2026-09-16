@@ -1,6 +1,6 @@
 # S22 adversarial model — coverage classification kernel
 
-Status: **OPEN — canonical coverage digest RED**.
+Status: **OPEN — canonical digest + acceptance completeness RED**.
 
 > Role: adversarial verification only. This document does not authorize production changes.
 >
@@ -29,16 +29,20 @@ The adversarial pass treats these properties as mandatory:
    - semantically distinct evidence must not serialize to the same canonical preimage;
    - delimiter characters allowed by canonical data must be escaped or length-framed;
    - digest equality may represent equivalent canonical evidence, never an ambiguity introduced before SHA-256.
-5. **Discovery boundary**
+5. **Discovery/acceptance coupling**
    - tooling discovers the intended `LivingEntity` target without spawning entities;
    - namespace scoping happens as part of discovery;
+   - an acceptance artifact cannot claim `resolved` while omitting ids from the target's automatic discovery;
    - discovery/scanning remains outside runtime hot paths.
 
 ## 2. Current implementation status
 
-The implementer kernel already covers default/variant/state classification, unresolved gating, explicit exclusions, deterministic ordering, target input identity and automatic registry discovery. Commit `b1b2681` also aggregates excluded states across all applicable bindings so a clean default cannot hide a variant state gap.
+The implementer kernel already covers default/variant/state classification, unresolved gating, explicit exclusions, deterministic ordering, target input identity and automatic registry discovery. Commit `b1b2681` aggregates excluded states across all applicable bindings so a clean default cannot hide a variant state gap. Commit `4bea96b` moved LivingEntity discovery to `DefaultAttributes.hasSupplier(type)`, and `74217f5` added implementer proof for that boundary.
 
-The first independent adversarial blocker is the canonical digest encoding described below.
+Two independent adversarial blockers remain:
+
+1. canonical binding evidence has an ambiguous pre-hash encoding;
+2. the public acceptance `Artifact` can be directly assembled with an incomplete report and still satisfy `requireResolved()`.
 
 ## 3. Canonical digest ambiguity — RED / CURRENT BLOCKER
 
@@ -80,14 +84,43 @@ Repair property, intentionally non-prescriptive:
 
 The adversarial test remains red until production satisfies that property. Mutation adequacy should be added only after the unchanged baseline becomes green.
 
-## 4. Next adversarial targets
+## 4. Acceptance completeness bypass — RED / CURRENT BLOCKER
 
-After the digest red is repaired:
+FR-038 requires the reproducible report to enumerate every automatically discovered target exactly once and forbids silently omitted rows. FR-039/FR-040 then use `UNRESOLVED=0` as an acceptance condition.
 
-1. rerun the unchanged digest holdout and add a semantic mutant that restores ambiguous framing;
-2. verify that the acceptance path cannot claim `resolved` while omitting ids returned by automatic discovery, distinguishing the canonical `scan(...)` path from direct low-level artifact construction;
-3. probe target/discovery identity for namespace and version-input ambiguity;
-4. audit deterministic state-gap aggregation across mixed default + multiple variant bindings;
+The canonical `CollisionCoverageDiscovery.scan(...)` path is complete: it discovers target ids first and classifies that set. However, `CollisionCoverageDiscovery.Artifact` is publicly constructible from an arbitrary `Report`, and its `requireResolved()` delegates only to `Report.requireResolved()`. A report with zero rows therefore has zero `UNRESOLVED` rows and passes the gate even when automatic discovery for the declared target contains many LivingEntity ids.
+
+Independent holdout:
+
+- `S22AdversarialCoverageCompletenessTests.manuallyAssembledArtifactCannotResolveWhileOmittingDiscoveredTargets`;
+- test commit `569324e`, `test(s22): reject incomplete resolved coverage artifacts`;
+- workflow `s22-adversarial-coverage-completeness`;
+- workflow commit `0c6dffd`, `ci(s22): run coverage completeness holdout`;
+- ordinary build on the same SHA: run `35098751232` **SUCCESS**;
+- adversarial run `35098751358`: **FAIL**.
+
+The fixture first executes real automatic discovery for the Minecraft 26.2 target and verifies that it contains `minecraft:cow` and multiple LivingEntity ids. It then directly constructs an empty `Artifact` and calls `requireResolved()`.
+
+The exact failure is:
+
+`FR-038/FR-039/FR-040: an acceptance artifact that silently omits discovered LivingEntity rows must not satisfy requireResolved(); completeness must be tied to automatic discovery`
+
+Repair property, intentionally non-prescriptive:
+
+> Any object or operation presented as the S22 acceptance gate must prove report completeness against the declared target's discovered identity set. Omitting rows must fail closed; an empty/incomplete report must never become equivalent to `UNRESOLVED=0` merely because no unresolved rows were supplied.
+
+This does not require `Report` itself to perform registry discovery. The implementation may instead make complete artifacts constructible only through a discovery-backed path, carry/validate discovery identity in the artifact, or otherwise enforce the same property without moving discovery into runtime code.
+
+The adversarial holdout remains red until production satisfies that property. Mutation adequacy should be added only after the unchanged baseline becomes green.
+
+## 5. Next adversarial targets
+
+After these two reds are repaired:
+
+1. rerun both unchanged holdouts and add semantic mutation adequacy for each repair;
+2. probe target/discovery identity for namespace and version-input ambiguity;
+3. audit deterministic state-gap aggregation across mixed default + multiple variant bindings;
+4. verify no low-level/public gate can bypass target membership by supplying duplicate, foreign or partial rows;
 5. perform a final read-through proving discovery/scanning remains absent from runtime/hot-tick paths.
 
 S21 remains independently open on its entity-removal lifecycle red; S22 progress does not waive that gate.
