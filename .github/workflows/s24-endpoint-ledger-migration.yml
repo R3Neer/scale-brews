@@ -1,0 +1,86 @@
+name: s24-endpoint-ledger-migration
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-endpoint-ledger-migration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: migrate endpoint serial ownership
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          movement=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          text=movement.read_text()
+
+          start=text.index('    /** Server-owned material endpoint serial; it advances for a root or joint endpoint change. */')
+          end=text.index('    /** Per-support live maintenance.',start)
+          removed=text[start:end]
+          assert 'FRAME_SERIALS' in removed and 'EndpointStamp' in removed and 'EndpointSerial' in removed
+          text=text[:start]+text[end:]
+
+          assert text.count('FRAME_SERIALS.keySet().removeIf(e->e.level()==level);')==1
+          text=text.replace('FRAME_SERIALS.keySet().removeIf(e->e.level()==level);','AnatomyEndpointLedger.deactivate(level);')
+
+          exact='FRAME_SERIALS.computeIfPresent(support,(ignored,old)->new EndpointSerial(old.stamp(),old.endpoint(),old.snapshot(),true));'
+          assert text.count(exact)==1
+          text=text.replace(exact,'AnatomyEndpointLedger.invalidate(support);')
+
+          text=text.replace('FRAME_SERIALS.get(','AnatomyEndpointLedger.get(')
+          text=text.replace('FRAME_SERIALS.put(','AnatomyEndpointLedger.put(')
+          text=text.replace('FRAME_SERIALS.remove(','AnatomyEndpointLedger.clear(')
+          text=text.replace('new EndpointStamp(','new AnatomyEndpointLedger.Stamp(')
+          text=text.replace('new EndpointSerial(','new AnatomyEndpointLedger.Entry(')
+
+          leftovers=[token for token in ('FRAME_SERIALS','EndpointStamp','EndpointSerial') if token in text]
+          assert not leftovers, f'legacy endpoint-owner symbols remain: {leftovers}'
+
+          # Normalize the root delegation block left column by the previous one-shot migration.
+          block_start=text.index('    /** Capture before a root move; no pose channels are read or evaluated. */')
+          block_end=text.index('    private static void clearSupportContacts(LivingEntity support) {',block_start)
+          block=text[block_start:block_end]
+          lines=block.splitlines()
+          assert lines and lines[0].startswith('    /** Capture')
+          normalized=[lines[0]]+[('    '+line if line else line) for line in lines[1:]]
+          text=text[:block_start]+'\n'.join(normalized)+'\n'+text[block_end:]
+
+          movement.write_text(text)
+          PY
+
+      - name: compile migrated sources
+        run: ./gradlew compileJava compileClientJava compileGametestJava --no-daemon --console=plain
+
+      - name: commit migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'Migration produced no changes.' >&2
+            exit 1
+          fi
+          git config user.name 'Scale Brews CI'
+          git config user.email 'actions@users.noreply.github.com'
+          git add src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java
+          git commit -m 'refactor(collision): move endpoint serials into dedicated ledger'
+          git push origin HEAD:chatgpt-editing
