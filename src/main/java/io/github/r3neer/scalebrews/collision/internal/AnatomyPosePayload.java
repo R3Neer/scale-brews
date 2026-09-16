@@ -32,8 +32,15 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
     public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
             Identifier model,Identifier provider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,long bindingGeneration,boolean available,
             PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) {
+        this(epoch,revision,dimension,entityId,entity,model,provider,frameSerial,authorityTick,jointSampleTick,rootFrameSequence,rootFrameTick,bindingGeneration,1,available,
+            inputs,origin,yaw,scale,gravity);
+    }
+    /** S24 causal fixture constructor with explicit recipient tracking generation. */
+    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
+            Identifier model,Identifier provider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,
+            long bindingGeneration,long trackingGeneration,boolean available,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) {
         this(epoch,revision,dimension,entityId,entity,model,provider,GeometryProvider.DEFAULT_ROOT_PROVIDER,frameSerial,authorityTick,jointSampleTick,
-            rootFrameSequence,rootFrameTick,bindingGeneration,1,available,inputs,origin,yaw,scale,gravity,legacyRoot(origin,yaw,scale,gravity));
+            rootFrameSequence,rootFrameTick,bindingGeneration,trackingGeneration,available,inputs,origin,yaw,scale,gravity,legacyRoot(origin,yaw,scale,gravity));
     }
     /** Source-compatible pre-S24 constructor. Tracking generation 1 is fixture-only; live sends provide it explicitly. */
     public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
