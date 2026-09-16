@@ -285,7 +285,10 @@ public final class AnatomyRuntime {
         else {
             var support=recipient.level().getEntity(surface.support());
             if(!(support instanceof LivingEntity living))return;
-            payload=new AnatomyContactPayload(epoch,revision,body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,sequence,tick,living.getId(),living.getUUID(),surface.piece(),surface.face(),surface.localPoint(),surface.normal());
+            var supportDescriptor=AnatomyBindingState.descriptor(living);
+            if(supportDescriptor==null || supportDescriptor.bindingGeneration()<1)return;
+            payload=new AnatomyContactPayload(epoch,revision,body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,sequence,tick,
+                living.getId(),living.getUUID(),supportDescriptor.bindingGeneration(),surface.piece(),surface.face(),surface.localPoint(),surface.normal());
         }
         ServerPlayNetworking.send(recipient,payload);map.put(body.getUUID(),new PublishedContact(key,generation,sequence,tick));
     }
