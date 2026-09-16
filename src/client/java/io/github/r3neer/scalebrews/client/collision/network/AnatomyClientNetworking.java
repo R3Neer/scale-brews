@@ -144,6 +144,11 @@ public final class AnatomyClientNetworking {
             if(!packet.present()) {AnatomyMovement.clear(body);presentationContacts.remove(packet.body());contacts.consume(packet);continue;}
             var support=poseLevel.getEntity(packet.supportId());
             if(!(support instanceof net.minecraft.world.entity.LivingEntity living) || !support.getUUID().equals(packet.support()))continue;
+            var supportHistory=frames.get(packet.support());var supportPacket=supportHistory==null?null:supportHistory.current();
+            if(supportPacket==null)continue;
+            if(supportPacket.bindingGeneration()!=packet.supportBindingGeneration()) {
+                presentationContacts.remove(packet.body());contacts.consume(packet);continue;
+            }
             var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
             if(AnatomyMovement.confirm(body,living,surface)) {presentationContacts.put(packet.body(),packet);contacts.consume(packet);}
         }
@@ -211,7 +216,8 @@ public final class AnatomyClientNetworking {
         var supportEntity=poseLevel.getEntity(packet.supportId());
         if(!(supportEntity instanceof net.minecraft.world.entity.LivingEntity support) || !support.getUUID().equals(packet.support()))return java.util.Optional.empty();
         var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
-        return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision() && frame.evaluated().pieces().containsKey(surface.piece()))
+        return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision()
+                && frame.identity().bindingGeneration()==packet.supportBindingGeneration() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
     private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
