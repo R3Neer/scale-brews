@@ -34,6 +34,11 @@ public final class AnatomyContactInbox {
         if(support==null)return;
         pending.entrySet().removeIf(entry->support.equals(entry.getValue().support()));
     }
+    /**
+     * A same-connection ClientLevel transition discards material work immediately but retains ordering
+     * watermarks so A -> B -> A cannot authorize an old contact before fresh tracking arrives.
+     */
+    public void clearPending(){pending.clear();}
     /** World/server ticks, never wall-clock or render frames, bound retained stale identities. */
     public void prune(long serverTick,long maxAge) {
         if(serverTick<0 || maxAge<0)throw new IllegalArgumentException("Invalid contact retention window");
@@ -41,5 +46,6 @@ public final class AnatomyContactInbox {
             var entry=iterator.next();if(entry.getValue().tick()<serverTick && serverTick-entry.getValue().tick()>maxAge) {pending.remove(entry.getKey());iterator.remove();}
         }
     }
+    /** Disconnect or accepted catalog revision replaces the owning causal session. */
     public void clear(){watermarks.clear();pending.clear();}
 }
