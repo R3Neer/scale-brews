@@ -240,6 +240,7 @@ public final class AnatomyClientNetworking {
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
             if(entity instanceof net.minecraft.world.entity.LivingEntity living && frames.containsKey(living.getUUID())) {
+                frames.get(living.getUUID()).retireCurrentGeneration();
                 staleFrames.add(living.getUUID());
                 discardSupportMaterial(level,living.getUUID(),living.getId());
             }
