@@ -8,8 +8,11 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24LifecycleGenerationTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingGenerationLedgerTests.java'
   workflow_dispatch:
 
 jobs:
@@ -33,7 +36,8 @@ jobs:
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-gametest']=[
-            'io.github.r3neer.scalebrews.collision.internal.S24LifecycleGenerationTests'
+            'io.github.r3neer.scalebrews.collision.internal.S24LifecycleGenerationTests',
+            'io.github.r3neer.scalebrews.collision.internal.S24TrackingGenerationLedgerTests'
           ]
           data['entrypoints']['fabric-client-gametest']=[]
           p.write_text(json.dumps(data,indent=2)+'\n')
