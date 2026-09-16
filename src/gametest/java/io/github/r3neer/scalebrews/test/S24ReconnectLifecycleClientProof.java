@@ -39,7 +39,7 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
                 Identity first;
                 try(var connection=server.connect()) {
                     awaitReady(context,cowId,cowUuid);
-                    first=context.computeOnClient(client->identity(cowUuid.get()));
+                    first=context.computeOnClient(client->S24ReconnectLifecycleClientProof.identity(cowUuid.get()));
                     if(first.trackingGeneration()!=1)
                         throw new AssertionError("Fresh first connection did not start cow tracking at generation 1: "+first.trackingGeneration());
                     server.runOnServer(minecraft->firstPlayer.set(minecraft.getPlayerList().getPlayers().getFirst()));
@@ -60,7 +60,7 @@ public final class S24ReconnectLifecycleClientProof implements FabricClientGameT
 
                 try(var connection=server.connect()) {
                     awaitReady(context,cowId,cowUuid);
-                    var second=context.computeOnClient(client->identity(cowUuid.get()));
+                    var second=context.computeOnClient(client->S24ReconnectLifecycleClientProof.identity(cowUuid.get()));
                     if(!first.epoch().equals(second.epoch()) || first.revision()!=second.revision())
                         throw new AssertionError("Reconnect to the same running server changed epoch/revision unexpectedly");
                     if(first.bindingGeneration()!=second.bindingGeneration())
