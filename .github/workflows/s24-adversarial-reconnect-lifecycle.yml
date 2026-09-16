@@ -1,5 +1,4 @@
 name: s24-adversarial-reconnect-lifecycle
-# Re-triggered after initial registration so GitHub Actions can observe the workflow itself.
 
 on:
   push:
@@ -52,3 +51,107 @@ jobs:
             build/s24-adversarial-reconnect/client.log
             build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  stale-catalog-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate adversarial reconnect proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24AdversarialReconnectLifecycleProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: preserve dead connection catalog
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          old='private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}'
+          new='private static void reset(){clearPoses();poseLevel=null;clientTick=0;}'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --no-daemon --console=plain
+      - name: reconnect proof must kill stale catalog mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: disconnect retained the dead connection catalog'
+            exit 1
+          fi
+          echo 'KILLED: stale connection catalog mutant'
+
+  stale-history-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate adversarial reconnect proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24AdversarialReconnectLifecycleProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: preserve dead connection pose histories
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          old='private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}'
+          new='private static void reset(){session.resetConnection();poseLevel=null;clientTick=0;}'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --no-daemon --console=plain
+      - name: reconnect proof must kill stale history mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: disconnect retained the previous connection frame history'
+            exit 1
+          fi
+          echo 'KILLED: stale connection history mutant'
