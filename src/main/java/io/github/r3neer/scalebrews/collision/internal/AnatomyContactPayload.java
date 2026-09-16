@@ -8,39 +8,47 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
-/** Server-confirmed contact identity. Geometry remains server-owned through the catalog revision. */
+/** Server-confirmed contact identity. Geometry remains server-owned through catalog revision and support binding generation. */
 public record AnatomyContactPayload(UUID epoch,long revision,Identifier dimension,int bodyId,UUID body,long trackingGeneration,long sequence,long tick,
-        int supportId,UUID support,String piece,int face,Vec3 localPoint,Vec3 normal) implements CustomPacketPayload {
+        int supportId,UUID support,long supportBindingGeneration,String piece,int face,Vec3 localPoint,Vec3 normal) implements CustomPacketPayload {
     public AnatomyContactPayload {
         if(epoch==null || dimension==null || body==null || revision<0 || trackingGeneration<1 || sequence<0 || tick<0 || bodyId<0)
             throw new IllegalArgumentException("Invalid anatomical contact identity");
         boolean clear=supportId<0;
         if(clear) {
-            if(support!=null || piece!=null || localPoint!=null || normal!=null || face!=-1)
+            if(support!=null || supportBindingGeneration!=0 || piece!=null || localPoint!=null || normal!=null || face!=-1)
                 throw new IllegalArgumentException("Clear contact carries surface data");
         } else {
+            if(supportBindingGeneration<1)throw new IllegalArgumentException("Present contact lacks support binding authority");
             // Every accepted wire surface must be materializable by the same
             // canonical contact contract; no looser second set of tolerances.
             new io.github.r3neer.scalebrews.collision.api.SurfaceContact(support,revision,piece,face,localPoint,normal,tick);
         }
     }
+    /** Source compatibility for pre-v6 internal fixtures. Fresh fixture runtimes start their first support binding at generation 1. */
+    @Deprecated(forRemoval=false)
+    public AnatomyContactPayload(UUID epoch,long revision,Identifier dimension,int bodyId,UUID body,long trackingGeneration,long sequence,long tick,
+            int supportId,UUID support,String piece,int face,Vec3 localPoint,Vec3 normal) {
+        this(epoch,revision,dimension,bodyId,body,trackingGeneration,sequence,tick,supportId,support,supportId<0?0:1,piece,face,localPoint,normal);
+    }
     public static AnatomyContactPayload clear(UUID epoch,long revision,Identifier dimension,int bodyId,UUID body,long trackingGeneration,long sequence,long tick) {
-        return new AnatomyContactPayload(epoch,revision,dimension,bodyId,body,trackingGeneration,sequence,tick,-1,null,null,-1,null,null);
+        return new AnatomyContactPayload(epoch,revision,dimension,bodyId,body,trackingGeneration,sequence,tick,-1,null,0,null,-1,null,null);
     }
     public boolean present(){return supportId>=0;}
-    public static final Type<AnatomyContactPayload> TYPE=new Type<>(ScaleBrews.id("anatomy_contact_v5"));
+    public static final Type<AnatomyContactPayload> TYPE=new Type<>(ScaleBrews.id("anatomy_contact_v6"));
     public static final StreamCodec<RegistryFriendlyByteBuf,AnatomyContactPayload> CODEC=StreamCodec.of((b,p)->{
         b.writeUUID(p.epoch);b.writeVarLong(p.revision);b.writeIdentifier(p.dimension);b.writeVarInt(p.bodyId);b.writeUUID(p.body);
         b.writeVarLong(p.trackingGeneration);b.writeVarLong(p.sequence);b.writeVarLong(p.tick);b.writeBoolean(p.present());
         if(p.present()) {
-            b.writeVarInt(p.supportId);b.writeUUID(p.support);b.writeUtf(p.piece,256);b.writeByte(p.face);
+            b.writeVarInt(p.supportId);b.writeUUID(p.support);b.writeVarLong(p.supportBindingGeneration);b.writeUtf(p.piece,256);b.writeByte(p.face);
             write(b,p.localPoint);write(b,p.normal);
         }
     },b->{
         UUID epoch=b.readUUID();long revision=b.readVarLong();var dimension=b.readIdentifier();int bodyId=b.readVarInt();UUID body=b.readUUID();
         long generation=b.readVarLong(),sequence=b.readVarLong(),tick=b.readVarLong();
         if(!b.readBoolean())return clear(epoch,revision,dimension,bodyId,body,generation,sequence,tick);
-        return new AnatomyContactPayload(epoch,revision,dimension,bodyId,body,generation,sequence,tick,b.readVarInt(),b.readUUID(),b.readUtf(256),b.readUnsignedByte(),read(b),read(b));
+        int supportId=b.readVarInt();UUID support=b.readUUID();long supportBindingGeneration=b.readVarLong();
+        return new AnatomyContactPayload(epoch,revision,dimension,bodyId,body,generation,sequence,tick,supportId,support,supportBindingGeneration,b.readUtf(256),b.readUnsignedByte(),read(b),read(b));
     });
     private static void write(RegistryFriendlyByteBuf b,Vec3 v){b.writeDouble(v.x);b.writeDouble(v.y);b.writeDouble(v.z);}
     private static Vec3 read(RegistryFriendlyByteBuf b){return new Vec3(b.readDouble(),b.readDouble(),b.readDouble());}
