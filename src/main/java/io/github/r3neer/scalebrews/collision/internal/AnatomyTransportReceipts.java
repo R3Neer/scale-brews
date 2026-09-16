@@ -70,6 +70,7 @@ public final class AnatomyTransportReceipts {
         Vec3 appliedDelta=transport.appliedDelta(),after=body.position(),before=after.subtract(appliedDelta);
         for(var recipient:recipients) {
             long generation=AnatomyRuntime.trackingGeneration(recipient,body);
+            if(generation<1)continue; // Tracking-ledger saturation cannot mint an authoritative receipt.
             var receipt=new Receipt(AnatomyNetworking.epoch(server),contact.revision(),body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,
                 surface.support(),surface.piece(),surface.face(),surface.localPoint(),surface.normal(),surface.tick(),contact.sequence(),
                 root.sequence(),transport.sequence(),tick,before,after,root,materialBefore,materialAfter,appliedDelta);
