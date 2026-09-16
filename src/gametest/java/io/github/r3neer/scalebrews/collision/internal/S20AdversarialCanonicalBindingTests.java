@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
 import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
@@ -37,8 +38,14 @@ public final class S20AdversarialCanonicalBindingTests {
                 "S20 I9: accepted Citadel binding must be prepared into the executable catalog for " + entity);
             h.assertTrue(executable.selection().pose().engine().equals(CITADEL),
                 "Representative S20 binding must execute through the shared scalebrews:citadel_program engine");
+            h.assertTrue(executable.selection().rootTransform().equals(LegacyCollisionData.ENTITY_ROOT),
+                "Representative S20 binding must preserve the canonical selected root provider id for " + entity);
+            h.assertTrue(executable.model().source().equals(entity.toString()),
+                "Representative S20 executable binding must retain the selected model identity for " + entity);
             h.assertTrue(executable.root() != null,
                 "Representative S20 binding must retain resolved root authority without external mod classes");
+            h.assertTrue(executable.poses().evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true)).isPresent(),
+                "S20 I9: prepared Citadel binding must execute its neutral bound pose program for " + entity);
         }
         h.succeed();
     }
