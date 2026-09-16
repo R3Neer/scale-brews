@@ -1,4 +1,5 @@
 name: s24-adversarial-reconnect-lifecycle
+# Re-triggered after initial registration so GitHub Actions can observe the workflow itself.
 
 on:
   push:
