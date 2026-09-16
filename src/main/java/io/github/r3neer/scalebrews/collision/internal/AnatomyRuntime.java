@@ -200,7 +200,7 @@ public final class AnatomyRuntime {
      * may be discarded without invalidating the currently active support.
      */
     public static boolean acceptsIntervalIdentity(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
-        if(entity==null || handle==null)return false;
+        if(entity==null || handle==null || entity.isRemoved())return false;
         var server=entity.level().getServer();if(server==null)return false;
         var state=STATES.get(server);if(state==null)return false;
         var active=state.entities.get(entity);if(active==null)return false;
