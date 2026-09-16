@@ -148,19 +148,19 @@ public final class S18PoseEngineAuthorityTests {
     }
 
     @GameTest
-    public void protocolV5CarriesPoseProgramsInsideTheAtomicBundle(GameTestHelper h) {
-        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 5,
-            "Adding authoritative pose programs to the synchronized revision is an incompatible wire change and must own protocol v5");
-        h.assertTrue(!AnatomyApi.compatible(4, 0), "A v5 endpoint must not advertise protocol-v4 compatibility");
+    public void protocolV6CarriesPoseProgramsInsideTheAtomicBundle(GameTestHelper h) {
+        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 6,
+            "Adding neutral Citadel pose programs to the synchronized revision is an incompatible wire change and must own protocol v6");
+        h.assertTrue(!AnatomyApi.compatible(5, 0), "A v6 endpoint must not advertise protocol-v5 compatibility");
 
         var packets = new WorldAnatomyCatalog().preparedPackets(UUID.randomUUID());
         var complete = new ByteArrayOutputStream();
         for (var packet : packets) complete.writeBytes(packet.fragment());
         var json = JsonParser.parseString(complete.toString(StandardCharsets.UTF_8)).getAsJsonObject();
         h.assertTrue(json.has("pose_programs"),
-            "Protocol-v5 authoritative bundle must carry pose_programs atomically with models and bindings");
+            "Protocol-v6 authoritative bundle must carry pose_programs atomically with models and bindings");
         h.assertTrue(json.has("models") && json.has("bindings"),
-            "Protocol-v5 pose-program extension must preserve the canonical model/binding bundle");
+            "Protocol-v6 pose-program extension must preserve the canonical model/binding bundle");
         h.succeed();
     }
 
