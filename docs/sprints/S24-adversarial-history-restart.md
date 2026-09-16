@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **HOLDOUT PLANTADO / CI PENDIENTE**.
+Estado: **SUBCONTRATO CERRADO ADVERSARIALMENTE**. Esto no cierra G3.9 completo.
 
 ## 1. Riesgo atacado
 
@@ -22,22 +22,30 @@ La regresión observada durante S24 demostró que esta frontera es atacable: con
 
 El primer caso es especialmente importante porque `trackingGeneration` es el eje nuevo introducido por S24 y no estaba cubierto por los holdouts históricos de S00.
 
-## 3. Mutantes exigidos
+## 3. Mutantes ejecutados
 
-El workflow adversarial debe matar al menos:
+El workflow adversarial mata:
 
-- **soft-reject mutant**: sustituir el hard reject de cambio de identidad en `accept(...)` por `return false`;
-- **tracking-axis mutant**: retirar `trackingGeneration` de la identidad comprobada por `accept(...)`.
+- **soft-reject mutant**: sustituye el hard reject de cambio de identidad en `accept(...)` por `return false`;
+- **tracking-axis mutant**: retira `trackingGeneration` de la identidad comprobada por `accept(...)`.
 
-Ambos mutantes deben compilar. Si cualquiera conserva verde el holdout, la evidencia no demuestra la frontera lifecycle/history.
+Ambos mutantes compilaron antes de ser ejecutados contra el holdout. Por tanto, su muerte prueba semántica y no una rotura trivial del build.
 
-## 4. Factura de cierre
+## 4. Evidencia
 
-Este holdout no cierra G3.9. Sólo puede cerrar el subcontrato `transition vs accept` si:
+- holdout: commit `e77108892a55333eada2aadabc5147fa4fd77dd1`;
+- modelo adversarial: commit `e44de2c9b43a9a78a5924ad88d96b2e199815dd3`;
+- workflow mutation-kill: commit `4a69934aef1df28fd48f7efdd8abd5e58d729291`;
+- run adversarial `35119326521`:
+  - `history-restart-holdout`, job `104872764365`: **success**;
+  - `tracking-axis-mutation-kill`, job `104872764527`: **success**, mutante compiló y murió;
+  - `soft-reject-mutation-kill`, job `104872764657`: **success**, mutante compiló y murió;
+- build general del mismo snapshot: run `35119326357`, job `104872763570`: **success**;
+- registro permanente en ordinary: commit `0c0c6ffeb434d83b04c866911e9f802cff523a6a`;
+- build posterior con el holdout ya incluido permanentemente: run `35120025978`, job `104875144999`: **success**.
 
-- el test adversarial pasa sobre producción;
-- ambos mutantes compilan y mueren;
-- la suite general sigue verde;
-- no se toca producción desde el rol adversarial.
+## 5. Alcance del cierre
 
-Los ejes restantes de G3.9 siguen siendo dimensión, reconnect, reload válido/inválido y orden live START/STOP/unload/replacement.
+Queda cerrado adversarialmente únicamente el contrato `transition vs accept`: `RESTART` es control de lifecycle del receiver y jamás autorización para plegar una nueva identidad causal dentro del history anterior.
+
+G3.9 sigue abierto por dimensión/replay, reconnect, reload válido/inválido, orden live START/STOP/unload/replacement y el bound de retención de generaciones documentado aparte.
