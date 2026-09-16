@@ -9,7 +9,7 @@ This document records the independent adversarial state of S20 after the Citadel
 S20's reusable Citadel evaluator, optional authoritative-channel boundary, catalog transfer format, representative program data and real-model oracle are materially present. The adversarial closeout currently has two blockers:
 
 1. an accepted canonical `scalebrews:citadel_program` binding is validated and transferred but is not materialized into `WorldAnatomyCatalog.Snapshot.bindings()`, so `AnatomyRuntime` cannot execute it through the canonical runtime path;
-2. compound conditions have per-node cardinality and depth limits but no global node budget, leaving HOT_TICK work without a practical schema bound.
+2. compound conditions have per-node cardinality and depth limits but no **program-wide** node budget, leaving HOT_TICK work without a practical schema bound.
 
 The independent closeout therefore classifies:
 
@@ -18,7 +18,7 @@ The independent closeout therefore classifies:
 - I7 representative Grizzly/Gazelle program data: **PASS**;
 - I8 original-model parity oracle: **PASS**;
 - I9 canonical runtime integration without hard external dependency: **FAIL / OPEN**;
-- I10 runtime/limits/authoring contract: **FAIL / OPEN on boundedness**. Authoring guidance exists, but its stated bounds are incomplete until a global condition-node budget exists and is tested.
+- I10 runtime/limits/authoring contract: **FAIL / OPEN on boundedness**. Authoring guidance exists, but its stated bounds are incomplete until a program-wide condition-node budget exists and is tested.
 
 S20 must remain open until both blockers are green and the final sprint checklist is reconciled.
 
@@ -78,7 +78,7 @@ Condition evaluation is different in policy, not complexity class. The same run 
 - 1057 nodes: **9232.50 ns/evaluation**;
 - 33825 nodes: **295741.31 ns/evaluation**.
 
-The large-tree slope is about **8.74 ns/node**, again approximately linear. The blocker is that `CitadelPoseProgram` currently accepts the 33825-node tree and exposes no global `MAX_CONDITION_NODES`-style contract. Linear work without a practical upper bound is still unbounded hot-path policy.
+The large-tree slope is about **8.74 ns/node**, again approximately linear. The blocker is that `CitadelPoseProgram` currently accepts the 33825-node tree and exposes no global condition-node contract. Linear work without a practical upper bound is still unbounded hot-path policy.
 
 Detailed evidence lives in `S20-adversarial-performance-model.md`.
 
@@ -90,7 +90,9 @@ The closeout holdout `citadelProgramsAndBindingsMustRoundTripAtomicallyInCatalog
 
 ## 6. I6 — optional external adapter boundary
 
-External model/entity state is sampled through neutral `PoseChannelAdapter` registrations. Optional Alex/Citadel-specific discovery is outside the hot evaluator and does not introduce a required external runtime dependency into the ordinary Scale JAR. Reflection/method-handle discovery is preparation work; rejected samples fail closed transactionally after the atomicity repair above.
+External model/entity state is sampled through neutral `PoseChannelAdapter` registrations. Optional Alex/Citadel-specific discovery is outside the hot evaluator and does not introduce a required external runtime dependency into the ordinary Scale JAR. Reflection and `MethodHandle` discovery happen during adapter installation/preparation. HOT_TICK only invokes already-bound handles and publishes validated scalar channels. Rejected samples fail closed transactionally after the atomicity repair above.
+
+A second source-level adversarial read on 2026-09-16 found no parsing, resource lookup or reflection discovery inside `CitadelPoseProgramEvaluator.evaluate(...)` or the bound Citadel engine path. This finding is **provisional until the I9/I10 production fixes land** and must be repeated before closure.
 
 ## 7. I7/I8 — representative pair
 
@@ -107,16 +109,26 @@ Independent holdout:
 
 - test: `S20AdversarialCanonicalBindingTests.representativeCitadelBindingsMustBecomeExecutableWithoutExternalClasses`;
 - workflow: `s20-adversarial-canonical-binding`;
-- latest confirmed failing run before repair: `35059084636` on `63101f5` lineage;
-- result: **FAIL**.
+- hardened failing run: **35060148157**, SHA `35e1e03cc41533384a31b887a979b1ed397e510a`;
+- general build on the same SHA: **SUCCESS**;
+- result: **FAIL**, exactly at the missing executable Gazelle binding.
 
-The candidate revision accepts canonical Citadel bindings and canonical selection resolves them, but the executable runtime map is built only from the legacy compatibility bridge. The holdout fails at the first representative entity because `snapshot.bindings().get(alexsmobs:gazelle)` is absent.
+The candidate revision accepts canonical Citadel bindings and canonical selection resolves them, but the executable runtime map is built only from the legacy compatibility bridge. The holdout fails before its stronger execution assertions because `snapshot.bindings().get(alexsmobs:gazelle)` is absent.
 
-This is not an oracle/harness/compile failure. The run compiled, started the dedicated GameTest server and failed only the I9 runtime-executability property; the separate catalog bundle round-trip test survives.
+The holdout now protects more than map presence. Once materialization exists it additionally requires that the prepared binding:
+
+- preserves the selected model identity;
+- preserves the selected root-provider id and resolved root authority;
+- uses the shared `scalebrews:citadel_program` engine;
+- retains `parameters.program` and the declared custom-channel contract;
+- rejects evaluation when the required `probe` channel is absent;
+- successfully evaluates the neutral bound program when that channel is present.
+
+This is not an oracle/harness/compile failure. The isolated run compiled, started the dedicated GameTest server and failed only the I9 runtime-executability property; the separate catalog bundle round-trip test survives.
 
 Required repair property, without prescribing implementation:
 
-> Any accepted canonical binding whose geometry, pose engine/program, declared channels and root provider all validate must be materialized into the executable accepted revision. Executability must not be restricted to the legacy compatibility bridge.
+> Any accepted canonical binding whose geometry, pose engine/program, declared channels and root provider all validate must be materialized into the executable accepted revision. Executability must not be restricted to the legacy compatibility bridge, and preparation must preserve the exact selected parameters/channels/root rather than rebuild a legacy-shaped approximation.
 
 After the implementer changes that path, the existing I9 workflow must turn green without weakening the test.
 
@@ -124,7 +136,7 @@ After the implementer changes that path, the existing I9 workflow must turn gree
 
 The normal production dependency metadata continues to require Minecraft/Fabric rather than Alex's Mobs or Citadel. Family-specific proof dependencies are CI/test inputs, while common-side runtime structures are neutral Scale DTOs/engines. The I9 blocker is therefore catalog/runtime preparation, not a hard-dependency failure.
 
-## 10. I10 — authoring guidance exists, global condition bound does not
+## 10. I10 — authoring guidance exists, program-wide condition bound does not
 
 `S20-citadel-runtime-authoring-guide.md` already documents:
 
@@ -139,17 +151,35 @@ The normal production dependency metadata continues to require Minecraft/Fabric 
 
 The adversarial CPU probe found that the currently documented condition limits are incomplete as a bounded-runtime contract. `ALL`/`ANY` are limited to 32 children per node and depth 16, but no global node count is enforced across the program. A valid 33825-node tree already costs about 0.296 ms/evaluation on the CI JVM, and the schema permits substantially more structure.
 
-I10 therefore remains open until production defines an explicit total condition-node budget, rejects `limit + 1` fail-closed during validation/preparation, and the authoring guide names the real limit. The adversarial holdout should derive its rejection case from the production constant rather than hard-code an undocumented magic number.
+Independent boundedness holdout:
+
+- test: `S20AdversarialConditionBudgetTests.publishedGlobalConditionBudgetMustAcceptLimitAndRejectLimitPlusOne`;
+- workflow: `s20-adversarial-condition-budget`;
+- baseline failing run: **35060266298**, SHA `2394538bc8c7767365ace2fe9dd53bb6c4fb05a1`;
+- failure: no public explicit condition-node budget exists on `CitadelPoseProgram` (`found []`).
+
+The holdout derives its boundary from production instead of hard-coding the intended final limit. It requires:
+
+1. exactly one public immutable integer condition-node budget;
+2. a positive limit below the measured 33825-node pathological fixture;
+3. exactly `limit` nodes accepted;
+4. `limit + 1` nodes in one tree rejected fail-closed;
+5. **program-wide aggregation**: two operations that are each individually within the limit but whose combined condition nodes equal `limit + 1` must also be rejected.
+
+The aggregate case prevents a cosmetic per-operation cap from leaving the whole program's HOT_TICK work effectively unbounded.
+
+I10 therefore remains open until production defines and enforces that explicit total program condition-node budget and the hardened holdout passes.
 
 ## 11. Closeout gate
 
 Do not mark S20 `CLOSED` until all of the following are true in the same branch lineage:
 
 1. `s20-adversarial-canonical-binding` is green;
-2. a global condition-node bound exists and an adversarial `limit + 1` holdout is green;
+2. the program-wide condition-node bound exists and the hardened boundary/aggregation holdout is green;
 3. the real-model oracle remains green;
 4. the pose-channel transaction holdout remains green;
 5. operation CPU scaling remains classified as non-superlinear and allocation evidence remains accepted;
 6. build is green;
-7. the canonical S20 checklist/evidence is updated to reflect the actual implementation;
-8. no S21 change regresses the S20 executable binding path.
+7. the PREPARATION/HOT_TICK second read is repeated after the production fixes and remains clean;
+8. the canonical S20 checklist/evidence is updated to reflect the actual implementation;
+9. no S21 change regresses the S20 executable binding path.
