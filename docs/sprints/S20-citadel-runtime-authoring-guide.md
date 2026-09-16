@@ -1,6 +1,6 @@
 # S20 — Citadel runtime and authoring guide
 
-Status: **adversarial documentation / I10 BLOCKED on condition boundedness**. This document describes the intended reusable S20 contract and the limits implemented by the current common-side program engine. It does **not** declare S20 closed by itself. In particular, the canonical executable-binding path remains gated by the independent S20 I9 holdout, and the condition schema still lacks the global node budget required by the I10 performance contract.
+Status: **adversarial documentation / I10 PASS**. This document describes the intended reusable S20 contract and the limits implemented by the current common-side program engine. It does **not** declare S20 closed by itself. The canonical executable-binding path remains gated by the independent S20 I9 holdout.
 
 ## 1. Ownership and runtime boundary
 
@@ -27,7 +27,8 @@ A Citadel binding is unavailable rather than approximated when any indispensable
 - missing authoritative channel at evaluation time;
 - non-finite channel output;
 - unknown animation token;
-- unsupported primitive or invalid program data.
+- unsupported primitive or invalid program data;
+- condition structure beyond the program-wide node budget.
 
 External channel publication is transactional: an adapter that emits a valid prefix and later produces an invalid value, duplicate ownership, channel conflict, exception or budget overflow must publish none of its partial output.
 
@@ -40,6 +41,7 @@ External channel publication is transactional: an adapter that emits a valid pre
 - at most **8,192 keyframe deltas** across the program;
 - at most **2,048 procedural operations**;
 - compound-condition depth at most **16** and at most **32 direct terms** per `ALL`/`ANY` node;
+- at most **4,096 condition nodes in total across the whole program**, summed across every operation;
 - at most **64 required channels**;
 - at most **64 bones** in one `FACE_TARGET` operation;
 - at most **512 deltas** in one keyframe;
@@ -47,7 +49,7 @@ External channel publication is transactional: an adapter that emits a valid pre
 - individual keyframe duration and total clip duration are bounded to **1,000,000 ticks**;
 - scalar/operation constants are finite and bounded; keyframe rotation/position deltas are finite and bounded.
 
-**The condition bounds above are not yet a complete practical runtime bound.** The current schema limits depth and fan-out locally but does not impose a global number of condition nodes across a program. The adversarial CPU probe accepted a 33,825-node condition tree and measured roughly **0.296 ms/evaluation** for that condition traversal alone on the CI JVM. S20 therefore keeps I10 open until production publishes and enforces an explicit global condition-node budget and the adversarial `limit + 1` holdout passes. Until that lands, authors must not treat depth 16 / 32 direct terms as permission to construct arbitrarily broad nested condition trees.
+The global condition budget was added by `b3e2c47` after the adversarial CPU probe demonstrated that the previous depth/fan-out limits still admitted a 33,825-node tree costing roughly **0.296 ms/evaluation** for condition traversal alone. The behavior-only workflow `s20-adversarial-condition-budget`, run **35070996485**, passes without inspecting implementation details: it discovers the accepted boundary, proves `boundary + 1` fails closed, and proves the budget is **program-wide** by aggregating nodes across multiple individually valid operations.
 
 The evaluator compiles clip/keyframe data during bind and uses binary search for keyframe selection. The adversarial allocation probe found approximately linear allocation growth, not a combinatorial blow-up: roughly 3.90–4.18 KiB/sample for the pinned Gazelle program and 5.17–5.45 KiB/sample for the pinned Grizzly program on the measured CI/JVM lane. The CPU scaling probe likewise measured approximately linear operation cost through the schema maximum of 2,048 operations. Allocation remains material and worth monitoring.
 
@@ -68,4 +70,4 @@ For a species already expressible by the S20 dialect, adding support should be d
 
 S20 uses Alex's Mobs Continued `alexsmobs` 2.1.9 as its pinned family proof, with Grizzly Bear and Gazelle as the minimum two-model pair. The independent real-model oracle exercises four samples for each model, including ordinary procedural states and `ModelAnimator` clips, through the same `scalebrews:citadel_program` engine.
 
-Those oracle results prove evaluator parity for the sampled model states. They do not, by themselves, prove that a canonical `CollisionBinding` is materialized into the executable runtime catalog. That distinct I9 property is intentionally protected by `S20AdversarialCanonicalBindingTests` and its dedicated workflow; S20 must remain open while that holdout is red. The separate `s20-adversarial-condition-budget` workflow protects I10 boundedness and must also be green before S20 closes.
+Those oracle results prove evaluator parity for the sampled model states. They do not, by themselves, prove that a canonical `CollisionBinding` is materialized into the executable runtime catalog. That distinct I9 property is intentionally protected by `S20AdversarialCanonicalBindingTests` and its dedicated workflow; S20 must remain open while that holdout is red. I10 boundedness is independently green via run `35070996485`.
