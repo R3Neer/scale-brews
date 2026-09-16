@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.1.0-beta.9] - 2026-09-16
+
+This hotfix corrects Tiny Mount rendering across world, inventory and
+First-person Model contexts, and changes the tamed-wolf interaction grammar to
+match ordinary saddled mounts. It retains the Alchemical Leather compatibility
+work already present on `main`.
+
+### Tiny Mount visual hotfix
+
+- Resolve saddle surfaces from canonical rest geometry rather than the first
+  camera or GUI orientation, follow explicit group anchors into their geometry,
+  prefer torso geometry over same-level heads, manes, tails, legs and wings,
+  and invalidate cached chains when EMF replaces an equivalent model part.
+- Treat Fresh Animations `EMF_*rotation` parts as coordinate-conversion wrappers:
+  bake their authored rest chain into the seat instead of transmitting the
+  inverted animated basis to Chicken and Wolf saddles or riders.
+- Isolate world-frame attachment samples from inventory previews, guarantee
+  cleanup after failed render submission, and clear interpolation history across
+  resource reloads and world changes.
+- Replace abrupt large-angle rider rebasing with bounded quaternion interpolation.
+  This removes the visible snapping without reusing stale frame transforms.
+- Add an optional First-person Model 2.7 bridge that aligns the rendered body to
+  the camera's actual smoothed and collision-clipped mount displacement while
+  preserving the mod's temporary extraction offset and player scale.
+- Restore the mounted Bee inventory paperdoll in the exercised compatibility
+  stack and keep Bee, Chicken and Wolf saddles attached across animated frames.
+
+### Wolf interaction and inventory polish
+
+- Ordinary Use mounts a saddled tame wolf with an empty hand or spare saddle;
+  without a saddle it retains vanilla sit/stand. Crouch + Use opens equipment.
+- Preserve food, dye, repair and other native item interactions, wild-wolf
+  ride-taming, owner-protected BODY equipment and ordinary crouch dismounting.
+- Replace the wolf armor empty-slot sprite with the approved hand-authored 16x16
+  icon and keep its exact pixel source reproducible through `GenerateArt`.
+
+### Validation
+
+- Add synthetic regressions for GUI/world isolation, large-angle interpolation,
+  scaled First-person origins, same-shape model replacement, and oversized
+  accessory geometry below explicit body anchors.
+- Observe real submitted Bee, Chicken and Wolf frames with First-person Model
+  2.7.2, EMF 3.3.5, ETF 7.2, Fresh Animations 1.10.5, FA Details 2.3 and FA Player
+  1.1. The final local gate passed all 154 required server GameTests and all five
+  real-client GameTest entrypoints.
+
 ## [0.1.0-beta.8] - 2026-09-14
 
 This prerelease replaces fixed Tiny Mount saddle anchors with a shared, data-driven visual attachment frame derived from the model actually rendered by the client. It targets the floating and desynchronized saddle/rider presentation visible on Bees, Chickens and Wolves, especially with Fresh Animations.
