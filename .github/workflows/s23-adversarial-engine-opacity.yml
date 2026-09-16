@@ -1,0 +1,144 @@
+name: s23-adversarial-engine-opacity
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s23-adversarial-engine-opacity.yml'
+      - 'tools/s23_spi_only_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/geometry/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/**'
+      - 'src/main/resources/**'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S23AdversarialGeometryEngineOpacityTests.java'
+  workflow_dispatch:
+
+jobs:
+  engine-opacity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: enforce SPI-only production boundary
+        run: python3 tools/s23_spi_only_gate.py
+      - name: isolate S23 adversarial engine-opacity holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.S23AdversarialGeometryEngineOpacityTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run S23 adversarial engine-opacity holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s23-adversarial-engine-opacity-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S23-adversarial-engine-opacity
+          path: |
+            build/s23-adversarial-engine-opacity-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  metadata-branch-mutation-kill:
+    needs: engine-opacity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S23 adversarial engine-opacity holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.S23AdversarialGeometryEngineOpacityTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: apply forbidden family-sensitive solver mutant
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java')
+          s=p.read_text()
+          old='new Matrix4f(root).mul(world.get(p.part))'
+          new='new Matrix4f("synthetic_display_composite".equals(source)?new Matrix4f(root).translate(0.25f,0,0):root).mul(world.get(p.part))'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: engine-opacity holdout must kill family-sensitive mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s23-engine-opacity-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: common geometry became family-sensitive without the holdout noticing"
+            exit 1
+          fi
+          echo "KILLED: family-sensitive common-geometry mutant"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S23-engine-opacity-mutant
+          path: |
+            build/s23-engine-opacity-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  source-boundary-mutation-kill:
+    needs: engine-opacity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: inject forbidden production DisplayRig knowledge
+        shell: bash
+        run: |
+          cat > src/main/java/io/github/r3neer/scalebrews/collision/geometry/DisplayRigSpecialCase.java <<'JAVA'
+          package io.github.r3neer.scalebrews.collision.geometry;
+          final class DisplayRigSpecialCase {}
+          JAVA
+      - name: SPI-only gate must kill nominal hardcoding mutant
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s23_spi_only_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: production DisplayRig hardcoding escaped the SPI-only source gate"
+            exit 1
+          fi
+          echo "KILLED: production DisplayRig hardcoding mutant"
