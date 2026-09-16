@@ -1,13 +1,13 @@
 # S20 — Citadel runtime and authoring guide
 
-Status: **adversarial documentation / I10 evidence**. This document describes the intended reusable S20 contract and the limits implemented by the current common-side program engine. It does **not** declare S20 closed by itself. In particular, the canonical executable-binding path remains gated by the independent S20 I9 holdout.
+Status: **adversarial documentation / I10 BLOCKED on condition boundedness**. This document describes the intended reusable S20 contract and the limits implemented by the current common-side program engine. It does **not** declare S20 closed by itself. In particular, the canonical executable-binding path remains gated by the independent S20 I9 holdout, and the condition schema still lacks the global node budget required by the I10 performance contract.
 
 ## 1. Ownership and runtime boundary
 
 S20 splits one Citadel/Alex-style model into revision-owned neutral data:
 
 - `ModelGeometry` owns extracted hierarchy, convex pieces, model transform and exact `SourcePose` values;
-- `CitadelPoseProgram` owns procedural helper calls, bounded conditions and `ModelAnimator` clips;
+- `CitadelPoseProgram` owns procedural helper calls, conditions and `ModelAnimator` clips;
 - `CollisionBinding.Pose` selects the shared `scalebrews:citadel_program` engine, names the program through the `program` parameter and explicitly declares every custom channel the program may read;
 - `CollisionBinding.Geometry` selects the geometry family/model independently;
 - `root_transform` remains separate root authority;
@@ -47,7 +47,9 @@ External channel publication is transactional: an adapter that emits a valid pre
 - individual keyframe duration and total clip duration are bounded to **1,000,000 ticks**;
 - scalar/operation constants are finite and bounded; keyframe rotation/position deltas are finite and bounded.
 
-The evaluator compiles clip/keyframe data during bind and uses binary search for keyframe selection. The current adversarial allocation probe found approximately linear allocation growth, not a combinatorial blow-up, but allocation is material and remains worth monitoring: roughly 3.90–4.18 KiB/sample for the pinned Gazelle program and 5.17–5.45 KiB/sample for the pinned Grizzly program on the measured CI/JVM lane.
+**The condition bounds above are not yet a complete practical runtime bound.** The current schema limits depth and fan-out locally but does not impose a global number of condition nodes across a program. The adversarial CPU probe accepted a 33,825-node condition tree and measured roughly **0.296 ms/evaluation** for that condition traversal alone on the CI JVM. S20 therefore keeps I10 open until production publishes and enforces an explicit global condition-node budget and the adversarial `limit + 1` holdout passes. Until that lands, authors must not treat depth 16 / 32 direct terms as permission to construct arbitrarily broad nested condition trees.
+
+The evaluator compiles clip/keyframe data during bind and uses binary search for keyframe selection. The adversarial allocation probe found approximately linear allocation growth, not a combinatorial blow-up: roughly 3.90–4.18 KiB/sample for the pinned Gazelle program and 5.17–5.45 KiB/sample for the pinned Grizzly program on the measured CI/JVM lane. The CPU scaling probe likewise measured approximately linear operation cost through the schema maximum of 2,048 operations. Allocation remains material and worth monitoring.
 
 ## 4. Adding another Citadel/Alex-style species
 
@@ -59,11 +61,11 @@ For a species already expressible by the S20 dialect, adding support should be d
 4. **Declare authoritative channels.** Every custom scalar read by an operation/condition must be declared by the canonical binding. If state comes from the external entity implementation, provide/reuse a neutral `PoseChannelAdapter` whose discovery happens outside HOT_TICK and whose per-sample call path is already compiled/bounded.
 5. **Create the canonical binding.** Select the prepared geometry model, `scalebrews:citadel_program`, `parameters.program=<program id>`, the complete declared channel set, the appropriate independent root provider and policy. Geometry/pose/root choices must remain independently replaceable.
 6. **Prove real-model parity.** Acceptance requires samples against the original pinned model/render implementation, including ordinary procedural state and every clip/condition class materially used by the exported program. Comparing only against copied formulas is insufficient.
-7. **Prove catalog/runtime integration.** The accepted revision must preserve the program and binding through the catalog wire path and materialize an executable runtime binding without requiring the external classes on the common/dedicated classpath.
-8. **Re-run fail-closed and performance gates.** Unknown/missing channels/programs/bones must remain unavailable, `jointEvaluations` must remain at most once per causal sample, and any materially larger program should be measured rather than assumed cheap.
+7. **Prove catalog/runtime integration.** The accepted revision must preserve the program and binding through the catalog wire path and materialize an executable runtime binding without requiring the external classes on the common/dedicated classpath. The prepared binding must preserve the selected model, pose parameters, declared channels and root-provider identity, not merely place a placeholder entry in the executable map.
+8. **Re-run fail-closed and performance gates.** Unknown/missing channels/programs/bones must remain unavailable, `jointEvaluations` must remain at most once per causal sample, condition-node budget overflow must fail closed, and any materially larger program should be measured rather than assumed cheap.
 
 ## 5. Pinned S20 reference pair
 
 S20 uses Alex's Mobs Continued `alexsmobs` 2.1.9 as its pinned family proof, with Grizzly Bear and Gazelle as the minimum two-model pair. The independent real-model oracle exercises four samples for each model, including ordinary procedural states and `ModelAnimator` clips, through the same `scalebrews:citadel_program` engine.
 
-Those oracle results prove evaluator parity for the sampled model states. They do not, by themselves, prove that a canonical `CollisionBinding` is materialized into the executable runtime catalog. That distinct I9 property is intentionally protected by `S20AdversarialCanonicalBindingTests` and its dedicated workflow; S20 must remain open while that holdout is red.
+Those oracle results prove evaluator parity for the sampled model states. They do not, by themselves, prove that a canonical `CollisionBinding` is materialized into the executable runtime catalog. That distinct I9 property is intentionally protected by `S20AdversarialCanonicalBindingTests` and its dedicated workflow; S20 must remain open while that holdout is red. The separate `s20-adversarial-condition-budget` workflow protects I10 boundedness and must also be green before S20 closes.
