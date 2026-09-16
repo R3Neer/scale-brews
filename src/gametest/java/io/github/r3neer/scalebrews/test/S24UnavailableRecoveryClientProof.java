@@ -57,12 +57,14 @@ public final class S24UnavailableRecoveryClientProof implements FabricClientGame
                     && AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isEmpty();
             },180);
             context.runOnClient(client->{
-                var history=AnatomyClientNetworking.pose(cowUuid.get());var packet=history==null?null:history.current();
-                if(packet==null || !packet.available())
-                    throw new AssertionError("Joint history should retain the last available sample while material authority is unavailable");
-                if(!initial.epoch().equals(packet.epoch()) || initial.revision()!=packet.revision()
-                        || initial.bindingGeneration()!=packet.bindingGeneration() || initial.trackingGeneration()!=packet.trackingGeneration())
-                    throw new AssertionError("Unsupported pose fabricated a catalog, binding, or tracking lifecycle transition");
+                var entity=client.level==null?null:client.level.getEntity(cowId.get());
+                if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))
+                    throw new AssertionError("Unsupported pose lost the client support identity");
+                var catalog=AnatomyClientNetworking.catalog();
+                if(!catalog.ready() || !initial.epoch().equals(catalog.epoch()) || initial.revision()!=catalog.revision())
+                    throw new AssertionError("Unsupported pose changed the accepted catalog/session identity");
+                if(!AnatomyClientNetworking.ready(cow))
+                    throw new AssertionError("Unsupported pose left READY instead of failing only the material endpoint closed");
             });
 
             world.getServer().runOnServer(server->setPose(server,cowId.get(),Pose.STANDING));
