@@ -44,6 +44,20 @@ public final class S22CoverageScannerTests {
     }
 
     @GameTest
+    public void variantStateGapDowngradesCleanDefaultDeterministically(GameTestHelper h) {
+        var cow = id("minecraft:cow");
+        var report = CollisionCoverageScanner.scan(List.of(cow), catalog(
+            binding(cow, Map.of(), Set.of()),
+            binding(cow, Map.of("coat", "brown"), Set.of("sleeping", "angry"))), Map.of());
+        var row = report.rows().getFirst();
+        h.assertTrue(row.status() == CollisionCoverageScanner.Status.SAFE_PARTIAL,
+            "A clean default binding must not hide an excluded state on an explicit variant");
+        h.assertTrue(row.reason().equals("canonical bindings exclude states: angry,sleeping"),
+            "Aggregated excluded-state evidence must be sorted so report identity is reproducible");
+        h.succeed();
+    }
+
+    @GameTest
     public void unresolvedTargetIsNeverSilentlyOmittedAndFailsGate(GameTestHelper h) {
         var cow = id("minecraft:cow");
         var pig = id("minecraft:pig");
