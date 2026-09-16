@@ -13,7 +13,12 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 
-/** Authoritative joint channels plus an independently transported root DTO and recipient tracking generation. */
+/**
+ * Authoritative joint channels plus an independently transported root DTO and recipient tracking
+ * generation. {@code bindingGeneration} identifies the server's physical binding instance;
+ * {@code trackingGeneration} identifies one recipient's visibility window for that same binding.
+ * They are deliberately independent lifecycle axes and neither may substitute for the other.
+ */
 public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
         Identifier model,Identifier provider,Identifier rootProvider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,
         long bindingGeneration,long trackingGeneration,boolean available,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity,
