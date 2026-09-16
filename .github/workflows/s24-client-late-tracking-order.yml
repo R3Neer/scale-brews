@@ -8,10 +8,14 @@ on:
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24LateTrackingOrderClientProof.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrame.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrameLedger.java'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
