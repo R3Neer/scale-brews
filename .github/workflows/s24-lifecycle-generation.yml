@@ -19,6 +19,7 @@ on:
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24LifecycleGenerationTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingGenerationLedgerTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/runtime/S24RootFrameLedgerTests.java'
   workflow_dispatch:
 
 jobs:
@@ -43,7 +44,8 @@ jobs:
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-gametest']=[
             'io.github.r3neer.scalebrews.collision.internal.S24LifecycleGenerationTests',
-            'io.github.r3neer.scalebrews.collision.internal.S24TrackingGenerationLedgerTests'
+            'io.github.r3neer.scalebrews.collision.internal.S24TrackingGenerationLedgerTests',
+            'io.github.r3neer.scalebrews.collision.runtime.S24RootFrameLedgerTests'
           ]
           data['entrypoints']['fabric-client-gametest']=[]
           p.write_text(json.dumps(data,indent=2)+'\n')
