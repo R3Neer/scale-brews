@@ -51,23 +51,25 @@ public final class S20AdversarialConditionBudgetTests {
     }
 
     private static int publishedConditionNodeLimit() {
-        var candidates = Arrays.stream(CitadelPoseProgram.class.getFields())
+        var candidates = Arrays.stream(CitadelPoseProgram.class.getDeclaredFields())
             .filter(field -> field.getType() == int.class)
-            .filter(field -> Modifier.isPublic(field.getModifiers())
-                && Modifier.isStatic(field.getModifiers()) && Modifier.isFinal(field.getModifiers()))
+            .filter(field -> Modifier.isStatic(field.getModifiers()) && Modifier.isFinal(field.getModifiers()))
             .filter(field -> {
                 String name = field.getName().toUpperCase(java.util.Locale.ROOT);
                 return name.contains("CONDITION") && name.contains("NODE");
             })
             .toList();
         if (candidates.size() != 1) {
-            throw new AssertionError("S20 PERF-004 requires exactly one public static final int condition-node budget on CitadelPoseProgram; found "
+            throw new AssertionError("S20 PERF-004 requires exactly one explicit static final int condition-node budget on CitadelPoseProgram; found "
                 + candidates.stream().map(java.lang.reflect.Field::getName).toList());
         }
         try {
-            return candidates.getFirst().getInt(null);
+            var field = candidates.getFirst();
+            if (!field.trySetAccessible())
+                throw new AssertionError("S20 condition-node budget exists but cannot be read by the isolated adversarial proof: " + field.getName());
+            return field.getInt(null);
         } catch (IllegalAccessException impossible) {
-            throw new AssertionError("Published S20 condition-node budget must be readable", impossible);
+            throw new AssertionError("S20 condition-node budget must be readable by the isolated adversarial proof", impossible);
         }
     }
 
