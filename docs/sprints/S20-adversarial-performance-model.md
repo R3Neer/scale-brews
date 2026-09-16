@@ -25,6 +25,8 @@ NFR-009 sigue siendo obligatorio: una pose física del soporte se evalúa como m
 - condiciones de hasta `32` términos por nodo y profundidad `<= 16`;
 - hasta `64` channels requeridos.
 
+**Gap adversarial descubierto el 2026-09-16:** los límites de condición son locales por nodo/profundidad, pero no existe un presupuesto global de nodos de condición por programa ni por operación. Por tanto el coste HOT_TICK sigue siendo finito en sentido matemático, pero no está acotado por un límite práctico explícito del schema. S20 no debe cerrar con PERF-004 como `BOUNDED` hasta que exista y se pruebe ese presupuesto global.
+
 ## 3. Frontera preparation/runtime
 
 Segunda lectura actual:
@@ -49,17 +51,22 @@ El evaluator sigue materializando por sample:
 - un `MutablePose` por hueso tocado;
 - `SourcePose`/`Matrix4f` al emitir matrices.
 
-Probe adversarial aislado: workflow `s20-adversarial-allocation-probe`, run **35014198225**, HotSpot/Java 25 con warm-up y `ThreadMXBean`.
+Probe adversarial aislado: workflow `s20-adversarial-allocation-probe`, HotSpot/Java 25 con warm-up y `ThreadMXBean`.
 
-Medición reproducible del fixture sintético:
+Fixture sintético, run **35014967562**:
 
 - 1 hueso tocado: **936.00 B/evaluación**;
-- 16 huesos tocados: **6853.97 B/evaluación**;
-- coste marginal observado: **394.53 B por hueso adicional**.
+- 16 huesos tocados: **6849.44 B/evaluación**;
+- coste marginal observado: **394.23 B por hueso adicional**.
 
-La pendiente observada es aproximadamente lineal, no una explosión superlineal. Sin embargo varios KiB/sample son materialmente relevantes si muchas entidades se evalúan cada tick.
+Programas reales fijados en el mismo run:
 
-**Estado:** `MEASURED / MATERIAL`; falta cruzar con Grizzly/Gazelle reales y decidir aceptación o reducción.
+- Gazelle, 22 operaciones / 3 clips / 10 huesos referenciados: **3898.91 B/evaluación** ordinaria y **4184.00 B/evaluación** para el clip de mayor unión de huesos medido;
+- Grizzly Bear, 57 operaciones / 4 clips / 8 huesos referenciados: **5172.53 B/evaluación** ordinaria y **5448.00 B/evaluación** para el clip medido.
+
+La pendiente observada es aproximadamente lineal, no una explosión superlineal. Varios KiB/sample siguen siendo deuda material de asignación, pero el workload real medido queda en el mismo orden que el fixture sintético y NFR-009 evita multiplicarlo por consumidores/root rebuilds del mismo endpoint causal.
+
+**Estado:** `MEASURED / MATERIAL / ACCEPTED AS S20 BASELINE`; vigilar como deuda de rendimiento, sin señal actual de crecimiento superlineal.
 
 ### S20-PERF-002 — recompilación de keyframes en HOT_TICK
 
@@ -69,17 +76,19 @@ El riesgo inicial quedó eliminado: `bind` compila los frames a estructuras inmu
 
 ### S20-PERF-003 — validación cuadrática operaciones × huesos
 
-El antiguo `poses.values().stream().allMatch(...)` por operación desapareció. La validez se comprueba sobre la pose afectada y el probe de 1→16 huesos no muestra una señal de allocations cuadrática.
+El antiguo `poses.values().stream().allMatch(...)` por operación desapareció. La validez se comprueba sobre la pose afectada y el probe de allocations no muestra señal cuadrática respecto a huesos tocados.
 
-Esto no sustituye un probe CPU de 32/64/128/256 operaciones, pero elimina el mutante estructural original.
+El probe `s20-adversarial-cpu-scaling-probe` mide 32/64/128/256/512/1024/2048 operaciones sobre un único hueso para aislar el término `M`, usando CPU de hilo tras warm-up en lugar de wall clock de Actions.
 
-**Estado:** `PASS estructural + scaling CPU pendiente`.
+**Estado:** `PASS estructural + scaling CPU en medición`.
 
 ### S20-PERF-004 — condiciones compuestas
 
-`ALL`/`ANY` siguen evaluándose recursivamente y están acotadas por cardinalidad/profundidad del schema.
+`ALL`/`ANY` se evalúan recursivamente en HOT_TICK. Cada nodo admite hasta 32 términos y la profundidad está limitada a 16, pero actualmente **no hay límite total de nodos**. El constructor valida profundidad y cardinalidad local; `requiredChannels()` y el evaluator vuelven a recorrer recursivamente el árbol completo.
 
-**Estado:** `BOUNDED`, coste/allocations de árbol cercano al límite aún sin medir.
+El probe `s20-adversarial-cpu-scaling-probe` incluye árboles válidos de 1, 33, 1057 y 33825 nodos para cuantificar la pendiente actual. Además informa explícitamente si existe `MAX_CONDITION_NODES`; en el código que motivó el probe ese contrato global no existía.
+
+**Estado:** `BLOCKER / GLOBAL BOUND MISSING`. La solución debe introducir un presupuesto total explícito y verificable de nodos de condición, no sólo confiar en profundidad/cardinalidad local ni en el tamaño accidental del payload.
 
 ### S20-PERF-005 — búsqueda del frame activo
 
@@ -87,13 +96,30 @@ El riesgo inicial de scan lineal quedó eliminado. `CompiledClip.frameAt(...)` u
 
 **Estado:** `PASS estructural`.
 
+### S20-PERF-006 — reutilización de joints / NFR-009
+
+La evidencia existente de `ModelGeometryProvider` ya cubre el contrato de reutilización en la capa que posee el cache, independientemente del engine concreto:
+
+- un cambio sólo de root reconstruye convexos pero mantiene una sola evaluación articular;
+- `motionBetween(...)` reutiliza los mismos joints inmutables del endpoint;
+- un input autoritativo distinto incrementa exactamente una vez `jointEvaluations`.
+
+No se duplica el mismo test sustituyendo el engine por Citadel porque no añadiría una frontera causal nueva: el cache está por debajo de la selección concreta de pose engine.
+
+**Estado:** `PASS`.
+
 ## 5. Evidencia todavía necesaria antes del cierre
 
-1. **operations CPU scaling**: 32/64/128/256/... operaciones para excluir regresión superlineal accidental;
-2. **real-program allocation**: Grizzly Bear y Gazelle 2.1.9, incluyendo al menos un estado ordinario y un estado/clip de alta cardinalidad;
-3. **consumer reuse / NFR-009**: N consumidores sobre el mismo authority sample no incrementan `jointEvaluations`;
-4. **condition tree**: condición válida cercana a límites con coste conocido;
-5. pasada final de frontera sin parsing, reflection ni resource lookup hot.
+1. **operations CPU scaling**: terminar y clasificar el probe 32→2048 operaciones;
+2. **condition tree**: registrar el coste del árbol válido grande y añadir un presupuesto global de nodos verificable;
+3. pasada final de frontera sin parsing, reflection ni resource lookup hot;
+4. revalidar los workflows funcionales S20 sobre la misma línea de commits después de la reparación de I9 y del bound de condiciones.
+
+Evidencia ya satisfecha:
+
+- allocations reales Grizzly/Gazelle: run `35014967562`;
+- consumer reuse / NFR-009: cobertura existente de cache causal de joints;
+- selección temporal de keyframes: implementación binaria precompilada.
 
 Los wall-clock absolutos de GitHub Actions no son gate estable. Se prefieren contadores de CPU del hilo, allocations y contadores estructurales con warm-up.
 
@@ -104,16 +130,17 @@ Los wall-clock absolutos de GitHub Actions no son gate estable. Se prefieren con
 - resolver resource/program id en cada `evaluate`;
 - evaluar una vez por observador en lugar de una vez por authority sample;
 - degradar selección temporal a scan lineal de clips/frames;
-- introducir caches por sample sin bound con crecimiento de memoria.
+- introducir caches por sample sin bound con crecimiento de memoria;
+- aceptar un árbol de condiciones sin presupuesto global de nodos.
 
 ## 7. Gate adversarial de rendimiento S20
 
 - [x] frontera PREPARATION/HOT_TICK estructuralmente limpia;
 - [x] sin reflexión ni clases client/external en el evaluator hot;
-- [ ] NFR-009 revalidado explícitamente para el engine bound final;
-- [ ] scaling CPU de operaciones/huesos clasificado;
+- [x] NFR-009 revalidado en la capa propietaria del cache causal;
+- [ ] scaling CPU de operaciones clasificado;
 - [x] búsqueda temporal de keyframes clasificada y no lineal;
-- [ ] allocations reales Grizzly/Gazelle medidas y aceptadas o reducidas;
-- [ ] condiciones grandes válidas con coste conocido;
+- [x] allocations reales Grizzly/Gazelle medidas y clasificadas;
+- [ ] condiciones grandes válidas medidas **y** presupuesto global de nodos impuesto;
 - [ ] ninguna regresión observada aplazada sin clasificación;
 - [ ] pasada final adversarial sin cambios productivos ni gaps S20 pendientes.
