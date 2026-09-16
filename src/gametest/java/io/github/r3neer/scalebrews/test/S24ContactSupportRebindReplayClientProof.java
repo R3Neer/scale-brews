@@ -8,7 +8,6 @@ import io.github.r3neer.scalebrews.collision.internal.AnatomyContactPayload;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyNetworking;
-import io.github.r3neer.scalebrews.collision.internal.AnatomyPoseHistory;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.internal.ModelGeometryProvider;
@@ -36,6 +35,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * G3.9 adversarial holdout: a contact created against support binding N but delayed in the network
  * must not become valid merely because the same support UUID/network id has already rebound to N+1.
+ * A genuinely fresh contact certified by N+1 must still materialize afterwards.
  */
 public final class S24ContactSupportRebindReplayClientProof implements FabricClientGameTest {
     @Override public void runTest(ClientGameTestContext context) {
@@ -86,7 +86,7 @@ public final class S24ContactSupportRebindReplayClientProof implements FabricCli
                 oldContact.set(new AnatomyContactPayload(
                     AnatomyNetworking.epoch(server),AnatomyNetworking.revision(server),server.overworld().dimension().identifier(),
                     pig.getId(),pig.getUUID(),bodyGeneration,10_000,server.overworld().getGameTime(),
-                    cow.getId(),cow.getUUID(),"root/body/cube_0",face,localPoint,normal));
+                    cow.getId(),cow.getUUID(),frame.identity().bindingGeneration(),"root/body/cube_0",face,localPoint,normal));
 
                 // Freeze server anatomy publication before any contact packet can be published naturally.
                 // Vanilla entity spawn/connection remains alive so the client still receives the pig.
@@ -132,7 +132,31 @@ public final class S24ContactSupportRebindReplayClientProof implements FabricCli
                     throw new AssertionError("Pre-rebind contact became authoritative against support binding N+1");
             });
 
-            System.out.println("S24_CONTACT_REBIND_REPLAY PASS delayed contact from binding N rejected after support binding N+1");
+            // The fence must be selective, not a permanent quarantine. Publish the same physical
+            // contact as a later body event, but certify it against support binding N+1. This packet
+            // must become present, proving that rebind recovery still works after killing the stale N packet.
+            world.getServer().runOnServer(server->{
+                var old=oldContact.get();long now=server.overworld().getGameTime();
+                var fresh=new AnatomyContactPayload(old.epoch(),old.revision(),old.dimension(),old.bodyId(),old.body(),
+                    old.trackingGeneration(),old.sequence()+1,now,old.supportId(),old.support(),reboundBinding,
+                    old.piece(),old.face(),old.localPoint(),old.normal());
+                ServerPlayNetworking.send(server.getPlayerList().getPlayers().getFirst(),fresh);
+            });
+            context.waitFor(client->{
+                if(client.level==null)return false;
+                var pig=client.level.getEntity(pigId.get());
+                return pig instanceof Pig && AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).isPresent();
+            },100);
+            context.runOnClient(client->{
+                var pig=client.level.getEntity(pigId.get());
+                var contact=AnatomyClientNetworking.presentationContact(pig,client.level.getGameTime()).orElseThrow(
+                    ()->new AssertionError("Fresh binding N+1 contact did not recover after stale N rejection"));
+                var frame=AnatomyClientNetworking.presentationFrame(contact.support()).orElseThrow();
+                if(frame.identity().bindingGeneration()!=reboundBinding)
+                    throw new AssertionError("Recovered contact was not materialized against support binding N+1");
+            });
+
+            System.out.println("S24_CONTACT_REBIND_REPLAY PASS delayed N rejected and fresh N+1 contact accepted");
         } catch(Throwable error) {failure=error;throw error;}
         finally {
             try {world.getServer().runOnServer(AnatomyRuntime::stop);world.close();}
