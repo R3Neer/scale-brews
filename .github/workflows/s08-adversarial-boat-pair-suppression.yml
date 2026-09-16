@@ -1,0 +1,78 @@
+name: s08-adversarial-boat-pair-suppression
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s08-adversarial-boat-pair-suppression.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/api/AnatomyApi.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/integration/BodyClassification.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyPreparedSession.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyExportProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S08AdversarialBoatPairSuppressionTests.java'
+  workflow_dispatch:
+
+jobs:
+  boat-pair-suppression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: export original player geometry
+        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+
+      - name: locate exported catalog
+        id: catalog
+        shell: bash
+        run: |
+          catalog="$(find . -type d -name anatomy-export -print -quit)"
+          test -n "$catalog"
+          echo "path=$catalog" >> "$GITHUB_OUTPUT"
+          echo "Using prepared catalog at $catalog"
+
+      - name: isolate S08 occupied boat pair holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.test.S08AdversarialBoatPairSuppressionTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run S08 occupied boat pair holdout
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/s08-boat-pair
+          ./gradlew runGameTest --console=plain \
+            -PscalebrewsAnatomyCatalog='${{ steps.catalog.outputs.path }}' \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s08-boat-pair/junit.xml" 2>&1 \
+            | tee build/s08-boat-pair/console.log
+
+      - name: capture S08 pair evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S08-adversarial-boat-pair-suppression
+          path: |
+            build/s08-boat-pair/
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
