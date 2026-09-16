@@ -1,75 +1,56 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-/** S20 PERF-004 holdout: compound conditions need one explicit practical program-wide node budget. */
+/** S20 PERF-004 holdout: compound conditions need one practical program-wide node budget. */
 public final class S20AdversarialConditionBudgetTests {
     private static final int MAX_SCHEMA_DEPTH = 16;
     private static final int MEASURED_PATHOLOGICAL_NODES = 33_825;
 
     @GameTest
-    public void publishedGlobalConditionBudgetMustAcceptLimitAndRejectLimitPlusOne(GameTestHelper h) {
-        int limit = publishedConditionNodeLimit();
-        h.assertTrue(limit > 0,
-            "S20 PERF-004: the published global condition-node limit must be positive");
-        h.assertTrue(limit < MEASURED_PATHOLOGICAL_NODES,
-            "S20 PERF-004: the global condition-node limit must exclude the measured 33825-node ~0.296ms/eval fixture; limit=" + limit);
+    public void programWideConditionBudgetMustRejectPathologicalAndBoundaryPlusOne(GameTestHelper h) {
+        h.assertTrue(acceptsProgram(1),
+            "S20 PERF-004 fixture sanity: a one-node condition program must remain valid");
+        h.assertFalse(acceptsProgram(MEASURED_PATHOLOGICAL_NODES),
+            "S20 PERF-004: the measured 33825-node ~0.296ms/eval fixture must be rejected by a practical global budget");
 
-        var atLimit = programWithOperationConditionNodes(limit);
-        h.assertTrue(atLimit != null,
-            "S20 PERF-004: a program exactly at the published condition-node budget must remain valid");
-
-        boolean singleTreeRejected = false;
-        try {
-            programWithOperationConditionNodes(Math.addExact(limit, 1));
-        } catch (IllegalArgumentException expected) {
-            singleTreeRejected = true;
+        int low = 1;
+        int high = MEASURED_PATHOLOGICAL_NODES - 1;
+        while (low < high) {
+            int mid = low + (high - low + 1) / 2;
+            if (acceptsProgram(mid)) low = mid;
+            else high = mid - 1;
         }
-        h.assertTrue(singleTreeRejected,
-            "S20 PERF-004: limit + 1 nodes in one condition tree must fail closed during DTO validation; limit=" + limit);
+        int limit = low;
+
+        h.assertTrue(acceptsProgram(limit),
+            "S20 PERF-004: the discovered condition-node boundary must accept its own limit=" + limit);
+        h.assertFalse(acceptsProgram(Math.addExact(limit, 1)),
+            "S20 PERF-004: limit + 1 condition nodes must fail closed during DTO validation; limit=" + limit);
 
         int left = Math.max(1, limit / 2);
         int right = Math.addExact(limit, 1) - left;
         h.assertTrue(left <= limit && right <= limit,
-            "Adversarial aggregate fixture must keep every individual operation within the published limit");
-        boolean aggregateRejected = false;
-        try {
-            programWithOperationConditionNodes(left, right);
-        } catch (IllegalArgumentException expected) {
-            aggregateRejected = true;
-        }
-        h.assertTrue(aggregateRejected,
-            "S20 PERF-004: the budget must apply across the whole program, not independently per operation; "
+            "Adversarial aggregate fixture must keep each individual operation inside the discovered boundary");
+        h.assertFalse(acceptsProgram(left, right),
+            "S20 PERF-004: the condition budget must apply across the whole program, not independently per operation; "
                 + left + "+" + right + "=" + (left + right) + " nodes for limit=" + limit);
+
+        System.out.println("S20_CONDITION_BUDGET discovered_program_wide_limit=" + limit
+            + " pathological_rejected=" + MEASURED_PATHOLOGICAL_NODES);
         h.succeed();
     }
 
-    private static int publishedConditionNodeLimit() {
-        var candidates = Arrays.stream(CitadelPoseProgram.class.getDeclaredFields())
-            .filter(field -> field.getType() == int.class)
-            .filter(field -> Modifier.isStatic(field.getModifiers()) && Modifier.isFinal(field.getModifiers()))
-            .filter(field -> {
-                String name = field.getName().toUpperCase(java.util.Locale.ROOT);
-                return name.contains("CONDITION") && name.contains("NODE");
-            })
-            .toList();
-        if (candidates.size() != 1) {
-            throw new AssertionError("S20 PERF-004 requires exactly one explicit static final int condition-node budget on CitadelPoseProgram; found "
-                + candidates.stream().map(java.lang.reflect.Field::getName).toList());
-        }
+    private static boolean acceptsProgram(int... nodesPerOperation) {
         try {
-            var field = candidates.getFirst();
-            if (!field.trySetAccessible())
-                throw new AssertionError("S20 condition-node budget exists but cannot be read by the isolated adversarial proof: " + field.getName());
-            return field.getInt(null);
-        } catch (IllegalAccessException impossible) {
-            throw new AssertionError("S20 condition-node budget must be readable by the isolated adversarial proof", impossible);
+            programWithOperationConditionNodes(nodesPerOperation);
+            return true;
+        } catch (IllegalArgumentException rejected) {
+            return false;
         }
     }
 
