@@ -11,6 +11,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/physics/**'
       - 'src/main/resources/**'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S23AdversarialGeometryEngineOpacityTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
 jobs:
