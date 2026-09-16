@@ -11,11 +11,22 @@ import java.util.Optional;
  */
 public final class AnatomyFrameHistory {
     private AnatomyPosePayload current;
+    /** Highest server binding generation retired by an explicit tracking discontinuity. */
+    private long retiredBindingGeneration;
 
     public AnatomyPosePayload current(){return current;}
-    public void clear(){current=null;}
+    public void clear(){current=null;retiredBindingGeneration=0;}
+    /**
+     * Seals the currently accepted tracking generation without discarding its ordering watermark.
+     * Late packets from the retired generation must not resurrect material after unload; a strictly
+     * newer server-owned binding generation is accepted by the caller as a fresh history.
+     */
+    public void retireCurrentGeneration() {
+        if(current!=null)retiredBindingGeneration=Math.max(retiredBindingGeneration,current.bindingGeneration());
+    }
     public boolean accept(AnatomyPosePayload next) {
         if(next==null)throw new IllegalArgumentException("Missing causal frame");
+        if(next.bindingGeneration()<=retiredBindingGeneration)return false;
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
                     || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
