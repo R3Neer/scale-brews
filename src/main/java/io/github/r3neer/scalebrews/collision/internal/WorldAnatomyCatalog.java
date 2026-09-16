@@ -343,9 +343,9 @@ public final class WorldAnatomyCatalog {
     }
 
     private static boolean compatibilityBridge(CollisionBinding binding) {
+        // Geometry and pose are the legacy bridge pair. Root authority is independently selectable in S21.
         return binding.geometry().engine().equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY)
-            && binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER)
-            && binding.rootTransform().equals(LegacyCollisionData.ENTITY_ROOT);
+            && binding.pose().engine().equals(LegacyCollisionData.LEGACY_POSE_PROVIDER);
     }
 
     private static boolean touchesCompatibilityBridge(CollisionBinding binding) {
