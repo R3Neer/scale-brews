@@ -1,0 +1,175 @@
+name: s24-adversarial-history-restart
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-history-restart.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24AdversarialHistoryRestartTests.java'
+  workflow_dispatch:
+
+jobs:
+  history-restart-holdout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 adversarial history holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run history restart holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-adversarial-history-junit.xml"
+      - name: capture evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-adversarial-history-restart
+          path: |
+            build/s24-adversarial-history-junit.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  soft-reject-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 adversarial history holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: apply silent restart mutant
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java')
+          s=p.read_text()
+          old='throw new IllegalArgumentException("Causal frame identity changed without receiver restart");'
+          new='return false;'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: holdout must kill silent restart mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-soft-reject-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: lifecycle identity fork was reduced to a soft return-false"
+            exit 1
+          fi
+          echo "KILLED: soft lifecycle restart mutant"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-soft-reject-mutant
+          path: |
+            build/s24-soft-reject-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  tracking-axis-mutation-kill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 adversarial history holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: remove tracking generation from history identity
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java')
+          s=p.read_text()
+          old='|| current.bindingGeneration()!=next.bindingGeneration() || current.trackingGeneration()!=next.trackingGeneration())'
+          new='|| current.bindingGeneration()!=next.bindingGeneration())'
+          count=s.count(old)
+          if count != 1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: holdout must kill missing tracking axis mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-tracking-axis-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: tracking generation was not part of frame-history identity"
+            exit 1
+          fi
+          echo "KILLED: missing tracking-generation identity axis mutant"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-tracking-axis-mutant
+          path: |
+            build/s24-tracking-axis-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
