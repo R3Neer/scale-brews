@@ -49,3 +49,85 @@ jobs:
             build/s21-adversarial-root-session-teardown-junit.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  mutation-kill:
+    needs: root-session-teardown
+    strategy:
+      fail-fast: false
+      matrix:
+        mutant: [retain-state, retain-pending, keep-movement-active]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S21 root session teardown holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S21AdversarialRootSessionTeardownTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: apply teardown semantic mutant
+        env:
+          MUTANT: ${{ matrix.mutant }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          mutant=os.environ['MUTANT']
+          stop_line='if(STATES.remove(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);'
+          if mutant=='retain-state':
+              old=stop_line
+              new='if(STATES.get(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);'
+          elif mutant=='retain-pending':
+              old='MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);'
+              new='MaterialPhysicsRuntime.clear(server);'
+          elif mutant=='keep-movement-active':
+              old=stop_line
+              new='STATES.remove(server);'
+          else:
+              raise SystemExit('unknown mutant '+mutant)
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count for {mutant}: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: teardown holdout must kill mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s21-root-session-teardown-mutant-${{ matrix.mutant }}.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: ${{ matrix.mutant }}"
+            exit 1
+          fi
+          echo "KILLED: ${{ matrix.mutant }}"
+      - name: capture mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S21-root-session-teardown-mutant-${{ matrix.mutant }}
+          path: |
+            build/s21-root-session-teardown-mutant-${{ matrix.mutant }}.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
