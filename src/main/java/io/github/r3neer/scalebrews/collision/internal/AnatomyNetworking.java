@@ -68,6 +68,13 @@ public final class AnatomyNetworking {
             root.sequence(),root.tick(),bindingGeneration,trackingGeneration,endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down(),
             endpoint.rootTransform());
     }
+    /** Resolves the recipient-specific tracking generation before sending one live published endpoint. */
+    public static void sendPose(ServerPlayer recipient,GeometryProvider.PublishedFrame frame) {
+        if(recipient==null || frame==null)return;
+        var identity=frame.identity();var entity=recipient.level().getEntity(identity.entityId());
+        if(entity==null || !entity.getUUID().equals(identity.support()))return;
+        sendPose(recipient,frame,AnatomyRuntime.trackingGeneration(recipient,entity));
+    }
     /** Sends exactly one immutable server published endpoint in the recipient's current tracking generation. */
     public static void sendPose(ServerPlayer recipient,GeometryProvider.PublishedFrame frame,long trackingGeneration) {
         if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose/root protocol v6");
