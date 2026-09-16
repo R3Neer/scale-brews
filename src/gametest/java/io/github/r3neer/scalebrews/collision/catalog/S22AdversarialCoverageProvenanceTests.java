@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 /** Adversarial S22 holdout: exact membership alone must not authenticate invented coverage classifications. */
 public final class S22AdversarialCoverageProvenanceTests {
     @GameTest
-    public void completeMembershipCannotForgeFullCoverageWithoutCanonicalEvidence(GameTestHelper h) {
+    public void completeMembershipCannotForgeAnyResolvedCoverageClassification(GameTestHelper h) {
         var target = new CollisionCoverageDiscovery.Target(
             Identifier.parse("scalebrews_test:s22_minecraft_provenance"),
             "26.2", Set.of("minecraft"), Map.of("minecraft", "26.2"));
@@ -18,18 +18,46 @@ public final class S22AdversarialCoverageProvenanceTests {
         h.assertTrue(discovered.contains(Identifier.parse("minecraft:cow")) && discovered.size() > 1,
             "S22 provenance fixture requires a non-empty automatically discovered Minecraft LivingEntity target");
 
-        // Preserve exact automatic membership and provide locally plausible FULL evidence for every row.
-        // This deliberately defeats a shallow repair such as "FULL requires at least one binding". None of
-        // this evidence came from the canonical binding catalog or scanner, so acceptance must still fail.
-        var inventedEvidence = new CollisionCoverageScanner.BindingEvidence(
+        // Preserve exact automatic membership and locally plausible row shape. None of this evidence came
+        // from the canonical binding catalog/scanner or an explicit exclusion set, so each resolved status
+        // must still fail closed. This rejects status-specific shallow repairs.
+        var inventedFullEvidence = new CollisionCoverageScanner.BindingEvidence(
             Map.of(),
             Identifier.parse("proof:forged_geometry"),
             Identifier.parse("proof:forged_pose"),
             Identifier.parse("proof:forged_root"),
             Set.of());
+        var inventedPartialEvidence = new CollisionCoverageScanner.BindingEvidence(
+            Map.of("variant", "forged"),
+            Identifier.parse("proof:forged_geometry"),
+            Identifier.parse("proof:forged_pose"),
+            Identifier.parse("proof:forged_root"),
+            Set.of("forged_state_gap"));
+
+        assertForgedResolvedClassificationRejected(h, target, discovered,
+            CollisionCoverageScanner.Status.FULL,
+            "forged full coverage with plausible but unauthenticated binding evidence",
+            List.of(inventedFullEvidence));
+        assertForgedResolvedClassificationRejected(h, target, discovered,
+            CollisionCoverageScanner.Status.SAFE_PARTIAL,
+            "forged safe-partial coverage with plausible but unauthenticated state-gap evidence",
+            List.of(inventedPartialEvidence));
+        assertForgedResolvedClassificationRejected(h, target, discovered,
+            CollisionCoverageScanner.Status.EXCLUDED,
+            "forged technical exclusion absent from the explicit exclusion authority",
+            List.of());
+        h.succeed();
+    }
+
+    private static void assertForgedResolvedClassificationRejected(
+            GameTestHelper h,
+            CollisionCoverageDiscovery.Target target,
+            List<Identifier> discovered,
+            CollisionCoverageScanner.Status status,
+            String reason,
+            List<CollisionCoverageScanner.BindingEvidence> evidence) {
         var forgedRows = discovered.stream()
-            .map(id -> new CollisionCoverageScanner.Row(id, CollisionCoverageScanner.Status.FULL,
-                "forged full coverage with plausible but unauthenticated binding evidence", List.of(inventedEvidence)))
+            .map(id -> new CollisionCoverageScanner.Row(id, status, reason, evidence))
             .toList();
 
         boolean failedClosed = false;
@@ -42,8 +70,7 @@ public final class S22AdversarialCoverageProvenanceTests {
         }
 
         h.assertTrue(failedClosed,
-            "FR-038/NFR-032/NFR-036: an acceptance artifact must not satisfy requireResolved() merely because "
-                + "its row ids and local row shape look valid; FULL/SAFE_PARTIAL/EXCLUDED claims need canonical scanner provenance");
-        h.succeed();
+            "FR-038/NFR-032/NFR-036: exact discovered membership and locally plausible row shape must not "
+                + "authenticate caller-authored " + status + " coverage; resolved claims need canonical scanner provenance");
     }
 }
