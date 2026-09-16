@@ -88,9 +88,14 @@ public final class AnatomyClientNetworking {
     public static boolean ready(net.minecraft.world.entity.Entity entity) {
         return mode(entity)==AnatomyMode.READY;
     }
-    private static void clearPoses(){
+    /** Level-owned material/caches only. Connection/revision replay watermarks deliberately survive. */
+    private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
-        poses.clear();frames.clear();staleFrames.clear();frameReplayFence.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();
+        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();
+    }
+    /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
+    private static void clearConnectionTemporal(){
+        clearLevelMaterial();frameReplayFence.clear();contacts.clear();
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId) {
         poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);
@@ -109,6 +114,12 @@ public final class AnatomyClientNetworking {
         discardSupportMaterial(level,supportId,packet.entityId());receivedAt.remove(supportId);
         if(!wasSaturated && frameReplayFence.saturated())
             io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client anatomy frame replay fence saturated; rejecting poses until lifecycle reset");
+    }
+    /** Same-connection level barrier: retire histories, then drop all level-owned material but keep causal watermarks. */
+    private static void crossLevelBarrier(){
+        if(poseLevel!=null)for(var entry:new java.util.ArrayList<>(frames.entrySet()))
+            retireFrameHistory(poseLevel,entry.getKey(),entry.getValue());
+        clearLevelMaterial();
     }
     private static void bindPhysics() {
         var transfer=session.catalog();
@@ -203,9 +214,9 @@ public final class AnatomyClientNetworking {
         return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
-    private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}
+    private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
     private static void useLevel(net.minecraft.client.multiplayer.ClientLevel level){
-        if(poseLevel!=level){clearPoses();poseLevel=level;session.useLevel(level);}
+        if(poseLevel!=level){crossLevelBarrier();poseLevel=level;session.useLevel(level);}
     }
     public static void initialize() {
         AnatomySession.installClientMode(AnatomyClientNetworking::mode);
@@ -240,7 +251,7 @@ public final class AnatomyClientNetworking {
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
             useLevel(context.client().level);var transfer=session.catalog();
-            try{if(transfer.accept(packet))clearPoses();}
+            try{if(transfer.accept(packet))clearConnectionTemporal();}
             catch(RuntimeException invalid){transfer.rejectPending();io.github.r3neer.scalebrews.ScaleBrews.LOGGER.error("Rejected anatomical catalog; previous revision retained",invalid);}
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
