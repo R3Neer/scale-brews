@@ -1,6 +1,6 @@
 # S21 adversarial model — root transform authority
 
-Status: **OPEN — entity-removal lifecycle RED**.
+Status: **CLOSED — INDEPENDENT ADVERSARIAL ACCEPTANCE COMPLETE**.
 
 > Role: adversarial verification only. This document does not authorize production changes.
 >
@@ -42,11 +42,11 @@ The adversarial pass treats these properties as mandatory:
    - teleport/discontinuity does not interpolate through stale root authority;
    - entity removal and world/session teardown cannot keep causal root authority alive.
 
-## 2. Current reconciled status
+## 2. Final reconciled status
 
-The early runtime tranche intentionally landed as independent red holdouts before the implementation converged. Those reds are retained below as historical evidence, but they are **not** current blockers anymore.
+The early runtime tranche intentionally landed as independent red holdouts before the implementation converged. Those reds are retained below as historical evidence. After the final removal repair and mutation proof, no S21 blocker remains.
 
-Current classification on the `chatgpt-editing` lineage:
+Final classification on the `chatgpt-editing` lineage:
 
 - DTO/registry SPI contract: **PASS**;
 - causal/query/presentation/motion consumption of transported root: **PASS**;
@@ -59,9 +59,8 @@ Current classification on the `chatgpt-editing` lineage:
 - reload/rebind root lifecycle: **PASS**, including mutation adequacy;
 - external-root teleport discontinuity and recovery: **PASS**, including mutation adequacy;
 - session teardown: **PASS**, including mutation adequacy;
-- entity-removal lifecycle: **RED / current blocker**.
-
-The ordinary build is green on the removal-holdout SHA (`99364e4`, run `35088792862`). The removal red is therefore a behavioral product gate, not a compile or harness failure.
+- entity-removal lifecycle: **PASS after production repair + independent mutation kill**;
+- final PREPARATION/HOT_TICK and root/joint separation reread: **PASS / zero production changes**.
 
 ## 3. SPI contract — PASS
 
@@ -84,7 +83,7 @@ Historical red evidence:
 - corrected causal red run `35017750952`;
 - presentation/motion red run `35018354591`.
 
-After explicit-root runtime/casual publication changes, the unchanged causality lane is green:
+After explicit-root runtime/causal publication changes, the unchanged causality lane is green:
 
 - production lineage includes `3ac4d12` (`consume explicit root authority in runtime evaluation`) and `6b94ec5` (`publish explicit root causal authority`);
 - run `35029174547`: **SUCCESS**.
@@ -179,47 +178,23 @@ The repaired path advances material identity without reevaluating local joints:
 - `8c8b384`, `fix(s21): preserve same-tick entity root compatibility`;
 - run `35029765070`: **SUCCESS**.
 
-The same lineage leaves causality, availability, compatibility and gravity-independence lanes green.
-
 ## 5. Reload/rebind lifecycle — PASS + MUTATION ADEQUATE
 
-`S21AdversarialRootRebindLifecycleTests` exercises the real runtime reset/rebind boundary with two accepted catalog revisions:
+`S21AdversarialRootRebindLifecycleTests` exercises the real runtime reset/rebind boundary with two accepted catalog revisions. It proves fresh provider/revision/binding/local generations, immediate rejection of old intervals and no resample of obsolete provider A after the rebind.
 
-1. revision A owns root provider A and publishes a transverse A root;
-2. a genuine A-generation motion interval is certified and accepted;
-3. the catalog advances to revision B selecting root provider B;
-4. the production runtime `reset()` rebinds the same entity;
-5. the new provider, revision, binding generation, local registration generation and root-provider identity must all advance to B;
-6. the old A interval must become unexecutable immediately;
-7. provider A must never be resampled after the rebind.
-
-Baseline evidence:
+Evidence:
 
 - test commit `ee9ba09`, `test(s21): fence root authority across runtime rebind`;
-- workflow `s21-adversarial-root-rebind-lifecycle`;
-- initial baseline run `35087298324`: **SUCCESS**.
-
-Mutation adequacy deliberately removes `state.entities.clear()` from the ephemeral CI copy of `AnatomyRuntime.reset()`, preserving the obsolete `Active` across reload. The mutant compiles and the holdout fails because revision B does not own a fresh live provider.
-
-- first mutation run `35087616928`: **DISCARDED** because the CI harness attempted to `tee` its diff before creating `build/`; no semantic mutation claim is made from it;
+- initial baseline run `35087298324`: **SUCCESS**;
+- first mutation run `35087616928`: **DISCARDED** because the CI harness failed before semantic execution;
 - corrected workflow lineage `943926b`;
-- run `35087828779`: baseline **SUCCESS**, mutation-kill **SUCCESS**;
-- mutant failure: `S21 lifecycle revision B must own a live ModelGeometryProvider`.
+- run `35087828779`: baseline **SUCCESS**, mutation-kill **SUCCESS**.
 
-This closes the rebind/generation threat independently from generic S14 ownership tests.
+The semantic mutant preserves obsolete `state.entities` across reset and is killed because revision B no longer owns a fresh live provider.
 
 ## 6. External-root teleport discontinuity — PASS + MUTATION ADEQUATE
 
-Legacy teleport tests already exercised `RootFrame`, but did not prove discontinuity for a transported external quaternion. `S21AdversarialExternalRootTeleportTests` therefore uses a mutable custom root provider and the real `Entity.teleportTo(...)` lifecycle.
-
-The fixture deliberately teleports only **0.5 blocks**, below the automatic `RootHistory` large-jump threshold, so the result cannot pass accidentally through the legacy >4-block discontinuity heuristic.
-
-The holdout requires:
-
-- pre-teleport material history is seeded;
-- teleport publishes the new external quaternion and advances endpoint serial without reevaluating joints;
-- no interval crosses pre-teleport → post-teleport authority;
-- the tracker then recovers, and the next contiguous external-root-only change produces exactly one interval starting at the post-teleport seed.
+`S21AdversarialExternalRootTeleportTests` uses a mutable custom root provider and a real `Entity.teleportTo(...)`. The fixture teleports only **0.5 blocks**, below the legacy large-jump heuristic, so the result cannot pass accidentally through that fallback.
 
 Evidence:
 
@@ -227,66 +202,79 @@ Evidence:
 - workflow `s21-adversarial-external-root-teleport`;
 - run `35088530406`: baseline **SUCCESS**, mutation-kill **SUCCESS**.
 
-The mutation removes only `MaterialIntervalRuntime.invalidate(living)` from the ephemeral `teleportTo(DDD)V` hook while preserving `AnatomyMovement.invalidateRoot(living)`. The mutant compiles and fails exactly at:
+The mutation removes only `MaterialIntervalRuntime.invalidate(living)` from the teleport hook while preserving local root invalidation. It is killed when a pre-teleport material interval crosses the discontinuity.
 
-`A teleport discontinuity must never publish a material interval from the pre-teleport external root`
+## 7. Entity removal lifecycle — HISTORICAL RED → PASS + MUTATION ADEQUATE
 
-This proves that the explicit material-interval fence is semantically necessary rather than redundant decoration.
+`S21AdversarialRootRemovalLifecycleTests` first established a canonical runtime binding with an external root provider and proved a live certified interval was executable. It then queued another valid interval and removed the support through real `Entity.discard()`.
 
-## 7. Entity removal lifecycle — RED / CURRENT BLOCKER
-
-`S21AdversarialRootRemovalLifecycleTests` exercises a canonical runtime binding with an external root provider and first proves that a live certified interval is accepted and executable. It then queues another valid interval and removes the support through real `Entity.discard()`, exercising the production `remove` mixin hook.
-
-Several properties already behave correctly after removal:
-
-- `AnatomyMovement.queryFrame(support)` is empty;
-- the queued `MaterialIntervalRuntime` entry is cleared by the remove hook;
-- the lifecycle check does not resample external root authority.
-
-However, the canonical runtime still accepts an already-held interval handle immediately after removal, before the next `AnatomyRuntime.prepare()` prunes the dead entry from `State.entities`.
-
-Evidence:
+Historical red evidence:
 
 - test commit `cb95998`, `test(s21): reject certified root intervals after removal`;
-- workflow `s21-adversarial-root-removal-lifecycle`;
-- SHA `99364e4` ordinary build run `35088792862`: **SUCCESS**;
-- holdout run `35088792923`: **FAIL** exactly at:
+- ordinary build on SHA `99364e4`, run `35088792862`: **SUCCESS**;
+- holdout run `35088792923`: **FAIL** exactly because a handle certified while the support was alive remained accepted immediately after removal.
 
-`A handle certified while the support was alive must be rejected immediately after removal`
-
-The static boundary matches the dynamic red: `GeometryIdentity.matches(...)` checks dimension/UUID/entity id, while `AnatomyRuntime.acceptsIntervalIdentity(...)` validates runtime/catalog generations and selected ids but does not currently reject an entity that is already removed. `State.entities` is only pruned in `prepare()`.
-
-Repair property, intentionally non-prescriptive:
+The invariant was intentionally implementation-independent:
 
 > Once a support has entered removal lifecycle, any previously certified material/root interval must immediately cease to be runtime-authoritative. Rejection must not depend on waiting for the next steady-tick `prepare()` sweep, and it must not resample root authority or resurrect queued material work.
 
-The adversarial test must remain red until production satisfies that property. The adversary does not patch the production gate.
+Production repair **`c481194bb6156906768c12c499fc6ad8650a6595`** adds the minimal `entity.isRemoved()` rejection to `AnatomyRuntime.acceptsIntervalIdentity(...)`. Implementer evidence after the repair:
+
+- ordinary build `35102351879`, job `104814662103`: **424/424 required GameTests**, `BUILD SUCCESSFUL`;
+- removal holdout `35102351750`, job `104814662473`: **2/2**, `BUILD SUCCESSFUL`;
+- rebind lane `35102351833`, job `104814661968`: **SUCCESS**;
+- session teardown lane `35102351804`, job `104814662087`: **SUCCESS**.
+
+The independent adversary then added mutation adequacy in **`0c99e2f1a4d158dd47b3d5b9f092dce1fa644986`**. The ephemeral mutant removes only the new `entity.isRemoved()` term, must compile, and reruns the unchanged removal holdout.
+
+Run **`35105998877`**:
+
+- job **`104827240871`** baseline: **SUCCESS**;
+- job **`104827781422`** mutation kill: **SUCCESS**; the mutant compiles and the holdout kills it.
+
+Ordinary workflow run **`35105998939`**, job **`104827241696`**, on the same head is **SUCCESS**.
+
+The removal blocker is therefore closed with causal evidence rather than by trusting the repair shape.
 
 ## 8. Session teardown — PASS + MUTATION ADEQUATE
 
-`S21AdversarialRootSessionTeardownTests` exercises the real `AnatomyRuntime.stop(server)` boundary after first establishing a live causal root, a certified executable interval and queued material work. It then requires teardown to retire all three layers of authority immediately, and verifies that restarting the runtime does not resurrect the pre-stop handle.
+`S21AdversarialRootSessionTeardownTests` exercises the real `AnatomyRuntime.stop(server)` boundary after establishing live causal root, certified interval and queued material work.
 
-The final hardened lane proves three independent teardown responsibilities with semantic mutants applied only to an ephemeral CI checkout:
+The final hardened lane proves three independent teardown responsibilities with ephemeral semantic mutants:
 
-1. **retain-state** replaces the destructive `STATES.remove(server)` with a non-destructive lookup, testing that session identity itself must be retired;
-2. **retain-pending** removes only `MaterialIntervalRuntime.clear(server)` from `stop()`, testing that already queued material work must not survive session teardown;
-3. **keep-movement-active** removes the per-level `AnatomyMovement.deactivate(level)` call while still removing runtime state, testing that local causal/query authority must also be retired.
+1. **retain-state** keeps the server `State` instead of removing it;
+2. **retain-pending** skips only `MaterialIntervalRuntime.clear(server)`;
+3. **keep-movement-active** skips the per-level `AnatomyMovement.deactivate(level)` call.
 
 Evidence:
 
 - test commit `2d87418`, `test(s21): retire root authority on runtime stop`;
-- initial workflow commit `36f296f`, `ci(s21): run root session teardown holdout`;
 - initial baseline run `35089135904`: **SUCCESS**;
-- final hardened workflow lineage `61575d1`, `ci(s21): repair scoped teardown mutant harness`;
+- final hardened workflow lineage `61575d1`;
 - run `35097601316`: baseline **SUCCESS** and all three mutation-kill jobs **SUCCESS**.
 
-Two intermediate mutation-harness failures are discarded as non-product evidence: the first `retain-pending` selector was ambiguous between `reset()` and `stop()`, and the next multiline Python target made the workflow YAML invalid. Neither reached a semantic mutant. The final lane scopes the mutation from the `stop()` method boundary and compiles every mutant before running the holdout.
+Intermediate harness failures that never reached a semantic mutant remain discarded as non-product evidence.
 
-Session teardown is therefore independently closed; it is no longer a blocker for S21.
+## 9. Final PREPARATION/HOT_TICK and root/joint reread
 
-## 9. Properties currently green
+The required second read was repeated after the final product repair.
 
-The current adversarial pass has independently established that:
+Observed boundary:
+
+- `WorldAnatomyCatalog.replaceValidated(...)` validates root-provider ids while accepting a revision;
+- `prepareCanonical(...)` and `prepareBridge(...)` resolve the selected `RootTransformProvider` and place it in immutable executable `Binding` data before runtime;
+- `AnatomyRuntime.bindIfEligible(...)` constructs `ModelGeometryProvider` from that already-resolved provider; no root-provider registry lookup, JSON parsing, resource walk or reflection is introduced in HOT_TICK;
+- `RootTransformProvider.RootTransform` is common/server-safe, validates finite origin/scale/quaternion, normalizes the quaternion and canonicalizes `q/-q` sign equivalence at the DTO boundary;
+- `ModelGeometryProvider.refreshRoot(...)` refreshes root authority using the already accepted local pose sample and never invokes local joint evaluation;
+- `ModelGeometryProvider.joints(...)` keys the joint endpoint cache solely by `PoseEngine.Inputs`; root is deliberately outside that key;
+- `sampleAt(...)` composes accepted root authority only after retrieving cached/evaluated local joints;
+- the removal repair is an identity fence before interval resolution and adds no new preparation/hot-tick ownership or work.
+
+No further S21 product or test change was required by this reread.
+
+## 10. Final properties
+
+The adversarial campaign has independently established that:
 
 - DTO/registry normalization, immutability, invalid-state rejection and ownership are green;
 - root-only orientation changes reuse already evaluated local joints;
@@ -299,29 +287,11 @@ The current adversarial pass has independently established that:
 - same-tick root-only mutation advances causal identity without joint recomputation;
 - runtime rebind fences obsolete provider/root generations;
 - real teleport fences transported external-root continuity and then recovers the tracker;
+- entity removal immediately invalidates already-held certified intervals without resampling root authority;
 - full runtime stop retires session identity, pending material intervals and local movement authority, and old handles stay dead after restart.
 
-These green properties do not compensate for the entity-removal red.
+## 11. Gate result
 
-## 10. Next adversarial targets
+Every S21 blocker in the original gate rule is now green, including the final removal lifecycle property and mutation adequacy. The final PREPARATION/HOT_TICK reread found no new product defect and required zero production changes.
 
-The remaining S21 sequence is deliberately narrow:
-
-1. keep `s21-adversarial-root-removal-lifecycle` red and unchanged while the implementer repairs production;
-2. rerun that same holdout after the fix and add mutation adequacy only after baseline becomes green;
-3. perform the final PREPARATION/HOT_TICK and root/joint cache-separation read-through after the last production repair;
-4. reconcile the canonical S21 checklist and close the sprint only if those checks remain green.
-
-S22 work may proceed in parallel, but it does not waive this S21 product gate.
-
-## 11. Gate rule
-
-S21 must not be considered adversarially converged while:
-
-- the removal holdout remains red;
-- any root failure/removal path can publish, execute or reuse stale causal truth;
-- a root-only change forces local-joint reevaluation without a demonstrated reason;
-- any causal/presentation/motion/wire path reconstructs legacy gravity+yaw authority after a custom root has already been accepted;
-- canonical bindings cannot swap root authority independently of geometry and pose;
-- same-tick external root-only mutations can remain causally invisible;
-- reload/rebind, teleport or session teardown can preserve a stale external-root interval across a lifecycle boundary.
+**S21 is adversarially converged and CLOSED. G3 task 6 may be marked complete.**
