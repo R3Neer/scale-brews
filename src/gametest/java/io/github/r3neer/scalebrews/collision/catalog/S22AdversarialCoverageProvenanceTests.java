@@ -18,11 +18,18 @@ public final class S22AdversarialCoverageProvenanceTests {
         h.assertTrue(discovered.contains(Identifier.parse("minecraft:cow")) && discovered.size() > 1,
             "S22 provenance fixture requires a non-empty automatically discovered Minecraft LivingEntity target");
 
-        // Preserve exact automatic membership while fabricating every semantic result as FULL with no
-        // binding evidence. A membership-only Artifact check must not turn this into trusted acceptance.
+        // Preserve exact automatic membership and provide locally plausible FULL evidence for every row.
+        // This deliberately defeats a shallow repair such as "FULL requires at least one binding". None of
+        // this evidence came from the canonical binding catalog or scanner, so acceptance must still fail.
+        var inventedEvidence = new CollisionCoverageScanner.BindingEvidence(
+            Map.of(),
+            Identifier.parse("proof:forged_geometry"),
+            Identifier.parse("proof:forged_pose"),
+            Identifier.parse("proof:forged_root"),
+            Set.of());
         var forgedRows = discovered.stream()
             .map(id -> new CollisionCoverageScanner.Row(id, CollisionCoverageScanner.Status.FULL,
-                "forged full coverage without canonical binding evidence", List.of()))
+                "forged full coverage with plausible but unauthenticated binding evidence", List.of(inventedEvidence)))
             .toList();
 
         boolean failedClosed = false;
@@ -36,7 +43,7 @@ public final class S22AdversarialCoverageProvenanceTests {
 
         h.assertTrue(failedClosed,
             "FR-038/NFR-032/NFR-036: an acceptance artifact must not satisfy requireResolved() merely because "
-                + "its row ids match discovery; FULL/SAFE_PARTIAL/EXCLUDED classifications need canonical scanner provenance");
+                + "its row ids and local row shape look valid; FULL/SAFE_PARTIAL/EXCLUDED claims need canonical scanner provenance");
         h.succeed();
     }
 }
