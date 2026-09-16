@@ -4,11 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -17,15 +15,17 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 
 /**
  * Tooling-only target discovery for collision coverage.
  *
  * <p>No method in this class is wired into a server tick or entity lifecycle path. A coverage job
  * invokes it once against the frozen built-in registry, then feeds the resulting ids into
- * {@link CollisionCoverageScanner}. Entity types are classified from their declared base class;
- * discovery never constructs/spawns an entity just to ask what it is.</p>
+ * {@link CollisionCoverageScanner}. Living entity membership is derived from the default-attribute
+ * registry: Minecraft/Fabric require every LivingEntity type to register a default attribute
+ * supplier, including custom Fabric types. Discovery therefore neither maintains a species list nor
+ * constructs/spawns entities just to identify them.</p>
  */
 public final class CollisionCoverageDiscovery {
     public static final int MAX_NAMESPACES = 256;
@@ -126,7 +126,7 @@ public final class CollisionCoverageDiscovery {
         for (var type : BuiltInRegistries.ENTITY_TYPE) {
             var id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
             if (id == null || !target.namespaces().contains(id.getNamespace())) continue;
-            if (LivingEntity.class.isAssignableFrom(type.getBaseClass())) living.add(id);
+            if (DefaultAttributes.hasSupplier(type)) living.add(id);
         }
         if (living.size() > CollisionCoverageScanner.MAX_TARGETS)
             throw new IllegalArgumentException("Coverage discovery target limit exceeded");
