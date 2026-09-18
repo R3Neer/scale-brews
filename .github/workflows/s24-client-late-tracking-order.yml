@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/s24-client-late-tracking-order.yml'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S24LateTrackingOrderClientProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24AdversarialFrameOrderTests.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyEndpointLedger.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
@@ -75,7 +76,7 @@ jobs:
   stale-order-mutant-must-die:
     needs: late-tracking-order
     runs-on: ubuntu-24.04
-    timeout-minutes: 24
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v6
       - uses: gradle/actions/wrapper-validation@v6
@@ -84,7 +85,7 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: isolate S24 late tracking order client proof
+      - name: isolate S24 same-window ordering owner holdout
         shell: bash
         run: |
           python3 - <<'PY'
@@ -92,8 +93,10 @@ jobs:
           from pathlib import Path
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
-          data['entrypoints']['fabric-gametest']=[]
-          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24LateTrackingOrderClientProof']
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialFrameOrderTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: remove same-window endpoint ordering fences
@@ -101,9 +104,9 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java')
           s=p.read_text()
-          import re
           pattern=r'if\(next\.frameSerial\(\)<=current\.frameSerial\(\)\s*\|\|\s*next\.authorityTick\(\)<current\.authorityTick\(\)\s*\|\|\s*next\.jointSampleTick\(\)<current\.jointSampleTick\(\)\)return false;'
           s,count=re.subn(pattern,'if(false)return false;',s,count=1)
           if count!=1:
@@ -111,16 +114,26 @@ jobs:
           p.write_text(s)
           PY
       - name: mutant must compile
-        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
-      - name: stale replay must kill ordering mutant
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: owner holdout must kill same-window ordering mutant
         shell: bash
         run: |
           set +e
-          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-mutant.xml"
           code=$?
           set -e
           if [ "$code" -eq 0 ]; then
-            echo 'SURVIVED: delayed same-window frame rolled through missing ordering fences'
+            echo 'SURVIVED: same-window frame ordering owner accepted rollback'
             exit 1
           fi
-          echo 'KILLED: same-window endpoint ordering mutant'
+          echo 'KILLED: same-window frame ordering mutant'
+      - name: capture ordering mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-frame-order-mutant
+          path: |
+            build/s24-frame-order-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
