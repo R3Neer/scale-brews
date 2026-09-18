@@ -117,7 +117,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 ### G3 — catálogo, engines generales y lifecycle
 
-**Estado:** **ABIERTO / siguiente gate**.
+**Estado:** **CERRADO**. Las doce tareas están completadas y S24 cerró adversarialmente lifecycle, UNAVAILABLE/recovery, orden live y ownership root/endpoint.
 
 **Requisitos:** FR-014..041, FR-080..082, FR-089..092; NFR-003..013, NFR-015..018, NFR-026..029, NFR-032, NFR-036.
 
@@ -129,10 +129,10 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 6. [x] añadir `RootTransformProvider` genérico y fixture externo;
 7. [x] mantener `DisplayRig` como SPI hasta target real;
 8. [x] scanner/coverage FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;
-9. [ ] reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;
-10. [ ] unsupported states publican unavailable y recuperan sin freeze;
-11. [ ] lifecycle/order sobre runtime y packets reales;
-12. [ ] terminar separación de `collision.internal` cuando fronteras sean estables.
+9. [x] reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;
+10. [x] unsupported states publican unavailable y recuperan sin freeze;
+11. [x] lifecycle/order sobre runtime y packets reales;
+12. [x] terminar separación de `collision.internal` cuando fronteras sean estables.
 
 **S15 cerrado:** G3 tarea 2/NFR-010 queda cerrada. `WorldAnatomyCatalog` publica `Snapshot + PreparedBundle` atómicamente y la ruta live reutiliza packets preparados por `epoch + revision`. Evidencia final `e52766a71cf66c4157d31b8884d901b22d4de7a8`, run `34747160506`, job `103697083788`: focal **8/8 S15** (+ sentinel) y ordinary **394/394**; artifact `10313754760`, SHA-256 `5a3a20f13c7f24726cee3ed6af5baa3a1f3f63c4c6b5347c69c5063dfba42f57`. Revisión post-verde sin cambios de producción. G3 sigue abierto para tareas 1 y 3-12.
 
@@ -150,15 +150,15 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S22 cerrado adversarialmente:** G3 tarea 8 queda completada. La reparación productiva final `50296a6792f523e57fcd8daa71ba6f598254a6e6` mantiene independientes completeness y provenance. La pasada final adversarial añadió un control positivo de artifact canónico y dos mutantes opuestos: eliminar el fence de provenance y eliminar la emisión del token legítimo. Run `35328441530`: baseline job `105546923380` verde; bypass mutant job `105547301841` muerto; issuance mutant job `105547301819` muerto. Build `35328441560` verde. El compare desde `50296a6` no muestra cambios posteriores en `CollisionCoverageDiscovery` ni `CollisionCoverageScanner`. Detalle en `docs/sprints/S22-adversarial-model.md`.
 
-**S24 implementer handoff:** las tareas 9-12 avanzaron hasta un candidato implementer verde. Lifecycle/replay/reconnect/dimension/rebind, `UNAVAILABLE` real con recuperación, late tracking/order y la extracción final de root/endpoint ownership están documentados en `docs/sprints/S24-lifecycle-generation-fencing.md`. Evidencia post-separación: unavailable `35135583002`, late tracking/order `35135606727`, lifecycle generation + root-ledger contract `35135695700` y ordinary build `35135695698`, todos **success**. Los checkboxes 9-12 permanecen abiertos.
+**S24 cerrado adversarialmente:** G3 tareas 9-12 quedan completadas. El RED de tracking-authority revival se reparó en `256ab44...` + `99969cc...` y la campaña final añadió mutation adequacy para lectura/adquisición, dimensión, reconnect, `UNAVAILABLE → recovery`, orden same-window y ownership root/endpoint. Run de tracking-read `35333686648`: baseline + dos mutantes verdes. Run de UNAVAILABLE `35335621883`: baseline + transition/recovery mutants verdes. Run de late tracking/order `35336440655`: client real + owner baseline + ordering mutant verdes. Ownership boundary `35333447075`: baseline + duplicate-root/endpoint mutants verdes. Ordinary final `35336440635`, job `105572251864`: **442/442 required GameTests passed**. Cierre completo: `docs/sprints/S24-adversarial-closeout.md`.
 
-**S24 reapertura adversarial G3.9:** la auditoría independiente confirmó una costura productiva que el handoff dejaba pendiente. `AnatomyRuntime.trackingGeneration(recipient, body)` está documentado como lectura del estado actual pero llama a `TrackingGenerationLedger.acquire(...)`. El holdout `S24AdversarialTrackingReadPurityTests` usa un receptor fuera de `PlayerList`, por lo que ningún `START_TRACKING` puede autorizar la pareja, y aun así producción devuelve `1` en tick 0 en lugar de `UNAVAILABLE=0`. Run `35329517023`, job `105550355468`, artifact `10541105179`, SHA-256 `ccd06b1e6f39d3e66670f7315f1599b313531abfce3c2f52e495d6f20fc1bd99`. Ordinary build del mismo snapshot `35329516917` verde. Causa y handoff: `docs/sprints/S24-adversarial-tracking-read-revival-red.md`.
-
-**Prioridad G3 vigente:** task **8 / S22 está cerrada**. El primer blocker productivo es ahora **G3.9 / S24 tracking authority revival**: separar observación de adquisición y revalidar consumers de pose/receipts sin revivir una ventana retirada o inexistente. Tasks 10-12 continúan formalmente abiertas detrás de este gate.
+**Prioridad vigente:** **G3 está cerrado**. El siguiente gate canónico es **G4 — red, prediction, reconciliación y presentación causal**.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
 ### G4 — red, prediction, reconciliación y presentación causal
+
+**Estado:** **ABIERTO / siguiente gate**.
 
 **Requisitos:** FR-077..088; NFR-001..018, NFR-026..031.
 
