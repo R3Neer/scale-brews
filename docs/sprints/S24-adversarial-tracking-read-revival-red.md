@@ -113,3 +113,24 @@ No se prescribe arquitectura concreta. El candidato debe demostrar simultáneame
 G3.9/S24 no puede cerrarse. El IMPLEMENTER debe separar observación de adquisición y revalidar los consumers que hoy dependen de la façade impura.
 
 El adversario no modifica producción.
+
+## 8. Hardening adicional: ausencia total de runtime
+
+Commit adversarial **`749b0fffa18f215661530a688f4f21a1da8b070a`** añadió un segundo caso al mismo holdout: con objetos `ServerPlayer`/body válidos pero **sin `AnatomyRuntime` activo**, la façade de observación debe devolver `UNAVAILABLE=0`.
+
+Run **`35332944309`**: ambos casos fallan independientemente en tick 0:
+
+```text
+Without an active anatomy runtime there is no recipient/body tracking authority to observe; observed=1
+A read of an untracked recipient/body pair must return UNAVAILABLE and must not acquire tracking authority; observed=1
+```
+
+Artifact **`10541867487`**, SHA-256 **`6a767e095af112ccb33f21103f8ab7a779f6408d8026e0f1e10c589a10f9a34b`**.
+
+Esto demuestra dos defectos distintos de la misma façade:
+
+1. `state == null` fabrica directamente la generación `1`;
+2. `state != null` pero sin ventana activa llama a `acquire(...)` y fabrica igualmente `1`.
+
+La reparación debe eliminar ambas fuentes de autoridad sintética, no sólo sustituir el helper de la segunda rama.
+
