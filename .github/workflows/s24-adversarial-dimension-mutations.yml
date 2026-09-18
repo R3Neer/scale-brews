@@ -10,6 +10,7 @@ on:
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyClientSession.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java'
   workflow_dispatch:
@@ -64,15 +65,15 @@ jobs:
           data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S24DimensionLifecycleClientProof']
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
-      - name: suppress STOP_TRACKING generation advance
+      - name: suppress STOP_TRACKING generation retirement
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java')
           s=p.read_text()
-          old='(ignored,current)->nextTrackingGeneration(current==null?1:current));'
-          new='(ignored,current)->current==null?1:current);'
+          old='if(entity!=null)active.remove(entity);'
+          new='if(entity!=null)active.get(entity);'
           count=s.count(old)
           if count != 1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
