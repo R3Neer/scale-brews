@@ -140,6 +140,24 @@ public final class G2VanillaPushReadyTests {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.state(transitionBody).support==transitionSupport,
                 "Transition holdout must acquire stale state through the production legacy movement path");
 
+            // Boundary control: before shared ownership begins, the exact same production-acquired
+            // PlatformState relation is still owned by the legacy route and must suppress pair push.
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionSupport.push(transitionBody);
+            Vec3 legacySupportCallerBody=transitionBody.getDeltaMovement();
+            Vec3 legacySupportCallerSupport=transitionSupport.getDeltaMovement();
+
+            transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
+            transitionBody.push(transitionSupport);
+            Vec3 legacyBodyCallerBody=transitionBody.getDeltaMovement();
+            Vec3 legacyBodyCallerSupport=transitionSupport.getDeltaMovement();
+
+            h.assertTrue(legacySupportCallerBody.equals(Vec3.ZERO)
+                    && legacySupportCallerSupport.equals(Vec3.ZERO)
+                    && legacyBodyCallerBody.equals(Vec3.ZERO)
+                    && legacyBodyCallerSupport.equals(Vec3.ZERO),
+                "Legacy support must retain its own push suppression until shared anatomy ownership actually begins");
+
             AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("ghast",profile("minecraft:ghast")));
             var transitionFloor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(transitionSupport.position());
             GeometryProvider transitionProvider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("floor",transitionFloor)));
