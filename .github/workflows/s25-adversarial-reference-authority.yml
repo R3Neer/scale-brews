@@ -1,0 +1,104 @@
+name: s25-adversarial-reference-authority
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-authority.yml'
+      - 'tools/s25_reference_authority_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformMovePayload.java'
+  workflow_dispatch:
+
+jobs:
+  reference-authority-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: verify anatomy references cannot borrow legacy or rich physical authority
+        run: python3 tools/s25_reference_authority_gate.py
+
+  legacy-borrow-mutant-must-die:
+    needs: reference-authority-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject compiling legacy reference dependency into anatomy networking
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java')
+          s=p.read_text()
+          marker='public final class AnatomyNetworking {'
+          injected=marker+'\n    private static final Class<?> S25_LEGACY_REFERENCE_LEAK=io.github.r3neer.scalebrews.platform.PlatformMovePayload.class;'
+          count=s.count(marker)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,injected,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: authority gate must kill legacy borrow
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: anatomy borrowed legacy PlatformMovePayload authority'
+            exit 1
+          fi
+          echo 'KILLED: legacy movement-reference dependency'
+
+  rich-authority-mutant-must-die:
+    needs: reference-authority-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject compiling anatomy C2S receiver with geometry authority dependency
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java')
+          s=p.read_text()
+          marker='public static void initialize(){'
+          replacement=marker+"\n        Class<?> s25ForbiddenGeometryAuthority=io.github.r3neer.scalebrews.collision.geometry.ModelGeometry.class;\n        ServerPlayNetworking.registerGlobalReceiver(AnatomyContactPayload.TYPE,(payload,context)->{});"
+          count=s.count(marker)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,replacement,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: authority gate must kill rich C2S authority
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: anatomy C2S receiver imported physical geometry authority'
+            exit 1
+          fi
+          echo 'KILLED: rich physical-authority C2S mutant'
