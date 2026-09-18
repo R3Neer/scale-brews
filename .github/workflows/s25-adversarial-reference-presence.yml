@@ -1,0 +1,21 @@
+name: s25-adversarial-reference-presence
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-presence.yml'
+      - 'tools/s25_reference_presence_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/**'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformMovementReference.java'
+  workflow_dispatch:
+
+jobs:
+  anatomy-reference-presence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: require a non-legacy anatomy C2S reference surface before behavioral recertification
+        run: python3 tools/s25_reference_presence_gate.py
