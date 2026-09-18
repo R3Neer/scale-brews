@@ -49,6 +49,8 @@ public final class AnatomyTransportReceipts {
     public record Metrics(long recorded,long duplicates,long overflows,long invalidations,long entries) {}
     private static final class History {
         final ArrayDeque<Receipt> entries=new ArrayDeque<>();
+        /** Server causal endpoint that produced each canonical runtime transport sequence. */
+        final Map<Long,Long> supportFrameSerials=new HashMap<>();
         /** Every saturated tick remains rejectable for the complete receipt TTL. */
         final ArrayDeque<Long> saturatedTicks=new ArrayDeque<>();
         long countTick=Long.MIN_VALUE;
@@ -58,7 +60,16 @@ public final class AnatomyTransportReceipts {
     /** Called only after P1 has moved the root and refreshed every vanilla baseline. */
     public static synchronized void record(Entity body,AnatomyMovement.Contact contact,SurfaceContact surface,
             RootFrame root,SupportTransport transport,ConvexBox materialBefore,ConvexBox materialAfter) {
-        if(body==null || contact==null || surface==null || root==null || transport==null || materialBefore==null || materialAfter==null || body.level().isClientSide())return;
+        record(body,contact,surface,root,0,transport,materialBefore,materialAfter);
+    }
+    /**
+     * Canonical runtime overload. supportFrameSerial is the server-issued support endpoint
+     * that the client can later name; zero keeps fixture/non-causal receipts non-referenceable.
+     */
+    public static synchronized void record(Entity body,AnatomyMovement.Contact contact,SurfaceContact surface,
+            RootFrame root,long supportFrameSerial,SupportTransport transport,ConvexBox materialBefore,ConvexBox materialAfter) {
+        if(body==null || contact==null || surface==null || root==null || supportFrameSerial<0 || transport==null
+                || materialBefore==null || materialAfter==null || body.level().isClientSide())return;
         if(!contact.support().getUUID().equals(surface.support()) || contact.revision()!=surface.revision()
                 || !contact.piece().equals(surface.piece()))return;
         var server=body.level().getServer();if(server==null)return;
@@ -75,21 +86,25 @@ public final class AnatomyTransportReceipts {
             var receipt=new Receipt(AnatomyNetworking.epoch(server),contact.revision(),body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,
                 surface.support(),surface.piece(),surface.face(),surface.localPoint(),surface.normal(),surface.tick(),contact.sequence(),
                 root.sequence(),transport.sequence(),tick,before,after,root,materialBefore,materialAfter,appliedDelta);
-            append(recipient,receipt);
+            append(recipient,receipt,supportFrameSerial);
         }
     }
 
-    private static void append(ServerPlayer recipient,Receipt receipt) {
+    private static void append(ServerPlayer recipient,Receipt receipt,long supportFrameSerial) {
         var history=HISTORIES.computeIfAbsent(recipient,ignored->new HashMap<>()).computeIfAbsent(receipt.body(),ignored->new History());
         prune(history,receipt.tick());
         if(history.countTick!=receipt.tick()) {history.countTick=receipt.tick();history.count=0;}
         for(var entry:history.entries)if(entry.body().equals(receipt.body())
                 && entry.transportSequence()==receipt.transportSequence()) {duplicates++;return;}
         if(history.count>=MAX_RECEIPTS_PER_TICK) {markSaturated(history,receipt.tick());overflows++;return;}
-        history.entries.addLast(receipt);history.count++;recorded++;
+        history.entries.addLast(receipt);
+        if(supportFrameSerial>0)history.supportFrameSerials.put(receipt.transportSequence(),supportFrameSerial);
+        history.count++;recorded++;
     }
     private static void prune(History history,long tick) {
-        while(!history.entries.isEmpty() && history.entries.peekFirst().tick()<tick-HISTORY_TICKS+1)history.entries.removeFirst();
+        while(!history.entries.isEmpty() && history.entries.peekFirst().tick()<tick-HISTORY_TICKS+1) {
+            var removed=history.entries.removeFirst();history.supportFrameSerials.remove(removed.transportSequence());
+        }
         while(!history.saturatedTicks.isEmpty() && history.saturatedTicks.peekFirst()<tick-HISTORY_TICKS+1)history.saturatedTicks.removeFirst();
     }
     private static void markSaturated(History history,long tick) {
@@ -118,17 +133,23 @@ public final class AnatomyTransportReceipts {
     }
     /**
      * Consumes one exact server-issued receipt after validating every live lifecycle axis.
-     * A rejected or saturated reference never removes authority from the store.
+     * The client names only a server-published support endpoint; the transport sequence,
+     * tick and physical provenance remain server-only receipt data.
      */
-    public static synchronized Receipt claim(ServerPlayer recipient,Entity body,long tick,long transportSequence,long rootFrameSequence) {
-        if(recipient==null || body==null || tick<0 || transportSequence<1 || rootFrameSequence<0
+    public static synchronized Receipt claim(ServerPlayer recipient,Entity body,UUID support,long supportFrameSerial) {
+        if(recipient==null || body==null || support==null || supportFrameSerial<1
                 || body.isRemoved() || body.level().isClientSide() || recipient.level()!=body.level())return null;
         long now=recipient.level().getGameTime();
-        var history=pruneAndFind(recipient,body.getUUID(),now);if(history==null || history.saturatedTicks.contains(tick))return null;
+        var history=pruneAndFind(recipient,body.getUUID(),now);if(history==null)return null;
         Receipt match=null;
-        for(var receipt:history.entries)if(receipt.tick()==tick && receipt.transportSequence()==transportSequence
-                && receipt.rootFrameSequence()==rootFrameSequence) {match=receipt;break;}
-        if(match==null)return null;
+        for(var receipt:history.entries) {
+            var frameSerial=history.supportFrameSerials.get(receipt.transportSequence());
+            if(receipt.support().equals(support) && frameSerial!=null && frameSerial.longValue()==supportFrameSerial) {
+                if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.
+                match=receipt;
+            }
+        }
+        if(match==null || history.saturatedTicks.contains(match.tick()))return null;
         var server=body.level().getServer();if(server==null)return null;
         if(!match.epoch().equals(AnatomyNetworking.epoch(server))
                 || match.catalogRevision()!=AnatomyNetworking.revision(server)
@@ -136,7 +157,7 @@ public final class AnatomyTransportReceipts {
                 || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())
                 || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))
             return null;
-        history.entries.remove(match);
+        history.entries.remove(match);history.supportFrameSerials.remove(match.transportSequence());
         if(empty(history)) {
             var roots=HISTORIES.get(recipient);
             if(roots!=null){roots.remove(body.getUUID());if(roots.isEmpty())HISTORIES.remove(recipient);}
