@@ -116,6 +116,33 @@ public final class AnatomyTransportReceipts {
         var history=recipient==null || body==null?null:pruneAndFind(recipient,body,recipient.level().getGameTime());
         return history!=null && history.saturatedTicks.contains(tick);
     }
+    /**
+     * Consumes one exact server-issued receipt after validating every live lifecycle axis.
+     * A rejected or saturated reference never removes authority from the store.
+     */
+    public static synchronized Receipt claim(ServerPlayer recipient,Entity body,long tick,long transportSequence,long rootFrameSequence) {
+        if(recipient==null || body==null || tick<0 || transportSequence<1 || rootFrameSequence<0
+                || body.isRemoved() || body.level().isClientSide() || recipient.level()!=body.level())return null;
+        long now=recipient.level().getGameTime();
+        var history=pruneAndFind(recipient,body.getUUID(),now);if(history==null || history.saturatedTicks.contains(tick))return null;
+        Receipt match=null;
+        for(var receipt:history.entries)if(receipt.tick()==tick && receipt.transportSequence()==transportSequence
+                && receipt.rootFrameSequence()==rootFrameSequence) {match=receipt;break;}
+        if(match==null)return null;
+        var server=body.level().getServer();if(server==null)return null;
+        if(!match.epoch().equals(AnatomyNetworking.epoch(server))
+                || match.catalogRevision()!=AnatomyNetworking.revision(server)
+                || !match.dimension().equals(body.level().dimension().identifier())
+                || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())
+                || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))
+            return null;
+        history.entries.remove(match);
+        if(empty(history)) {
+            var roots=HISTORIES.get(recipient);
+            if(roots!=null){roots.remove(body.getUUID());if(roots.isEmpty())HISTORIES.remove(recipient);}
+        }
+        return match;
+    }
     public static synchronized void invalidate(Entity body) {
         if(body==null || body.level().isClientSide())return;
         var emptyRecipients=new ArrayList<ServerPlayer>();
