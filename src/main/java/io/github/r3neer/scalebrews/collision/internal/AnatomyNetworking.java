@@ -26,6 +26,9 @@ public final class AnatomyNetworking {
         PayloadTypeRegistry.clientboundPlay().register(AnatomyCatalogPayload.TYPE,AnatomyCatalogPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyPosePayload.TYPE,AnatomyPosePayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferencePayload.TYPE,AnatomyMoveReferencePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferencePayload.TYPE,
+            (reference,context)->AnatomyMovementReference.accept(context.player(),reference));
     }
     /** Fixture/diagnostic factory. Live sends must provide the recipient tracking generation explicitly. */
     public static AnatomyPosePayload posePayload(GeometryProvider.PublishedFrame frame) {
