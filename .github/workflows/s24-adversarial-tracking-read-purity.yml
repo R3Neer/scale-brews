@@ -47,3 +47,133 @@ jobs:
             build/s24-tracking-read-purity.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  no-runtime-default-mutant-must-die:
+    needs: tracking-read-purity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 tracking read-purity holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingReadPurityTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: restore synthetic generation when runtime is absent
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='return state==null?TrackingGenerationLedger.UNAVAILABLE:currentGeneration(state,recipient,body.getUUID());'
+          new='return state==null?1:currentGeneration(state,recipient,body.getUUID());'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: no-runtime negative control must kill mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-tracking-no-runtime-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: no-runtime tracking read fabricated generation 1'
+            exit 1
+          fi
+          echo 'KILLED: synthetic no-runtime generation mutant'
+      - name: capture no-runtime mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-tracking-no-runtime-mutant
+          path: |
+            build/s24-tracking-no-runtime-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  read-acquires-mutant-must-die:
+    needs: tracking-read-purity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 tracking read-purity holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingReadPurityTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: make observation acquire missing tracking windows again
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old='return state==null?TrackingGenerationLedger.UNAVAILABLE:currentGeneration(state,recipient,body.getUUID());'
+          new='return state==null?TrackingGenerationLedger.UNAVAILABLE:generation(state,recipient,body.getUUID());'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: untracked-pair negative control must kill mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-tracking-read-acquires-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: tracking observation reacquired an absent window'
+            exit 1
+          fi
+          echo 'KILLED: read-acquires tracking authority mutant'
+      - name: capture acquisition mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-tracking-read-acquires-mutant
+          path: |
+            build/s24-tracking-read-acquires-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
