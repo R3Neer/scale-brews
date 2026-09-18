@@ -783,3 +783,26 @@ Final zero-change review compares `50296a6...` with the adversarial closeout lin
 
 **Conclusion:** S22 is independently closed and G3 task 8 is closed. The next open G3 work is S24/tasks 9-12.
 
+## G3 / S24 tracking-generation read purity — adversarial RED 2026-09-18
+
+S24 tasks 9-12 remain open. The independent lifecycle review repaired two stale mutation harnesses before classifying product behavior:
+
+- dimension lifecycle mutation workflow run **`35329062829`**: baseline job **`105548909539`**, tracking-generation mutation job **`105548909156`**, and catalog-scope mutation job **`105548909537`** all succeeded. The tracking mutant now targets `TrackingGenerationLedger.release(...)`, the current owner of retirement semantics.
+- reconnect lifecycle workflow run **`35329603429`**: baseline job **`105550626278`**, stale-history mutation job **`105550626526`**, and stale-catalog mutation job **`105550626580`** all succeeded after reanchoring cleanup mutations to the current split level/connection teardown.
+
+A distinct production RED remains.
+
+Holdout **`S24AdversarialTrackingReadPurityTests`**, test commit **`d63deca5c4d16445d9349cb5613abbe4b53d3954`**, isolated workflow commit **`4ec3eb69fc70fee760fba34716bbd261a4ede6af`**. The recipient is created with `makeMockServerPlayer(...)` and explicitly verified absent from `PlayerList`, so no `START_TRACKING` transition can authorize the recipient/body pair. A single call to the public observation façade `AnatomyRuntime.trackingGeneration(recipient, body)` must therefore report `TrackingGenerationLedger.UNAVAILABLE == 0`.
+
+Run **`35329517023`**, job **`105550355468`**: failure at the intended causal assertion:
+
+```text
+A read of an untracked recipient/body pair must return UNAVAILABLE and must not acquire tracking authority; observed=1 on tick 0
+```
+
+Artifact **`10541105179`**, SHA-256 **`ccd06b1e6f39d3e66670f7315f1599b313531abfce3c2f52e495d6f20fc1bd99`**. Ordinary build of the same snapshot, run **`35329516917`**, succeeded.
+
+The source cause is direct: `trackingGeneration(...)` calls the same helper used for authoritative acquisition, which performs `TrackingGenerationLedger.acquire(...)`. Production callers include transport receipts and one live pose-send overload. A read can therefore create the authority it claims merely to observe.
+
+**Classification:** PRODUCT RED. G3.9 stays open pending an implementer repair that separates observation from acquisition and revalidates all callers without reviving nonexistent or retired tracking windows. Full handoff: `docs/sprints/S24-adversarial-tracking-read-revival-red.md`.
+
