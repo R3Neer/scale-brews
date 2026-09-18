@@ -38,14 +38,28 @@ public final class S25ReceiptAuthorityIsolationTests {
                 && AnatomyTransportReceipts.history(second,support.getUUID()).isEmpty(),
             "Receipt lookup must remain body-keyed and cannot alias another entity UUID");
 
+        var secondBody=h.spawn(EntityTypes.OAK_BOAT,4,2,2);
+        first.stopRiding();
+        h.assertTrue(first.startRiding(secondBody,true,true),
+            "Fixture first recipient must transfer control/passenger identity to the second body");
+        S24TrackingAuthorityTestSeam.run(first,secondBody,()->record(secondBody,support));
+
+        h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).size()==1
+                && AnatomyTransportReceipts.history(first,secondBody.getUUID()).size()==1,
+            "One recipient must retain independent receipt histories for distinct body UUIDs");
+        h.assertTrue(AnatomyTransportReceipts.history(second,body.getUUID()).size()==1
+                && AnatomyTransportReceipts.history(second,secondBody.getUUID()).isEmpty(),
+            "A second recipient must not inherit another recipient's different-body receipt");
+
         AnatomyTransportReceipts.disconnect(first);
-        h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).isEmpty(),
-            "Disconnect must retire the dead recipient's receipt authority immediately");
+        h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).isEmpty()
+                && AnatomyTransportReceipts.history(first,secondBody.getUUID()).isEmpty(),
+            "Disconnect must retire every body receipt owned by the dead recipient");
         h.assertTrue(AnatomyTransportReceipts.history(second,body.getUUID()).size()==1,
             "Disconnecting one recipient must not erase another recipient's receipt authority for the same body");
 
         AnatomyTransportReceipts.disconnect(second);
-        first.discard();second.discard();body.discard();support.discard();
+        first.discard();second.discard();secondBody.discard();body.discard();support.discard();
         h.succeed();
     }
 
