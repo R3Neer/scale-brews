@@ -50,8 +50,7 @@ public final class AnatomyMovementReference {
 
         Entity body=authorizedBody(player,reference.vehicle());
         if(body==null || !AnatomyRuntime.owns(body))return;
-        var receipt=AnatomyTransportReceipts.claim(player,body,reference.transportTick(),
-            reference.transportSequence(),reference.rootFrameSequence());
+        var receipt=AnatomyTransportReceipts.claim(player,body,reference.support(),reference.supportFrameSerial());
         if(receipt==null)return;
 
         state.pending=new Pending(reference.vehicle(),receipt.epoch(),receipt.catalogRevision(),receipt.dimension(),
