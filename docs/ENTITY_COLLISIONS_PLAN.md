@@ -172,7 +172,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 adversarial baseline RED / G4.1:** receipts server-side ya existen y están bounded, pero todavía no hay una ruta C2S anatómica de movement reference. El único receiver C2S de movimiento es `PlatformMovePayload` legacy y sale inmediatamente bajo `AnatomyApi.ownsSharedPhysics(body)`; `PlatformMovementReference.resolve(...)` tampoco rebasa anatomy. Presence gate `s25-adversarial-reference-presence` run **`35337131202`**, job **`105574448871`**: RED esperado con `no non-legacy anatomy/collision C2S receiver is registered`. Ordinary del mismo snapshot **`35337131192`**, job **`105574448591`**: **442/442 required GameTests**, build verde. Threat model: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** implementar task **1** con un reference metadata-only que sólo pueda nombrar receipts server-issued, exactly-once/TTL/lifecycle fenced y sin crear geometry/contact/carry/tracking authority. La presence gate es temporal y debe sustituirse por holdouts conductuales cuando exista la superficie real.
+**Prioridad G4 vigente:** implementar task **1** con un reference metadata-only que sólo pueda nombrar receipts server-issued, exactly-once/TTL/lifecycle fenced y sin crear geometry/contact/carry/tracking authority. La presence gate es temporal y debe sustituirse por holdouts conductuales cuando exista la superficie real. La frontera previa `s25-adversarial-reference-authority` ya está verde/mutation-sensitive: run `35383169968` mata tanto borrow legacy como un payload serverbound de autoridad física rica; ordinary `35383169917` permanece verde.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
