@@ -1,19 +1,20 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.ScaleBrews;
+import java.util.UUID;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
  * Metadata-only cursor for the immediately following vanilla movement packet.
- * The server derives the body from the connection and accepts this cursor only
- * when it names an exact server-issued transport receipt.
+ * The server derives the body from the connection and resolves this server-issued
+ * support endpoint only through an already-confirmed recipient/body receipt.
  */
-public record AnatomyMoveReferencePayload(boolean vehicle,long transportTick,long transportSequence,long rootFrameSequence)
+public record AnatomyMoveReferencePayload(boolean vehicle,UUID support,long supportFrameSerial)
         implements CustomPacketPayload {
     public AnatomyMoveReferencePayload {
-        if(transportTick<0 || transportSequence<1 || rootFrameSequence<0)
+        if(support==null || supportFrameSerial<1)
             throw new IllegalArgumentException("Invalid anatomical movement reference");
     }
 
@@ -22,13 +23,11 @@ public record AnatomyMoveReferencePayload(boolean vehicle,long transportTick,lon
 
     public static final StreamCodec<RegistryFriendlyByteBuf,AnatomyMoveReferencePayload> CODEC=StreamCodec.of((buf,payload)->{
         buf.writeBoolean(payload.vehicle);
-        buf.writeVarLong(payload.transportTick);
-        buf.writeVarLong(payload.transportSequence);
-        buf.writeVarLong(payload.rootFrameSequence);
+        buf.writeUUID(payload.support);
+        buf.writeVarLong(payload.supportFrameSerial);
     },buf->new AnatomyMoveReferencePayload(
         buf.readBoolean(),
-        buf.readVarLong(),
-        buf.readVarLong(),
+        buf.readUUID(),
         buf.readVarLong()
     ));
 
