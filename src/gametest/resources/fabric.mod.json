@@ -96,6 +96,7 @@
       "io.github.r3neer.scalebrews.test.S23AdversarialGeometryEngineOpacityTests",
       "io.github.r3neer.scalebrews.collision.internal.S24LifecycleGenerationTests",
       "io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests",
+      "io.github.r3neer.scalebrews.collision.internal.S24AdversarialFrameOrderTests",
       "io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests",
       "io.github.r3neer.scalebrews.collision.internal.S24RuntimeReloadTests"
     ],
