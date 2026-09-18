@@ -15,6 +15,22 @@ import net.minecraft.world.level.GameType;
  */
 public final class S24AdversarialTrackingReadPurityTests {
     @GameTest
+    public void observingWithoutRuntimeCannotInventDefaultTrackingAuthority(GameTestHelper h) {
+        var server=h.getLevel().getServer();
+        AnatomyRuntime.stop(server);
+        var recipient=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+        var body=h.spawn(EntityTypes.PIG,3,2,2);
+
+        h.assertTrue(!server.getPlayerList().getPlayers().contains(recipient),
+            "No-runtime fixture recipient must remain outside PlayerList");
+
+        long observed=AnatomyRuntime.trackingGeneration(recipient,body);
+        h.assertTrue(observed==TrackingGenerationLedger.UNAVAILABLE,
+            "Without an active anatomy runtime there is no recipient/body tracking authority to observe; observed="+observed);
+        h.succeed();
+    }
+
+    @GameTest
     public void observingUntrackedPairCannotMintTrackingAuthority(GameTestHelper h) {
         var server=h.getLevel().getServer();
         AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
