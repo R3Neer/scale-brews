@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **RED PRODUCTIVO / BLOQUEA G3.9**.
+Estado: **HISTÓRICO RED → CERRADO ADVERSARIALMENTE + MUTATION-KILL**.
 
 ## 1. Contrato atacado
 
@@ -133,4 +133,31 @@ Esto demuestra dos defectos distintos de la misma façade:
 2. `state != null` pero sin ventana activa llama a `acquire(...)` y fabrica igualmente `1`.
 
 La reparación debe eliminar ambas fuentes de autoridad sintética, no sólo sustituir el helper de la segunda rama.
+
+## 9. Reparación y cierre adversarial
+
+El IMPLEMENTER separó explícitamente adquisición y observación en dos commits productivos:
+
+- `256ab44b434af4d7cfae2da37bda7dc873444e58` — `fix(s24): separate tracking observation from acquisition`;
+- `99969ccb4e44b86c28f6898b62c4752781679949` — `fix(s24): bootstrap existing tracking windows on runtime reset`.
+
+La primera reparación hizo pura la lectura: sin runtime o sin ventana activa devuelve `UNAVAILABLE=0`; `currentGeneration(...)` no crea estado. La segunda cubre el caso legítimo que ese corte exponía: si el runtime arranca cuando vanilla ya trackea entidades, `reset(...)` reconstruye explícitamente esas ventanas mediante `PlayerLookup.tracking(...)` en lugar de pedir a un getter que las invente después.
+
+El holdout endurecido contiene tres oráculos:
+
+1. sin runtime → `0`;
+2. runtime activo pero pareja nunca autorizada → `0`;
+3. ventana explícitamente adquirida → la lectura devuelve exactamente la generación existente.
+
+Run final de mutation adequacy **`35333686648`**:
+
+- baseline `tracking-read-purity`, job **`105563538619`**: success;
+- `read-acquires-mutant-must-die`, job **`105563913730`**: success, mutante compiló y murió;
+- `no-runtime-default-mutant-must-die`, job **`105563913814`**: success, mutante compiló y murió.
+
+Los consumers productivos ya no dependen de adquisición implícita: hot send/contact/receipts observan la ventana actual; adquisición queda en transiciones explícitas de lifecycle (START_TRACKING, self/JOIN y bootstrap de tracking ya existente).
+
+Los cuatro tests históricos de receipts que fallaron inmediatamente después de purificar la lectura fueron clasificados como **TEST/EVIDENCIA**: eran kernels de receipts que habían usado accidentalmente el getter impuro como fixture. Se migraron a un seam exclusivo de GameTest, action-scoped, que no muta `AnatomyRuntime`. El ordinary build posterior **`35334567005`**, job **`105566314443`**, pasó **441/441 required GameTests**.
+
+**Conclusión:** el tracking-authority revival queda cerrado. El bound del ledger y la pureza de lectura quedan ambos certificados sin reintroducir autoridad sintética.
 
