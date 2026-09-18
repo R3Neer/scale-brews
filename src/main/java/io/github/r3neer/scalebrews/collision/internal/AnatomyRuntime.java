@@ -68,7 +68,7 @@ public final class AnatomyRuntime {
         });
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             var state=STATES.get(player.level().getServer());
-            if(state!=null && generation(state,player,entity.getUUID())<1)return;
+            if(state!=null && acquireGeneration(state,player,entity.getUUID())<1)return;
             if(entity instanceof LivingEntity living)send(living,player);
             contact(entity,player,true);
         });
@@ -82,7 +82,11 @@ public final class AnatomyRuntime {
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler,sender,server)->{
-            var state=STATES.get(server);if(state!=null)catalog(state,handler.player);
+            var state=STATES.get(server);
+            if(state!=null) {
+                acquireGeneration(state,handler.player,handler.player.getUUID()); // explicit self-tracking window for this connection
+                catalog(state,handler.player);
+            }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler,server)->{
             var state=STATES.get(server);if(state!=null){state.sent.remove(handler.player);state.contacts.remove(handler.player);state.trackingGenerations.remove(handler.player);}
@@ -124,7 +128,10 @@ public final class AnatomyRuntime {
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);prepareExisting(level,state);
         }
         // catalog(...) may disconnect an incompatible recipient, mutating the live player list.
-        for(var player:new ArrayList<>(server.getPlayerList().getPlayers()))catalog(state,player);
+        for(var player:new ArrayList<>(server.getPlayerList().getPlayers())) {
+            acquireGeneration(state,player,player.getUUID()); // reset/reload starts a fresh explicit self window
+            catalog(state,player);
+        }
     }
     /** One-time start/reload enumeration; explicitly not part of steady tick orchestration. */
     private static void prepareExisting(ServerLevel level,State state) {
@@ -278,7 +285,7 @@ public final class AnatomyRuntime {
         var map=state.contacts.computeIfAbsent(recipient,p->new HashMap<>());var old=map.get(body.getUUID());
         long tick=body.level().getGameTime();
         if(!force && Objects.equals(old==null?null:old.key(),key) && old!=null && tick-old.sentTick()<CONTACT_HEARTBEAT_TICKS)return;
-        long generation=generation(state,recipient,body.getUUID());if(generation<1)return;
+        long generation=currentGeneration(state,recipient,body.getUUID());if(generation<1)return;
         long sequence=old==null || old.generation()!=generation?1:old.sequence()+1;var epoch=AnatomyNetworking.epoch(recipient.level().getServer());long revision=state.catalog.snapshot().revision();
         AnatomyContactPayload payload;
         if(surface==null)payload=AnatomyContactPayload.clear(epoch,revision,body.level().dimension().identifier(),body.getId(),body.getUUID(),generation,sequence,tick);
@@ -292,8 +299,14 @@ public final class AnatomyRuntime {
         }
         ServerPlayNetworking.send(recipient,payload);map.put(body.getUUID(),new PublishedContact(key,generation,sequence,tick));
     }
-    private static long generation(State state,ServerPlayer recipient,UUID body) {
+    /** Opens or reuses an authority window only from an explicit server tracking transition. */
+    private static long acquireGeneration(State state,ServerPlayer recipient,UUID body) {
         return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger()).acquire(body);
+    }
+    /** Pure observation: consumers must never create or revive recipient/body authority. */
+    private static long currentGeneration(State state,ServerPlayer recipient,UUID body) {
+        var ledger=state.trackingGenerations.get(recipient);
+        return ledger==null?TrackingGenerationLedger.UNAVAILABLE:ledger.current(body);
     }
     /** Server-owned tracking transition helper retained for fixture/source compatibility. */
     public static long nextTrackingGeneration(long current) {
@@ -302,9 +315,9 @@ public final class AnatomyRuntime {
     }
     /** Current recipient/body tracking generation for a server receipt; never client authority. Zero means saturated/no active authority. */
     public static long trackingGeneration(ServerPlayer recipient,Entity body) {
-        if(recipient==null || body==null)return 1;
+        if(recipient==null || body==null)return TrackingGenerationLedger.UNAVAILABLE;
         var state=STATES.get(recipient.level().getServer());
-        return state==null?1:generation(state,recipient,body.getUUID());
+        return state==null?TrackingGenerationLedger.UNAVAILABLE:currentGeneration(state,recipient,body.getUUID());
     }
     /** Clear with the active generation before STOP releases the UUID; no retired UUID tombstone is retained server-side. */
     private static void clearContact(State state,Entity body,ServerPlayer recipient) {
@@ -331,7 +344,7 @@ public final class AnatomyRuntime {
     private static void send(LivingEntity entity,ServerPlayer player) {
         var state=STATES.get(player.level().getServer());if(state==null)return;
         var active=state.entities.get(entity);if(active==null || !catalog(state,player))return;
-        long generation=generation(state,player,entity.getUUID());if(generation<1)return;
+        long generation=currentGeneration(state,player,entity.getUUID());if(generation<1)return;
         AnatomyMovement.publishedFrame(entity).ifPresent(frame->AnatomyNetworking.sendPose(player,frame,generation));
     }
 }
