@@ -2,7 +2,7 @@
 
 Rol activo: **IMPLEMENTER**.
 
-Estado: **IMPLEMENTACIÓN DE G3.9–G3.12 VERDE / PENDIENTE DE CIERRE ADVERSARIAL**. Este documento registra el candidato implementer y su evidencia. No modifica por sí solo los checkboxes canónicos de `ENTITY_COLLISIONS_PLAN.md` ni sustituye la revisión adversarial independiente.
+Estado: **CERRADO TRAS RECERTIFICACIÓN ADVERSARIAL**. Este documento conserva el handoff implementer y su historia; el cierre independiente final está en `S24-adversarial-closeout.md`.
 
 ## 1. Alcance consolidado
 
@@ -163,3 +163,12 @@ No hay un bug productivo S24 conocido pendiente en tasks 9-12 al final de este t
 5. final zero-change read.
 
 Hasta esa revisión, **G3.9–G3.12 permanecen formalmente abiertos en el plan canónico aunque el candidato implementer esté verde**.
+
+## 11. Cierre adversarial posterior
+
+La revisión independiente abrió un RED real adicional en tracking authority: `trackingGeneration(...)` podía crear una ventana que pretendía observar. Los fixes `256ab44...` y `99969cc...` separaron adquisición/lectura y añadieron bootstrap explícito de tracking ya existente.
+
+La campaña final añadió mutation adequacy para esa frontera, `UNAVAILABLE → recovery`, orden de packets same-window y ownership root/endpoint. El ordinary final pasó 442/442 y el compare desde el último producto no contiene cambios posteriores en `src/main`/ `src/client`.
+
+**G3.9–G3.12 quedan cerrados.** Evidencia compacta y hashes en `docs/sprints/S24-adversarial-closeout.md`.
+
