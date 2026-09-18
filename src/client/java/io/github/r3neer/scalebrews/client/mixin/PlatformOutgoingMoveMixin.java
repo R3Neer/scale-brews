@@ -26,10 +26,9 @@ public abstract class PlatformOutgoingMoveMixin {
         } else return;
         // Anatomy owns its own metadata-only receipt cursor. BINDING remains
         // fail-closed and never falls through to the legacy coordinate reference.
-        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) {
+        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body))
             io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.sendMovementReference(body);
-            return;
-        }
+        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) return;
         if(!Platforms.supported(body) || !ClientPlayNetworking.canSend(PlatformMovePayload.TYPE)) return;
         var state=Platforms.state(body);
         ClientPlayNetworking.send(new PlatformMovePayload(body.getId(),state.support.getId(),target,
