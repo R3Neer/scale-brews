@@ -50,8 +50,8 @@ public final class S25ReceiptAuthorityIsolationTests {
         });
 
         h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).size()==1
-                && AnatomyTransportReceipts.history(first,secondBody.getUUID()).size()==1,
-            "One recipient must retain independent receipt histories for distinct body UUIDs");
+                && AnatomyTransportReceipts.history(first,secondBody.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,
+            "One recipient must retain independent bounded receipt histories for distinct body UUIDs");
         h.assertTrue(AnatomyTransportReceipts.history(second,body.getUUID()).size()==1
                 && AnatomyTransportReceipts.history(second,secondBody.getUUID()).isEmpty(),
             "A second recipient must not inherit another recipient's different-body receipt");
