@@ -909,3 +909,33 @@ Ordinary after the hardened gate, run **`35383169917`**, job **`105723885840`**,
 
 **Interpretation:** G4.1 remains RED because the metadata-only C2S reference/validator is absent. The current evidence already rejects two invalid closure strategies: borrowing the legacy movement reference path or allowing client-uploaded geometry/contact/pose authority. Behavioral closure still requires exactly-once, TTL/saturation, lifecycle cross-product, controlled-body authority and no double-apply.
 
+## G4 / S25 pre-implementation authority/store hardening — 2026-09-18
+
+G4.1 remains intentionally RED because no anatomy/collision metadata-only C2S reference/validator exists yet. Before implementation, two independent foundations are now mutation-protected.
+
+**Reference authority boundary.** Final run **`35384438639`**:
+
+- baseline job **`105727903384`**: success;
+- common/server legacy-borrow mutant **`105727968468`**: compiling mutant killed;
+- client-side legacy-borrow mutant **`105727968484`**: compiling mutant killed;
+- rich serverbound contact-authority mutant **`105727968513`**: compiling mutant killed.
+
+The gate follows actual collision `serverboundPlay` payload registrations to their schemas, rather than rejecting unrelated S2C pose/contact types that happen to share a networking class. It also keeps `PlatformMovePayload` excluded on both server and client while anatomy owns shared physics.
+
+Ordinary build on the same authority snapshot, run **`35384438584`**, job **`105727903091`**, is green; artifact **`10563561102`**, SHA-256 **`89cfb89533561e1dcdba5af812f2e1d2a4b540912eff88deee7b4c9cf435fe47`**.
+
+**Receipt store authority.** Run **`35384233437`**:
+
+- baseline **`105727247783`**: success;
+- recipient-key mutant **`105727617910`**: compiling mutant killed;
+- global-disconnect mutant **`105727617921`**: compiling mutant killed;
+- body-key mutant **`105727617960`**: compiling mutant killed.
+
+Artifact **`10563370910`**, SHA-256 **`dc523680cb24cd8036fc102ee56a5c6a4a68cd73f37586edc0f9d72410eced0e`**. The holdout also proves saturation is scoped to the exact recipient/body/tick authority key.
+
+A receipt is historical provenance, not current movement authority: STOP_TRACKING may leave it until TTL while retiring the recipient tracking window. Any G4.1 validator must therefore check current lifecycle/tracking authority in addition to locating a receipt.
+
+Controlled-vehicle acceptance must not collapse to “recipient has a receipt”: receipts are emitted to indirect ServerPlayer passengers, so a non-controlling passenger may legitimately own a server-issued boat receipt. The server must derive the allowed body/control relationship from the connection context.
+
+**Interpretation:** the missing C2S path remains the sole S25 capability RED. When the first candidate lands, adversarial closure moves to behavioral exactly-once, TTL/saturation, lifecycle cross-product, controlled-body authority, fake-reference rejection and no-double-apply.
+
