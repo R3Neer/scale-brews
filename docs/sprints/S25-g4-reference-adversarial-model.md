@@ -226,3 +226,24 @@ El store sigue siendo histórico, no autorización viva: STOP_TRACKING libera la
 
 **Conclusión:** la precondición server-side de recipient/body/saturation/teardown está cerrada. G4.1 sigue RED únicamente porque aún no existe el reference C2S/validator/consumption path.
 
+## 10. Handoff al IMPLEMENTER
+
+El RED restante no necesita otra abstracción adversarial; necesita producto. El primer candidato G4.1 debe aportar una superficie C2S real que haga pasar la presence gate y permita ejecutar los holdouts conductuales.
+
+Propiedades mínimas observables del handoff, sin prescribir nombres/clases:
+
+1. el cliente puede emitir una referencia **metadata-only** asociada al player o vehículo realmente controlado;
+2. el servidor deriva el body autorizado desde el contexto de conexión y no confía en un body arbitrario del payload;
+3. el lookup parte del store recipient/body ya certificado y localiza un receipt server-issued exacto;
+4. receipt histórico de tracking generation retirada se rechaza aunque siga dentro de TTL;
+5. saturated tick, receipt expirado o transport sequence inexistente fallan cerrado;
+6. la primera aceptación consume la referencia/receipt según el diseño y el replay idéntico falla;
+7. una referencia inventada no cambia contacto, support, position/AABB, root/endpoint, tracking ledger ni transport ledger;
+8. una referencia válida tampoco reaplica `appliedDelta`; sólo habilita/correlaciona la baseline del movement packet vanilla;
+9. un segundo pasajero con receipt válido del mismo boat pero sin control authority no puede usarlo;
+10. el schema permanece bounded y sin geometry/pose/contact authority.
+
+Al aterrizar ese candidato, la presence gate debe pasar. Eso **no cerrará G4.1**: habilitará la campaña A–G y los ocho mutation-kills mínimos definidos arriba.
+
+**Handoff ADVERSARY → IMPLEMENTER:** capacidad C2S/validator/consumption ausente; fronteras previas y store server-side verdes. No se requiere ningún cambio adicional de producción por parte del adversario.
+
