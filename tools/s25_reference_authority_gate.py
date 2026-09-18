@@ -5,23 +5,29 @@ import sys
 
 root=Path("src/main/java/io/github/r3neer/scalebrews")
 collision=root/"collision"
+client_collision=Path("src/client/java/io/github/r3neer/scalebrews/client/collision")
 platform_networking=root/"platform"/"PlatformNetworking.java"
 platform_reference=root/"platform"/"PlatformMovementReference.java"
+platform_outgoing=Path("src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java")
 
 errors=[]
 
 # G4 anatomy must not borrow the legacy PlatformMovePayload/reference authority.
-for path in collision.rglob("*.java"):
-    text=path.read_text()
-    if "PlatformMovePayload" in text or "PlatformMovementReference" in text:
-        errors.append(f"{path}: collision/anatomy code references legacy movement-reference authority")
+for source_root in (collision,client_collision):
+    for path in source_root.rglob("*.java"):
+        text=path.read_text()
+        if "PlatformMovePayload" in text or "PlatformMovementReference" in text:
+            errors.append(f"{path}: collision/anatomy code references legacy movement-reference authority")
 
 pn=platform_networking.read_text()
 pr=platform_reference.read_text()
+po=platform_outgoing.read_text()
 if "AnatomyApi.ownsSharedPhysics(body))return;" not in pn:
     errors.append("PlatformNetworking no longer fails closed before accepting legacy PlatformMovePayload under anatomy ownership")
 if "AnatomyApi.ownsSharedPhysics(body)" not in pr or "pendingReference=null" not in pr:
     errors.append("PlatformMovementReference no longer clears/ignores legacy references under anatomy ownership")
+if "AnatomyApi.ownsSharedPhysics(body)) return;" not in po:
+    errors.append("PlatformOutgoingMoveMixin no longer suppresses legacy PlatformMovePayload under anatomy ownership")
 
 # A G4 reference names server-issued state. It may carry scalar/identifier metadata, but never
 # upload geometry, pose channels, contact DTOs, matrices or material-frame authority.
