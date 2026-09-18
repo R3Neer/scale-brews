@@ -42,21 +42,20 @@ public final class S00ReceiptTests {
         var contact=new AnatomyMovement.Contact(support,"piece",1,UP,1);
         var root=new RootFrame(1,body.level().getGameTime(),support.position(),0,1,GravityFrame.VANILLA);
         var material=box(UNIT).move(support.position());
-        AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,sequence,1,Vec3.ZERO,Vec3.ZERO),material,material);
+        S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,sequence,1,Vec3.ZERO,Vec3.ZERO),material,material));
     }
     @GameTest public void receiptRecorderRejectsAResultFromAnotherTick(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);var body=h.makeMockServerPlayerInLevel();
-        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         try {
             record(body,support,h.getLevel().getGameTime()+1,1);
             check(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Recorder gave current authority to future transport");
-        }finally{authority.close();AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}h.succeed();
+        }finally{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}h.succeed();
     }
     @GameTest(maxTicks=50) public void holdoutH02SaturationSurvivesBoundaryAndRejectsExpiredReplay(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         var body=h.makeMockServerPlayerInLevel();long tick=h.getLevel().getGameTime();
         var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
-        Runnable cleanup=()->{authority.close();AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();};
+        Runnable cleanup=()->{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();};
         for(int i=0;i<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;i++)record(body,support,tick,1+i);
         check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,"Saturation retained unbounded receipt prefix");
         h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS-1,()->{
