@@ -74,7 +74,7 @@ jobs:
           java-version: '25'
           distribution: microsoft
       - run: chmod +x ./gradlew
-      - name: inject compiling anatomy C2S receiver with geometry authority dependency
+      - name: inject compiling serverbound contact-authority payload
         shell: bash
         run: |
           python3 - <<'PY'
@@ -82,7 +82,7 @@ jobs:
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java')
           s=p.read_text()
           marker='public static void initialize(){'
-          replacement=marker+"\n        Class<?> s25ForbiddenGeometryAuthority=io.github.r3neer.scalebrews.collision.geometry.ModelGeometry.class;\n        ServerPlayNetworking.registerGlobalReceiver(AnatomyContactPayload.TYPE,(payload,context)->{});"
+          replacement=marker+"\n        PayloadTypeRegistry.serverboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);\n        ServerPlayNetworking.registerGlobalReceiver(AnatomyContactPayload.TYPE,(payload,context)->{});"
           count=s.count(marker)
           if count!=1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
@@ -98,7 +98,7 @@ jobs:
           code=$?
           set -e
           if [ "$code" -eq 0 ]; then
-            echo 'SURVIVED: anatomy C2S receiver imported physical geometry authority'
+            echo 'SURVIVED: anatomy C2S registered contact/physical authority as a client reference'
             exit 1
           fi
-          echo 'KILLED: rich physical-authority C2S mutant'
+          echo 'KILLED: rich serverbound physical-authority schema mutant'
