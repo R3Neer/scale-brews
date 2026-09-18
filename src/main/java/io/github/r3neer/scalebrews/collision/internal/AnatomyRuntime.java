@@ -68,7 +68,7 @@ public final class AnatomyRuntime {
         });
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             var state=STATES.get(player.level().getServer());
-            if(state!=null && acquireGeneration(state,player,entity.getUUID())<1)return;
+            if(state!=null && generation(state,player,entity.getUUID())<1)return;
             if(entity instanceof LivingEntity living)send(living,player);
             contact(entity,player,true);
         });
@@ -84,7 +84,7 @@ public final class AnatomyRuntime {
         ServerPlayConnectionEvents.JOIN.register((handler,sender,server)->{
             var state=STATES.get(server);
             if(state!=null) {
-                acquireGeneration(state,handler.player,handler.player.getUUID()); // explicit self-tracking window for this connection
+                generation(state,handler.player,handler.player.getUUID()); // explicit self-tracking window for this connection
                 catalog(state,handler.player);
             }
         });
@@ -129,13 +129,18 @@ public final class AnatomyRuntime {
         }
         // catalog(...) may disconnect an incompatible recipient, mutating the live player list.
         for(var player:new ArrayList<>(server.getPlayerList().getPlayers())) {
-            acquireGeneration(state,player,player.getUUID()); // reset/reload starts a fresh explicit self window
+            generation(state,player,player.getUUID()); // reset/reload starts a fresh explicit self window
             catalog(state,player);
         }
     }
     /** One-time start/reload enumeration; explicitly not part of steady tick orchestration. */
     private static void prepareExisting(ServerLevel level,State state) {
-        for(var entity:level.getAllEntities())if(entity instanceof LivingEntity living)bindIfEligible(state,living);
+        for(var entity:level.getAllEntities()) {
+            // START_TRACKING may have happened before AnatomyRuntime started/reloaded. Reconstruct that
+            // already-authorized vanilla window exactly once here instead of letting a later consumer mint it.
+            for(var player:PlayerLookup.tracking(entity))generation(state,player,entity.getUUID());
+            if(entity instanceof LivingEntity living)bindIfEligible(state,living);
+        }
     }
     private static void bindIfEligible(State state,LivingEntity living) {
         if(state==null || living==null || living.isRemoved() || state.entities.containsKey(living))return;
@@ -300,7 +305,7 @@ public final class AnatomyRuntime {
         ServerPlayNetworking.send(recipient,payload);map.put(body.getUUID(),new PublishedContact(key,generation,sequence,tick));
     }
     /** Opens or reuses an authority window only from an explicit server tracking transition. */
-    private static long acquireGeneration(State state,ServerPlayer recipient,UUID body) {
+    private static long generation(State state,ServerPlayer recipient,UUID body) {
         return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger()).acquire(body);
     }
     /** Pure observation: consumers must never create or revive recipient/body authority. */
