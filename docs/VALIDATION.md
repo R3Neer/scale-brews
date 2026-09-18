@@ -870,3 +870,26 @@ Comparing final S24 production **`99969cc...`** to the adversarial closeout chec
 
 **Conclusion:** G3 tasks 9-12 are independently closed. Together with previously closed tasks 1-8, **G3 is fully closed**. The next gate is G4.
 
+## G4 / S25 transport-reference baseline — adversarial RED 2026-09-18
+
+G4 opens from a fully closed G3. The first gate is FR-084 authority for movement references/baselines backed by transports the server actually applied.
+
+Current product already owns bounded server receipts in `AnatomyTransportReceipts`, but the C2S reference half is absent:
+
+- `history(...)` explicitly describes itself as a snapshot for an “eventual metadata-only C2S reference validator”;
+- the only movement C2S receiver is legacy `PlatformMovePayload`;
+- `PlatformNetworking` exits from that receiver when `AnatomyApi.ownsSharedPhysics(body)`;
+- `PlatformMovementReference.resolve(...)` returns the absolute movement and clears legacy pending reference under anatomy shared physics;
+- `AnatomyPredictionBaselineProof` explicitly states that its N2 measurement has no anatomy C2S reference, rollback or replay.
+
+Temporary presence gate commit `69e23855a437227f2f7cf4a090b72b90a37daaef`, workflow `s25-adversarial-reference-presence`:
+
+- run **`35337131202`**, job **`105574448871`**: expected RED;
+- exact gate result: `no non-legacy anatomy/collision C2S receiver is registered`.
+
+The ordinary build of the same snapshot, run **`35337131192`**, job **`105574448591`**, passed **442/442 required GameTests** and ended `BUILD SUCCESSFUL`.
+
+This is an **expected capability-absence RED**, not a regression. The temporary source presence gate is not acceptance evidence and must be replaced by behavioral holdouts once an anatomy reference surface exists.
+
+Threat model and required happy/negative/mutation cases: `docs/sprints/S25-g4-reference-adversarial-model.md`.
+
