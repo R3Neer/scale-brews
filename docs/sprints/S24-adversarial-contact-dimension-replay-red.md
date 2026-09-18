@@ -2,7 +2,7 @@
 
 Rol: **ADVERSARY**.
 
-Estado: **RED reproducible / segunda barrera de dimensión incompleta**.
+Estado: **HISTÓRICO RED → CERRADO ADVERSARIALMENTE**.
 
 ## Contrato atacado
 
@@ -85,3 +85,12 @@ La barrera de dimensión de S24 no está cerrada hasta que pasen ambos holdouts 
 - `S24ContactDimensionReplayClientProof` para contacto;
 
 y sigan verdes los happy paths de dimensión, reconnect y los mutation-kills ya existentes.
+
+## Resolución posterior
+
+El cliente pasó a limpiar sólo material pendiente al cambiar de level y a conservar los watermarks causales del contacto durante la conexión. El mismo holdout que había demostrado resurrection pre-barrera quedó verde en run **`35130391543`** sobre `ddc09c...`.
+
+La reparación conserva el catálogo connection-scoped, elimina el material del level anterior y rechaza el contacto antiguo al regresar a la dimensión original.
+
+**Clasificación vigente:** la barrera de replay de contactos entre dimensiones está cerrada. G3.9 sigue abierto por el RED independiente de tracking read-purity.
+
