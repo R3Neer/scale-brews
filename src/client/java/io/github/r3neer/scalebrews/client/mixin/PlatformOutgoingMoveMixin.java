@@ -24,10 +24,12 @@ public abstract class PlatformOutgoingMoveMixin {
         } else if(packet instanceof ServerboundMoveVehiclePacket p) {
             body=client.player.getRootVehicle(); target=p.position();
         } else return;
-        // Anatomy baseline measurement must remain vanilla-only until a
-        // separately designed metadata protocol exists. BINDING is owned too,
-        // so it must not revive this legacy reference route.
-        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) return;
+        // Anatomy owns its own metadata-only receipt cursor. BINDING remains
+        // fail-closed and never falls through to the legacy coordinate reference.
+        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) {
+            io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.sendMovementReference(body);
+            return;
+        }
         if(!Platforms.supported(body) || !ClientPlayNetworking.canSend(PlatformMovePayload.TYPE)) return;
         var state=Platforms.state(body);
         ClientPlayNetworking.send(new PlatformMovePayload(body.getId(),state.support.getId(),target,
