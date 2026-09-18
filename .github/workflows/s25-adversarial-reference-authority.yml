@@ -10,6 +10,8 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformMovementReference.java'
       - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformMovePayload.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/**'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java'
   workflow_dispatch:
 
 jobs:
@@ -102,3 +104,45 @@ jobs:
             exit 1
           fi
           echo 'KILLED: rich serverbound physical-authority schema mutant'
+
+
+  client-legacy-borrow-mutant-must-die:
+    needs: reference-authority-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject compiling legacy reference dependency into client collision networking
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          marker='public final class AnatomyClientNetworking {'
+          injected=marker+'\n    private static final Class<?> S25_CLIENT_LEGACY_REFERENCE_LEAK=io.github.r3neer.scalebrews.platform.PlatformMovePayload.class;'
+          count=s.count(marker)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,injected,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava --console=plain
+      - name: authority gate must kill client legacy borrow
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: client anatomy networking borrowed legacy PlatformMovePayload'
+            exit 1
+          fi
+          echo 'KILLED: client legacy movement-reference dependency'
