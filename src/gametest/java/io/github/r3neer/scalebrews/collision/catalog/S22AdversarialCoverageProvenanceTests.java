@@ -1,5 +1,10 @@
 package io.github.r3neer.scalebrews.collision.catalog;
 
+import io.github.r3neer.scalebrews.collision.data.CollisionBinding;
+import io.github.r3neer.scalebrews.collision.data.CollisionPolicy;
+import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
+import io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines;
+import io.github.r3neer.scalebrews.collision.internal.BuiltInRootTransformProviders;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +51,33 @@ public final class S22AdversarialCoverageProvenanceTests {
             CollisionCoverageScanner.Status.EXCLUDED,
             "forged technical exclusion absent from the explicit exclusion authority",
             List.of());
+
+        // Positive control: provenance must be selective rather than a blanket rejection of all
+        // non-empty artifacts. Feed the same automatic discovery through the canonical scan path
+        // with one valid default binding per discovered id; the scanner-issued artifact must resolve.
+        var canonicalBindings = discovered.stream()
+            .map(S22AdversarialCoverageProvenanceTests::binding)
+            .toList();
+        var canonical = CollisionCoverageDiscovery.scan(
+            target, new CollisionBindingCatalog(canonicalBindings), Map.of());
+        h.assertTrue(canonical.coverage().count(CollisionCoverageScanner.Status.FULL) == discovered.size(),
+            "Positive provenance control requires every discovered id to be classified FULL by the canonical scanner");
+        canonical.requireResolved();
+
         h.succeed();
+    }
+
+    private static CollisionBinding binding(Identifier entity) {
+        return new CollisionBinding(CollisionBinding.SCHEMA_VERSION, entity, Map.of(),
+            new CollisionBinding.Geometry(
+                BuiltInGeometryEngines.MODEL_PART,
+                Identifier.parse("proof:s22_provenance_model"),
+                Map.of(),
+                AnatomyFilter.DEFAULT),
+            new CollisionBinding.Pose(Identifier.parse("scalebrews:static"), Map.of(), Set.of()),
+            BuiltInRootTransformProviders.ENTITY_ROOT,
+            CollisionPolicy.Patch.EMPTY,
+            Set.of());
     }
 
     private static void assertForgedResolvedClassificationRejected(
