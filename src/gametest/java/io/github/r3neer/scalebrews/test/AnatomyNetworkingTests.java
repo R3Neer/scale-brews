@@ -21,6 +21,7 @@ import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.internal.ModelGeometryProvider;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyNetworking;
+import io.github.r3neer.scalebrews.collision.internal.S24TrackingAuthorityTestSeam;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
@@ -219,6 +220,7 @@ public final class AnatomyNetworkingTests {
         var body=h.makeMockServerPlayerInLevel();
         body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);
+        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         long tick=h.getLevel().getGameTime();var delta=new Vec3(.2,0,0);
         var normal=new Vec3(0,1,0);
         var contact=new AnatomyMovement.Contact(support,"body",7,normal,3);
@@ -249,7 +251,7 @@ public final class AnatomyNetworkingTests {
             "A second animated material contribution with unchanged contact/root provenance is retained");
         AnatomyTransportReceipts.invalidate(body);
         h.assertTrue(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Lifecycle invalidation removes retained receipt without transport");
-        support.discard();body.discard();h.succeed();
+        authority.close();support.discard();body.discard();h.succeed();
     }
     @GameTest(maxTicks=60)
     public void receiptSaturationRetainsEachTickForTheFullWindow(GameTestHelper h) {
@@ -257,6 +259,8 @@ public final class AnatomyNetworkingTests {
         var body=h.makeMockServerPlayerInLevel();
         body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);long firstTick=h.getLevel().getGameTime();
+        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
+        Runnable cleanup=()->{authority.close();support.discard();body.discard();};
         try {
             saturateReceiptTick(body,support,1000);
             h.assertTrue(AnatomyTransportReceipts.saturated(body,body.getUUID(),firstTick),
@@ -272,12 +276,12 @@ public final class AnatomyNetworkingTests {
                             h.assertTrue(!AnatomyTransportReceipts.saturated(body,body.getUUID(),firstTick)
                                     && AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),
                                 "Expired entries and saturation markers release the UUID root instead of retaining it indefinitely");
-                            support.discard();body.discard();h.succeed();
-                        } catch(Throwable failure) {support.discard();body.discard();throw failure;}
+                            cleanup.run();h.succeed();
+                        } catch(Throwable failure) {cleanup.run();throw failure;}
                     });
-                } catch(Throwable failure) {support.discard();body.discard();throw failure;}
+                } catch(Throwable failure) {cleanup.run();throw failure;}
             });
-        } catch(Throwable failure) {support.discard();body.discard();throw failure;}
+        } catch(Throwable failure) {cleanup.run();throw failure;}
     }
     private static void saturateReceiptTick(net.minecraft.server.level.ServerPlayer body,net.minecraft.world.entity.LivingEntity support,long sequenceBase) {
         long tick=body.level().getGameTime();var normal=new Vec3(0,1,0);
