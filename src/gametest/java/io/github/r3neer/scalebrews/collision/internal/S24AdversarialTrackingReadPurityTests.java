@@ -31,6 +31,38 @@ public final class S24AdversarialTrackingReadPurityTests {
     }
 
     @GameTest
+    @SuppressWarnings("unchecked")
+    public void observingActivePairReturnsExistingGenerationWithoutReplacingIt(GameTestHelper h) throws Exception {
+        var server=h.getLevel().getServer();
+        AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
+        try {
+            var recipient=(net.minecraft.server.level.ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+            var body=h.spawn(EntityTypes.PIG,4,2,2);
+
+            var statesField=AnatomyRuntime.class.getDeclaredField("STATES");
+            statesField.setAccessible(true);
+            var states=(java.util.Map<Object,Object>)statesField.get(null);
+            var state=states.get(server);
+            h.assertTrue(state!=null,"Positive control requires an active runtime state");
+
+            var acquire=java.util.Arrays.stream(AnatomyRuntime.class.getDeclaredMethods())
+                .filter(method->method.getName().equals("generation") && method.getParameterCount()==3)
+                .findFirst().orElseThrow();
+            acquire.setAccessible(true);
+            long acquired=((Long)acquire.invoke(null,state,recipient,body.getUUID())).longValue();
+            h.assertTrue(acquired>0,"Positive control must install one legitimate active tracking generation");
+
+            long observed=AnatomyRuntime.trackingGeneration(recipient,body);
+            h.assertTrue(observed==acquired,
+                "Observing an active pair must return the existing generation exactly, not zero or a replacement; acquired="
+                    +acquired+" observed="+observed);
+        } finally {
+            AnatomyRuntime.stop(server);
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void observingUntrackedPairCannotMintTrackingAuthority(GameTestHelper h) {
         var server=h.getLevel().getServer();
         AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
