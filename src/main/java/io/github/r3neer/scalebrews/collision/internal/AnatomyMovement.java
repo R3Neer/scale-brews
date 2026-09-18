@@ -640,11 +640,16 @@ public final class AnatomyMovement {
         body.setOnGround(true);
         body.verticalCollisionBelow=true;
     }
-    /** Record one displacement already certified/applied by the S08 material dispatcher. */
+    /** Source-compatible fixture seam; non-causal transports cannot be referenced by G4. */
     static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,
             Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
+        return recordCertifiedTransport(body,support,surface,root,0,applied,materialBefore,materialAfter);
+    }
+    /** Record one displacement already certified/applied by the S08 material dispatcher. */
+    static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,long supportFrameSerial,
+            Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
         var contact=contact(body);
-        if(body==null || support==null || surface==null || root==null || applied==null || materialBefore==null || materialAfter==null
+        if(body==null || support==null || surface==null || root==null || supportFrameSerial<0 || applied==null || materialBefore==null || materialAfter==null
                 || contact==null || contact.support()!=support || !surface.support().equals(support.getUUID())
                 || contact.revision()!=surface.revision() || !contact.piece().equals(surface.piece())
                 || !Double.isFinite(applied.lengthSqr()))return false;
@@ -659,7 +664,7 @@ public final class AnatomyMovement {
         var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
             before!=null && before.tick()==tick?before.displacement().add(applied):applied,applied);
         TransportLedger.record(body,transport);
-        AnatomyTransportReceipts.record(body,contact,surface,root,transport,materialBefore,materialAfter);
+        AnatomyTransportReceipts.record(body,contact,surface,root,supportFrameSerial,transport,materialBefore,materialAfter);
         return true;
     }
     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
