@@ -27,6 +27,8 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,AnatomyContactPayload> presentationContacts=new java.util.HashMap<>();
     private static net.minecraft.client.multiplayer.ClientLevel poseLevel;
     private static long clientTick;
+    private record SentMovementReference(long tick,long transportSequence,long rootFrameSequence) {}
+    private static final java.util.Map<java.util.UUID,SentMovementReference> sentMovementReferences=new java.util.HashMap<>();
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -92,6 +94,7 @@ public final class AnatomyClientNetworking {
     private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();
+        sentMovementReferences.clear();
     }
     /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
     private static void clearConnectionTemporal(){
@@ -220,6 +223,24 @@ public final class AnatomyClientNetworking {
                 && frame.identity().bindingGeneration()==packet.supportBindingGeneration() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
+    /**
+     * Emits at most one metadata cursor for each locally applied transport contribution.
+     * The server derives and authorizes the body; no entity id or physical geometry is uploaded.
+     */
+    public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
+        var player=net.minecraft.client.Minecraft.getInstance().player;
+        if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()
+                || !ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE))return;
+        boolean vehicle=body!=player;
+        if(!vehicle && player.getRootVehicle()!=player)return;
+        if(vehicle && (player.getRootVehicle()!=body || body.getControllingPassenger()!=player))return;
+        var transport=AnatomyMovement.transport(body);if(transport==null)return;
+        var cursor=new SentMovementReference(transport.tick(),transport.sequence(),transport.rootFrameSequence());
+        if(cursor.equals(sentMovementReferences.get(body.getUUID())))return;
+        ClientPlayNetworking.send(new AnatomyMoveReferencePayload(vehicle,cursor.tick(),cursor.transportSequence(),cursor.rootFrameSequence()));
+        sentMovementReferences.put(body.getUUID(),cursor);
+    }
+
     private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
     private static void useLevel(net.minecraft.client.multiplayer.ClientLevel level){
         if(poseLevel!=level){crossLevelBarrier();poseLevel=level;session.useLevel(level);}
