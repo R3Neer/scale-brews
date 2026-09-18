@@ -26,7 +26,9 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
             PlatformPhysics.carry(player);
             if(packet.hasPosition()) {
                 Vec3 raw=new Vec3(packet.getX(player.getX()),packet.getY(player.getY()),packet.getZ(player.getZ()));
-                Vec3 position=PlatformMovementReference.resolve(player,raw);
+                Vec3 position=io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(player)
+                    ?io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference.resolve(player,player,raw)
+                    :PlatformMovementReference.resolve(player,raw);
                 if(!position.equals(raw)) packet=new ServerboundMovePlayerPacket.PosRot(position,
                     packet.getYRot(player.getYRot()),packet.getXRot(player.getXRot()),packet.isOnGround(),packet.horizontalCollision());
             }
@@ -38,7 +40,9 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
         if(player.level().getServer().isSameThread()) {
             Entity body=player.getRootVehicle();
             PlatformPhysics.carry(body);
-            Vec3 target=PlatformMovementReference.resolve(body,packet.position());
+            Vec3 target=io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)
+                ?io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference.resolve(player,body,packet.position())
+                :PlatformMovementReference.resolve(body,packet.position());
             if(!target.equals(packet.position())) packet=new ServerboundMoveVehiclePacket(target,packet.yRot(),packet.xRot(),packet.onGround());
         }
         original.call(packet);
