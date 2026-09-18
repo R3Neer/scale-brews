@@ -806,3 +806,67 @@ The source cause is direct: `trackingGeneration(...)` calls the same helper used
 
 **Classification:** PRODUCT RED. G3.9 stays open pending an implementer repair that separates observation from acquisition and revalidates all callers without reviving nonexistent or retired tracking windows. Full handoff: `docs/sprints/S24-adversarial-tracking-read-revival-red.md`.
 
+## G3 / S24 lifecycle, unavailable, packet order and ownership — final adversarial closure 2026-09-18
+
+S24 closes G3 tasks 9-12 after one additional product reopening and several oracle/CI hardenings.
+
+### G3.9 — lifecycle and tracking authority
+
+The adversarial read-purity holdout proved that `AnatomyRuntime.trackingGeneration(recipient, body)` could create the authority it claimed to observe and returned synthetic generation `1` even without an active runtime. Product fixes:
+
+- **`256ab44b434af4d7cfae2da37bda7dc873444e58`** — separate current observation from acquisition;
+- **`99969ccb4e44b86c28f6898b62c4752781679949`** — explicitly bootstrap windows already justified by vanilla tracking when runtime starts/resets.
+
+Run **`35333686648`**:
+- baseline **`105563538619`** success;
+- read-acquires mutant **`105563913730`** killed;
+- no-runtime-default mutant **`105563913814`** killed.
+
+Dimension and reconnect mutation campaigns were reanchored to the current implementation and are fully green: runs **`35329062829`** and **`35329603429`**. Pose/contact dimension replay, contact support-rebind, tracking-ledger bounds/reuse, reload and player-list iteration also remain green on the integrated S24 lineage.
+
+### G3.10 — explicit UNAVAILABLE and recovery
+
+`S24UnavailableRecoveryClientProof` was hardened so the unsupported SLEEPING phase must accept an explicit newer pose endpoint with `available=false` before TTL expiry; mere disappearance after timeout cannot satisfy the oracle. Recovery must then accept a strictly newer AVAILABLE serial.
+
+Run **`35335621883`**:
+- baseline **`105569661575`** success;
+- recovery-freeze mutant **`105570042027`** killed;
+- UNAVAILABLE-publication suppression mutant **`105570042132`** killed.
+
+Baseline artifact **`10543506605`**, SHA-256 **`68a628ad45fa44a0fc94b248e69a2472b691d5e45a564e70cd735a7d7943a5db`**.
+
+### G3.11 — real late tracking plus owner-level ordering
+
+The integrated client proof demonstrates late START_TRACKING materializes current state directly. An initial mutation campaign exposed an oracle weakness: continuous fresh publication could hide transient stale rollback. The proof was hardened to freeze further server anatomy publication before stale injection, and the exact ordering owner was split into `S24AdversarialFrameOrderTests`.
+
+Run **`35336440655`**:
+- owner baseline **`105572251990`** success;
+- real late-tracking client **`105572252178`** success;
+- same-window ordering mutant **`105572742720`** compiled and was killed after removing frame-serial, authority-tick and joint-sample-tick fences.
+
+Artifacts:
+- client **`10543522907`**, SHA-256 **`6602a57e3985d4d8c252f932716704da3819a56507a1a5695618959664c787c0`**;
+- owner baseline **`10543032562`**, SHA-256 **`6eb6acd6352d49f6caf71c1e0f89e9c63d01e3280ac6791936a35b3ff11ad2f5`**;
+- owner mutant **`10542979062`**, SHA-256 **`3d9e53d9f64bc4b0c218ceb009b3e78c47bddba521cdfbb3933199acc250b8de`**.
+
+The owner holdout is permanently registered in the ordinary GameTest suite.
+
+### G3.12 — extracted root/endpoint ownership
+
+Structural gate run **`35333447075`**:
+- baseline **`105562783643`** success;
+- duplicate endpoint owner mutant **`105562809519`** killed;
+- duplicate root-history owner mutant **`105562809667`** killed.
+
+This prevents `AnatomyMovement` from silently reacquiring persistent root/endpoint state now owned by `RootFrameLedger` and `AnatomyEndpointLedger`.
+
+### Ordinary and zero-change
+
+Receipt kernel tests that initially failed after purifying tracking observation were classified as TEST/EVIDENCE: they had relied on the old implicit-acquire getter as fixture setup. They were migrated to a GameTest-only, action-scoped authority seam; production remained pure.
+
+Final ordinary run **`35336440635`**, job **`105572251864`**: **442/442 required GameTests passed**, `BUILD SUCCESSFUL`. Artifact **`10543418166`**, SHA-256 **`36ab2120935b3339753130f43a80e3771d785f4526b0a732e934c0d65eea5579`**.
+
+Comparing final S24 production **`99969cc...`** to the adversarial closeout checkpoint **`8dcbb615...`** shows **zero later changes under `src/main` or `src/client`**; all subsequent changes are tests, CI, gates and documentation.
+
+**Conclusion:** G3 tasks 9-12 are independently closed. Together with previously closed tasks 1-8, **G3 is fully closed**. The next gate is G4.
+
