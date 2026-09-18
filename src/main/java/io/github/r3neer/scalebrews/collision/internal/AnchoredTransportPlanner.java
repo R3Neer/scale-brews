@@ -33,9 +33,10 @@ final class AnchoredTransportPlanner {
     enum Status {NOT_APPLICABLE,COMPLETE,RELEASE,EXHAUSTED}
     private enum ObstacleStatus {CLEAR,RELEASE,EXHAUSTED}
     record Evidence(MaterialEventDispatcher.EventId parent,LivingEntity support,SurfaceContact surface,
-            RootFrame root,ConvexBox materialBefore,ConvexBox materialAfter) {
+            RootFrame root,long supportFrameSerial,ConvexBox materialBefore,ConvexBox materialAfter) {
         Evidence {
-            if(parent==null || support==null || surface==null || root==null || materialBefore==null || materialAfter==null)
+            if(parent==null || support==null || surface==null || root==null || supportFrameSerial<1
+                    || materialBefore==null || materialAfter==null)
                 throw new IllegalArgumentException("Missing anchored transport evidence");
         }
     }
@@ -157,7 +158,7 @@ final class AnchoredTransportPlanner {
             try {allowed=clip.apply(captured,displacement);} finally {PlatformPhysics.exit(previous);}
             if(allowed.distanceToSqr(displacement)>OVERLAP_EPS)return Result.release(evaluations);
             return new Result(Status.COMPLETE,displacement,evaluations,
-                new Evidence(own.id(),support,surface,handle.after().root(),materialBefore,materialAfter));
+                new Evidence(own.id(),support,surface,handle.after().root(),handle.after().endpoint().frameSerial(),materialBefore,materialAfter));
         } catch(RuntimeException rejected) {return Result.release(0);}
     }
 
