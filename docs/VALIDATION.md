@@ -757,3 +757,29 @@ The contemporaneous S08 prepared/boat red lanes are not attributed to this repai
 
 **Final conclusion:** FR-053/FR-093 are adversarially recertified: ineligible pairs gain no anatomical wall; eligible pairs retain one anatomical geometric blocker; the geometric-suppression mutant is killed; vanilla `Entity.push` is preserved exactly once; and legacy→READY ownership changes immediately without waiting for the next tick. **G2 task 10 and the global G2 gate are closed again.**
 
+## G3 / S22 coverage provenance — final adversarial closure 2026-09-18
+
+S22/G3.8 closes the deterministic coverage-classification kernel and its acceptance provenance boundary. The implementer repair **`50296a6792f523e57fcd8daa71ba6f598254a6e6`** made completeness and provenance independent: exact discovered membership is always checked, while non-empty resolved classification claims require a private scanner-issued provenance capability.
+
+The final adversarial hardening **`942aa4fec0b372dd63de8f7916f91a54bd66d956`** adds the missing positive oracle. The same automatically discovered Minecraft target used by the forged-row negative cases is supplied with one valid canonical default binding per discovered id through `CollisionCoverageDiscovery.scan(...)`; every row must be `FULL` and the scanner-issued artifact must successfully pass `requireResolved()`. This prevents a blanket reject-all implementation from satisfying the negative provenance holdout.
+
+Mutation-gate commit **`fd9ca047f3df0549f21672e94f6adaa706ace588`**, run **`35328441530`**:
+
+- baseline provenance job **`105546923380`**: success;
+- provenance-bypass mutant job **`105547301841`**: success as mutation harness. Disabling only the acceptance fence makes forged `FULL` coverage resolve, the GameTest fails at the intended FR-038/NFR-032/NFR-036 assertion, and the harness reports `KILLED`;
+- provenance-issuance mutant job **`105547301819`**: success as mutation harness. Dropping only `SCANNER_PROVENANCE` from the canonical scan path leaves forged claims rejected but causes the positive control to fail with `Coverage artifact lacks canonical scanner provenance`; the harness reports `KILLED`.
+
+Artifacts:
+
+- baseline **`10539264816`**, SHA-256 **`959a68766aea46ee2895e0e503b53de48bd7f30a29eeebdbbca4b2f5686769ef`**;
+- bypass mutant **`10540212060`**, SHA-256 **`3c93fa3e7db005f8f9bd19c8e33826f525c707fa94562ed07ea2f01de85e9d95`**;
+- issuance mutant **`10539374622`**, SHA-256 **`94b4eb5b9605fb7d70ec817a253b5db09135887c63cc3a711a7a41a7bb058c4b`**.
+
+Ordinary build run **`35328441560`** on the same snapshot is green.
+
+The earlier independent S22 barriers remain in force: completeness has its own self-justifying-membership mutation kill; canonical digest framing is length-injective; mixed default/variant state gaps are deterministic; and the hot-path structural gate plus its runtime-reference mutant remained green through later production snapshot `1437795...` (residual run **`35205403247`**).
+
+Final zero-change review compares `50296a6...` with the adversarial closeout lineage and finds no later change to `CollisionCoverageDiscovery.java` or `CollisionCoverageScanner.java`; post-repair S22 changes are tests, CI and documentation only.
+
+**Conclusion:** S22 is independently closed and G3 task 8 is closed. The next open G3 work is S24/tasks 9-12.
+
