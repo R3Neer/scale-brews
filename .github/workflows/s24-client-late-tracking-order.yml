@@ -99,8 +99,7 @@ jobs:
           p.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: run same-window ordering owner holdout
-        run: ./gradlew runGameTest --console=plain \
-          -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-baseline.xml"
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-baseline.xml"
       - name: capture owner evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -157,8 +156,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          ./gradlew runGameTest --console=plain --rerun-tasks \
-            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-mutant.xml"
+          ./gradlew runGameTest --console=plain --rerun-tasks -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-mutant.xml"
           code=$?
           set -e
           if [ "$code" -eq 0 ]; then
