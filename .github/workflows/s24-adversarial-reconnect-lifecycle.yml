@@ -82,8 +82,8 @@ jobs:
           from pathlib import Path
           p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
           s=p.read_text()
-          old='private static void reset(){session.resetConnection();clearPoses();poseLevel=null;clientTick=0;}'
-          new='private static void reset(){clearPoses();poseLevel=null;clientTick=0;}'
+          old='private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}'
+          new='private static void reset(){clearConnectionTemporal();poseLevel=null;clientTick=0;}'
           count=s.count(old)
           if count != 1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
@@ -134,8 +134,8 @@ jobs:
           from pathlib import Path
           p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
           s=p.read_text()
-          old='poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clear();presentationContacts.clear();'
-          new='contacts.clear();presentationContacts.clear();'
+          old='poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();'
+          new='contacts.clearPending();presentationContacts.clear();'
           count=s.count(old)
           if count != 1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
