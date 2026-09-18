@@ -258,7 +258,6 @@ public final class AnatomyNetworkingTests {
         var body=h.makeMockServerPlayerInLevel();
         body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);long firstTick=h.getLevel().getGameTime();
-        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         Runnable cleanup=()->{support.discard();body.discard();};
         try {
             saturateReceiptTick(body,support,1000);

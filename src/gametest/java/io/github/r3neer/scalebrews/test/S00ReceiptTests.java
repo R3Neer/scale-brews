@@ -54,7 +54,6 @@ public final class S00ReceiptTests {
     @GameTest(maxTicks=50) public void holdoutH02SaturationSurvivesBoundaryAndRejectsExpiredReplay(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         var body=h.makeMockServerPlayerInLevel();long tick=h.getLevel().getGameTime();
-        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         Runnable cleanup=()->{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();};
         for(int i=0;i<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;i++)record(body,support,tick,1+i);
         check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,"Saturation retained unbounded receipt prefix");
