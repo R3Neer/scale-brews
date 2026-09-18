@@ -3,6 +3,7 @@ package io.github.r3neer.scalebrews.test;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyTransportReceipts;
+import io.github.r3neer.scalebrews.collision.internal.S24TrackingAuthorityTestSeam;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
@@ -196,6 +197,7 @@ public class AnatomyAnimatedSqueezingTests {
         support.setNoAi(true);
         support.setNoGravity(true);
         var body = smallServerPlayer(h);
+        var authority = S24TrackingAuthorityTestSeam.acquire(body, body);
         var initialMaxX = support.getX() + JOINT_FLOOR.maxX;
         var provider = new AnimatedProvider(jointFloorMotion(support, initialMaxX, initialMaxX));
         AnatomyMovement.activate(h.getLevel());
@@ -239,6 +241,7 @@ public class AnatomyAnimatedSqueezingTests {
                     && AnatomyTransportReceipts.metrics().duplicates() == duplicates,
                 "Real post-baseline joint carries retain two distinct material receipts without synthetic record calls");
         } finally {
+            authority.close();
             AnatomyMovement.deactivate(h.getLevel());
             support.discard();
             body.discard();
