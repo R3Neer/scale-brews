@@ -121,12 +121,12 @@ public final class AnatomyTransportReceipts {
         roots.remove(body);if(roots.isEmpty())HISTORIES.remove(recipient);
         return null;
     }
-    /** Immutable snapshot for an eventual metadata-only C2S reference validator. */
+    /** Immutable diagnostic snapshot; authority stays in claim(...), never in callers of this view. */
     public static synchronized List<Receipt> history(ServerPlayer recipient,UUID body) {
         var history=recipient==null || body==null?null:pruneAndFind(recipient,body,recipient.level().getGameTime());
         return history==null?List.of():List.copyOf(history.entries);
     }
-    /** A future C2S validator must reject a reference from a saturated body/tick. */
+    /** Saturated receipt ticks remain explicitly observable and are rejected by claim(...). */
     public static synchronized boolean saturated(ServerPlayer recipient,UUID body,long tick) {
         var history=recipient==null || body==null?null:pruneAndFind(recipient,body,recipient.level().getGameTime());
         return history!=null && history.saturatedTicks.contains(tick);
