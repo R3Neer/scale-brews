@@ -111,6 +111,20 @@ Una referencia plausible pero sin receipt server-issued debe dejar invariantes:
 
 El cliente no puede “adivinar” un soporte y conseguir que el servidor lo materialice.
 
+### E2. Aceptación no reaplica transporte
+
+Incluso una referencia **válida** sólo nombra/correlaciona transporte que el servidor ya aplicó y cuyo baseline ya actualizó al crear el receipt. Inmediatamente antes/después de aceptar la referencia, y antes de consumir el siguiente movement packet vanilla, deben permanecer idénticos:
+
+- `body.position()` y AABB;
+- `AnatomyMovement.contactSequence(body)`/support;
+- `TransportLedger.current(body).sequence()` y `appliedDelta`;
+- número/contenido de receipts server-issued;
+- tracking/binding/root endpoint authority.
+
+Sólo puede cambiar estado metadata de consumo/rebase. Si el diseño aplica el reference conjuntamente con el movement packet, el oracle debe demostrar igualmente que `receipt.appliedDelta` no se suma una segunda vez.
+
+Este será el mutation-kill de **double-apply**: introducir una segunda aplicación del delta confirmado debe compilar y producir desplazamiento/sequence/receipt extra observable.
+
 ### F. Controlled vehicle
 
 El mismo mecanismo debe distinguir player local de vehículo realmente controlado sin permitir referencias a una tercera entidad observada.
