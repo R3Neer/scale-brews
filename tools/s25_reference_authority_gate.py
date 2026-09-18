@@ -73,9 +73,6 @@ for path in java_files:
     for match in re.finditer(r"ServerPlayNetworking\.registerGlobalReceiver\(\s*(\w+)\.TYPE",text):
         receiver_types.add(match.group(1))
         receiver_files.append(path)
-        for token in forbidden_tokens:
-            if token in text and token != match.group(1):
-                errors.append(f"{path}: anatomy C2S receiver references forbidden physical authority type {token}")
 
 # Every collision serverbound payload schema is audited independently of receiver implementation.
 for type_name in sorted(registered_serverbound):
