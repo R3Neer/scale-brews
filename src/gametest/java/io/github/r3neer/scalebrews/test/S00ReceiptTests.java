@@ -46,28 +46,30 @@ public final class S00ReceiptTests {
     }
     @GameTest public void receiptRecorderRejectsAResultFromAnotherTick(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);var body=h.makeMockServerPlayerInLevel();
+        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         try {
             record(body,support,h.getLevel().getGameTime()+1,1);
             check(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Recorder gave current authority to future transport");
-        }finally{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}h.succeed();
+        }finally{authority.close();AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}h.succeed();
     }
     @GameTest(maxTicks=50) public void holdoutH02SaturationSurvivesBoundaryAndRejectsExpiredReplay(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         var body=h.makeMockServerPlayerInLevel();long tick=h.getLevel().getGameTime();
+        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
+        Runnable cleanup=()->{authority.close();AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();};
         for(int i=0;i<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;i++)record(body,support,tick,1+i);
         check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,"Saturation retained unbounded receipt prefix");
         h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS-1,()->{
             try {check(AnatomyTransportReceipts.saturated(body,body.getUUID(),tick),"Saturation fence expired before its full TTL");}
-            catch(RuntimeException | AssertionError failure){AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();h.assertTrue(false,String.valueOf(failure.getMessage()));return;}
+            catch(RuntimeException | AssertionError failure){cleanup.run();h.assertTrue(false,String.valueOf(failure.getMessage()));return;}
             h.runAfterDelay(1,()->{
                 try {
                     check(!AnatomyTransportReceipts.saturated(body,body.getUUID(),tick) && AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"TTL did not expire at its declared boundary");
                     record(body,support,tick,1);
                     check(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Expired transport replay regained current authority");
                     record(body,support,h.getLevel().getGameTime(),100);
-                    check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==1,"Fresh post-TTL contribution was incorrectly rejected");h.succeed();
-                }catch(RuntimeException | AssertionError failure){h.assertTrue(false,String.valueOf(failure.getMessage()));}
-                finally{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();}
+                    check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==1,"Fresh post-TTL contribution was incorrectly rejected");cleanup.run();h.succeed();
+                }catch(RuntimeException | AssertionError failure){cleanup.run();h.assertTrue(false,String.valueOf(failure.getMessage()));}
             });
         });
     }
