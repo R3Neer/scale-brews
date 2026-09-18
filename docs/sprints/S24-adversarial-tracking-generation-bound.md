@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **BOUND LEVANTADO ADVERSARIALMENTE / INTEGRATION-REVIVAL SEAM AÚN ABIERTO**.
+Estado: **BOUND DE MEMORIA CERRADO / INTEGRATION-REVIVAL RED PRODUCTIVO**.
 
 ## 1. Hallazgo original
 
@@ -69,3 +69,16 @@ Este cierre **no** certifica todavía todo el lifecycle S24. En particular, la A
 Eso importa después de `STOP_TRACKING`: si un consumer tardío pudiera llamar a una lectura con efectos laterales y recrear una ventana ya retirada, el sistema conservaría memoria acotada pero violaría FR-080/FR-082/NFR-017 por revival de autoridad. La reparación correcta puede ser separar adquisición de consulta o cualquier diseño equivalente; el adversario no prescribe la arquitectura.
 
 Además permanecen abiertos reconnect, replay explícito A→B→A y reload/barriers completos.
+
+
+## 6. La costura de revival ya es RED causal
+
+El seam descrito en la sección anterior dejó de ser una mera auditoría pendiente.
+
+Holdout `S24AdversarialTrackingReadPurityTests`, commit `d63deca5c4d16445d9349cb5613abbe4b53d3954`, crea un `ServerPlayer` deliberadamente fuera de `PlayerList` y verifica la precondición antes de consultar `AnatomyRuntime.trackingGeneration(recipient, body)`. Sin posibilidad de `START_TRACKING`, la lectura debería devolver `UNAVAILABLE=0`.
+
+Run `35329517023`, job `105550355468`: **failure causal** con `observed=1 on tick 0`. Artifact `10541105179`, SHA-256 `ccd06b1e6f39d3e66670f7315f1599b313531abfce3c2f52e495d6f20fc1bd99`.
+
+La causa es directa: la façade pública de observación llama a `generation(...)`, que ejecuta `TrackingGenerationLedger.acquire(...)`. Por tanto una consulta puede crear la autoridad que pretende observar.
+
+La memoria/boundedness del ledger sigue certificada por la campaña anterior; lo reabierto es **la integración causal de adquisición vs lectura**. Detalle y handoff en `S24-adversarial-tracking-read-revival-red.md`.
