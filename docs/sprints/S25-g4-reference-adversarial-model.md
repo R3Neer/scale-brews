@@ -198,3 +198,30 @@ Ordinary sobre el mismo snapshot de hardening, run **`35383169917`**, job **`105
 
 **Estado:** G4.1 continúa RED exclusivamente porque la superficie C2S/validator no existe todavía. Las fronteras que impedirían una implementación insegura ya están activas y mutation-sensitive.
 
+## 9. Receipt authority store — precondición adversarial cerrada
+
+Antes de implementar el C2S se cerró una propiedad que el futuro validator no debe volver a discutir: el store de receipts es autoridad **recipient-local + body-local**, con teardown independiente y saturation scoped.
+
+`S25ReceiptAuthorityIsolationTests` usa dos `ServerPlayer` como pasajeros del mismo boat:
+
+- ambos reciben un receipt server-issued para el mismo body;
+- el primer recipient cambia a un segundo boat y acumula history independiente por body UUID;
+- se satura sólo `(first, secondBody, tick)`;
+- el segundo recipient no adquiere receipt ni saturation del segundo body;
+- `disconnect(first)` elimina todos los bodies de first sin tocar el receipt de second.
+
+Esto además fija el futuro holdout de controlled vehicle: el segundo pasajero puede poseer un receipt válido del boat sin ser necesariamente su controlador. **Receipt existence no concede control authority.**
+
+Workflow `s25-adversarial-receipt-isolation`, run **`35384233437`**:
+
+- baseline `receipt-isolation`, job **`105727247783`** — success;
+- recipient-key mutant, job **`105727617910`** — compiló y murió;
+- global-disconnect mutant, job **`105727617921`** — compiló y murió;
+- body-key mutant, job **`105727617960`** — compiló y murió.
+
+Artifact baseline **`10563370910`**, SHA-256 **`dc523680cb24cd8036fc102ee56a5c6a4a68cd73f37586edc0f9d72410eced0e`**.
+
+El store sigue siendo histórico, no autorización viva: STOP_TRACKING libera la ventana server-side pero no borra necesariamente el receipt antes de TTL. Por tanto el futuro validator debe comparar `receipt.trackingGeneration` contra la ventana actual o aplicar un fence causal equivalente; no puede aceptar por mera presencia en `history()`.
+
+**Conclusión:** la precondición server-side de recipient/body/saturation/teardown está cerrada. G4.1 sigue RED únicamente porque aún no existe el reference C2S/validator/consumption path.
+
