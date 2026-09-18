@@ -1,6 +1,6 @@
 # S22 adversarial model — coverage classification kernel
 
-Status: **OPEN — forged classification provenance RED**.
+Status: **CLOSED — provenance recertified with bidirectional mutation adequacy**.
 
 > Role: adversarial verification only. This document does not authorize production changes.
 >
@@ -47,9 +47,9 @@ Current classification on the `chatgpt-editing` lineage:
 - exact discovery membership in `Artifact`: **PASS + MUTATION ADEQUATE**;
 - canonical digest framing: **PASS after repair**;
 - no production runtime callers of discovery/scanner: **PASS + structural mutation kill**;
-- acceptance classification provenance/authenticity: **RED / current blocker**.
+- acceptance classification provenance/authenticity: **PASS + bidirectional mutation adequate**.
 
-S22 therefore has one confirmed blocker. The artifact verifies *which entity ids* appear, but not yet *who is authoritative for the semantic classifications attached to those ids*.
+S22 has no remaining blocker in this threat model. Membership, semantic provenance, canonical issuance, digest identity, residual classification and the runtime/hot-path boundary are independently exercised.
 
 ## 3. Canonical digest ambiguity — HISTORICAL RED → PASS
 
@@ -82,7 +82,7 @@ Mutation adequacy in workflow lineage `80a946e` replaces automatic expected memb
 
 Completeness is therefore closed. That repair is intentionally distinct from the provenance blocker below.
 
-## 5. Forged classification provenance — RED / CURRENT BLOCKER
+## 5. Forged classification provenance — HISTORICAL RED → PASS + MUTATION ADEQUATE
 
 Exact membership does not authenticate the semantic content of the rows.
 
@@ -121,7 +121,7 @@ The failure property is:
 
 The adversary does not prescribe the implementation. A repair may bind artifacts to canonical scanner output, make trusted construction non-forgeable, or use another fail-closed provenance mechanism, but it must preserve deterministic reproducibility and the already-green completeness gate.
 
-The all-status holdout remains RED until production closes this property. Mutation adequacy comes only after baseline green.
+The all-status holdout is green on the repaired production path. The final adversarial pass adds both a forged-acceptance mutant and a canonical-issuance mutant; both are killed, so this property is now mutation adequate in both directions.
 
 ## 6. Mixed default/variant state gaps — PASS
 
@@ -162,20 +162,44 @@ An attempted exhaustive cross-check compared attribute-backed discovery against 
 
 No production claim is made from that red. The test/workflow were removed in commits `a44992b` and `fae7089`.
 
-## 9. Remaining adversarial sequence
+## 9. Final adversarial sequence — COMPLETED
 
-S22 is now deliberately reduced to one product gate:
+The planned sequence is complete:
 
-1. keep `s22-adversarial-coverage-provenance` RED and unchanged while the implementer repairs provenance/authenticity;
-2. rerun that same all-status holdout after the repair;
-3. only after baseline green, add a semantic mutant that recreates a self-authored classification bypass;
-4. rerun completeness, digest and residual lanes against the repaired tree;
-5. perform the final zero-change read and then reconcile S22 sprint/plan/VALIDATION.
+1. the unchanged all-status forged-classification holdout is green on the implementer repair;
+2. the adversarial oracle now also contains a canonical positive control, preventing blanket rejection from masquerading as provenance enforcement;
+3. a semantic mutant that disables only the provenance acceptance fence is killed by the forged-classification assertions;
+4. an opposite mutant that drops only canonical scanner provenance issuance is killed by the positive control;
+5. completeness remains mutation-protected, digest and residual semantics remain green from the repaired lineage, and the residual/hot-path lane continued green through later production work;
+6. the final zero-change compare from `50296a6...` to the adversarial closeout contains no modification to `CollisionCoverageDiscovery` or `CollisionCoverageScanner`.
 
-S21 is independently closed; it no longer blocks S22. G3.8 remains open until this provenance blocker is closed.
+S21 is independently closed. G3.8 can now close.
 
 ## 10. Gate rule
 
-S22 must not be considered adversarially converged while any caller can construct an acceptance artifact that passes `requireResolved()` with classifications not causally bound to canonical scanner/catalog evidence.
+S22 is adversarially converged under this model: caller-authored resolved classifications fail closed, scanner-issued canonical classifications remain usable, and directed mutations of either side are killed. Completeness, digest framing and hot-path isolation retain their independent oracles.
 
-All other currently known S22 threats in this model are green or mutation-protected. The remaining RED is intentionally singular and must not be waived by the ordinary build being green.
+## 11. Final closeout evidence — 2026-09-18
+
+Adversarial hardening commit **`942aa4fec0b372dd63de8f7916f91a54bd66d956`** adds a positive control to `S22AdversarialCoverageProvenanceTests`: the exact automatically discovered Minecraft target is supplied with one valid canonical default binding per id through `CollisionCoverageDiscovery.scan(...)`, every row must be `FULL`, and the scanner-issued artifact must pass `requireResolved()`. The existing forged `FULL`, `SAFE_PARTIAL` and `EXCLUDED` negative controls remain unchanged in meaning.
+
+Mutation-gate commit **`fd9ca047f3df0549f21672e94f6adaa706ace588`** adds two directed mutants to the same isolated workflow.
+
+Run **`35328441530`**:
+
+- baseline `forged-coverage-provenance`, job **`105546923380`**: **success**;
+- `provenance-bypass-mutant-must-die`, job **`105547301841`**: **success as mutation harness**. The mutant disables only the provenance acceptance condition; the GameTest dies on the forged `FULL` claim and the harness reports `KILLED`;
+- `provenance-issuance-mutant-must-die`, job **`105547301819`**: **success as mutation harness**. The mutant removes only `SCANNER_PROVENANCE` issuance from the canonical scan path; the positive control dies with `Coverage artifact lacks canonical scanner provenance` and the harness reports `KILLED`.
+
+Artifacts:
+
+- baseline **`10539264816`**, SHA-256 **`959a68766aea46ee2895e0e503b53de48bd7f30a29eeebdbbca4b2f5686769ef`**;
+- bypass mutant **`10540212060`**, SHA-256 **`3c93fa3e7db005f8f9bd19c8e33826f525c707fa94562ed07ea2f01de85e9d95`**;
+- issuance mutant **`10539374622`**, SHA-256 **`94b4eb5b9605fb7d70ec817a253b5db09135887c63cc3a711a7a41a7bb058c4b`**.
+
+Ordinary build on the same mutation-gate snapshot, run **`35328441560`**, is **success**.
+
+Zero-change review: comparing the final product repair **`50296a6792f523e57fcd8daa71ba6f598254a6e6`** with `fd9ca047...` shows no later change to `CollisionCoverageDiscovery.java` or `CollisionCoverageScanner.java`; S22 changes after the repair are adversarial tests/CI/docs only. The residual/hot-path workflow also remained green through later production snapshot `1437795...` (run **`35205403247`**).
+
+**Adversarial conclusion:** S22 is closed and G3 task 8 may be marked complete.
+
