@@ -128,7 +128,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 5. [x] convertir Citadel/Alex a engine/pose-program reusable;
 6. [x] añadir `RootTransformProvider` genérico y fixture externo;
 7. [x] mantener `DisplayRig` como SPI hasta target real;
-8. [ ] scanner/coverage FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;
+8. [x] scanner/coverage FULL/SAFE_PARTIAL/EXCLUDED/UNRESOLVED;
 9. [ ] reload/tracking/unload/rebind/dimension/reconnect/reutilización de identidad;
 10. [ ] unsupported states publican unavailable y recuperan sin freeze;
 11. [ ] lifecycle/order sobre runtime y packets reales;
@@ -148,11 +148,11 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S23 cerrado adversarialmente:** G3 tarea 7 queda completada sin introducir un target ficticio en producción. El proof implementer demuestra que una familia sintética atraviesa `GeometryEngine -> ModelGeometry -> ConvexBox`; el cierre independiente añade un holdout metamórfico de opacidad entre familias y dos mutation-kills que impiden tanto branch físico por `ModelGeometry.source()` como hardcode nominal de `DisplayRig`/display-composite en producción. Evidencia final adversarial: run `35104624130` sobre `2ffeb627bc9b397b417393eba6454c49a2a714e9`, jobs `104822510244`, `104823016011` y `104823015908`, todos verdes. Detalle en `docs/sprints/S23-display-rig-spi-proof.md` y `VALIDATION.md`.
 
-**S22 reparado en baseline / cierre adversarial aún pendiente:** G3 tarea 8 permanece formalmente abierta porque el plan exige mutation adequacy y lectura final independiente, pero el blocker productivo de provenance/autenticidad ya no está RED. `8f72e5e8dc6637b2f6f01800ef617d949b1be448` enlazó los artifacts resueltos con provenance del scanner y `50296a6792f523e57fcd8daa71ba6f598254a6e6` separó correctamente los gates de completeness y provenance. Sobre `50296a6`, provenance `35109432100`, completeness `35109432255`, residuals `35109431905`, coverage proof `35109431948` y ordinary build `35109431854` terminaron **success**. Lo pendiente ya no es reparar el RED original, sino la campaña adversarial posterior de mutación + zero-change que autorice marcar task 8 `[x]`.
+**S22 cerrado adversarialmente:** G3 tarea 8 queda completada. La reparación productiva final `50296a6792f523e57fcd8daa71ba6f598254a6e6` mantiene independientes completeness y provenance. La pasada final adversarial añadió un control positivo de artifact canónico y dos mutantes opuestos: eliminar el fence de provenance y eliminar la emisión del token legítimo. Run `35328441530`: baseline job `105546923380` verde; bypass mutant job `105547301841` muerto; issuance mutant job `105547301819` muerto. Build `35328441560` verde. El compare desde `50296a6` no muestra cambios posteriores en `CollisionCoverageDiscovery` ni `CollisionCoverageScanner`. Detalle en `docs/sprints/S22-adversarial-model.md`.
 
 **S24 implementer handoff:** las tareas 9-12 han avanzado sin saltarse el estado formal de task 8 y tienen candidato implementer verde. Lifecycle/replay/reconnect/dimension/rebind, `UNAVAILABLE` real con recuperación, late tracking/order y la extracción final de root/endpoint ownership están documentados en `docs/sprints/S24-lifecycle-generation-fencing.md`. Evidencia post-separación: unavailable `35135583002`, late tracking/order `35135606727`, lifecycle generation + root-ledger contract `35135695700` y ordinary build `35135695698`, todos **success**. Los checkboxes 9-12 permanecen abiertos hasta revisión adversarial independiente.
 
-**Prioridad G3 vigente:** completar el cierre adversarial de task **8** (mutation adequacy + zero-change) y, en paralelo de revisión, someter el candidato S24 de tasks **9-12** a mutaciones/holdouts independientes. No hay un blocker productivo implementer conocido en 9-12 al final de S24.
+**Prioridad G3 vigente:** task **8 / S22 está cerrada**. El primer frente abierto es ahora el candidato **S24 de tasks 9-12**, que debe someterse a mutaciones/holdouts independientes antes de tocar esos checkboxes. No hay un blocker productivo implementer conocido en 9-12 al final del handoff S24.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
