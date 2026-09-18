@@ -51,6 +51,8 @@ public final class AnatomyTransportReceipts {
         final ArrayDeque<Receipt> entries=new ArrayDeque<>();
         /** Server causal endpoint that produced each canonical runtime transport sequence. */
         final Map<Long,Long> supportFrameSerials=new HashMap<>();
+        /** Exactly-once metadata; receipts themselves remain immutable historical evidence. */
+        final Set<Long> consumedTransportSequences=new HashSet<>();
         /** Every saturated tick remains rejectable for the complete receipt TTL. */
         final ArrayDeque<Long> saturatedTicks=new ArrayDeque<>();
         long countTick=Long.MIN_VALUE;
@@ -103,7 +105,9 @@ public final class AnatomyTransportReceipts {
     }
     private static void prune(History history,long tick) {
         while(!history.entries.isEmpty() && history.entries.peekFirst().tick()<tick-HISTORY_TICKS+1) {
-            var removed=history.entries.removeFirst();history.supportFrameSerials.remove(removed.transportSequence());
+            var removed=history.entries.removeFirst();
+            history.supportFrameSerials.remove(removed.transportSequence());
+            history.consumedTransportSequences.remove(removed.transportSequence());
         }
         while(!history.saturatedTicks.isEmpty() && history.saturatedTicks.peekFirst()<tick-HISTORY_TICKS+1)history.saturatedTicks.removeFirst();
     }
@@ -149,7 +153,8 @@ public final class AnatomyTransportReceipts {
                 match=receipt;
             }
         }
-        if(match==null || history.saturatedTicks.contains(match.tick()))return null;
+        if(match==null || history.saturatedTicks.contains(match.tick())
+                || history.consumedTransportSequences.contains(match.transportSequence()))return null;
         var server=body.level().getServer();if(server==null)return null;
         if(!match.epoch().equals(AnatomyNetworking.epoch(server))
                 || match.catalogRevision()!=AnatomyNetworking.revision(server)
@@ -157,11 +162,7 @@ public final class AnatomyTransportReceipts {
                 || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())
                 || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))
             return null;
-        history.entries.remove(match);history.supportFrameSerials.remove(match.transportSequence());
-        if(empty(history)) {
-            var roots=HISTORIES.get(recipient);
-            if(roots!=null){roots.remove(body.getUUID());if(roots.isEmpty())HISTORIES.remove(recipient);}
-        }
+        history.consumedTransportSequences.add(match.transportSequence());
         return match;
     }
     public static synchronized void invalidate(Entity body) {
