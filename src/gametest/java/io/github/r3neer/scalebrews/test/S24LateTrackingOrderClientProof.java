@@ -94,8 +94,14 @@ public final class S24LateTrackingOrderClientProof implements FabricClientGameTe
             },180);
             var beforeReplay=context.computeOnClient(client->identity(cowUuid.get()));
 
-            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(
-                server.getPlayerList().getPlayers().getFirst(),staleFrame.get(),trackingGeneration.get()));
+            // Freeze further anatomy publication before replaying the captured stale frame. Without
+            // this barrier a stale packet can transiently roll the receiver backward and then be hidden
+            // by the next ordinary fresh publication before the client assertion observes it.
+            world.getServer().runOnServer(server->{
+                var recipient=server.getPlayerList().getPlayers().getFirst();
+                AnatomyRuntime.stop(server);
+                AnatomyNetworking.sendPose(recipient,staleFrame.get(),trackingGeneration.get());
+            });
             context.waitTicks(5);
 
             context.runOnClient(client->{
