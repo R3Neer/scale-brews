@@ -28,7 +28,7 @@ public final class S25ReceiptAuthorityIsolationTests {
             "Fixture requires two recipients observing the same controlled/passenger body");
 
         S24TrackingAuthorityTestSeam.run(first,body,
-            ()->S24TrackingAuthorityTestSeam.run(second,body,()->record(body,support)));
+            ()->S24TrackingAuthorityTestSeam.run(second,body,()->record(body,support,1)));
 
         h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).size()==1,
             "First recipient must own exactly the server-issued receipt recorded for the shared body");
@@ -42,7 +42,12 @@ public final class S25ReceiptAuthorityIsolationTests {
         first.stopRiding();
         h.assertTrue(first.startRiding(secondBody,true,true),
             "Fixture first recipient must transfer control/passenger identity to the second body");
-        S24TrackingAuthorityTestSeam.run(first,secondBody,()->record(secondBody,support));
+        S24TrackingAuthorityTestSeam.run(first,secondBody,()->record(secondBody,support,1));
+        long saturatedTick=secondBody.level().getGameTime();
+        S24TrackingAuthorityTestSeam.run(first,secondBody,()->{
+            for(int sequence=2;sequence<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK+1;sequence++)
+                record(secondBody,support,sequence);
+        });
 
         h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).size()==1
                 && AnatomyTransportReceipts.history(first,secondBody.getUUID()).size()==1,
@@ -50,6 +55,11 @@ public final class S25ReceiptAuthorityIsolationTests {
         h.assertTrue(AnatomyTransportReceipts.history(second,body.getUUID()).size()==1
                 && AnatomyTransportReceipts.history(second,secondBody.getUUID()).isEmpty(),
             "A second recipient must not inherit another recipient's different-body receipt");
+        h.assertTrue(AnatomyTransportReceipts.saturated(first,secondBody.getUUID(),saturatedTick),
+            "Overflow must mark only the exact recipient/body/tick history as saturated");
+        h.assertTrue(!AnatomyTransportReceipts.saturated(second,secondBody.getUUID(),saturatedTick)
+                && !AnatomyTransportReceipts.saturated(first,body.getUUID(),saturatedTick),
+            "Saturation must not leak across recipient or body authority keys");
 
         AnatomyTransportReceipts.disconnect(first);
         h.assertTrue(AnatomyTransportReceipts.history(first,body.getUUID()).isEmpty()
@@ -63,14 +73,14 @@ public final class S25ReceiptAuthorityIsolationTests {
         h.succeed();
     }
 
-    private static void record(Entity body,LivingEntity support) {
+    private static void record(Entity body,LivingEntity support,long sequence) {
         long tick=body.level().getGameTime();
         var normal=new Vec3(0,1,0);
         var contact=new AnatomyMovement.Contact(support,"piece",1,normal,1);
         var surface=new SurfaceContact(support.getUUID(),1,"piece",3,new Vec3(.5,1,.5),normal,tick);
         var root=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
         var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(support.position());
-        var transport=new SupportTransport(tick,1,root.sequence(),Vec3.ZERO,Vec3.ZERO);
+        var transport=new SupportTransport(tick,sequence,root.sequence(),Vec3.ZERO,Vec3.ZERO);
         AnatomyTransportReceipts.record(body,contact,surface,root,transport,material,material);
     }
 }
