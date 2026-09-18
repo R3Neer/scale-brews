@@ -23,28 +23,80 @@ if "AnatomyApi.ownsSharedPhysics(body))return;" not in pn:
 if "AnatomyApi.ownsSharedPhysics(body)" not in pr or "pendingReference=null" not in pr:
     errors.append("PlatformMovementReference no longer clears/ignores legacy references under anatomy ownership")
 
-# Any new collision/anatomy C2S receiver must remain metadata-only.
-# These types represent physical authority or renderer/model data and are forbidden in a client reference surface.
-forbidden=(
+# A G4 reference names server-issued state. It may carry scalar/identifier metadata, but never
+# upload geometry, pose channels, contact DTOs, matrices or material-frame authority.
+forbidden_tokens=(
+    "AnatomyContactPayload",
+    "AnatomyPosePayload",
     "ModelGeometry",
     "ConvexBox",
     "SurfaceContact",
+    "GeometryProvider.CausalEndpoint",
+    "GeometryProvider.Snapshot",
     "PoseEngine.Inputs",
     "RootTransformProvider.RootTransform",
+    "RootFrame",
     "Matrix3f",
     "Matrix4f",
     "Quaternionf",
     "HierarchyMotion",
 )
-receiver_files=[]
-for path in collision.rglob("*.java"):
+forbidden_field_names=(
+    "localPoint",
+    "normal",
+    "rootTransform",
+    "poseInputs",
+    "geometry",
+    "convex",
+    "matrix",
+    "quaternion",
+)
+
+java_files=list(collision.rglob("*.java"))
+source_by_type={}
+for path in java_files:
     text=path.read_text()
-    if "ServerPlayNetworking.registerGlobalReceiver" not in text:
+    for match in re.finditer(r"\b(?:record|class)\s+(\w+)",text):
+        source_by_type.setdefault(match.group(1),(path,text))
+
+registered_serverbound=set()
+receiver_types=set()
+receiver_files=[]
+
+for path in java_files:
+    text=path.read_text()
+    for match in re.finditer(
+        r"PayloadTypeRegistry\.serverboundPlay\(\)\.register\(\s*(\w+)\.TYPE\s*,\s*\1\.CODEC\s*\)",
+        text,
+    ):
+        registered_serverbound.add(match.group(1))
+    for match in re.finditer(r"ServerPlayNetworking\.registerGlobalReceiver\(\s*(\w+)\.TYPE",text):
+        receiver_types.add(match.group(1))
+        receiver_files.append(path)
+        for token in forbidden_tokens:
+            if token in text and token != match.group(1):
+                errors.append(f"{path}: anatomy C2S receiver references forbidden physical authority type {token}")
+
+# Every collision serverbound payload schema is audited independently of receiver implementation.
+for type_name in sorted(registered_serverbound):
+    item=source_by_type.get(type_name)
+    if item is None:
+        errors.append(f"cannot locate source for registered collision serverbound payload {type_name}")
         continue
-    receiver_files.append(path)
-    for token in forbidden:
-        if token in text:
-            errors.append(f"{path}: anatomy C2S receiver references forbidden physical authority type {token}")
+    path,text=item
+    for token in forbidden_tokens:
+        if token in text and token != type_name:
+            errors.append(f"{path}: serverbound payload {type_name} embeds forbidden physical authority type {token}")
+    header_match=re.search(rf"\brecord\s+{re.escape(type_name)}\s*\((.*?)\)\s*implements",text,re.S)
+    if header_match:
+        header=header_match.group(1)
+        for field in forbidden_field_names:
+            if re.search(rf"\b{re.escape(field)}\b",header):
+                errors.append(f"{path}: serverbound payload {type_name} exposes forbidden authority field {field}")
+
+# A receiver without matching serverbound registration is not a valid anatomy C2S surface.
+for type_name in sorted(receiver_types-registered_serverbound):
+    errors.append(f"collision C2S receiver {type_name} lacks matching serverbound payload registration")
 
 if errors:
     print("S25_REFERENCE_AUTHORITY_GATE FAIL")
@@ -54,9 +106,9 @@ if errors:
 
 print("S25_REFERENCE_AUTHORITY_GATE PASS")
 print(" - legacy PlatformMovePayload remains excluded from anatomy ownership")
-if receiver_files:
-    print(" - anatomy/collision C2S receivers are metadata-only at the source boundary:")
-    for path in receiver_files:
-        print("   ",path)
+if registered_serverbound:
+    print(" - registered collision C2S payload schemas are metadata-only:")
+    for type_name in sorted(registered_serverbound):
+        print("   ",type_name)
 else:
-    print(" - no anatomy/collision C2S receiver exists yet; presence gate remains independently RED")
+    print(" - no collision/anatomy serverbound payload exists yet; presence gate remains independently RED")
