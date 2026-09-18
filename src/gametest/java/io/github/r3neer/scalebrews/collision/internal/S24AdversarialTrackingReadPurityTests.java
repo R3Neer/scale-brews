@@ -46,8 +46,9 @@ public final class S24AdversarialTrackingReadPurityTests {
             h.assertTrue(state!=null,"Positive control requires an active runtime state");
 
             var acquire=java.util.Arrays.stream(AnatomyRuntime.class.getDeclaredMethods())
-                .filter(method->method.getName().equals("generation") && method.getParameterCount()==3)
-                .findFirst().orElseThrow();
+                .filter(method->(method.getName().equals("generation") || method.getName().equals("acquireGeneration"))
+                    && method.getParameterCount()==3)
+                .findFirst().orElseThrow(()->new AssertionError("Could not locate the explicit tracking-window acquisition seam"));
             acquire.setAccessible(true);
             long acquired=((Long)acquire.invoke(null,state,recipient,body.getUUID())).longValue();
             h.assertTrue(acquired>0,"Positive control must install one legitimate active tracking generation");
