@@ -105,8 +105,8 @@ jobs:
           from pathlib import Path
           p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
           s=p.read_text()
-          old='if(old.endpoint().availability()==GeometryProvider.Availability.UNAVAILABLE)return Optional.of(old.endpoint());'
-          new='if(old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE)return Optional.of(old.endpoint());\n        if(old.endpoint().availability()==GeometryProvider.Availability.UNAVAILABLE)return Optional.of(old.endpoint());'
+          old='var stamp=new AnatomyEndpointLedger.Stamp(jointSampleTick,root,rootTransform,sample,snapshot==null?-1:snapshot.revision(),availability);var old=AnatomyEndpointLedger.get(support);'
+          new=old+'\n        if(old!=null && old.endpoint().availability()==GeometryProvider.Availability.AVAILABLE && availability==GeometryProvider.Availability.UNAVAILABLE)return old.endpoint();'
           count=s.count(old)
           if count!=1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
