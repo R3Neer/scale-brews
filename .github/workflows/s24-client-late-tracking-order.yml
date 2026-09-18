@@ -17,6 +17,9 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrame.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrameLedger.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingAuthorityTestSeam.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestTrackingAuthorityMixin.java'
+      - 'src/gametest/resources/scalebrews-test.mixins.json'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
