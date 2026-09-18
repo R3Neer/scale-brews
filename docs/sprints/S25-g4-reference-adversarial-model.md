@@ -184,13 +184,14 @@ La ausencia de capacidad no deja el diseño sin protección. Antes de que exista
 
 El gate no exige nombre de clase, forma exacta de la clave ni algoritmo de lookup. Sólo fija que la futura referencia sea metadata y que el receipt server-side siga siendo la autoridad.
 
-Workflow `s25-adversarial-reference-authority`, run **`35383169968`**:
+Workflow final `s25-adversarial-reference-authority`, run **`35384438639`**:
 
-- baseline `reference-authority-boundary`, job **`105723887331`** — success;
-- `legacy-borrow-mutant-must-die`, job **`105723934416`** — el mutante compiló y fue rechazado;
-- `rich-authority-mutant-must-die`, job **`105723934423`** — registra como serverbound el payload de contacto autoritativo, compila y el gate lo mata.
+- baseline `reference-authority-boundary`, job **`105727903384`** — success;
+- `legacy-borrow-mutant-must-die`, job **`105727968468`** — el mutante common/server compiló y fue rechazado;
+- `client-legacy-borrow-mutant-must-die`, job **`105727968484`** — el mutante client-side compiló y fue rechazado;
+- `rich-authority-mutant-must-die`, job **`105727968513`** — registra como serverbound el payload de contacto autoritativo, compila y el gate lo mata.
 
-Ordinary sobre el mismo snapshot de hardening, run **`35383169917`**, job **`105723885840`** — success; artifact **`10562113085`**, SHA-256 **`156c1d83b7d1d2293af815b0e0c7d767ae34d0922e2d7037521e68833718c0d2`**.
+Ordinary sobre el mismo snapshot de hardening, run **`35384438584`**, job **`105727903091`** — success; artifact **`10563561102`**, SHA-256 **`89cfb89533561e1dcdba5af812f2e1d2a4b540912eff88deee7b4c9cf435fe47`**.
 
 ### Observación sobre identidad de receipt
 
