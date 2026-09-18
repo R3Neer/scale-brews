@@ -2,7 +2,7 @@
 
 Rol: **ADVERSARY**.
 
-Estado: **RED reproducible / contacto no cercado por la vida causal del soporte**.
+Estado: **HISTÓRICO RED → CERRADO ADVERSARIALMENTE + MUTATION-KILL**.
 
 ## Contrato atacado
 
@@ -86,3 +86,12 @@ Una solución natural sería transportar/certificar la `bindingGeneration` del s
 ## Gate de cierre
 
 Este RED queda abierto hasta que `S24ContactSupportRebindReplayClientProof` pase sin debilitar su expectativa y exista además una prueba positiva de que un contacto fresco del binding `N+1` sigue materializándose correctamente.
+
+## Resolución posterior
+
+El protocolo de contacto evolucionó para transportar `supportBindingGeneration` y el receiver exige que coincida con la vida causal vigente del soporte antes de materializar el contacto.
+
+El holdout original quedó verde en run **`35130391795`**. La campaña dirigida posterior `s24-adversarial-contact-binding-mutation`, run **`35130851057`**, mantuvo verde el baseline y mató la mutación que eliminaba exclusivamente ese fence. Un contacto fresco del binding posterior también permanece aceptable.
+
+**Clasificación vigente:** el replay de contacto a través de rebind del soporte está cerrado. No es el blocker S24 actual.
+
