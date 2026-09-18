@@ -2,7 +2,7 @@
 
 Rol: **ADVERSARY**.
 
-Estado: **RED reproducible / bloqueo real de G3.9 lifecycle**.
+Estado: **HISTÓRICO RED → CERRADO ADVERSARIALMENTE**.
 
 ## Contrato
 
@@ -75,3 +75,12 @@ Una posibilidad es separar el reset de **material por nivel** del reset de **wat
 ## Gate de cierre
 
 S24 no debe considerar cerrada la barrera de dimensión hasta que `S24DimensionReplayClientProof` pase en el cliente integrado y el happy-path existente siga demostrando catálogo estable + tracking nuevo + binding estable.
+
+## Resolución posterior
+
+Producción separó la limpieza de material por `ClientLevel` de los replay watermarks de conexión y cercó los fences por dimensión. El holdout original quedó verde sin relajar su expectativa en run **`35130391518`** sobre el candidato integrado `ddc09c...`.
+
+La campaña de dimensión volvió además a quedar mutation-sensitive tras reanclar el mutante al owner actual del tracking ledger: run **`35329062829`**, baseline `105548909539`, tracking-generation mutant `105548909156` y catalog-scope mutant `105548909537`, todos **success**.
+
+**Clasificación vigente:** el replay pose A→B→A de este documento está cerrado. G3.9 permanece abierto por otros subcontratos, actualmente el RED de tracking read-purity.
+
