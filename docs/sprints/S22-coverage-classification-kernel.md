@@ -1,6 +1,6 @@
 # S22 — Coverage classification kernel
 
-Estado: **REOPENED — ADVERSARIAL RED / CLASSIFICATION PROVENANCE**.
+Estado: **CLOSED — ADVERSARIALMENTE RECERTIFICADO**.
 
 Rol principal: **IMPLEMENTER**. Holdouts, mutation checks y cierre independiente siguen siendo propiedad del adversario.
 
@@ -57,7 +57,7 @@ La reapertura adversarial actual demuestra una distinción adicional: **completi
 - [x] I5 — conectar discovery de tooling al registry objetivo usando `DefaultAttributes.hasSupplier`, con target/version/input identity y sin scans en runtime/hot path.
 - [x] I6 — ejecutar build/GameTests del corte completo y registrar únicamente evidencia realmente ejecutada.
 - [x] I7 — revisión implementer completa; cualquier holdout adversarial permanece independiente.
-- [ ] I8 — cerrar la reapertura adversarial de provenance: `Artifact.requireResolved()` no puede aceptar clasificaciones resueltas caller-authored aunque membership y forma local sean plausibles; la reparación debe conservar completitud, determinismo y digest ya cerrados.
+- [x] I8 — cerrar la reapertura adversarial de provenance: `Artifact.requireResolved()` no puede aceptar clasificaciones resueltas caller-authored aunque membership y forma local sean plausibles; la reparación conserva completitud, determinismo y digest ya cerrados. Cierre adversarial final en `S22-adversarial-model.md`.
 
 ## 6. Hallazgos adversariales
 
@@ -66,7 +66,7 @@ La reapertura adversarial actual demuestra una distinción adicional: **completi
 1. **Completeness bypass**: un `Artifact` ensamblado manualmente con report parcial podía aparentar `UNRESOLVED=0`. `4484fd7` ligó completitud a discovery automático y el holdout adversarial pasó después sin cambios.
 2. **Canonical digest alias**: selectores semánticamente distintos como `{a="b,c=d"}` y `{a="b", c="d"}` producían el mismo preimage delimitado. `8972f624` sustituyó el escaping parcial por framing de longitud integral. La prueba adversarial original permaneció sin modificar y quedó verde sobre el repair.
 
-### Blocker vigente
+### Blocker histórico, ya cerrado
 
 3. **Forged classification provenance**: `Row` y `Report` pueden ensamblarse manualmente. El `Artifact` actual verifica que los ids de las filas coincidan exactamente con discovery, pero no que los estados y evidencias procedan del scanner/catálogo canónico. El holdout endurecido fabrica para **todos** los ids descubiertos filas resueltas con forma plausible, incluyendo `FULL` y `SAFE_PARTIAL` con `BindingEvidence` sintácticamente válido y `EXCLUDED` sin una exclusión técnica autoritativa. El gate las acepta hoy.
 
@@ -98,3 +98,12 @@ Aquella evidencia sigue siendo válida para digest/completitud/kernel, pero ya n
 - cualquier invocación del scanner desde el hot path del servidor.
 
 G6 y los targets de acceptance alimentan este mismo discovery/kernel; no redefinen sus estados ni mantienen una segunda tabla de cobertura.
+
+## 9. Cierre adversarial final
+
+La reparación productiva final permanece en `50296a6792f523e57fcd8daa71ba6f598254a6e6`. La revisión independiente posterior añadió un control positivo de artifact emitido por scanner y dos mutation-kills opuestos sobre el mecanismo de provenance. Run `35328441530`: baseline verde, mutante que elimina el fence de aceptación muerto y mutante que elimina la emisión del token canónico muerto. El build del mismo snapshot `35328441560` también es verde.
+
+No hubo cambios posteriores en `CollisionCoverageDiscovery` ni `CollisionCoverageScanner`; por tanto el cierre se produce sobre la reparación del implementador, no sobre una segunda corrección adversarial.
+
+**S22 queda cerrado; G3 tarea 8 puede marcarse completada.**
+
