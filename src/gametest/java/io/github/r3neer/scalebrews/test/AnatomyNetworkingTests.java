@@ -220,7 +220,6 @@ public final class AnatomyNetworkingTests {
         var body=h.makeMockServerPlayerInLevel();
         body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);
-        var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
         long tick=h.getLevel().getGameTime();var delta=new Vec3(.2,0,0);
         var normal=new Vec3(0,1,0);
         var contact=new AnatomyMovement.Contact(support,"body",7,normal,3);
@@ -229,7 +228,7 @@ public final class AnatomyNetworkingTests {
         var materialBefore=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new org.joml.Matrix4f()).move(support.position());
         var materialAfter=materialBefore.move(delta);
         var first=new SupportTransport(tick,11,root.sequence(),delta,delta);
-        AnatomyTransportReceipts.record(body,contact,surface,root,first,materialBefore,materialAfter);
+        S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,first,materialBefore,materialAfter));
         var receipts=AnatomyTransportReceipts.history(body,body.getUUID());
         h.assertTrue(receipts.size()==1,"Applied root delta creates one authoritative receipt");
         var receipt=receipts.getFirst();
@@ -241,17 +240,17 @@ public final class AnatomyNetworkingTests {
                 +", transport="+receipt.transportSequence()+", materialBefore="+receipt.materialBefore().equals(materialBefore)+", materialAfter="+receipt.materialAfter().equals(materialAfter)
                 +", applied="+receipt.appliedDelta()+", observed="+observedDelta+", expected="+delta);
         long duplicates=AnatomyTransportReceipts.metrics().duplicates();
-        AnatomyTransportReceipts.record(body,contact,surface,root,first,materialBefore,materialAfter);
+        S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,first,materialBefore,materialAfter));
         h.assertTrue(AnatomyTransportReceipts.history(body,body.getUUID()).size()==1 && AnatomyTransportReceipts.metrics().duplicates()==duplicates+1,
             "Only the same applied transport serial is deduplicated");
         body.setPos(body.position().add(delta));
         var second=new SupportTransport(tick,12,root.sequence(),delta.scale(2),delta);
-        AnatomyTransportReceipts.record(body,contact,surface,root,second,materialAfter,materialAfter.move(delta));
+        S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,second,materialAfter,materialAfter.move(delta)));
         h.assertTrue(AnatomyTransportReceipts.history(body,body.getUUID()).size()==2,
             "A second animated material contribution with unchanged contact/root provenance is retained");
         AnatomyTransportReceipts.invalidate(body);
         h.assertTrue(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Lifecycle invalidation removes retained receipt without transport");
-        authority.close();support.discard();body.discard();h.succeed();
+        support.discard();body.discard();h.succeed();
     }
     @GameTest(maxTicks=60)
     public void receiptSaturationRetainsEachTickForTheFullWindow(GameTestHelper h) {
@@ -260,7 +259,7 @@ public final class AnatomyNetworkingTests {
         body.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         body.setPos(3,20,2);long firstTick=h.getLevel().getGameTime();
         var authority=S24TrackingAuthorityTestSeam.acquire(body,body);
-        Runnable cleanup=()->{authority.close();support.discard();body.discard();};
+        Runnable cleanup=()->{support.discard();body.discard();};
         try {
             saturateReceiptTick(body,support,1000);
             h.assertTrue(AnatomyTransportReceipts.saturated(body,body.getUUID(),firstTick),
@@ -291,7 +290,7 @@ public final class AnatomyNetworkingTests {
         var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new org.joml.Matrix4f()).move(support.position());
         for(int index=0;index<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;index++) {
             var transport=new SupportTransport(tick,sequenceBase+index,root.sequence(),Vec3.ZERO,Vec3.ZERO);
-            AnatomyTransportReceipts.record(body,contact,surface,root,transport,material,material);
+            S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,transport,material,material));
         }
     }
 }
