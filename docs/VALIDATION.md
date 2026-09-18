@@ -732,3 +732,28 @@ The earlier full campaign run **`35104004704`** on `a02e04f...` was also green a
 This evidence proves the current pre-target FR-018 boundary: after a geometry engine emits common geometry, physical behavior is family/metadata-opaque under the exercised raycast/sweep paths, and current production contains no DisplayRig/display-composite hardcode. It does **not** prove extraction or semantics of a future real DisplayRig target. The nominal source gate is intentionally temporary and must be refined or retired with new evidence when such a target actually lands, not bypassed with silent exceptions.
 
 **S23 is independently closed and G3 task 7 is closed.**
+
+## G2 / FR-053 late push reopening — final adversarial recertification 2026-09-18
+
+The late FR-053 reopening separated geometric blocker ownership from vanilla pairwise `Entity.push`. The original READY holdout proved that cancelling push for a managed material pair erased the vanilla impulse. A later adversarial handoff holdout then exposed a second boundary: legacy `PlatformState.support` acquired before READY could survive until the next cleanup tick and continue cancelling push after shared physics had already taken ownership.
+
+Final production repair: **`1437795ce18689282b4532fc3644bc4566cd1f58`** (`fix(g2): release legacy push guard on anatomy handoff`).
+
+The adversarial oracle was hardened in **`5b4b516b0d460671d15ec6e53fe42011dff85a9d`** so the same production-acquired pair proves both sides of the ownership cut: before shared ownership, legacy support still suppresses pair push; immediately after READY handoff, without waiting for a cleanup tick, both caller directions reproduce the previously measured vanilla response exactly.
+
+Final push evidence:
+
+- `g2-vanilla-push-proof` run **`35327758929`**, job **`105544729000`**: success;
+- ordinary build on the same SHA: **`35327758984`**: success;
+- artifact **`10539368207`**, SHA-256 **`865ff29a05c58c7f4205f11713c005d5e000352abaf5eab4bbfd0417d4095c6b`**.
+
+The no-wall lane was also hardened to trigger on `PlatformEntityMixin.java` changes in **`47db343dde7db545e48f39f548840956977ab9ad`**. Its recertification run **`35327844908`**, job **`105545001610`**, passed; build **`35327844879`** also passed. Artifact **`10539502957`**, SHA-256 **`4a4c8f7159217a2804d98da7fb749847bccddf914c153968cabc7297390ceb45`**.
+
+The single-geometric-owner proof on the production fix itself remained green in run **`35205403082`**: normal job **`105149830359`** and `pair-suppression-mutant-must-die` job **`105149830787`** both succeeded. Normal artifact **`10489777286`**, SHA-256 **`4f4ed28a6f592f0075607a17dfa12d1923d3c4ea9492e5dd2af5be927ecf1077`**; mutant artifact **`10489462405`**, SHA-256 **`ec93434638b9b1c89348823f81abc6d3fb0af43552d3018a3969f1e2b2859a2f`**.
+
+A compare from `1437795...` to `47db343...` contains only the adversarial GameTest hardening and CI trigger change; no later `src/main` or `src/client` change exists.
+
+The contemporaneous S08 prepared/boat red lanes are not attributed to this repair: the boat lane already failed with the same assertion on earlier SHA `bdbd267d2862e55533609dfda9c229906e82bd1b` (run `35130296400`) before `1437795`. They remain separate evidence/debt and are not used to weaken or inflate the FR-053 result.
+
+**Final conclusion:** FR-053/FR-093 are adversarially recertified: ineligible pairs gain no anatomical wall; eligible pairs retain one anatomical geometric blocker; the geometric-suppression mutant is killed; vanilla `Entity.push` is preserved exactly once; and legacy→READY ownership changes immediately without waiting for the next tick. **G2 task 10 and the global G2 gate are closed again.**
+
