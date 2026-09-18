@@ -117,6 +117,8 @@ El mismo mecanismo debe distinguir player local de vehículo realmente controlad
 
 El server debe derivar el body permitido desde `context.player()` y control authority, no confiar en un arbitrary body id enviado por cliente.
 
+**Holdout adversarial recomendado:** boat con dos `ServerPlayer` pasajeros. El store de receipts emite provenance a ambos indirect passengers, de modo que los dos pueden poseer un receipt server-issued del mismo body; sólo `getControllingPassenger()` tiene autoridad de movimiento. La referencia del segundo pasajero debe rechazarse sin consumir ni invalidar el receipt del controlador. Esto evita el falso diseño “receipt existe ⇒ cliente autorizado”.
+
 ### G. Bound y schema
 
 El payload C2S debe ser:
