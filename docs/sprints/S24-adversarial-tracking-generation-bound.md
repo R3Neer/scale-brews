@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **BOUND DE MEMORIA CERRADO / INTEGRATION-REVIVAL RED PRODUCTIVO**.
+Estado: **CERRADO ADVERSARIALMENTE — BOUND + INTEGRACIÓN CAUSAL**.
 
 ## 1. Hallazgo original
 
@@ -82,3 +82,17 @@ Run `35329517023`, job `105550355468`: **failure causal** con `observed=1 on tic
 La causa es directa: la façade pública de observación llama a `generation(...)`, que ejecuta `TrackingGenerationLedger.acquire(...)`. Por tanto una consulta puede crear la autoridad que pretende observar.
 
 La memoria/boundedness del ledger sigue certificada por la campaña anterior; lo reabierto es **la integración causal de adquisición vs lectura**. Detalle y handoff en `S24-adversarial-tracking-read-revival-red.md`.
+
+## 7. Cierre de la costura de integración
+
+El RED de lectura impura se reparó en `256ab44...` y `99969cc...`: observación y adquisición son operaciones distintas, y el bootstrap de un runtime tardío materializa únicamente ventanas justificadas por tracking vanilla ya existente.
+
+La campaña final `s24-adversarial-tracking-read-purity`, run `35333686648`, mata tanto la restauración de `1` sin runtime como la mutación que vuelve a usar `acquire(...)` desde la façade de lectura.
+
+Por tanto las dos propiedades que este documento separaba quedan cerradas simultáneamente:
+
+- retención de memoria acotada y generaciones no reutilizables;
+- ausencia de revival de autoridad por consultas tardías.
+
+El tracking-generation ledger queda cerrado como subcontrato de G3.9.
+
