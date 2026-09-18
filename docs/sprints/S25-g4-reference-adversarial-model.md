@@ -158,3 +158,27 @@ G4.1 sólo puede marcarse cerrado cuando exista un camino C2S real y bounded que
 - quede cubierto por happy path + negativos + mutation-kills.
 
 Hasta entonces, **G4.1 permanece RED por capacidad ausente**.
+
+## 8. Frontera estructural previa al implementer
+
+La ausencia de capacidad no deja el diseño sin protección. Antes de que exista el primer candidate C2S se añadió un gate independiente para impedir dos atajos inválidos:
+
+1. **borrow legacy**: ningún código `collision/**` puede depender de `PlatformMovePayload` o `PlatformMovementReference`; además la ruta legacy debe seguir saliendo/limpiando bajo `AnatomyApi.ownsSharedPhysics(...)`;
+2. **rich client authority**: cualquier payload registrado en `PayloadTypeRegistry.serverboundPlay()` bajo `collision/**` se sigue hasta su clase de schema y no puede contener `AnatomyContactPayload`, `AnatomyPosePayload`, `SurfaceContact`, geometry/snapshots/endpoints, pose inputs, root frames/transforms, matrices/quaternions ni campos de contacto material como `localPoint`/normal.
+
+El gate no exige nombre de clase, forma exacta de la clave ni algoritmo de lookup. Sólo fija que la futura referencia sea metadata y que el receipt server-side siga siendo la autoridad.
+
+Workflow `s25-adversarial-reference-authority`, run **`35383169968`**:
+
+- baseline `reference-authority-boundary`, job **`105723887331`** — success;
+- `legacy-borrow-mutant-must-die`, job **`105723934416`** — el mutante compiló y fue rechazado;
+- `rich-authority-mutant-must-die`, job **`105723934423`** — registra como serverbound el payload de contacto autoritativo, compila y el gate lo mata.
+
+Ordinary sobre el mismo snapshot de hardening, run **`35383169917`**, job **`105723885840`** — success; artifact **`10562113085`**, SHA-256 **`156c1d83b7d1d2293af815b0e0c7d767ae34d0922e2d7037521e68833718c0d2`**.
+
+### Observación sobre identidad de receipt
+
+`SupportTransport.sequence` es un cursor body-local; una discontinuidad que puede reiniciarlo pasa por `AnatomyMovement.invalidateBody(...)`, que primero ejecuta `clear(body)` y ésta invalida los receipts. Por tanto no se ha encontrado un alias histórico que obligue a transmitir geometry/contacto en la referencia. La implementación sigue siendo libre de elegir la clave metadata adecuada, pero debe validar el receipt exacto y los ejes lifecycle exigidos por este modelo.
+
+**Estado:** G4.1 continúa RED exclusivamente porque la superficie C2S/validator no existe todavía. Las fronteras que impedirían una implementación insegura ya están activas y mutation-sensitive.
+
