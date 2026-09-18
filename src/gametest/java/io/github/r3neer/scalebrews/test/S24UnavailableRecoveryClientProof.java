@@ -4,6 +4,8 @@ import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetwork
 import io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyFrameHistory;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyPosePayload;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import java.util.List;
@@ -53,9 +55,17 @@ public final class S24UnavailableRecoveryClientProof implements FabricClientGame
                 if(client.level==null)return false;
                 var entity=client.level.getEntity(cowId.get());
                 if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))return false;
-                return AnatomyClientNetworking.presentationFrame(cow).isEmpty()
+                var endpoint=acceptedEndpointFrame(cowUuid.get());
+                return endpoint!=null && !endpoint.available() && endpoint.frameSerial()>initial.frameSerial()
+                    && AnatomyClientNetworking.presentationFrame(cow).isEmpty()
                     && AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isEmpty();
-            },180);
+            },90);
+            long unavailableSerial=context.computeOnClient(client->{
+                var endpoint=acceptedEndpointFrame(cowUuid.get());
+                if(endpoint==null || endpoint.available() || endpoint.frameSerial()<=initial.frameSerial())
+                    throw new AssertionError("Unsupported pose never accepted an explicit newer UNAVAILABLE endpoint");
+                return endpoint.frameSerial();
+            });
             context.runOnClient(client->{
                 var entity=client.level==null?null:client.level.getEntity(cowId.get());
                 if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))
@@ -72,14 +82,15 @@ public final class S24UnavailableRecoveryClientProof implements FabricClientGame
                 if(client.level==null)return false;
                 var entity=client.level.getEntity(cowId.get());
                 if(!(entity instanceof Cow cow) || !cow.getUUID().equals(cowUuid.get()))return false;
-                var history=AnatomyClientNetworking.pose(cowUuid.get());var packet=history==null?null:history.current();
-                return packet!=null && packet.available() && packet.frameSerial()>initial.frameSerial()
+                var packet=acceptedEndpointFrame(cowUuid.get());
+                return packet!=null && packet.available() && packet.frameSerial()>unavailableSerial
                     && AnatomyClientNetworking.presentationFrame(cow).isPresent()
                     && AnatomyClientNetworking.geometry(cow,client.level.getGameTime()).isPresent();
             },220);
 
             context.runOnClient(client->{
-                var packet=AnatomyClientNetworking.pose(cowUuid.get()).current();
+                var packet=acceptedEndpointFrame(cowUuid.get());
+                if(packet==null)throw new AssertionError("Recovery lost the accepted endpoint frame");
                 if(!initial.epoch().equals(packet.epoch()) || initial.revision()!=packet.revision())
                     throw new AssertionError("Recovery changed the accepted catalog identity");
                 if(initial.bindingGeneration()!=packet.bindingGeneration())
@@ -88,8 +99,8 @@ public final class S24UnavailableRecoveryClientProof implements FabricClientGame
                     throw new AssertionError("Recovery fabricated a recipient retrack instead of resuming the active tracking window");
                 if(initial.entityId()!=packet.entityId() || !packet.entity().equals(cowUuid.get()))
                     throw new AssertionError("Recovery changed the physical support identity");
-                if(packet.frameSerial()<=initial.frameSerial())
-                    throw new AssertionError("Recovery reused the pre-unavailable causal frame serial");
+                if(packet.frameSerial()<=unavailableSerial)
+                    throw new AssertionError("Recovery did not advance beyond the explicit UNAVAILABLE causal frame serial");
             });
 
             System.out.println("S24_UNAVAILABLE_RECOVERY PASS supported -> unavailable -> supported recovered with stable catalog/binding/tracking identity");
@@ -97,6 +108,19 @@ public final class S24UnavailableRecoveryClientProof implements FabricClientGame
         finally {
             try {world.getServer().runOnServer(AnatomyRuntime::stop);world.close();}
             catch(Throwable cleanup) {if(failure!=null)failure.addSuppressed(cleanup);else if(cleanup instanceof RuntimeException runtime)throw runtime;else throw new AssertionError("S24 unavailable recovery cleanup failed",cleanup);}
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static AnatomyPosePayload acceptedEndpointFrame(UUID entity) {
+        try {
+            var field=AnatomyClientNetworking.class.getDeclaredField("frames");
+            field.setAccessible(true);
+            var frames=(Map<UUID,AnatomyFrameHistory>)field.get(null);
+            var history=frames.get(entity);
+            return history==null?null:history.current();
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect accepted endpoint frame for S24 unavailable proof",failure);
         }
     }
 
