@@ -47,3 +47,133 @@ jobs:
             build/s22-adversarial-coverage-provenance-junit.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  provenance-bypass-mutant-must-die:
+    needs: forged-coverage-provenance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S22 forged coverage provenance holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.catalog.S22AdversarialCoverageProvenanceTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: disable only the provenance acceptance fence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageDiscovery.java')
+          s=p.read_text()
+          old='if (provenance != SCANNER_PROVENANCE && !coverage.rows().isEmpty())'
+          new='if (false && provenance != SCANNER_PROVENANCE && !coverage.rows().isEmpty())'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: forged classifications must kill provenance-bypass mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s22-provenance-bypass-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: forged classifications resolved after provenance fence removal"
+            exit 1
+          fi
+          echo "KILLED: forged classifications exposed provenance fence removal"
+      - name: capture bypass mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S22-provenance-bypass-mutant
+          path: |
+            build/s22-provenance-bypass-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  provenance-issuance-mutant-must-die:
+    needs: forged-coverage-provenance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S22 forged coverage provenance holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.catalog.S22AdversarialCoverageProvenanceTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: drop only canonical scanner provenance issuance
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageDiscovery.java')
+          s=p.read_text()
+          old='return new Artifact(target, coverage, SCANNER_PROVENANCE);'
+          new='return new Artifact(target, coverage);'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: canonical positive control must kill issuance mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s22-provenance-issuance-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: canonical scanner artifact resolved without scanner provenance issuance"
+            exit 1
+          fi
+          echo "KILLED: canonical positive control exposed missing provenance issuance"
+      - name: capture issuance mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S22-provenance-issuance-mutant
+          path: |
+            build/s22-provenance-issuance-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
