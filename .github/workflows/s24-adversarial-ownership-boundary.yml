@@ -1,0 +1,103 @@
+name: s24-adversarial-ownership-boundary
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s24-adversarial-ownership-boundary.yml'
+      - 'tools/s24_ownership_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyEndpointLedger.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrameLedger.java'
+  workflow_dispatch:
+
+jobs:
+  ownership-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: verify extracted root and endpoint owners
+        run: python3 tools/s24_ownership_gate.py
+
+  duplicate-root-owner-mutant-must-die:
+    needs: ownership-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject duplicate root-history owner into AnatomyMovement
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          s=p.read_text()
+          marker='public final class AnatomyMovement {'
+          injected=marker+'\n    private static final Map<LivingEntity,ArrayDeque<RootFrame>> S24_DUPLICATE_ROOT_HISTORY=entityMap();'
+          count=s.count(marker)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,injected,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: ownership gate must kill duplicate root owner
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s24_ownership_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: duplicate RootFrame history owner inside AnatomyMovement'
+            exit 1
+          fi
+          echo 'KILLED: duplicate RootFrame history owner'
+
+  duplicate-endpoint-owner-mutant-must-die:
+    needs: ownership-boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: inject duplicate endpoint owner into AnatomyMovement
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          s=p.read_text()
+          marker='public final class AnatomyMovement {'
+          injected=marker+'\n    private static final Map<LivingEntity,GeometryProvider.CausalEndpoint> S24_DUPLICATE_ENDPOINT_SERIALS=entityMap();'
+          count=s.count(marker)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(marker,injected,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: ownership gate must kill duplicate endpoint owner
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s24_ownership_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: duplicate CausalEndpoint owner inside AnatomyMovement'
+            exit 1
+          fi
+          echo 'KILLED: duplicate CausalEndpoint owner'
