@@ -2,7 +2,7 @@
 
 Rol: **ADVERSARY**.
 
-Estado: **RED reproducible / defecto de producción aislado**.
+Estado: **HISTÓRICO RED → CERRADO TRAS REVALIDACIÓN ADVERSARIAL**.
 
 ## Hallazgo inicial en ordinary
 
@@ -86,3 +86,12 @@ El defecto no está cerrado hasta que:
 1. `S24AdversarialRuntimePlayerIterationTests` pase sin modificar su expectativa;
 2. el build ordinary que incluye `S24RuntimeReloadTests` vuelva a verde;
 3. las lanes focales/mutation-kill de reload permanezcan verdes.
+
+## Resolución posterior
+
+Producción dejó de iterar la lista viva de jugadores durante `AnatomyRuntime.reset(...)` y pasó a recorrer una snapshot estable antes de llamar a `catalog(...)`, permitiendo que un recipient incompatible sea desconectado sin invalidar la enumeración.
+
+El holdout aislado original se reejecutó sin modificar su expectativa en workflow `s24-player-iteration-revalidation`, run **`35131477985`**: **success**.
+
+**Clasificación vigente:** el `ConcurrentModificationException` de bootstrap/reset está cerrado. No participa en el blocker S24 actual.
+
