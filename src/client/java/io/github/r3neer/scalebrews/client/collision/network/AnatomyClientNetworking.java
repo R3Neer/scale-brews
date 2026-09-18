@@ -27,8 +27,9 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,AnatomyContactPayload> presentationContacts=new java.util.HashMap<>();
     private static net.minecraft.client.multiplayer.ClientLevel poseLevel;
     private static long clientTick;
-    private record SentMovementReference(long tick,long transportSequence,long rootFrameSequence) {}
-    private static final java.util.Map<java.util.UUID,SentMovementReference> sentMovementReferences=new java.util.HashMap<>();
+    /** Last server-issued support endpoint actually incorporated by one local carry. */
+    private record PredictedMovementReference(java.util.UUID support,long supportFrameSerial,long localTransportSequence) {}
+    private static final java.util.Map<java.util.UUID,PredictedMovementReference> predictedMovementReferences=new java.util.HashMap<>();
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -94,7 +95,7 @@ public final class AnatomyClientNetworking {
     private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();
-        sentMovementReferences.clear();
+        predictedMovementReferences.clear();
     }
     /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
     private static void clearConnectionTemporal(){
@@ -224,8 +225,23 @@ public final class AnatomyClientNetworking {
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
     /**
-     * Emits at most one metadata cursor for each locally applied transport contribution.
-     * The server derives and authorizes the body; no entity id or physical geometry is uploaded.
+     * Captures the exact server-published support endpoint that a local carry just incorporated.
+     * Multiple delayed server frames may collapse into one client carry; the newest frame remains
+     * the correct cursor for the resulting absolute body position.
+     */
+    private static void captureMovementReference(net.minecraft.world.entity.Entity body,long localTransportSequence) {
+        var contact=AnatomyMovement.contact(body);if(contact==null)return;
+        var support=contact.support();var history=frames.get(support.getUUID());var packet=history==null?null:history.current();
+        if(packet==null || !packet.available() || staleFrames.contains(support.getUUID())
+                || packet.entityId()!=support.getId() || !packet.entity().equals(support.getUUID())
+                || packet.revision()!=contact.revision())return;
+        predictedMovementReferences.put(body.getUUID(),
+            new PredictedMovementReference(support.getUUID(),packet.frameSerial(),localTransportSequence));
+    }
+
+    /**
+     * Emits at most one metadata cursor for the newest server endpoint already incorporated locally.
+     * No client-local tick, root sequence, entity id or physical geometry participates in authority.
      */
     public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
         var player=net.minecraft.client.Minecraft.getInstance().player;
@@ -234,11 +250,13 @@ public final class AnatomyClientNetworking {
         boolean vehicle=body!=player;
         if(!vehicle && player.getRootVehicle()!=player)return;
         if(vehicle && (player.getRootVehicle()!=body || body.getControllingPassenger()!=player))return;
-        var transport=AnatomyMovement.transport(body);if(transport==null)return;
-        var cursor=new SentMovementReference(transport.tick(),transport.sequence(),transport.rootFrameSequence());
-        if(cursor.equals(sentMovementReferences.get(body.getUUID())))return;
-        ClientPlayNetworking.send(new AnatomyMoveReferencePayload(vehicle,cursor.tick(),cursor.transportSequence(),cursor.rootFrameSequence()));
-        sentMovementReferences.put(body.getUUID(),cursor);
+        var reference=predictedMovementReferences.get(body.getUUID());if(reference==null)return;
+        var transport=AnatomyMovement.transport(body);
+        if(transport==null || transport.sequence()!=reference.localTransportSequence()) {
+            predictedMovementReferences.remove(body.getUUID());return;
+        }
+        ClientPlayNetworking.send(new AnatomyMoveReferencePayload(vehicle,reference.support(),reference.supportFrameSerial()));
+        predictedMovementReferences.remove(body.getUUID());
     }
 
     private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
@@ -273,7 +291,13 @@ public final class AnatomyClientNetworking {
             bindPhysics();
             if(poseLevel!=null) {
                 AnatomyMovement.tickGeometry(poseLevel);
-                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);
+                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null) {
+                    var before=AnatomyMovement.transport(entity);
+                    AnatomyMovement.carry(entity);
+                    var after=AnatomyMovement.transport(entity);
+                    if(after!=null && (before==null || after.sequence()!=before.sequence()))
+                        captureMovementReference(entity,after.sequence());
+                }
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
