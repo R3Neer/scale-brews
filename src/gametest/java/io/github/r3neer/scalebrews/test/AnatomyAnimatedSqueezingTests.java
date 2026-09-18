@@ -197,7 +197,6 @@ public class AnatomyAnimatedSqueezingTests {
         support.setNoAi(true);
         support.setNoGravity(true);
         var body = smallServerPlayer(h);
-        var authority = S24TrackingAuthorityTestSeam.acquire(body, body);
         var initialMaxX = support.getX() + JOINT_FLOOR.maxX;
         var provider = new AnimatedProvider(jointFloorMotion(support, initialMaxX, initialMaxX));
         AnatomyMovement.activate(h.getLevel());
@@ -217,10 +216,10 @@ public class AnatomyAnimatedSqueezingTests {
             long duplicates = AnatomyTransportReceipts.metrics().duplicates();
             provider.motion = jointFloorMotion(support, initialMaxX, initialMaxX + .2);
             h.assertTrue(provider.motion.linearTranslation().equals(Vec3.ZERO), "First contribution is local joint motion");
-            AnatomyMovement.carry(body);
+            S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyMovement.carry(body));
             var first = AnatomyMovement.transport(body);
             provider.motion = jointFloorMotion(support, initialMaxX + .2, initialMaxX + .4);
-            AnatomyMovement.carry(body);
+            S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyMovement.carry(body));
             var second = AnatomyMovement.transport(body);
             var receipts = AnatomyTransportReceipts.history(body, body.getUUID());
 
@@ -241,7 +240,6 @@ public class AnatomyAnimatedSqueezingTests {
                     && AnatomyTransportReceipts.metrics().duplicates() == duplicates,
                 "Real post-baseline joint carries retain two distinct material receipts without synthetic record calls");
         } finally {
-            authority.close();
             AnatomyMovement.deactivate(h.getLevel());
             support.discard();
             body.discard();
