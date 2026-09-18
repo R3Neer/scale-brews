@@ -98,7 +98,8 @@
       "io.github.r3neer.scalebrews.collision.internal.S24AdversarialHistoryRestartTests",
       "io.github.r3neer.scalebrews.collision.internal.S24AdversarialFrameOrderTests",
       "io.github.r3neer.scalebrews.collision.internal.S24AdversarialTrackingGenerationLedgerTests",
-      "io.github.r3neer.scalebrews.collision.internal.S24RuntimeReloadTests"
+      "io.github.r3neer.scalebrews.collision.internal.S24RuntimeReloadTests",
+      "io.github.r3neer.scalebrews.collision.internal.S25ReceiptAuthorityIsolationTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
