@@ -73,8 +73,46 @@ jobs:
             build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
 
+  same-window-ordering-owner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S24 same-window ordering owner holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S24AdversarialFrameOrderTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run same-window ordering owner holdout
+        run: ./gradlew runGameTest --console=plain \
+          -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s24-frame-order-baseline.xml"
+      - name: capture owner evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S24-frame-order-baseline
+          path: |
+            build/s24-frame-order-baseline.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
   stale-order-mutant-must-die:
-    needs: late-tracking-order
+    needs: [late-tracking-order, same-window-ordering-owner]
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
