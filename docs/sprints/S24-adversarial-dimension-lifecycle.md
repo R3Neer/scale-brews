@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **SUBCONTRATO DE DIMENSIÓN CERRADO PARCIALMENTE / REPLAY EXPLÍCITO AÚN PENDIENTE**.
+Estado: **SUBCONTRATO DE DIMENSIÓN CERRADO ADVERSARIALMENTE**.
 
 ## 1. Contrato observado
 
@@ -51,3 +51,15 @@ No se considera cerrado el replay completo de dimensión hasta inyectar o reprod
 El adversario no exige conservar el mismo `AnatomyFrameHistory` ni una implementación concreta de tombstones. Cualquier diseño que rechace ese replay y mantenga memoria acotada es válido.
 
 G3.9 sigue además abierto por reconnect, reload válido/inválido, orden live de replacement y el bound NFR-011 del ledger server-side de `trackingGeneration`.
+
+## 5. Cierre posterior del replay explícito
+
+La deuda que este documento dejaba abierta quedó cubierta después por dos holdouts integrados:
+
+- pose pre-barrera A→B→A: run **`35130391518`**, verde;
+- contacto pre-barrera A→B→A: run **`35130391543`**, verde.
+
+La campaña de mutación de dimensión se reancló posteriormente al owner actual del ledger y volvió a quedar íntegramente verde en run **`35329062829`**: baseline, tracking-generation mutant y catalog-scope mutant.
+
+**Conclusión vigente:** dimensión, replay de pose/contacto y scope del catálogo quedan cerrados como subcontrato. G3.9 sigue abierto por la costura independiente de tracking read-purity.
+
