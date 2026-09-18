@@ -138,8 +138,15 @@ jobs:
           new='contacts.clearPending();presentationContacts.clear();'
           count=s.count(old)
           if count != 1:
-              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
-          p.write_text(s.replace(old,new,1))
+              raise SystemExit(f'clearLevelMaterial mutation target count: {count}, expected exactly 1')
+          s=s.replace(old,new,1)
+
+          old_pose='poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);'
+          new_pose='poses.get(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);'
+          count=s.count(old_pose)
+          if count != 1:
+              raise SystemExit(f'discardSupportMaterial mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old_pose,new_pose,1))
           PY
       - name: mutant must compile
         run: ./gradlew compileJava compileClientJava compileGametestJava --no-daemon --console=plain
