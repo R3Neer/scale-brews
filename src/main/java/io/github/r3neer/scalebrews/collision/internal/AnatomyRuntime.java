@@ -91,6 +91,7 @@ public final class AnatomyRuntime {
         ServerPlayConnectionEvents.DISCONNECT.register((handler,server)->{
             var state=STATES.get(server);if(state!=null){state.sent.remove(handler.player);state.contacts.remove(handler.player);state.trackingGenerations.remove(handler.player);}
             AnatomyTransportReceipts.disconnect(handler.player);
+            AnatomyMovementReference.disconnect(handler.player);
         });
     }
     public static void start(MinecraftServer server) {
@@ -119,7 +120,8 @@ public final class AnatomyRuntime {
     }
     private static void reset(MinecraftServer server,State state) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
-        state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();AnatomyTransportReceipts.clear(server);
+        state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();
+        AnatomyTransportReceipts.clear(server);AnatomyMovementReference.clear(server);
         var snapshot=state.catalog.snapshot();
         AnatomyNetworking.acceptCatalogRevision(server,snapshot.revision());
         // Materialize the immutable packet list now so the first player does no catalog preparation work.
@@ -157,7 +159,7 @@ public final class AnatomyRuntime {
     }
     public static void stop(MinecraftServer server) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
-        AnatomyTransportReceipts.clear(server);
+        AnatomyTransportReceipts.clear(server);AnatomyMovementReference.clear(server);
         if(STATES.remove(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);
     }
     /** Server half of {@link AnatomySession}: running catalog session, not an own-support test. */
