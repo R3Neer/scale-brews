@@ -893,3 +893,19 @@ This is an **expected capability-absence RED**, not a regression. The temporary 
 
 Threat model and required happy/negative/mutation cases: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
+## G4 / S25 reference authority baseline — 2026-09-18
+
+G4.1 opens with an intentional capability RED: server-side `AnatomyTransportReceipts` exist and are bounded, but no non-legacy anatomy/collision C2S reference receiver is registered.
+
+Presence evidence: workflow `s25-adversarial-reference-presence`, run **`35337131202`**, job **`105574448871`**, fails exactly with `no non-legacy anatomy/collision C2S receiver is registered`. Ordinary on that snapshot, run **`35337131192`**, job **`105574448591`**, passed **442/442 required GameTests**.
+
+A separate structural authority gate remains green while capability is absent and will continue to constrain the first implementation. Run **`35383169968`**:
+
+- baseline authority boundary job **`105723887331`**: success;
+- legacy-borrow mutant **`105723934416`**: compiling mutant killed when collision code depends on `PlatformMovePayload`;
+- rich-authority mutant **`105723934423`**: compiling mutant killed after registering the server-confirmed contact payload as serverbound authority.
+
+Ordinary after the hardened gate, run **`35383169917`**, job **`105723885840`**, is green; artifact **`10562113085`**, SHA-256 **`156c1d83b7d1d2293af815b0e0c7d767ae34d0922e2d7037521e68833718c0d2`**.
+
+**Interpretation:** G4.1 remains RED because the metadata-only C2S reference/validator is absent. The current evidence already rejects two invalid closure strategies: borrowing the legacy movement reference path or allowing client-uploaded geometry/contact/pose authority. Behavioral closure still requires exactly-once, TTL/saturation, lifecycle cross-product, controlled-body authority and no double-apply.
+
