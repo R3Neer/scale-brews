@@ -152,8 +152,11 @@ public final class S25AdversarialReferenceBehaviorTests {
             // Saturated ticks are historical evidence but never admissible reference authority.
             var saturated=(ServerPlayer)h.makeMockServerPlayerInLevel();saturated.setPos(5,4,2);
             long saturatedFrame=100;
-            for(int sequence=1;sequence<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK+1;sequence++)
+            for(int sequence=1;sequence<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;sequence++)
                 record(saturated,saturated,support,1,saturatedFrame+sequence-1,sequence,new Vec3(.015625,0,0));
+            recordUnverified(saturated,saturated,support,1,
+                saturatedFrame+AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,
+                AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK+1,new Vec3(.015625,0,0));
             long saturatedTick=h.getLevel().getGameTime();
             h.assertTrue(AnatomyTransportReceipts.saturated(saturated,saturated.getUUID(),saturatedTick),
                 "Fixture must saturate the exact recipient/body/tick before testing reference rejection");
@@ -240,6 +243,14 @@ public final class S25AdversarialReferenceBehaviorTests {
 
     private static AnatomyTransportReceipts.Receipt record(ServerPlayer recipient,Entity body,LivingEntity support,
             long trackingGeneration,long supportFrameSerial,long sequence,Vec3 applied) {
+        recordUnverified(recipient,body,support,trackingGeneration,supportFrameSerial,sequence,applied);
+        return AnatomyTransportReceipts.history(recipient,body.getUUID()).stream()
+            .filter(receipt->receipt.transportSequence()==sequence).findFirst()
+            .orElseThrow(()->new AssertionError("Fixture failed to issue referenceable receipt sequence "+sequence));
+    }
+
+    private static void recordUnverified(ServerPlayer recipient,Entity body,LivingEntity support,
+            long trackingGeneration,long supportFrameSerial,long sequence,Vec3 applied) {
         body.setPos(body.position().add(applied));
         long tick=body.level().getGameTime();
         long revision=AnatomyNetworking.revision(body.level().getServer());
@@ -253,9 +264,6 @@ public final class S25AdversarialReferenceBehaviorTests {
         TransportLedger.record(body,transport);
         S24TrackingAuthorityTestSeam.run(recipient,body,trackingGeneration,
             ()->AnatomyTransportReceipts.record(body,contact,surface,root,supportFrameSerial,transport,materialBefore,materialAfter));
-        return AnatomyTransportReceipts.history(recipient,body.getUUID()).stream()
-            .filter(receipt->receipt.transportSequence()==sequence).findFirst()
-            .orElseThrow(()->new AssertionError("Fixture failed to issue referenceable receipt sequence "+sequence));
     }
 
     private static void recordForTwoRecipients(ServerPlayer first,ServerPlayer second,Entity body,LivingEntity support,
