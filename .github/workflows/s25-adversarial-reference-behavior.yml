@@ -176,18 +176,18 @@ jobs:
 
           elif mutation=='epoch-fence':
               replace(receipts,
-                  ' && receipt.epoch().equals(AnatomyNetworking.epoch(server))',
-                  '')
+                  '!match.epoch().equals(AnatomyNetworking.epoch(server))',
+                  'false')
 
           elif mutation=='dimension-fence':
               replace(receipts,
-                  ' && receipt.dimension().equals(body.level().dimension().identifier())',
-                  '')
+                  '!match.dimension().equals(body.level().dimension().identifier())',
+                  'false')
 
           elif mutation=='network-id-fence':
               replace(receipts,
-                  ' && receipt.bodyNetworkId()==body.getId()',
-                  '')
+                  'match.bodyNetworkId()!=body.getId()',
+                  'false')
 
           else:
               raise SystemExit(f'unknown mutation: {mutation}')
