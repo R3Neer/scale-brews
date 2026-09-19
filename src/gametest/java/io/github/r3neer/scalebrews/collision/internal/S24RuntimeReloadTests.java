@@ -37,7 +37,7 @@ public final class S24RuntimeReloadTests {
                 "Catalog reload must not replace the live Minecraft entity instance/network identity");
             h.assertTrue(!AnatomyBindingState.current(cow,before) && AnatomyBindingState.snapshot(cow)==null,
                 "Accepted revision without a default cow anatomy selection must retire the old provider/descriptor/binding slot");
-            h.assertTrue(!AnatomyRuntime.owns(cow) && AnatomyMovement.publishedFrame(cow).isEmpty(),
+            h.assertTrue(!AnatomyRuntime.ownsSupportBinding(cow) && AnatomyMovement.publishedFrame(cow).isEmpty(),
                 "Retired pre-reload authority must not remain publishable after the accepted catalog discontinuity");
             h.assertTrue(AnatomyRuntime.catalogBinding(cow).isEmpty(),
                 "The installed GameTest catalog intentionally has no default cow selection; reload must not fabricate one");
@@ -59,7 +59,7 @@ public final class S24RuntimeReloadTests {
             AnatomyRuntime.reload(server,validResourceManager(server.getResourceManager(),afterFixture));
 
             var after=AnatomyBindingState.snapshot(cow);
-            h.assertTrue(after!=null && after.causal() && AnatomyRuntime.owns(cow),
+            h.assertTrue(after!=null && after.causal() && AnatomyRuntime.ownsSupportBinding(cow),
                 "Accepted executable candidate must rebind the still-live cow into the new runtime revision");
             h.assertTrue(cow.getUUID().equals(uuid) && cow.getId()==entityId,
                 "Runtime rebind must preserve Minecraft UUID/network identity rather than replacing the entity");
@@ -82,7 +82,7 @@ public final class S24RuntimeReloadTests {
         try {
             AnatomyRuntime.startPrepared(server,fixture.models(),fixture.profiles());
             var before=AnatomyBindingState.snapshot(cow);
-            h.assertTrue(before!=null && before.causal() && AnatomyRuntime.owns(cow),
+            h.assertTrue(before!=null && before.causal() && AnatomyRuntime.ownsSupportBinding(cow),
                 "Prepared baseline must install one live causal cow binding before failure injection");
             long beforeRevision=AnatomyNetworking.revision(server);
 
@@ -99,7 +99,7 @@ public final class S24RuntimeReloadTests {
                 "Rejected runtime reload must preserve the exact accepted slot, not reconstruct an equivalent-looking replacement");
             h.assertTrue(AnatomyNetworking.revision(server)==beforeRevision,
                 "Rejected candidate must not advance the server publication revision");
-            h.assertTrue(AnatomyRuntime.owns(cow),"Rejected candidate must leave the accepted support runtime-owned");
+            h.assertTrue(AnatomyRuntime.ownsSupportBinding(cow),"Rejected candidate must leave the accepted support runtime-owned");
         } finally {AnatomyRuntime.stop(server);cow.discard();}
         h.succeed();
     }
