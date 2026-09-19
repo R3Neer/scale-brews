@@ -49,6 +49,30 @@ public final class S25AdversarialReferenceBehaviorTests {
     }
 
     @GameTest
+    public void ambiguousExactReceiptIdentityFailsClosed(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,4,14);
+        support.setNoAi(true);support.setNoGravity(true);
+        var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+        player.setPos(3,4,14);
+        long duplicatedIdentity=750;
+        try {
+            record(player,player,support,1,duplicatedIdentity,1,new Vec3(.03125,0,0));
+            record(player,player,support,1,duplicatedIdentity,2,new Vec3(.0625,0,0));
+            h.assertTrue(AnatomyTransportReceipts.history(player,player.getUUID()).size()==2,
+                "Fixture requires two distinct server receipts sharing one reference identity");
+
+            var claim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->claim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),duplicatedIdentity)));
+            h.assertTrue(claim.get()==null && !consumed(player,player,1) && !consumed(player,player,2),
+                "Ambiguous exact receipt identity must fail closed without arbitrarily consuming either transport");
+        } finally {
+            cleanup(h.getLevel().getServer(),support,player);
+        }
+        h.succeed();
+    }
+
+    @GameTest
     public void oneTickContactAndRootCanContainMultipleDistinctTransportReceipts(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,4,10);
         support.setNoAi(true);support.setNoGravity(true);
