@@ -201,6 +201,28 @@ public final class S25AdversarialReferenceBehaviorTests {
             h.assertTrue(controllerClaim.get()==null,
                 "Controller reference must consume exactly its own receipt authority");
 
+            // Per-recipient rate budget: sixteen rejected metadata attempts may consume only
+            // the attempt budget, never a valid receipt. The seventeenth attempt in the same tick
+            // must fail closed before claim/consumption.
+            var budgetPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();budgetPlayer.setPos(8,4,2);
+            long budgetFrame=400;
+            record(budgetPlayer,budgetPlayer,support,1,budgetFrame,1,new Vec3(.03125,0,0));
+            for(int attempt=0;attempt<AnatomyMovementReference.MAX_REFERENCES_PER_TICK;attempt++) {
+                var miss=new AnatomyMoveReferencePayload(false,support.getUUID(),400_000L+attempt);
+                S24TrackingAuthorityTestSeam.runOwned(budgetPlayer,budgetPlayer,1,
+                    ()->AnatomyMovementReference.accept(budgetPlayer,miss));
+            }
+            h.assertTrue(!pending(budgetPlayer) && !consumed(budgetPlayer,budgetPlayer,1),
+                "Rejected references may spend the rate budget but must not consume unrelated receipt authority");
+            var budgetValid=new AnatomyMoveReferencePayload(false,support.getUUID(),budgetFrame);
+            S24TrackingAuthorityTestSeam.runOwned(budgetPlayer,budgetPlayer,1,
+                ()->AnatomyMovementReference.accept(budgetPlayer,budgetValid));
+            var budgetClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            S24TrackingAuthorityTestSeam.run(budgetPlayer,budgetPlayer,1,
+                ()->budgetClaim.set(AnatomyTransportReceipts.claim(budgetPlayer,budgetPlayer,support.getUUID(),budgetFrame)));
+            h.assertTrue(budgetClaim.get()!=null && !pending(budgetPlayer),
+                "Attempt beyond MAX_REFERENCES_PER_TICK must fail before consuming/staging the valid receipt");
+
             // Catalog revision is part of the claim and staged resolve identity.
             long currentRevision=AnatomyNetworking.revision(server);
             long frameRevision=13;
@@ -228,10 +250,10 @@ public final class S25AdversarialReferenceBehaviorTests {
                         ()->expired.set(AnatomyTransportReceipts.claim(ttlPlayer,ttlPlayer,support.getUUID(),ttlFrame)));
                     h.assertTrue(expired.get()==null,
                         "Receipt at or beyond HISTORY_TICKS must be pruned before reference claim");
-                    cleanup(server,support,player,saturated,controller,passenger,boat,ttlPlayer);
+                    cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,ttlPlayer);
                     h.succeed();
                 } catch(Throwable failure) {
-                    cleanup(server,support,player,saturated,controller,passenger,boat,ttlPlayer);
+                    cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,ttlPlayer);
                     throw failure;
                 }
             });
