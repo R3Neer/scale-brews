@@ -362,20 +362,20 @@ Run final del owner **`35452742190`**:
 
 - baseline `reference-behavior`, job **`105922624414`** — success;
 - **15 mutantes dirigidos compilaron y murieron**:
-  - expired receipt `105920630826`;
-  - lifecycle combinado `105920630835`;
-  - non-controller `105920630836`;
-  - saturated tick `105920630837`;
-  - tracking generation `105920630848`;
-  - rate budget `105920630851`;
-  - fabricated hit `105920630853`;
-  - exactly-once `105920630869`;
-  - pending TTL `105920630890`;
-  - adjacent-frame/fuzzy matching `105920630894`;
-  - network-id fence `105920630900`;
-  - double-apply `105920630901`;
-  - dimension fence `105920630904`;
-  - epoch fence `105920631014`;
+  - expired receipt `105922827704`;
+  - lifecycle combinado `105922827646`;
+  - non-controller `105922827657`;
+  - saturated tick `105922827653`;
+  - tracking generation `105922827754`;
+  - rate budget `105922827739`;
+  - fabricated hit `105922827776`;
+  - exactly-once `105922827715`;
+  - pending TTL `105922827683`;
+  - adjacent-frame/fuzzy matching `105922827685`;
+  - network-id fence `105922827680`;
+  - double-apply `105922827666`;
+  - dimension fence `105922827764`;
+  - epoch fence `105922827678`;
   - ambiguous exact identity `105922827839`.
 
 Los tres fences lifecycle separados tuvieron un ciclo rojo de **oracle** antes de quedar cubiertos: run `35451440249` demostró que epoch/dimension/network-id mutants compilaban y sobrevivían; `S25AdversarialReferenceLifecycleFenceTests` añadió un caso aislado por eje sin modificar producción, y el run final los mata.
