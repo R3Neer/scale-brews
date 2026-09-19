@@ -69,34 +69,18 @@ public final class AnatomyMovementReference {
         var pending=state.pending;state.pending=null; // Exactly one following vanilla packet.
 
         long now=player.level().getGameTime();
-        if(pending.acceptedTick()>now || pending.acceptedTick()+PENDING_TICKS<now) {
-            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info("S25 reference reject: pending ttl accepted={} now={}",pending.acceptedTick(),now);
-            return absolute;
-        }
+        if(pending.acceptedTick()>now || pending.acceptedTick()+PENDING_TICKS<now)return absolute;
         Entity authorized=authorizedBody(player,pending.vehicle());
-        if(authorized!=body || body.isRemoved()) {
-            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info("S25 reference reject: body authority vehicle={} removed={} authorizedSame={}",
-                pending.vehicle(),body.isRemoved(),authorized==body);
-            return absolute;
-        }
+        if(authorized!=body || body.isRemoved())return absolute;
         var server=body.level().getServer();
-        long liveTracking=AnatomyRuntime.trackingGeneration(player,body);
-        long liveTransportGeneration=AnatomyMovement.transportGeneration(body);
         if(server==null || player.level()!=body.level()
                 || body.getId()!=pending.bodyNetworkId() || !body.getUUID().equals(pending.body())
-                || !pending.epoch().equals(server==null?null:AnatomyNetworking.epoch(server))
-                || server==null || pending.revision()!=AnatomyNetworking.revision(server)
+                || !pending.epoch().equals(AnatomyNetworking.epoch(server))
+                || pending.revision()!=AnatomyNetworking.revision(server)
                 || !pending.dimension().equals(body.level().dimension().identifier())
-                || pending.trackingGeneration()!=liveTracking
-                || pending.transportGeneration()!=liveTransportGeneration) {
-            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info(
-                "S25 reference reject: identity server={} sameLevel={} id={}/{} uuid={} epoch={} revision={}/{} dimension={} tracking={}/{} transportGeneration={}/{}",
-                server!=null,player.level()==body.level(),body.getId(),pending.bodyNetworkId(),body.getUUID().equals(pending.body()),
-                server!=null && pending.epoch().equals(AnatomyNetworking.epoch(server)),pending.revision(),server==null?-1:AnatomyNetworking.revision(server),
-                pending.dimension().equals(body.level().dimension().identifier()),pending.trackingGeneration(),liveTracking,
-                pending.transportGeneration(),liveTransportGeneration);
+                || pending.trackingGeneration()!=AnatomyRuntime.trackingGeneration(player,body)
+                || pending.transportGeneration()!=AnatomyMovement.transportGeneration(body))
             return absolute;
-        }
 
         var window=TransportLedger.since(body,pending.transportSequence());
         if(!window.contiguous())return absolute;
