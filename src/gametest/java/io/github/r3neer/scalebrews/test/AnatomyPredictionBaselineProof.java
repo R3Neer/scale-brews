@@ -186,7 +186,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             var receipts=AnatomyTransportReceipts.history(player,body.getUUID());
             evidence.set(new PhaseEvidence(server.overworld().getGameTime(),player.getUUID(),body.getUUID(),body.getId(),
                 fixture.cow.get().getUUID(),AnatomyMovement.contactSequence(body),AnatomyMovement.transport(body)==null?0:AnatomyMovement.transport(body).sequence(),
-                body.position(),body.position().subtract(fixture.cow.get().position()),startRelative,maximumIndependent.get(),List.copyOf(pulseEvidence),receipts,receipts.isEmpty()?null:receipts.getLast()));
+                body.position(),body.position().subtract(fixture.cow.get().position()),startRelative,maximumIndependent.get(),List.copyOf(pulseEvidence),
+                receipts,receipts.isEmpty()?null:receipts.getLast(),consumedReceiptCount(player,body.getUUID())));
         });
         var clientEvidence=context.computeOnClient(client->{
             var player=client.player;
@@ -198,9 +199,9 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
     }
 
     private static void emitPhaseEvidence(String kind,int rtt,PlatformTestLatency.Baseline baseline,PhaseEvidence evidence,ClientEvidence client) {
-        ScaleBrews.LOGGER.info("N2 evidence {} RTT={}ms tick={} player={} body={}#{} support={} contactSeq={} transportSeq={} serverPos={} clientPos={} clientSupported={} relative(start={}, end={}, independent={}) receipt={} packets(player={}, vehicle={}) corrections(player={}, vehicle={}) pending(in={}, out={}) dropped={}",
+        ScaleBrews.LOGGER.info("N2 evidence {} RTT={}ms tick={} player={} body={}#{} support={} contactSeq={} transportSeq={} serverPos={} clientPos={} clientSupported={} relative(start={}, end={}, independent={}) receipt={} consumedReferences={} packets(player={}, vehicle={}) corrections(player={}, vehicle={}) pending(in={}, out={}) dropped={}",
             kind,rtt,evidence.serverTick(),evidence.player(),evidence.body(),evidence.bodyId(),evidence.support(),evidence.contactSequence(),evidence.transportSequence(),evidence.position(),
-            client.position(),client.supported(),evidence.startRelative(),evidence.endRelative(),evidence.maximumIndependent(),evidence.lastReceipt(),
+            client.position(),client.supported(),evidence.startRelative(),evidence.endRelative(),evidence.maximumIndependent(),evidence.lastReceipt(),evidence.consumedReferences(),
             baseline.playerMoves(),baseline.vehicleMoves(),baseline.playerCorrections(),baseline.vehicleCorrections(),baseline.pendingInbound(),baseline.pendingOutbound(),baseline.droppedTraceEvents());
         ScaleBrews.LOGGER.info("N2 trace {} RTT={}ms relevant={}/{} dropped={} packetTotals={} pulses={}",kind,rtt,baseline.trace().size(),baseline.peakTraceEntries(),
             baseline.droppedTraceEvents(),baseline.packetTotals(),evidence.pulses());
@@ -274,6 +275,22 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         return switch(axis) {case 0->piece.vertices().get(1).subtract(origin);case 1->piece.vertices().get(2).subtract(origin);default->piece.vertices().get(4).subtract(origin);};
     }
     @SuppressWarnings("unchecked")
+    private static int consumedReceiptCount(ServerPlayer recipient,java.util.UUID body) {
+        try {
+            var historiesField=AnatomyTransportReceipts.class.getDeclaredField("HISTORIES");
+            historiesField.setAccessible(true);
+            var histories=(Map<ServerPlayer,Map<java.util.UUID,Object>>)historiesField.get(null);
+            var roots=histories.get(recipient);if(roots==null)return 0;
+            var history=roots.get(body);if(history==null)return 0;
+            var consumedField=history.getClass().getDeclaredField("consumedTransportSequences");
+            consumedField.setAccessible(true);
+            return ((java.util.Set<Long>)consumedField.get(history)).size();
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect server receipt consumption metadata",failure);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     private static boolean predictedReferenceStaged(Entity body) {
         try {
             var field=AnatomyClientNetworking.class.getDeclaredField("predictedMovementReferences");
@@ -298,6 +315,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         if(baseline.playerCorrections()!=0 || baseline.vehicleCorrections()!=0)
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" received vanilla correction(s), not a prediction success: "+baseline+" evidence="+evidence);
         assertReferenceOrdering(kind,rtt,baseline);
+        if(evidence.consumedReferences()==0)
+            throw new AssertionError("S25 "+kind+" RTT "+rtt+" emitted references but the server consumed none against live receipts: "+evidence);
         if(evidence.receipts().isEmpty())throw new AssertionError("N2 "+kind+" RTT "+rtt+" had no post-baseline transport receipts: "+evidence);
         double independent=evidence.endRelative().distanceTo(evidence.startRelative());
         if(evidence.maximumIndependent()>.8)
@@ -457,7 +476,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
     private record ServerSupportSample(long tick,boolean supported,Vec3 relative,double planeMargin,double edgeMargin,SupportCursor cursor) {}
     private record PulseStart(int step,boolean forward,PlatformTestLatency.Baseline before) {}
     private record PulseEvidence(int step,boolean forward,long playerMoveDelta,long vehicleMoveDelta,int traceBefore,int traceAfter) {}
-    private record PhaseEvidence(long serverTick,java.util.UUID player,java.util.UUID body,int bodyId,java.util.UUID support,long contactSequence,long transportSequence,Vec3 position,Vec3 endRelative,Vec3 startRelative,double maximumIndependent,List<PulseEvidence> pulses,List<AnatomyTransportReceipts.Receipt> receipts,AnatomyTransportReceipts.Receipt lastReceipt) {}
+    private record PhaseEvidence(long serverTick,java.util.UUID player,java.util.UUID body,int bodyId,java.util.UUID support,long contactSequence,long transportSequence,Vec3 position,Vec3 endRelative,Vec3 startRelative,double maximumIndependent,List<PulseEvidence> pulses,List<AnatomyTransportReceipts.Receipt> receipts,AnatomyTransportReceipts.Receipt lastReceipt,int consumedReferences) {}
     private static final class Fixture {
         final AtomicReference<Cow> cow=new AtomicReference<>();
         final AtomicReference<ServerPlayer> player=new AtomicReference<>();
