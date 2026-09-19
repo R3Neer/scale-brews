@@ -145,20 +145,27 @@ public final class PlatformTestLatency extends ChannelDuplexHandler {
         if(message instanceof ClientboundMoveVehiclePacket packet)
             return "correction="+packet.position()+",yaw="+packet.yRot()+",pitch="+packet.xRot();
         if(message.getClass().getSimpleName().equals("ServerboundCustomPayloadPacket"))
-            return "payload="+customPayloadId(message);
+            return customPayloadDetail(message);
         return "";
     }
 
-    private static String customPayloadId(Object packet) {
+    private static String customPayloadDetail(Object packet) {
         try {
             Object payload=packet.getClass().getMethod("payload").invoke(packet);
-            if(payload==null)return "<null>";
+            if(payload==null)return "payload=<null>";
             Object type=payload.getClass().getMethod("type").invoke(payload);
-            if(type==null)return "<null-type>";
+            if(type==null)return "payload=<null-type>";
             Object id=type.getClass().getMethod("id").invoke(type);
-            return String.valueOf(id);
+            String value=String.valueOf(id);
+            if(value.equals("scalebrews:anatomy_move_reference_v1")) {
+                Object vehicle=payload.getClass().getMethod("vehicle").invoke(payload);
+                Object support=payload.getClass().getMethod("support").invoke(payload);
+                Object frame=payload.getClass().getMethod("supportFrameSerial").invoke(payload);
+                return "payload="+value+",vehicle="+vehicle+",support="+support+",frame="+frame;
+            }
+            return "payload="+value;
         } catch(ReflectiveOperationException inaccessible) {
-            return "<unreadable:"+packet.getClass().getName()+">";
+            return "payload=<unreadable:"+packet.getClass().getName()+">";
         }
     }
 
