@@ -12,6 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /** GameTest-only opt-in tracking authority; inactive unless a fixture explicitly scopes one action. */
 @Mixin(value=AnatomyRuntime.class,remap=false)
 public abstract class TestTrackingAuthorityMixin {
+
+    @Inject(method="owns(Lnet/minecraft/world/entity/Entity;)Z",at=@At("HEAD"),cancellable=true,remap=false)
+    private static void scalebrewsTest$anatomyOwnership(Entity body,CallbackInfoReturnable<Boolean> cir) {
+        if(S24TrackingAuthorityTestSeam.owns(body))cir.setReturnValue(true);
+    }
+
     @Inject(method="trackingGeneration",at=@At("HEAD"),cancellable=true,remap=false)
     private static void scalebrewsTest$trackingAuthority(ServerPlayer recipient,Entity body,CallbackInfoReturnable<Long> cir) {
         long generation=S24TrackingAuthorityTestSeam.generation(recipient,body);
