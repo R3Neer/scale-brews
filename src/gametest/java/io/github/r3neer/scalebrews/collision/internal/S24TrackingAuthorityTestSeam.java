@@ -15,6 +15,7 @@ public final class S24TrackingAuthorityTestSeam {
     private S24TrackingAuthorityTestSeam() {}
 
     private static final Map<ServerPlayer,IdentityHashMap<Entity,Long>> ACTIVE=new IdentityHashMap<>();
+    private static final IdentityHashMap<Entity,Integer> OWNED=new IdentityHashMap<>();
 
     public static void run(ServerPlayer recipient,Entity body,Runnable action) {
         run(recipient,body,1L,action);
@@ -33,6 +34,25 @@ public final class S24TrackingAuthorityTestSeam {
                 if(bodies.isEmpty())ACTIVE.remove(recipient);
             }
         }
+    }
+
+
+    /** G4 GameTest-only seam: scope AnatomyRuntime.owns(body)=true without creating a live session/catalog. */
+    public static void runOwned(ServerPlayer recipient,Entity body,long generation,Runnable action) {
+        if(body==null || action==null)throw new IllegalArgumentException("Missing owned tracking fixture body/action");
+        synchronized(ACTIVE) {
+            OWNED.merge(body,1,Integer::sum);
+            try {
+                run(recipient,body,generation,action);
+            } finally {
+                int remaining=OWNED.getOrDefault(body,0)-1;
+                if(remaining<=0)OWNED.remove(body);else OWNED.put(body,remaining);
+            }
+        }
+    }
+
+    public static boolean owns(Entity body) {
+        synchronized(ACTIVE) {return body!=null && OWNED.containsKey(body);}
     }
 
     /** Called only by the GameTest mixin. Zero means the fixture did not explicitly authorize this pair. */
