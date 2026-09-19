@@ -71,6 +71,7 @@ jobs:
           - non-controller
           - double-apply
           - fabricated-hit
+          - rate-budget
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -157,6 +158,11 @@ jobs:
               replace(receipts,
                   'if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.\n                ',
                   '')
+
+          elif mutation=='rate-budget':
+              replace(refs,
+                  'if(state.attempts>=MAX_REFERENCES_PER_TICK)return;',
+                  'if(false)return;')
 
           else:
               raise SystemExit(f'unknown mutation: {mutation}')
