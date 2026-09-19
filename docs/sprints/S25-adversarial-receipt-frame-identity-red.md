@@ -148,6 +148,12 @@ Debe conservar:
 
 Una posible familia de identidades causales más estable puede derivarse del transporte/root incorporado, pero la elección concreta pertenece al IMPLEMENTER y debe ser validada adversarialmente.
 
+### Versionado wire si cambia la semántica de identidad
+
+El TYPE vigente es `scalebrews:anatomy_move_reference_v1` y su tercer campo significa **`supportFrameSerial`**. Si la reparación reemplaza esa identidad por un token/material-interval/transport identity distinto, no puede reinterpretar silenciosamente el mismo `long` bajo el mismo protocolo v1.
+
+La transición debe ser explícitamente versionada o mantener compatibilidad inequívoca. Cliente y servidor no pueden considerar compatible un mismo payload si cada extremo interpreta ese campo como una identidad causal distinta.
+
 ## 7. Handoff
 
 **ADVERSARY → IMPLEMENTER.**
