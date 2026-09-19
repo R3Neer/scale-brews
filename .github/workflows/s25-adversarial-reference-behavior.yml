@@ -1,0 +1,58 @@
+name: s25-adversarial-reference-behavior
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-behavior.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/TransportLedger.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25AdversarialReferenceBehaviorTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingAuthorityTestSeam.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestTrackingAuthorityMixin.java'
+      - 'src/gametest/resources/scalebrews-test.mixins.json'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  reference-behavior:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S25 reference behavior holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceBehaviorTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: compile S25 reference behavior holdout
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: run S25 reference behavior holdout
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s25-reference-behavior.xml"
+      - name: capture S25 reference behavior evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S25-reference-behavior
+          path: |
+            build/s25-reference-behavior.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
