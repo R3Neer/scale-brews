@@ -131,21 +131,12 @@ jobs:
                   '''''')
 
           elif mutation=='lifecycle-identity':
-              replace(receipts,
-                  '''!match.epoch().equals(AnatomyNetworking.epoch(server))
-                || match.catalogRevision()!=AnatomyNetworking.revision(server)
-                || !match.dimension().equals(body.level().dimension().identifier())
-                || ''',
-                  '''''')
-              replace(refs,
-                  '''                || !pending.epoch().equals(AnatomyNetworking.epoch(server))''',
-                  '''''')
-              replace(refs,
-                  '''                || pending.revision()!=AnatomyNetworking.revision(server)''',
-                  '''''')
-              replace(refs,
-                  '''                || !pending.dimension().equals(body.level().dimension().identifier())''',
-                  '''''')
+              replace(receipts,'!match.epoch().equals(AnatomyNetworking.epoch(server))','false')
+              replace(receipts,'match.catalogRevision()!=AnatomyNetworking.revision(server)','false')
+              replace(receipts,'!match.dimension().equals(body.level().dimension().identifier())','false')
+              replace(refs,'!pending.epoch().equals(AnatomyNetworking.epoch(server))','false')
+              replace(refs,'pending.revision()!=AnatomyNetworking.revision(server)','false')
+              replace(refs,'!pending.dimension().equals(body.level().dimension().identifier())','false')
 
           elif mutation=='expired-receipt':
               replace(receipts,'tick-HISTORY_TICKS+1','Long.MIN_VALUE',2)
