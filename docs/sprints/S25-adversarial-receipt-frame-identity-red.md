@@ -14,7 +14,7 @@ La primera reapertura de integración cliente, donde el `TransportLedger` avanza
 
 Tras esos cambios, el dedicated proof sí observa `anatomy_move_reference_v1` inmediatamente antes de los movement packets vanilla.
 
-El owner/kernel también permanece verde con baseline + **10 mutantes compilables muertos** en run `35447584710`: exactly-once, tracking generation, lifecycle, receipt TTL, saturation, non-controller, double-apply, fabricated-hit, rate budget y pending-reference TTL.
+El owner/kernel queda ahora verde con baseline + **14 mutantes compilables muertos** en run `35451920466`: exactly-once, tracking generation, lifecycle combinado, receipt TTL, saturation, non-controller, double-apply, fabricated-hit, rate budget, pending-reference TTL, epoch fence, dimension fence, network-id fence y adjacent-frame matching. Baseline job `105920453853`; los tres fences lifecycle split son jobs `105920631014`, `105920630904`, `105920630900`; el mutante `±1` es `105920630894`. Ordinary del mismo snapshot, run `35451920485`, job `105920454100`: **446/446 required GameTests**, artifact `10586857060`, SHA-256 `66dfe0bc240c04c4e516e1466e864d57f2a166d957b802609bd7a79bb1704a39`.
 
 ## 2. Nuevo RED real
 
@@ -153,3 +153,19 @@ Una posible familia de identidades causales más estable puede derivarse del tra
 **ADVERSARY → IMPLEMENTER.**
 
 G4.1 sigue abierto. La captura y el wire order están reparados; el blocker único conocido es ahora la identidad exacta usada para correlacionar el reference cliente con el receipt server-side.
+
+## 8. Hardening posterior del owner — sin cambio productivo
+
+La primera separación de los fences lifecycle reveló tres **supervivientes de oracle**, no defects de producción: al retirar individualmente epoch, dimension o body network id de `claim(...)`, el holdout anterior seguía verde porque sólo inducía una discontinuidad de catalog revision.
+
+Se añadieron tres casos owner-level que reescriben únicamente el receipt histórico en un eje y exigen que la referencia no se consuma ni stagee. Red-before-green del harness:
+
+- run `35451440249`: epoch/dimension/network-id mutants compilaron y sobrevivieron;
+- run `35451920466`: los mismos tres mutantes compilaron y murieron con los nuevos oracles.
+
+Además se añadió un caso exacto contra fuzzy matching: un receipt con serial `N` debe rechazar `N+1` y seguir siendo reclamable por `N`. El mutante `adjacent-frame-match`, que acepta `|frame-reference|<=1`, compila y muere en job `105920630894`; artifact `10587346709`, SHA-256 `544e0626aad36be89dbe64ba8fd2168ce416239cec256641830f4d78d394c0ed`.
+
+Esto cierra mutation adequacy del owner conocido, pero **no toca el RED productivo** de este documento: el dedicated client sigue nombrando un endpoint distinto del receipt server-side y por tanto no consume ninguno.
+
+**Estado tras hardening:** owner/kernel cerrado; reference↔receipt transport identity continúa RED y bloquea G4.1.
+
