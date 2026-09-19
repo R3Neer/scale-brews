@@ -48,6 +48,57 @@ public final class S25AdversarialReferenceBehaviorTests {
         h.succeed();
     }
 
+    @GameTest
+    public void oneTickContactAndRootCanContainMultipleDistinctTransportReceipts(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,4,10);
+        support.setNoAi(true);support.setNoGravity(true);
+        var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+        player.setPos(3,4,10);
+        long tick=h.getLevel().getGameTime();
+        long revision=AnatomyNetworking.revision(h.getLevel().getServer());
+        long contactSequence=7,rootSequence=9;
+        var normal=new Vec3(0,1,0);
+        var contact=new AnatomyMovement.Contact(support,"piece",revision,normal,contactSequence);
+        var surface=new SurfaceContact(support.getUUID(),revision,"piece",3,new Vec3(.5,1,.5),normal,tick);
+        var root=new RootFrame(rootSequence,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(support.position());
+        try {
+            player.setPos(player.position().add(.03125,0,0));
+            var firstTransport=new SupportTransport(tick,1,rootSequence,new Vec3(.03125,0,0),new Vec3(.03125,0,0));
+            TransportLedger.record(player,firstTransport);
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->AnatomyTransportReceipts.record(player,contact,surface,root,801,firstTransport,material,material.move(new Vec3(.03125,0,0))));
+
+            player.setPos(player.position().add(.0625,0,0));
+            var secondTransport=new SupportTransport(tick,2,rootSequence,new Vec3(.09375,0,0),new Vec3(.0625,0,0));
+            TransportLedger.record(player,secondTransport);
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->AnatomyTransportReceipts.record(player,contact,surface,root,802,secondTransport,material,material.move(new Vec3(.0625,0,0))));
+
+            var receipts=AnatomyTransportReceipts.history(player,player.getUUID());
+            h.assertTrue(receipts.size()==2
+                    && receipts.getFirst().tick()==receipts.getLast().tick()
+                    && receipts.getFirst().contactSequence()==receipts.getLast().contactSequence()
+                    && receipts.getFirst().rootFrameSequence()==receipts.getLast().rootFrameSequence()
+                    && receipts.getFirst().support().equals(receipts.getLast().support())
+                    && receipts.getFirst().transportSequence()!=receipts.getLast().transportSequence(),
+                "Tick/contact/root/support identity is deliberately too coarse: one causal interval can contain multiple distinct transports");
+
+            var firstClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            var secondClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            S24TrackingAuthorityTestSeam.run(player,player,1,()->{
+                firstClaim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),801));
+                secondClaim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),802));
+            });
+            h.assertTrue(firstClaim.get()!=null && secondClaim.get()!=null
+                    && firstClaim.get().transportSequence()==1 && secondClaim.get().transportSequence()==2,
+                "Exact server-issued transport identities must keep same-tick/same-contact/same-root receipts independently claimable");
+        } finally {
+            cleanup(h.getLevel().getServer(),support,player);
+        }
+        h.succeed();
+    }
+
     @GameTest(maxTicks=90)
     public void referencePathIsExactOnceLifecycleFencedControlledAndNonApplying(GameTestHelper h) {
         var server=h.getLevel().getServer();
