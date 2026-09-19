@@ -39,9 +39,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * N2 measurement only: real dedicated networking with an original exported
- * catalog. It deliberately has no anatomy C2S reference, rollback or replay.
- * Register it in a separate client-test selector after the Q1 freeze.
+ * N2/S25 measurement: real dedicated networking with an original exported
+ * catalog. S25 additionally observes the metadata-only anatomy movement reference
+ * immediately preceding the corresponding vanilla movement packet.
  */
 public final class AnatomyPredictionBaselineProof implements FabricClientGameTest {
     private static final int PHASE_TICKS=200;
@@ -279,6 +279,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" emitted no real controlled movement packet: "+baseline);
         if(baseline.playerCorrections()!=0 || baseline.vehicleCorrections()!=0)
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" received vanilla correction(s), not a prediction success: "+baseline+" evidence="+evidence);
+        assertReferenceOrdering(kind,rtt,baseline);
         if(evidence.receipts().isEmpty())throw new AssertionError("N2 "+kind+" RTT "+rtt+" had no post-baseline transport receipts: "+evidence);
         double independent=evidence.endRelative().distanceTo(evidence.startRelative());
         if(evidence.maximumIndependent()>.8)
@@ -286,6 +287,27 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         if(!client.supported())throw new AssertionError("N2 "+kind+" lost confirmed anatomy support at RTT "+rtt+" clientPosition="+client.position());
         var serials=new HashSet<Long>();for(var receipt:evidence.receipts())if(!serials.add(receipt.transportSequence()))
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" duplicated transport sequence "+receipt.transportSequence()+": "+evidence);
+    }
+
+
+    private static void assertReferenceOrdering(String kind,int rtt,PlatformTestLatency.Baseline baseline) {
+        var outbound=baseline.trace().stream()
+            .filter(trace->trace.flow()==PlatformTestLatency.Flow.CLIENT_TO_SERVER)
+            .toList();
+        String expectedMovement=kind.equals("boat")?"ServerboundMoveVehiclePacket":"ServerboundMovePlayerPacket";
+        int references=0;
+        for(int index=0;index<outbound.size();index++) {
+            var trace=outbound.get(index);
+            if(!trace.detail().equals("payload=scalebrews:anatomy_move_reference_v1"))continue;
+            references++;
+            if(index+1>=outbound.size())
+                throw new AssertionError("S25 "+kind+" RTT "+rtt+" anatomy reference was not followed by a vanilla movement packet: "+outbound);
+            var next=outbound.get(index+1);
+            if(!next.packetType().contains(expectedMovement))
+                throw new AssertionError("S25 "+kind+" RTT "+rtt+" anatomy reference ordering mismatch: reference="+trace+" next="+next);
+        }
+        if(references==0)
+            throw new AssertionError("S25 "+kind+" RTT "+rtt+" emitted no anatomy_move_reference_v1 packet despite real local carry; trace="+outbound);
     }
 
     private static void boot(MinecraftServer server,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles,Fixture fixture) {
