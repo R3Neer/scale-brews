@@ -165,7 +165,12 @@ public final class AnatomyRuntime {
     /** Server half of {@link AnatomySession}: running catalog session, not an own-support test. */
     public static boolean owns(Entity entity) {
         var server=entity.level().getServer();
-        return server!=null && STATES.containsKey(server) && AnatomyMovement.active(entity);
+        boolean active=AnatomyMovement.active(entity);
+        boolean state=server!=null && STATES.containsKey(server);
+        if(active && !state)
+            ScaleBrews.LOGGER.info("S25 owns diagnostic: entity={} removed={} serverNull={} runtimeState={} level={} server={}",
+                entity.getUUID(),entity.isRemoved(),server==null,state,entity.level(),server);
+        return server!=null && state && active;
     }
     /**
      * Internal support-binding ownership, intentionally narrower than {@link #owns(Entity)}.
