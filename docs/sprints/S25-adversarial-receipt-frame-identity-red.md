@@ -117,6 +117,12 @@ El blocker es que el payload/claim usa como clave autoritativa un `supportFrameS
 
 El ADVERSARY no prescribe el nuevo schema. La reparación debe proporcionar una identidad metadata-only que correlacione **el transporte incorporado** con el receipt server-issued incluso cuando existan publicaciones posteriores del soporte que no representen otro carry.
 
+### Prohibición de reparación por proximidad de serial
+
+El patrón par/impar observado **no** autoriza una corrección `frameSerial±1`, matching por paridad, “último receipt del support” ni búsqueda del serial más cercano. `frameSerial` ordena publicaciones causales del endpoint; no identifica por sí mismo el transporte incorporado. Dos publicaciones consecutivas pueden pertenecer a la misma vida de transporte, y bajo RTT/coalescing la distancia entre el endpoint que produjo el carry server-side y el endpoint vigente en cliente no tiene por qué ser constante.
+
+El nuevo lookup debe ser exacto sobre una identidad causal estable del transporte incorporado. Ante más de un receipt compatible, debe fallar cerrado en vez de elegir por cercanía temporal/serial.
+
 Debe conservar:
 
 1. ningún DTO de geometry/contact/pose como autoridad C2S;
