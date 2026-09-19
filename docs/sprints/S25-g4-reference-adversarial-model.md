@@ -358,10 +358,10 @@ La instrumentación implementer temporal confirmó además que el overload `owns
 
 La campaña owner-level ya está convergida sobre el candidato productivo actual. No cierra G4.1 porque el dedicated proof sigue sin correlacionar el token cliente con un receipt real, pero elimina los huecos locales conocidos de `accept → claim → resolve`.
 
-Run final **`35451920466`**:
+Run final del owner **`35452742190`**:
 
-- baseline `reference-behavior`, job **`105920453853`** — success;
-- **14 mutantes dirigidos compilaron y murieron**:
+- baseline `reference-behavior`, job **`105922624414`** — success;
+- **15 mutantes dirigidos compilaron y murieron**:
   - expired receipt `105920630826`;
   - lifecycle combinado `105920630835`;
   - non-controller `105920630836`;
@@ -375,19 +375,20 @@ Run final **`35451920466`**:
   - network-id fence `105920630900`;
   - double-apply `105920630901`;
   - dimension fence `105920630904`;
-  - epoch fence `105920631014`.
+  - epoch fence `105920631014`;
+  - ambiguous exact identity `105922827839`.
 
 Los tres fences lifecycle separados tuvieron un ciclo rojo de **oracle** antes de quedar cubiertos: run `35451440249` demostró que epoch/dimension/network-id mutants compilaban y sobrevivían; `S25AdversarialReferenceLifecycleFenceTests` añadió un caso aislado por eje sin modificar producción, y el run final los mata.
 
 El mutante `adjacent-frame-match` sustituye la igualdad exacta por `|serverSerial-clientSerial| <= 1`. También compila y muere. Por tanto el RED dedicated par/impar **no puede repararse** con `±1`, paridad, nearest-frame ni cualquier fuzzy match equivalente.
 
-Baseline artifact **`10587071981`**, SHA-256 **`02cb9ef7807420d9c0a7fbe21eb0e8aade2e9a2619fcae6d401ef6cad60646f2`**. Adjacent-frame mutant artifact **`10587346709`**, SHA-256 **`544e0626aad36be89dbe64ba8fd2168ce416239cec256641830f4d78d394c0ed`**.
+Baseline artifact **`10587775660`**, SHA-256 **`3ebc64a0b8cdb6c19550d9638770719fd9bbccea744a392c951696921fa092ba`**. Ambiguous-identity mutant artifact **`10587292882`**, SHA-256 **`b668ee8891b6a818c53c4962953b29a19d878e60cd733ab2176bafd24ed6ba76`**.
 
-Ordinary sobre el mismo snapshot, run **`35451920485`**, job **`105920454100`**:
+Ordinary sobre el mismo snapshot, run **`35452742176`**, job **`105922622233`**:
 
 - **446/446 required GameTests passed**;
 - `BUILD SUCCESSFUL`;
-- artifact **`10586857060`**, SHA-256 **`66dfe0bc240c04c4e516e1466e864d57f2a166d957b802609bd7a79bb1704a39`**.
+- artifact **`10586933280`**, SHA-256 **`869ade328e5d491fd393bbfe484ee5b813b4afb944b12a392549af5b4392e53d`**.
 
 ### Único blocker conocido tras este cierre local
 
@@ -399,4 +400,18 @@ El adversario ha descartado además dos clases de parche:
 - `rootFrameSequence` solo: demasiado grueso, porque dos contribuciones joint reales pueden compartir root sequence y conservar transport sequences distintos.
 
 **Estado vigente:** owner/kernel G4.1 cerrado adversarialmente; integración reference↔receipt transport identity **RED PRODUCTIVO**. G4.1 y G4 global permanecen abiertos y G4.2 no debe comenzar.
+
+### 13.1 Authority schema hardening adicional
+
+La frontera de autoridad rechaza también el intento de elevar un cursor local del cliente a autoridad C2S. El field name `localTransportSequence` está prohibido en cualquier schema collision/anatomy registrado serverbound; un token/sequence **server-issued** no queda prohibido por esta regla.
+
+Run `s25-adversarial-reference-authority` **`35452660678`**:
+
+- baseline `105922405151` — success;
+- legacy server borrow `105922422964` — success as mutation harness;
+- rich contact-authority schema `105922422974` — success as mutation harness;
+- client legacy borrow `105922423031` — success as mutation harness;
+- client-local sequence schema `105922423094` — mutant compiló y el gate lo mató.
+
+El propósito es impedir que el RED dedicated se “resuelva” enviando al servidor el `localTransportSequence` que sólo existe para coherencia del carry cliente. Esa secuencia no es receipt authority.
 
