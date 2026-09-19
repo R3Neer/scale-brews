@@ -199,6 +199,12 @@ La prueba demuestra que tampoco son identidades suficientes, por sí solas:
 
 Esto complementa la prohibición de `frameSerial` aproximado. La reparación debe nombrar **el transporte/material interval incorporado**, no elegir un reloj causal que sea demasiado fino o demasiado grueso.
 
+### Evidencia independiente de que `frameSerial` no es un transport id
+
+El mismatch dedicated no depende de una casualidad de paridad. La suite cliente existente `AnatomyPresentationFrameTests` ejerce explícitamente **root-only endpoints**: crea/publica un endpoint con `frameSerial = prior + 1` manteniendo el mismo `jointSampleTick`, y el cliente debe aceptar ese root nuevo sin re-evaluar joints. La arquitectura y `AnatomyPosePayload` documentan además que root-only updates pueden repetir el joint clock mientras `frameSerial` avanza.
+
+Por tanto `frameSerial` es un reloj de publicación de endpoint. Puede avanzar sin que exista una nueva contribución de transporte para el body y no debe reinterpretarse como transport identity.
+
 ## 10. Identidad exacta también debe ser única
 
 El hardening añade `S25AdversarialReferenceBehaviorTests.ambiguousExactReceiptIdentityFailsClosed`: dos receipts distintos comparten deliberadamente el mismo support + reference identity exacto. `claim(...)` debe devolver null sin consumir ninguno.
