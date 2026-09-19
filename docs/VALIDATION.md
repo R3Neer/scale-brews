@@ -1034,3 +1034,23 @@ This does **not** close G4.1. Dedicated run `35448151599` remains the current pr
 
 **Current interpretation:** owner/kernel closed; product integration remains RED at the transport identity boundary. G4.1 stays open and G4.2 must not start.
 
+## G4 / S25 owner identity hardening — 2026-09-19
+
+The owner/kernel evidence was extended after the first 14-mutant closure to constrain the dedicated reference-identity repair itself.
+
+Run **`35452742190`**, baseline job **`105922624414`**, is green with the full behavior/lifecycle suite. Fifteen directed mutants compile and are killed. The new fifteenth mutant is **`ambiguous-exact-match`**, job **`105922827839`**: it removes only the fail-closed rule for multiple receipts sharing one exact reference identity. The holdout proves that such ambiguity must reject without consuming either receipt.
+
+Artifact baseline **`10587775660`**, SHA-256 **`3ebc64a0b8cdb6c19550d9638770719fd9bbccea744a392c951696921fa092ba`**. Ambiguous-identity mutant artifact **`10587292882`**, SHA-256 **`b668ee8891b6a818c53c4962953b29a19d878e60cd733ab2176bafd24ed6ba76`**.
+
+The same baseline also includes an explicit coarse-identity holdout: two distinct server-issued receipts can share support UUID, game tick, contact sequence and root-frame sequence while retaining different transport sequences and remaining independently claimable. Those clocks therefore cannot replace `supportFrameSerial` as a unique key by themselves.
+
+Ordinary run **`35452742176`**, job **`105922622233`**, passed **446/446 required GameTests**; artifact **`10586933280`**, SHA-256 **`869ade328e5d491fd393bbfe484ee5b813b4afb944b12a392549af5b4392e53d`**.
+
+Reference-authority schema hardening also rejects client-local transport authority. Run **`35452660678`** is fully green: baseline **`105922405151`**, common/server legacy borrow **`105922422964`**, rich physical-authority serverbound schema **`105922422974`**, client legacy borrow **`105922423031`**, and client-local sequence schema **`105922423094`**. The final mutant adds and serializes a `localTransportSequence` field to the registered C2S reference schema; it compiles and is killed.
+
+These results do **not** repair or close the dedicated integration RED. Current product evidence still shows reference packets ordered correctly before vanilla movement with no vanilla corrections, but `consumedReferences=0` because the client names a later endpoint serial while the server receipt names the material-interval endpoint that produced carry. Fuzzy/nearest matching, ambiguous selection, client-local sequence authority and coarse root/contact/tick identities are all explicitly excluded by the adversarial evidence.
+
+If the wire identity semantics change from `supportFrameSerial`, the `anatomy_move_reference_v1` meaning must not be silently reinterpreted; protocol semantics must remain explicitly versioned/compatible.
+
+**Current interpretation:** G4.1 remains PRODUCT RED only at reference↔receipt transport identity. Owner/kernel and schema authority are closed for the known threat model. G4.2 remains blocked.
+
