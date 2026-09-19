@@ -172,17 +172,17 @@ jobs:
               raise SystemExit(f'header mutation target count: {s.count(old)}, expected 1')
           s=s.replace(old,new,1)
           compact='    public AnatomyMoveReferencePayload {'
-          overload="    public AnatomyMoveReferencePayload(boolean vehicle,UUID support,long supportFrameSerial) {\\n        this(vehicle,support,supportFrameSerial,1);\\n    }\\n\\n"
+          overload="    public AnatomyMoveReferencePayload(boolean vehicle,UUID support,long supportFrameSerial) {\n        this(vehicle,support,supportFrameSerial,1);\n    }\n\n"
           if s.count(compact)!=1:
               raise SystemExit(f'constructor target count: {s.count(compact)}, expected 1')
           s=s.replace(compact,overload+compact,1)
           writer='        buf.writeVarLong(payload.supportFrameSerial);'
-          writer_new='        buf.writeVarLong(payload.supportFrameSerial);\\n        buf.writeVarLong(payload.localTransportSequence);'
+          writer_new='        buf.writeVarLong(payload.supportFrameSerial);\n        buf.writeVarLong(payload.localTransportSequence);'
           if s.count(writer)!=1:
               raise SystemExit(f'writer target count: {s.count(writer)}, expected 1')
           s=s.replace(writer,writer_new,1)
-          decoder='        buf.readVarLong()\\n    ));'
-          decoder_new='        buf.readVarLong(),\\n        buf.readVarLong()\\n    ));'
+          decoder='        buf.readVarLong()\n    ));'
+          decoder_new='        buf.readVarLong(),\n        buf.readVarLong()\n    ));'
           if s.count(decoder)!=1:
               raise SystemExit(f'decoder target count: {s.count(decoder)}, expected 1')
           p.write_text(s.replace(decoder,decoder_new,1))
