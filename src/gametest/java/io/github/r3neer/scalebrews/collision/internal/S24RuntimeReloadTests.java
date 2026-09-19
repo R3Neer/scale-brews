@@ -25,7 +25,7 @@ public final class S24RuntimeReloadTests {
         try {
             AnatomyRuntime.startPrepared(server,fixture.models(),fixture.profiles());
             var before=AnatomyBindingState.snapshot(cow);
-            h.assertTrue(before!=null && before.causal() && AnatomyRuntime.owns(cow),
+            h.assertTrue(before!=null && before.causal() && AnatomyRuntime.ownsSupportBinding(cow),
                 "Prepared baseline must install one live causal cow binding before the real resource reload");
             long beforeRevision=AnatomyNetworking.revision(server);var uuid=cow.getUUID();int entityId=cow.getId();
 
