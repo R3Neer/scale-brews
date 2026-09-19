@@ -30,11 +30,6 @@ public final class AnatomyClientNetworking {
     /** Last server-issued support endpoint actually incorporated by one local carry. */
     private record PredictedMovementReference(java.util.UUID support,long supportFrameSerial,long localTransportSequence) {}
     private static final java.util.Map<java.util.UUID,PredictedMovementReference> predictedMovementReferences=new java.util.HashMap<>();
-    private static final java.util.Set<String> S25_REFERENCE_DIAGNOSTICS=new java.util.HashSet<>();
-    private static void s25ReferenceDiagnostic(String reason,Object... args) {
-        if(S25_REFERENCE_DIAGNOSTICS.add(reason))
-            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info("S25 client reference diagnostic "+reason,args);
-    }
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -230,51 +225,23 @@ public final class AnatomyClientNetworking {
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
     /**
-     * Captures the exact server-published support endpoint that a local carry just incorporated.
-     * Multiple delayed server frames may collapse into one client carry; the newest frame remains
-     * the correct cursor for the resulting absolute body position.
-     */
-    private static void captureMovementReference(net.minecraft.world.entity.Entity body,long localTransportSequence) {
-        var contact=AnatomyMovement.contact(body);
-        if(contact==null) {s25ReferenceDiagnostic("capture-reject-contact-null");return;}
-        var support=contact.support();var history=frames.get(support.getUUID());var packet=history==null?null:history.current();
-        if(packet==null) {s25ReferenceDiagnostic("capture-reject-frame-null support={}",support.getUUID());return;}
-        if(!packet.available()) {s25ReferenceDiagnostic("capture-reject-unavailable frame={}",packet.frameSerial());return;}
-        if(staleFrames.contains(support.getUUID())) {s25ReferenceDiagnostic("capture-reject-stale frame={}",packet.frameSerial());return;}
-        if(packet.entityId()!=support.getId()) {s25ReferenceDiagnostic("capture-reject-network-id packet={} live={}",packet.entityId(),support.getId());return;}
-        if(!packet.entity().equals(support.getUUID())) {s25ReferenceDiagnostic("capture-reject-uuid");return;}
-        if(packet.revision()!=contact.revision()) {s25ReferenceDiagnostic("capture-reject-revision packet={} contact={}",packet.revision(),contact.revision());return;}
-        predictedMovementReferences.put(body.getUUID(),
-            new PredictedMovementReference(support.getUUID(),packet.frameSerial(),localTransportSequence));
-        s25ReferenceDiagnostic("capture-success support={} frame={} sequence={}",support.getUUID(),packet.frameSerial(),localTransportSequence);
-    }
-
-    /**
      * Emits at most one metadata cursor for the newest server endpoint already incorporated locally.
      * No client-local tick, root sequence, entity id or physical geometry participates in authority.
      */
     public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
         var player=net.minecraft.client.Minecraft.getInstance().player;
-        if(body==null) {s25ReferenceDiagnostic("reject-body-null");return;}
-        if(player==null) {s25ReferenceDiagnostic("reject-player-null");return;}
-        if(!ready(body)) {s25ReferenceDiagnostic("reject-not-ready mode={}",mode(body));return;}
-        if(!body.isLocalInstanceAuthoritative()) {s25ReferenceDiagnostic("reject-not-local-authoritative body={}",body.getType());return;}
-        if(!ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE)) {s25ReferenceDiagnostic("reject-cannot-send");return;}
+        if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()
+                || !ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE))return;
         boolean vehicle=body!=player;
-        if(!vehicle && player.getRootVehicle()!=player) {s25ReferenceDiagnostic("reject-player-mounted");return;}
-        if(vehicle && player.getRootVehicle()!=body) {s25ReferenceDiagnostic("reject-wrong-root-vehicle");return;}
-        if(vehicle && body.getControllingPassenger()!=player) {s25ReferenceDiagnostic("reject-not-controller");return;}
-        var reference=predictedMovementReferences.get(body.getUUID());
-        if(reference==null) {s25ReferenceDiagnostic("reject-no-predicted-reference transport={}",AnatomyMovement.transport(body));return;}
+        if(!vehicle && player.getRootVehicle()!=player)return;
+        if(vehicle && (player.getRootVehicle()!=body || body.getControllingPassenger()!=player))return;
+        var reference=predictedMovementReferences.get(body.getUUID());if(reference==null)return;
         var transport=AnatomyMovement.transport(body);
-        if(transport==null) {s25ReferenceDiagnostic("reject-no-transport-with-reference");return;}
-        if(transport.sequence()!=reference.localTransportSequence()) {
-            s25ReferenceDiagnostic("reject-transport-sequence-mismatch current={} captured={}",transport.sequence(),reference.localTransportSequence());
-            predictedMovementReferences.remove(body.getUUID());return;
+        if(transport==null || transport.sequence()!=reference.localTransportSequence()) {
+            predictedMovementReferences.remove(body.getUUID(),reference);return;
         }
-        s25ReferenceDiagnostic("send vehicle={} support={} frame={} sequence={}",vehicle,reference.support(),reference.supportFrameSerial(),transport.sequence());
         ClientPlayNetworking.send(new AnatomyMoveReferencePayload(vehicle,reference.support(),reference.supportFrameSerial()));
-        predictedMovementReferences.remove(body.getUUID());
+        predictedMovementReferences.remove(body.getUUID(),reference);
     }
 
     private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
@@ -283,6 +250,9 @@ public final class AnatomyClientNetworking {
     }
     public static void initialize() {
         AnatomySession.installClientMode(AnatomyClientNetworking::mode);
+        AnatomyMovement.installClientTransportObserver((body,cursor)->
+            predictedMovementReferences.put(body.getUUID(),
+                new PredictedMovementReference(cursor.support(),cursor.supportFrameSerial(),cursor.localTransportSequence())));
         ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
@@ -309,15 +279,8 @@ public final class AnatomyClientNetworking {
             bindPhysics();
             if(poseLevel!=null) {
                 AnatomyMovement.tickGeometry(poseLevel);
-                for(var entity:poseLevel.entitiesForRendering())if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null) {
-                    var before=AnatomyMovement.transport(entity);
-                    AnatomyMovement.carry(entity);
-                    var after=AnatomyMovement.transport(entity);
-                    if(after==null) s25ReferenceDiagnostic("carry-produced-no-transport body={}",entity.getType());
-                    else if(before!=null && after.sequence()==before.sequence())
-                        s25ReferenceDiagnostic("carry-transport-unchanged sequence={}",after.sequence());
-                    else captureMovementReference(entity,after.sequence());
-                }
+                for(var entity:poseLevel.entitiesForRendering())
+                    if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
