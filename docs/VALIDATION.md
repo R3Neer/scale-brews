@@ -939,3 +939,35 @@ Controlled-vehicle acceptance must not collapse to “recipient has a receipt”
 
 **Interpretation:** the missing C2S path remains the sole S25 capability RED. When the first candidate lands, adversarial closure moves to behavioral exactly-once, TTL/saturation, lifecycle cross-product, controlled-body authority, fake-reference rejection and no-double-apply.
 
+
+## G4 / S25 candidate implementer — metadata-only movement references — 2026-09-19
+
+Rol de esta evidencia: **IMPLEMENTER**. Este bloque registra únicamente ejecuciones reales del candidato; no declara cierre adversarial de G4.1.
+
+Candidato productivo: `b09c490a8405cf5042468e8ea1bd6d4538fad0cd`.
+
+- `build` run **`35388973833`**, job **`105742610038`**: **success**.
+- `s25-adversarial-reference-presence` run **`35388973889`**, job **`105742611717`**: **success**. La superficie C2S no-legacy existe.
+- `s25-adversarial-reference-authority` run **`35388973830`**: **success** completo:
+  - boundary `105742610290` verde;
+  - rich-authority mutant `105742653710` muerto;
+  - legacy-borrow mutant `105742653716` muerto;
+  - client-legacy-borrow mutant `105742653816` muerto.
+- `s25-adversarial-receipt-isolation` run **`35388973790`**: **success** completo:
+  - baseline `105742609899` verde;
+  - recipient-key mutant `105743014546` muerto;
+  - disconnect-global mutant `105743014568` muerto;
+  - body-key mutant `105743014743` muerto.
+- `s24-adversarial-tracking-ledger` run **`35388973836`**: **success**.
+- `s16-canonical-catalog-proof` run **`35388973771`**: **success**.
+- `s22-adversarial-coverage-residuals` run **`35388973929`**: **success**.
+
+Regresión de desarrollo implementer, commit `35224ed5261969854feb58379f2fcd34927d61c9`:
+
+- `s25-implementer-reference-proof` run **`35444126698`**, job **`105900018851`**: **success**;
+- artifact `S25-implementer-reference`, id **`10585450603`**;
+- `build` del mismo snapshot run **`35444126655`**, job **`105900018815`**: **success**.
+
+La regresión implementer comprueba que metadata de support/frame incorrecta no consume el receipt, el endpoint server-issued exacto lo resuelve, el receipt histórico permanece inmutable tras claim y el replay exacto es rechazado.
+
+**Límite de evidencia:** G4.1 continúa **ABIERTO**. Falta la campaña adversarial conductual independiente A–G y los ocho mutation-kills definidos en `docs/sprints/S25-g4-reference-adversarial-model.md`. No se infiere todavía estabilidad 0/100/200 ms, drift/reconciliation ni cierre de G4.2+.
