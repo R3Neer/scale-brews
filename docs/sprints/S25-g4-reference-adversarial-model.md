@@ -353,3 +353,50 @@ Con `AnatomyRuntime` activo, `ServerPlayConnectionEvents.JOIN` ejecuta `catalog(
 La instrumentación implementer temporal confirmó además que el overload `owns(Entity)` no era el que estaba fallando y fue retirada completamente en `9a2b8f0913d45c1e8f936f28c5f2392dcd417330` + `fce6d86bf9d63858838593b18d9e872bdeee429b`.
 
 **Clasificación vigente:** el holdout todavía no ha alcanzado una precondición equivalente a la llamada productiva de `accept(...)`; sigue devuelto al ADVERSARY. No hay reparación productiva autorizada por estos REDs.
+
+## 13. Cierre adversarial del owner/kernel — G4.1 sigue abierto
+
+La campaña owner-level ya está convergida sobre el candidato productivo actual. No cierra G4.1 porque el dedicated proof sigue sin correlacionar el token cliente con un receipt real, pero elimina los huecos locales conocidos de `accept → claim → resolve`.
+
+Run final **`35451920466`**:
+
+- baseline `reference-behavior`, job **`105920453853`** — success;
+- **14 mutantes dirigidos compilaron y murieron**:
+  - expired receipt `105920630826`;
+  - lifecycle combinado `105920630835`;
+  - non-controller `105920630836`;
+  - saturated tick `105920630837`;
+  - tracking generation `105920630848`;
+  - rate budget `105920630851`;
+  - fabricated hit `105920630853`;
+  - exactly-once `105920630869`;
+  - pending TTL `105920630890`;
+  - adjacent-frame/fuzzy matching `105920630894`;
+  - network-id fence `105920630900`;
+  - double-apply `105920630901`;
+  - dimension fence `105920630904`;
+  - epoch fence `105920631014`.
+
+Los tres fences lifecycle separados tuvieron un ciclo rojo de **oracle** antes de quedar cubiertos: run `35451440249` demostró que epoch/dimension/network-id mutants compilaban y sobrevivían; `S25AdversarialReferenceLifecycleFenceTests` añadió un caso aislado por eje sin modificar producción, y el run final los mata.
+
+El mutante `adjacent-frame-match` sustituye la igualdad exacta por `|serverSerial-clientSerial| <= 1`. También compila y muere. Por tanto el RED dedicated par/impar **no puede repararse** con `±1`, paridad, nearest-frame ni cualquier fuzzy match equivalente.
+
+Baseline artifact **`10587071981`**, SHA-256 **`02cb9ef7807420d9c0a7fbe21eb0e8aade2e9a2619fcae6d401ef6cad60646f2`**. Adjacent-frame mutant artifact **`10587346709`**, SHA-256 **`544e0626aad36be89dbe64ba8fd2168ce416239cec256641830f4d78d394c0ed`**.
+
+Ordinary sobre el mismo snapshot, run **`35451920485`**, job **`105920454100`**:
+
+- **446/446 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact **`10586857060`**, SHA-256 **`66dfe0bc240c04c4e516e1466e864d57f2a166d957b802609bd7a79bb1704a39`**.
+
+### Único blocker conocido tras este cierre local
+
+El dedicated proof continúa RED porque la metadata wire actual nombra `supportFrameSerial` del endpoint vigente incorporado por el cliente, mientras el receipt server-side está ligado al endpoint del intervalo material que produjo el carry. Esos endpoint serials pueden avanzar sin otro transporte y no son una identidad estable del transporte incorporado.
+
+El adversario ha descartado además dos clases de parche:
+
+- `frameSerial` aproximado/fuzzy: mutation-killed;
+- `rootFrameSequence` solo: demasiado grueso, porque dos contribuciones joint reales pueden compartir root sequence y conservar transport sequences distintos.
+
+**Estado vigente:** owner/kernel G4.1 cerrado adversarialmente; integración reference↔receipt transport identity **RED PRODUCTIVO**. G4.1 y G4 global permanecen abiertos y G4.2 no debe comenzar.
+
