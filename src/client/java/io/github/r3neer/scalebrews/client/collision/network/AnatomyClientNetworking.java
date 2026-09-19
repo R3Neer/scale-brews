@@ -30,6 +30,11 @@ public final class AnatomyClientNetworking {
     /** Last server-issued support endpoint actually incorporated by one local carry. */
     private record PredictedMovementReference(java.util.UUID support,long supportFrameSerial,long localTransportSequence) {}
     private static final java.util.Map<java.util.UUID,PredictedMovementReference> predictedMovementReferences=new java.util.HashMap<>();
+    private static final java.util.Set<String> S25_REFERENCE_DIAGNOSTICS=new java.util.HashSet<>();
+    private static void s25ReferenceDiagnostic(String reason,Object... args) {
+        if(S25_REFERENCE_DIAGNOSTICS.add(reason))
+            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info("S25 client reference diagnostic "+reason,args);
+    }
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -245,16 +250,24 @@ public final class AnatomyClientNetworking {
      */
     public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
         var player=net.minecraft.client.Minecraft.getInstance().player;
-        if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()
-                || !ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE))return;
+        if(body==null) {s25ReferenceDiagnostic("reject-body-null");return;}
+        if(player==null) {s25ReferenceDiagnostic("reject-player-null");return;}
+        if(!ready(body)) {s25ReferenceDiagnostic("reject-not-ready mode={}",mode(body));return;}
+        if(!body.isLocalInstanceAuthoritative()) {s25ReferenceDiagnostic("reject-not-local-authoritative body={}",body.getType());return;}
+        if(!ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE)) {s25ReferenceDiagnostic("reject-cannot-send");return;}
         boolean vehicle=body!=player;
-        if(!vehicle && player.getRootVehicle()!=player)return;
-        if(vehicle && (player.getRootVehicle()!=body || body.getControllingPassenger()!=player))return;
-        var reference=predictedMovementReferences.get(body.getUUID());if(reference==null)return;
+        if(!vehicle && player.getRootVehicle()!=player) {s25ReferenceDiagnostic("reject-player-mounted");return;}
+        if(vehicle && player.getRootVehicle()!=body) {s25ReferenceDiagnostic("reject-wrong-root-vehicle");return;}
+        if(vehicle && body.getControllingPassenger()!=player) {s25ReferenceDiagnostic("reject-not-controller");return;}
+        var reference=predictedMovementReferences.get(body.getUUID());
+        if(reference==null) {s25ReferenceDiagnostic("reject-no-predicted-reference transport={}",AnatomyMovement.transport(body));return;}
         var transport=AnatomyMovement.transport(body);
-        if(transport==null || transport.sequence()!=reference.localTransportSequence()) {
+        if(transport==null) {s25ReferenceDiagnostic("reject-no-transport-with-reference");return;}
+        if(transport.sequence()!=reference.localTransportSequence()) {
+            s25ReferenceDiagnostic("reject-transport-sequence-mismatch current={} captured={}",transport.sequence(),reference.localTransportSequence());
             predictedMovementReferences.remove(body.getUUID());return;
         }
+        s25ReferenceDiagnostic("send vehicle={} support={} frame={} sequence={}",vehicle,reference.support(),reference.supportFrameSerial(),transport.sequence());
         ClientPlayNetworking.send(new AnatomyMoveReferencePayload(vehicle,reference.support(),reference.supportFrameSerial()));
         predictedMovementReferences.remove(body.getUUID());
     }
