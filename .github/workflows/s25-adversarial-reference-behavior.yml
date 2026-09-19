@@ -12,6 +12,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/TransportLedger.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25AdversarialReferenceBehaviorTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25AdversarialReferenceLifecycleFenceTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingAuthorityTestSeam.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestTrackingAuthorityMixin.java'
       - 'src/gametest/resources/scalebrews-test.mixins.json'
