@@ -29,6 +29,18 @@ jobs:
           distribution: microsoft
       - run: chmod +x ./gradlew
 
+      - name: export immutable original client geometry
+        run: xvfb-run -a ./gradlew runClientGameTest -PscalebrewsAnatomyProof=true
+
+      - name: locate exported anatomy catalog
+        id: catalog
+        shell: bash
+        run: |
+          catalog="$(find . -type d -name anatomy-export -print -quit)"
+          test -n "$catalog"
+          echo "path=$catalog" >> "$GITHUB_OUTPUT"
+          echo "Using S25 anatomy catalog at $catalog"
+
       - name: isolate S25 dedicated reference latency proof
         shell: bash
         run: |
