@@ -59,6 +59,8 @@ jobs:
 
       - name: run dedicated player and controlled-boat reference proof
         shell: bash
+        env:
+          SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
         run: |
           set -euo pipefail
           mkdir -p build/s25-reference-latency
