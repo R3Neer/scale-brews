@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Connection.class)
 public abstract class PlatformOutgoingMoveMixin {
+    @org.spongepowered.asm.mixin.Unique private static boolean scalebrews$s25LoggedAnatomyHook;
     @Inject(method="send(Lnet/minecraft/network/protocol/Packet;)V",at=@At("HEAD"))
     private void scalebrews$reference(Packet<?> packet,CallbackInfo ci) {
         Minecraft client=Minecraft.getInstance();
@@ -26,8 +27,13 @@ public abstract class PlatformOutgoingMoveMixin {
         } else return;
         // Anatomy owns its own metadata-only receipt cursor. BINDING remains
         // fail-closed and never falls through to the legacy coordinate reference.
-        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body))
+        if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) {
+            if(!scalebrews$s25LoggedAnatomyHook) {
+                scalebrews$s25LoggedAnatomyHook=true;
+                io.github.r3neer.scalebrews.ScaleBrews.LOGGER.info("S25 outgoing anatomy movement hook reached body={} packet={}",body.getType(),packet.getClass().getName());
+            }
             io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.sendMovementReference(body);
+        }
         if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)) return;
         if(!Platforms.supported(body) || !ClientPlayNetworking.canSend(PlatformMovePayload.TYPE)) return;
         var state=Platforms.state(body);
