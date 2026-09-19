@@ -48,11 +48,13 @@ public final class S25AdversarialReferenceBehaviorTests {
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
 
+            h.assertTrue(consumed(player,player,1) && pending(player),
+                "Valid accept must consume exactly the matched receipt and stage one pending movement cursor");
             var postAcceptClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->postAcceptClaim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),frameOne)));
             h.assertTrue(postAcceptClaim.get()==null,
-                "Valid accept must consume exactly the matched receipt before staging its movement cursor");
+                "Consumed receipt must reject a second direct claim without deleting historical evidence");
 
             h.assertTrue(player.position().equals(afterReceipt) && player.getBoundingBox().equals(afterReceiptBox)
                     && TransportLedger.current(player).sequence()==1
@@ -69,6 +71,19 @@ public final class S25AdversarialReferenceBehaviorTests {
                     +postReceiptWindow+" generation="+AnatomyMovement.transportGeneration(player)
                     +" acceptedGeneration="+transportGenerationAtAccept);
             Vec3 serverAfterSecond=player.position();
+            var observedTracking=new java.util.concurrent.atomic.AtomicLong();
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->observedTracking.set(AnatomyRuntime.trackingGeneration(player,player)));
+            h.assertTrue(pending(player) && AnatomyRuntime.owns(player) && player.getRootVehicle()==player
+                    && !player.isRemoved() && firstReceipt.bodyNetworkId()==player.getId()
+                    && firstReceipt.body().equals(player.getUUID())
+                    && firstReceipt.epoch().equals(AnatomyNetworking.epoch(server))
+                    && firstReceipt.catalogRevision()==AnatomyNetworking.revision(server)
+                    && firstReceipt.dimension().equals(player.level().dimension().identifier())
+                    && firstReceipt.trackingGeneration()==observedTracking.get(),
+                "Pre-resolve identity fences must all remain current: receipt="+firstReceipt
+                    +" currentTracking="+observedTracking.get()+" pending="+pending(player)
+                    +" owns="+AnatomyRuntime.owns(player));
             var resolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->resolved.set(AnatomyMovementReference.resolve(player,player,afterReceipt)));
@@ -250,6 +265,38 @@ public final class S25AdversarialReferenceBehaviorTests {
         var current=TransportLedger.current(body);
         long rootSequence=current==null?sequence:Math.max(sequence,current.rootFrameSequence());
         TransportLedger.record(body,new SupportTransport(tick,sequence,rootSequence,applied,applied));
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private static boolean consumed(ServerPlayer recipient,Entity body,long sequence) {
+        try {
+            var historiesField=AnatomyTransportReceipts.class.getDeclaredField("HISTORIES");
+            historiesField.setAccessible(true);
+            var histories=(Map<ServerPlayer,Map<UUID,Object>>)historiesField.get(null);
+            var roots=histories.get(recipient);if(roots==null)return false;
+            var history=roots.get(body.getUUID());if(history==null)return false;
+            var consumedField=history.getClass().getDeclaredField("consumedTransportSequences");
+            consumedField.setAccessible(true);
+            return ((java.util.Set<Long>)consumedField.get(history)).contains(sequence);
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect receipt consumption metadata",failure);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static boolean pending(ServerPlayer recipient) {
+        try {
+            var statesField=AnatomyMovementReference.class.getDeclaredField("STATES");
+            statesField.setAccessible(true);
+            var states=(Map<ServerPlayer,Object>)statesField.get(null);
+            var state=states.get(recipient);if(state==null)return false;
+            var pendingField=state.getClass().getDeclaredField("pending");
+            pendingField.setAccessible(true);
+            return pendingField.get(state)!=null;
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect movement-reference staging",failure);
+        }
     }
 
     private static void cleanup(net.minecraft.server.MinecraftServer server,Entity... entities) {
