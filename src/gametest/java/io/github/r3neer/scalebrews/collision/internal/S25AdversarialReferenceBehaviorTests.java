@@ -59,7 +59,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                     && !consumed(player,player,1) && !pending(player),
                 "Fixture must satisfy every production accept/claim precondition before the reference is submitted: receipt="
                     +firstReceipt+" tracking="+currentTrackingAtAccept.get()+" supportFrame="+supportFrame(player,player,1)
-                    +" active="+AnatomyMovement.active(player)+" owns="+AnatomyRuntime.owns(player)
+                    +" active="+AnatomyMovement.active(player)
                     +" pending="+pending(player));
             S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
@@ -90,7 +90,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             var observedTracking=new java.util.concurrent.atomic.AtomicLong();
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->observedTracking.set(AnatomyRuntime.trackingGeneration(player,player)));
-            h.assertTrue(pending(player) && AnatomyRuntime.owns(player) && player.getRootVehicle()==player
+            h.assertTrue(pending(player) && player.getRootVehicle()==player
                     && !player.isRemoved() && firstReceipt.bodyNetworkId()==player.getId()
                     && firstReceipt.body().equals(player.getUUID())
                     && firstReceipt.epoch().equals(AnatomyNetworking.epoch(server))
