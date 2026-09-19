@@ -247,3 +247,83 @@ Al aterrizar ese candidato, la presence gate debe pasar. Eso **no cerrará G4.1*
 
 **Handoff ADVERSARY → IMPLEMENTER:** capacidad C2S/validator/consumption ausente; fronteras previas y store server-side verdes. No se requiere ningún cambio adicional de producción por parte del adversario.
 
+
+## 11. Candidato IMPLEMENTER — referencia causal server-issued
+
+Rol activo de esta fase: **IMPLEMENTER**.
+
+El primer candidato productivo G4.1 ya existe. No cambia el modelo adversarial de las secciones anteriores y **no cierra S25**; convierte el RED de capacidad ausente en una superficie real que el ADVERSARY puede someter ahora a A–G y a los ocho mutation-kills definidos arriba.
+
+### 11.1 Diseño aterrizado
+
+- `AnatomyMoveReferencePayload` es C2S **metadata-only** y versionado por id de payload. Transporta únicamente:
+  - `vehicle`: distingue jugador frente a vehículo controlado;
+  - `support UUID`;
+  - `supportFrameSerial`: endpoint causal que el servidor ya publicó.
+- El payload **no contiene body id**, posición, geometría, contacto, pose, root transform, matrices ni delta.
+- `AnatomyMovementReference.accept(...)` deriva el body desde `context.player()`:
+  - jugador sólo si no está montado;
+  - vehículo sólo si es el root vehicle y `getControllingPassenger()==player`.
+- `AnatomyTransportReceipts.claim(...)` localiza únicamente un receipt ya emitido para ese recipient/body y exige:
+  - support + frame serial exactos y no ambiguos;
+  - epoch, revisión y dimensión vigentes;
+  - body UUID + network id vigentes;
+  - tracking generation vigente;
+  - tick no saturado;
+  - referencia no consumida previamente.
+- Exactly-once se guarda como metadata `consumedTransportSequences`; **el receipt histórico no se borra ni reescribe**.
+- El receipt conserva server-side el `transportSequence` asociado al frame. El cliente nunca lo inventa ni lo transmite.
+- `resolve(...)` usa `TransportLedger.since(receipt.transportSequence())`; por tanto sólo suma transporte server-side **posterior** al receipt. `receipt.appliedDelta` no se reaplica.
+- Una referencia pendiente vive como máximo `PENDING_TICKS=2` y sólo puede haber una pendiente por conexión.
+- El presupuesto C2S es `MAX_REFERENCES_PER_TICK=16`.
+- El cliente sólo captura un cursor después de que un `SupportTransport` local nuevo haya incorporado un endpoint server-issued y lo emite una vez antes del siguiente movimiento vanilla.
+
+La primera versión implementer intentó identificar el receipt con clocks/secuencias locales del cliente y fue descartada durante revisión: con RTT/coalescing esos valores no identifican necesariamente el material server-side. El diseño vigente usa exclusivamente `support + server frameSerial` como metadata nombrable por el cliente.
+
+### 11.2 Evidencia implementer ejecutada
+
+Candidato productivo final: `b09c490a8405cf5042468e8ea1bd6d4538fad0cd`.
+
+Sobre ese snapshot:
+
+- build `35388973833`, job `105742610038`: **success**;
+- presence `35388973889`, job `105742611717`: **success**;
+- authority boundary + tres mutantes `35388973830`: **success** completo;
+- receipt isolation + recipient/body/disconnect mutants `35388973790`: **success** completo;
+- tracking ledger `35388973836`: **success**;
+- S16 canonical catalog `35388973771`: **success**;
+- S22 coverage residuals `35388973929`: **success**.
+
+Regresión propia del implementer añadida después, sin cambios productivos:
+
+- commit `35224ed5261969854feb58379f2fcd34927d61c9`;
+- workflow `s25-implementer-reference-proof`, run `35444126698`, job `105900018851`: **success**;
+- artifact `S25-implementer-reference`, id `10585450603`;
+- build del mismo snapshot `35444126655`: **success**.
+
+`S25ImplementerReferenceTests` demuestra únicamente la regresión de desarrollo del candidato: support/frame incorrectos no consumen, el frame exacto resuelve el receipt, el receipt histórico permanece valor-equivalente tras claim y el replay exacto falla. No sustituye los holdouts adversariales independientes.
+
+### 11.3 Lectura de coste implementer
+
+Clasificación:
+
+- receiver/claim: **HOT_NETWORK**;
+- `resolve(...)` del siguiente packet vanilla: **HOT_MOVE_QUERY**;
+- captura cliente tras carry: **HOT_NETWORK/HOT_TICK** acotado a actores localmente autoritativos.
+
+Bounds estructurales actuales:
+
+- máximo 16 intentos C2S por conexión/tick;
+- una referencia pendiente;
+- pending TTL de 2 ticks;
+- receipts: 40 ticks × máximo 16 por tick/body, es decir, como máximo 640 entradas históricas por recipient/body antes de pruning;
+- claim hace scan lineal sólo sobre ese history local y por tanto permanece acotado;
+- no hay scan global de entidades, reflexión, geometría, matrices ni reconstrucción de catálogo en esta ruta.
+
+No se declara con esto cumplimiento temporal de NFR-014; sólo boundedness/locality de este corte.
+
+### 11.4 Handoff IMPLEMENTER → ADVERSARY
+
+S25/G4.1 permanece **ABIERTO**. El RED de “superficie ausente” ya no aplica, pero el cierre requiere todavía la campaña independiente A–G y los ocho mutation-kills de §5 sobre el candidato vigente.
+
+Hasta ese cierre no se abre trabajo productivo G4.2.
