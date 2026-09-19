@@ -239,21 +239,48 @@ public final class S25AdversarialReferenceBehaviorTests {
             h.assertTrue(staleRevisionResolved.get().equals(afterRevisionAdvance),
                 "Receipt from a prior catalog revision must not stage or rebase a movement reference");
 
-            // TTL owner-level check. The receipt remains untouched until it naturally expires.
-            var ttlPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();ttlPlayer.setPos(9,4,2);
-            long ttlFrame=300;
-            record(ttlPlayer,ttlPlayer,support,1,ttlFrame,1,new Vec3(.03125,0,0));
-            h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS,()->{
+            // Pending reference TTL is independent from receipt TTL. A valid cursor may be
+            // consumed/staged, but if its following vanilla movement packet arrives too late the
+            // staging must fail closed rather than rebase an unrelated later packet.
+            var pendingPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();pendingPlayer.setPos(9,4,2);
+            long pendingFrame=500;
+            record(pendingPlayer,pendingPlayer,support,1,pendingFrame,1,new Vec3(.03125,0,0));
+            Vec3 pendingAbsolute=pendingPlayer.position();
+            var pendingReference=new AnatomyMoveReferencePayload(false,support.getUUID(),pendingFrame);
+            S24TrackingAuthorityTestSeam.runOwned(pendingPlayer,pendingPlayer,1,
+                ()->AnatomyMovementReference.accept(pendingPlayer,pendingReference));
+            h.assertTrue(pending(pendingPlayer),
+                "Valid pending-TTL fixture reference must stage before the delay");
+            applyTransportOnly(pendingPlayer,2,new Vec3(.0625,0,0));
+
+            h.runAfterDelay(AnatomyMovementReference.PENDING_TICKS+1,()->{
                 try {
-                    var expired=new AtomicReference<AnatomyTransportReceipts.Receipt>();
-                    S24TrackingAuthorityTestSeam.run(ttlPlayer,ttlPlayer,1,
-                        ()->expired.set(AnatomyTransportReceipts.claim(ttlPlayer,ttlPlayer,support.getUUID(),ttlFrame)));
-                    h.assertTrue(expired.get()==null,
-                        "Receipt at or beyond HISTORY_TICKS must be pruned before reference claim");
-                    cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,ttlPlayer);
-                    h.succeed();
+                    var expiredPending=new AtomicReference<Vec3>();
+                    S24TrackingAuthorityTestSeam.run(pendingPlayer,pendingPlayer,1,
+                        ()->expiredPending.set(AnatomyMovementReference.resolve(pendingPlayer,pendingPlayer,pendingAbsolute)));
+                    h.assertTrue(expiredPending.get().equals(pendingAbsolute) && !pending(pendingPlayer),
+                        "Pending reference older than PENDING_TICKS must not rebase a later vanilla movement packet");
+
+                    // Receipt TTL owner-level check. The receipt remains untouched until it naturally expires.
+                    var ttlPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();ttlPlayer.setPos(10,4,2);
+                    long ttlFrame=300;
+                    record(ttlPlayer,ttlPlayer,support,1,ttlFrame,1,new Vec3(.03125,0,0));
+                    h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS,()->{
+                        try {
+                            var expired=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+                            S24TrackingAuthorityTestSeam.run(ttlPlayer,ttlPlayer,1,
+                                ()->expired.set(AnatomyTransportReceipts.claim(ttlPlayer,ttlPlayer,support.getUUID(),ttlFrame)));
+                            h.assertTrue(expired.get()==null,
+                                "Receipt at or beyond HISTORY_TICKS must be pruned before reference claim");
+                            cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,pendingPlayer,ttlPlayer);
+                            h.succeed();
+                        } catch(Throwable failure) {
+                            cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,pendingPlayer,ttlPlayer);
+                            throw failure;
+                        }
+                    });
                 } catch(Throwable failure) {
-                    cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,ttlPlayer);
+                    cleanup(server,support,player,saturated,controller,passenger,boat,budgetPlayer,pendingPlayer);
                     throw failure;
                 }
             });
