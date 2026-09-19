@@ -134,16 +134,32 @@ public final class PlatformTestLatency extends ChannelDuplexHandler {
 
     private static boolean relevant(Object message) {
         return message instanceof ServerboundMovePlayerPacket || message instanceof ServerboundMoveVehiclePacket
-            || message instanceof ClientboundPlayerPositionPacket || message.getClass().getSimpleName().equals("ClientboundMoveVehiclePacket");
+            || message instanceof ClientboundPlayerPositionPacket || message.getClass().getSimpleName().equals("ClientboundMoveVehiclePacket")
+            || message.getClass().getSimpleName().equals("ServerboundCustomPayloadPacket");
     }
 
-    /** Positions are diagnostic-only and make a vehicle correction causal in the N2 trace. */
+    /** Positions/reference ids are diagnostic-only and make ordering causal in the N2/S25 trace. */
     private static String detail(Object message) {
         if(message instanceof ServerboundMoveVehiclePacket packet)
             return "target="+packet.position()+",yaw="+packet.yRot()+",pitch="+packet.xRot()+",ground="+packet.onGround();
         if(message instanceof ClientboundMoveVehiclePacket packet)
             return "correction="+packet.position()+",yaw="+packet.yRot()+",pitch="+packet.xRot();
+        if(message.getClass().getSimpleName().equals("ServerboundCustomPayloadPacket"))
+            return "payload="+customPayloadId(message);
         return "";
+    }
+
+    private static String customPayloadId(Object packet) {
+        try {
+            Object payload=packet.getClass().getMethod("payload").invoke(packet);
+            if(payload==null)return "<null>";
+            Object type=payload.getClass().getMethod("type").invoke(payload);
+            if(type==null)return "<null-type>";
+            Object id=type.getClass().getMethod("id").invoke(type);
+            return String.valueOf(id);
+        } catch(ReflectiveOperationException inaccessible) {
+            return "<unreadable:"+packet.getClass().getName()+">";
+        }
     }
 
     /** Reserve due time now; a single queue pump, not same-time timers, enforces FIFO delivery. */
