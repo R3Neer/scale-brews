@@ -1,0 +1,66 @@
+name: s25-adversarial-reference-latency
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-latency.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformConnectionMixin.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyPredictionBaselineProof.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/PlatformTestLatency.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  dedicated-reference-latency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: isolate S25 dedicated reference latency proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.AnatomyPredictionBaselineProof'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: run dedicated player and controlled-boat reference proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s25-reference-latency
+          xvfb-run -a ./gradlew runClientGameTest --console=plain             2>&1 | tee build/s25-reference-latency/client.log
+          if ! grep -R -F 'S25_REFERENCE_LATENCY PASS'               build/run/clientGameTest/logs build/s25-reference-latency/client.log >/dev/null 2>&1; then
+            echo 'S25 reference latency proof did not emit its causal PASS marker.' >&2
+            exit 1
+          fi
+
+      - name: capture S25 dedicated reference evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S25-reference-latency
+          path: |
+            build/s25-reference-latency/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
