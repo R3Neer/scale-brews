@@ -28,6 +28,25 @@ public final class AnatomyMovement {
     // Weak identity keys keep server and client instances strictly separate.
     private static <K,V> Map<K,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());}
     private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
+    /** Client-only notification emitted at the exact causal point where a local carry is recorded. */
+    public record ClientTransportCursor(UUID support,long supportFrameSerial,long localTransportSequence) {
+        public ClientTransportCursor {
+            if(support==null || supportFrameSerial<1 || localTransportSequence<1)
+                throw new IllegalArgumentException("Invalid client transport cursor");
+        }
+    }
+    private static volatile java.util.function.BiConsumer<Entity,ClientTransportCursor> CLIENT_TRANSPORT_OBSERVER=(body,cursor)->{};
+    public static void installClientTransportObserver(java.util.function.BiConsumer<Entity,ClientTransportCursor> observer) {
+        CLIENT_TRANSPORT_OBSERVER=Objects.requireNonNull(observer,"client transport observer");
+    }
+    private static void publishClientTransport(Entity body,LivingEntity support,long supportFrameSerial,SupportTransport transport) {
+        if(body==null || support==null || transport==null || !body.level().isClientSide() || supportFrameSerial<1)return;
+        try {
+            CLIENT_TRANSPORT_OBSERVER.accept(body,new ClientTransportCursor(support.getUUID(),supportFrameSerial,transport.sequence()));
+        } catch(RuntimeException rejectedObserver) {
+            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client transport cursor observer rejected a confirmed local carry",rejectedObserver);
+        }
+    }
     /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
     private static synchronized void removeSpatialEntry(LivingEntity support) {
         if(support==null)return;
@@ -680,7 +699,8 @@ public final class AnatomyMovement {
         try {
             carry(c.support,visiting);var root=observeRoot(c.support);
             var provider=AnatomyBindingState.provider(c.support);
-            var snapshot=currentSnapshot(c.support,provider).orElse(null);
+            var causalFrame=AnatomyBindingState.causal(c.support())?queryFrame(c.support()).orElse(null):null;
+            var snapshot=causalFrame==null?currentSnapshot(c.support(),provider).orElse(null):causalFrame.snapshot();
             var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
             if(piece==null || snapshot.revision()!=c.revision || c.support.position().distanceToSqr(anchor.supportOrigin())>16
                     || body.position().distanceToSqr(anchor.bodyOrigin())>16){clear(body);return;}
@@ -707,6 +727,7 @@ public final class AnatomyMovement {
                 TransportLedger.record(body,transport);
                 AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore(),piece);
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
+                if(causalFrame!=null)publishClientTransport(body,c.support(),causalFrame.endpoint().frameSerial(),transport);
             }
             AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(anchor.local(),now,piece,c.support.position(),body.position(),anchor.bodyGravity(),anchor.supportGravity()));
         } finally {visiting.remove(body);}
