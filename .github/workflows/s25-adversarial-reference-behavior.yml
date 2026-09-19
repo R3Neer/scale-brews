@@ -119,9 +119,8 @@ jobs:
 
           if mutation=='exactly-once':
               replace(receipts,
-                  '''if(match==null || history.saturatedTicks.contains(match.tick())
-                  || history.consumedTransportSequences.contains(match.transportSequence()))return null;''',
-                  '''if(match==null || history.saturatedTicks.contains(match.tick()))return null;''')
+                  ' || history.consumedTransportSequences.contains(match.transportSequence())',
+                  '')
 
           elif mutation=='tracking-generation':
               replace(receipts,
@@ -133,11 +132,11 @@ jobs:
 
           elif mutation=='lifecycle-identity':
               replace(receipts,
-                  '''if(!match.epoch().equals(AnatomyNetworking.epoch(server))
+                  '''!match.epoch().equals(AnatomyNetworking.epoch(server))
                 || match.catalogRevision()!=AnatomyNetworking.revision(server)
                 || !match.dimension().equals(body.level().dimension().identifier())
-                || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())''',
-                  '''if(match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())''')
+                || ''',
+                  '''''')
               replace(refs,
                   '''                || !pending.epoch().equals(AnatomyNetworking.epoch(server))''',
                   '''''')
@@ -163,12 +162,10 @@ jobs:
                   'Vec3 rebased=absolute.add(window.appliedDelta()).add(TransportLedger.current(body).appliedDelta());')
 
           elif mutation=='fabricated-hit':
+              replace(receipts,' && frameSerial.longValue()==supportFrameSerial','')
               replace(receipts,
-                  '''if(receipt.support().equals(support) && frameSerial!=null && frameSerial.longValue()==supportFrameSerial) {
-                if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.
-                match=receipt;
-            }''',
-                  '''if(receipt.support().equals(support) && frameSerial!=null)match=receipt;''')
+                  'if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.\n                ',
+                  '')
 
           else:
               raise SystemExit(f'unknown mutation: {mutation}')
