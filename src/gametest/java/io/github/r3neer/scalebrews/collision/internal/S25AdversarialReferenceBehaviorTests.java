@@ -31,7 +31,6 @@ public final class S25AdversarialReferenceBehaviorTests {
         var support=h.spawn(EntityTypes.COW,2,4,2);
         support.setNoAi(true);support.setNoGravity(true);
         var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
-        player.setGameMode(GameType.SURVIVAL);
         player.setPos(3,4,2);
 
         try {
@@ -148,8 +147,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                 "Receipt from retired tracking generation must not stage or rebase a movement reference");
 
             // Saturated ticks are historical evidence but never admissible reference authority.
-            var saturated=(ServerPlayer)h.makeMockServerPlayerInLevel();
-            saturated.setGameMode(GameType.SURVIVAL);saturated.setPos(5,4,2);
+            var saturated=(ServerPlayer)h.makeMockServerPlayerInLevel();saturated.setPos(5,4,2);
             long saturatedFrame=100;
             for(int sequence=1;sequence<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK+1;sequence++)
                 record(saturated,saturated,support,1,saturatedFrame+sequence-1,sequence,new Vec3(.015625,0,0));
@@ -169,8 +167,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             // Receipt existence is not control authority: both passengers receive a receipt, but
             // only the controlling passenger may use the vehicle reference.
             var controller=(ServerPlayer)h.makeMockServerPlayerInLevel();
-            var passenger=(ServerPlayer)h.makeMockServerPlayerInLevel();
-            controller.setGameMode(GameType.SURVIVAL);passenger.setGameMode(GameType.SURVIVAL);
+            var passenger=(ServerPlayer)h.makeMockServerPlayerInLevel();passenger.setGameMode(GameType.SURVIVAL);
             var boat=h.spawn(EntityTypes.OAK_BOAT,7,4,2);
             h.assertTrue(controller.startRiding(boat,true,true) && passenger.startRiding(boat,true,true)
                     && boat.getControllingPassenger()==controller,
@@ -215,8 +212,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                 "Receipt from a prior catalog revision must not stage or rebase a movement reference");
 
             // TTL owner-level check. The receipt remains untouched until it naturally expires.
-            var ttlPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();
-            ttlPlayer.setGameMode(GameType.SURVIVAL);ttlPlayer.setPos(9,4,2);
+            var ttlPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();ttlPlayer.setPos(9,4,2);
             long ttlFrame=300;
             record(ttlPlayer,ttlPlayer,support,1,ttlFrame,1,new Vec3(.03125,0,0));
             h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS,()->{
