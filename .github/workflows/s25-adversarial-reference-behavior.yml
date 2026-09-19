@@ -72,6 +72,7 @@ jobs:
           - double-apply
           - fabricated-hit
           - rate-budget
+          - pending-ttl
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -163,6 +164,11 @@ jobs:
               replace(refs,
                   'if(state.attempts>=MAX_REFERENCES_PER_TICK)return;',
                   'if(false)return;')
+
+          elif mutation=='pending-ttl':
+              replace(refs,
+                  'if(pending.acceptedTick()>now || pending.acceptedTick()+PENDING_TICKS<now)return absolute;',
+                  'if(pending.acceptedTick()>now || false)return absolute;')
 
           else:
               raise SystemExit(f'unknown mutation: {mutation}')
