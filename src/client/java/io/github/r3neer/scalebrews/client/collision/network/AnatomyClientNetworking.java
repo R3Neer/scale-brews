@@ -235,13 +235,18 @@ public final class AnatomyClientNetworking {
      * the correct cursor for the resulting absolute body position.
      */
     private static void captureMovementReference(net.minecraft.world.entity.Entity body,long localTransportSequence) {
-        var contact=AnatomyMovement.contact(body);if(contact==null)return;
+        var contact=AnatomyMovement.contact(body);
+        if(contact==null) {s25ReferenceDiagnostic("capture-reject-contact-null");return;}
         var support=contact.support();var history=frames.get(support.getUUID());var packet=history==null?null:history.current();
-        if(packet==null || !packet.available() || staleFrames.contains(support.getUUID())
-                || packet.entityId()!=support.getId() || !packet.entity().equals(support.getUUID())
-                || packet.revision()!=contact.revision())return;
+        if(packet==null) {s25ReferenceDiagnostic("capture-reject-frame-null support={}",support.getUUID());return;}
+        if(!packet.available()) {s25ReferenceDiagnostic("capture-reject-unavailable frame={}",packet.frameSerial());return;}
+        if(staleFrames.contains(support.getUUID())) {s25ReferenceDiagnostic("capture-reject-stale frame={}",packet.frameSerial());return;}
+        if(packet.entityId()!=support.getId()) {s25ReferenceDiagnostic("capture-reject-network-id packet={} live={}",packet.entityId(),support.getId());return;}
+        if(!packet.entity().equals(support.getUUID())) {s25ReferenceDiagnostic("capture-reject-uuid");return;}
+        if(packet.revision()!=contact.revision()) {s25ReferenceDiagnostic("capture-reject-revision packet={} contact={}",packet.revision(),contact.revision());return;}
         predictedMovementReferences.put(body.getUUID(),
             new PredictedMovementReference(support.getUUID(),packet.frameSerial(),localTransportSequence));
+        s25ReferenceDiagnostic("capture-success support={} frame={} sequence={}",support.getUUID(),packet.frameSerial(),localTransportSequence);
     }
 
     /**
@@ -308,8 +313,10 @@ public final class AnatomyClientNetworking {
                     var before=AnatomyMovement.transport(entity);
                     AnatomyMovement.carry(entity);
                     var after=AnatomyMovement.transport(entity);
-                    if(after!=null && (before==null || after.sequence()!=before.sequence()))
-                        captureMovementReference(entity,after.sequence());
+                    if(after==null) s25ReferenceDiagnostic("carry-produced-no-transport body={}",entity.getType());
+                    else if(before!=null && after.sequence()==before.sequence())
+                        s25ReferenceDiagnostic("carry-transport-unchanged sequence={}",after.sequence());
+                    else captureMovementReference(entity,after.sequence());
                 }
             }
         });
