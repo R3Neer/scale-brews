@@ -169,3 +169,27 @@ Esto cierra mutation adequacy del owner conocido, pero **no toca el RED producti
 
 **Estado tras hardening:** owner/kernel cerrado; reference↔receipt transport identity continúa RED y bloquea G4.1.
 
+## 9. Matriz negativa de identidades demasiado gruesas
+
+El hardening posterior añade un oracle explícito para el extremo contrario al fuzzy frame matching.
+
+`S25AdversarialReferenceBehaviorTests.oneTickContactAndRootCanContainMultipleDistinctTransportReceipts` crea dos receipts server-issued que comparten simultáneamente:
+
+- support UUID;
+- game tick;
+- `contactSequence`;
+- `rootFrameSequence`;
+
+pero tienen `transportSequence` distintos y deben seguir siendo reclamables de forma independiente.
+
+Workflow `s25-adversarial-reference-behavior`, run **`35452355407`**: baseline y toda la matriz de 14 mutantes permanecen **success**. Ordinary run **`35452355386`**, job **`105921596373`**: **446/446 required GameTests**, `BUILD SUCCESSFUL`; artifact **`10586817824`**, SHA-256 **`8fd565192421040101aa8b49c92ca6d4f17bd218e6d0dbf3ddc7a79c33676e52`**.
+
+La prueba demuestra que tampoco son identidades suficientes, por sí solas:
+
+- support + tick;
+- support + contact sequence;
+- support + root-frame sequence;
+- cualquier combinación de esos campos que no distinga las dos contribuciones materiales del mismo tick/contact/root.
+
+Esto complementa la prohibición de `frameSerial` aproximado. La reparación debe nombrar **el transporte/material interval incorporado**, no elegir un reloj causal que sea demasiado fino o demasiado grueso.
+
