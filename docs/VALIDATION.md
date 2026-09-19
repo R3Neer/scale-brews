@@ -971,3 +971,16 @@ Regresión de desarrollo implementer, commit `35224ed5261969854feb58379f2fcd3492
 La regresión implementer comprueba que metadata de support/frame incorrecta no consume el receipt, el endpoint server-issued exacto lo resuelve, el receipt histórico permanece inmutable tras claim y el replay exacto es rechazado.
 
 **Límite de evidencia:** G4.1 continúa **ABIERTO**. Falta la campaña adversarial conductual independiente A–G y los ocho mutation-kills definidos en `docs/sprints/S25-g4-reference-adversarial-model.md`. No se infiere todavía estabilidad 0/100/200 ms, drift/reconciliation ni cierre de G4.2+.
+
+## G4 / S25 dedicated reference emission — adversarial RED 2026-09-19
+
+The owner/kernel reference path is green and mutation-adequate. Run **`35446958412`** passes the baseline plus nine compiling directed mutants: exactly-once, tracking generation, lifecycle identity, expired receipt, saturated tick, non-controller, double-apply, fabricated-hit and per-tick rate budget. Baseline artifact **`10586355183`**, SHA-256 **`720be464edab24d7c6063996283f92c36c4d0cb7288aef35e4ad6723f8f4bd60`**.
+
+The dedicated latency lane initially failed before gameplay because the exported original anatomy catalog was not forwarded to the isolated proof. Workflow-only fix **`d8ffe899fbbf4d3ee12f71190be8c36de440eb4c`** passes `-PscalebrewsAnatomyCatalog=<export>` into the second `runClientGameTest`, allowing the proof to reach real dedicated movement.
+
+Run **`35447097292`**, job **`105907798139`**, exposes a product integration RED at player RTT=0. The outgoing movement mixin is reached and the client reports `ready=true`, local authority true, reference capability sendable, real confirmed support, and a local transport sequence advancing through 26/76/126/176. Nevertheless the client reference map remains unstaged and no `scalebrews:anatomy_move_reference_v1` packet appears before any of roughly 201 real player movement packets. The proof fails with `S25 player RTT 0 emitted no anatomy_move_reference_v1 packet despite real local carry`.
+
+Causal localization: client carry already advances `TransportLedger` on the real `Entity.move -> PlatformEntityMixin -> PlatformPhysics.carry -> AnatomyMovement.carry` path. The current cursor capture runs later in `END_CLIENT_TICK` and only captures when a second carry changes the transport sequence during that callback. By then `before.sequence == after.sequence`, so the cursor is never staged.
+
+**Classification:** PRODUCT RED in client carry-to-reference capture timing. Receiver authority, claim/resolve behavior, Netty capability, READY/local authority and the dedicated fixture are not the blocker. G4.1 remains open. Full handoff: `docs/sprints/S25-adversarial-latency-capture-red.md`.
+
