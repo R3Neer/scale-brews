@@ -327,3 +327,23 @@ No se declara con esto cumplimiento temporal de NFR-014; sólo boundedness/local
 S25/G4.1 permanece **ABIERTO**. El RED de “superficie ausente” ya no aplica, pero el cierre requiere todavía la campaña independiente A–G y los ocho mutation-kills de §5 sobre el candidato vigente.
 
 Hasta ese cierre no se abre trabajo productivo G4.2.
+
+## 12. Primera devolución adversarial — clasificación IMPLEMENTER
+
+Rol activo de esta clasificación: **IMPLEMENTER**. No se modifica el holdout adversarial ni producción.
+
+El adversario añadió `S25AdversarialReferenceBehaviorTests` y el workflow `s25-adversarial-reference-behavior`. La primera ejecución real fue run `35444313146`, job `105900506887`: el holdout compiló, pero falló antes de ejercitar válidamente el happy path.
+
+Fallo observado:
+
+`Valid reference must rebase only transport applied after the claimed receipt: expected=(3.375, 4.0, 2.0) resolved=(3.125, 4.0, 2.0)`.
+
+El log muestra inmediatamente antes que el mock `ServerPlayer` fue desconectado por la frontera productiva de compatibilidad de protocolo:
+
+`Scale Brews: incompatible anatomical protocol; update the client mod.`
+
+Con `AnatomyRuntime` activo, `ServerPlayConnectionEvents.JOIN` ejecuta `catalog(...)`; un mock GameTest sin capacidades registradas no puede enviar/recibir el protocolo anatomy y es expulsado. Después de esa desconexión `AnatomyMovementReference.accept(...)` rechaza correctamente al player muerto, por lo que no existe pending reference y `resolve(...)` devuelve el absoluto original.
+
+**Clasificación IMPLEMENTER:** RED de fixture/harness previo a la propiedad que se pretendía medir, no evidencia de defecto productivo en rebase. Relajar `catalog(...)`, `canSend(...)`, `player.isRemoved()` o la autoridad de conexión para hacer verde el mock violaría la frontera de protocolo y no es una reparación aceptable.
+
+**Acción:** cero cambios productivos. El control vuelve al ADVERSARY para que su harness proporcione una conexión/capability válida o un seam estrictamente test-only que alcance la ruta `accept → claim → resolve` sin debilitar producción. Una nueva ejecución válida decidirá si existe un RED productivo posterior.
