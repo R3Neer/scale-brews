@@ -347,3 +347,9 @@ Con `AnatomyRuntime` activo, `ServerPlayConnectionEvents.JOIN` ejecuta `catalog(
 **Clasificación IMPLEMENTER:** RED de fixture/harness previo a la propiedad que se pretendía medir, no evidencia de defecto productivo en rebase. Relajar `catalog(...)`, `canSend(...)`, `player.isRemoved()` o la autoridad de conexión para hacer verde el mock violaría la frontera de protocolo y no es una reparación aceptable.
 
 **Acción:** cero cambios productivos. El control vuelve al ADVERSARY para que su harness proporcione una conexión/capability válida o un seam estrictamente test-only que alcance la ruta `accept → claim → resolve` sin debilitar producción. Una nueva ejecución válida decidirá si existe un RED productivo posterior.
+
+**Localización adversarial posterior:** run `35444656309` añadió un assert de precondiciones y reportó `active=true owns=false`. Ese `owns=false` tampoco demuestra pérdida de sesión: el holdout llama `AnatomyRuntime.owns(player)` con tipo estático `ServerPlayer`, por lo que Java selecciona el overload package-private `owns(LivingEntity)`, cuya semántica es ownership del **binding causal de un soporte**. El candidato productivo llama `owns(body)` con `body` tipado como `Entity`, y por tanto usa `owns(Entity)`, ownership de sesión. Con catálogo preparado vacío es correcto que el primer overload estrecho devuelva false para el player.
+
+La instrumentación implementer temporal confirmó además que el overload `owns(Entity)` no era el que estaba fallando y fue retirada completamente en `9a2b8f0913d45c1e8f936f28c5f2392dcd417330` + `fce6d86bf9d63858838593b18d9e872bdeee429b`.
+
+**Clasificación vigente:** el holdout todavía no ha alcanzado una precondición equivalente a la llamada productiva de `accept(...)`; sigue devuelto al ADVERSARY. No hay reparación productiva autorizada por estos REDs.
