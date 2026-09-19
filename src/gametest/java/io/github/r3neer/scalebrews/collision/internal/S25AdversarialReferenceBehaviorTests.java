@@ -30,7 +30,7 @@ public final class S25AdversarialReferenceBehaviorTests {
 
         var support=h.spawn(EntityTypes.COW,2,4,2);
         support.setNoAi(true);support.setNoGravity(true);
-        var player=(ServerPlayer)h.makeMockServerPlayerInLevel();
+        var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
         player.setGameMode(GameType.SURVIVAL);
         player.setPos(3,4,2);
 
