@@ -123,6 +123,16 @@ El patrón par/impar observado **no** autoriza una corrección `frameSerial±1`,
 
 El nuevo lookup debe ser exacto sobre una identidad causal estable del transporte incorporado. Ante más de un receipt compatible, debe fallar cerrado en vez de elegir por cercanía temporal/serial.
 
+### `rootFrameSequence` por sí solo tampoco basta
+
+El extremo contrario también está descartado por evidencia existente. `AnatomyAnimatedSqueezingTests.twoLocalJointContributionsKeepDistinctTransportProvenance` produce dos contribuciones materiales reales de joints con:
+
+- `transportSequence` consecutivos y distintos;
+- `appliedDelta` distintos por contribución;
+- **el mismo `rootFrameSequence`**, porque el root permanece estacionario.
+
+Por tanto una clave `support + rootFrameSequence` puede ser ambigua para dos receipts válidos distintos. La reparación debe identificar el transporte/material interval incorporado, no simplemente sustituir un reloj de endpoint demasiado fino por un reloj root demasiado grueso.
+
 Debe conservar:
 
 1. ningún DTO de geometry/contact/pose como autoridad C2S;
