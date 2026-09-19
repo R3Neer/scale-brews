@@ -7,6 +7,7 @@ on:
       - '.github/workflows/s25-adversarial-reference-behavior.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/runtime/TransportLedger.java'
