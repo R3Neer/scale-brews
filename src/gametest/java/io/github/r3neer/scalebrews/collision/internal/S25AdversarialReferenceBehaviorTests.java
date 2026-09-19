@@ -44,8 +44,15 @@ public final class S25AdversarialReferenceBehaviorTests {
             AABB afterReceiptBox=player.getBoundingBox();
             var reference=new AnatomyMoveReferencePayload(false,support.getUUID(),frameOne);
 
+            long transportGenerationAtAccept=AnatomyMovement.transportGeneration(player);
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
+
+            var postAcceptClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->postAcceptClaim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),frameOne)));
+            h.assertTrue(postAcceptClaim.get()==null,
+                "Valid accept must consume exactly the matched receipt before staging its movement cursor");
 
             h.assertTrue(player.position().equals(afterReceipt) && player.getBoundingBox().equals(afterReceiptBox)
                     && TransportLedger.current(player).sequence()==1
@@ -54,6 +61,13 @@ public final class S25AdversarialReferenceBehaviorTests {
 
             Vec3 secondDelta=new Vec3(.25,0,0);
             applyTransportOnly(player,2,secondDelta);
+            var postReceiptWindow=TransportLedger.since(player,1);
+            h.assertTrue(postReceiptWindow.contiguous() && postReceiptWindow.latestSequence()==2
+                    && postReceiptWindow.appliedDelta().equals(secondDelta)
+                    && AnatomyMovement.transportGeneration(player)==transportGenerationAtAccept,
+                "Fixture must expose one contiguous post-receipt transport without changing transport lifecycle: window="
+                    +postReceiptWindow+" generation="+AnatomyMovement.transportGeneration(player)
+                    +" acceptedGeneration="+transportGenerationAtAccept);
             Vec3 serverAfterSecond=player.position();
             var resolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
