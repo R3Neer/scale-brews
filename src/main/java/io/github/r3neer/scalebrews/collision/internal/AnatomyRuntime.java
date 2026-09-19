@@ -172,7 +172,7 @@ public final class AnatomyRuntime {
      * A prepared/running session must not suppress the fixture/local fallback for a manually registered support;
      * only the exact live provider/descriptor installed by this runtime has certified material intervals to own its carry.
      */
-    static boolean owns(LivingEntity support) {
+    static boolean ownsSupportBinding(LivingEntity support) {
         var server=support.level().getServer();
         var state=server==null?null:STATES.get(server);
         if(state==null)return false;
