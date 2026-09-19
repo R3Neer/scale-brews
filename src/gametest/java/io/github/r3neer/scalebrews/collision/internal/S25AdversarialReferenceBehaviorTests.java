@@ -45,6 +45,24 @@ public final class S25AdversarialReferenceBehaviorTests {
             var reference=new AnatomyMoveReferencePayload(false,support.getUUID(),frameOne);
 
             long transportGenerationAtAccept=AnatomyMovement.transportGeneration(player);
+            var currentTrackingAtAccept=new java.util.concurrent.atomic.AtomicLong();
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->currentTrackingAtAccept.set(AnatomyRuntime.trackingGeneration(player,player)));
+            h.assertTrue(server.isSameThread() && !player.isRemoved() && player.getRootVehicle()==player
+                    && AnatomyMovement.active(player) && AnatomyRuntime.owns(player)
+                    && firstReceipt.epoch().equals(AnatomyNetworking.epoch(server))
+                    && firstReceipt.catalogRevision()==AnatomyNetworking.revision(server)
+                    && firstReceipt.dimension().equals(player.level().dimension().identifier())
+                    && firstReceipt.bodyNetworkId()==player.getId() && firstReceipt.body().equals(player.getUUID())
+                    && firstReceipt.trackingGeneration()==currentTrackingAtAccept.get()
+                    && firstReceipt.support().equals(support.getUUID())
+                    && supportFrame(player,player,1)==frameOne
+                    && !AnatomyTransportReceipts.saturated(player,player.getUUID(),firstReceipt.tick())
+                    && !consumed(player,player,1) && !pending(player),
+                "Fixture must satisfy every production accept/claim precondition before the reference is submitted: receipt="
+                    +firstReceipt+" tracking="+currentTrackingAtAccept.get()+" supportFrame="+supportFrame(player,player,1)
+                    +" active="+AnatomyMovement.active(player)+" owns="+AnatomyRuntime.owns(player)
+                    +" pending="+pending(player));
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
 
@@ -267,6 +285,23 @@ public final class S25AdversarialReferenceBehaviorTests {
         TransportLedger.record(body,new SupportTransport(tick,sequence,rootSequence,applied,applied));
     }
 
+
+
+    @SuppressWarnings("unchecked")
+    private static long supportFrame(ServerPlayer recipient,Entity body,long sequence) {
+        try {
+            var historiesField=AnatomyTransportReceipts.class.getDeclaredField("HISTORIES");
+            historiesField.setAccessible(true);
+            var histories=(Map<ServerPlayer,Map<UUID,Object>>)historiesField.get(null);
+            var roots=histories.get(recipient);if(roots==null)return 0;
+            var history=roots.get(body.getUUID());if(history==null)return 0;
+            var field=history.getClass().getDeclaredField("supportFrameSerials");
+            field.setAccessible(true);
+            return ((Map<Long,Long>)field.get(history)).getOrDefault(sequence,0L);
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect receipt support-frame metadata",failure);
+        }
+    }
 
     @SuppressWarnings("unchecked")
     private static boolean consumed(ServerPlayer recipient,Entity body,long sequence) {
