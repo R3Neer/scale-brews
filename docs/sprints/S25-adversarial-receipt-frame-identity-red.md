@@ -14,7 +14,7 @@ La primera reapertura de integración cliente, donde el `TransportLedger` avanza
 
 Tras esos cambios, el dedicated proof sí observa `anatomy_move_reference_v1` inmediatamente antes de los movement packets vanilla.
 
-El owner/kernel queda ahora verde con baseline + **14 mutantes compilables muertos** en run `35451920466`: exactly-once, tracking generation, lifecycle combinado, receipt TTL, saturation, non-controller, double-apply, fabricated-hit, rate budget, pending-reference TTL, epoch fence, dimension fence, network-id fence y adjacent-frame matching. Baseline job `105920453853`; los tres fences lifecycle split son jobs `105920631014`, `105920630904`, `105920630900`; el mutante `±1` es `105920630894`. Ordinary del mismo snapshot, run `35451920485`, job `105920454100`: **446/446 required GameTests**, artifact `10586857060`, SHA-256 `66dfe0bc240c04c4e516e1466e864d57f2a166d957b802609bd7a79bb1704a39`.
+El owner/kernel queda ahora verde con baseline + **15 mutantes compilables muertos** en run `35452742190`: exactly-once, tracking generation, lifecycle combinado, receipt TTL, saturation, non-controller, double-apply, fabricated-hit, rate budget, pending-reference TTL, epoch fence, dimension fence, network-id fence, adjacent-frame matching y ambiguous-exact matching. Baseline job `105922624414`; el mutante de identidad ambigua es `105922827839`. Ordinary del mismo snapshot, run `35452742176`, job `105922622233`: **446/446 required GameTests**, artifact `10586933280`, SHA-256 `869ade328e5d491fd393bbfe484ee5b813b4afb944b12a392549af5b4392e53d`.
 
 ## 2. Nuevo RED real
 
@@ -198,4 +198,22 @@ La prueba demuestra que tampoco son identidades suficientes, por sí solas:
 - cualquier combinación de esos campos que no distinga las dos contribuciones materiales del mismo tick/contact/root.
 
 Esto complementa la prohibición de `frameSerial` aproximado. La reparación debe nombrar **el transporte/material interval incorporado**, no elegir un reloj causal que sea demasiado fino o demasiado grueso.
+
+## 10. Identidad exacta también debe ser única
+
+El hardening añade `S25AdversarialReferenceBehaviorTests.ambiguousExactReceiptIdentityFailsClosed`: dos receipts distintos comparten deliberadamente el mismo support + reference identity exacto. `claim(...)` debe devolver null sin consumir ninguno.
+
+Run **`35452742190`**:
+
+- baseline job **`105922624414`** — success;
+- `ambiguous-exact-match`, job **`105922827839`** — el mutante compila, elimina únicamente el rechazo `if(match!=null)return null` y muere.
+
+Artifact del mutante **`10587292882`**, SHA-256 **`b668ee8891b6a818c53c4962953b29a19d878e60cd733ab2176bafd24ed6ba76`**.
+
+Por tanto la reparación de la identidad dedicada debe satisfacer dos propiedades simultáneas:
+
+1. matching exacto, sin aproximación;
+2. unicidad, con fail-closed si más de un receipt comparte el token.
+
+Esto no modifica producción ni resuelve el dedicated RED; impide que una nueva identidad server-issued se cierre eligiendo arbitrariamente entre receipts colisionados.
 
