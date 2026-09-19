@@ -56,3 +56,150 @@ jobs:
             build/s25-reference-behavior.xml
             build/run/gameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  mutation-kills:
+    needs: reference-behavior
+    strategy:
+      fail-fast: false
+      matrix:
+        mutant:
+          - exactly-once
+          - tracking-generation
+          - lifecycle-identity
+          - expired-receipt
+          - saturated-tick
+          - non-controller
+          - double-apply
+          - fabricated-hit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+
+      - name: isolate S25 reference behavior holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceBehaviorTests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+
+      - name: apply directed ${{ matrix.mutant }} mutant
+        shell: bash
+        env:
+          MUTATION: ${{ matrix.mutant }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          mutation=os.environ['MUTATION']
+          receipts=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java')
+          refs=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java')
+
+          def replace(path,old,new,count=1):
+              text=path.read_text()
+              found=text.count(old)
+              if found!=count:
+                  raise SystemExit(f'{mutation}: target count for {path}: {found}, expected {count}')
+              path.write_text(text.replace(old,new,count))
+
+          if mutation=='exactly-once':
+              replace(receipts,
+                  '''if(match==null || history.saturatedTicks.contains(match.tick())
+                  || history.consumedTransportSequences.contains(match.transportSequence()))return null;''',
+                  '''if(match==null || history.saturatedTicks.contains(match.tick()))return null;''')
+
+          elif mutation=='tracking-generation':
+              replace(receipts,
+                  '''                || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))''',
+                  '''''')
+              replace(refs,
+                  '''                || pending.trackingGeneration()!=AnatomyRuntime.trackingGeneration(player,body)''',
+                  '''''')
+
+          elif mutation=='lifecycle-identity':
+              replace(receipts,
+                  '''if(!match.epoch().equals(AnatomyNetworking.epoch(server))
+                || match.catalogRevision()!=AnatomyNetworking.revision(server)
+                || !match.dimension().equals(body.level().dimension().identifier())
+                || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())''',
+                  '''if(match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())''')
+              replace(refs,
+                  '''                || !pending.epoch().equals(AnatomyNetworking.epoch(server))''',
+                  '''''')
+              replace(refs,
+                  '''                || pending.revision()!=AnatomyNetworking.revision(server)''',
+                  '''''')
+              replace(refs,
+                  '''                || !pending.dimension().equals(body.level().dimension().identifier())''',
+                  '''''')
+
+          elif mutation=='expired-receipt':
+              replace(receipts,'tick-HISTORY_TICKS+1','Long.MIN_VALUE',2)
+
+          elif mutation=='saturated-tick':
+              replace(receipts,'history.saturatedTicks.contains(match.tick())','false')
+
+          elif mutation=='non-controller':
+              replace(refs,' || root.getControllingPassenger()!=player','')
+
+          elif mutation=='double-apply':
+              replace(refs,
+                  'Vec3 rebased=absolute.add(window.appliedDelta());',
+                  'Vec3 rebased=absolute.add(window.appliedDelta()).add(TransportLedger.current(body).appliedDelta());')
+
+          elif mutation=='fabricated-hit':
+              replace(receipts,
+                  '''if(receipt.support().equals(support) && frameSerial!=null && frameSerial.longValue()==supportFrameSerial) {
+                if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.
+                match=receipt;
+            }''',
+                  '''if(receipt.support().equals(support) && frameSerial!=null)match=receipt;''')
+
+          else:
+              raise SystemExit(f'unknown mutation: {mutation}')
+          PY
+
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+
+      - name: behavior holdout must kill ${{ matrix.mutant }} mutant
+        shell: bash
+        env:
+          MUTATION: ${{ matrix.mutant }}
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks \
+            -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s25-reference-$MUTATION-mutant.xml"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "SURVIVED: $MUTATION mutant passed the S25 reference behavior holdout"
+            exit 1
+          fi
+          echo "KILLED: $MUTATION mutant"
+
+      - name: capture ${{ matrix.mutant }} mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S25-reference-${{ matrix.mutant }}-mutant
+          path: |
+            build/s25-reference-*-mutant.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
