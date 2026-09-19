@@ -984,3 +984,22 @@ Causal localization: client carry already advances `TransportLedger` on the real
 
 **Classification:** PRODUCT RED in client carry-to-reference capture timing. Receiver authority, claim/resolve behavior, Netty capability, READY/local authority and the dedicated fixture are not the blocker. G4.1 remains open. Full handoff: `docs/sprints/S25-adversarial-latency-capture-red.md`.
 
+## G4 / S25 receipt-frame identity — adversarial RED 2026-09-19
+
+The previous client-capture blocker is repaired: real dedicated traffic now contains `scalebrews:anatomy_move_reference_v1` immediately before vanilla player movement packets, with READY/local authority/capability guards satisfied and no vanilla corrections.
+
+A stricter acceptance oracle then required evidence that the server actually consumed at least one live receipt per phase. Run **`35448151599`**, job **`105910578723`**, artifact **`10585761418`**, SHA-256 **`89ff7254b5883e205e9006c78b686eb0b086e084a333b8f41ae22e3c7ad1c379`**, fails causally at player RTT=0 with **`consumedReferences=0`** despite real reference traffic.
+
+Test-only wire tracing and server receipt metadata show a disjoint reference key:
+
+- client C2S `supportFrameSerial`: **8, 10, 12, ... 400, 402, 404** — 199 references, all even;
+- server receipt map in the live bounded history: **167→335, 168→337, ... 199→399, 200→401, 201→403** — all support-frame serials odd.
+
+Support UUID matches; the exact support-frame serial never does. `AnatomyTransportReceipts.claim(...)` therefore cannot find a receipt and consumes nothing.
+
+The mismatch is causal rather than networking noise. Server receipts bind to the endpoint of the material interval that actually produced carry. Client prediction can incorporate a later published endpoint for the same support/root state whose `frameSerial` advanced due another causal publication (for example a subsequent pose/joint sample) without another server carry. Exact endpoint serial is therefore too fine an identity for the transport incorporated by the client.
+
+Owner/kernel evidence remains green with baseline plus **10 compiling mutation kills**, including rate budget and pending-reference TTL. Ordinary build on the diagnostic harness snapshot is also green.
+
+**Classification:** PRODUCT RED in reference↔receipt causal identity. G4.1 remains open. Full handoff: `docs/sprints/S25-adversarial-receipt-frame-identity-red.md`.
+
