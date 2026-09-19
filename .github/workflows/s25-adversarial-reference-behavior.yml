@@ -124,8 +124,8 @@ jobs:
 
           elif mutation=='tracking-generation':
               replace(receipts,
-                  '''                || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))''',
-                  '''''')
+                  'match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body)',
+                  'false')
               replace(refs,
                   '''                || pending.trackingGeneration()!=AnatomyRuntime.trackingGeneration(player,body)''',
                   '''''')
