@@ -61,7 +61,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/s25-reference-latency
-          xvfb-run -a ./gradlew runClientGameTest --console=plain             2>&1 | tee build/s25-reference-latency/client.log
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            -PscalebrewsAnatomyCatalog="${{ steps.catalog.outputs.path }}" \
+            2>&1 | tee build/s25-reference-latency/client.log
           if ! grep -R -F 'S25_REFERENCE_LATENCY PASS'               build/run/clientGameTest/logs build/s25-reference-latency/client.log >/dev/null 2>&1; then
             echo 'S25 reference latency proof did not emit its causal PASS marker.' >&2
             exit 1
