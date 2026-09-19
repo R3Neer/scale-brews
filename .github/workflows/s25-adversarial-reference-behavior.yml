@@ -74,6 +74,9 @@ jobs:
           - fabricated-hit
           - rate-budget
           - pending-ttl
+          - epoch-fence
+          - dimension-fence
+          - network-id-fence
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -170,6 +173,21 @@ jobs:
               replace(refs,
                   'if(pending.acceptedTick()>now || pending.acceptedTick()+PENDING_TICKS<now)return absolute;',
                   'if(pending.acceptedTick()>now || false)return absolute;')
+
+          elif mutation=='epoch-fence':
+              replace(receipts,
+                  ' && receipt.epoch().equals(AnatomyNetworking.epoch(server))',
+                  '')
+
+          elif mutation=='dimension-fence':
+              replace(receipts,
+                  ' && receipt.dimension().equals(body.level().dimension().identifier())',
+                  '')
+
+          elif mutation=='network-id-fence':
+              replace(receipts,
+                  ' && receipt.bodyNetworkId()==body.getId()',
+                  '')
 
           else:
               raise SystemExit(f'unknown mutation: {mutation}')
