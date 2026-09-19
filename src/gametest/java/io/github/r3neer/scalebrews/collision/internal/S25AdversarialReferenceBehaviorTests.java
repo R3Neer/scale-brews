@@ -113,7 +113,7 @@ public final class S25AdversarialReferenceBehaviorTests {
 
             // Exactly once. If the consumed receipt were accepted again, since(seq=1) would add
             // the already-known seq=2 delta to this probe.
-            S24TrackingAuthorityTestSeam.run(player,player,1,
+            S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
             var replayResolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
