@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **BASELINE RED / CAPACIDAD G4.1 AUSENTE**.
+Estado: **CANDIDATO IMPLEMENTER PRESENTE / PENDIENTE CIERRE ADVERSARY**.
 
 Este sprint abre G4 después del cierre completo de G3. No prescribe una clase, un nombre de payload ni una estructura de paquetes concreta. Fija las propiedades que cualquier implementación de movement reference/rebase debe demostrar.
 
@@ -173,7 +173,7 @@ G4.1 sólo puede marcarse cerrado cuando exista un camino C2S real y bounded que
 - no transporte ni cree autoridad física cliente;
 - quede cubierto por happy path + negativos + mutation-kills.
 
-Hasta entonces, **G4.1 permanece RED por capacidad ausente**.
+El baseline de apertura permaneció RED mientras la capacidad estuvo ausente. El candidato IMPLEMENTER de §11 elimina ese RED de presencia, pero **G4.1 sigue ABIERTO** hasta superar la campaña conductual y mutation adequacy independientes.
 
 ## 8. Frontera estructural previa al implementer
 
@@ -197,7 +197,7 @@ Ordinary sobre el mismo snapshot de hardening, run **`35384438584`**, job **`105
 
 `SupportTransport.sequence` es un cursor body-local; una discontinuidad que puede reiniciarlo pasa por `AnatomyMovement.invalidateBody(...)`, que primero ejecuta `clear(body)` y ésta invalida los receipts. Por tanto no se ha encontrado un alias histórico que obligue a transmitir geometry/contacto en la referencia. La implementación sigue siendo libre de elegir la clave metadata adecuada, pero debe validar el receipt exacto y los ejes lifecycle exigidos por este modelo.
 
-**Estado:** G4.1 continúa RED exclusivamente porque la superficie C2S/validator no existe todavía. Las fronteras que impedirían una implementación insegura ya están activas y mutation-sensitive.
+**Estado histórico previo al handoff implementer:** la superficie C2S/validator aún no existía y las fronteras de seguridad ya estaban mutation-sensitive. El estado vigente está en §11.
 
 ## 9. Receipt authority store — precondición adversarial cerrada
 
@@ -224,11 +224,11 @@ Artifact baseline **`10563370910`**, SHA-256 **`dc523680cb24cd8036fc102ee56a5c6a
 
 El store sigue siendo histórico, no autorización viva: STOP_TRACKING libera la ventana server-side pero no borra necesariamente el receipt antes de TTL. Por tanto el futuro validator debe comparar `receipt.trackingGeneration` contra la ventana actual o aplicar un fence causal equivalente; no puede aceptar por mera presencia en `history()`.
 
-**Conclusión:** la precondición server-side de recipient/body/saturation/teardown está cerrada. G4.1 sigue RED únicamente porque aún no existe el reference C2S/validator/consumption path.
+**Conclusión de la precondición adversarial:** recipient/body/saturation/teardown queda cerrada. La ausencia de reference C2S descrita aquí fue posteriormente cubierta por el candidato IMPLEMENTER de §11; el gate global sigue abierto por validación conductual pendiente.
 
 ## 10. Handoff al IMPLEMENTER
 
-El RED restante no necesita otra abstracción adversarial; necesita producto. El primer candidato G4.1 debe aportar una superficie C2S real que haga pasar la presence gate y permita ejecutar los holdouts conductuales.
+Este fue el handoff original al IMPLEMENTER cuando la capacidad aún no existía. El candidato G4.1 debía aportar una superficie C2S real que hiciera pasar la presence gate y permitiera ejecutar los holdouts conductuales; §11 registra la respuesta implementer ya aterrizada.
 
 Propiedades mínimas observables del handoff, sin prescribir nombres/clases:
 
@@ -245,7 +245,7 @@ Propiedades mínimas observables del handoff, sin prescribir nombres/clases:
 
 Al aterrizar ese candidato, la presence gate debe pasar. Eso **no cerrará G4.1**: habilitará la campaña A–G y los ocho mutation-kills mínimos definidos arriba.
 
-**Handoff ADVERSARY → IMPLEMENTER:** capacidad C2S/validator/consumption ausente; fronteras previas y store server-side verdes. No se requiere ningún cambio adicional de producción por parte del adversario.
+**Handoff ADVERSARY → IMPLEMENTER (histórico):** capacidad C2S/validator/consumption ausente; fronteras previas y store server-side verdes. §11 contiene el handoff de vuelta IMPLEMENTER → ADVERSARY.
 
 
 ## 11. Candidato IMPLEMENTER — referencia causal server-issued
