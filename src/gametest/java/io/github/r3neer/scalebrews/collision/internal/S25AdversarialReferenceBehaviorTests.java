@@ -22,6 +22,32 @@ import org.joml.Matrix4f;
 
 /** Adversarial G4.1 reference behavior over the production accept/claim/resolve path. */
 public final class S25AdversarialReferenceBehaviorTests {
+    @GameTest
+    public void adjacentSupportFrameCannotAliasExactReceipt(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,4,6);
+        support.setNoAi(true);support.setNoGravity(true);
+        var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+        player.setPos(3,4,6);
+        long exactFrame=700;
+        try {
+            record(player,player,support,1,exactFrame,1,new Vec3(.03125,0,0));
+            var adjacent=new AnatomyMoveReferencePayload(false,support.getUUID(),exactFrame+1);
+            S24TrackingAuthorityTestSeam.runOwned(player,player,1,
+                ()->AnatomyMovementReference.accept(player,adjacent));
+            h.assertTrue(!consumed(player,player,1) && !pending(player),
+                "Adjacent support frame serial must not alias or consume the exact server-issued receipt");
+
+            var exactClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
+            S24TrackingAuthorityTestSeam.run(player,player,1,
+                ()->exactClaim.set(AnatomyTransportReceipts.claim(player,player,support.getUUID(),exactFrame)));
+            h.assertTrue(exactClaim.get()!=null,
+                "Rejecting an adjacent serial must leave the exact receipt independently claimable");
+        } finally {
+            cleanup(h.getLevel().getServer(),support,player);
+        }
+        h.succeed();
+    }
+
     @GameTest(maxTicks=90)
     public void referencePathIsExactOnceLifecycleFencedControlledAndNonApplying(GameTestHelper h) {
         var server=h.getLevel().getServer();
