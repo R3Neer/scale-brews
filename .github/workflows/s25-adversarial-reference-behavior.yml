@@ -74,6 +74,7 @@ jobs:
           - non-controller
           - double-apply
           - fabricated-hit
+          - adjacent-frame-match
           - rate-budget
           - pending-ttl
           - epoch-fence
@@ -166,6 +167,11 @@ jobs:
               replace(receipts,
                   'if(match!=null)return null; // Ambiguous provenance is never repaired by client metadata.\n                ',
                   '')
+
+          elif mutation=='adjacent-frame-match':
+              replace(receipts,
+                  'frameSerial.longValue()==supportFrameSerial',
+                  'Math.abs(frameSerial.longValue()-supportFrameSerial)<=1')
 
           elif mutation=='rate-budget':
               replace(refs,
