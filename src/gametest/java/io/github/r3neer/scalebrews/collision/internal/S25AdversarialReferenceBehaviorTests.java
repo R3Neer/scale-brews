@@ -121,19 +121,23 @@ public final class S25AdversarialReferenceBehaviorTests {
             h.assertTrue(replayResolved.get().equals(serverAfterSecond),
                 "Identical reference replay must not regain an already consumed receipt");
 
-            // Plausible but invented support endpoint cannot create authority.
+            // Plausible but invented support endpoint cannot create authority even while a
+            // fresh, otherwise valid receipt for this support is still unconsumed.
+            long frameTracking=12;
+            record(player,player,support,1,frameTracking,3,new Vec3(.0625,0,0));
+            Vec3 afterFreshReceipt=player.position();
             var fake=new AnatomyMoveReferencePayload(false,support.getUUID(),999_999);
             S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,fake));
+            h.assertTrue(!consumed(player,player,3) && !pending(player),
+                "Invented support-frame cursor must not consume or stage a different valid server receipt");
             var fakeResolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
-                ()->fakeResolved.set(AnatomyMovementReference.resolve(player,player,serverAfterSecond)));
-            h.assertTrue(fakeResolved.get().equals(serverAfterSecond),
+                ()->fakeResolved.set(AnatomyMovementReference.resolve(player,player,afterFreshReceipt)));
+            h.assertTrue(fakeResolved.get().equals(afterFreshReceipt),
                 "Reference without an exact server-issued receipt must leave movement unchanged");
 
             // Tracking generation is live authority, not historical receipt presence.
-            long frameTracking=12;
-            record(player,player,support,1,frameTracking,3,new Vec3(.0625,0,0));
             var staleTracking=new AnatomyMoveReferencePayload(false,support.getUUID(),frameTracking);
             S24TrackingAuthorityTestSeam.runOwned(player,player,2,
                 ()->AnatomyMovementReference.accept(player,staleTracking));
