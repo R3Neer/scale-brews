@@ -168,7 +168,8 @@ public final class AnatomyRuntime {
         return server!=null && STATES.containsKey(server) && AnatomyMovement.active(entity);
     }
     /**
-     * Internal support-binding ownership, intentionally narrower than {@link #owns(Entity)}.
+     * Internal support-binding ownership, intentionally named separately from session-level {@link #owns(Entity)}
+     * so a LivingEntity caller cannot silently select a narrower semantic by overload resolution.
      * A prepared/running session must not suppress the fixture/local fallback for a manually registered support;
      * only the exact live provider/descriptor installed by this runtime has certified material intervals to own its carry.
      */
