@@ -7,6 +7,7 @@ import io.github.r3neer.scalebrews.platform.PlatformDefinition;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyDefinition;
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMoveReferencePayload;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyRuntime;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyTransportReceipts;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -220,14 +222,17 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             var player=client.player;
             Entity body=player==null?null:boat?player.getRootVehicle():player;
             var support=client.level==null?null:client.level.getEntity(fixture.cow.get().getId());
-            return body==null || support==null
-                ?new ClientSupportSample(Vec3.ZERO,false)
-                :new ClientSupportSample(body.position().subtract(support.position()),AnatomyMovement.supported(body));
+            if(body==null || support==null)return new ClientSupportSample(Vec3.ZERO,false,0,false,false,false,false);
+            var transport=AnatomyMovement.transport(body);
+            return new ClientSupportSample(body.position().subtract(support.position()),AnatomyMovement.supported(body),
+                transport==null?0:transport.sequence(),predictedReferenceStaged(body),AnatomyClientNetworking.ready(body),
+                body.isLocalInstanceAuthoritative(),ClientPlayNetworking.canSend(AnatomyMoveReferencePayload.TYPE));
         });
         var prior=previous.getAndSet(serverSample.cursor());
-        ScaleBrews.LOGGER.info("N2 support sample kind={} RTT={}ms step={} server(tick={}, supported={}, relative={}, planeMargin={}, edgeMargin={}, cursor={}, previous={}) client(supported={}, relative={})",
+        ScaleBrews.LOGGER.info("N2 support sample kind={} RTT={}ms step={} server(tick={}, supported={}, relative={}, planeMargin={}, edgeMargin={}, cursor={}, previous={}) client(supported={}, relative={}, transportSeq={}, refStaged={}, ready={}, localAuth={}, canSendRef={})",
             boat?"boat":"player",rtt,step,serverSample.tick(),serverSample.supported(),serverSample.relative(),serverSample.planeMargin(),serverSample.edgeMargin(),serverSample.cursor(),prior,
-            clientSample.supported(),clientSample.relative());
+            clientSample.supported(),clientSample.relative(),clientSample.transportSequence(),clientSample.referenceStaged(),
+            clientSample.ready(),clientSample.localAuthority(),clientSample.canSendReference());
         if(!serverSample.supported())
             throw new IllegalStateException("N2 material support is absent at "+(boat?"boat":"player")+" RTT "+rtt+" step "+step+"; inspect packet/receipt evidence before assigning cause. current="+serverSample+" previous="+prior);
         // The signed separation is evaluated against the exact confirmed
@@ -268,6 +273,18 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         var origin=piece.vertices().getFirst();
         return switch(axis) {case 0->piece.vertices().get(1).subtract(origin);case 1->piece.vertices().get(2).subtract(origin);default->piece.vertices().get(4).subtract(origin);};
     }
+    @SuppressWarnings("unchecked")
+    private static boolean predictedReferenceStaged(Entity body) {
+        try {
+            var field=AnatomyClientNetworking.class.getDeclaredField("predictedMovementReferences");
+            field.setAccessible(true);
+            var map=(Map<java.util.UUID,?>)field.get(null);
+            return map.containsKey(body.getUUID());
+        } catch(ReflectiveOperationException failure) {
+            throw new AssertionError("Could not inspect client movement-reference staging",failure);
+        }
+    }
+
     private static double coordinate(Vec3 value,int axis) {return axis==0?value.x:axis==1?value.y:value.z;}
     private static double perpendicularLength(Vec3 edge,Vec3 other) {
         double otherLength=other.lengthSqr();return otherLength<=1e-20?Double.NaN:Math.sqrt(Math.max(0,edge.lengthSqr()-Math.pow(edge.dot(other),2)/otherLength));
@@ -434,7 +451,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
     private record FaceCandidate(String piece,int face,Vec3 local,Vec3 normal,AABB body,double usableArea) {}
     private record Placement(FaceCandidate candidate,Vec3 target) {}
     private record ClientEvidence(Vec3 position,boolean supported) {}
-    private record ClientSupportSample(Vec3 relative,boolean supported) {}
+    private record ClientSupportSample(Vec3 relative,boolean supported,long transportSequence,boolean referenceStaged,
+            boolean ready,boolean localAuthority,boolean canSendReference) {}
     private record SupportCursor(String piece,int face,Vec3 local,long contactSequence,long surfaceTick) {}
     private record ServerSupportSample(long tick,boolean supported,Vec3 relative,double planeMargin,double edgeMargin,SupportCursor cursor) {}
     private record PulseStart(int step,boolean forward,PlatformTestLatency.Baseline before) {}
