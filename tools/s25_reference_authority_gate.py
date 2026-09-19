@@ -56,6 +56,8 @@ forbidden_field_names=(
     "convex",
     "matrix",
     "quaternion",
+    # A client-local carry cursor may stage emission, but is not server-issued receipt authority.
+    "localTransportSequence",
 )
 
 java_files=list(collision.rglob("*.java"))
