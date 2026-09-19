@@ -674,7 +674,7 @@ public final class AnatomyMovement {
         if(c==null || anchor==null)return;
         // Server runtime material intervals own carry. Keeping this endpoint path active in
         // parallel would double-apply ROOT/JOINT work before the causal dispatcher drains it.
-        if(!body.level().isClientSide() && AnatomyRuntime.owns(c.support()))return;
+        if(!body.level().isClientSide() && AnatomyRuntime.ownsSupportBinding(c.support()))return;
         if(!visiting.add(body) || !Platforms.eligible(body,c.support)
             || !gravity(body).equals(anchor.bodyGravity()) || !gravity(c.support).equals(anchor.supportGravity())){clear(body);return;}
         try {
