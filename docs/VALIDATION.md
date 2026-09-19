@@ -1003,3 +1003,34 @@ Owner/kernel evidence remains green with baseline plus **10 compiling mutation k
 
 **Classification:** PRODUCT RED in reference↔receipt causal identity. G4.1 remains open. Full handoff: `docs/sprints/S25-adversarial-receipt-frame-identity-red.md`.
 
+## G4 / S25 owner-kernel final adversarial closure — 2026-09-19
+
+The G4.1 owner/kernel path is now independently mutation-adequate, while the dedicated reference↔receipt identity integration remains RED.
+
+Final owner run **`35451920466`**, baseline job **`105920453853`**: success. Fourteen directed mutants compiled and were killed:
+
+- expired receipt **`105920630826`**;
+- combined lifecycle identity **`105920630835`**;
+- non-controller **`105920630836`**;
+- saturated tick **`105920630837`**;
+- tracking generation **`105920630848`**;
+- rate budget **`105920630851`**;
+- fabricated hit **`105920630853`**;
+- exactly-once **`105920630869`**;
+- pending TTL **`105920630890`**;
+- adjacent-frame/fuzzy match **`105920630894`**;
+- network-id fence **`105920630900`**;
+- double-apply **`105920630901`**;
+- dimension fence **`105920630904`**;
+- epoch fence **`105920631014`**.
+
+The split epoch/dimension/network-id mutants first compiled and survived run `35451440249`, proving an oracle gap rather than a production regression. `S25AdversarialReferenceLifecycleFenceTests` then isolated each historical receipt axis without modifying production; the final run kills all three. The adjacent-frame mutant weakens exact receipt lookup to accept `±1` support-frame serials and is also killed.
+
+Baseline artifact **`10587071981`**, SHA-256 **`02cb9ef7807420d9c0a7fbe21eb0e8aade2e9a2619fcae6d401ef6cad60646f2`**. Adjacent-frame mutant artifact **`10587346709`**, SHA-256 **`544e0626aad36be89dbe64ba8fd2168ce416239cec256641830f4d78d394c0ed`**.
+
+Ordinary run **`35451920485`**, job **`105920454100`**: **446/446 required GameTests passed**, `BUILD SUCCESSFUL`; artifact **`10586857060`**, SHA-256 **`66dfe0bc240c04c4e516e1466e864d57f2a166d957b802609bd7a79bb1704a39`**.
+
+This does **not** close G4.1. Dedicated run `35448151599` remains the current product RED: player RTT=0 emits 199 ordered anatomy references, receives no vanilla corrections, but consumes zero receipts because client `supportFrameSerial` values and server receipt frame serials have no intersection. The current evidence explicitly rejects fuzzy/nearest-frame repair. A root-frame sequence alone is also insufficient because existing joint-transport coverage demonstrates distinct transports under one root sequence.
+
+**Current interpretation:** owner/kernel closed; product integration remains RED at the transport identity boundary. G4.1 stays open and G4.2 must not start.
+
