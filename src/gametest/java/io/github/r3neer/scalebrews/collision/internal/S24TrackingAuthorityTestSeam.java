@@ -17,10 +17,15 @@ public final class S24TrackingAuthorityTestSeam {
     private static final Map<ServerPlayer,IdentityHashMap<Entity,Long>> ACTIVE=new IdentityHashMap<>();
 
     public static void run(ServerPlayer recipient,Entity body,Runnable action) {
-        if(recipient==null || body==null || action==null)throw new IllegalArgumentException("Missing tracking fixture participant/action");
+        run(recipient,body,1L,action);
+    }
+
+    public static void run(ServerPlayer recipient,Entity body,long generation,Runnable action) {
+        if(recipient==null || body==null || generation<1 || action==null)
+            throw new IllegalArgumentException("Missing/invalid tracking fixture participant/action");
         synchronized(ACTIVE) {
             var bodies=ACTIVE.computeIfAbsent(recipient,ignored->new IdentityHashMap<>());
-            var previous=bodies.put(body,1L);
+            var previous=bodies.put(body,generation);
             try {
                 action.run();
             } finally {
