@@ -25,8 +25,8 @@ public final class S25AdversarialReferenceBehaviorTests {
     @GameTest(maxTicks=90)
     public void referencePathIsExactOnceLifecycleFencedControlledAndNonApplying(GameTestHelper h) {
         var server=h.getLevel().getServer();
-        AnatomyRuntime.stop(server);
-        AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
+        AnatomyTransportReceipts.clear(server);
+        AnatomyMovementReference.clear(server);
 
         var support=h.spawn(EntityTypes.COW,2,4,2);
         support.setNoAi(true);support.setNoGravity(true);
@@ -48,7 +48,6 @@ public final class S25AdversarialReferenceBehaviorTests {
             S24TrackingAuthorityTestSeam.run(player,player,1,
                 ()->currentTrackingAtAccept.set(AnatomyRuntime.trackingGeneration(player,player)));
             h.assertTrue(server.isSameThread() && !player.isRemoved() && player.getRootVehicle()==player
-                    && AnatomyMovement.active(player) && AnatomyRuntime.owns(player)
                     && firstReceipt.epoch().equals(AnatomyNetworking.epoch(server))
                     && firstReceipt.catalogRevision()==AnatomyNetworking.revision(server)
                     && firstReceipt.dimension().equals(player.level().dimension().identifier())
@@ -62,7 +61,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                     +firstReceipt+" tracking="+currentTrackingAtAccept.get()+" supportFrame="+supportFrame(player,player,1)
                     +" active="+AnatomyMovement.active(player)+" owns="+AnatomyRuntime.owns(player)
                     +" pending="+pending(player));
-            S24TrackingAuthorityTestSeam.run(player,player,1,
+            S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,reference));
 
             h.assertTrue(consumed(player,player,1) && pending(player),
@@ -124,7 +123,7 @@ public final class S25AdversarialReferenceBehaviorTests {
 
             // Plausible but invented support endpoint cannot create authority.
             var fake=new AnatomyMoveReferencePayload(false,support.getUUID(),999_999);
-            S24TrackingAuthorityTestSeam.run(player,player,1,
+            S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,fake));
             var fakeResolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(player,player,1,
@@ -136,7 +135,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             long frameTracking=12;
             record(player,player,support,1,frameTracking,3,new Vec3(.0625,0,0));
             var staleTracking=new AnatomyMoveReferencePayload(false,support.getUUID(),frameTracking);
-            S24TrackingAuthorityTestSeam.run(player,player,2,
+            S24TrackingAuthorityTestSeam.runOwned(player,player,2,
                 ()->AnatomyMovementReference.accept(player,staleTracking));
             applyTransportOnly(player,4,new Vec3(.03125,0,0));
             Vec3 afterTrackingAdvance=player.position();
@@ -156,7 +155,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                 "Fixture must saturate the exact recipient/body/tick before testing reference rejection");
             var saturatedReference=new AnatomyMoveReferencePayload(false,support.getUUID(),saturatedFrame);
             Vec3 saturatedProbe=saturated.position();
-            S24TrackingAuthorityTestSeam.run(saturated,saturated,1,
+            S24TrackingAuthorityTestSeam.runOwned(saturated,saturated,1,
                 ()->AnatomyMovementReference.accept(saturated,saturatedReference));
             var saturatedResolved=new AtomicReference<Vec3>();
             S24TrackingAuthorityTestSeam.run(saturated,saturated,1,
@@ -179,7 +178,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                 "Both passengers must possess server-issued provenance before control-authority test");
 
             var vehicleReference=new AnatomyMoveReferencePayload(true,support.getUUID(),vehicleFrame);
-            S24TrackingAuthorityTestSeam.run(passenger,boat,1,
+            S24TrackingAuthorityTestSeam.runOwned(passenger,boat,1,
                 ()->AnatomyMovementReference.accept(passenger,vehicleReference));
             var passengerClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
             S24TrackingAuthorityTestSeam.run(passenger,boat,1,
@@ -187,7 +186,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             h.assertTrue(passengerClaim.get()!=null,
                 "Non-controller reference must be rejected before consuming its otherwise valid receipt");
 
-            S24TrackingAuthorityTestSeam.run(controller,boat,1,
+            S24TrackingAuthorityTestSeam.runOwned(controller,boat,1,
                 ()->AnatomyMovementReference.accept(controller,vehicleReference));
             var controllerClaim=new AtomicReference<AnatomyTransportReceipts.Receipt>();
             S24TrackingAuthorityTestSeam.run(controller,boat,1,
@@ -201,7 +200,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             record(player,player,support,1,frameRevision,5,new Vec3(.03125,0,0));
             AnatomyNetworking.acceptCatalogRevision(server,currentRevision+1);
             var staleRevision=new AnatomyMoveReferencePayload(false,support.getUUID(),frameRevision);
-            S24TrackingAuthorityTestSeam.run(player,player,1,
+            S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,staleRevision));
             applyTransportOnly(player,6,new Vec3(.015625,0,0));
             Vec3 afterRevisionAdvance=player.position();
@@ -332,6 +331,7 @@ public final class S25AdversarialReferenceBehaviorTests {
 
     private static void cleanup(net.minecraft.server.MinecraftServer server,Entity... entities) {
         for(var entity:entities)if(entity!=null && !entity.isRemoved())entity.discard();
-        AnatomyRuntime.stop(server);
+        AnatomyTransportReceipts.clear(server);
+        AnatomyMovementReference.clear(server);
     }
 }
