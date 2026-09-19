@@ -83,6 +83,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 awaitBoatContact(context,fixture);
                 runBoatPhases(context,world,fixture,latency.get());
                 assertRemoteObserverNeverCarries(context,fixture);
+                System.out.println("S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections");
             } catch(Throwable error) {
                 var handler=latency.get();
                 if(handler!=null)ScaleBrews.LOGGER.error("N2 setup or measurement failure; channel evidence before cleanup={}",handler.baseline(),error);
