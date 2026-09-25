@@ -1,0 +1,73 @@
+name: s25-adversarial-reference-protocol
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-protocol.yml'
+      - 'tools/s25_reference_protocol_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+  workflow_dispatch:
+
+jobs:
+  reference-protocol:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: verify v1 wire semantics remain frozen
+        run: python3 tools/s25_reference_protocol_gate.py
+
+  silent-v1-token-mutant-must-die:
+    needs: reference-protocol
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: add a server receipt token without changing the v1 wire id
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java')
+          s=p.read_text()
+          old='public record AnatomyMoveReferencePayload(boolean vehicle,UUID support,long supportFrameSerial)'
+          new='public record AnatomyMoveReferencePayload(boolean vehicle,UUID support,long supportFrameSerial,long serverReceiptId)'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          s=s.replace(old,new,1)
+          s=s.replace(
+              'if(support==null || supportFrameSerial<1)',
+              'if(support==null || supportFrameSerial<1 || serverReceiptId<1)',
+              1)
+          s=s.replace(
+              'buf.writeVarLong(payload.supportFrameSerial);',
+              'buf.writeVarLong(payload.supportFrameSerial);\n        buf.writeVarLong(payload.serverReceiptId);',
+              1)
+          s=s.replace(
+              'buf.readUUID(),\n        buf.readVarLong()\n    ));',
+              'buf.readUUID(),\n        buf.readVarLong(),\n        buf.readVarLong()\n    ));',
+              1)
+          p.write_text(s)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: protocol gate must kill silent v1 identity change
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_protocol_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: v1 reference identity changed without a protocol version bump'
+            exit 1
+          fi
+          echo 'KILLED: silent anatomy_move_reference_v1 identity change'
