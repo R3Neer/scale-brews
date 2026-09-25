@@ -339,7 +339,8 @@ public final class AnatomyRuntime {
     }
     private static boolean catalog(State state,ServerPlayer player) {
         if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE) || !ServerPlayNetworking.canSend(player,AnatomyPosePayload.TYPE)
-                || !ServerPlayNetworking.canSend(player,AnatomyContactPayload.TYPE)) {
+                || !ServerPlayNetworking.canSend(player,AnatomyContactPayload.TYPE)
+                || !ServerPlayNetworking.canSend(player,AnatomyTransportReceiptPayload.TYPE)) {
             player.connection.disconnect(Component.literal("Scale Brews: incompatible anatomical protocol; update the client mod."));return false;
         }
         var snapshot=state.catalog.snapshot();
