@@ -352,7 +352,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         int references=0;
         for(int index=0;index<outbound.size();index++) {
             var trace=outbound.get(index);
-            if(!trace.detail().equals("payload=scalebrews:anatomy_move_reference_v1"))continue;
+            if(!trace.detail().equals("payload=scalebrews:anatomy_move_reference_v2"))continue;
             references++;
             if(index+1>=outbound.size())
                 throw new AssertionError("S25 "+kind+" RTT "+rtt+" anatomy reference was not followed by a vanilla movement packet: "+outbound);
@@ -361,7 +361,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 throw new AssertionError("S25 "+kind+" RTT "+rtt+" anatomy reference ordering mismatch: reference="+trace+" next="+next);
         }
         if(references==0)
-            throw new AssertionError("S25 "+kind+" RTT "+rtt+" emitted no anatomy_move_reference_v1 packet despite real local carry; trace="+outbound);
+            throw new AssertionError("S25 "+kind+" RTT "+rtt+" emitted no anatomy_move_reference_v2 packet despite real local carry; trace="+outbound);
     }
 
     private static void boot(MinecraftServer server,Map<String,ModelGeometry> models,Map<String,io.github.r3neer.scalebrews.platform.PlatformDefinition> profiles,Fixture fixture) {
