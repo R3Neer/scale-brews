@@ -1054,3 +1054,54 @@ If the wire identity semantics change from `supportFrameSerial`, the `anatomy_mo
 
 **Current interpretation:** G4.1 remains PRODUCT RED only at reference↔receipt transport identity. Owner/kernel and schema authority are closed for the known threat model. G4.2 remains blocked.
 
+
+## G4 / S25 V2 server-issued receipt identity — implementer repair + adversarial recertification — 2026-09-25
+
+Rol productivo de la reparación: **IMPLEMENTER**. G4.1 permanece abierto por el dedicated boat setup descrito al final; no se declara cierre global.
+
+### Reparación de identidad
+
+El RED par/impar de `supportFrameSerial` no se reparó con fuzzy matching. Se introdujo un protocolo explícitamente versionado:
+
+- S2C `AnatomyTransportReceiptPayload` (`scalebrews:anatomy_transport_receipt_v1`) publica metadata de un receipt que el servidor **ya aplicó**: epoch/revision/dimension, body id+UUID, tracking generation, support UUID, support frame serial, `receiptSequence` server-issued y tick;
+- C2S `AnatomyMoveReferenceV2Payload` (`scalebrews:anatomy_move_reference_v2`) devuelve sólo `{vehicle, receiptSequence}`;
+- el cliente mantiene `localTransportSequence` únicamente como freshness guard local; no cruza wire;
+- el servidor deriva player/controlled vehicle desde la conexión y `AnatomyTransportReceipts.claim(recipient, body, receiptSequence)` exige coincidencia exacta del receipt server-side más todos los fences de lifecycle;
+- v1 permanece registrado temporalmente como compatibilidad explícita; el cliente productivo sólo emite v2;
+- publicación S2C es best-effort: un receipt autoritativo se almacena aunque el `ServerPlayer` de fixture no tenga listener de red.
+
+El cliente sólo prepara un token recibido cuando su carry local ha incorporado un endpoint del mismo support con `supportFrameSerial >= token.supportFrameSerial`. Esa comparación decide **incorporación local**, no autoridad: el claim servidor continúa siendo igualdad exacta por `receiptSequence`.
+
+### Evidencia ejecutada
+
+- Authority/schema sobre v2: run **`36129090393`**, completamente verde:
+  - boundary `108051936098`;
+  - legacy borrow `108052771564`;
+  - client-local-sequence schema mutant `108052771650`;
+  - rich authority mutant `108052771673`;
+  - client legacy borrow `108052771849`.
+- Receipt publication sin network listener: run **`36129522915`**, job `108053315959`: **success**; artifact `10861341561`.
+- Ordinary sobre oracle v2: run **`36129628428`**, job **`108053654651`**: **449/449 required GameTests**, `BUILD SUCCESSFUL`; artifact `10861276661`.
+- Owner-v2 final: run **`36130245780`**: **success** completo:
+  - baseline `108055602568`;
+  - tracking mutant `108056028215` muerto;
+  - replay mutant `108056028216` muerto;
+  - fabricated-sequence mutant `108056028268` muerto.
+  - artifact baseline `10861697283`.
+
+El primer fabricated-sequence mutant sobrevivió porque el fake token se probaba después de consumir el único receipt; el exactly-once fence ocultaba la corrupción. El adversario emitió un receipt fresco no consumido antes del fake token en commit `15141734e1da4d4ae78fc2ad48d18ef7ce7088e9`; la recertificación anterior mata el mutante sin cambio productivo.
+
+### Dedicated 0/100/200 ms
+
+El protocolo v2 elimina el blocker causal original: las references wire se observan inmediatamente antes del movement vanilla y el servidor consume receipts reales.
+
+Run `36130077183` con trace ampliada a 2048 conserva evidencia completa:
+
+- player RTT=0: `consumedReferences=35`, corrections `0/0`, dropped `0`;
+- player RTT=100: `consumedReferences=24`, corrections `0/0`, dropped `0`;
+- player RTT=200: `consumedReferences=22`, corrections `0/0`, dropped `0`;
+- controlled boat RTT=0: `consumedReferences=35`, dropped `0`, pero aparecen 2 `ClientboundMoveVehiclePacket` al comienzo de la fase.
+
+Las dos correcciones boat RTT=0 ocurren **antes de la primera reference v2**. El trace muestra primero una corrección de setup, después un `ServerboundMoveVehiclePacket` transitorio con target `(0,-0.12,0)`, otra corrección, y sólo entonces comienza la cadena estable `anatomy_move_reference_v2 -> ServerboundMoveVehiclePacket`. No se observan correcciones posteriores dentro de la secuencia estable capturada.
+
+**Clasificación vigente:** el RED productivo de identity reference↔receipt queda reparado y adversarialmente recertificado a nivel owner. El dedicated restante está contaminado por el handshake de montaje previo a la primera reference; no autoriza modificar reconciliación productiva todavía. El adversario debe cerrar una barrera de setup/movement-baseline de vehículo y repetir boat 0/100/200 ms. G4.1 y G4 siguen abiertos; G4.2 permanece bloqueado.
