@@ -102,6 +102,10 @@ public final class AnatomyTransportReceipts {
         history.entries.addLast(receipt);
         if(supportFrameSerial>0)history.supportFrameSerials.put(receipt.transportSequence(),supportFrameSerial);
         history.count++;recorded++;
+        if(supportFrameSerial>0)AnatomyNetworking.sendTransportReceipt(recipient,
+            new AnatomyTransportReceiptPayload(receipt.epoch(),receipt.catalogRevision(),receipt.dimension(),
+                receipt.bodyNetworkId(),receipt.body(),receipt.trackingGeneration(),receipt.support(),
+                supportFrameSerial,receipt.transportSequence(),receipt.tick()));
     }
     private static void prune(History history,long tick) {
         while(!history.entries.isEmpty() && history.entries.peekFirst().tick()<tick-HISTORY_TICKS+1) {
@@ -165,6 +169,33 @@ public final class AnatomyTransportReceipts {
         history.consumedTransportSequences.add(match.transportSequence());
         return match;
     }
+    /**
+     * V2 exact claim by a server-issued receipt sequence. The sequence is body-local server authority,
+     * never a client transport cursor. Lifecycle/recipient/body fences remain identical to v1.
+     */
+    public static synchronized Receipt claim(ServerPlayer recipient,Entity body,long receiptSequence) {
+        if(recipient==null || body==null || receiptSequence<1
+                || body.isRemoved() || body.level().isClientSide() || recipient.level()!=body.level())return null;
+        long now=recipient.level().getGameTime();
+        var history=pruneAndFind(recipient,body.getUUID(),now);if(history==null)return null;
+        Receipt match=null;
+        for(var receipt:history.entries)if(receipt.transportSequence()==receiptSequence) {
+            if(match!=null)return null;
+            match=receipt;
+        }
+        if(match==null || history.saturatedTicks.contains(match.tick())
+                || history.consumedTransportSequences.contains(match.transportSequence()))return null;
+        var server=body.level().getServer();if(server==null)return null;
+        if(!match.epoch().equals(AnatomyNetworking.epoch(server))
+                || match.catalogRevision()!=AnatomyNetworking.revision(server)
+                || !match.dimension().equals(body.level().dimension().identifier())
+                || match.bodyNetworkId()!=body.getId() || !match.body().equals(body.getUUID())
+                || match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body))
+            return null;
+        history.consumedTransportSequences.add(match.transportSequence());
+        return match;
+    }
+
     public static synchronized void invalidate(Entity body) {
         if(body==null || body.level().isClientSide())return;
         var emptyRecipients=new ArrayList<ServerPlayer>();
