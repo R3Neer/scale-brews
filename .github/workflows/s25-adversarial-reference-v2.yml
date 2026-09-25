@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/s25-adversarial-reference-v2.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25AdversarialReferenceV2Tests.java'
