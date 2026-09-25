@@ -26,10 +26,21 @@ public final class AnatomyNetworking {
         PayloadTypeRegistry.clientboundPlay().register(AnatomyCatalogPayload.TYPE,AnatomyCatalogPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyPosePayload.TYPE,AnatomyPosePayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(AnatomyTransportReceiptPayload.TYPE,AnatomyTransportReceiptPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferencePayload.TYPE,AnatomyMoveReferencePayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferenceV2Payload.TYPE,AnatomyMoveReferenceV2Payload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferencePayload.TYPE,
             (reference,context)->AnatomyMovementReference.accept(context.player(),reference));
+        ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferenceV2Payload.TYPE,
+            (reference,context)->AnatomyMovementReference.accept(context.player(),reference));
     }
+    /** Publishes one exact server-issued receipt token; clients never derive this sequence locally. */
+    public static void sendTransportReceipt(ServerPlayer recipient,AnatomyTransportReceiptPayload payload) {
+        if(recipient==null || payload==null)return;
+        if(!ServerPlayNetworking.canSend(recipient,AnatomyTransportReceiptPayload.TYPE))return;
+        ServerPlayNetworking.send(recipient,payload);
+    }
+
     /** Fixture/diagnostic factory. Live sends must provide the recipient tracking generation explicitly. */
     public static AnatomyPosePayload posePayload(GeometryProvider.PublishedFrame frame) {
         return posePayload(frame,1);
