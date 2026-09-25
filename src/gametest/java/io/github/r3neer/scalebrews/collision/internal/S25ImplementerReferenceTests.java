@@ -59,6 +59,40 @@ public final class S25ImplementerReferenceTests {
         h.succeed();
     }
 
+    @GameTest
+    public void serverReceiptSequenceIsExactAndOneShot(GameTestHelper h) {
+        var support=h.spawn(EntityTypes.COW,2,2,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var player=h.makeMockServerPlayerInLevel();
+        player.setPos(3,2,2);
+
+        long revision=AnatomyNetworking.revision(player.level().getServer());
+        S24TrackingAuthorityTestSeam.run(player,player,()->{
+            record(player,support,revision,41,7);
+            var before=AnatomyTransportReceipts.history(player,player.getUUID());
+            h.assertTrue(before.size()==1 && before.getFirst().transportSequence()==7,
+                "Fixture must mint one exact server-issued receipt sequence");
+
+            h.assertTrue(AnatomyTransportReceipts.claim(player,player,6)==null
+                    && AnatomyTransportReceipts.claim(player,player,8)==null,
+                "Adjacent receipt sequences must not alias an exact server token");
+            h.assertTrue(AnatomyTransportReceipts.history(player,player.getUUID()).equals(before),
+                "Rejected v2 tokens must not mutate receipt history");
+
+            var claimed=AnatomyTransportReceipts.claim(player,player,7);
+            h.assertTrue(claimed!=null && claimed.equals(before.getFirst()),
+                "Exact server-issued receipt sequence must resolve its receipt");
+            h.assertTrue(AnatomyTransportReceipts.claim(player,player,7)==null,
+                "V2 receipt token must be exactly-once");
+            h.assertTrue(AnatomyTransportReceipts.history(player,player.getUUID()).equals(before),
+                "V2 consumption metadata must not delete historical evidence");
+        });
+
+        AnatomyTransportReceipts.disconnect(player);
+        player.discard();support.discard();
+        h.succeed();
+    }
+
     private static void record(net.minecraft.server.level.ServerPlayer body,
             net.minecraft.world.entity.LivingEntity support,long revision,long frameSerial) {
         long tick=body.level().getGameTime();
@@ -68,6 +102,18 @@ public final class S25ImplementerReferenceTests {
         var root=new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA);
         var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(support.position());
         var transport=new SupportTransport(tick,1,root.sequence(),Vec3.ZERO,Vec3.ZERO);
+        AnatomyTransportReceipts.record(body,contact,surface,root,frameSerial,transport,material,material);
+    }
+
+    private static void record(net.minecraft.server.level.ServerPlayer body,
+            net.minecraft.world.entity.LivingEntity support,long revision,long frameSerial,long sequence) {
+        long tick=body.level().getGameTime();
+        var normal=new Vec3(0,1,0);
+        var contact=new AnatomyMovement.Contact(support,"piece",revision,normal,sequence);
+        var surface=new SurfaceContact(support.getUUID(),revision,"piece",3,new Vec3(.5,1,.5),normal,tick);
+        var root=new RootFrame(sequence,tick,support.position(),0,1,GravityFrame.VANILLA);
+        var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(support.position());
+        var transport=new SupportTransport(tick,sequence,root.sequence(),Vec3.ZERO,Vec3.ZERO);
         AnatomyTransportReceipts.record(body,contact,surface,root,frameSerial,transport,material,material);
     }
 }
