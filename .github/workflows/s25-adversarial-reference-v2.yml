@@ -1,0 +1,218 @@
+name: s25-adversarial-reference-v2
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s25-adversarial-reference-v2.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25AdversarialReferenceV2Tests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingAuthorityTestSeam.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestTrackingAuthorityMixin.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  reference-v2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S25 V2 token holdouts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests'
+          ]
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run V2 exact-token owner holdouts
+        run: ./gradlew runGameTest --console=plain -PscalebrewsGameTestReport="$GITHUB_WORKSPACE/build/s25-reference-v2.xml"
+      - name: capture V2 baseline evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S25-reference-v2
+          path: |
+            build/s25-reference-v2.xml
+            build/run/gameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  fabricated-sequence-mutant-must-die:
+    needs: reference-v2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S25 V2 token holdouts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: make V2 claim accept any existing receipt sequence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java')
+          s=p.read_text()
+          old='for(var receipt:history.entries)if(receipt.transportSequence()==receiptSequence) {'
+          new='for(var receipt:history.entries)if(true) {'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: fake V2 token must kill sequence-agnostic claim
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: fabricated V2 receipt sequence claimed an unrelated receipt'
+            exit 1
+          fi
+          echo 'KILLED: V2 fabricated-sequence mutant'
+
+  replay-mutant-must-die:
+    needs: reference-v2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S25 V2 token holdouts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: remove exactly-once fence only from V2 claim
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java')
+          s=p.read_text()
+          marker='public static synchronized Receipt claim(ServerPlayer recipient,Entity body,long receiptSequence)'
+          start=s.index(marker)
+          head=s[:start];tail=s[start:]
+          old='|| history.consumedTransportSequences.contains(match.transportSequence()))return null;'
+          count=tail.count(old)
+          if count<1:
+              raise SystemExit(f'mutation target count after V2 marker: {count}, expected >=1')
+          tail=tail.replace(old,')return null;',1)
+          p.write_text(head+tail)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: V2 replay must kill exactly-once mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: V2 receipt token replay regained consumed authority'
+            exit 1
+          fi
+          echo 'KILLED: V2 replay mutant'
+
+  tracking-mutant-must-die:
+    needs: reference-v2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S25 V2 token holdouts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests']
+          data['entrypoints']['fabric-client-gametest']=[]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: remove current tracking-generation fence from V2 claim
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java')
+          s=p.read_text()
+          marker='public static synchronized Receipt claim(ServerPlayer recipient,Entity body,long receiptSequence)'
+          start=s.index(marker)
+          head=s[:start];tail=s[start:]
+          old='|| match.trackingGeneration()!=AnatomyRuntime.trackingGeneration(recipient,body)'
+          count=tail.count(old)
+          if count<1:
+              raise SystemExit(f'mutation target count after V2 marker: {count}, expected >=1')
+          tail=tail.replace(old,'',1)
+          p.write_text(head+tail)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileGametestJava --console=plain
+      - name: stale tracking token must kill V2 tracking mutant
+        shell: bash
+        run: |
+          set +e
+          ./gradlew runGameTest --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: retired tracking window reclaimed a V2 receipt token'
+            exit 1
+          fi
+          echo 'KILLED: V2 tracking-generation mutant'
