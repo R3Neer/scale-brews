@@ -415,3 +415,48 @@ Run `s25-adversarial-reference-authority` **`35452660678`**:
 
 El propósito es impedir que el RED dedicated se “resuelva” enviando al servidor el `localTransportSequence` que sólo existe para coherencia del carry cliente. Esa secuencia no es receipt authority.
 
+
+## 14. Handoff IMPLEMENTER v2 — identidad causal reparada, dedicated boat setup pendiente
+
+Rol activo: **IMPLEMENTER**.
+
+El RED productivo de §13/`S25-adversarial-receipt-frame-identity-red.md` queda reparado sin fuzzy matching ni autoridad local cliente.
+
+### 14.1 Protocolo v2
+
+- S2C `AnatomyTransportReceiptPayload` publica un `receiptSequence` body-local que el servidor acaba de crear para transporte ya aplicado.
+- C2S `AnatomyMoveReferenceV2Payload` devuelve únicamente `vehicle + receiptSequence`.
+- El cliente no deriva ese sequence; sólo cachea tokens recibidos y decide cuándo un token ya está incorporado localmente usando support + server frame watermark.
+- El servidor no confía en ese watermark para claim: `claim(recipient, body, receiptSequence)` exige la entrada exacta server-side y todos los fences lifecycle.
+- `localTransportSequence` permanece sólo como freshness guard cliente y la authority lane mata un schema que intente subirlo C2S.
+- V1 conserva su semántica original y no fue reinterpretado; el cliente productivo usa V2.
+
+### 14.2 Cierre owner-v2
+
+Run `36130245780` queda completamente verde:
+
+- baseline `108055602568`;
+- tracking-generation mutant `108056028215` muerto;
+- replay/exactly-once mutant `108056028216` muerto;
+- fabricated-sequence mutant `108056028268` muerto.
+
+El primer intento de fabricated-sequence mutation-kill era débil porque el único receipt ya estaba consumido. El adversario corrigió sólo el oracle, emitiendo un receipt fresco no consumido antes de probar el token inventado; no hubo cambio productivo.
+
+Authority/schema v2 permanece verde en `36129090393`, incluido el mutante `client-local-sequence-schema`. Receipt publication sin listener está verde en `36129522915`. Ordinary `36129628428`: 449/449.
+
+### 14.3 Dedicated evidence
+
+El dedicated demuestra que la identidad nueva sí correlaciona con receipts reales:
+
+- player RTT 0/100/200 ms: 35/24/22 references consumidas, cero correcciones y trace completa;
+- controlled boat RTT=0: 35 references consumidas.
+
+El único RED restante en run `36130077183` son dos `ClientboundMoveVehiclePacket` al inicio de la fase boat. Ambos aparecen antes de la primera `anatomy_move_reference_v2`; entre ellos el cliente emite un packet transitorio `ServerboundMoveVehiclePacket target=(0,-0.12,0)`. Después comienza la secuencia estable `v2 reference -> vehicle move` sin correcciones posteriores observadas.
+
+### 14.4 Clasificación y devolución
+
+**No hay autorización IMPLEMENTER para modificar reconciliación vehicular con esta evidencia.** Las correcciones observadas pertenecen al handshake/setup de montaje que el baseline actual resetea antes de que hayan terminado de generarse sus consecuencias asíncronas.
+
+El siguiente paso pertenece al **ADVERSARY**: usar la instrumentación test-only existente (`VehicleMoveAudit` / vanilla first-good/last-good) o una barrera equivalente para cerrar el montaje y fijar un boundary de medida posterior al setup real. Después debe repetir boat RTT 0/100/200 ms. Sólo una corrección que ocurra después de ese boundary y durante una secuencia causal v2 válida se devuelve al IMPLEMENTER como RED de producción.
+
+G4.1 permanece **ABIERTO** y G4.2 sigue bloqueado.
