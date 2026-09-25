@@ -33,9 +33,23 @@ public final class AnatomyMovementReference {
 
     private AnatomyMovementReference() {}
 
-    /** Validates and consumes one exact server-issued receipt, then stages only its scalar cursor. */
+    /** V1 compatibility: exact support/frame claim, retained while old peers/tests migrate. */
     public static synchronized void accept(ServerPlayer player,AnatomyMoveReferencePayload reference) {
-        if(player==null || reference==null || player.isRemoved())return;
+        if(reference==null)return;
+        accept(player,reference.vehicle(),body->
+            AnatomyTransportReceipts.claim(player,body,reference.support(),reference.supportFrameSerial()));
+    }
+
+    /** V2 canonical path: exact server-issued receipt token, never a client-local sequence. */
+    public static synchronized void accept(ServerPlayer player,AnatomyMoveReferenceV2Payload reference) {
+        if(reference==null)return;
+        accept(player,reference.vehicle(),body->
+            AnatomyTransportReceipts.claim(player,body,reference.receiptSequence()));
+    }
+
+    private static void accept(ServerPlayer player,boolean vehicle,
+            java.util.function.Function<Entity,AnatomyTransportReceipts.Receipt> claim) {
+        if(player==null || claim==null || player.isRemoved())return;
         var server=player.level().getServer();if(server==null || !server.isSameThread())return;
         long now=player.level().getGameTime();
         var state=STATES.computeIfAbsent(player,ignored->new State());
@@ -45,15 +59,14 @@ public final class AnatomyMovementReference {
 
         if(state.pending!=null) {
             if(state.pending.acceptedTick()+PENDING_TICKS<now)state.pending=null;
-            else return; // One movement packet can own at most one baseline cursor.
+            else return;
         }
 
-        Entity body=authorizedBody(player,reference.vehicle());
+        Entity body=authorizedBody(player,vehicle);
         if(body==null || !AnatomyRuntime.owns(body))return;
-        var receipt=AnatomyTransportReceipts.claim(player,body,reference.support(),reference.supportFrameSerial());
-        if(receipt==null)return;
+        var receipt=claim.apply(body);if(receipt==null)return;
 
-        state.pending=new Pending(reference.vehicle(),receipt.epoch(),receipt.catalogRevision(),receipt.dimension(),
+        state.pending=new Pending(vehicle,receipt.epoch(),receipt.catalogRevision(),receipt.dimension(),
             receipt.bodyNetworkId(),receipt.body(),receipt.trackingGeneration(),AnatomyMovement.transportGeneration(body),
             receipt.transportSequence(),now);
     }
