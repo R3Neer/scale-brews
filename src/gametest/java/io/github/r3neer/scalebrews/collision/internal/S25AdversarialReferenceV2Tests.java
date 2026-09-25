@@ -55,11 +55,20 @@ public final class S25AdversarialReferenceV2Tests {
             h.assertTrue(replay.get().equals(expected) && !pending(player),
                 "V2 receipt token replay must remain exactly-once");
 
+            // Isolate fabricated-token authority from the exactly-once fence: retire the
+            // consumed receipt history, issue exactly one fresh unconsumed receipt, then name a
+            // sequence the server never issued. A sequence-agnostic claim would consume this fresh receipt.
+            AnatomyTransportReceipts.invalidate(player);
+            var fresh=record(player,player,support,1,3,new Vec3(.03125,0,0));
+            h.assertTrue(AnatomyTransportReceipts.history(player,player.getUUID()).size()==1
+                    && !consumed(player,player,fresh.transportSequence()),
+                "Fake-token fixture requires exactly one fresh unconsumed server receipt");
+
             var fake=new AnatomyMoveReferenceV2Payload(false,999_999);
             S24TrackingAuthorityTestSeam.runOwned(player,player,1,
                 ()->AnatomyMovementReference.accept(player,fake));
-            h.assertTrue(!pending(player),
-                "Invented V2 receipt sequence must not stage authority");
+            h.assertTrue(!consumed(player,player,fresh.transportSequence()) && !pending(player),
+                "Invented V2 receipt sequence must not consume or stage unrelated fresh server authority");
         } finally {cleanup(server,support,player);}
         h.succeed();
     }
