@@ -32,7 +32,9 @@ public final class PlatformTestLatency extends ChannelDuplexHandler {
     public record Baseline(long playerMoves,long vehicleMoves,long playerCorrections,long vehicleCorrections,
             long pendingInbound,long pendingOutbound,long droppedTraceEvents,long peakTraceEntries,Map<String,Long> packetTotals,List<PacketTrace> trace) {}
 
-    private static final int MAX_RELEVANT_TRACE=512;
+    // V2 adds one S2C receipt token plus one C2S reference around sustained movement; keep the
+    // diagnostic trace bounded but large enough to retain an entire 200-tick player/boat phase.
+    private static final int MAX_RELEVANT_TRACE=2048;
     private final AtomicInteger playerCorrections=new AtomicInteger();
     private final AtomicInteger vehicleCorrections=new AtomicInteger();
     private final AtomicLong playerMoves=new AtomicLong();
