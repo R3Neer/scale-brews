@@ -36,7 +36,7 @@ public final class AnatomyNetworking {
     }
     /** Publishes one exact server-issued receipt token; clients never derive this sequence locally. */
     public static void sendTransportReceipt(ServerPlayer recipient,AnatomyTransportReceiptPayload payload) {
-        if(recipient==null || payload==null)return;
+        if(recipient==null || payload==null || recipient.connection==null || recipient.isRemoved())return;
         if(!ServerPlayNetworking.canSend(recipient,AnatomyTransportReceiptPayload.TYPE))return;
         ServerPlayNetworking.send(recipient,payload);
     }
