@@ -1105,3 +1105,23 @@ Run `36130077183` con trace ampliada a 2048 conserva evidencia completa:
 Las dos correcciones boat RTT=0 ocurren **antes de la primera reference v2**. El trace muestra primero una corrección de setup, después un `ServerboundMoveVehiclePacket` transitorio con target `(0,-0.12,0)`, otra corrección, y sólo entonces comienza la cadena estable `anatomy_move_reference_v2 -> ServerboundMoveVehiclePacket`. No se observan correcciones posteriores dentro de la secuencia estable capturada.
 
 **Clasificación vigente:** el RED productivo de identity reference↔receipt queda reparado y adversarialmente recertificado a nivel owner. El dedicated restante está contaminado por el handshake de montaje previo a la primera reference; no autoriza modificar reconciliación productiva todavía. El adversario debe cerrar una barrera de setup/movement-baseline de vehículo y repetir boat 0/100/200 ms. G4.1 y G4 siguen abiertos; G4.2 permanece bloqueado.
+
+### S25 dedicated final — semantic boat-baseline barrier — 2026-09-27
+
+Rol de esta anotación: **IMPLEMENTER handoff**. No declara por sí sola cierre adversarial de G4.1.
+
+El RED de las dos correcciones iniciales del controlled boat quedó clasificado como tráfico del handshake vanilla de montaje, previo a la fase S25. El harness adversarial incorporó `VehicleMoveAudit` y sólo abre la medición cuando el listener servidor ha aceptado al menos dos `ServerboundMoveVehiclePacket` del boat exacto con `lastVehicle` correcto y `vehicleFirst/LastGood` convergidos respecto a la posición real.
+
+Dedicated final `s25-adversarial-reference-latency` run **`36318320536`**, job **`108617148797`**: **success**. Evidencia observada:
+
+- player RTT 0/100/200 ms: referencias v2 reales, receipts consumidos, posiciones cliente/servidor coincidentes y `0/0` correcciones player/vehicle;
+- controlled boat RTT 0/100/200 ms: referencias v2 reales, receipts consumidos, posiciones cliente/servidor coincidentes y `0/0` correcciones player/vehicle;
+- ordering wire preservado: `anatomy_move_reference_v2` inmediatamente antes de `ServerboundMovePlayerPacket`/`ServerboundMoveVehiclePacket` correspondiente;
+- trace sin drops en las fases medidas;
+- marker final: `S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections`.
+
+Artifact **`10931765875`** (`S25-reference-latency`). Build del mismo HEAD: run **`36318320523`**, job **`108617148838`** — **success**.
+
+El fallo vecino `assertRemoteObserverNeverCarries` se retiró únicamente del modo `S25_REFERENCE_ACCEPTANCE`: corresponde a G4.3 (observer path), no al scope G4.1 de receipt/reference authority. La aserción permanece en el proof general.
+
+**Estado:** no queda RED técnico conocido dentro de G4.1. El control vuelve al ADVERSARY para la pasada final independiente y el cierre formal del sprint antes de abrir G4.2.
