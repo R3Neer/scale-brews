@@ -162,7 +162,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **Requisitos:** FR-077..088; NFR-001..018, NFR-026..031.
 
-1. [x] ledger/receipts/references sobre lifecycle real;
+1. [ ] ledger/receipts/references sobre lifecycle real;
 2. [ ] prediction sólo para player/controlled vehicle local;
 3. [ ] observer path sin carry local;
 4. [ ] reconciliación sin double-apply ni drift;
@@ -172,9 +172,9 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 adversarial baseline RED / G4.1:** receipts server-side ya existen y están bounded, pero todavía no hay una ruta C2S anatómica de movement reference. El único receiver C2S de movimiento es `PlatformMovePayload` legacy y sale inmediatamente bajo `AnatomyApi.ownsSharedPhysics(body)`; `PlatformMovementReference.resolve(...)` tampoco rebasa anatomy. Presence gate `s25-adversarial-reference-presence` run **`35337131202`**, job **`105574448871`**: RED esperado con `no non-legacy anatomy/collision C2S receiver is registered`. Ordinary del mismo snapshot **`35337131192`**, job **`105574448591`**: **442/442 required GameTests**, build verde. Threat model: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**S25 / G4.1 cerrado adversarialmente:** el protocolo v2 usa un token de receipt **server-issued** y mantiene `localTransportSequence` exclusivamente local. Owner-v2 + mutation-kills: run `36130245780`; authority/schema: `36129090393`; receipt publication: `36129522915`; wire-version freeze v1/v2/S2C: `36318246051`. La barrera test-only `VehicleMoveAudit` cierra el handshake vanilla del boat antes de medir. Dedicated final `36318320536`, job `108617148797`, pasa player y controlled boat a RTT **0/100/200 ms**, con references v2 ordenadas, receipts reales consumidos y **cero correcciones vanilla**. Ordinary del mismo HEAD `36318320523`, job `108617148838`: **449/449**. Zero-change desde el último producto v2 `2aeefa00278a58315a338967901c84e8b7fa08bd`: cero cambios posteriores en `src/main`/`src/client`. Cierre completo: `docs/sprints/S25-g4-reference-adversarial-model.md`.
+**S25 / G4.1 reabierto localmente tras el cierre:** owner-v2, exactly-once, authority/schema, wire versioning y dedicated player/boat 0/100/200 ms permanecen válidos. La incorporación posterior del client `AnatomyReceiptTokenInbox` abrió una deuda lifecycle distinta: un same-dimension teleport reinicia `TransportLedger` pero el token cliente antiguo podía sobrevivir y bloquear el nuevo `receiptSequence=1`. Holdout run `36319103378`, job `108619353709`, artifact `10932225690`: RED causal. El implementer ha aterrizado `263071814...` + `25803838...` + `78e8ec6a...` para publicar/consumir la invalidación y cubrir también bodies no-Living. Recertificación adversarial en curso: player+boat teleport, lifecycle mutation-kills y kernel bounded inbox.
 
-**Prioridad G4 vigente:** abrir **G4.2 / task 2 — prediction sólo para player/controlled vehicle local**. El fallo posterior del assert remoto observado durante S25 pertenece a G4.3 y no se clasifica todavía como defecto productivo hasta aislar existencia/presentación de ausencia de carry.
+**Prioridad G4 vigente:** **recerrar G4.1 / S25** sobre la nueva barrera de token lifecycle. G4.2 tiene ya modelo y pruebas preparatorias de authority local/remote, pero no se marca cerrado ni avanza por delante de esta recertificación.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
