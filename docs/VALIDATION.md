@@ -1125,3 +1125,50 @@ Artifact **`10931765875`** (`S25-reference-latency`). Build del mismo HEAD: run 
 El fallo vecino `assertRemoteObserverNeverCarries` se retiró únicamente del modo `S25_REFERENCE_ACCEPTANCE`: corresponde a G4.3 (observer path), no al scope G4.1 de receipt/reference authority. La aserción permanece en el proof general.
 
 **Estado:** no queda RED técnico conocido dentro de G4.1. El control vuelve al ADVERSARY para la pasada final independiente y el cierre formal del sprint antes de abrir G4.2.
+
+## G4 / S25 final adversarial closure — 2026-09-27
+
+S25/G4.1 is independently closed.
+
+Final product for the receipt-token identity path: **`2aeefa00278a58315a338967901c84e8b7fa08bd`**. Comparison from that snapshot through final adversarial checkpoint `c30b411ec8f2c6ad75ea70a11a7c5db664a349f2` contains **zero later changes under `src/main` or `src/client`**.
+
+The canonical C2S path is V2: the server publishes `AnatomyTransportReceiptPayload` and the client returns only `AnatomyMoveReferenceV2Payload(vehicle, receiptSequence)`. `localTransportSequence` remains a client-local freshness guard and never becomes server authority.
+
+Owner-V2 run **`36130245780`**:
+
+- baseline **`108055602568`** success;
+- tracking-generation mutant **`108056028215`** killed;
+- replay/exactly-once mutant **`108056028216`** killed;
+- fabricated-sequence mutant **`108056028268`** killed.
+
+Artifact **`10861697283`**, SHA-256 **`ffdd30fcb0897462cb60a88faaa9bfaf4ea2c37cac605a57e8047258b3637661`**.
+
+Authority/schema run **`36129090393`** remains green including the client-local-sequence authority mutant. Receipt publication run **`36129522915`**, job **`108053315959`**, is green; artifact **`10861341561`**, SHA-256 **`15f1dd5899eb9197761308f489124a73cba6b271476f5ee0ecb4a7d795df63ba`**.
+
+Wire semantics are frozen by run **`36318246051`**: V1, V2 and S2C receipt-token schemas all pass baseline and three compiling silent-schema mutants are killed.
+
+The final dedicated lane uses a test-only `VehicleMoveAudit` boundary to exclude only the vanilla boat mount handshake. Measurement begins after at least two accepted packets from the exact boat with `lastVehicle`, `vehicleFirstGood` and `vehicleLastGood` stabilized; an inbound/outbound FIFO fence then drains all setup traffic before metrics reset.
+
+Run **`36318320536`**, job **`108617148797`**: **success**. Final marker:
+
+```text
+S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections
+```
+
+Consumed references / vanilla corrections:
+
+- player 0 ms: **35 / 0**;
+- player 100 ms: **25 / 0**;
+- player 200 ms: **22 / 0**;
+- controlled boat 0 ms: **35 / 0**;
+- controlled boat 100 ms: **16 / 0**;
+- controlled boat 200 ms: **24 / 0**.
+
+All six phases retain confirmed material support, matching client/server final positions, ordered V2 reference → vanilla movement traffic and no trace drops. Artifact **`10931765875`**, SHA-256 **`19c5d69f752e44c49a86723037651b8d460679dccdb3706cca991bd58ee2eac3`**.
+
+Ordinary on the same final acceptance tree, run **`36318320523`**, job **`108617148838`**, passed **449/449 required GameTests** and `BUILD SUCCESSFUL`; artifact **`10931995176`**, SHA-256 **`2d3e46f2c32023e1431471276f5076a53abfb0d7ca97ac15b720e88a61f2bc15`**.
+
+The later remote-observer assertion failure observed while developing the boat setup boundary is explicitly **not** part of the G4.1 verdict. It conflates remote entity existence, presentation-contact availability and physical carry state and therefore requires isolated G4.2/G4.3 evidence before product classification.
+
+**Conclusion:** G4 task 1 is closed. The next canonical gate is **G4.2: prediction only for the local player / actually controlled vehicle**.
+
