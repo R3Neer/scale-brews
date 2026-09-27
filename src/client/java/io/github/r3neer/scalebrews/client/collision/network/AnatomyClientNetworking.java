@@ -272,6 +272,10 @@ public final class AnatomyClientNetworking {
     public static void initialize() {
         AnatomySession.installClientMode(AnatomyClientNetworking::mode);
         AnatomyMovement.installClientTransportObserver(AnatomyClientNetworking::stageMovementReference);
+        AnatomyMovement.installClientTransportLifecycleObserver(body->{
+            predictedMovementReferences.remove(body.getUUID());
+            transportReceiptTokens.discardBody(body.getUUID());
+        });
         ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
