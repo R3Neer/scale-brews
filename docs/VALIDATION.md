@@ -1172,3 +1172,47 @@ The later remote-observer assertion failure observed while developing the boat s
 
 **Conclusion:** G4 task 1 is closed. The next canonical gate is **G4.2: prediction only for the local player / actually controlled vehicle**.
 
+## G4 / S25 post-close receipt-token lifecycle recertification — 2026-09-27
+
+S25 reopened once after its first formal closure because the newly introduced bounded client `AnatomyReceiptTokenInbox` created a distinct lifecycle requirement.
+
+Red-before-green:
+
+- holdout `S25AdversarialReceiptTokenTeleportTests`;
+- run **`36319103378`**, job **`108619353709`**: failure after a same-dimension player teleport;
+- the production transport generation advanced, but an old client token `receiptSequence=1` survived and caused the fresh post-teleport server token with restarted sequence 1 to be rejected;
+- artifact **`10932225690`**, SHA-256 **`3e244e982b1380e86405bad264921993da4a83970236d0d2088cd2bbb161e601`**.
+
+An intermediate repair that only published lifecycle invalidation from `AnatomyMovement` remained red until client networking consumed that signal. Final product line:
+
+- `263071814...`: publish client transport lifecycle invalidation;
+- `25803838...`: discard staged references + receipt tokens for the invalidated body;
+- `78e8ec6a943d28c5dbfd863db19ad001289c977f`: apply the same barrier to non-`LivingEntity` bodies such as boats.
+
+The unchanged player expectation passed on run **`36319203434`**, job **`108619642199`**, artifact **`10931767348`**, SHA-256 **`875205bdea004c2e76c53e84f7bfefe8f736fb829dfb9421568fbd4e0c4655b2`**.
+
+Final player + non-Living boat lifecycle run **`36319615155`**:
+
+- baseline **`108620791027`** success;
+- missing client lifecycle-observer mutant **`108621043309`** compiled and was killed;
+- LivingEntity-only lifecycle mutant **`108621043326`** compiled and was killed.
+
+Artifact **`10932565150`**, SHA-256 **`667ec16cf155ce34837e9658d0682816cdbff20161c99bca06268716230670ba`**.
+
+The new inbox owner is independently mutation-protected by run **`36319228108`**:
+
+- baseline **`108619706302`**;
+- tracking-generation mutant **`108620469701`**;
+- MAX_BODIES mutant **`108620469745`**;
+- TTL mutant **`108620469747`**;
+
+all success as baseline/mutation harnesses. Artifact **`10932290857`**, SHA-256 **`604a08a766169b61e6f39dff7a9830ff930319d515f24cef60afd0d3048f47d3`**.
+
+Dedicated reference latency remains green after connecting the lifecycle barrier: run **`36319203501`**, job **`108619642390`**, artifact **`10932006286`**, SHA-256 **`4dd79b9baa4079c6644945426579d8a540fad283f119a65b2e34867e91ebcf0f`**.
+
+Ordinary final run **`36319615112`**, job **`108620790741`** passed **451/451 required GameTests** and `BUILD SUCCESSFUL`; artifact **`10931537412`**, SHA-256 **`78484b2d36e888f61dd53aa39a8df259b601e8d68990cdc9a4bb80452926d491`**.
+
+Final zero-change review from product `78e8ec6a...` through adversarial checkpoint `2fb7d763...` finds no later changes under `src/main` or `src/client`.
+
+**Conclusion:** the localized S25 reopening is closed again. G4.1 is closed; G4.2 is the next canonical gate.
+
