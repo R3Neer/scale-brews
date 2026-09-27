@@ -149,6 +149,17 @@ jobs:
           s=s.replace(old,new,1)
           s=s.replace('|| support==null || supportFrameSerial<1 || receiptSequence<1 || tick<0)',
                       '|| support==null || supportFrameSerial<1 || receiptSequence<1 || tick<0 || tokenFlags<0)',1)
+          marker='    public static final Type<AnatomyTransportReceiptPayload> TYPE='
+          overload='''    public AnatomyTransportReceiptPayload(UUID epoch,long revision,Identifier dimension,
+        int bodyId,UUID body,long trackingGeneration,UUID support,long supportFrameSerial,
+        long receiptSequence,long tick) {
+        this(epoch,revision,dimension,bodyId,body,trackingGeneration,support,supportFrameSerial,receiptSequence,tick,0);
+    }
+
+'''
+          if marker not in s:
+              raise SystemExit('receipt constructor insertion marker missing')
+          s=s.replace(marker,overload+marker,1)
           s=s.replace('buf.writeUUID(p.support);buf.writeVarLong(p.supportFrameSerial);buf.writeVarLong(p.receiptSequence);buf.writeVarLong(p.tick);',
                       'buf.writeUUID(p.support);buf.writeVarLong(p.supportFrameSerial);buf.writeVarLong(p.receiptSequence);buf.writeVarLong(p.tick);buf.writeVarLong(p.tokenFlags);',1)
           s=s.replace('buf.readUUID(),buf.readVarLong(),buf.readVarLong(),buf.readVarLong()',
