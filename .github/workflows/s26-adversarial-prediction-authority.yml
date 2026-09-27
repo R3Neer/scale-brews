@@ -1,0 +1,154 @@
+name: s26-adversarial-prediction-authority
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s26-adversarial-prediction-authority.yml'
+      - 'tools/s26_prediction_authority_gate.py'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  remote-observer-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate real-client observer authority proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: verify structural prediction authority boundary
+        run: python3 tools/s26_prediction_authority_gate.py
+      - name: run remote observer authority baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s26-prediction-authority
+          xvfb-run -a ./gradlew runClientGameTest --console=plain \
+            2>&1 | tee build/s26-prediction-authority/client.log
+          grep -R -F 'S00_OBSERVER_AUTHORITY PASS' \
+            build/run/clientGameTest/logs build/s26-prediction-authority/client.log >/dev/null
+      - name: capture prediction authority evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S26-prediction-authority
+          path: |
+            build/s26-prediction-authority/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  simulate-all-mutant-must-die:
+    needs: remote-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate real-client observer authority proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: let every client replica simulate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          s=p.read_text()
+          old='public static boolean simulates(Entity body){return !body.level().isClientSide() || body.isLocalInstanceAuthoritative();}'
+          new='public static boolean simulates(Entity body){return true;}'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: remote-body holdout must kill simulate-all mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: remote client replicas gained full anatomy carry prediction'
+            exit 1
+          fi
+          echo 'KILLED: simulate-all client authority mutant'
+
+  tick-loop-guard-mutant-must-die:
+    needs: remote-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: remove local-authority guard from ordinary client carry loop
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          old='if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);'
+          new='if(AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava --console=plain
+      - name: structural gate must kill unguarded client loop
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s26_prediction_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: ordinary client loop can carry remote observers'
+            exit 1
+          fi
+          echo 'KILLED: unguarded ordinary client carry loop'
