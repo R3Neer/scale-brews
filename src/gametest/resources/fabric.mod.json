@@ -114,7 +114,8 @@
       "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests",
       "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests",
       "io.github.r3neer.scalebrews.test.S18ZeroDurationCompilerClientTests",
-      "io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof"
+      "io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof",
+      "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests"
     ]
   }
 }
