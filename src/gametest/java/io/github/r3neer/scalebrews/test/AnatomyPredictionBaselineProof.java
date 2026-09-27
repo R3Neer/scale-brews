@@ -89,7 +89,9 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
 
                 world.runOnServer(server->confirmBoatAndObserver(server,fixture));
                 awaitBoatContact(context,fixture);
+                awaitBoatMovementBaseline(context,world,fixture);
                 runBoatPhases(context,world,fixture,latency.get());
+                world.runOnServer(server->VehicleMoveAudit.end(server.getPlayerList().getPlayers().getFirst()));
                 assertRemoteObserverNeverCarries(context,fixture);
                 System.out.println("S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections");
             } catch(Throwable error) {
@@ -390,6 +392,7 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         var boat=net.minecraft.world.entity.EntityTypes.OAK_BOAT.create(level,EntitySpawnReason.COMMAND);
         if(boat==null)throw new IllegalStateException("N2 could not create oak boat");level.addFreshEntity(boat);confirmOnTop(boat,fixture.cow.get());
         player.stopRiding();if(!player.startRiding(boat,true,true))throw new IllegalStateException("N2 player could not mount controlled boat");fixture.boat.set(boat);
+        VehicleMoveAudit.begin(player);fixture.boatAuditStart.set(VehicleMoveAudit.mark(player,"boat-mounted"));
         var observer=net.minecraft.world.entity.EntityTypes.PIG.create(level,EntitySpawnReason.COMMAND);
         if(observer==null)throw new IllegalStateException("N2 could not create observer pig");observer.setNoAi(true);observer.setNoGravity(true);scale(observer,.25);level.addFreshEntity(observer);confirmOnTop(observer,fixture.cow.get());fixture.observer.set(observer);
     }
@@ -449,6 +452,41 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             && AnatomyClientNetworking.presentationContact(root,client.level.getGameTime()).isPresent();},200);
     }
 
+    /**
+     * Closes the vanilla mount handshake before any S25 vehicle phase is measured.
+     * A mere client-side mount/contact is insufficient: the server listener must already
+     * recognize this exact boat as lastVehicle and have accepted a real vehicle packet
+     * close to its current first/last-good baseline.
+     */
+    private static void awaitBoatMovementBaseline(ClientGameTestContext context,TestDedicatedServerContext world,Fixture fixture) throws Exception {
+        VehicleMoveAudit.Snapshot last=null;
+        for(int attempt=0;attempt<120;attempt++) {
+            last=world.computeOnServer(server->{
+                var player=server.getPlayerList().getPlayers().getFirst();
+                return VehicleMoveAudit.snapshot(player,fixture.boatAuditStart.get());
+            });
+            boolean ready=last.events().stream().anyMatch(event->
+                event.boundary().equals("after")
+                    && event.lastVehicleMatchesBody()
+                    && fixture.boat.get()!=null
+                    && event.bodyUuid().equals(fixture.boat.get().getUUID())
+                    && event.packetTarget().distanceToSqr(event.bodyPosition())<.0625
+                    && event.lastGood().distanceToSqr(event.bodyPosition())<.0625
+                    && event.firstGood().distanceToSqr(event.bodyPosition())<1.0);
+            if(ready) {
+                var snapshot=last;
+                world.runOnServer(server->{
+                    var player=server.getPlayerList().getPlayers().getFirst();
+                    fixture.boatAuditReady.set(VehicleMoveAudit.mark(player,"boat-baseline-ready"));
+                });
+                ScaleBrews.LOGGER.info("S25 boat setup baseline closed after vanilla vehicle acceptance: {}",snapshot);
+                return;
+            }
+            context.waitTicks(1);
+        }
+        throw new AssertionError("S25 boat setup never reached a stable vanilla vehicle baseline: "+last);
+    }
+
     private static void assertRemoteObserverNeverCarries(ClientGameTestContext context,Fixture fixture) {
         context.runOnClient(client->{
             var observer=client.level.getEntity(fixture.observer.get().getId());
@@ -499,6 +537,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         final AtomicReference<ServerPlayer> player=new AtomicReference<>();
         final AtomicReference<Placement> playerPlacement=new AtomicReference<>();
         final AtomicReference<Boat> boat=new AtomicReference<>();
+        final AtomicReference<VehicleMoveAudit.Marker> boatAuditStart=new AtomicReference<>();
+        final AtomicReference<VehicleMoveAudit.Marker> boatAuditReady=new AtomicReference<>();
         final AtomicReference<Pig> observer=new AtomicReference<>();
     }
 }
