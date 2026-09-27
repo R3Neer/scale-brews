@@ -20,6 +20,7 @@ public final class AnatomyReceiptTokenInbox {
 
     public boolean accept(AnatomyTransportReceiptPayload packet,long now) {
         if(packet==null || now<0)throw new IllegalArgumentException("Invalid receipt token input");
+        if(expired(packet,now))return false;
         prune(now);
         var queue=tokens.get(packet.body());
         if(queue==null) {
