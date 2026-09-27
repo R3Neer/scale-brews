@@ -20,7 +20,9 @@
     "TestTemptGoalAccess",
     "TestTinyDefinitionMixin",
     "TestCollisionEntityScanMixin",
-    "TestTrackingAuthorityMixin"
+    "TestTrackingAuthorityMixin",
+    "TestVehicleMoveListenerAccess",
+    "TestVehicleMoveTraceMixin"
   ],
   "client": [
     "TestPackStartupTimeoutMixin",
