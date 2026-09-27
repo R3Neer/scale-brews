@@ -57,3 +57,111 @@ jobs:
             build/s25-receipt-token-teleport/client.log
             build/run/clientGameTest/logs/
             build/resources/gametest/fabric.mod.json
+
+  lifecycle-observer-mutant-must-die:
+    needs: receipt-token-teleport
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate receipt-token teleport holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: drop client transport-lifecycle notification
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          s=p.read_text()
+          old='try {CLIENT_TRANSPORT_LIFECYCLE_OBSERVER.accept(body);}'
+          new='try {}'
+          count=s.count(old)
+          if count!=1: raise SystemExit(f'mutation target count: {count}, expected 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: teleport holdout must kill lifecycle-observer mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: transport lifecycle no longer retires client receipt-token authority'
+            exit 1
+          fi
+          echo 'KILLED: missing client transport-lifecycle notification'
+
+  nonliving-lifecycle-mutant-must-die:
+    needs: receipt-token-teleport
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate receipt-token teleport holdout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: restore LivingEntity-only lifecycle invalidation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java')
+          s=p.read_text()
+          old='else AnatomyMovement.invalidateBodyLifecycle(self);'
+          new='else {}'
+          count=s.count(old)
+          if count!=1: raise SystemExit(f'mutation target count: {count}, expected 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: boat teleport must kill Living-only lifecycle mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: non-Living controlled body retained pre-teleport receipt token'
+            exit 1
+          fi
+          echo 'KILLED: non-Living lifecycle omission'
