@@ -36,8 +36,12 @@ public final class AnatomyMovement {
         }
     }
     private static volatile java.util.function.BiConsumer<Entity,ClientTransportCursor> CLIENT_TRANSPORT_OBSERVER=(body,cursor)->{};
+    private static volatile java.util.function.Consumer<Entity> CLIENT_TRANSPORT_LIFECYCLE_OBSERVER=body->{};
     public static void installClientTransportObserver(java.util.function.BiConsumer<Entity,ClientTransportCursor> observer) {
         CLIENT_TRANSPORT_OBSERVER=Objects.requireNonNull(observer,"client transport observer");
+    }
+    public static void installClientTransportLifecycleObserver(java.util.function.Consumer<Entity> observer) {
+        CLIENT_TRANSPORT_LIFECYCLE_OBSERVER=Objects.requireNonNull(observer,"client transport lifecycle observer");
     }
     private static void publishClientTransport(Entity body,LivingEntity support,long supportFrameSerial,SupportTransport transport) {
         if(body==null || support==null || transport==null || !body.level().isClientSide() || supportFrameSerial<1)return;
@@ -313,10 +317,20 @@ public final class AnatomyMovement {
     public static synchronized SupportTransport transport(Entity body){return TransportLedger.current(body);}
     /** Transitional lifecycle façade paired with the transport cursor. */
     static synchronized long transportGeneration(Entity body){return TransportLedger.generation(body);}
-    /** A teleport/removal invalidates a body's own anchor but may retain already-applied carry. */
+    /** A teleport/removal invalidates a body's own anchor and retires client receipt/reference metadata. */
     private static void invalidateBody(Entity body,boolean discardTransport) {
         clear(body);
         TransportLedger.invalidate(body,discardTransport);
+        if(body.level().isClientSide()) {
+            try {CLIENT_TRANSPORT_LIFECYCLE_OBSERVER.accept(body);}
+            catch(RuntimeException rejectedObserver) {
+                io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client transport lifecycle observer rejected invalidation",rejectedObserver);
+            }
+        }
+    }
+    /** Explicit body lifecycle barrier for non-Living controlled vehicles as well as ordinary bodies. */
+    public static synchronized void invalidateBodyLifecycle(Entity body) {
+        if(body!=null)invalidateBody(body,true);
     }
     public static synchronized boolean confirm(Entity body,LivingEntity support,SurfaceContact surface) {
         if(!active(body) || surface==null || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
@@ -428,7 +442,7 @@ public final class AnatomyMovement {
     public static synchronized void invalidateRoot(LivingEntity support) {
         // The support can itself be standing on another support. Clear that anchor too, so a
         // sub-four-block teleport cannot pull it through air on the next carry pass.
-        invalidateBody(support,true);
+        invalidateBodyLifecycle(support);
         // Do not reset the binding's serial: a receiver/cursor must distinguish
         // this discontinuity from an old endpoint with the same transform.
         AnatomyEndpointLedger.invalidate(support);
