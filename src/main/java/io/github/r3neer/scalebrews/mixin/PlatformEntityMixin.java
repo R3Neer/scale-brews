@@ -21,16 +21,22 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     @Inject(method="teleport",at=@At("HEAD"))
     private void scalebrews$transition(net.minecraft.world.level.portal.TeleportTransition transition,CallbackInfoReturnable<Entity> cir) {
         scalebrews$platform.clear();
-        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+        scalebrews$invalidateLifecycle();
     }
     @Inject(method="teleportTo(DDD)V",at=@At("HEAD"))
     private void scalebrews$teleport(double x,double y,double z,CallbackInfo ci) {
         scalebrews$platform.clear();
-        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+        scalebrews$invalidateLifecycle();
     }
     @Inject(method="remove",at=@At("HEAD"))
     private void scalebrews$remove(Entity.RemovalReason reason,CallbackInfo ci) {
-        if((Object)this instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+        scalebrews$invalidateLifecycle();
+    }
+    @Unique
+    private void scalebrews$invalidateLifecycle() {
+        Entity self=(Entity)(Object)this;
+        if(self instanceof LivingEntity living){AnatomyMovement.invalidateRoot(living);MaterialIntervalRuntime.invalidate(living);}
+        else AnatomyMovement.invalidateBodyLifecycle(self);
     }
     @Inject(method="setPos(DDD)V",at=@At("RETURN"))
     private void scalebrews$spatialSetPos(double x,double y,double z,CallbackInfo ci) {
