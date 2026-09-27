@@ -162,7 +162,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **Requisitos:** FR-077..088; NFR-001..018, NFR-026..031.
 
-1. [ ] ledger/receipts/references sobre lifecycle real;
+1. [x] ledger/receipts/references sobre lifecycle real;
 2. [ ] prediction sólo para player/controlled vehicle local;
 3. [ ] observer path sin carry local;
 4. [ ] reconciliación sin double-apply ni drift;
@@ -172,9 +172,9 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 adversarial baseline RED / G4.1:** receipts server-side ya existen y están bounded, pero todavía no hay una ruta C2S anatómica de movement reference. El único receiver C2S de movimiento es `PlatformMovePayload` legacy y sale inmediatamente bajo `AnatomyApi.ownsSharedPhysics(body)`; `PlatformMovementReference.resolve(...)` tampoco rebasa anatomy. Presence gate `s25-adversarial-reference-presence` run **`35337131202`**, job **`105574448871`**: RED esperado con `no non-legacy anatomy/collision C2S receiver is registered`. Ordinary del mismo snapshot **`35337131192`**, job **`105574448591`**: **442/442 required GameTests**, build verde. Threat model: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**S25 / G4.1 reabierto localmente tras el cierre:** owner-v2, exactly-once, authority/schema, wire versioning y dedicated player/boat 0/100/200 ms permanecen válidos. La incorporación posterior del client `AnatomyReceiptTokenInbox` abrió una deuda lifecycle distinta: un same-dimension teleport reinicia `TransportLedger` pero el token cliente antiguo podía sobrevivir y bloquear el nuevo `receiptSequence=1`. Holdout run `36319103378`, job `108619353709`, artifact `10932225690`: RED causal. El implementer ha aterrizado `263071814...` + `25803838...` + `78e8ec6a...` para publicar/consumir la invalidación y cubrir también bodies no-Living. Recertificación adversarial en curso: player+boat teleport, lifecycle mutation-kills y kernel bounded inbox.
+**S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **recerrar G4.1 / S25** sobre la nueva barrera de token lifecycle. G4.2 tiene ya modelo y pruebas preparatorias de authority local/remote, pero no se marca cerrado ni avanza por delante de esta recertificación.
+**Prioridad G4 vigente:** **G4.2 / S26 — prediction sólo para player/controlled vehicle local**. La frontera remote ya tiene baseline real-client y mutation-kills; falta cerrar control handoff/transiciones antes de marcar task 2.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
