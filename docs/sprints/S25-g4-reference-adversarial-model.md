@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **REABIERTO LOCALMENTE / CLIENT RECEIPT-TOKEN LIFECYCLE**.
+Estado: **CERRADO ADVERSARIALMENTE / G4.1 RECERTIFICADO TRAS LIFECYCLE INBOX**.
 
 Este sprint abre G4 después del cierre completo de G3. No prescribe una clase, un nombre de payload ni una estructura de paquetes concreta. Fija las propiedades que cualquier implementación de movement reference/rebase debe demostrar.
 
@@ -658,4 +658,79 @@ El ADVERSARY amplió el mismo holdout con una réplica real de boat y añadió d
 - ordinary/dedicated relevantes permanezcan verdes sobre el candidato integrado.
 
 Hasta entonces, task 1 vuelve temporalmente a abierto. G4.2 permanece en revisión adversarial preparatoria, pero no puede cerrarse por delante de esta recertificación.
+
+## 18. Recierre post-inbox — lifecycle físico de receipt tokens
+
+Rol activo: **ADVERSARY**.
+
+La reapertura de §17 queda cerrada.
+
+### 18.1 Red-before-green
+
+El primer holdout, run **`36319103378`**, job **`108619353709`**, demostró que un same-dimension teleport avanzaba la generación física de transporte pero dejaba vivo el token cliente viejo `receiptSequence=1`, bloqueando el nuevo token `receiptSequence=1` de la vida posterior. Artifact **`10932225690`**, SHA-256 **`3e244e982b1380e86405bad264921993da4a83970236d0d2088cd2bbb161e601`**.
+
+La reparación intermedia `263071814...` publicó el lifecycle desde `AnatomyMovement`, pero el mismo holdout continuó rojo porque networking aún no consumía esa señal. Esto localiza la causa en la integración, no en el cambio de generación física.
+
+`25803838...` conectó la señal a:
+
+- eliminación de `predictedMovementReferences` del body;
+- `transportReceiptTokens.discardBody(body UUID)`.
+
+El holdout original del player quedó verde sin cambiar expectativas en run **`36319203434`**, job **`108619642199`**, artifact **`10931767348`**, SHA-256 **`875205bdea004c2e76c53e84f7bfefe8f736fb829dfb9421568fbd4e0c4655b2`**.
+
+`78e8ec6a943d28c5dbfd863db19ad001289c977f` amplió el mismo lifecycle a bodies no-`LivingEntity`, incluido controlled boat.
+
+### 18.2 Holdout final player + boat y mutation adequacy
+
+Run **`36319615155`**:
+
+- baseline player + non-Living boat teleport **`108620791027`** — success;
+- lifecycle-observer mutant **`108621043309`** — compiló y murió al eliminar la notificación que retira tokens/references;
+- non-Living lifecycle mutant **`108621043326`** — compiló y murió al volver a una invalidación sólo-`LivingEntity`.
+
+Artifact baseline **`10932565150`**, SHA-256 **`667ec16cf155ce34837e9658d0682816cdbff20161c99bca06268716230670ba`**.
+
+Por tanto el mismo reset físico que reinicia `TransportLedger` también retira inmediatamente la identidad de token cliente, tanto para player como para boat.
+
+### 18.3 Owner bounded del inbox
+
+`AnatomyReceiptTokenInbox` queda cubierto independientemente por run **`36319228108`**:
+
+- baseline **`108619706302`** — success;
+- tracking-generation mutant **`108620469701`** — muerto;
+- MAX_BODIES mutant **`108620469745`** — muerto;
+- TTL mutant **`108620469747`** — muerto.
+
+Artifact **`10932290857`**, SHA-256 **`604a08a766169b61e6f39dff7a9830ff930319d515f24cef60afd0d3048f47d3`**.
+
+El owner demuestra:
+
+- `MAX_BODIES=16`;
+- `MAX_TOKENS_PER_BODY=128`;
+- generación tracking monotónica;
+- duplicate rejection;
+- TTL alineado con `HISTORY_TICKS`;
+- `discardBody` y `discardSupport` locales;
+- selección del token server-issued más nuevo cuyo endpoint ya está incorporado;
+- consumo de prefix sin reutilización.
+
+### 18.4 Regresión integrada
+
+Dedicated G4.1 después de conectar la invalidación cliente: run **`36319203501`**, job **`108619642390`** — success; artifact **`10932006286`**, SHA-256 **`4dd79b9baa4079c6644945426579d8a540fad283f119a65b2e34867e91ebcf0f`**.
+
+Ordinary del árbol final de recertificación, run **`36319615112`**, job **`108620790741`**:
+
+- **451/451 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact **`10931537412`**, SHA-256 **`78484b2d36e888f61dd53aa39a8df259b601e8d68990cdc9a4bb80452926d491`**.
+
+Comparación `78e8ec6a... → 2fb7d763...`: cinco commits posteriores y **cero cambios bajo `src/main`/`src/client`**.
+
+### 18.5 Veredicto
+
+La reapertura post-cierre no invalida owner-v2, exactly-once, dedicated latency ni protocol versioning. Añade la propiedad que faltaba: los tokens cliente no sobreviven a una nueva generación física del mismo body.
+
+**G4.1 / S25 queda recerrado adversarialmente. Task 1 puede volver a `[x]`.**
+
+El siguiente gate canónico vuelve a ser **G4.2 / S26 — prediction sólo para player/controlled vehicle local**.
 
