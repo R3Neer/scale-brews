@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **CANDIDATO IMPLEMENTER PRESENTE / PENDIENTE CIERRE ADVERSARY**.
+Estado: **CERRADO ADVERSARIALMENTE / G4.1 RECERTIFICADO**.
 
 Este sprint abre G4 después del cierre completo de G3. No prescribe una clase, un nombre de payload ni una estructura de paquetes concreta. Fija las propiedades que cualquier implementación de movement reference/rebase debe demostrar.
 
@@ -482,3 +482,130 @@ Build del mismo HEAD: run **`36318320523`**, job **`108617148838`** — success.
 El antiguo `assertRemoteObserverNeverCarries` queda fuera del modo de aceptación S25 porque pertenece a G4.3 (observer path), no a G4.1; la aserción permanece en el proof general y no se elimina del roadmap.
 
 **Estado implementer:** no queda ningún RED técnico conocido dentro del scope G4.1. Este bloque no declara cierre del sprint: el control vuelve al **ADVERSARY** para su revisión final independiente, actualización de cierre y autorización explícita de apertura de G4.2.
+
+## 16. Cierre adversarial final de G4.1
+
+Rol activo: **ADVERSARY**.
+
+Tras el handoff implementer de §15 se realizó la lectura final independiente. **G4.1 queda cerrado.**
+
+### 16.1 Último producto y zero-change
+
+El último cambio productivo del protocolo v2 es:
+
+- **`2aeefa00278a58315a338967901c84e8b7fa08bd`** — `fix(s25): make receipt publication connection-safe`.
+
+La comparación `2aeefa... → c30b411ec8f2c6ad75ea70a11a7c5db664a349f2` contiene 23 commits posteriores y **cero cambios bajo `src/main` o `src/client`**. El tramo posterior es exclusivamente GameTests, mixins de test, workflows, gates y documentación.
+
+Por tanto la aceptación final valida la misma producción v2 reparada, no una corrección adversarial encubierta.
+
+### 16.2 Owner v2
+
+Run **`36130245780`**:
+
+- baseline V2 **`108055602568`** — success;
+- tracking-generation mutant **`108056028215`** — compiló y murió;
+- replay/exactly-once mutant **`108056028216`** — compiló y murió;
+- fabricated-sequence mutant **`108056028268`** — compiló y murió.
+
+Artifact **`10861697283`**, SHA-256 **`ffdd30fcb0897462cb60a88faaa9bfaf4ea2c37cac605a57e8047258b3637661`**.
+
+El v2 no hereda simplemente la campaña v1: su overload de claim por receipt sequence tiene oracle y mutation-kills propios.
+
+### 16.3 Authority, publicación y wire contract
+
+Authority/schema run **`36129090393`** queda íntegramente verde, incluido el mutante que intenta convertir `localTransportSequence` en autoridad C2S. La referencia wire sólo devuelve `vehicle + receiptSequence`, donde `receiptSequence` fue emitido previamente por el servidor.
+
+Receipt publication boundary run **`36129522915`**, job **`108053315959`** — success. Artifact **`10861341561`**, SHA-256 **`15f1dd5899eb9197761308f489124a73cba6b271476f5ee0ecb4a7d795df63ba`**.
+
+El wire queda además congelado por `s25-adversarial-reference-protocol`, run **`36318246051`**:
+
+- baseline **`108616939521`** — success;
+- silent V2 schema mutant **`108616964945`** — compiló y murió;
+- silent V1 identity mutant **`108616964946`** — compiló y murió;
+- silent S2C receipt-token schema mutant **`108616964950`** — compiló y murió.
+
+Quedan separados explícitamente:
+
+- `anatomy_move_reference_v1`: support + frame identity histórica;
+- `anatomy_move_reference_v2`: vehicle + server receipt sequence;
+- `anatomy_transport_receipt_v1`: token S2C server-issued.
+
+Un cambio semántico futuro exige otro wire version, no reinterpretación silenciosa.
+
+### 16.4 Dedicated player + controlled boat
+
+El montaje del boat tenía dos `ClientboundMoveVehiclePacket` de handshake anteriores a la primera reference. El ADVERSARY registró la instrumentación `VehicleMoveAudit` y fija la frontera de medida sólo después de que vanilla haya aceptado al menos dos packets del **mismo boat**, con:
+
+- `lastVehicle` apuntando al body exacto;
+- `vehicleLastGood` convergido con la posición;
+- `vehicleFirstGood` ya establecido;
+- un FIFO fence posterior que entrega todo tráfico previo antes de resetear métricas.
+
+Esto no cambia producción ni descarta correcciones ocurridas dentro de la fase medida.
+
+Run final **`36318320536`**, job **`108617148797`** — **success**.
+
+Marker final:
+
+`S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections`
+
+Evidencia por fase:
+
+- player RTT 0 ms: receipts consumidos **35**, correcciones **0**;
+- player RTT 100 ms: receipts consumidos **25**, correcciones **0**;
+- player RTT 200 ms: receipts consumidos **22**, correcciones **0**;
+- controlled boat RTT 0 ms: receipts consumidos **35**, correcciones **0**;
+- controlled boat RTT 100 ms: receipts consumidos **16**, correcciones **0**;
+- controlled boat RTT 200 ms: receipts consumidos **24**, correcciones **0**.
+
+En las seis fases:
+
+- las references v2 preceden al movement packet vanilla correspondiente;
+- hay receipts server-side realmente consumidos;
+- posición cliente/servidor converge;
+- el contacto confirmado permanece material;
+- no hay drops de trace;
+- no hay correcciones vanilla dentro de la ventana causal medida.
+
+Artifact **`10931765875`**, SHA-256 **`19c5d69f752e44c49a86723037651b8d460679dccdb3706cca991bd58ee2eac3`**.
+
+### 16.5 Ordinary final
+
+Build del mismo HEAD, run **`36318320523`**, job **`108617148838`**:
+
+- **449/449 required GameTests passed**;
+- `BUILD SUCCESSFUL`;
+- artifact **`10931995176`**, SHA-256 **`2d3e46f2c32023e1431471276f5076a53abfb0d7ca97ac15b720e88a61f2bc15`**.
+
+### 16.6 Deuda descubierta fuera de scope
+
+La versión anterior del mismo dedicated proof ya mostraba las seis fases G4.1 verdes, pero fallaba **después** en `assertRemoteObserverNeverCarries`.
+
+Ese assert combina tres propiedades distintas:
+
+1. existencia del observer cliente;
+2. presentación/contacto remoto;
+3. ausencia de `TransportLedger`/carry físico local.
+
+Por tanto no se clasifica todavía como defecto productivo. Pertenece a **G4.3 observer path**, no a G4.1, y deberá aislarse antes de cualquier handoff productivo.
+
+La aserción no fue eliminada: sólo queda fuera del modo de aceptación S25 y permanece activa en el proof general.
+
+### 16.7 Veredicto
+
+G4.1 demuestra ya:
+
+- references metadata-only respaldadas exclusivamente por receipts server-issued;
+- authority por recipient/body/control real;
+- exactly-once, TTL/saturation y lifecycle fences;
+- fake/fabricated token fail-closed;
+- no double-apply;
+- rate/pending bounds;
+- protocolo versionado;
+- player + controlled vehicle sobre dedicated real a 0/100/200 ms.
+
+**S25 queda cerrado adversarialmente. G4 task 1 puede marcarse `[x]`.**
+
+El siguiente gate canónico es **G4.2 — prediction sólo para player/controlled vehicle local**.
+
