@@ -30,9 +30,8 @@ public final class AnatomyClientNetworking {
     /** Exact server-issued receipt token staged only after a local carry has incorporated its support endpoint. */
     private record PredictedMovementReference(long receiptSequence,long localTransportSequence) {}
     private static final java.util.Map<java.util.UUID,PredictedMovementReference> predictedMovementReferences=new java.util.HashMap<>();
-    /** Bounded unincorporated server-issued receipt tokens per locally relevant body. */
-    private static final java.util.Map<java.util.UUID,java.util.ArrayDeque<AnatomyTransportReceiptPayload>> transportReceiptTokens=new java.util.HashMap<>();
-    private static final int MAX_RECEIPT_TOKENS_PER_BODY=128;
+    /** TTL/cap owner for unincorporated server-issued receipt tokens. */
+    private static final AnatomyReceiptTokenInbox transportReceiptTokens=new AnatomyReceiptTokenInbox();
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -111,8 +110,7 @@ public final class AnatomyClientNetworking {
             AnatomyMovement.invalidateSupport(living);
         contacts.discardPendingSupport(supportId);
         presentationContacts.entrySet().removeIf(entry->supportId.equals(entry.getValue().support()));
-        for(var queue:transportReceiptTokens.values())queue.removeIf(token->supportId.equals(token.support()));
-        transportReceiptTokens.entrySet().removeIf(entry->entry.getValue().isEmpty());
+        transportReceiptTokens.discardSupport(supportId);
     }
     /** Compresses one dead full history into a bounded ordering fence before releasing its material state. */
     private static void retireFrameHistory(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,AnatomyFrameHistory history) {
@@ -232,20 +230,19 @@ public final class AnatomyClientNetworking {
     /** Stages the newest exact server receipt whose support endpoint is already incorporated locally. */
     private static void stageMovementReference(net.minecraft.world.entity.Entity body,AnatomyMovement.ClientTransportCursor cursor) {
         if(body==null || cursor==null || body.level()!=poseLevel)return;
-        var queue=transportReceiptTokens.get(body.getUUID());if(queue==null || queue.isEmpty())return;
-        long now=body.level().getGameTime();
-        while(!queue.isEmpty() && queue.peekFirst().tick()+AnatomyTransportReceipts.HISTORY_TICKS<=now)queue.removeFirst();
-        AnatomyTransportReceiptPayload chosen=null;
-        for(var token:queue) {
-            if(!token.support().equals(cursor.support()) || token.supportFrameSerial()>cursor.supportFrameSerial())continue;
-            if(chosen==null || token.receiptSequence()>chosen.receiptSequence())chosen=token;
-        }
+        var chosen=transportReceiptTokens.consumeIncorporated(body.getUUID(),cursor.support(),cursor.supportFrameSerial(),
+            body.level().getGameTime()).orElse(null);
         if(chosen==null)return;
         predictedMovementReferences.put(body.getUUID(),
             new PredictedMovementReference(chosen.receiptSequence(),cursor.localTransportSequence()));
-        long consumedThrough=chosen.receiptSequence();
-        queue.removeIf(token->token.receiptSequence()<=consumedThrough);
-        if(queue.isEmpty())transportReceiptTokens.remove(body.getUUID());
+    }
+
+    /** A staged reference is useful only for the local player or its current root vehicle. */
+    private static void prunePredictedMovementReferences(net.minecraft.client.Minecraft client) {
+        var player=client.player;
+        if(player==null){predictedMovementReferences.clear();return;}
+        var playerId=player.getUUID();var rootId=player.getRootVehicle().getUUID();
+        predictedMovementReferences.keySet().removeIf(id->!id.equals(playerId) && !id.equals(rootId));
     }
 
     /**
@@ -278,6 +275,8 @@ public final class AnatomyClientNetworking {
         ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
+            predictedMovementReferences.remove(entity.getUUID());
+            transportReceiptTokens.discardBody(entity.getUUID());
             if(entity instanceof net.minecraft.world.entity.LivingEntity living) {
                 var history=frames.remove(living.getUUID());
                 if(history!=null)retireFrameHistory(level,living.getUUID(),history);
@@ -285,7 +284,11 @@ public final class AnatomyClientNetworking {
         });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client->{
             useLevel(client.level);clientTick++;
-            if(poseLevel!=null)contacts.prune(poseLevel.getGameTime(),100);
+            prunePredictedMovementReferences(client);
+            if(poseLevel!=null) {
+                contacts.prune(poseLevel.getGameTime(),100);
+                transportReceiptTokens.prune(poseLevel.getGameTime());
+            }
             frames.entrySet().removeIf(entry->{
                 var history=entry.getValue();var packet=history.current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
                 boolean expired=clientTick-receivedAt.getOrDefault(entry.getKey(),0L)>100;
@@ -347,17 +350,10 @@ public final class AnatomyClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(AnatomyTransportReceiptPayload.TYPE,(packet,context)->{
             var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !transfer.ready() || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
-                    || !packet.dimension().equals(level.dimension().identifier())
-                    || packet.tick()+AnatomyTransportReceipts.HISTORY_TICKS<=level.getGameTime())return;
+                    || !packet.dimension().equals(level.dimension().identifier()))return;
             var body=level.getEntity(packet.bodyId());
             if(body==null || !body.getUUID().equals(packet.body()))return;
-            var queue=transportReceiptTokens.computeIfAbsent(packet.body(),ignored->new java.util.ArrayDeque<>());
-            long newestGeneration=queue.isEmpty()?0:queue.peekLast().trackingGeneration();
-            if(packet.trackingGeneration()<newestGeneration)return;
-            if(packet.trackingGeneration()>newestGeneration)queue.clear();
-            for(var known:queue)if(known.receiptSequence()==packet.receiptSequence())return;
-            if(queue.size()>=MAX_RECEIPT_TOKENS_PER_BODY)queue.removeFirst();
-            queue.addLast(packet);
+            transportReceiptTokens.accept(packet,level.getGameTime());
         });
     }
 }
