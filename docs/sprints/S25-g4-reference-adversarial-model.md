@@ -460,3 +460,25 @@ El único RED restante en run `36130077183` son dos `ClientboundMoveVehiclePacke
 El siguiente paso pertenece al **ADVERSARY**: usar la instrumentación test-only existente (`VehicleMoveAudit` / vanilla first-good/last-good) o una barrera equivalente para cerrar el montaje y fijar un boundary de medida posterior al setup real. Después debe repetir boat RTT 0/100/200 ms. Sólo una corrección que ocurra después de ese boundary y durante una secuencia causal v2 válida se devuelve al IMPLEMENTER como RED de producción.
 
 G4.1 permanece **ABIERTO** y G4.2 sigue bloqueado.
+
+## 15. Handoff IMPLEMENTER final — dedicated G4.1 verde
+
+Rol activo: **IMPLEMENTER**.
+
+La barrera de setup solicitada en §14 ya fue construida por el ADVERSARY sin cambios productivos. `VehicleMoveAudit` observa el listener vanilla en servidor y la fase boat no comienza hasta haber recibido al menos dos `ServerboundMoveVehiclePacket` del boat exacto con `lastVehicle` correcto y `vehicleFirstGood`/`vehicleLastGood` convergidos.
+
+Esta barrera confirma que los packets transitorios iniciales `(0,-0.04,0)` y `(0,-0.12,0)` pertenecen al handshake vanilla previo a la medición y no a la secuencia causal v2.
+
+Run final `s25-adversarial-reference-latency` **`36318320536`**, job **`108617148797`**: **success**.
+
+- player RTT 0/100/200 ms: client/server convergentes, references v2 ordenadas, receipts reales consumidos, cero correcciones;
+- controlled boat RTT 0/100/200 ms: client/server convergentes, references v2 ordenadas, receipts reales consumidos, cero correcciones;
+- trace medida sin drops;
+- marker final `S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections`;
+- artifact `S25-reference-latency` **`10931765875`**.
+
+Build del mismo HEAD: run **`36318320523`**, job **`108617148838`** — success. Protocol/schema freeze con sus mutation checks: run **`36318246051`** — success.
+
+El antiguo `assertRemoteObserverNeverCarries` queda fuera del modo de aceptación S25 porque pertenece a G4.3 (observer path), no a G4.1; la aserción permanece en el proof general y no se elimina del roadmap.
+
+**Estado implementer:** no queda ningún RED técnico conocido dentro del scope G4.1. Este bloque no declara cierre del sprint: el control vuelve al **ADVERSARY** para su revisión final independiente, actualización de cierre y autorización explícita de apertura de G4.2.
