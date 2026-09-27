@@ -6,9 +6,14 @@ on:
     paths:
       - '.github/workflows/s25-implementer-reference-proof.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceiptPayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyReceiptTokenInbox.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25ImplementerReferenceTests.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S25ImplementerTokenRetentionTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S24TrackingAuthorityTestSeam.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestTrackingAuthorityMixin.java'
       - 'src/gametest/resources/scalebrews-test.mixins.json'
@@ -36,7 +41,8 @@ jobs:
           p=Path('src/gametest/resources/fabric.mod.json')
           data=json.loads(p.read_text())
           data['entrypoints']['fabric-gametest']=[
-            'io.github.r3neer.scalebrews.collision.internal.S25ImplementerReferenceTests'
+            'io.github.r3neer.scalebrews.collision.internal.S25ImplementerReferenceTests',
+            'io.github.r3neer.scalebrews.collision.internal.S25ImplementerTokenRetentionTests'
           ]
           data['entrypoints']['fabric-client-gametest']=[]
           p.write_text(json.dumps(data,indent=2)+'\n')
