@@ -465,14 +465,15 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 var player=server.getPlayerList().getPlayers().getFirst();
                 return VehicleMoveAudit.snapshot(player,fixture.boatAuditStart.get());
             });
-            boolean ready=last.events().stream().anyMatch(event->
+            long stable=last.events().stream().filter(event->
                 event.boundary().equals("after")
                     && event.lastVehicleMatchesBody()
                     && fixture.boat.get()!=null
                     && event.bodyUuid().equals(fixture.boat.get().getUUID())
                     && event.packetTarget().distanceToSqr(event.bodyPosition())<.0625
                     && event.lastGood().distanceToSqr(event.bodyPosition())<.0625
-                    && event.firstGood().distanceToSqr(event.bodyPosition())<1.0);
+                    && event.firstGood().distanceToSqr(event.bodyPosition())<1.0).count();
+            boolean ready=stable>=2;
             if(ready) {
                 var snapshot=last;
                 world.runOnServer(server->{
