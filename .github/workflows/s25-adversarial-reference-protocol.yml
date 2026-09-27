@@ -7,6 +7,8 @@ on:
       - '.github/workflows/s25-adversarial-reference-protocol.yml'
       - 'tools/s25_reference_protocol_gate.py'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceiptPayload.java'
   workflow_dispatch:
 
 jobs:
@@ -71,3 +73,99 @@ jobs:
             exit 1
           fi
           echo 'KILLED: silent anatomy_move_reference_v1 identity change'
+
+
+  silent-v2-schema-mutant-must-die:
+    needs: reference-protocol
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: change V2 schema without changing its wire id
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java')
+          s=p.read_text()
+          old='public record AnatomyMoveReferenceV2Payload(boolean vehicle,long receiptSequence)'
+          new='public record AnatomyMoveReferenceV2Payload(boolean vehicle,long receiptSequence,long extraReceiptEpoch)'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          s=s.replace(old,new,1)
+          s=s.replace('if(receiptSequence<1)','if(receiptSequence<1 || extraReceiptEpoch<0)',1)
+          s=s.replace('buf.writeBoolean(p.vehicle);buf.writeVarLong(p.receiptSequence);',
+                      'buf.writeBoolean(p.vehicle);buf.writeVarLong(p.receiptSequence);buf.writeVarLong(p.extraReceiptEpoch);',1)
+          s=s.replace('new AnatomyMoveReferenceV2Payload(buf.readBoolean(),buf.readVarLong())',
+                      'new AnatomyMoveReferenceV2Payload(buf.readBoolean(),buf.readVarLong(),buf.readVarLong())',1)
+          p.write_text(s)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: protocol gate must kill silent V2 schema change
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_protocol_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: anatomy_move_reference_v2 schema changed without version bump'
+            exit 1
+          fi
+          echo 'KILLED: silent anatomy_move_reference_v2 schema change'
+
+  silent-receipt-schema-mutant-must-die:
+    needs: reference-protocol
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: change receipt-token schema without changing its wire id
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceiptPayload.java')
+          s=p.read_text()
+          old='long receiptSequence,long tick) implements CustomPacketPayload'
+          new='long receiptSequence,long tick,long tokenFlags) implements CustomPacketPayload'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          s=s.replace(old,new,1)
+          s=s.replace('|| support==null || supportFrameSerial<1 || receiptSequence<1 || tick<0)',
+                      '|| support==null || supportFrameSerial<1 || receiptSequence<1 || tick<0 || tokenFlags<0)',1)
+          s=s.replace('buf.writeUUID(p.support);buf.writeVarLong(p.supportFrameSerial);buf.writeVarLong(p.receiptSequence);buf.writeVarLong(p.tick);',
+                      'buf.writeUUID(p.support);buf.writeVarLong(p.supportFrameSerial);buf.writeVarLong(p.receiptSequence);buf.writeVarLong(p.tick);buf.writeVarLong(p.tokenFlags);',1)
+          s=s.replace('buf.readUUID(),buf.readVarLong(),buf.readVarLong(),buf.readVarLong()',
+                      'buf.readUUID(),buf.readVarLong(),buf.readVarLong(),buf.readVarLong(),buf.readVarLong()',1)
+          p.write_text(s)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: protocol gate must kill silent receipt-token schema change
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s25_reference_protocol_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: anatomy_transport_receipt_v1 schema changed without version bump'
+            exit 1
+          fi
+          echo 'KILLED: silent anatomy_transport_receipt_v1 schema change'
