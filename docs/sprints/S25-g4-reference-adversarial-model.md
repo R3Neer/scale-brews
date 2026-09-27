@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **CERRADO ADVERSARIALMENTE / G4.1 RECERTIFICADO**.
+Estado: **REABIERTO LOCALMENTE / CLIENT RECEIPT-TOKEN LIFECYCLE**.
 
 Este sprint abre G4 después del cierre completo de G3. No prescribe una clase, un nombre de payload ni una estructura de paquetes concreta. Fija las propiedades que cualquier implementación de movement reference/rebase debe demostrar.
 
@@ -608,4 +608,54 @@ G4.1 demuestra ya:
 **S25 queda cerrado adversarialmente. G4 task 1 puede marcarse `[x]`.**
 
 El siguiente gate canónico es **G4.2 — prediction sólo para player/controlled vehicle local**.
+
+## 17. Reapertura post-cierre — token cliente sobre discontinuidad física
+
+Rol activo: **ADVERSARY**.
+
+La incorporación posterior de `AnatomyReceiptTokenInbox` para acotar la retención cliente invalidó el zero-change usado en §16 y exigió una recertificación localizada de G4.1.
+
+### 17.1 RED causal
+
+Holdout `S25AdversarialReceiptTokenTeleportTests`, run **`36319103378`**, job **`108619353709`**: **failure**.
+
+El caso:
+
+1. retiene un token S2C server-issued para el player con `receiptSequence=1`;
+2. ejecuta un same-dimension `Entity.teleportTo(...)` real en cliente;
+3. verifica que `AnatomyMovement.transportGeneration(player)` avanza, demostrando que producción ya cruzó la barrera física;
+4. presenta un token fresco de la nueva vida física, mismo body/tracking generation y `receiptSequence=1`;
+5. el inbox lo rechaza como duplicate/stale porque el token de la vida anterior sobrevivió.
+
+Aserción causal:
+
+```text
+Same-dimension teleport must retire old client receipt-token identity immediately; a new server receipt sequence restarted at 1 was rejected as stale/duplicate
+```
+
+Artifact **`10932225690`**, SHA-256 **`3e244e982b1380e86405bad264921993da4a83970236d0d2088cd2bbb161e601`**.
+
+No se reabre owner-v2, exactly-once, dedicated 0/100/200, authority/schema ni wire versioning. El defecto es exclusivamente la retención client-side entre dos generaciones físicas del mismo body cuando tracking generation no cambia.
+
+### 17.2 Progresión de reparación implementer
+
+- `25d6d7c4...` introduce el owner bounded `AnatomyReceiptTokenInbox`;
+- `f14c9a5d...` rechaza tokens ya expirados al llegar;
+- `263071814...` publica una notificación explícita cuando `AnatomyMovement` invalida la vida de transporte;
+- el run sobre `263071...` **sigue rojo** con la misma aserción porque networking aún no consumía esa notificación;
+- `25803838...` conecta la notificación a `predictedMovementReferences.remove(body)` + `transportReceiptTokens.discardBody(body)`;
+- `78e8ec6a...` extiende la invalidación a bodies no-`LivingEntity`, incluido el controlled boat.
+
+El ADVERSARY amplió el mismo holdout con una réplica real de boat y añadió dos mutation-kills dirigidos: omitir la notificación cliente y volver a una invalidación sólo-`LivingEntity`.
+
+### 17.3 Estado vigente
+
+**G4.1 queda reabierto de forma localizada hasta que:**
+
+- el holdout player + non-Living boat quede verde sin cambiar su expectativa;
+- los dos mutantes de lifecycle compilen y mueran;
+- el kernel `AnatomyReceiptTokenInbox` demuestre bounds, TTL, tracking generation, discard body/support e incorporación monotónica;
+- ordinary/dedicated relevantes permanezcan verdes sobre el candidato integrado.
+
+Hasta entonces, task 1 vuelve temporalmente a abierto. G4.2 permanece en revisión adversarial preparatoria, pero no puede cerrarse por delante de esta recertificación.
 
