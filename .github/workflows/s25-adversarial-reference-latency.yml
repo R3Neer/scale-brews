@@ -12,6 +12,7 @@ on:
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
       - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformConnectionMixin.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyPredictionBaselineProof.java'
