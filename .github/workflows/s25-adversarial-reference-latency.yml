@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/s25-adversarial-reference-latency.yml'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceiptPayload.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java'
@@ -14,6 +16,10 @@ on:
       - 'src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/AnatomyPredictionBaselineProof.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/PlatformTestLatency.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/VehicleMoveAudit.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestVehicleMoveTraceMixin.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/mixin/TestVehicleMoveListenerAccess.java'
+      - 'src/gametest/resources/scalebrews-test.mixins.json'
       - 'src/gametest/resources/fabric.mod.json'
   workflow_dispatch:
 
