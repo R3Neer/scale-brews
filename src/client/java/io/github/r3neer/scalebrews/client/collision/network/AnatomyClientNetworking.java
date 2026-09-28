@@ -32,6 +32,8 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,PredictedMovementReference> predictedMovementReferences=new java.util.HashMap<>();
     /** TTL/cap owner for unincorporated server-issued receipt tokens. */
     private static final AnatomyReceiptTokenInbox transportReceiptTokens=new AnatomyReceiptTokenInbox();
+    /** Exactly one client body owns full physical prediction at a time. */
+    private static java.util.UUID predictionOwner;
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
@@ -97,7 +99,7 @@ public final class AnatomyClientNetworking {
     private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();
-        predictedMovementReferences.clear();transportReceiptTokens.clear();
+        predictedMovementReferences.clear();transportReceiptTokens.clear();predictionOwner=null;
     }
     /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
     private static void clearConnectionTemporal(){
@@ -227,9 +229,41 @@ public final class AnatomyClientNetworking {
                 && frame.identity().bindingGeneration()==packet.supportBindingGeneration() && frame.evaluated().pieces().containsKey(surface.piece()))
             .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
     }
+    /** Current unique physical-prediction actor, derived only from live local control. */
+    private static net.minecraft.world.entity.Entity currentPredictionBody(net.minecraft.client.Minecraft client) {
+        var player=client==null?null:client.player;if(player==null)return null;
+        var root=player.getRootVehicle();
+        if(root==player)return player;
+        return root.getControllingPassenger()==player && root.isLocalInstanceAuthoritative()?root:null;
+    }
+
+    /**
+     * Mount/dismount/control replacement is an authority barrier. Metadata from either side of the
+     * handoff is discarded rather than being reinterpreted under the new owner.
+     */
+    private static net.minecraft.world.entity.Entity refreshPredictionOwner(net.minecraft.client.Minecraft client) {
+        var current=currentPredictionBody(client);
+        java.util.UUID currentId=current==null?null:current.getUUID();
+        if(!java.util.Objects.equals(predictionOwner,currentId)) {
+            if(predictionOwner!=null) {
+                predictedMovementReferences.remove(predictionOwner);
+                transportReceiptTokens.discardBody(predictionOwner);
+            }
+            if(currentId!=null) {
+                predictedMovementReferences.remove(currentId);
+                transportReceiptTokens.discardBody(currentId);
+            }
+            predictionOwner=currentId;
+        }
+        if(currentId==null)predictedMovementReferences.clear();
+        else predictedMovementReferences.keySet().removeIf(id->!id.equals(currentId));
+        return current;
+    }
+
     /** Stages the newest exact server receipt whose support endpoint is already incorporated locally. */
     private static void stageMovementReference(net.minecraft.world.entity.Entity body,AnatomyMovement.ClientTransportCursor cursor) {
         if(body==null || cursor==null || body.level()!=poseLevel)return;
+        if(refreshPredictionOwner(net.minecraft.client.Minecraft.getInstance())!=body)return;
         var chosen=transportReceiptTokens.consumeIncorporated(body.getUUID(),cursor.support(),cursor.supportFrameSerial(),
             body.level().getGameTime()).orElse(null);
         if(chosen==null)return;
@@ -237,21 +271,13 @@ public final class AnatomyClientNetworking {
             new PredictedMovementReference(chosen.receiptSequence(),cursor.localTransportSequence()));
     }
 
-    /** A staged reference is useful only for the local player or its current root vehicle. */
-    private static void prunePredictedMovementReferences(net.minecraft.client.Minecraft client) {
-        var player=client.player;
-        if(player==null){predictedMovementReferences.clear();return;}
-        var playerId=player.getUUID();var rootId=player.getRootVehicle().getUUID();
-        predictedMovementReferences.keySet().removeIf(id->!id.equals(playerId) && !id.equals(rootId));
-    }
-
     /**
      * Returns one exact server-issued receipt token before the following vanilla movement packet.
      * The local transport sequence is only an internal freshness guard and never crosses the wire.
      */
     public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
-        var player=net.minecraft.client.Minecraft.getInstance().player;
-        if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()
+        var client=net.minecraft.client.Minecraft.getInstance();var player=client.player;
+        if(body==null || player==null || refreshPredictionOwner(client)!=body || !ready(body) || !body.isLocalInstanceAuthoritative()
                 || !ClientPlayNetworking.canSend(AnatomyMoveReferenceV2Payload.TYPE))return;
         boolean vehicle=body!=player;
         if(!vehicle && player.getRootVehicle()!=player)return;
@@ -288,7 +314,7 @@ public final class AnatomyClientNetworking {
         });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client->{
             useLevel(client.level);clientTick++;
-            prunePredictedMovementReferences(client);
+            refreshPredictionOwner(client);
             if(poseLevel!=null) {
                 contacts.prune(poseLevel.getGameTime(),100);
                 transportReceiptTokens.prune(poseLevel.getGameTime());
