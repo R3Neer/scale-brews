@@ -5,13 +5,15 @@ import sys
 
 movement=Path("src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java")
 client=Path("src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java")
+bridge=Path("src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java")
 
-for path in (movement,client):
+for path in (movement,client,bridge):
     if not path.is_file():
         raise SystemExit(f"S26_PREDICTION_AUTHORITY FAIL missing {path}")
 
 m=movement.read_text()
 c=client.read_text()
+b=bridge.read_text()
 errors=[]
 
 if not re.search(r"public static boolean simulates\(Entity body\)\s*\{\s*return !body\.level\(\)\.isClientSide\(\) \|\| body\.isLocalInstanceAuthoritative\(\);\s*\}",m):
@@ -22,6 +24,11 @@ if not re.search(r"public static boolean predictsBody\(Entity body\)\s*\{\s*retu
 
 if "if(!predictsBody(body))return;" not in m:
     errors.append("AnatomyMovement.carry no longer fences full prediction through predictsBody")
+
+if "AnatomyMovement.simulates(" in b:
+    errors.append("PlatformPhysics shared-anatomy bridge still admits local replicas without unique-root prediction ownership")
+if b.count("AnatomyMovement.predictsBody(")<4:
+    errors.append("PlatformPhysics does not route all anatomy suppress/collide/afterMove/carry decisions through predictsBody")
 
 loop_pattern=r"for\(var entity:poseLevel\.entitiesForRendering\(\)\)\s*\n\s*if\(entity\.isLocalInstanceAuthoritative\(\) && AnatomyMovement\.contact\(entity\)!=null\)AnatomyMovement\.carry\(entity\);"
 if not re.search(loop_pattern,c):
