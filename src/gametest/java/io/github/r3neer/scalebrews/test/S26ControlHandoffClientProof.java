@@ -38,10 +38,10 @@ public final class S26ControlHandoffClientProof implements FabricClientGameTest 
                 var player=client.player;
                 var first=client.level.getEntity(firstId.get());
                 var second=client.level.getEntity(secondId.get());
-                if(player.getRootVehicle()!=player || !AnatomyMovement.simulates(player)
-                        || AnatomyMovement.simulates(first) || AnatomyMovement.simulates(second))
-                    throw new AssertionError("Initial prediction authority is not player-only: player="+player.getRootVehicle()
-                        +" first="+AnatomyMovement.simulates(first)+" second="+AnatomyMovement.simulates(second));
+                if(player.getRootVehicle()!=player || !AnatomyMovement.predictsBody(player)
+                        || AnatomyMovement.predictsBody(first) || AnatomyMovement.predictsBody(second))
+                    throw new AssertionError("Initial full prediction authority is not player-only: player="+player.getRootVehicle()
+                        +" first="+AnatomyMovement.predictsBody(first)+" second="+AnatomyMovement.predictsBody(second));
             });
 
             // Hand authority to boat A.
@@ -65,10 +65,10 @@ public final class S26ControlHandoffClientProof implements FabricClientGameTest 
                 var player=client.player;
                 var first=client.level.getEntity(firstId.get());
                 var second=client.level.getEntity(secondId.get());
-                if(!AnatomyMovement.simulates(player) || AnatomyMovement.simulates(first) || AnatomyMovement.simulates(second))
-                    throw new AssertionError("Dismount left stale vehicle prediction authority: player="
-                        +AnatomyMovement.simulates(player)+" first="+AnatomyMovement.simulates(first)
-                        +" second="+AnatomyMovement.simulates(second));
+                if(!AnatomyMovement.predictsBody(player) || AnatomyMovement.predictsBody(first) || AnatomyMovement.predictsBody(second))
+                    throw new AssertionError("Dismount left stale vehicle full-prediction authority: player="
+                        +AnatomyMovement.predictsBody(player)+" first="+AnatomyMovement.predictsBody(first)
+                        +" second="+AnatomyMovement.predictsBody(second));
             });
 
             System.out.println("S26_CONTROL_HANDOFF PASS player -> boatA -> boatB -> player prediction authority");
@@ -82,10 +82,11 @@ public final class S26ControlHandoffClientProof implements FabricClientGameTest 
         var root=player.getRootVehicle();
         if(root==player || root.getId()!=expectedRoot)
             throw new AssertionError("Unexpected local root during "+phase+": "+root);
-        boolean firstSim=AnatomyMovement.simulates(first);
-        boolean secondSim=AnatomyMovement.simulates(second);
-        if((expectedRoot==firstId)!=firstSim || (expectedRoot==secondId)!=secondSim)
-            throw new AssertionError("Prediction authority did not follow control during "+phase
-                +": first="+firstSim+" second="+secondSim+" root="+root);
+        boolean playerPredicts=AnatomyMovement.predictsBody(player);
+        boolean firstPredicts=AnatomyMovement.predictsBody(first);
+        boolean secondPredicts=AnatomyMovement.predictsBody(second);
+        if(playerPredicts || (expectedRoot==firstId)!=firstPredicts || (expectedRoot==secondId)!=secondPredicts)
+            throw new AssertionError("Full prediction authority did not follow the unique root actor during "+phase
+                +": player="+playerPredicts+" first="+firstPredicts+" second="+secondPredicts+" root="+root);
     }
 }
