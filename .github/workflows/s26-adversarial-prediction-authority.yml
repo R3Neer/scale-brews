@@ -293,3 +293,58 @@ jobs:
             exit 1
           fi
           echo 'KILLED: movement-reference sender without local authority'
+
+  duplicate-root-actor-mutant-must-die:
+    needs: control-handoff-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S26 control handoff proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S26ControlHandoffClientProof'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: let local player and its controlled root both own full prediction
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java')
+          s=p.read_text()
+          old='return simulates(body) && (!body.level().isClientSide() || body.getRootVehicle()==body);'
+          new='return simulates(body);'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: control handoff must kill duplicate root actor
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: mounted LocalPlayer and controlled root both retained full prediction'
+            exit 1
+          fi
+          echo 'KILLED: duplicate full-prediction root actor'
