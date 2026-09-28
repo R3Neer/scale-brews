@@ -36,7 +36,7 @@ public final class PlatformPhysics {
     }
     public static boolean suppressPair(Entity body, Entity other) {
         if(MOVING.get()==body && AnatomyApi.ownsSharedPhysics(body))
-            return AnatomyApi.ready(body) && AnatomyMovement.simulates(body)
+            return AnatomyApi.ready(body) && AnatomyMovement.predictsBody(body)
                 && AnatomyMovement.replacesPair(body,other);
         if (MOVING.get()!=body || !(other instanceof LivingEntity support)) return false;
         if (Platforms.state(body).carrying && Platforms.state(body).support==support) return true;
@@ -49,7 +49,7 @@ public final class PlatformPhysics {
     }
     public static Vec3 collide(Entity e, Vec3 requested, Vec3 vanilla) {
         if(AnatomyApi.ownsSharedPhysics(e))
-            return AnatomyApi.ready(e) && AnatomyMovement.simulates(e)
+            return AnatomyApi.ready(e) && AnatomyMovement.predictsBody(e)
                 ? AnatomyMovement.collide(e,vanilla):vanilla;
         if(!Platforms.simulates(e)) return vanilla;
         var state=Platforms.state(e);
@@ -75,7 +75,7 @@ public final class PlatformPhysics {
     }
     public static void afterMove(Entity e) {
         if(AnatomyApi.ownsSharedPhysics(e)) {
-            if(AnatomyApi.ready(e) && AnatomyMovement.simulates(e)) AnatomyMovement.afterMove(e);
+            if(AnatomyApi.ready(e) && AnatomyMovement.predictsBody(e)) AnatomyMovement.afterMove(e);
             return;
         }
         if(!Platforms.simulates(e)) return;
@@ -97,7 +97,7 @@ public final class PlatformPhysics {
     }
     public static void carry(Entity e) {
         if(AnatomyApi.ownsSharedPhysics(e)) {
-            if(AnatomyApi.ready(e) && AnatomyMovement.simulates(e)) AnatomyMovement.carry(e);
+            if(AnatomyApi.ready(e) && AnatomyMovement.predictsBody(e)) AnatomyMovement.carry(e);
             return;
         }
         if(!Platforms.simulates(e)) return;
