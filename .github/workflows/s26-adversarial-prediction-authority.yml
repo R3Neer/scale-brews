@@ -273,8 +273,14 @@ jobs:
           from pathlib import Path
           p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
           s=p.read_text()
-          old='if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()'
-          new='if(body==null || player==null || !ready(body)'
+          old='''        if(body==null || player==null || refreshPredictionOwner(client)!=body || !ready(body) || !body.isLocalInstanceAuthoritative()
+                || !ClientPlayNetworking.canSend(AnatomyMoveReferenceV2Payload.TYPE))return;
+        boolean vehicle=body!=player;
+        if(!vehicle && player.getRootVehicle()!=player)return;
+        if(vehicle && (player.getRootVehicle()!=body || body.getControllingPassenger()!=player))return;'''
+          new='''        if(body==null || player==null || !ready(body)
+                || !ClientPlayNetworking.canSend(AnatomyMoveReferenceV2Payload.TYPE))return;
+        boolean vehicle=body!=player;'''
           count=s.count(old)
           if count!=1:
               raise SystemExit(f'mutation target count: {count}, expected exactly 1')
