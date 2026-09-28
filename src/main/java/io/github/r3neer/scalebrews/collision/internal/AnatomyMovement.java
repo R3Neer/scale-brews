@@ -121,8 +121,15 @@ public final class AnatomyMovement {
     public static synchronized boolean active(Entity e){return ACTIVE.contains(e.level());}
     /** Canonical policy/selection attached to this exact live support binding, if the runtime owns one. */
     public static CollisionBinding canonicalBinding(LivingEntity support){return AnatomyBindingState.binding(support);}
-    /** Server simulates every body; a client predicts only entities it owns locally. */
+    /** Server simulates every body; a client may only consider locally authoritative replicas. */
     public static boolean simulates(Entity body){return !body.level().isClientSide() || body.isLocalInstanceAuthoritative();}
+    /**
+     * Full client prediction belongs to exactly one root actor. A mounted local player remains
+     * locally authoritative as an entity, but its controlled root vehicle owns physical prediction.
+     */
+    public static boolean predictsBody(Entity body) {
+        return simulates(body) && (!body.level().isClientSide() || body.getRootVehicle()==body);
+    }
     /**
      * Fixture/local-core overload. Inside an accepted server session it borrows the canonical
      * policy selection but remains non-causal: no descriptor, no certified motion interval.
@@ -356,7 +363,7 @@ public final class AnatomyMovement {
     }
     /** Crouch edge protection in the body's gravity tangent plane, never legacy world-Y surfaces. */
     public static Vec3 edge(net.minecraft.world.entity.player.Player body,Vec3 requested) {
-        if(!active(body) || !simulates(body) || !body.isShiftKeyDown())return requested;
+        if(!active(body) || !predictsBody(body) || !body.isShiftKeyDown())return requested;
         var contact=contact(body);if(contact==null || !Platforms.eligible(body,contact.support()))return requested;
         var frame=gravity(body);double vertical=frame.vertical(requested);
         if(vertical>1e-5)return requested; // Moving away from support is not an edge walk.
@@ -702,7 +709,7 @@ public final class AnatomyMovement {
     }
     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
     private static void carry(Entity body,Set<Entity> visiting) {
-        if(!simulates(body))return;
+        if(!predictsBody(body))return;
         var c=contact(body);var anchor=AnatomyContactState.anchor(body);
         if(c==null || anchor==null)return;
         // Server runtime material intervals own carry. Keeping this endpoint path active in
