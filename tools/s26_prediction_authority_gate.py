@@ -17,6 +17,12 @@ errors=[]
 if not re.search(r"public static boolean simulates\(Entity body\)\s*\{\s*return !body\.level\(\)\.isClientSide\(\) \|\| body\.isLocalInstanceAuthoritative\(\);\s*\}",m):
     errors.append("AnatomyMovement.simulates no longer fences client physics by local instance authority")
 
+if not re.search(r"public static boolean predictsBody\(Entity body\)\s*\{\s*return simulates\(body\) && \(!body\.level\(\)\.isClientSide\(\) \|\| body\.getRootVehicle\(\)==body\);\s*\}",m):
+    errors.append("AnatomyMovement.predictsBody no longer reduces full client prediction to the unique root actor")
+
+if "if(!predictsBody(body))return;" not in m:
+    errors.append("AnatomyMovement.carry no longer fences full prediction through predictsBody")
+
 loop_pattern=r"for\(var entity:poseLevel\.entitiesForRendering\(\)\)\s*\n\s*if\(entity\.isLocalInstanceAuthoritative\(\) && AnatomyMovement\.contact\(entity\)!=null\)AnatomyMovement\.carry\(entity\);"
 if not re.search(loop_pattern,c):
     errors.append("client END_CLIENT_TICK carry loop no longer requires local instance authority")
