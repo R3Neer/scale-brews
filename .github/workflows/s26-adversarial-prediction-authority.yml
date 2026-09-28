@@ -7,6 +7,7 @@ on:
       - '.github/workflows/s26-adversarial-prediction-authority.yml'
       - 'tools/s26_prediction_authority_gate.py'
       - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java'
       - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S00ObserverBoundaryTests.java'
       - 'src/gametest/java/io/github/r3neer/scalebrews/test/S26ControlHandoffClientProof.java'
@@ -348,3 +349,44 @@ jobs:
             exit 1
           fi
           echo 'KILLED: duplicate full-prediction root actor'
+
+  bridge-root-owner-mutant-must-die:
+    needs: remote-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: weaken one anatomy bridge decision back to local-replica authority
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java')
+          s=p.read_text()
+          old='return AnatomyApi.ready(e) && AnatomyMovement.predictsBody(e)'
+          new='return AnatomyApi.ready(e) && AnatomyMovement.simulates(e)'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava --console=plain
+      - name: structural gate must kill weakened bridge owner
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s26_prediction_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: PlatformPhysics accepted a non-root local replica for full anatomy physics'
+            exit 1
+          fi
+          echo 'KILLED: bridge physics without unique-root prediction ownership'
