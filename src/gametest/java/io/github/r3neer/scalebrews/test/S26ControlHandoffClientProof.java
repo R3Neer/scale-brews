@@ -1,5 +1,6 @@
 package io.github.r3neer.scalebrews.test;
 
+import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import java.util.Map;
 import java.util.UUID;
