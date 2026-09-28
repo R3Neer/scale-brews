@@ -252,3 +252,44 @@ jobs:
             exit 1
           fi
           echo 'KILLED: stale vehicle prediction authority across control handoff'
+
+  reference-local-authority-mutant-must-die:
+    needs: remote-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: remove local-authority guard from movement-reference sender
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          old='if(body==null || player==null || !ready(body) || !body.isLocalInstanceAuthoritative()'
+          new='if(body==null || player==null || !ready(body)'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava --console=plain
+      - name: structural gate must kill ungated reference sender
+        shell: bash
+        run: |
+          set +e
+          python3 tools/s26_prediction_authority_gate.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: non-local body may emit anatomy prediction references'
+            exit 1
+          fi
+          echo 'KILLED: movement-reference sender without local authority'
