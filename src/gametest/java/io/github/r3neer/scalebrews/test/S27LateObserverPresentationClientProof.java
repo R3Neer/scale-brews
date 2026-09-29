@@ -208,13 +208,14 @@ public final class S27LateObserverPresentationClientProof implements FabricClien
                 player.getYRot(),player.getXRot(),TeleportTransition.DO_NOTHING));
             if(moved==null)throw new AssertionError("S27 server rejected far observer teleport");
         });
+        var stopped=new java.util.concurrent.atomic.AtomicBoolean();
         for(int attempt=0;attempt<180;attempt++) {
-            boolean stopped=world.getServer().computeOnServer(server->{
+            world.getServer().runOnServer(server->{
                 var player=server.getPlayerList().getPlayers().getFirst();
-                return !PlayerLookup.tracking(cow(server,cowId,cowUuid)).contains(player)
-                    && !PlayerLookup.tracking(pig(server,pigId,pigUuid)).contains(player);
+                stopped.set(!PlayerLookup.tracking(cow(server,cowId,cowUuid)).contains(player)
+                    && !PlayerLookup.tracking(pig(server,pigId,pigUuid)).contains(player));
             });
-            if(stopped)return;
+            if(stopped.get())return;
             context.waitTicks(1);
         }
         throw new AssertionError("S27 observer never left tracking range");
