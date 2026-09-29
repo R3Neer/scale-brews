@@ -89,8 +89,9 @@ public final class S27LateObserverPresentationClientProof implements FabricClien
             // One more confirmed server carry must advance presentation/vanilla position, never client transport.
             world.getServer().runOnServer(server->moveSupport(server,cowId.get(),cowUuid.get(),100));
             context.waitTicks(3);
-            var afterServer=context.computeOnServer(server->pig(server,pigId.get(),pigUuid.get()).position());
-            waitForClientPosition(context,pigId.get(),pigUuid.get(),afterServer);
+            var afterServer=new AtomicReference<Vec3>();
+            world.getServer().runOnServer(server->afterServer.set(pig(server,pigId.get(),pigUuid.get()).position()));
+            waitForClientPosition(context,pigId.get(),pigUuid.get(),afterServer.get());
             context.waitFor(client->{
                 if(client.level==null)return false;
                 var cow=client.level.getEntity(cowId.get());
@@ -199,7 +200,7 @@ public final class S27LateObserverPresentationClientProof implements FabricClien
     }
 
     private static void teleportFarAndWait(ClientGameTestContext context,
-            net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext world,
+            net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext world,
             int cowId,UUID cowUuid,int pigId,UUID pigUuid) {
         world.getServer().runOnServer(server->{
             var cow=cow(server,cowId,cowUuid);var player=server.getPlayerList().getPlayers().getFirst();
