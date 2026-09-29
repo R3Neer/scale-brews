@@ -8,7 +8,7 @@ Rol activo de este documento inicial: **IMPLEMENTER**.
 
 ### ADVERSARY
 
-Pendiente de congelar modelo adversarial antes de cualquier cambio productivo.
+**Modelo adversarial congelado antes de cualquier cambio productivo.** La primera pasada es no-change-first.
 
 ## 1. Scope
 
@@ -127,3 +127,65 @@ Esto debe ser atacado por S27 antes de tocar producción. Oracle mínimo sugerid
 - `PlatformPhysics.touching(...)` y `Platforms.supported(...)` no están owner-gated, pero son lecturas de estado; no se clasifican como bug hasta que un consumer remoto las convierta en mutación física.
 
 **Resultado de investigación:** I1/I2 cerrados. No se autoriza todavía el fix de friction ni una separación de stores hasta que el ADVERSARY congele S27 y clasifique el oracle.
+
+## 6. Freeze adversarial previo a producción
+
+El ADVERSARY congela el gate S27 sin autorizar cambios de producción.
+
+### 6.1 Evidencia heredada que sí cuenta
+
+- S26 `S00ObserverBoundaryTests` demuestra que direct carry y recursive carry no mueven físicamente un body remoto.
+- S26 run `36400355085` mata `simulates->true`, ordinary loop sin local-owner, bridge sin unique-root owner y stale control authority.
+- `AnatomyExportProof` ya demuestra tráfico real donde un mob remoto:
+  - recibe `AnatomyMovement.contact` confirmado;
+  - expone `presentationContact`;
+  - mantiene `AnatomyMovement.transport(remote)==null`;
+  - es transportado durante 60 ticks por el servidor;
+  - pierde geometry/contact/presentation en UNAVAILABLE sin revivir material viejo.
+- S24 cubre frame replay, reconnect, dimension y support-rebind fences.
+
+Esta evidencia cierra la mitad negativa de FR-079 y buena parte de FR-080/082, pero no sustituye el late-observer contact bootstrap de FR-081.
+
+### 6.2 Holdout nuevo congelado
+
+`S27LateObserverPresentationClientProof` debe permanecer sin relajar expectativas.
+
+Escenario:
+
+1. cow anatómica + pig soportado se mantienen fuera de tracking range;
+2. el servidor acumula varios `SupportTransport` reales del pig antes de que el cliente lo observe;
+3. el player entra en tracking range;
+4. el cliente debe reconstruir inmediatamente:
+   - body remoto actual;
+   - `presentationFrame` del soporte;
+   - `presentationContact` del pig;
+   - contacto read-only confirmado;
+5. el cliente remoto debe conservar simultáneamente:
+   - `simulates==false`;
+   - `predictsBody==false`;
+   - `TransportLedger==null`;
+6. un carry server-side posterior debe avanzar posición vanilla y presentation frame, sin crear transport local;
+7. STOP_TRACKING debe retirar la generation activa;
+8. mientras el observer está fuera de rango, el servidor acumula más transportes;
+9. retrack debe crear una generation nueva y reconstruir sólo el estado actual, con `TransportLedger` cliente todavía vacío.
+
+El oracle diferencia explícitamente presentation/contact de prediction/carry. Un fallo de cualquiera de las dos mitades se clasifica por separado.
+
+### 6.3 Mutation adequacy propia de G4.3
+
+Workflow `s27-adversarial-observer-path` incluye inicialmente dos mutantes compilables:
+
+1. **presentation-local-only**: `presentationContact(remote)` se oculta para bodies no local-authority. El holdout debe morir porque un observer remoto sí necesita presentación.
+2. **contact-publication suppression**: se suprime publicación S2C de contacto tanto en START_TRACKING como en el publish ordinario, manteniendo pose/frame. El late observer debe morir por ausencia de estado confirmado.
+
+Los mutantes físicos de carry remoto no se duplican aquí: S26 ya mata las rutas `simulates`, tick-loop y bridge-owner. Si S27 descubre una ruta física distinta, se añadirá un mutante específico a esa ruta.
+
+### 6.4 Gate de clasificación
+
+- Si baseline S27 es verde y ambos mutantes mueren, la hipótesis inicial es **no-change/product already correct** para el observer path básico.
+- Si baseline es rojo por `presentationContact`/frame ausente pero transport local sigue nulo, se clasifica **presentation/bootstrap RED**.
+- Si baseline detecta `TransportLedger` o `predictsBody/simulates` en el observer, se clasifica **PRODUCT RED de authority/carry** y vuelve al IMPLEMENTER.
+- Un fallo de fixture/compilación no autoriza cambios productivos.
+
+Hasta ejecutar esta matriz, **S27 no autoriza producción**.
+
