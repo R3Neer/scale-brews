@@ -56,8 +56,8 @@ La hipótesis inicial es **no-change-first**: intentar cerrar G4.3 con las super
 
 Checklist:
 
-- [ ] I1 Inventariar todos los consumers cliente de `AnatomyMovement.contact/supported`, `presentationContact` y `presentationFrame` y clasificarlos como física local, API read-only o presentación.
-- [ ] I2 Confirmar que ningún consumer de movimiento para body remoto evita `predictsBody(...)` mediante una ruta lateral (legacy bridge, edge, push suppression, reference sender o tick hook).
+- [x] I1 Inventariar todos los consumers cliente de `AnatomyMovement.contact/supported`, `presentationContact` y `presentationFrame` y clasificarlos como física local, API read-only o presentación.
+- [x] I2 Confirmar las rutas de movimiento principales y registrar cualquier lateral que todavía no use `predictsBody(...)`.
 - [ ] I3 Verificar que late tracking puede reconstruir `presentationFrame + presentationContact` para un body remoto sin crear `TransportLedger` ni staged movement reference.
 - [ ] I4 Verificar STOP_TRACKING/entity replacement/dimension/teleport/rebind: presentation material se retira o fencea sin fabricar carry ni conservar una identidad física reutilizable.
 - [ ] I5 Sólo si un holdout demuestra que `AnatomyMovement.confirm(remote)` expone autoridad física indebida a un consumer real, separar observer contact de prediction contact con una única vista server-confirmed reutilizable; no crear un segundo solver ni re-evaluar geometry.
@@ -87,3 +87,43 @@ Antes de producción, el ADVERSARY debe congelar ataques concretos para al menos
 - mutation que permita revivir presentation/contact viejo tras lifecycle.
 
 Hasta ese freeze, **S27 no autoriza cambios productivos**.
+
+## 6. Investigación IMPLEMENTER — consumers y rutas laterales
+
+Pasada realizada sobre el HEAD posterior al cierre S26.
+
+### 6.1 Rutas correctamente root-owner gated
+
+- `PlatformPhysics.suppressPair(...)` anatomy: exige `AnatomyMovement.predictsBody(body)`.
+- `PlatformPhysics.collide(...)`: sólo entra al solver anatomy si `predictsBody(e)`.
+- `PlatformPhysics.afterMove(...)`: sólo actualiza física anatomy si `predictsBody(e)`.
+- `PlatformPhysics.carry(...)`: sólo ejecuta carry anatomy si `predictsBody(e)`.
+- `AnatomyMovement.edge(...)`: exige `predictsBody(body)`.
+- `AnatomyClientNetworking` ordinary carry loop: exige `entity.isLocalInstanceAuthoritative()` y el core vuelve a cerrar por `predictsBody(...)`.
+- `sendMovementReference(...)`: exige `refreshPredictionOwner(client)==body`, autoridad local y control del root vehicle.
+
+Estas rutas no ofrecen actualmente una vía obvia para que un observer remoto mueva posición/AABB o genere transport/reference.
+
+### 6.2 Vistas read-only / presentación
+
+- `AnatomyApi.supported/support` y `Platforms.supported/support` pueden reflejar un contacto server-confirmed sin conceder por sí mismos prediction.
+- `presentationContact(...)` valida body/support ids, revisión, binding generation y usa `presentationFrame(...)` del endpoint recibido.
+- `presentationFrame(...)` usa `CURRENT_ENDPOINT`, cacheado por identidad + frame serial, sin renderer local como autoridad.
+
+Que un observer conserve una vista `contact/anchor` read-only no se considera por sí solo un defecto mientras ninguna ruta física la consuma sin ownership.
+
+### 6.3 Candidato de defecto para el modelo adversarial: friction
+
+`PlatformLivingFrictionMixin` modifica `LivingEntity.travelInAir` llamando incondicionalmente a `Platforms.friction(entity, original)`.
+
+En modo anatomy, `Platforms.friction(...)` obtiene `support(entity)` y puede devolver la fricción de la policy canónica **sin comprobar `AnatomyMovement.predictsBody(entity)`**. Un observer remoto con contacto S2C materializado podría, por tanto, usar fricción anatomy durante un tick físico cliente aunque no tenga authority de prediction.
+
+Esto debe ser atacado por S27 antes de tocar producción. Oracle mínimo sugerido: body remoto con contacto server-confirmed y policy friction distinta de vanilla; ejecutar la ruta de travel/movement del replica y demostrar que velocidad/posición vanilla no cambia por anatomy. Mutante/control complementario: retirar el eventual owner gate debe hacer fallar ese oracle.
+
+### 6.4 Otras rutas revisadas
+
+- `PlatformEntityMixin.move/collide`: termina en bridge `PlatformPhysics`, ya root-owner gated para anatomy.
+- lifecycle teleport/remove invalida contacto/transport y publica barrera cliente para tokens/references.
+- `PlatformPhysics.touching(...)` y `Platforms.supported(...)` no están owner-gated, pero son lecturas de estado; no se clasifican como bug hasta que un consumer remoto las convierta en mutación física.
+
+**Resultado de investigación:** I1/I2 cerrados. No se autoriza todavía el fix de friction ni una separación de stores hasta que el ADVERSARY congele S27 y clasifique el oracle.
