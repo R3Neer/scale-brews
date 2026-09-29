@@ -1,0 +1,163 @@
+name: s27-adversarial-observer-path
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s27-adversarial-observer-path.yml'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/gametest/java/io/github/r3neer/scalebrews/test/S27LateObserverPresentationClientProof.java'
+      - 'src/gametest/resources/fabric.mod.json'
+  workflow_dispatch:
+
+jobs:
+  late-observer-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S27 late observer proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=[
+            'io.github.r3neer.scalebrews.test.S27LateObserverPresentationClientProof'
+          ]
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: run late observer presentation proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/s27-observer
+          xvfb-run -a ./gradlew runClientGameTest --console=plain             2>&1 | tee build/s27-observer/client.log
+          grep -R -F 'S27_LATE_OBSERVER PASS'             build/run/clientGameTest/logs build/s27-observer/client.log >/dev/null
+      - name: capture observer evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: S27-late-observer
+          path: |
+            build/s27-observer/client.log
+            build/run/clientGameTest/logs/
+            build/resources/gametest/fabric.mod.json
+
+  presentation-local-only-mutant-must-die:
+    needs: late-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S27 late observer proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S27LateObserverPresentationClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: make presentation contact local-authority only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java')
+          s=p.read_text()
+          old='if(!ready(body))return java.util.Optional.empty();'
+          new='if(!ready(body) || !body.isLocalInstanceAuthoritative())return java.util.Optional.empty();'
+          count=s.count(old)
+          if count!=1:
+              raise SystemExit(f'mutation target count: {count}, expected exactly 1')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: remote presentation proof must kill local-only mutant
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: remote observer lost presentation but S27 stayed green'
+            exit 1
+          fi
+          echo 'KILLED: local-only observer presentation mutant'
+
+  contact-publication-mutant-must-die:
+    needs: late-observer-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+      - run: chmod +x ./gradlew
+      - name: isolate S27 late observer proof
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('src/gametest/resources/fabric.mod.json')
+          data=json.loads(p.read_text())
+          data['entrypoints']['fabric-gametest']=[]
+          data['entrypoints']['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S27LateObserverPresentationClientProof']
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: suppress all observer contact publication while preserving pose frames
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java')
+          s=p.read_text()
+          old_start='contact(entity,player,true);'
+          old_tick='for(var player:interested)contact(body,player,false);'
+          if s.count(old_start)!=1 or s.count(old_tick)!=1:
+              raise SystemExit(f'mutation targets start={s.count(old_start)} tick={s.count(old_tick)}, expected 1/1')
+          s=s.replace(old_start,'if(false)contact(entity,player,true);',1)
+          s=s.replace(old_tick,'for(var player:interested)if(false)contact(body,player,false);',1)
+          p.write_text(s)
+          PY
+      - name: mutant must compile
+        run: ./gradlew compileJava compileClientJava compileGametestJava --console=plain
+      - name: late observer must kill missing contact publication
+        shell: bash
+        run: |
+          set +e
+          xvfb-run -a ./gradlew runClientGameTest --no-daemon --console=plain --rerun-tasks
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo 'SURVIVED: observer contact publication disappeared without detection'
+            exit 1
+          fi
+          echo 'KILLED: missing observer contact publication'
