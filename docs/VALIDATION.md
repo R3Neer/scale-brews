@@ -1216,3 +1216,33 @@ Final zero-change review from product `78e8ec6a...` through adversarial checkpoi
 
 **Conclusion:** the localized S25 reopening is closed again. G4.1 is closed; G4.2 is the next canonical gate.
 
+
+## G4 / S26 local prediction authority — final closure — 2026-09-29
+
+G4.2 closes FR-079: full client-side anatomy prediction belongs to exactly one live local root actor, while remote observers/supports remain read-only.
+
+Product fixes:
+
+- `df3d9875842085169e7c879a958b1188414713aa` — introduces `AnatomyMovement.predictsBody(...)` so a mounted local player no longer shares full prediction with its controlled root vehicle.
+- `2f73966390c020f77c904e2601cb5a8dfba06dbf` — derives a single `predictionOwner` from current control and discards staged references/receipt tokens across mount, dismount or replacement handoff.
+- `ad97efb3927b2289ea60fcf5bb2037e5ee1fc7f5` — routes the `PlatformPhysics` anatomy bridge through root prediction authority rather than broad local-replica authority.
+
+Final adversarial recertification: workflow `s26-adversarial-prediction-authority`, run **`36400355085`**:
+
+- control handoff baseline **`108856467859`** — success;
+- remote observer baseline **`108856468387`** — success;
+- simulate-all mutant **`108856986314`** — killed;
+- tick-loop guard mutant **`108856986340`** — killed;
+- reference local-authority mutant **`108856986378`** — killed;
+- bridge root-owner mutant **`108856986431`** — killed;
+- stale metadata handoff mutant **`108857082946`** — killed;
+- duplicate root actor mutant **`108857082947`** — killed;
+- stale vehicle authority mutant **`108857082996`** — killed.
+
+Artifacts: `S26-control-handoff` id **`10960180780`** and `S26-prediction-authority` id **`10959951365`**.
+
+Build run **`36400355089`** is success. The positive dedicated player + controlled-boat matrix was rerun after bridge changes in `s25-adversarial-reference-latency` run **`36400806938`**, also success.
+
+Zero-change criterion: after the last product fix `ad97efb...`, subsequent S26 changes were test/CI-only before the final green recertification.
+
+**Conclusion:** G4.2 is closed. G4.3 (observer path without local carry) is the next open gate; this evidence does not claim observer presentation completeness, reconciliation/drift closure, or residual camera/visual closure.
