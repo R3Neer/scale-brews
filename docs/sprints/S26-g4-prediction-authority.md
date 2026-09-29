@@ -2,7 +2,7 @@
 
 Rol activo: **ADVERSARY**.
 
-Estado: **ABIERTO / G4.2 EN REVISIÓN**.
+Estado: **CERRADO / G4.2 RECERTIFICADO**.
 
 ## 1. Scope
 
@@ -89,4 +89,38 @@ G4.2 se cierra cuando:
 - mutation adequacy demuestra que los guards son necesarios;
 - control handoff no deja prediction stale, o existe evidencia equivalente de invalidación inmediata.
 
-Hasta entonces, **G4.2 permanece abierto**.
+Ese gate queda satisfecho por la recertificación final de §8.
+
+## 8. Cierre adversarial y fixes productivos
+
+El handoff de control reveló que `isLocalInstanceAuthoritative()` por sí solo era demasiado amplio para expresar **prediction física completa**: un `LocalPlayer` montado sigue siendo una réplica local autoritativa, pero el actor físico único debe ser su root vehicle controlado.
+
+El IMPLEMENTADOR aterrizó tres cambios productivos coherentes:
+
+- `df3d9875842085169e7c879a958b1188414713aa` — `AnatomyMovement.predictsBody(...)` restringe prediction completa a un único root actor; `carry(...)` y `edge(...)` usan esa autoridad.
+- `2f73966390c020f77c904e2601cb5a8dfba06dbf` — `AnatomyClientNetworking` mantiene un único `predictionOwner` derivado del control vivo y, en mount/dismount/replacement, retira references y receipt tokens de ambos lados del handoff.
+- `ad97efb3927b2289ea60fcf5bb2037e5ee1fc7f5` — el bridge `PlatformPhysics` deja de consultar la autoridad amplia `simulates(...)` y usa `predictsBody(...)` en suppress/collide/afterMove/carry.
+
+El ADVERSARY endureció después el harness y los mutantes. La recertificación final es workflow `s26-adversarial-prediction-authority`, run **`36400355085`**:
+
+- `control-handoff-baseline` job **`108856467859`** — success;
+- `remote-observer-baseline` job **`108856468387`** — success;
+- `simulate-all-mutant-must-die` **`108856986314`** — success;
+- `tick-loop-guard-mutant-must-die` **`108856986340`** — success;
+- `reference-local-authority-mutant-must-die` **`108856986378`** — success;
+- `bridge-root-owner-mutant-must-die` **`108856986431`** — success;
+- `stale-metadata-handoff-mutant-must-die` **`108857082946`** — success;
+- `duplicate-root-actor-mutant-must-die` **`108857082947`** — success;
+- `stale-vehicle-authority-mutant-must-die` **`108857082996`** — success.
+
+Artifacts: `S26-control-handoff` **`10960180780`** y `S26-prediction-authority` **`10959951365`**.
+
+Build del mismo snapshot: run **`36400355089`** — success. La evidencia positiva dedicada player + controlled boat se volvió a ejecutar después de los cambios de bridge en run **`36400806938`**, también success.
+
+Desde el último cambio productivo (`ad97efb...`) hasta la recertificación final sólo hubo tests/CI, por lo que la pasada zero-change requerida queda satisfecha.
+
+### Resultado
+
+G4.2 queda **CERRADO**: sólo existe un actor de prediction física completa en cliente, derivado del root/control actual; observers y soportes remotos siguen read-only; el handoff retira metadata stale; y los guards relevantes son mutation-sensitive.
+
+El siguiente gate es **G4.3: observer path sin carry local**. Ese gate trata presentación/estado observado, no vuelve a abrir ownership físico salvo evidencia nueva.
