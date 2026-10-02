@@ -5,7 +5,7 @@
   "name": "Scale Brews Tests",
   "environment": "*",
   "mixins": [
-    "scalebrews-test.mixins.json",
+    "scalebrews-test.mixins.json"
   ],
   "entrypoints": {
     "main": [
