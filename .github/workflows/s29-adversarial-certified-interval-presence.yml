@@ -1,0 +1,21 @@
+name: s29-adversarial-certified-interval-presence
+
+on:
+  push:
+    branches: [chatgpt-editing]
+    paths:
+      - '.github/workflows/s29-adversarial-certified-interval-presence.yml'
+      - 'tools/s29_certified_interval_presence_gate.py'
+      - 'docs/sprints/S29-g4-certified-presentation.md'
+      - 'src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java'
+      - 'src/main/java/io/github/r3neer/scalebrews/collision/internal/**'
+  workflow_dispatch:
+
+jobs:
+  certified-interval-presence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: require an actual certified interval presentation surface
+        run: python3 tools/s29_certified_interval_presence_gate.py
