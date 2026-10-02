@@ -1280,3 +1280,18 @@ Product fix:
 - `248a50ebae43d94aa0182f01fb4c96432a29096e` — real-client observer regression requires a remote body with confirmed anatomy contact to preserve vanilla friction 0.91 despite canonical policy friction 0.6.
 
 **Status:** S27/G4.3 is REOPENED pending build + observer regression, an adversarial friction-owner mutant, repetition of the S27 late-observer baseline, and a subsequent zero-change pass. G4.4 remains blocked.
+
+## G4 / S27 observer friction repair — implementer recertification — 2026-10-02
+
+Product fix `f661772e85a1ba916ad7a483123871f6dae70c7f` keeps anatomy observer replicas on caller-provided vanilla friction unless they are the current `predictsBody(...)` owner. Regression `248a50ebae43d94aa0182f01fb4c96432a29096e` exercises a remote real-client body with confirmed anatomy contact and canonical friction 0.6 while requiring `Platforms.friction(remote, 0.91) == 0.91`.
+
+Executed evidence:
+
+- build run **`36986056890`** — success;
+- `s26-adversarial-prediction-authority` run **`36986056911`** — success, including remote observer/control handoff baselines and all previous ownership mutants;
+- `s27-implementer-observer-recertification` run **`36986505955`**, job **`110772649688`** — success;
+- artifact **`11218260030`** (`S27-implementer-observer-recertification`).
+
+The S27 late-observer proof therefore remains green after the friction fix: current presentation/contact bootstraps and retracks correctly and no local `TransportLedger` is created.
+
+**Limit:** S27/G4.3 remains reopened until the ADVERSARY mutation-gates the new friction owner check and performs a final zero-change pass. This evidence is implementer recertification, not adversarial closure.
