@@ -1267,3 +1267,16 @@ Compare `c39014a5374f6cb2348ee7c726ebb8c239dc613c → 7652be3b75ab264eb374f2eb42
 
 **Conclusion:** G4 task 3 is closed. The next open gate is G4.4: reconciliation without double-apply or drift.
 
+
+## G4 / S27 observer path — post-closure friction reopening — 2026-10-02
+
+The historical S27 late-observer closure (`36558367708`) remains valid for bootstrap/retrack and no-local-transport evidence, but it no longer closes the whole observer-physics boundary.
+
+Post-closure IMPLEMENTER review found that `PlatformLivingFrictionMixin` always calls `Platforms.friction(...)` from `LivingEntity.travelInAir`, while the anatomy branch of `Platforms.friction(...)` could consume a server-confirmed remote contact without checking `AnatomyMovement.predictsBody(...)`. That permits a non-owner replica to receive anatomy material friction during local movement integration even though carry/collide/transport remain fenced.
+
+Product fix:
+
+- `f661772e85a1ba916ad7a483123871f6dae70c7f` — remote anatomy replicas keep the caller-provided vanilla friction unless they are the current prediction body.
+- `248a50ebae43d94aa0182f01fb4c96432a29096e` — real-client observer regression requires a remote body with confirmed anatomy contact to preserve vanilla friction 0.91 despite canonical policy friction 0.6.
+
+**Status:** S27/G4.3 is REOPENED pending build + observer regression, an adversarial friction-owner mutant, repetition of the S27 late-observer baseline, and a subsequent zero-change pass. G4.4 remains blocked.
