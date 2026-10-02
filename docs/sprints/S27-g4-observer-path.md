@@ -267,4 +267,24 @@ Falta exclusivamente la adecuación adversarial específica del nuevo borde:
 - el oracle remoto de fricción debe matar ese mutante;
 - repetir el late-observer adversarial y registrar una pasada zero-change.
 
-Hasta entonces S27 continúa **REABIERTO**, aunque la reparación implementer está verde.
+El ADVERSARY recogió este handoff y recertificó el nuevo borde en §10.
+
+## 10. Recierre adversarial tras friction-owner fix
+
+Run final `s27-adversarial-observer-path` **`36988858727`** sobre `d2438d9d121cd82066a8207b2b46fe9b9552ca4f`:
+
+- `late-observer-baseline` job **`110780085421`** — success;
+- `friction-owner-baseline` job **`110780085735`** — success;
+- `contact-publication-mutant-must-die` **`110780581376`** — success;
+- `presentation-local-only-mutant-must-die` **`110780581563`** — success;
+- `friction-owner-mutant-must-die` **`110780612218`** — success.
+
+Artifact `S27-late-observer` id **`11218582566`**.
+
+Build del mismo snapshot `36988858759` — success.
+
+El mutante específico elimina/debilita la barrera que conserva fricción vanilla para un observer no-owner y el oracle remoto lo mata. La reparación `f661772e...` queda por tanto mutation-sensitive sin perder presentation/contact late-tracking ni retrack.
+
+### Cierre
+
+S27 / G4.3 vuelve a **CERRADO**. Un observer puede conservar estado server-confirmed/presentation, pero no obtiene carry, transport ledger, movement reference ni sustitución material de fricción local. El siguiente gate canónico es S28 / G4.4 reconciliation.
