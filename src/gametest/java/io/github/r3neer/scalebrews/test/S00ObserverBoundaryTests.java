@@ -82,6 +82,8 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
                             "Observer fixture is not physically on the face: body="+body.position()+" box="+body.getBoundingBox()+" base="+base.position()+" piece="+diagnosticPiece.bounds()+" gap="+diagnosticSeparation.gap()+" normal="+diagnosticSeparation.normal());
                         check(AnatomyMovement.confirm(body,base,surface),"Observer fixture contact confirmation failed after eligibility/geometry checks");
                         check(AnatomyMovement.supported(body),"Observer fixture lost support immediately after confirmation");
+                        check(Math.abs(Platforms.friction(body,.91)-.91)<1e-12,
+                            "Remote observer contact altered client movement friction");
                         if(scenario==1) {
                             client.player.getAbilities().flying=false;client.player.setPos(body.position().add(0,2,0));
                             var top=new SurfaceContact(body.getUUID(),1,"piece",3,POINT,UP,level.getGameTime());
