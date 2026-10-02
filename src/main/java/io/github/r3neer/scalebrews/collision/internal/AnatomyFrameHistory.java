@@ -3,6 +3,7 @@ package io.github.r3neer.scalebrews.collision.internal;
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 
+import java.util.ArrayDeque;
 import java.util.Optional;
 
 /**
@@ -14,12 +15,24 @@ public final class AnatomyFrameHistory {
     /** Receiver action for one already session-filtered pose packet. */
     public enum LifecycleTransition { CONTINUE, RESTART, REJECT }
 
+    public static final int MAX_RECENT_ENDPOINTS=128;
     private AnatomyPosePayload current;
+    /** Exact accepted endpoints retained only for bounded server-certified interval materialization. */
+    private final ArrayDeque<AnatomyPosePayload> recent=new ArrayDeque<>();
     /** Highest recipient tracking generation retired by an explicit tracking discontinuity. */
     private long retiredTrackingGeneration;
 
     public AnatomyPosePayload current(){return current;}
-    public void clear(){current=null;retiredTrackingGeneration=0;}
+    public void clear(){current=null;recent.clear();retiredTrackingGeneration=0;}
+    /** Exact serial lookup only; callers may not substitute nearest/previous endpoints. */
+    public Optional<AnatomyPosePayload> packet(long frameSerial) {
+        if(frameSerial<1)return Optional.empty();
+        for(var packet:recent)if(packet.frameSerial()==frameSerial)return Optional.of(packet);
+        return Optional.empty();
+    }
+    public Optional<GeometryProvider.CausalEndpoint> endpoint(long frameSerial) {
+        return packet(frameSerial).map(AnatomyFrameHistory::endpointOf);
+    }
     /**
      * Seals the currently accepted recipient tracking generation without discarding its ordering
      * watermark. Late packets from the retired tracking window must not resurrect material after
@@ -80,6 +93,8 @@ public final class AnatomyFrameHistory {
                     || next.jointSampleTick()<current.jointSampleTick())return false;
         }
         current=next;
+        recent.addLast(next);
+        while(recent.size()>MAX_RECENT_ENDPOINTS)recent.removeFirst();
         return true;
     }
     public AnatomyPoseHistory.Sample sample() {
@@ -91,8 +106,12 @@ public final class AnatomyFrameHistory {
         return new RootFrame(current.rootFrameSequence(),current.rootFrameTick(),current.origin(),current.yaw(),current.scale(),new GravityFrame(current.gravity()));
     }
     public Optional<GeometryProvider.CausalEndpoint> endpoint() {
-        if(current==null)return Optional.empty();
-        return Optional.of(new GeometryProvider.CausalEndpoint(current.frameSerial(),current.authorityTick(),current.jointSampleTick(),root(),current.rootTransform(),sample(),
-            current.available()?GeometryProvider.Availability.AVAILABLE:GeometryProvider.Availability.UNAVAILABLE));
+        return current==null?Optional.empty():Optional.of(endpointOf(current));
+    }
+    private static GeometryProvider.CausalEndpoint endpointOf(AnatomyPosePayload packet) {
+        var sample=new AnatomyPoseHistory.Sample(packet.inputs(),packet.origin(),packet.yaw(),packet.scale(),new GravityFrame(packet.gravity()));
+        var root=new RootFrame(packet.rootFrameSequence(),packet.rootFrameTick(),packet.origin(),packet.yaw(),packet.scale(),new GravityFrame(packet.gravity()));
+        return new GeometryProvider.CausalEndpoint(packet.frameSerial(),packet.authorityTick(),packet.jointSampleTick(),root,packet.rootTransform(),sample,
+            packet.available()?GeometryProvider.Availability.AVAILABLE:GeometryProvider.Availability.UNAVAILABLE);
     }
 }
