@@ -9,6 +9,13 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(ServerGamePacketListenerImpl.class)
 public interface TestVehicleMoveListenerAccess {
     @Accessor("lastVehicle") Entity test$lastVehicle();
+    @Accessor("lastVehicle") void test$setLastVehicle(Entity entity);
+    @Accessor("firstGoodX") double test$firstGoodX();
+    @Accessor("firstGoodY") double test$firstGoodY();
+    @Accessor("firstGoodZ") double test$firstGoodZ();
+    @Accessor("lastGoodX") double test$lastGoodX();
+    @Accessor("lastGoodY") double test$lastGoodY();
+    @Accessor("lastGoodZ") double test$lastGoodZ();
     @Accessor("vehicleFirstGoodX") double test$vehicleFirstGoodX();
     @Accessor("vehicleFirstGoodY") double test$vehicleFirstGoodY();
     @Accessor("vehicleFirstGoodZ") double test$vehicleFirstGoodZ();
