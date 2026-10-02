@@ -165,7 +165,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 1. [x] ledger/receipts/references sobre lifecycle real;
 2. [x] prediction sólo para player/controlled vehicle local;
 3. [x] observer path sin carry local;
-4. [ ] reconciliación sin double-apply ni drift;
+4. [x] reconciliación sin double-apply ni drift;
 5. [ ] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
 6. [ ] residual visual/camera en única capa `client.collision.presentation`;
 7. [ ] dedicated `allow-flight=false` 0/100/200 ms y late tracking/reconnect.
@@ -174,7 +174,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **G4.4 / S28 — reconciliación sin double-apply ni drift**. S27/G4.3 queda recerrado tras la fuga lateral de fricción: fix `f661772e...`, regresión `248a50eb...` y run adversarial final `36988858727` dejan verdes late-observer + friction-owner baseline y matan contact-publication, local-only-presentation y friction-owner mutants; build `36988858759` verde. El observer conserva estado confirmado/presentation sin carry, transport ledger, references ni sustitución de fricción material local.
+**Prioridad G4 vigente:** **G4.5 / S29 — presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
