@@ -170,6 +170,9 @@ public final class Platforms {
         return state(e).support;
     }
     public static double friction(Entity e, double original) {
+        // Remote client replicas may expose server-confirmed support for presentation/read-only queries,
+        // but they must never use that material state to alter local movement integration.
+        if(AnatomyApi.ownsSharedPhysics(e) && !AnatomyMovement.predictsBody(e))return original;
         var support=support(e);var category=category(e);
         if(support==null || category==null)return original;
         var canonical=AnatomyMovement.canonicalBinding(support);
