@@ -217,3 +217,33 @@ Zero-change: compare `c39014a5374f6cb2348ee7c726ebb8c239dc613c → 7652be3b75ab2
 
 **Conclusión ADVERSARY:** G4.3 queda cerrado. La coexistencia de `presentationContact` y una vista read-only de contacto físico no concede prediction remota mientras todas las rutas mutantes de carry permanezcan cercadas. El siguiente gate canónico es **G4.4: reconciliación sin double-apply ni drift**.
 
+
+## 8. Reapertura por revisión IMPLEMENTER posterior al cierre
+
+El cierre adversarial de §7 se produjo sobre `7652be3b...` bajo hipótesis no-change-first. Una pasada implementer posterior encontró una ruta física adicional que el freeze inicial no mutation-gateaba:
+
+- `PlatformLivingFrictionMixin` llama a `Platforms.friction(...)` durante `LivingEntity.travelInAir`;
+- un observer remoto puede conservar contacto anatomy server-confirmed para presentación/read-only;
+- `Platforms.friction(...)` usaba ese contacto para sustituir la fricción vanilla **sin exigir `AnatomyMovement.predictsBody(entity)`**;
+- por tanto una réplica remota podía recibir una modificación de integración física local aunque carry/collide/transport siguieran correctamente cerrados.
+
+Clasificación: **PRODUCT RED de observer physics lateral / cobertura adversarial incompleta**.
+
+Reparación IMPLEMENTER:
+
+- `f661772e85a1ba916ad7a483123871f6dae70c7f` — en sesión anatomy, `Platforms.friction(...)` devuelve el valor original para cualquier body que no sea `predictsBody(...)`;
+- `248a50ebae43d94aa0182f01fb4c96432a29096e` — regresión real-client en `S00ObserverBoundaryTests`: un body remoto con contacto confirmado y policy friction 0.6 debe conservar un valor vanilla arbitrario 0.91.
+
+El cierre §7 permanece como evidencia válida del late-observer/bootstrap, pero **ya no cierra globalmente S27** porque fue anterior a este cambio productivo.
+
+### Gate de recertificación requerido
+
+Antes de volver a cerrar S27:
+
+1. build del snapshot con el fix debe ser verde;
+2. remote-observer baseline debe demostrar que la regresión de fricción pasa junto a direct/transitive carry;
+3. el ADVERSARY debe añadir un mutante compilable que elimine el nuevo owner gate de `Platforms.friction(...)` o equivalente y demostrar que el oracle lo mata;
+4. repetir el late-observer S27 para confirmar que presentation/contact remoto sigue disponible tras el nuevo gate;
+5. pasada zero-change posterior.
+
+Hasta entonces, **S27 / G4.3 queda REABIERTO** y G4.4 permanece bloqueado.
