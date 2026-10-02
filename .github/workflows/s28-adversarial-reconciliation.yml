@@ -57,10 +57,11 @@ jobs:
           xvfb-run -a ./gradlew runClientGameTest --console=plain \
             -PscalebrewsAnatomyCatalog="$CATALOG" \
             2>&1 | tee build/s28-reconciliation/client.log
-          grep -R -F 'S25_REFERENCE_LATENCY PASS' \
+          grep -R -F 'S28_RECONCILIATION PASS' \
             build/run/clientGameTest/logs build/s28-reconciliation/client.log >/dev/null
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
+          SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE: '1'
           CATALOG: ${{ steps.catalog.outputs.path }}
       - name: capture reconciliation baseline
         if: always()
@@ -125,6 +126,7 @@ jobs:
         shell: bash
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
+          SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE: '1'
           CATALOG: ${{ steps.catalog.outputs.path }}
         run: |
           set +e
@@ -191,6 +193,7 @@ jobs:
         shell: bash
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
+          SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE: '1'
           CATALOG: ${{ steps.catalog.outputs.path }}
         run: |
           set +e
