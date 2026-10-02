@@ -21,8 +21,10 @@ public final class AnatomyClientNetworking {
     private static final java.util.Map<java.util.UUID,Long> receivedAt=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ModelGeometryProvider> evaluators=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ClientGeometryProvider> providers=new java.util.HashMap<>();
-    /** One original-model frame per accepted full endpoint, never per observer/render call. */
+    /** One bounded cached presentation result per support. */
     private static final java.util.Map<java.util.UUID,CachedPresentationFrame> presentationFrames=new java.util.HashMap<>();
+    /** Server-issued Q2 interval certificates; exact serial lookup only. */
+    private static final AnatomyCertifiedIntervalInbox certifiedIntervals=new AnatomyCertifiedIntervalInbox();
     private static final AnatomyContactInbox contacts=new AnatomyContactInbox();
     private static final java.util.Map<java.util.UUID,AnatomyContactPayload> presentationContacts=new java.util.HashMap<>();
     private static net.minecraft.client.multiplayer.ClientLevel poseLevel;
@@ -72,12 +74,27 @@ public final class AnatomyClientNetworking {
                 double authorityTime,double fraction,PresentationKind kind,HierarchyMotion.EvaluatedFrame evaluated) {
             if(identity==null || before==null || after==null || !Double.isFinite(authorityTime) || !Double.isFinite(fraction)
                     || fraction<0 || fraction>1 || kind==null || evaluated==null)throw new IllegalArgumentException("Invalid presentation frame");
-            if(kind!=PresentationKind.CURRENT_ENDPOINT || before!=after || fraction!=1 || authorityTime!=before.authorityTick())
-                throw new IllegalArgumentException("Q1 exposes only the exact current causal endpoint");
+            if(kind==PresentationKind.CURRENT_ENDPOINT) {
+                if(before!=after || fraction!=1 || authorityTime!=before.authorityTick())
+                    throw new IllegalArgumentException("CURRENT_ENDPOINT must name one exact endpoint");
+            } else {
+                double expected=before.authorityTick()+fraction*(after.authorityTick()-before.authorityTick());
+                if(before==after || after.frameSerial()<=before.frameSerial()
+                        || before.availability()!=GeometryProvider.Availability.AVAILABLE
+                        || after.availability()!=GeometryProvider.Availability.AVAILABLE
+                        || !before.root().gravity().equals(after.root().gravity())
+                        || Double.compare(authorityTime,expected)!=0)
+                    throw new IllegalArgumentException("Invalid certified presentation interval");
+            }
             this.identity=identity;this.before=before;this.after=after;this.authorityTime=authorityTime;this.fraction=fraction;this.kind=kind;this.evaluated=evaluated;
         }
         private static PresentationFrame current(PresentationIdentity identity,GeometryProvider.CausalEndpoint endpoint,HierarchyMotion.EvaluatedFrame evaluated) {
             return new PresentationFrame(identity,endpoint,endpoint,endpoint.authorityTick(),1,PresentationKind.CURRENT_ENDPOINT,evaluated);
+        }
+        private static PresentationFrame interval(PresentationIdentity identity,GeometryProvider.CausalEndpoint before,
+                GeometryProvider.CausalEndpoint after,double fraction,HierarchyMotion.EvaluatedFrame evaluated) {
+            double authorityTime=before.authorityTick()+fraction*(after.authorityTick()-before.authorityTick());
+            return new PresentationFrame(identity,before,after,authorityTime,fraction,PresentationKind.CERTIFIED_INTERVAL,evaluated);
         }
         public PresentationIdentity identity(){return identity;}
         public GeometryProvider.CausalEndpoint before(){return before;}
@@ -87,7 +104,8 @@ public final class AnatomyClientNetworking {
         public PresentationKind kind(){return kind;}
         public HierarchyMotion.EvaluatedFrame evaluated(){return evaluated;}
     }
-    private record PresentationCacheKey(PresentationIdentity identity,long frameSerial) {}
+    private record PresentationCacheKey(PresentationIdentity identity,PresentationKind kind,long materialSerial,
+            long beforeFrameSerial,long afterFrameSerial,long fractionBits) {}
     private record CachedPresentationFrame(PresentationCacheKey key,PresentationFrame frame) {}
     public static AnatomyMode mode(net.minecraft.world.entity.Entity entity) {
         return entity==null?AnatomyMode.DISABLED:session.mode(entity.level());
@@ -98,7 +116,7 @@ public final class AnatomyClientNetworking {
     /** Level-owned material/caches only. Connection/revision replay watermarks deliberately survive. */
     private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
-        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();contacts.clearPending();presentationContacts.clear();
+        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();certifiedIntervals.clear();contacts.clearPending();presentationContacts.clear();
         predictedMovementReferences.clear();transportReceiptTokens.clear();predictionOwner=null;
     }
     /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
@@ -106,7 +124,7 @@ public final class AnatomyClientNetworking {
         clearLevelMaterial();frameReplayFence.clear();contacts.clear();
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId) {
-        poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);
+        poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);certifiedIntervals.discardSupport(supportId);
         var support=level==null?null:level.getEntity(entityId);
         if(support instanceof net.minecraft.world.entity.LivingEntity living && living.getUUID().equals(supportId))
             AnatomyMovement.invalidateSupport(living);
@@ -202,7 +220,8 @@ public final class AnatomyClientNetworking {
         var endpoint=history.endpoint().orElse(null);
         if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
         var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration());
-        var key=new PresentationCacheKey(identity,endpoint.frameSerial());
+        var key=new PresentationCacheKey(identity,PresentationKind.CURRENT_ENDPOINT,0,
+            endpoint.frameSerial(),endpoint.frameSerial(),Double.doubleToLongBits(1));
         var cached=presentationFrames.get(support.getUUID());
         if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
         return evaluator(support,packet).flatMap(evaluator->evaluator.evaluatePresentation(support,endpoint)).map(evaluated->{
@@ -211,6 +230,55 @@ public final class AnatomyClientNetworking {
             return frame;
         });
     }
+    /**
+     * Materializes one exact server-certified Q2 interval. No certificate means no interval:
+     * adjacent endpoint serials alone are never sufficient authority.
+     */
+    public static java.util.Optional<PresentationFrame> presentationInterval(net.minecraft.world.entity.LivingEntity support,
+            long materialSerial,double fraction) {
+        if(support==null || support.level()!=poseLevel || !ready(support) || staleFrames.contains(support.getUUID())
+                || materialSerial<1 || !Double.isFinite(fraction) || fraction<0 || fraction>1)return java.util.Optional.empty();
+        var certificate=certifiedIntervals.exact(support.getUUID(),materialSerial,clientTick).orElse(null);
+        var history=frames.get(support.getUUID());
+        if(certificate==null || history==null || certificate.supportId()!=support.getId()
+                || !certificate.support().equals(support.getUUID()))return java.util.Optional.empty();
+        var beforePacket=history.packet(certificate.beforeFrameSerial()).orElse(null);
+        var afterPacket=history.packet(certificate.afterFrameSerial()).orElse(null);
+        if(beforePacket==null || afterPacket==null || !certificateMatches(certificate,beforePacket)
+                || !certificateMatches(certificate,afterPacket)
+                || beforePacket.frameSerial()!=certificate.beforeFrameSerial()
+                || afterPacket.frameSerial()!=certificate.afterFrameSerial()
+                || beforePacket.authorityTick()!=certificate.beforeAuthorityTick()
+                || afterPacket.authorityTick()!=certificate.afterAuthorityTick()
+                || beforePacket.jointSampleTick()!=certificate.beforeJointSampleTick()
+                || afterPacket.jointSampleTick()!=certificate.afterJointSampleTick()
+                || !beforePacket.available() || !afterPacket.available()
+                || beforePacket.gravity()!=afterPacket.gravity()
+                || !presentationIdentityMatches(support,beforePacket) || !presentationIdentityMatches(support,afterPacket))
+            return java.util.Optional.empty();
+        var before=history.endpoint(certificate.beforeFrameSerial()).orElse(null);
+        var after=history.endpoint(certificate.afterFrameSerial()).orElse(null);
+        if(before==null || after==null)return java.util.Optional.empty();
+        var identity=new PresentationIdentity(afterPacket.epoch(),afterPacket.dimension(),afterPacket.entity(),afterPacket.entityId(),
+            afterPacket.revision(),afterPacket.model(),afterPacket.provider(),afterPacket.rootProvider(),afterPacket.bindingGeneration());
+        var key=new PresentationCacheKey(identity,PresentationKind.CERTIFIED_INTERVAL,materialSerial,
+            before.frameSerial(),after.frameSerial(),Double.doubleToLongBits(fraction));
+        var cached=presentationFrames.get(support.getUUID());
+        if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
+        return evaluator(support,afterPacket).flatMap(evaluator->evaluator.evaluatePresentation(support,before,after,fraction)).map(evaluated->{
+            var frame=PresentationFrame.interval(identity,before,after,fraction,evaluated);
+            presentationFrames.put(support.getUUID(),new CachedPresentationFrame(key,frame));
+            return frame;
+        });
+    }
+
+    private static boolean certificateMatches(AnatomyMaterialIntervalPayload certificate,AnatomyPosePayload packet) {
+        return certificate.epoch().equals(packet.epoch()) && certificate.revision()==packet.revision()
+            && certificate.dimension().equals(packet.dimension()) && certificate.supportId()==packet.entityId()
+            && certificate.support().equals(packet.entity()) && certificate.bindingGeneration()==packet.bindingGeneration()
+            && certificate.trackingGeneration()==packet.trackingGeneration();
+    }
+
     private static boolean presentationIdentityMatches(net.minecraft.world.entity.LivingEntity support,AnatomyPosePayload packet) {
         var transfer=session.catalog();
         if(!transfer.ready() || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
@@ -318,6 +386,7 @@ public final class AnatomyClientNetworking {
             if(poseLevel!=null) {
                 contacts.prune(poseLevel.getGameTime(),100);
                 transportReceiptTokens.prune(poseLevel.getGameTime());
+                certifiedIntervals.prune(clientTick);
             }
             frames.entrySet().removeIf(entry->{
                 var history=entry.getValue();var packet=history.current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
@@ -376,6 +445,15 @@ public final class AnatomyClientNetworking {
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
                     || packet.tick()+100<level.getGameTime())return;
             if(contacts.accept(level.dimension().identifier(),packet))presentationContacts.remove(packet.body());
+        });
+        ClientPlayNetworking.registerGlobalReceiver(AnatomyMaterialIntervalPayload.TYPE,(packet,context)->{
+            var level=context.client().level;useLevel(level);var transfer=session.catalog();
+            if(level==null || !transfer.ready() || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision()
+                    || !packet.dimension().equals(level.dimension().identifier())
+                    || packet.trackingGeneration()<=frameReplayFence.retiredGeneration(packet.support()))return;
+            var support=level.getEntity(packet.supportId());
+            if(!(support instanceof net.minecraft.world.entity.LivingEntity living) || !living.getUUID().equals(packet.support()))return;
+            certifiedIntervals.accept(packet,clientTick);
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyTransportReceiptPayload.TYPE,(packet,context)->{
             var level=context.client().level;useLevel(level);var transfer=session.catalog();
