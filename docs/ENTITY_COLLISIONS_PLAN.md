@@ -164,7 +164,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 1. [x] ledger/receipts/references sobre lifecycle real;
 2. [x] prediction sólo para player/controlled vehicle local;
-3. [ ] observer path sin carry local;
+3. [x] observer path sin carry local;
 4. [ ] reconciliación sin double-apply ni drift;
 5. [ ] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
 6. [ ] residual visual/camera en única capa `client.collision.presentation`;
@@ -174,7 +174,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **G4.3 — observer path sin carry local**. G4.2/S26 queda cerrado: `predictsBody(...)` define un único root actor de prediction, el bridge físico usa esa autoridad, el handoff mount/dismount/replacement retira references/tokens stale y el run final `36400355085` deja verdes baseline remote + handoff y siete mutantes dirigidos; build `36400355089` y dedicated positivo posterior `36400806938` también verdes. El siguiente corte debe separar observer state/presentation de cualquier carry físico local; no se inicia implementación hasta congelar su modelo adversarial.
+**Prioridad G4 vigente:** **G4.4 — reconciliación sin double-apply ni drift**. G4.2/S26 queda cerrado con unique-root prediction ownership y handoff real player→boatA→boatB→player. G4.3/S27 queda cerrado sin cambios de producción: late observer/retrack reconstruye `presentationFrame + presentationContact` actuales con `simulates=false`, `predictsBody=false` y sin `TransportLedger` cliente; run `36558367708`, ordinary `36558367581`, zero-change desde `c39014a...`.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
