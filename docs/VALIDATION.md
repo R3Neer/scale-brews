@@ -1311,3 +1311,28 @@ Artifact `S27-late-observer` id **`11218582566`**. Build run **`36988858759`** i
 The friction-owner mutant specifically weakens/removes the rule that remote anatomy replicas keep vanilla friction unless they are `predictsBody(...)`; the real-client observer oracle kills that corruption while late tracking/retrack presentation remains green.
 
 **Conclusion:** S27/G4.3 is closed again. The observer path may expose confirmed read-only support/presentation state but cannot gain local carry, transport/reference state, or anatomy friction integration. G4.4/S28 reconciliation is the next open gate.
+
+## G4 / S28 reconciliation — final adversarial closure 2026-10-02
+
+S28/G4.4 closes reconciliation without any production change.
+
+Final workflow `s28-adversarial-reconciliation`, run **`36987926148`**:
+
+- dedicated reconciliation baseline **`110777096130`** — success;
+- exact vanilla baseline owner **`110777096206`** — success;
+- reference double-apply mutant **`110778159564`** — compiling mutant killed;
+- vanilla baseline double mutant **`110778159616`** — compiling mutant killed.
+
+The owner-level oracle reads all four vanilla acceptance baselines directly: player `firstGood/lastGood` and vehicle `vehicleFirstGood/vehicleLastGood`. One confirmed carry advances each exactly once by the same transport delta. The dedicated mutation then proves that adding the current transport delta again on top of `TransportLedger.since(receiptSequence)` is observable and rejected under real player + controlled-boat 0/100/200 ms traffic.
+
+Artifacts:
+
+- reconciliation baseline **`11218208110`**, SHA-256 **`ef4715b7512b6d8e5e9d264bc399e2582e335bad62852c20ad2b37ea65b1d8f8`**;
+- baseline owner **`11218297367`**, SHA-256 **`773e12f1b30b8df92bce6dc2941b8415c1f150f50e77463d9b0839bca24e4c8f`**.
+
+Ordinary run **`36987926156`**, job **`110777096416`**, is green; artifact **`11217304592`**, SHA-256 **`a35fc8cb56598745b5e18f724cb867313d6d52314cff3be09f15152381c2458e`**.
+
+Compare `94a0a9b3834ae4a65c4685729e08c9bf0501fa29 → 95c1c5064b5f5fab82276f5f568e92046bd6a362` contains no `src/main` or `src/client` changes.
+
+**Conclusion:** G4 task 4 is closed. The next open gate is G4.5: presentation `CURRENT_ENDPOINT` to a certified interval only where Q2 requires interval semantics.
+
