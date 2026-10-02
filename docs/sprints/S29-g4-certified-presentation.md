@@ -48,6 +48,9 @@ La certificación nunca puede venir de:
 - último/penúltimo frame del history sin token servidor;
 - geometry/matrices enviadas como autoridad adicional.
 
+Evidencia core existente refuerza esta prohibición: `AnatomyQueryFrameTests` construye dos endpoints causalmente ordenados separados por un cambio de gravedad y exige que `new GeometryProvider.MotionIntervalHandle(...)` los rechace. Por tanto ni serial consecutivo ni orden temporal bastan para declarar continuidad material.
+
+
 ## 4. Identidad mínima observable
 
 El ADVERSARY no prescribe el schema exacto, pero el intervalo server-issued debe quedar inequívocamente cercado por los ejes que ya gobiernan la vida causal:
