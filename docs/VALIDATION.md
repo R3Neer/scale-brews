@@ -1295,3 +1295,19 @@ Executed evidence:
 The S27 late-observer proof therefore remains green after the friction fix: current presentation/contact bootstraps and retracks correctly and no local `TransportLedger` is created.
 
 **Limit:** S27/G4.3 remains reopened until the ADVERSARY mutation-gates the new friction owner check and performs a final zero-change pass. This evidence is implementer recertification, not adversarial closure.
+
+## G4 / S27 observer path — friction ownership final recertification — 2026-10-02
+
+After the post-closure friction leak repair, S27 was adversarially recertified on workflow `s27-adversarial-observer-path`, run **`36988858727`**:
+
+- late observer baseline **`110780085421`** — success;
+- friction owner baseline **`110780085735`** — success;
+- contact publication mutant **`110780581376`** — killed;
+- presentation local-only mutant **`110780581563`** — killed;
+- friction owner mutant **`110780612218`** — killed.
+
+Artifact `S27-late-observer` id **`11218582566`**. Build run **`36988858759`** is success.
+
+The friction-owner mutant specifically weakens/removes the rule that remote anatomy replicas keep vanilla friction unless they are `predictsBody(...)`; the real-client observer oracle kills that corruption while late tracking/retrack presentation remains green.
+
+**Conclusion:** S27/G4.3 is closed again. The observer path may expose confirmed read-only support/presentation state but cannot gain local carry, transport/reference state, or anatomy friction integration. G4.4/S28 reconciliation is the next open gate.
