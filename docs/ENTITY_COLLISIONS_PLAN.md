@@ -164,7 +164,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 1. [x] ledger/receipts/references sobre lifecycle real;
 2. [x] prediction sólo para player/controlled vehicle local;
-3. [ ] observer path sin carry local;
+3. [x] observer path sin carry local;
 4. [ ] reconciliación sin double-apply ni drift;
 5. [ ] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
 6. [ ] residual visual/camera en única capa `client.collision.presentation`;
@@ -174,7 +174,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **G4.3 / S27 REABIERTO — observer path sin física local**. El late-observer/bootstrap original sigue verde (`36558367708`), pero una revisión implementer posterior encontró una ruta lateral de física cliente: `Platforms.friction(...)` podía usar contacto anatomy server-confirmed de una réplica remota sin exigir `predictsBody(...)`. Fix `f661772e...` + regresión `248a50eb...` están pendientes de recertificación adversarial con mutante específico de fricción y repetición del late-observer. **G4.4 no se abre** hasta ese cierre.
+**Prioridad G4 vigente:** **G4.4 / S28 — reconciliación sin double-apply ni drift**. S27/G4.3 queda recerrado tras la fuga lateral de fricción: fix `f661772e...`, regresión `248a50eb...` y run adversarial final `36988858727` dejan verdes late-observer + friction-owner baseline y matan contact-publication, local-only-presentation y friction-owner mutants; build `36988858759` verde. El observer conserva estado confirmado/presentation sin carry, transport ledger, references ni sustitución de fricción material local.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
