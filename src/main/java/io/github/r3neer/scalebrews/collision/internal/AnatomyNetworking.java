@@ -27,6 +27,7 @@ public final class AnatomyNetworking {
         PayloadTypeRegistry.clientboundPlay().register(AnatomyPosePayload.TYPE,AnatomyPosePayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyTransportReceiptPayload.TYPE,AnatomyTransportReceiptPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(AnatomyMaterialIntervalPayload.TYPE,AnatomyMaterialIntervalPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferencePayload.TYPE,AnatomyMoveReferencePayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferenceV2Payload.TYPE,AnatomyMoveReferenceV2Payload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferencePayload.TYPE,
@@ -34,6 +35,13 @@ public final class AnatomyNetworking {
         ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferenceV2Payload.TYPE,
             (reference,context)->AnatomyMovementReference.accept(context.player(),reference));
     }
+    /** Publishes one exact server-issued Q2 material-interval certificate. */
+    public static void sendMaterialInterval(ServerPlayer recipient,AnatomyMaterialIntervalPayload payload) {
+        if(recipient==null || payload==null || recipient.connection==null || recipient.isRemoved())return;
+        if(!ServerPlayNetworking.canSend(recipient,AnatomyMaterialIntervalPayload.TYPE))return;
+        ServerPlayNetworking.send(recipient,payload);
+    }
+
     /** Publishes one exact server-issued receipt token; clients never derive this sequence locally. */
     public static void sendTransportReceipt(ServerPlayer recipient,AnatomyTransportReceiptPayload payload) {
         if(recipient==null || payload==null || recipient.connection==null || recipient.isRemoved())return;
