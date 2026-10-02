@@ -189,3 +189,31 @@ Los mutantes físicos de carry remoto no se duplican aquí: S26 ya mata las ruta
 
 Hasta ejecutar esta matriz, **S27 no autoriza producción**.
 
+## 7. Cierre adversarial final
+
+S27 se cierra bajo la hipótesis **no-change-first**: no fue necesario modificar producción.
+
+Run final `s27-adversarial-observer-path` **`36558367708`**:
+
+- baseline `late-observer-baseline`, job **`109372922579`** — success;
+- `presentation-local-only-mutant-must-die`, job **`109373610515`** — el mutante compiló y murió;
+- `contact-publication-mutant-must-die`, job **`109373610565`** — el mutante compiló y murió.
+
+Artifact baseline **`11028732300`**, SHA-256 **`af7b0bd38ebf03f67aaca3f530e3c53435d8cb7b9488d29e991aae85f254e898`**.
+
+El holdout real-client demuestra en una misma vida:
+
+1. el servidor acumula transportes reales antes de que el observer entre en tracking range;
+2. late tracking materializa frame + presentation contact actuales;
+3. el body remoto permanece simultáneamente `simulates=false`, `predictsBody=false` y sin `TransportLedger` cliente;
+4. un transporte server-side posterior avanza posición vanilla y presentation frame sin crear carry local;
+5. STOP_TRACKING retira la tracking generation;
+6. el servidor acumula más transportes mientras el recipient está fuera;
+7. retrack crea una generation nueva y reconstruye sólo el estado actual, sin replay de carry histórico.
+
+Ordinary del mismo snapshot, run **`36558367581`**, job **`109372922475`** — success; artifact **`11029555862`**, SHA-256 **`56674825ebb18db0cc24e3e9be04e322355447c07061e282c9ab76520a7aa9ed`**.
+
+Zero-change: compare `c39014a5374f6cb2348ee7c726ebb8c239dc613c → 7652be3b75ab264eb374f2eb428fb0c3544ee475` no contiene ningún cambio bajo `src/main` ni `src/client`; sólo tests, workflow y documentación.
+
+**Conclusión ADVERSARY:** G4.3 queda cerrado. La coexistencia de `presentationContact` y una vista read-only de contacto físico no concede prediction remota mientras todas las rutas mutantes de carry permanezcan cercadas. El siguiente gate canónico es **G4.4: reconciliación sin double-apply ni drift**.
+
