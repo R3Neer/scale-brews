@@ -139,3 +139,39 @@ El árbol actual permanece RED porque no existe ninguna ruta productiva que pued
 La presence gate temporal de S29 sólo demuestra esa ausencia. No será evidencia de cierre; se sustituirá por holdouts conductuales cuando exista el candidato.
 
 Hasta entonces, **G4.5 permanece abierto y G4.6 no debe usar interpolación/residual como fuente de causalidad**.
+
+## 9. Baseline RED ejecutado y handoff
+
+Presence gate temporal en commit `475990739c51553788208f1e6e61e7d011ebe983`:
+
+- workflow `s29-adversarial-certified-interval-presence`, run **`37006651350`**, job **`110836393829`** — RED esperado;
+- diagnóstico exacto:
+  - `no production path constructs PresentationKind.CERTIFIED_INTERVAL`;
+  - `PresentationFrame constructor still rejects every non-CURRENT_ENDPOINT frame`;
+  - `no server-issued material-interval payload/schema is present`.
+
+Ordinary del mismo snapshot, run **`37006651353`**, job **`110836393729`** — success; artifact **`11225893009`**, SHA-256 **`9720cf460e5da548694425c395a45a662a98447ed000b198b3623832da2a8725`**.
+
+### Restricción de materialización cliente
+
+`AnatomyFrameHistory` retiene únicamente el packet/current endpoint aceptado. No conserva un mapa/history de endpoints por frame serial. Por tanto un candidato que publique sólo `beforeSerial/afterSerial` debe aportar también una estrategia bounded para que ambos endpoints estén materializables cuando llegue el certificate, o una primitive equivalente que no dependa de history ya descartado.
+
+No se autoriza duplicar geometry/catalog ni convertir `AnatomyPoseHistory` en una segunda fuente de causalidad.
+
+### Handoff ADVERSARY → IMPLEMENTER
+
+El candidato G4.5 debe aportar una certificación S2C server-issued de intervalo material y una ruta client-side que pueda construir `CERTIFIED_INTERVAL` sólo desde esa certificación.
+
+El primer candidato debe mantener simultáneamente:
+
+1. `CURRENT_ENDPOINT` para pose/root endpoints no certificados como intervalos;
+2. no inference por adjacency de frame serial;
+3. lifecycle exacto: epoch/revision/dimension/support/network-id/binding/tracking;
+4. discontinuity fail-closed;
+5. bounds explícitos de certificates/endpoints retenidos;
+6. no geometry/pose/contact DTO duplicado como autoridad;
+7. no renderer/local animation como fuente física;
+8. compatibilidad/protocolo explícito si se añade wire nuevo.
+
+La presence gate sólo debe pasar cuando exista la capacidad. **G4.5 seguirá abierto** hasta los holdouts conductuales y mutation-kills definidos arriba.
+
