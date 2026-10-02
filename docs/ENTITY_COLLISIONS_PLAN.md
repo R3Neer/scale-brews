@@ -176,6 +176,8 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **Prioridad G4 vigente:** **G4.5 / S29 — presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
 
+**S29 adversarial baseline RED / G4.5:** `CERTIFIED_INTERVAL` existe sólo como enum reservado. Presence run `37006651350`, job `110836393829`, falla exactamente porque no hay constructor/factory productiva, `PresentationFrame` aún rechaza todo no-`CURRENT_ENDPOINT` y no existe certificación S2C de material interval. Ordinary del mismo snapshot `37006651353` es verde. Threat model/handoff: `docs/sprints/S29-g4-certified-presentation.md`.
+
 **Salida:** multiplayer autoritativo y prediction estable.
 
 ### G5 — categorías especiales, placement, interacción y retirada del motor legacy
