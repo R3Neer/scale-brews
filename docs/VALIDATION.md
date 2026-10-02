@@ -1246,3 +1246,24 @@ Build run **`36400355089`** is success. The positive dedicated player + controll
 Zero-change criterion: after the last product fix `ad97efb...`, subsequent S26 changes were test/CI-only before the final green recertification.
 
 **Conclusion:** G4.2 is closed. G4.3 (observer path without local carry) is the next open gate; this evidence does not claim observer presentation completeness, reconciliation/drift closure, or residual camera/visual closure.
+
+## G4 / S27 observer path — final adversarial closure 2026-09-29
+
+S27/G4.3 closes the remote-observer presentation path without introducing any new production state owner.
+
+Final workflow `s27-adversarial-observer-path`, run **`36558367708`**:
+
+- baseline job **`109372922579`**: success;
+- local-only presentation mutant **`109373610515`**: compiling mutant killed;
+- contact-publication suppression mutant **`109373610565`**: compiling mutant killed.
+
+Artifact **`11028732300`**, SHA-256 **`af7b0bd38ebf03f67aaca3f530e3c53435d8cb7b9488d29e991aae85f254e898`**.
+
+The real-client proof accumulates server transports before tracking, late-tracks the remote body/support, reconstructs current `presentationFrame + presentationContact`, and simultaneously asserts `AnatomyMovement.simulates(remote)==false`, `predictsBody(remote)==false`, and no client `TransportLedger`. After another confirmed server transport, vanilla position and presentation advance without local carry. STOP_TRACKING retires the body generation; further untracked server transport is accumulated; retrack creates a fresh generation and materializes only current confirmed state, again with no local transport replay.
+
+Ordinary build on the same snapshot, run **`36558367581`**, job **`109372922475`**, is green; artifact **`11029555862`**, SHA-256 **`56674825ebb18db0cc24e3e9be04e322355447c07061e282c9ab76520a7aa9ed`**.
+
+Compare `c39014a5374f6cb2348ee7c726ebb8c239dc613c → 7652be3b75ab264eb374f2eb428fb0c3544ee475` contains no `src/main` or `src/client` changes. S27 therefore closes under the no-change-first hypothesis.
+
+**Conclusion:** G4 task 3 is closed. The next open gate is G4.4: reconciliation without double-apply or drift.
+
