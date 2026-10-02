@@ -1336,3 +1336,21 @@ Compare `94a0a9b3834ae4a65c4685729e08c9bf0501fa29 → 95c1c5064b5f5fab82276f5f56
 
 **Conclusion:** G4 task 4 is closed. The next open gate is G4.5: presentation `CURRENT_ENDPOINT` to a certified interval only where Q2 requires interval semantics.
 
+## G4 / S29 certified presentation interval — capability RED 2026-10-02
+
+G4.5 opens after S28/G4.4 closure. The current client presentation path exposes only exact `CURRENT_ENDPOINT` frames. `CERTIFIED_INTERVAL` is reserved in the enum but has no product construction path, and no server-issued material-interval certificate crosses the network.
+
+Temporary presence gate commit `475990739c51553788208f1e6e61e7d011ebe983`, workflow `s29-adversarial-certified-interval-presence`:
+
+- run **`37006651350`**, job **`110836393829`** — expected RED;
+- exact diagnostics:
+  - no product path constructs `PresentationKind.CERTIFIED_INTERVAL`;
+  - `PresentationFrame` rejects every non-`CURRENT_ENDPOINT` frame;
+  - no server-issued material-interval payload/schema is present.
+
+Ordinary on the same snapshot, run **`37006651353`**, job **`110836393729`**, is green; artifact **`11225893009`**, SHA-256 **`9720cf460e5da548694425c395a45a662a98447ed000b198b3623832da2a8725`**.
+
+The core server already owns `GeometryProvider.MotionIntervalHandle(identity, materialSerial, before, after)`, but client `AnatomyFrameHistory` retains only the current endpoint. Two ordered pose frames are therefore not sufficient evidence of a certified material interval. S29 requires an explicit server-issued interval identity plus bounded client materialization/lifecycle handling; it must not infer Q2 from frame adjacency or renderer/local animation.
+
+**Classification:** expected capability-absence RED, not a regression. G4 task 5 remains open pending an implementer candidate and subsequent behavioral/mutation closure.
+
