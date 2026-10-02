@@ -103,6 +103,5 @@
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceLifecycleFenceTests",
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests",
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptPublicationBoundaryTests",
-      "io.github.r3neer.scalebrews.collision.internal.S25ReceiptTokenInboxTests"
-
+      "io.github.r3neer.scalebrews.collision.internal.S25ReceiptTokenInboxTests",
       "io.github.r3neer.scalebrews.test.S28BaselineOwnershipTests"
