@@ -67,7 +67,11 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                 var next=rootOnly(published,published.endpoint().frameSerial()+1,new Vec3(7,3,-2),33);rootUpdate.set(next);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
             });
-            context.waitTicks(5);
+            context.waitFor(client->{
+                var entity=client.level==null?null:client.level.getEntity(cowId.get());
+                return entity instanceof Cow cow && AnatomyClientNetworking.presentationFrame(cow)
+                    .map(frame->frame.before().frameSerial()==rootUpdate.get().endpoint().frameSerial()).orElse(false);
+            },120);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(cowId.get());
                 var frame=AnatomyClientNetworking.presentationFrame(cow).orElseThrow();
@@ -88,7 +92,10 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                 var next=unavailable(rootUpdate.get(),latest.get().endpoint().frameSerial()+2);unavailableUpdate.set(next);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
             });
-            context.waitTicks(3);
+            context.waitFor(client->{
+                var entity=client.level==null?null:client.level.getEntity(cowId.get());
+                return entity instanceof Cow cow && AnatomyClientNetworking.presentationFrame(cow).isEmpty();
+            },120);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(cowId.get());
                 if(AnatomyClientNetworking.presentationFrame(cow).isPresent())throw new AssertionError("Unavailable pose retained a drawable presentation frame");
@@ -97,7 +104,11 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                 var next=availableAfterGap(unavailableUpdate.get(),latest.get().endpoint().frameSerial()+3,new Vec3(-3,5,1),-12);recoveredUpdate.set(next);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
             });
-            context.waitTicks(3);
+            context.waitFor(client->{
+                var entity=client.level==null?null:client.level.getEntity(cowId.get());
+                return entity instanceof Cow cow && AnatomyClientNetworking.presentationFrame(cow)
+                    .map(frame->frame.before().frameSerial()==recoveredUpdate.get().endpoint().frameSerial()).orElse(false);
+            },120);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(cowId.get());
                 var frame=AnatomyClientNetworking.presentationFrame(cow).orElseThrow();
@@ -109,7 +120,11 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
             });
             long reboundBinding=latest.get().identity().bindingGeneration()+1;
             world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),rebound(recoveredUpdate.get(),latest.get().endpoint().frameSerial()+4,new Vec3(2,4,8),reboundBinding)));
-            context.waitTicks(3);
+            context.waitFor(client->{
+                var entity=client.level==null?null:client.level.getEntity(cowId.get());
+                return entity instanceof Cow cow && AnatomyClientNetworking.presentationFrame(cow)
+                    .map(frame->frame.identity().bindingGeneration()==reboundBinding).orElse(false);
+            },120);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(cowId.get());
                 var frame=AnatomyClientNetworking.presentationFrame(cow).orElseThrow();
