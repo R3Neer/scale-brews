@@ -92,3 +92,14 @@ Zero-change: compare `94a0a9b3834ae4a65c4685729e08c9bf0501fa29 → 95c1c5064b5f5
 
 **Conclusión ADVERSARY:** G4.4 queda cerrado. El sistema demuestra dependencia causal de ambos owners sin double-apply ni drift: baseline vanilla se desplaza exactamente una vez al aplicar carry server-side y el movement packet retrasado sólo incorpora transporte server-side posterior al receipt consumido. El siguiente gate es **G4.5: presentación CURRENT_ENDPOINT → intervalo certificado donde Q2 lo requiera**.
 
+
+## 6. Clasificación IMPLEMENTER de runs intermedios
+
+Los primeros runs posteriores al `baseline-double` survivor no autorizan cambios productivos:
+
+- run `36986557135`: baseline real dedicado verde y `reference-double` muerto, pero `baseline-double` sobrevivió porque el oracle sólo observaba correcciones/convergencia externa;
+- el ADVERSARY añadió `S28BaselineOwnershipTests`, que inspecciona directamente `firstGood/lastGood` y `vehicleFirstGood/vehicleLastGood` mediante accessor test-only;
+- runs `36987416830` / `36987481326` quedaron contaminados por un `fabric.mod.json` de gametest temporalmente inválido y murieron en JSON/resource processing antes de medir reconciliación;
+- `aa0478eb...`, `25a42cef...` y `95c1c506...` restauraron el descriptor completo.
+
+**Clasificación:** los fallos de descriptor son test/harness. Producción permanece sin cambios. El siguiente run del workflow sobre el descriptor restaurado decide si el oracle exacto mata `baseline-double` y si `reference-double` continúa muerto.
