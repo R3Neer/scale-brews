@@ -239,6 +239,30 @@ public final class AnatomyRuntime {
             && identity.poseProvider().equals(selection.pose().engine())
             && identity.rootProvider().equals(selection.rootTransform());
     }
+    /**
+     * Publishes one provider-certified Q2 interval to recipients currently tracking this support.
+     * The wire certificate names only already-published endpoint identity; geometry/pose remain
+     * owned by the ordinary pose stream.
+     */
+    public static void publishInterval(LivingEntity support,GeometryProvider.MotionIntervalHandle handle) {
+        if(support==null || handle==null || !acceptsIntervalIdentity(support,handle))return;
+        var server=support.level().getServer();var state=server==null?null:STATES.get(server);if(state==null)return;
+        var before=handle.before().endpoint();var after=handle.after().endpoint();
+        if(before.availability()!=GeometryProvider.Availability.AVAILABLE
+                || after.availability()!=GeometryProvider.Availability.AVAILABLE
+                || !before.root().gravity().equals(after.root().gravity()))return;
+        var recipients=new HashSet<>(PlayerLookup.tracking(support));
+        if(support instanceof ServerPlayer player)recipients.add(player);
+        for(var recipient:recipients) {
+            long tracking=currentGeneration(state,recipient,support.getUUID());if(tracking<1)continue;
+            AnatomyNetworking.sendMaterialInterval(recipient,new AnatomyMaterialIntervalPayload(
+                handle.identity().epoch(),handle.identity().revision(),handle.identity().dimension().identifier(),
+                handle.identity().entityId(),handle.identity().support(),handle.identity().bindingGeneration(),tracking,
+                handle.materialSerial(),before.frameSerial(),after.frameSerial(),before.authorityTick(),after.authorityTick(),
+                before.jointSampleTick(),after.jointSampleTick()));
+        }
+    }
+
     /** Provider certification seam for a replay-fenced S06 handle; S07 consumes this without rediscovering identity. */
     public static Optional<GeometryProvider.MotionSnapshot> interval(LivingEntity entity,GeometryProvider.MotionIntervalHandle handle) {
         if(!acceptsIntervalIdentity(entity,handle))return Optional.empty();
@@ -340,7 +364,8 @@ public final class AnatomyRuntime {
     private static boolean catalog(State state,ServerPlayer player) {
         if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE) || !ServerPlayNetworking.canSend(player,AnatomyPosePayload.TYPE)
                 || !ServerPlayNetworking.canSend(player,AnatomyContactPayload.TYPE)
-                || !ServerPlayNetworking.canSend(player,AnatomyTransportReceiptPayload.TYPE)) {
+                || !ServerPlayNetworking.canSend(player,AnatomyTransportReceiptPayload.TYPE)
+                || !ServerPlayNetworking.canSend(player,AnatomyMaterialIntervalPayload.TYPE)) {
             player.connection.disconnect(Component.literal("Scale Brews: incompatible anatomical protocol; update the client mod."));return false;
         }
         var snapshot=state.catalog.snapshot();
