@@ -52,6 +52,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
      */
     private static final boolean S25_REFERENCE_ACCEPTANCE=
         "1".equals(System.getenv("SCALEBREWS_S25_REFERENCE_ACCEPTANCE"));
+    private static final boolean S28_RECONCILIATION_ACCEPTANCE=
+        "1".equals(System.getenv("SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE"));
     private static final int PHASE_TICKS=200;
     private static final int[] RTT_MILLIS={0,100,200};
 
@@ -96,6 +98,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 // Remote-observer carry/presentation is G4.3 and has its own adversarial gate.
                 if(!S25_REFERENCE_ACCEPTANCE)assertRemoteObserverNeverCarries(context,fixture);
                 System.out.println("S25_REFERENCE_LATENCY PASS player+boat RTT 0/100/200ms anatomy reference ordering and zero vanilla corrections");
+                if(S28_RECONCILIATION_ACCEPTANCE)
+                    System.out.println("S28_RECONCILIATION PASS player+boat RTT 0/100/200ms zero corrections and client/server convergence");
             } catch(Throwable error) {
                 var handler=latency.get();
                 if(handler!=null)ScaleBrews.LOGGER.error("N2 setup or measurement failure; channel evidence before cleanup={}",handler.baseline(),error);
@@ -333,6 +337,9 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" emitted no real controlled movement packet: "+baseline);
         if(baseline.playerCorrections()!=0 || baseline.vehicleCorrections()!=0)
             throw new AssertionError("N2 "+kind+" RTT "+rtt+" received vanilla correction(s), not a prediction success: "+baseline+" evidence="+evidence);
+        if(S28_RECONCILIATION_ACCEPTANCE && client.position().distanceToSqr(evidence.position())>1.0E-8)
+            throw new AssertionError("S28 "+kind+" RTT "+rtt+" ended with client/server reconciliation drift: server="
+                +evidence.position()+" client="+client.position()+" baseline="+baseline);
         assertReferenceOrdering(kind,rtt,baseline);
         if(evidence.consumedReferences()==0)
             throw new AssertionError("S25 "+kind+" RTT "+rtt+" emitted references but the server consumed none against live receipts: "+evidence);
