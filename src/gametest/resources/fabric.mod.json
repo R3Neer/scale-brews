@@ -105,3 +105,20 @@
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptPublicationBoundaryTests",
       "io.github.r3neer.scalebrews.collision.internal.S25ReceiptTokenInboxTests",
       "io.github.r3neer.scalebrews.test.S28BaselineOwnershipTests"
+    ],
+    "fabric-client-gametest": [
+      "io.github.r3neer.scalebrews.test.AnatomyExportProof",
+      "io.github.r3neer.scalebrews.test.WolfClientProof",
+      "io.github.r3neer.scalebrews.test.PlatformClientProof",
+      "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
+      "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
+      "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests",
+      "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests",
+      "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests",
+      "io.github.r3neer.scalebrews.test.S18ZeroDurationCompilerClientTests",
+      "io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof",
+      "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests",
+      "io.github.r3neer.scalebrews.test.S26ControlHandoffClientProof"
+    ]
+  }
+}
