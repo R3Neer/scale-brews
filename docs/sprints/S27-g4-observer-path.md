@@ -247,3 +247,24 @@ Antes de volver a cerrar S27:
 5. pasada zero-change posterior.
 
 Hasta entonces, **S27 / G4.3 queda REABIERTO** y G4.4 permanece bloqueado.
+
+## 9. Recertificación IMPLEMENTER tras fix de fricción
+
+El fix productivo de §8 ha pasado la batería implementer/regresión afectada:
+
+- build run **`36986056890`** — success;
+- `s26-adversarial-prediction-authority` run **`36986056911`** — success completo sobre el snapshot con el fix, incluido remote-observer baseline, control-handoff y todos sus mutantes previos;
+- `s27-implementer-observer-recertification` run **`36986505955`**, job **`110772649688`** — success;
+- artifact `S27-implementer-observer-recertification` id **`11218260030`**.
+
+El último run reejecuta `S27LateObserverPresentationClientProof` sobre el código con owner gate de fricción y confirma que late tracking/retrack, presentation frame/contact y ausencia de `TransportLedger` local siguen verdes.
+
+### Handoff IMPLEMENTER → ADVERSARY
+
+Falta exclusivamente la adecuación adversarial específica del nuevo borde:
+
+- mutar/eliminar `if(AnatomyApi.ownsSharedPhysics(e) && !AnatomyMovement.predictsBody(e)) return original;` en `Platforms.friction(...)` o un equivalente semántico;
+- el oracle remoto de fricción debe matar ese mutante;
+- repetir el late-observer adversarial y registrar una pasada zero-change.
+
+Hasta entonces S27 continúa **REABIERTO**, aunque la reparación implementer está verde.
