@@ -74,6 +74,8 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                 if(frame.before().frameSerial()!=latest.get().endpoint().frameSerial()+1 || frame.before().jointSampleTick()!=latest.get().endpoint().jointSampleTick()
                         || !frame.evaluated().origin().equals(new Vec3(7,3,-2)))
                     throw new AssertionError("Root-only same-joint endpoint mixed an old root or interpolated PoseHistory");
+                if(frame.kind()!=AnatomyClientNetworking.PresentationKind.CURRENT_ENDPOINT || frame.before()!=frame.after() || frame.fraction()!=1)
+                    throw new AssertionError("Two ordered endpoints without a server interval certificate must not fabricate CERTIFIED_INTERVAL");
             });
             world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),latest.get()));
             context.waitTicks(3);
