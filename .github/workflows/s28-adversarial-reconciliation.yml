@@ -51,8 +51,6 @@ jobs:
           PY
       - name: run player and controlled-boat reconciliation baseline
         shell: bash
-        env:
-          SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
         run: |
           set -euo pipefail
           mkdir -p build/s28-reconciliation
@@ -63,7 +61,7 @@ jobs:
             build/run/clientGameTest/logs build/s28-reconciliation/client.log >/dev/null
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
-          CATALOG: \${{ steps.catalog.outputs.path }}
+          CATALOG: ${{ steps.catalog.outputs.path }}
       - name: capture reconciliation baseline
         if: always()
         uses: actions/upload-artifact@v7
@@ -127,7 +125,7 @@ jobs:
         shell: bash
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
-          CATALOG: \${{ steps.catalog.outputs.path }}
+          CATALOG: ${{ steps.catalog.outputs.path }}
         run: |
           set +e
           xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks \
@@ -193,7 +191,7 @@ jobs:
         shell: bash
         env:
           SCALEBREWS_S25_REFERENCE_ACCEPTANCE: '1'
-          CATALOG: \${{ steps.catalog.outputs.path }}
+          CATALOG: ${{ steps.catalog.outputs.path }}
         run: |
           set +e
           xvfb-run -a ./gradlew runClientGameTest --console=plain --rerun-tasks \
