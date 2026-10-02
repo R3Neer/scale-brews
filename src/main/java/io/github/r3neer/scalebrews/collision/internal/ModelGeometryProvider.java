@@ -182,6 +182,20 @@ public final class ModelGeometryProvider implements GeometryProvider {
         try{return Optional.of(HierarchyMotion.withRootTrs(geometry,transforms.get(),transforms.get(),root,root,
             rootAuthority.origin(),rootAuthority.origin(),filter).evaluate(1));}catch(RuntimeException rejectedGeometry){return Optional.empty();}
     }
+    /** Evaluates one server-certified endpoint interval; callers must supply the certificate separately. */
+    public Optional<HierarchyMotion.EvaluatedFrame> evaluatePresentation(LivingEntity cacheKey,
+            GeometryProvider.CausalEndpoint before,GeometryProvider.CausalEndpoint after,double fraction) {
+        if(cacheKey==null || before==null || after==null || before==after
+                || before.availability()!=GeometryProvider.Availability.AVAILABLE
+                || after.availability()!=GeometryProvider.Availability.AVAILABLE
+                || !Double.isFinite(fraction) || fraction<0 || fraction>1
+                || !before.root().gravity().equals(after.root().gravity()))return Optional.empty();
+        var motion=motionBetween(cacheKey,before.sample(),before.rootTransform(),after.sample(),after.rootTransform());
+        if(motion.isEmpty())return Optional.empty();
+        try {evaluations++;return Optional.of(motion.get().evaluate(fraction));}
+        catch(RuntimeException rejectedGeometry){return Optional.empty();}
+    }
+
     public Optional<HierarchyMotion> motionBetween(AnatomyPoseHistory.Sample before,AnatomyPoseHistory.Sample after) {
         return motionBetween(before,legacyRoot(before),after,legacyRoot(after),evaluateJoints(before.inputs()),evaluateJoints(after.inputs()));
     }
