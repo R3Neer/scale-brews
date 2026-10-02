@@ -82,7 +82,13 @@ public final class MaterialPhysicsRuntime {
             if(value==null) {
                 AnatomyMovement.invalidateSupport(next.support());
                 record(level,1,0,0,1,0);
-            } else prepared.add(value);
+            } else {
+                // Certification crosses the wire only after the provider accepted this exact
+                // MotionIntervalHandle. Dispatcher outcomes belong to body response, not to
+                // whether the support's material interval itself existed.
+                AnatomyRuntime.publishInterval(next.support(),next.handle());
+                prepared.add(value);
+            }
         }
         if(prepared.isEmpty())return;
         var dispatcher=DISPATCHERS.computeIfAbsent(level,ignored->new MaterialEventDispatcher<>(MAX_BODIES,MAX_DEPTH,MAX_EVENTS,Entity::getUUID));
