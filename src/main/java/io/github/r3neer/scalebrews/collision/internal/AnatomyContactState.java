@@ -25,9 +25,13 @@ final class AnatomyContactState {
     record ContactEntry(LivingEntity support, String piece, long revision, Vec3 normal, long sequence) {}
 
     record Anchor(Vec3 local, Vec3 previous, ConvexBox materialBefore, Vec3 supportOrigin, Vec3 bodyOrigin,
-                  GravityFrame bodyGravity, GravityFrame supportGravity) {
+                  GravityFrame bodyGravity, GravityFrame supportGravity,long supportFrameSerial) {
         Anchor {
-            if (materialBefore == null) throw new IllegalArgumentException("Missing material provenance");
+            if (materialBefore == null || supportFrameSerial<0) throw new IllegalArgumentException("Missing material provenance");
+        }
+        Anchor(Vec3 local,Vec3 previous,ConvexBox materialBefore,Vec3 supportOrigin,Vec3 bodyOrigin,
+               GravityFrame bodyGravity,GravityFrame supportGravity) {
+            this(local,previous,materialBefore,supportOrigin,bodyOrigin,bodyGravity,supportGravity,0);
         }
     }
 

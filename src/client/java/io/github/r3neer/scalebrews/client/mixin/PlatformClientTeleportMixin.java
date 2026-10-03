@@ -1,6 +1,6 @@
 package io.github.r3neer.scalebrews.client.mixin;
 
-import io.github.r3neer.scalebrews.client.platform.PlatformCamera;
+import io.github.r3neer.scalebrews.client.collision.presentation.CausalBodyResidual;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PlatformClientTeleportMixin {
     @Inject(method="handleMovePlayer",at=@At("RETURN"))
     private void scalebrews$resetCamera(ClientboundPlayerPositionPacket packet,CallbackInfo ci) {
-        PlatformCamera.reset();
+        CausalBodyResidual.reset();
     }
 }

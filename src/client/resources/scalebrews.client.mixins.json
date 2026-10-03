@@ -13,6 +13,7 @@
     "CausalModelFeatureMixin",
     "CausalRenderReloadMixin",
     "PlatformClientTeleportMixin",
+    "PlatformClientRidingMixin",
     "AnimatedRiderRendererMixin",
     "LivingRendererAccess",
     "AgeableModelAccess",

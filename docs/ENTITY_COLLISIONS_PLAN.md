@@ -225,8 +225,19 @@ producción. El build ordinario pasa 463/463 GameTests servidor y la suite
 cliente completa en la tercera ejecución tras dos fallos intermitentes de
 pruebas de catálogo S29, documentados en `docs/VALIDATION.md`. S31 debe cerrar
 el residual/cámara local y S32 la procedencia del observador remoto antes de
-dar G4.6 por cerrado. El plan S31 permanece bajo revisión adversarial; no hay
-implementación S31 aún.
+dar G4.6 por cerrado.
+
+**Cierre S31 / G4.6b local (2026-10-03):** el residual de body/cámara local
+usa el punto material del carry físico y el endpoint causal aceptado, compone
+una sola vez con la interpolación vanilla y se retira al incorporarse el carry
+al tick siguiente. El Pig con rol simultáneo de modelo original y body local
+mantiene la raíz visual durante ambos momentos. La pasada adversarial final de
+26 clases (20 S31 + 6 S30) fue verde y mató una mutación dirigida; la revisión
+posterior no pidió cambios productivos. El `build runGameTest` final pasó
+**463/463** y la suite cliente ordinaria completa pasó. Evidencia y límites en
+`docs/sprints/S31-g4-residual-camera.md` y `docs/VALIDATION.md`. **G4.6 sigue
+abierto:** S32 debe probar la procedencia de incorporación vanilla del body
+observado remotamente antes de permitirle un residual.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 

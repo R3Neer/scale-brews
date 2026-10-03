@@ -1930,3 +1930,31 @@ ordinary client pass succeeded, including both S29 catalog proofs:
 BUILD SUCCESSFUL 3m2s). This supports S30/G4.6a closure but does not identify
 or repair the S29 intermittent cause. Full G4.6 remains open.
 
+### S31 / G4.6b local body and camera residual (2026-10-03)
+
+The final combined independent lane passed **20 S31 and 6 S30 client proofs**
+on unchanged production sources in `../s31-adversarial-final-combined.log`
+(SHA-256 `39d9500bc35a5a68f23d3b9e884c371c8f60385a47e40319959bd2584555bc26`,
+BUILD SUCCESSFUL 2m9s). It includes both native dual-role Pig cases: fractional
+carry and the following tick after vanilla incorporation. The directed mutant
+that limited root alignment to an active fractional sample was rejected by the
+unchanged next-tick oracle in `../s31-adversarial-mutant-local-root.log`
+(SHA-256 `29e2ae1cf66d9a62e35ee8f2c47b3a54f3146d85959307f1fcb96a5a7046805a`,
+expected BUILD FAILED 28s); the mutation copy was removed. Adversarial geometry
+snapshots and source hashes are recorded in `docs/sprints/S31-g4-residual-camera.md`.
+The local work probe measured 131,072 active queries at p95 ≈381.3 ns,
+p99 ≈391.2 ns and 120 bytes/query; this is not the G9 whole-scene budget.
+
+The final implementer targeted client proof passed in
+`../s31-implementer-postincorporation.log` (SHA-256
+`7dc9d0b221e03bda4f39c4c664038cb7e04262880dcbfa9b02a7d1a5c96d5f9a`,
+BUILD SUCCESSFUL 1m3s), and the pure plan model passed. `build runGameTest`
+passed **463/463** required server GameTests in
+`../s31-server-postincorporation.log` (SHA-256
+`9849a236ec9f861ee82c30015d8dbd3c55d9af4f0e1bf1f0056be7f6df193198`,
+BUILD SUCCESSFUL 1m). The complete ordinary client suite passed in
+`../s31-ordinary-client-postincorporation.log` (SHA-256
+`1d1719574118c4bce03b5e6ab24564b0cf3a15eb333468df69e0b4120e58bb66`,
+BUILD SUCCESSFUL 3m). S31 closes only the locally predicted body/camera route;
+remote observer incorporation provenance remains S32 and G4.6 remains open.
+

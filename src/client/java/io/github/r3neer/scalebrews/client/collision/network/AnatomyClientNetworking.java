@@ -5,6 +5,7 @@ import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.pose.*;
 import io.github.r3neer.scalebrews.collision.physics.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
+import io.github.r3neer.scalebrews.client.collision.presentation.CausalBodyResidual;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
@@ -57,7 +58,7 @@ public final class AnatomyClientNetworking {
     }
     /** Client-only, server-confirmed material data for residual camera presentation. */
     public record PresentationContact(net.minecraft.world.entity.Entity body,net.minecraft.world.entity.LivingEntity support,
-            SurfaceContact surface,GeometryProvider.Snapshot geometry,long serverTick) {}
+            SurfaceContact surface,GeometryProvider.Snapshot geometry,long serverTick,long bodyTrackingGeneration) {}
     /** Server identity attached to a drawable original-model frame; no local adapter generation is protocol state. */
     public record PresentationIdentity(java.util.UUID epoch,net.minecraft.resources.Identifier dimension,java.util.UUID support,int entityId,
             long revision,net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,
@@ -122,6 +123,7 @@ public final class AnatomyClientNetworking {
     }
     /** Level-owned material/caches only. Connection/revision replay watermarks deliberately survive. */
     private static void clearLevelMaterial(){
+        CausalBodyResidual.reset();
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();presentationIntervals.clear();certifiedIntervals.clear();contacts.retireWindows();presentationContacts.clear();
         predictedMovementReferences.clear();transportReceiptTokens.clear();predictionOwner=null;
@@ -140,6 +142,7 @@ public final class AnatomyClientNetworking {
         discardSupportMaterial(level,supportId,entityId,true);
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId,boolean discardCertificates) {
+        CausalBodyResidual.retireSupport(supportId);
         poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);presentationIntervals.remove(supportId);
         if(discardCertificates)certifiedIntervals.discardSupport(supportId);
         var support=level==null?null:level.getEntity(entityId);
@@ -204,6 +207,9 @@ public final class AnatomyClientNetworking {
                 presentationContacts.remove(packet.body());contacts.consume(packet);continue;
             }
             var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
+            // A newer confirmed point must not overwrite the physical anchor before an already
+            // accepted support frame has offered its pending local carry at the old point.
+            if(AnatomyMovement.predictsBody(body) && AnatomyMovement.contact(body)!=null)AnatomyMovement.carry(body);
             if(AnatomyMovement.confirm(body,living,surface)) {presentationContacts.put(packet.body(),packet);contacts.consume(packet);}
         }
     }
@@ -322,7 +328,8 @@ public final class AnatomyClientNetworking {
         var surface=new SurfaceContact(packet.support(),packet.revision(),packet.piece(),packet.face(),packet.localPoint(),packet.normal(),packet.tick());
         return presentationFrame(support).filter(frame->frame.identity().revision()==surface.revision()
                 && frame.identity().bindingGeneration()==packet.supportBindingGeneration() && frame.evaluated().pieces().containsKey(surface.piece()))
-            .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),(long)frame.authorityTime()));
+            .map(frame->new PresentationContact(body,support,surface,new GeometryProvider.Snapshot(frame.identity().revision(),frame.evaluated().pieces()),
+                (long)frame.authorityTime(),packet.trackingGeneration()));
     }
     /** Current unique physical-prediction actor, derived only from live local control. */
     private static net.minecraft.world.entity.Entity currentPredictionBody(net.minecraft.client.Minecraft client) {
@@ -331,15 +338,36 @@ public final class AnatomyClientNetworking {
         if(root==player)return player;
         return root.getControllingPassenger()==player && root.isLocalInstanceAuthoritative()?root:null;
     }
+    public record PredictionObservation(net.minecraft.world.entity.Entity body,long generation) {}
+    private static volatile PredictionObservation predictionObservation=new PredictionObservation(null,0);
+    /** Same-tick control round trips must not revive an old visual carry. */
+    public static PredictionObservation observePredictionBody() {
+        var current=currentPredictionBody(net.minecraft.client.Minecraft.getInstance());
+        var prior=predictionObservation;
+        if(prior.body()==current)return prior;
+        synchronized(AnatomyClientNetworking.class) {
+            prior=predictionObservation;
+            if(prior.body()==current)return prior;
+            var next=new PredictionObservation(current,prior.generation()==Long.MAX_VALUE
+                ?Long.MAX_VALUE:prior.generation()+1);
+            predictionObservation=next;
+            return next;
+        }
+    }
+    /** Effective authority check for same-tick visual consumers after mount/control changes. */
+    public static boolean isCurrentPredictionBody(net.minecraft.world.entity.Entity body) {
+        return body!=null && observePredictionBody().body()==body;
+    }
 
     /**
      * Mount/dismount/control replacement is an authority barrier. Metadata from either side of the
      * handoff is discarded rather than being reinterpreted under the new owner.
      */
-    private static net.minecraft.world.entity.Entity refreshPredictionOwner(net.minecraft.client.Minecraft client) {
-        var current=currentPredictionBody(client);
+    private static net.minecraft.world.entity.Entity refreshPredictionOwner() {
+        var current=observePredictionBody().body();
         java.util.UUID currentId=current==null?null:current.getUUID();
         if(!java.util.Objects.equals(predictionOwner,currentId)) {
+            CausalBodyResidual.reset();
             if(predictionOwner!=null) {
                 predictedMovementReferences.remove(predictionOwner);
                 transportReceiptTokens.discardBody(predictionOwner);
@@ -358,7 +386,7 @@ public final class AnatomyClientNetworking {
     /** Stages the newest exact server receipt whose support endpoint is already incorporated locally. */
     private static void stageMovementReference(net.minecraft.world.entity.Entity body,AnatomyMovement.ClientTransportCursor cursor) {
         if(body==null || cursor==null || body.level()!=poseLevel)return;
-        if(refreshPredictionOwner(net.minecraft.client.Minecraft.getInstance())!=body)return;
+        if(refreshPredictionOwner()!=body)return;
         var chosen=transportReceiptTokens.consumeIncorporated(body.getUUID(),cursor.support(),cursor.supportFrameSerial(),
             body.level().getGameTime()).orElse(null);
         if(chosen==null)return;
@@ -372,7 +400,7 @@ public final class AnatomyClientNetworking {
      */
     public static void sendMovementReference(net.minecraft.world.entity.Entity body) {
         var client=net.minecraft.client.Minecraft.getInstance();var player=client.player;
-        if(body==null || player==null || refreshPredictionOwner(client)!=body || !ready(body) || !body.isLocalInstanceAuthoritative()
+        if(body==null || player==null || refreshPredictionOwner()!=body || !ready(body) || !body.isLocalInstanceAuthoritative()
                 || !ClientPlayNetworking.canSend(AnatomyMoveReferenceV2Payload.TYPE))return;
         boolean vehicle=body!=player;
         if(!vehicle && player.getRootVehicle()!=player)return;
@@ -392,24 +420,31 @@ public final class AnatomyClientNetworking {
     }
     public static void initialize() {
         AnatomySession.installClientMode(AnatomyClientNetworking::mode);
-        AnatomyMovement.installClientTransportObserver(AnatomyClientNetworking::stageMovementReference);
+        AnatomyMovement.installClientTransportObserver((body,cursor)->{
+            CausalBodyResidual.carried(body,cursor);
+            stageMovementReference(body,cursor);
+        });
+        AnatomyMovement.installClientQuietFrameObserver(CausalBodyResidual::quietFrame);
         AnatomyMovement.installClientTransportLifecycleObserver(body->{
+            CausalBodyResidual.retireBody(body);
             predictedMovementReferences.remove(body.getUUID());
             transportReceiptTokens.discardBody(body.getUUID());
         });
         ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
+            CausalBodyResidual.retireBody(entity);
             predictedMovementReferences.remove(entity.getUUID());
             transportReceiptTokens.discardBody(entity.getUUID());
             if(entity instanceof net.minecraft.world.entity.LivingEntity living) {
+                CausalBodyResidual.retireSupport(living.getUUID());
                 var history=frames.remove(living.getUUID());
                 if(history!=null)retireFrameHistory(level,living.getUUID(),history);
             }
         });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client->{
             useLevel(client.level);clientTick++;
-            refreshPredictionOwner(client);
+            refreshPredictionOwner();
             if(poseLevel!=null) {
                 contacts.prune(poseLevel.getGameTime(),100);
                 transportReceiptTokens.prune(poseLevel.getGameTime());
@@ -429,10 +464,15 @@ public final class AnatomyClientNetworking {
                     || !(support instanceof net.minecraft.world.entity.LivingEntity) || !support.getUUID().equals(packet.support());
             });
             bindPhysics();
+            var predictionBody=currentPredictionBody(client);
+            CausalBodyResidual.refresh(predictionBody);
             if(poseLevel!=null) {
                 AnatomyMovement.tickGeometry(poseLevel);
+                if(predictionBody!=null && AnatomyMovement.contact(predictionBody)!=null)
+                    AnatomyMovement.carry(predictionBody);
                 for(var entity:poseLevel.entitiesForRendering())
-                    if(entity.isLocalInstanceAuthoritative() && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);
+                    if(entity!=predictionBody && entity.isLocalInstanceAuthoritative()
+                            && AnatomyMovement.contact(entity)!=null)AnatomyMovement.carry(entity);
             }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
@@ -465,6 +505,7 @@ public final class AnatomyClientNetworking {
                 staleFrames.remove(packet.entity());
                 var history=poses.computeIfAbsent(packet.entity(),id->new AnatomyPoseHistory());
                 if(history.current()==null || packet.jointSampleTick()>history.current().jointSampleTick())history.accept(packet);
+                if(entity instanceof net.minecraft.world.entity.LivingEntity living)CausalBodyResidual.acceptedEndpoint(living);
             } catch(IllegalArgumentException invalid) {
                 io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Rejected causal pose frame for {}",packet.entity(),invalid);
             }
@@ -473,7 +514,10 @@ public final class AnatomyClientNetworking {
             var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
                     || packet.tick()+100<level.getGameTime())return;
-            if(contacts.accept(level.dimension().identifier(),packet))presentationContacts.remove(packet.body());
+            if(contacts.accept(level.dimension().identifier(),packet)){
+                CausalBodyResidual.contactPacket(packet);
+                presentationContacts.remove(packet.body());
+            }
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyMaterialIntervalPayload.TYPE,(packet,context)->{
             var level=context.client().level;useLevel(level);var transfer=session.catalog();

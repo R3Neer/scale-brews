@@ -29,26 +29,59 @@ public final class AnatomyMovement {
     private static <K,V> Map<K,V> entityMap(){return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());}
     private record CaptureStamp(GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor,long registration,long lifecycle) {}
     /** Client-only notification emitted at the exact causal point where a local carry is recorded. */
-    public record ClientTransportCursor(UUID support,long supportFrameSerial,long localTransportSequence) {
+    public record ClientTransportCursor(UUID support,String piece,int face,Vec3 localPoint,
+            long beforeSupportFrameSerial,long supportFrameSerial,long localTransportSequence,
+            Vec3 beforeMaterialPoint,Vec3 afterMaterialPoint,long bodyTick,Vec3 bodyOldPosition) {
         public ClientTransportCursor {
-            if(support==null || supportFrameSerial<1 || localTransportSequence<1)
+            if(support==null || piece==null || piece.isEmpty() || face<0 || face>5 || localPoint==null
+                    || beforeSupportFrameSerial<1 || supportFrameSerial<1 || localTransportSequence<1
+                    || beforeMaterialPoint==null || afterMaterialPoint==null || bodyTick<0 || bodyOldPosition==null)
                 throw new IllegalArgumentException("Invalid client transport cursor");
         }
     }
+    /** A causal support frame that the physical anchor consumed without passive movement. */
+    public record ClientQuietFrameCursor(UUID support,String piece,int face,Vec3 localPoint,
+            long beforeSupportFrameSerial,long supportFrameSerial,Vec3 beforeMaterialPoint,Vec3 afterMaterialPoint) {
+        public ClientQuietFrameCursor {
+            if(support==null || piece==null || piece.isEmpty() || face<0 || face>5 || localPoint==null
+                    || beforeSupportFrameSerial<1 || supportFrameSerial<=beforeSupportFrameSerial
+                    || beforeMaterialPoint==null || afterMaterialPoint==null)
+                throw new IllegalArgumentException("Invalid quiet support frame cursor");
+        }
+    }
     private static volatile java.util.function.BiConsumer<Entity,ClientTransportCursor> CLIENT_TRANSPORT_OBSERVER=(body,cursor)->{};
+    private static volatile java.util.function.BiConsumer<Entity,ClientQuietFrameCursor> CLIENT_QUIET_FRAME_OBSERVER=(body,cursor)->{};
     private static volatile java.util.function.Consumer<Entity> CLIENT_TRANSPORT_LIFECYCLE_OBSERVER=body->{};
     public static void installClientTransportObserver(java.util.function.BiConsumer<Entity,ClientTransportCursor> observer) {
         CLIENT_TRANSPORT_OBSERVER=Objects.requireNonNull(observer,"client transport observer");
     }
+    public static void installClientQuietFrameObserver(java.util.function.BiConsumer<Entity,ClientQuietFrameCursor> observer) {
+        CLIENT_QUIET_FRAME_OBSERVER=Objects.requireNonNull(observer,"client quiet frame observer");
+    }
     public static void installClientTransportLifecycleObserver(java.util.function.Consumer<Entity> observer) {
         CLIENT_TRANSPORT_LIFECYCLE_OBSERVER=Objects.requireNonNull(observer,"client transport lifecycle observer");
     }
-    private static void publishClientTransport(Entity body,LivingEntity support,long supportFrameSerial,SupportTransport transport) {
-        if(body==null || support==null || transport==null || !body.level().isClientSide() || supportFrameSerial<1)return;
+    private static void publishClientTransport(Entity body,LivingEntity support,SurfaceContact surface,
+            AnatomyContactState.Anchor anchor,Vec3 afterMaterialPoint,long supportFrameSerial,SupportTransport transport) {
+        if(body==null || support==null || surface==null || anchor==null || afterMaterialPoint==null || transport==null
+                || !body.level().isClientSide() || anchor.supportFrameSerial()<1 || supportFrameSerial<1)return;
         try {
-            CLIENT_TRANSPORT_OBSERVER.accept(body,new ClientTransportCursor(support.getUUID(),supportFrameSerial,transport.sequence()));
+            CLIENT_TRANSPORT_OBSERVER.accept(body,new ClientTransportCursor(support.getUUID(),surface.piece(),surface.face(),
+                anchor.local(),anchor.supportFrameSerial(),supportFrameSerial,transport.sequence(),anchor.previous(),
+                afterMaterialPoint,body.tickCount,body.oldPosition()));
         } catch(RuntimeException rejectedObserver) {
             io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client transport cursor observer rejected a confirmed local carry",rejectedObserver);
+        }
+    }
+    private static void publishClientQuietFrame(Entity body,LivingEntity support,SurfaceContact surface,
+            AnatomyContactState.Anchor anchor,Vec3 afterMaterialPoint,long supportFrameSerial) {
+        if(!body.level().isClientSide() || anchor.supportFrameSerial()<1
+                || supportFrameSerial<=anchor.supportFrameSerial())return;
+        try {
+            CLIENT_QUIET_FRAME_OBSERVER.accept(body,new ClientQuietFrameCursor(support.getUUID(),surface.piece(),
+                surface.face(),anchor.local(),anchor.supportFrameSerial(),supportFrameSerial,anchor.previous(),afterMaterialPoint));
+        } catch(RuntimeException rejectedObserver) {
+            io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Client quiet frame observer rejected an anchor advance",rejectedObserver);
         }
     }
     /** Per-support live maintenance. Never rebuild or sample unrelated providers from a local mutation hook. */
@@ -341,7 +374,9 @@ public final class AnatomyMovement {
     }
     public static synchronized boolean confirm(Entity body,LivingEntity support,SurfaceContact surface) {
         if(!active(body) || surface==null || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
-        var provider=AnatomyBindingState.provider(support);var snapshot=currentSnapshot(support,provider).orElse(null);
+        var provider=AnatomyBindingState.provider(support);
+        var causalFrame=AnatomyBindingState.causal(support)?queryFrame(support).orElse(null):null;
+        var snapshot=causalFrame==null?currentSnapshot(support,provider).orElse(null):causalFrame.snapshot();
         var piece=snapshot==null?null:snapshot.pieces().get(surface.piece());
         if(piece==null || snapshot.revision()!=surface.revision() || surface.face()<0 || surface.face()>5)return false;
         Vec3 point=piece.point(surface.localPoint()),normal=piece.faceNormal(surface.face());
@@ -350,7 +385,8 @@ public final class AnatomyMovement {
         if(!gravity(body).supports(normal))return false;
         setContact(body,support,surface.piece(),surface.revision(),normal);
         AnatomyContactState.surface(body,new SurfaceContact(surface.support(),surface.revision(),surface.piece(),surface.face(),surface.localPoint(),normal,surface.tick()));
-        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(surface.localPoint(),point,piece,support.position(),body.position(),gravity(body),gravity(support)));
+        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(surface.localPoint(),point,piece,support.position(),body.position(),
+            gravity(body),gravity(support),causalFrame==null?0:causalFrame.endpoint().frameSerial()));
         return true;
     }
     public static boolean supported(Entity body) {
@@ -667,7 +703,8 @@ public final class AnatomyMovement {
         if(c==null)return;
         if(!Platforms.eligible(body,c.support)){clear(body);return;}
         var provider=AnatomyBindingState.provider(c.support);
-        var snapshot=currentSnapshot(c.support,provider).orElse(null);
+        var causalFrame=AnatomyBindingState.causal(c.support)?queryFrame(c.support).orElse(null):null;
+        var snapshot=causalFrame==null?currentSnapshot(c.support,provider).orElse(null):causalFrame.snapshot();
         var piece=snapshot==null?null:snapshot.pieces().get(c.piece);
         if(piece==null || snapshot.revision()!=c.revision){clear(body);return;}
         var separation=piece.separation(body.getBoundingBox());
@@ -675,8 +712,16 @@ public final class AnatomyMovement {
         int face=piece.closestFace(separation.normal());var normal=piece.faceNormal(face);
         if(!gravity(body).supports(normal)){clear(body);return;}
         Vec3 local=piece.facePoint(face,body.getBoundingBox().getCenter());
+        var prior=AnatomyContactState.anchor(body);
+        long frameSerial=causalFrame==null?0:causalFrame.endpoint().frameSerial();
+        // Voluntary movement may be processed before the client carry. Rebase its point on the
+        // old material, but keep that material/frame as the passive transport's before endpoint.
+        boolean pendingCarry=prior!=null && prior.supportFrameSerial()>0 && frameSerial>prior.supportFrameSerial();
+        var beforeMaterial=pendingCarry?prior.materialBefore():piece;
+        long beforeSerial=pendingCarry?prior.supportFrameSerial():frameSerial;
         AnatomyContactState.surface(body,new SurfaceContact(c.support.getUUID(),c.revision,c.piece,face,local,normal,body.level().getGameTime()));
-        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(local,piece.point(local),piece,c.support.position(),body.position(),gravity(body),gravity(c.support)));
+        AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(local,beforeMaterial.point(local),beforeMaterial,
+            c.support.position(),body.position(),gravity(body),gravity(c.support),beforeSerial));
         body.setOnGround(true);
         body.verticalCollisionBelow=true;
     }
@@ -748,9 +793,11 @@ public final class AnatomyMovement {
                 TransportLedger.record(body,transport);
                 AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore(),piece);
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
-                if(causalFrame!=null)publishClientTransport(body,c.support(),causalFrame.endpoint().frameSerial(),transport);
-            }
-            AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(anchor.local(),now,piece,c.support.position(),body.position(),anchor.bodyGravity(),anchor.supportGravity()));
+                if(causalFrame!=null)publishClientTransport(body,c.support(),surface,anchor,now,causalFrame.endpoint().frameSerial(),transport);
+            } else if(causalFrame!=null)publishClientQuietFrame(body,c.support(),surface,anchor,now,
+                causalFrame.endpoint().frameSerial());
+            AnatomyContactState.anchor(body,new AnatomyContactState.Anchor(anchor.local(),now,piece,c.support.position(),body.position(),
+                anchor.bodyGravity(),anchor.supportGravity(),causalFrame==null?0:causalFrame.endpoint().frameSerial()));
         } finally {visiting.remove(body);}
     }
     /** Root transport can run after passenger ticks; refresh native seats without another physics move. */

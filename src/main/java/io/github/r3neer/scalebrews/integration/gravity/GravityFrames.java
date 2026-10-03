@@ -28,9 +28,13 @@ public final class GravityFrames {
     private static final String GRAVITY_CHANGER_OWNER = "gravity_changer";
     private static final Map<Entity, GravityFrame> TEST_OVERRIDES = Collections.synchronizedMap(
         new MapMaker().weakKeys().<Entity, GravityFrame>makeMap());
+    /** A stable generation for each observed effective frame, including same-tick round trips. */
+    private static final Map<Entity, Observation> OBSERVATIONS = Collections.synchronizedMap(
+        new MapMaker().weakKeys().<Entity, Observation>makeMap());
     private static volatile Provider provider;
 
     private record Provider(String owner, Function<Entity, Direction> resolver) {}
+    public record Observation(GravityFrame frame,long generation) {}
 
     private GravityFrames() {}
 
@@ -83,6 +87,19 @@ public final class GravityFrames {
         return direction == Direction.DOWN ? GravityFrame.VANILLA : new GravityFrame(direction);
     }
 
+    /** Return one immutable observation until the effective provider frame next changes. */
+    public static Observation observe(Entity entity) {
+        GravityFrame effective=frame(entity);
+        synchronized(OBSERVATIONS) {
+            Observation previous=OBSERVATIONS.get(entity);
+            if(previous!=null && previous.frame().equals(effective))return previous;
+            long generation=previous==null?1:previous.generation()==Long.MAX_VALUE?Long.MAX_VALUE:previous.generation()+1;
+            Observation current=new Observation(effective,generation);
+            OBSERVATIONS.put(entity,current);
+            return current;
+        }
+    }
+
     public static String owner() {
         Provider current = provider;
         return current == null ? null : current.owner();
@@ -108,6 +125,9 @@ public final class GravityFrames {
         if (level == null) return;
         synchronized (TEST_OVERRIDES) {
             TEST_OVERRIDES.keySet().removeIf(entity -> entity.level() == level);
+        }
+        synchronized (OBSERVATIONS) {
+            OBSERVATIONS.keySet().removeIf(entity -> entity.level() == level);
         }
     }
 }

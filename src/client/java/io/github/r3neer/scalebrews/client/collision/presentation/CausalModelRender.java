@@ -7,6 +7,7 @@ import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetwork
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines;
+import io.github.r3neer.scalebrews.collision.internal.BuiltInRootTransformProviders;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 /** Original-model presentation consumer. Accepted wire frames remain the only pose authority. */
@@ -47,7 +49,7 @@ public final class CausalModelRender {
         if(frame!=null)stored.scalebrews$causalToken(new Token(new WeakReference<>(support),frame.identity(),frame.trackingGeneration(),frame.after().frameSerial()));
     }
     /** Resource reload re-bakes renderer models even if the server catalog remains the same. */
-    public static void resourceReload(){resourceGeneration++;PREPARED.clear();}
+    public static void resourceReload(){resourceGeneration++;PREPARED.clear();CausalBodyResidual.reset();}
 
     private static PresentationFrame current(LivingEntityRenderState state) {
         if(!(state instanceof CausalPresentationState stored))return null;
@@ -122,6 +124,14 @@ public final class CausalModelRender {
         if(adapter==null || !adapter.representable(frame.evaluated()))return;
         try {
             var origin=frame.evaluated().origin();
+            // A locally predicted contact body's own entity_root frame can lag its physical
+            // carry even after vanilla incorporates that carry on the following tick. Keep
+            // the local root on vanilla's interpolation baseline for the whole accepted
+            // contact; the accepted frame still supplies its model transform and joint pose.
+            if(frame.identity().rootProvider().equals(BuiltInRootTransformProviders.ENTITY_ROOT)
+                    && AnatomyClientNetworking.isCurrentPredictionBody(support)
+                    && AnatomyClientNetworking.presentationContact(support,support.level().getGameTime()).isPresent())
+                origin=new Vec3(state.x,state.y,state.z);
             var desired=new Matrix4f(scope.base).translate((float)(origin.x-state.x),(float)(origin.y-state.y),(float)(origin.z-state.z))
                 .mul(frame.evaluated().rootTrs().matrix()).mul(frame.evaluated().modelTransform().matrix());
             var current=new Matrix4f(poses.last().pose());
