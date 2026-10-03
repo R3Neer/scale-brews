@@ -16,9 +16,11 @@ public final class AnatomyFrameHistory {
     public enum LifecycleTransition { CONTINUE, RESTART, REJECT }
 
     public static final int MAX_RECENT_ENDPOINTS=128;
+    public static final long RECENT_TTL_TICKS=100;
     private AnatomyPosePayload current;
     /** Exact accepted endpoints retained only for bounded server-certified interval materialization. */
-    private final ArrayDeque<AnatomyPosePayload> recent=new ArrayDeque<>();
+    private record ReceivedEndpoint(AnatomyPosePayload packet,long receivedAt) {}
+    private final ArrayDeque<ReceivedEndpoint> recent=new ArrayDeque<>();
     /** Highest recipient tracking generation retired by an explicit tracking discontinuity. */
     private long retiredTrackingGeneration;
 
@@ -27,7 +29,7 @@ public final class AnatomyFrameHistory {
     /** Exact serial lookup only; callers may not substitute nearest/previous endpoints. */
     public Optional<AnatomyPosePayload> packet(long frameSerial) {
         if(frameSerial<1)return Optional.empty();
-        for(var packet:recent)if(packet.frameSerial()==frameSerial)return Optional.of(packet);
+        for(var entry:recent)if(entry.packet().frameSerial()==frameSerial)return Optional.of(entry.packet());
         return Optional.empty();
     }
     public Optional<GeometryProvider.CausalEndpoint> endpoint(long frameSerial) {
@@ -81,7 +83,12 @@ public final class AnatomyFrameHistory {
      * install a fresh history before accepting the new packet.
      */
     public boolean accept(AnatomyPosePayload next) {
+        return accept(next,next==null?0:next.authorityTick());
+    }
+    /** Live receivers use their monotonic client clock, independent of the server authority tick. */
+    public boolean accept(AnatomyPosePayload next,long receivedAt) {
         if(next==null)throw new IllegalArgumentException("Missing causal frame");
+        if(receivedAt<0)throw new IllegalArgumentException("Invalid endpoint receipt tick");
         if(next.trackingGeneration()<=retiredTrackingGeneration)return false;
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
@@ -92,10 +99,19 @@ public final class AnatomyFrameHistory {
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()
                     || next.jointSampleTick()<current.jointSampleTick())return false;
         }
+        if(!next.available() || current!=null && (!current.available() || current.gravity()!=next.gravity()))
+            recent.clear();
         current=next;
-        recent.addLast(next);
+        pruneRecent(receivedAt);
+        recent.addLast(new ReceivedEndpoint(next,receivedAt));
         while(recent.size()>MAX_RECENT_ENDPOINTS)recent.removeFirst();
         return true;
+    }
+    /** Expire retained material without dropping the current ordering/lifecycle watermark. */
+    public void pruneRecent(long clientTick) {
+        if(clientTick<0)return;
+        while(!recent.isEmpty() && clientTick-recent.peekFirst().receivedAt()>RECENT_TTL_TICKS)
+            recent.removeFirst();
     }
     public AnatomyPoseHistory.Sample sample() {
         if(current==null)throw new IllegalStateException("No causal frame");

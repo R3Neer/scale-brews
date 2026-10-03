@@ -28,6 +28,13 @@ public final class S00ClientBoundaryTests implements FabricClientGameTest {
                 var support=EntityTypes.COW.create(server.overworld(),EntitySpawnReason.COMMAND);
                 if(support==null)throw new AssertionError("Could not create receipt support");
                 support.setNoAi(true);support.setNoGravity(true);support.setPos(3,4,3);server.overworld().addFreshEntity(support);supportId.set(support.getId());
+                // Receipt recording observes an already opened recipient window.
+                // Later lifecycle hardening made that read pure, so the fixture
+                // must start the runtime before claiming a server receipt.
+                AnatomyRuntime.stop(server);
+                AnatomyRuntime.startPrepared(server,Map.of(),Map.of());
+                var body=server.getPlayerList().getPlayers().getFirst();
+                check(AnatomyRuntime.trackingGeneration(body,body)>0,"Fixture lacks an explicit self-tracking window");
             });
             context.waitFor(client->client.level!=null && client.player!=null && client.level.getEntity(supportId.get()) instanceof LivingEntity,100);
             world.getServer().runOnServer(server->{
@@ -66,7 +73,7 @@ public final class S00ClientBoundaryTests implements FabricClientGameTest {
             });
             if(!problems.isEmpty())throw new AssertionError(String.join("; ",problems));
             System.out.println("S00_CLIENT_RECEIPT_AUTHORITY PASS real client clear/record isolation and server invalidation");
-        }finally{world.getServer().runOnServer(AnatomyTransportReceipts::clear);world.close();}
+        }finally{world.getServer().runOnServer(server->{AnatomyRuntime.stop(server);AnatomyTransportReceipts.clear(server);});world.close();}
     }
     private static void record(ServerPlayer body,LivingEntity support,long sequence,Vec3 delta) {
         long tick=body.level().getGameTime();var material=box(UNIT).move(support.position());

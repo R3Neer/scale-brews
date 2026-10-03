@@ -8,25 +8,37 @@ import java.util.UUID;
 /**
  * Bounded recipient-local authority for active tracking windows.
  *
- * <p>The ledger deliberately remembers no retired UUIDs. Replay safety comes from one monotonic
- * connection-local sequence: every newly acquired UUID gets a generation greater than every prior
- * tracking window owned by this recipient. Releasing a UUID therefore frees its map entry without
- * making its old generation reusable.</p>
+ * <p>The ledger deliberately remembers no retired UUIDs. A runtime supplies one monotonic server
+ * sequence to every recipient ledger, so reconnecting cannot reuse a retired generation even when
+ * the new recipient tracks entities in the same order. A standalone ledger owns its own sequence
+ * for pure tests. Releasing a UUID frees its map entry without recycling its generation.</p>
  */
 final class TrackingGenerationLedger {
     /** Mirrors the bounded client frame/contact population; excess pairs fail closed. */
     static final int MAX_ACTIVE=4096;
     static final long UNAVAILABLE=0;
 
+    static final class Sequence {
+        private long nextGeneration=1;
+        synchronized long allocate() {
+            if(nextGeneration<1 || nextGeneration==Long.MAX_VALUE)return UNAVAILABLE;
+            return nextGeneration++;
+        }
+        synchronized long next(){return nextGeneration;}
+    }
+
     private final Map<UUID,Long> active=new HashMap<>();
-    private long nextGeneration=1;
+    private final Sequence sequence;
+    TrackingGenerationLedger(){this(new Sequence());}
+    TrackingGenerationLedger(Sequence sequence){this.sequence=Objects.requireNonNull(sequence,"sequence");}
 
     /** Existing windows are stable; a new window allocates one never-reused generation. */
     long acquire(UUID entity) {
         Objects.requireNonNull(entity,"entity");
         var known=active.get(entity);if(known!=null)return known;
-        if(active.size()>=MAX_ACTIVE || nextGeneration<1 || nextGeneration==Long.MAX_VALUE)return UNAVAILABLE;
-        long generation=nextGeneration++;
+        if(active.size()>=MAX_ACTIVE)return UNAVAILABLE;
+        long generation=sequence.allocate();
+        if(generation<1)return UNAVAILABLE;
         active.put(entity,generation);
         return generation;
     }
@@ -43,5 +55,5 @@ final class TrackingGenerationLedger {
     }
 
     int activeEntries(){return active.size();}
-    long nextGeneration(){return nextGeneration;}
+    long nextGeneration(){return sequence.next();}
 }

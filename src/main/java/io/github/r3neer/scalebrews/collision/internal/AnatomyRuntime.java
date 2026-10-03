@@ -22,6 +22,9 @@ public final class AnatomyRuntime {
     public static final long CONTACT_HEARTBEAT_TICKS=20;
     private AnatomyRuntime() {}
     private static final Map<MinecraftServer,State> STATES=Collections.synchronizedMap(new WeakHashMap<>());
+    /** One scalar per server epoch; survives runtime stop/start without retaining retired UUIDs. */
+    private static final Map<MinecraftServer,TrackingGenerationLedger.Sequence> TRACKING_SEQUENCES=
+        Collections.synchronizedMap(new WeakHashMap<>());
     /** Entity/connection equality is network-ID based; lifecycle state needs object identity. */
     private static <K,V> Map<K,V> weakIdentityMap() {
         return Collections.synchronizedMap(new com.google.common.collect.MapMaker().weakKeys().<K,V>makeMap());
@@ -37,7 +40,11 @@ public final class AnatomyRuntime {
     public record AuthoritativePose(UUID entity,long serverTick,PoseEngine.Inputs inputs) {}
     private static final class State {
         final WorldAnatomyCatalog catalog;
-        State(MinecraftServer server){catalog=new WorldAnatomyCatalog(AnatomyNetworking.revision(server));}
+        State(MinecraftServer server){
+            catalog=new WorldAnatomyCatalog(AnatomyNetworking.revision(server));
+            trackingSequence=TRACKING_SEQUENCES.computeIfAbsent(server,ignored->new TrackingGenerationLedger.Sequence());
+        }
+        final TrackingGenerationLedger.Sequence trackingSequence;
         final Map<LivingEntity,Active> entities=weakIdentityMap();
         final Map<ServerPlayer,Long> sent=weakIdentityMap();
         final Map<ServerPlayer,Map<UUID,PublishedContact>> contacts=weakIdentityMap();
@@ -241,8 +248,8 @@ public final class AnatomyRuntime {
     }
     /**
      * Publishes one provider-certified Q2 interval to recipients currently tracking this support.
-     * The wire certificate names only already-published endpoint identity; geometry/pose remain
-     * owned by the ordinary pose stream.
+     * Publish both exact endpoints through the ordinary pose stream before their certificate.
+     * Tick-current publication can skip intermediate same-tick root/joint endpoints.
      */
     public static void publishInterval(LivingEntity support,GeometryProvider.MotionIntervalHandle handle) {
         if(support==null || handle==null || !acceptsIntervalIdentity(support,handle))return;
@@ -253,8 +260,13 @@ public final class AnatomyRuntime {
                 || !before.root().gravity().equals(after.root().gravity()))return;
         var recipients=new HashSet<>(PlayerLookup.tracking(support));
         if(support instanceof ServerPlayer player)recipients.add(player);
+        var beforeFrame=new GeometryProvider.PublishedFrame(handle.identity(),before);
+        var afterFrame=new GeometryProvider.PublishedFrame(handle.identity(),after);
         for(var recipient:recipients) {
             long tracking=currentGeneration(state,recipient,support.getUUID());if(tracking<1)continue;
+            if(!catalog(state,recipient))continue;
+            AnatomyNetworking.sendPose(recipient,beforeFrame,tracking);
+            AnatomyNetworking.sendPose(recipient,afterFrame,tracking);
             AnatomyNetworking.sendMaterialInterval(recipient,new AnatomyMaterialIntervalPayload(
                 handle.identity().epoch(),handle.identity().revision(),handle.identity().dimension().identifier(),
                 handle.identity().entityId(),handle.identity().support(),handle.identity().bindingGeneration(),tracking,
@@ -333,7 +345,7 @@ public final class AnatomyRuntime {
     }
     /** Opens or reuses an authority window only from an explicit server tracking transition. */
     private static long generation(State state,ServerPlayer recipient,UUID body) {
-        return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger()).acquire(body);
+        return state.trackingGenerations.computeIfAbsent(recipient,ignored->new TrackingGenerationLedger(state.trackingSequence)).acquire(body);
     }
     /** Pure observation: consumers must never create or revive recipient/body authority. */
     private static long currentGeneration(State state,ServerPlayer recipient,UUID body) {

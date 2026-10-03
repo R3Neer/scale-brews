@@ -1,0 +1,47 @@
+// Test-only selector. Pair with a distinct -PscalebrewsBuildDir per active lane.
+gradle.projectsEvaluated {
+    rootProject.tasks.withType(JavaExec).configureEach {
+        systemProperty 'scalebrews.s29GravityRoundTrip', rootProject.findProperty('s29GravityRoundTrip') ?: 'false'
+        systemProperty 'scalebrews.s29EarlyReconnectReplay', rootProject.findProperty('s29EarlyReconnectReplay') ?: 'false'
+        systemProperty 'scalebrews.s29ContactDelayedSequence', rootProject.findProperty('s29ContactDelayedSequence') ?: 'false'
+    }
+    if(rootProject.findProperty('s29MutationOriginal')) {
+        def original = rootProject.file(rootProject.findProperty('s29MutationOriginal')).absolutePath
+        def source = rootProject.file(rootProject.findProperty('s29MutationDir'))
+        def owner = rootProject.findProperty('s29MutationEnvironment') ?: 'main'
+        rootProject.sourceSets.named(owner) {
+            java.exclude { details -> details.file.absolutePath == original }
+            java.srcDir(source)
+        }
+    }
+    rootProject.loom.runs.configureEach {
+        runDir = rootProject.findProperty('s29AdversarialRunDir') ?:
+            new File(rootProject.layout.buildDirectory.get().asFile, 'adversarial-run').absolutePath
+    }
+    rootProject.tasks.named('processGametestResources') {
+        inputs.property('s29AdversarialProof', rootProject.findProperty('s29AdversarialProof') ?: 'io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof')
+        inputs.property('s29AdversarialServerProof', rootProject.findProperty('s29AdversarialServerProof') ?: '')
+        doLast {
+            def manifest = new File(destinationDir, 'fabric.mod.json')
+            def metadata = new groovy.json.JsonSlurper().parse(manifest)
+            metadata.entrypoints['fabric-client-gametest'] = (rootProject.findProperty('s29AdversarialProof') ?: 'io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof').split(',').toList()
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialDedicatedReconnectProof') ||
+               (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialContactLifecycleProof') || (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialContactLiveReconnectProof')) {
+                // This lane uses one startup hook. The default pack-only hook targets
+                // the same constant and otherwise conflicts even when it returns 10.
+                def defaults = new File(destinationDir,'scalebrews-test.mixins.json')
+                def defaultMetadata = new groovy.json.JsonSlurper().parse(defaults)
+                defaultMetadata.client = defaultMetadata.client.findAll { it != 'TestPackStartupTimeoutMixin' }
+                defaults.text = groovy.json.JsonOutput.toJson(defaultMetadata)
+                def mixin = 's29-adversarial-dedicated-startup.mixins.json'
+                new File(destinationDir,mixin).text = groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S29AdversarialDedicatedStartupTimeoutMixin'],injectors:[defaultRequire:1]])
+                metadata.mixins = (metadata.mixins ?: []) + [mixin]
+            }
+            if(rootProject.findProperty('s29AdversarialServerProof'))
+                metadata.entrypoints['fabric-gametest'] = [rootProject.findProperty('s29AdversarialServerProof')]
+            manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
+        }
+    }
+}

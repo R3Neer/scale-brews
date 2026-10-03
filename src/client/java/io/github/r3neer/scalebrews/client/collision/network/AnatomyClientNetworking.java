@@ -18,11 +18,16 @@ public final class AnatomyClientNetworking {
     private static final java.util.Set<java.util.UUID> staleFrames=new java.util.HashSet<>();
     /** Bounded replay watermarks survive frame-history eviction without retaining full histories. */
     private static final TrackingReplayFence frameReplayFence=new TrackingReplayFence();
+    /** Tombstones belong to server catalog identity, which can survive a socket replacement. */
+    private record ReplayCatalog(java.util.UUID epoch,long revision) {}
+    private static ReplayCatalog replayCatalog;
     private static final java.util.Map<java.util.UUID,Long> receivedAt=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ModelGeometryProvider> evaluators=new java.util.HashMap<>();
     private static final java.util.Map<java.util.UUID,ClientGeometryProvider> providers=new java.util.HashMap<>();
     /** One bounded cached presentation result per support. */
     private static final java.util.Map<java.util.UUID,CachedPresentationFrame> presentationFrames=new java.util.HashMap<>();
+    /** Separate slot prevents current endpoint queries from evicting the same interval/fraction. */
+    private static final java.util.Map<java.util.UUID,CachedPresentationFrame> presentationIntervals=new java.util.HashMap<>();
     /** Server-issued Q2 interval certificates; exact serial lookup only. */
     private static final AnatomyCertifiedIntervalInbox certifiedIntervals=new AnatomyCertifiedIntervalInbox();
     private static final AnatomyContactInbox contacts=new AnatomyContactInbox();
@@ -116,15 +121,25 @@ public final class AnatomyClientNetworking {
     /** Level-owned material/caches only. Connection/revision replay watermarks deliberately survive. */
     private static void clearLevelMaterial(){
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
-        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();certifiedIntervals.clear();contacts.clearPending();presentationContacts.clear();
+        poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();presentationIntervals.clear();certifiedIntervals.clear();contacts.retireWindows();presentationContacts.clear();
         predictedMovementReferences.clear();transportReceiptTokens.clear();predictionOwner=null;
     }
-    /** Disconnect/host replacement or accepted catalog revision owns a new causal session. */
-    private static void clearConnectionTemporal(){
-        clearLevelMaterial();frameReplayFence.clear();contacts.clear();
+    /** A newly accepted server catalog decides whether retired windows still belong to this authority. */
+    private static void acceptedCatalog(){
+        var transfer=session.catalog();var next=new ReplayCatalog(transfer.epoch(),transfer.revision());
+        clearLevelMaterial();
+        if(!next.equals(replayCatalog)) {
+            contacts.clear();
+            frameReplayFence.clear();
+        }
+        replayCatalog=next;
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId) {
-        poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);certifiedIntervals.discardSupport(supportId);
+        discardSupportMaterial(level,supportId,entityId,true);
+    }
+    private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId,boolean discardCertificates) {
+        poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);presentationIntervals.remove(supportId);
+        if(discardCertificates)certifiedIntervals.discardSupport(supportId);
         var support=level==null?null:level.getEntity(entityId);
         if(support instanceof net.minecraft.world.entity.LivingEntity living && living.getUUID().equals(supportId))
             AnatomyMovement.invalidateSupport(living);
@@ -134,9 +149,13 @@ public final class AnatomyClientNetworking {
     }
     /** Compresses one dead full history into a bounded ordering fence before releasing its material state. */
     private static void retireFrameHistory(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,AnatomyFrameHistory history) {
+        retireFrameHistory(level,supportId,history,true);
+    }
+    private static void retireFrameHistory(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,AnatomyFrameHistory history,boolean closeWindow) {
         if(history==null)return;var packet=history.current();if(packet==null)return;
         history.retireCurrentTrackingGeneration();
-        boolean wasSaturated=frameReplayFence.saturated();boolean fenced=frameReplayFence.retire(packet);
+        boolean wasSaturated=frameReplayFence.saturated();
+        boolean fenced=closeWindow?frameReplayFence.retireWindow(packet):frameReplayFence.retire(packet);
         if(fenced)staleFrames.add(supportId);else staleFrames.remove(supportId);
         discardSupportMaterial(level,supportId,packet.entityId());receivedAt.remove(supportId);
         if(!wasSaturated && frameReplayFence.saturated())
@@ -146,12 +165,18 @@ public final class AnatomyClientNetworking {
     private static void crossLevelBarrier(){
         if(poseLevel!=null)for(var entry:new java.util.ArrayList<>(frames.entrySet()))
             retireFrameHistory(poseLevel,entry.getKey(),entry.getValue());
+        frameReplayFence.closeWindows();
         clearLevelMaterial();
     }
     private static void bindPhysics() {
         var transfer=session.catalog();
         if(poseLevel==null || !transfer.ready() || transfer.snapshot().bindings().isEmpty()) {
-            if(poseLevel!=null && transfer.binding())AnatomyMovement.deactivate(poseLevel);
+            if(poseLevel!=null && transfer.binding()) {
+                AnatomyMovement.deactivate(poseLevel);
+                // The core lost these registrations. A rejected candidate must be able to
+                // bind the still-accepted endpoints again when its old revision returns READY.
+                providers.clear();
+            }
             return;
         }
         AnatomyMovement.activate(poseLevel);
@@ -263,11 +288,11 @@ public final class AnatomyClientNetworking {
             afterPacket.revision(),afterPacket.model(),afterPacket.provider(),afterPacket.rootProvider(),afterPacket.bindingGeneration());
         var key=new PresentationCacheKey(identity,PresentationKind.CERTIFIED_INTERVAL,materialSerial,
             before.frameSerial(),after.frameSerial(),Double.doubleToLongBits(fraction));
-        var cached=presentationFrames.get(support.getUUID());
+        var cached=presentationIntervals.get(support.getUUID());
         if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
         return evaluator(support,afterPacket).flatMap(evaluator->evaluator.evaluatePresentation(support,before,after,fraction)).map(evaluated->{
             var frame=PresentationFrame.interval(identity,before,after,fraction,evaluated);
-            presentationFrames.put(support.getUUID(),new CachedPresentationFrame(key,frame));
+            presentationIntervals.put(support.getUUID(),new CachedPresentationFrame(key,frame));
             return frame;
         });
     }
@@ -359,7 +384,7 @@ public final class AnatomyClientNetworking {
         predictedMovementReferences.remove(body.getUUID(),reference);
     }
 
-    private static void reset(){session.resetConnection();clearConnectionTemporal();poseLevel=null;clientTick=0;}
+    private static void reset(){crossLevelBarrier();session.resetConnection();poseLevel=null;clientTick=0;}
     private static void useLevel(net.minecraft.client.multiplayer.ClientLevel level){
         if(poseLevel!=level){crossLevelBarrier();poseLevel=level;session.useLevel(level);}
     }
@@ -390,9 +415,10 @@ public final class AnatomyClientNetworking {
             }
             frames.entrySet().removeIf(entry->{
                 var history=entry.getValue();var packet=history.current();var entity=poseLevel==null?null:poseLevel.getEntity(packet.entityId());
+                history.pruneRecent(clientTick);
                 boolean expired=clientTick-receivedAt.getOrDefault(entry.getKey(),0L)>100;
                 boolean wrongIdentity=entity!=null && !entity.getUUID().equals(entry.getKey());
-                if(expired || wrongIdentity){retireFrameHistory(poseLevel,entry.getKey(),history);return true;}
+                if(expired || wrongIdentity){retireFrameHistory(poseLevel,entry.getKey(),history,wrongIdentity);return true;}
                 return false;
             });
             presentationContacts.entrySet().removeIf(entry->{
@@ -409,7 +435,7 @@ public final class AnatomyClientNetworking {
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyCatalogPayload.TYPE,(packet,context)->{
             useLevel(context.client().level);var transfer=session.catalog();
-            try{if(transfer.accept(packet))clearConnectionTemporal();}
+            try{if(transfer.accept(packet))acceptedCatalog();}
             catch(RuntimeException invalid){transfer.rejectPending();io.github.r3neer.scalebrews.ScaleBrews.LOGGER.error("Rejected anatomical catalog; previous revision retained",invalid);}
         });
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
@@ -427,10 +453,11 @@ public final class AnatomyClientNetworking {
                 if(lifecycle==AnatomyFrameHistory.LifecycleTransition.REJECT)return;
                 if(lifecycle==AnatomyFrameHistory.LifecycleTransition.RESTART) {
                     var previous=framesForSupport.current();
-                    discardSupportMaterial(level,packet.entity(),previous.entityId());
+                    certifiedIntervals.retainLifecycle(packet.entity(),packet.entityId(),packet.bindingGeneration(),packet.trackingGeneration());
+                    discardSupportMaterial(level,packet.entity(),previous.entityId(),false);
                     framesForSupport=new AnatomyFrameHistory();frames.put(packet.entity(),framesForSupport);
                 }
-                if(!framesForSupport.accept(packet))return;
+                if(!framesForSupport.accept(packet,clientTick))return;
                 frameReplayFence.accepted(packet);receivedAt.put(packet.entity(),clientTick);
                 if(!packet.available()) {staleFrames.add(packet.entity());discardSupportMaterial(level,packet.entity(),packet.entityId());return;}
                 staleFrames.remove(packet.entity());

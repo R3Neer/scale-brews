@@ -29,6 +29,13 @@ public final class ModelGeometryProvider implements GeometryProvider {
     private record JointEndpoint(PoseEngine.Inputs inputs,Optional<Map<String,Matrix4f>> transforms) {}
     private static final class JointEndpoints {JointEndpoint previous,current;}
     private final Map<LivingEntity,JointEndpoints> jointCache=entityMap();
+    /** Shared memo only: query histories/certificates, not these matrices, own authority. */
+    private static final int MAX_RETAINED_JOINT_SAMPLES=128;
+    private final Map<LivingEntity,LinkedHashMap<PoseEngine.Inputs,Optional<Map<String,Matrix4f>>>> retainedJointCache=entityMap();
+    /** One prepared certified interval per entity; fraction-specific evaluated frames live at the client receiver. */
+    private record PresentationMotion(GeometryProvider.CausalEndpoint before,GeometryProvider.CausalEndpoint after,
+            Optional<HierarchyMotion> motion) {}
+    private final Map<LivingEntity,PresentationMotion> presentationMotions=entityMap();
     private final Map<LivingEntity,Trajectory> trajectories=entityMap();
     private record TickFrame(long tick,AnatomyPoseHistory.Sample sample,RootTransformProvider.RootTransform root) {}
     public record AuthoritativeFrame(long tick,AnatomyPoseHistory.Sample sample,RootTransformProvider.RootTransform root) {
@@ -190,9 +197,15 @@ public final class ModelGeometryProvider implements GeometryProvider {
                 || after.availability()!=GeometryProvider.Availability.AVAILABLE
                 || !Double.isFinite(fraction) || fraction<0 || fraction>1
                 || !before.root().gravity().equals(after.root().gravity()))return Optional.empty();
-        var motion=motionBetween(cacheKey,before.sample(),before.rootTransform(),after.sample(),after.rootTransform());
-        if(motion.isEmpty())return Optional.empty();
-        try {evaluations++;return Optional.of(motion.get().evaluate(fraction));}
+        var prepared=presentationMotions.get(cacheKey);
+        if(prepared==null || !prepared.before().equals(before) || !prepared.after().equals(after)) {
+            var motion=motionBetween(before.sample(),before.rootTransform(),after.sample(),after.rootTransform(),
+                joints(cacheKey,before.sample().inputs()),joints(cacheKey,after.sample().inputs()));
+            prepared=new PresentationMotion(before,after,motion);
+            presentationMotions.put(cacheKey,prepared);
+        }
+        if(prepared.motion().isEmpty())return Optional.empty();
+        try {evaluations++;return Optional.of(prepared.motion().orElseThrow().evaluate(fraction));}
         catch(RuntimeException rejectedGeometry){return Optional.empty();}
     }
 
@@ -242,7 +255,26 @@ public final class ModelGeometryProvider implements GeometryProvider {
     private static Matrix4f rootMatrix(RootTransformProvider.RootTransform root) {
         return new Matrix4f().rotation(root.quaternion()).scale(root.scale());
     }
-    private Optional<Map<String,Matrix4f>> joints(LivingEntity entity,PoseEngine.Inputs inputs) {synchronized(jointCache){var endpoints=jointCache.computeIfAbsent(entity,ignored->new JointEndpoints());if(endpoints.current!=null&&endpoints.current.inputs().equals(inputs))return endpoints.current.transforms();if(endpoints.previous!=null&&endpoints.previous.inputs().equals(inputs))return endpoints.previous.transforms();var endpoint=new JointEndpoint(inputs,evaluateJoints(inputs));endpoints.previous=endpoints.current;endpoints.current=endpoint;return endpoint.transforms();}}
+    private Optional<Map<String,Matrix4f>> joints(LivingEntity entity,PoseEngine.Inputs inputs) {
+        synchronized(jointCache) {
+            var endpoints=jointCache.computeIfAbsent(entity,ignored->new JointEndpoints());
+            if(endpoints.current!=null && endpoints.current.inputs().equals(inputs))return endpoints.current.transforms();
+            if(endpoints.previous!=null && endpoints.previous.inputs().equals(inputs))return endpoints.previous.transforms();
+            var endpoint=new JointEndpoint(inputs,retainedJoints(entity,inputs));
+            endpoints.previous=endpoints.current;endpoints.current=endpoint;
+            return endpoint.transforms();
+        }
+    }
+    private Optional<Map<String,Matrix4f>> retainedJoints(LivingEntity entity,PoseEngine.Inputs inputs) {
+        synchronized(retainedJointCache) {
+            var samples=retainedJointCache.computeIfAbsent(entity,ignored->new LinkedHashMap<>());
+            var cached=samples.get(inputs);if(cached!=null)return cached;
+            var transforms=evaluateJoints(inputs);
+            samples.put(inputs,transforms);
+            if(samples.size()>MAX_RETAINED_JOINT_SAMPLES)samples.remove(samples.keySet().iterator().next());
+            return transforms;
+        }
+    }
     private Optional<Map<String,Matrix4f>> evaluateJoints(PoseEngine.Inputs inputs) {
         jointEvaluations++;
         try{var evaluated=poses.evaluate(inputs);if(evaluated==null||evaluated.isEmpty())return Optional.empty();Map<String,Matrix4f> copy=new LinkedHashMap<>();evaluated.get().forEach((id,matrix)->copy.put(id,new Matrix4f(matrix)));geometry.transforms(copy);return Optional.of(Collections.unmodifiableMap(copy));}

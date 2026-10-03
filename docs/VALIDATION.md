@@ -1354,3 +1354,478 @@ The core server already owns `GeometryProvider.MotionIntervalHandle(identity, ma
 
 **Classification:** expected capability-absence RED, not a regression. G4 task 5 remains open pending an implementer candidate and subsequent behavioral/mutation closure.
 
+## G4 / S29 repair checkpoint — IMPLEMENTER — 2026-10-02
+
+Authorized branch: `chatgpt-editing`, pulled fast-forward to
+`a54031b9cd2bd68bf63823860099665882e46a67`. The tested checkpoint consists of that
+baseline plus the local production patch `../s29-product.patch` (relative to the
+checkout, outside the repository); SHA-256
+`a8a5450803a0b0081a9070013ceabab7ac3e5dfeedb295b2d336853648b75f41`.
+No `main` gameplay code was reverted or merged as part of this checkpoint.
+
+Executed final checks:
+
+| Check | Actual result | Log SHA-256 |
+| --- | --- | --- |
+| `gradlew.bat build --offline --console=plain` | BUILD SUCCESSFUL; **458/458 required server GameTests** | `d5fec586ba90113efb1c3d212e6b9590bf4561dd123e8faf5c107fbce92c9983` |
+| Real client, five affected proof classes | BUILD SUCCESSFUL, 47s; all five completed | `5226ed85ef4e23ac5efdf86ee464eea783bb53bebbe930864de1d4588c4de724` |
+| Adversarial first-historical + repeated-historical work lane | BUILD SUCCESSFUL; **3/3 including sentinel**; repeated joint evaluations after warm-up = **0** | `dea332805e101e0c5cc4d214e58a11a4acc9559960b8bd1db0e5e609eba0307c` |
+| Inbox campaign + eight scratch mutants | baseline PASS; expiry/bound/global-query/binding/tracking/epoch/dimension/nearest mutants compiled and were killed | `36406d51d165701d9ee882be1a4e3de88742b5e5e84fa42dc400cc9374de7ad9` |
+
+Logs are retained beside the checkout at `../s29-checkpoint-build.log`,
+`../s29-checkpoint-client.log`, `../s29-presentation-work-shared-green.log` and
+`../s29-checkpoint-inbox.log`. Environment: Minecraft 26.2, Fabric Loader 0.19.5,
+Fabric API 0.159.0+26.2, Loom 1.17.20, Microsoft OpenJDK 25.0.3, Windows local.
+
+The real-client battery was selected only in generated test metadata by
+`../s29-client.init.gradle`; it contains `AnatomyPresentationFrameTests`,
+`S29AdversarialLiveEndpointProof`, `S29AdversarialUnavailableReplayProof`,
+`S29AdversarialDerivedPresentationProof` and `S29AdversarialCertificateIdentityProof`.
+Command: `gradlew.bat runClientGameTest --offline --console=plain --init-script ../s29-client.init.gradle`.
+The reusable isolated selector for individual proofs is
+`tools/s29_adversarial.init.gradle`; complete reproduction and independent
+findings are in `sprints/S29-adversarial-recertification.md`.
+
+Observed final client outcomes: both genuine same-tick root intervals materialize;
+pre-unavailable certificate replay remains non-authoritative; a genuinely carried
+child support receives/materializes its derived interval; certificate placement
+before/between/after endpoints converges; fixed fractions 0/.25/.5/.75/1 match the
+root trajectory; seven mismatched identity axes fail closed. No certificate still
+means CURRENT_ENDPOINT rather than inferred interval authority.
+
+The implementer and adversary completed separate final zero-change passes for
+this **repair batch**. **G4.5 remains open.** This is not full frontend mutation,
+dedicated latency/reconnect, contact/camera, visual/animated alignment, allocation/GC,
+soak, NFR-014 benchmark or full-pack acceptance evidence. No release, push or
+installation was performed.
+
+## G4 / S29 joint-only integration — IMPLEMENTER — 2026-10-02
+
+On the same production checkpoint above, executed:
+
+```powershell
+.\gradlew.bat runClientGameTest --offline --console=plain -I tools/s29_adversarial.init.gradle `
+  '-Ps29AdversarialProof=io.github.r3neer.scalebrews.test.S29ImplementerJointPresentationProof' `
+  '-PscalebrewsBuildDir=C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/s29-implementer-joint-build'
+```
+
+BUILD SUCCESSFUL in **3m53s**, exit 0 and clean world teardown. A live server cow
+head-pitch update generated material serial **2**. Client materialization at fixed
+fractions 0/1 changed original head geometry, retained equal authoritative root
+DTOs and advanced the joint-sample clock. No synthetic certificate send or renderer
+animation served as authority. This development integration proof supplements the
+independent evidence; it does not close the remaining G4.5 matrix. No production
+changes were needed. Environment is unchanged from the preceding checkpoint.
+
+Log: `../s29-implementer-joint.log`, SHA-256
+`902b45b59c2a686cabc2b4cff5b8a1928f1c92beebe4cecd43d72c1d98d79237`.
+
+## G4 / S29 replay-fence locality — IMPLEMENTER — 2026-10-02
+
+Receiver review found the new certificate path called a global tombstone scan in
+`TrackingReplayFence.retiredGeneration(UUID)`. Grouped the existing canonical
+tombstones by UUID/dimension; total 4096-scope cap, sticky saturation and exact
+identity/order rules remain intact. A development regression covers dimensional
+maxima, exact removal, repeated removal and scope accounting.
+
+Tested baseline remains `a54031b9` plus local product patch
+`../s29-local-fence-product.patch`, SHA-256
+`edefdcde3c286cebb93bb0fe28409435915ad085514015bbc1045563a95a31a0`.
+Environment matches the preceding checkpoint. Executed:
+
+| Check | Result | Log SHA-256 |
+| --- | --- | --- |
+| Ordinary `gradlew.bat build --offline --console=plain` | BUILD SUCCESSFUL 3m02s, **459/459 required server GameTests** | `0c30a0377d7b88e27a81775259605d6e0d74514fd0e1e657b754086c4b1f9319` |
+| Real-client six-class affected battery | BUILD SUCCESSFUL 2m24s, all six classes, clean teardown | `7e4c3748c98f282b431742241d7af71b17f2568c37e731f6554cc66a852cfb01` |
+| Unchanged independent `python tools/s29_adversarial_replay_fence_probe.py` | PASS: three own-dimension visits with 4096 scopes; zero for unknown UUID; budget reuse/replay/saturation pass | `dcc5ca6498d28e2f5f3a2892954418c49c74d2ee6d5157581655aa51939a9875` |
+
+Logs: `../s29-local-fence-build.log`, `../s29-local-fence-client.log` and
+`../s29-implementer-replay-fence.log`. Client command uses the preceding joint
+lane's init/build directory with comma-separated selectors for
+`AnatomyPresentationFrameTests`, `S29AdversarialLiveEndpointProof`,
+`S29AdversarialUnavailableReplayProof`, `S29AdversarialDerivedPresentationProof`,
+`S29AdversarialCertificateIdentityProof` and `S29ImplementerJointPresentationProof`.
+The scratch locality probe compiles the real fence with observational loop counts
+and Identifier/payload DTO stubs; it does not substitute for wire evidence.
+`git diff --check` passed. Full G4.5 closure is still pending independent frontend
+mutation/remaining acceptance evidence. No push, release or installation.
+
+## G4 / S29 receiver identity/bounds/mutation frontier — ADVERSARY — 2026-10-02
+
+Independent evidence on the unchanged local product patch
+`edefdcde3c286cebb93bb0fe28409435915ad085514015bbc1045563a95a31a0`:
+
+| Executed check | Result | Log SHA-256 |
+| --- | --- | --- |
+| LifecycleOrdering + WireBounds + CertificateIdentity + gravity-roundtrip real-client baseline | BUILD SUCCESSFUL **3m10s**, four classes and clean teardown | `340135a1090954fd258f726e50eebb17efe0a1aa7cc97117dd53a34cd162468b` |
+| Real-client two-support baseline | BUILD SUCCESSFUL **2m38s**, valid neighbor cannot supply missing target authority; equal serials remain partitioned | `666a9fca9c782c47a4e42571c1f0861881c671b7bcf39d9d31a4345374d9b259` |
+| Compiled frontend mutations | **9 killed by specific runtime assertions**, covering the eight minimum S29 families with separate epoch/dimension rows | Individual hashes in the verified inventory below |
+
+Mutation rows: inference, binding, tracking, epoch, dimension, nearest,
+material-barrier, bound and cross-support. Sources are copied outside the checkout
+and substituted only in generated compilation inputs. No production source file
+is rewritten. Compile failures/timeouts/unrelated errors do not count as kills.
+The initial PowerShell stderr harness interruption and the initially unrecognized
+earlier valid nearest assertion are classified in the adversary's execution
+record; neither was misreported as a completed campaign row.
+
+Reproduction: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/s29_adversarial_frontend_campaign.ps1`.
+Use `-Mutations binding` (or another named row) to isolate one mutant. Original
+positive baseline selectors and exact assertions are recorded in
+`sprints/S29-adversarial-recertification.md`. The default UNAVAILABLE oracle and
+its separate gravity-roundtrip mode both have positive evidence; the latter was
+selected for the material-barrier mutation.
+
+Logs: `../s29-lifecycle-frontend-baseline-green.log`,
+`../s29-cross-support-green.log` and `../s29-front-<mutation>.log`.
+IMPLEMENTER verified all **12** hashes in `../s29-frontend-evidence-hashes.json`
+(two baselines, nine mutants and locality probe), inventory SHA-256
+`1b4eaefb159fb41c0f50df72d7aa62522689ff598b0dad1320eeac74eda1307e`.
+The recorded frontend source hashes match the working tree and the complete local
+production patch hash remains unchanged. Original compilation was restored by
+omitting mutation properties, and ADVERSARY recorded BUILD SUCCESSFUL in 20s.
+
+Independent final receiver-frontier review requested zero production changes.
+This completes minimum frontend mutation-family sensitivity, not G4.5 closure:
+dedicated/reconnect/catalog/dimension transitions, longer heap/GC/fan-out,
+applicable visual/contact snapshots and complete acceptance review remain open.
+`presentationContact` still consumes CURRENT_ENDPOINT; certified-contact selection
+is not falsely claimed by these tests. G4.6 has not started.
+
+### Final combined original-source client regression
+
+After adding the seven adversarial proof registrations to ordinary client
+metadata, IMPLEMENTER executed all **nine** S29 proof classes together on the
+unchanged product patch above: the prior six plus LifecycleOrderingProof,
+WireBoundsProof and CrossSupportProof. Same isolated selector and implementer
+joint build directory; no mutation properties, default UNAVAILABLE mode.
+BUILD SUCCESSFUL in **2m59s**, exit 0 and clean client/server teardown.
+
+Observed early-certificate continuity across binding-only/tracking-only/both
+restart axes; missing/stale before endpoint fail-closed; positive 128-certificate
+boundary; 129th certificate sticky saturation followed by newer-tracking recovery;
+foreign valid authority cannot supply missing target authority; equal material
+serials remain UUID-partitioned. Prior ROOT, DERIVED_CARRY, JOINT and identity
+proofs all completed in that same process. The separate independent gravity-mode
+baseline above covers the additional roundtrip barrier.
+
+Log: `../s29-receiver-final-client.log`, SHA-256
+`004bd7034cb5fb86a3348761acb5ed1ed66f233edafffaec3b5c425eea6e5bfe`.
+Product patch SHA-256 remained
+`edefdcde3c286cebb93bb0fe28409435915ad085514015bbc1045563a95a31a0`.
+Ordinary server result remains 459/459 on this production source; later changes
+are client test registrations/tooling/documentation. Manifest registration has no
+duplicates and `git diff --check` passed. Both roles' final receiver-frontier
+reviews requested zero new production changes; complete G4.5 remains open.
+
+## G4 / S29 catalog rollback and reconnect — IMPLEMENTER — 2026-10-02
+
+Catalog provider-seam regressions use production reload and live published query
+frames: accepted reload retires old interval authority; rejected reload retains
+the exact accepted provider and interval authority. These are provider-seam
+proofs, not independent wire certification evidence. Initial syntax/access and
+pre-first-pose fixture failures were classified before corrections.
+
+Real-client `S29ImplementerRejectedCatalogClientProof` reproduced NFR-016:
+BINDING deactivated physics, rejected candidate restored READY/presentation, but
+the accepted support remained unregistered. Clearing only the registration cache
+at deactivation repaired recovery; accepted revision, presentation and physical
+queries recovered. RED log `../s29-catalog-rollback-red.log`, SHA-256
+`85adf3a62cb65dab61deef2cc799caa2f51b7a6b98a33069910ba38387b9f48a`;
+GREEN log `../s29-catalog-rollback-green.log`, BUILD SUCCESSFUL **3m35s**, SHA-256
+`3ace898e7fd943964bc03fd1fa89593f3c2423fdd58f156ef8c4dcdf5de329e4`.
+Ordinary build at this intermediate source passed **461/461**, 5m18s,
+`../s29-catalog-final-build.log`, SHA-256
+`b65e98e1764dd7a54f09df0d2dac214b02a0d5d5145f77f66f964bfd34e47069`.
+
+The subsequently revealed dedicated reconnect failure (NFR-017/FR-080) required
+strict retirement of old tracking windows. Bounded fences now survive socket
+replacement only for the same accepted epoch/revision. Geometry, catalog,
+certificates, contacts and receipts are still discarded; quiet TTL recovery
+remains distinct from explicit lifecycle retirement. An explicit barrier also
+closes quiet tombstones whose full histories had already expired. Closing windows
+is a lifecycle-only bounded pass over at most 4096 scopes, not a packet/query hot
+loop. Original locality probe passed again: target query visits three of 4096
+scopes, unrelated UUID visits none; budget reuse and saturation remain intact.
+Log `../s29-reconnect-locality.log`, SHA-256
+`dcc5ca6498d28e2f5f3a2892954418c49c74d2ee6d5157581655aa51939a9875`.
+
+Ordinary build after reconnect repair passed **462/462 required server tests**,
+BUILD SUCCESSFUL **7m58s**, `../s29-reconnect-final-build.log`, SHA-256
+`140657ca00212cab6a63b621d8bf19ac61438e1fc8ce1b49417d7acf724c3102`.
+The unchanged revealed dedicated early-reconnect property also passed in
+IMPLEMENTER's isolated build/cache/run directories, BUILD SUCCESSFUL **11m22s**,
+`../s29-implementer-early-reconnect-green.log`. Independent reconnect recovery,
+combined client checks and source/evidence freeze follow. This entry does not
+close S29/G4.5 or claim whole-matrix visual/performance/contact acceptance.
+
+IMPLEMENTER's combined **ten-class** original-source client battery passed,
+BUILD SUCCESSFUL **4m57s**, exit 0 and clean teardown. It includes the prior nine
+receiver proofs plus rejected-catalog physical recovery. Log
+`../s29-catalog-reconnect-final-client.log`, SHA-256
+`36f311c680e121bb12e89fe59048f2f94386970f4d027d831d416e5c7fc9dc56`.
+The dedicated early-replay log's SHA-256 is
+`722069f8928a6deb705ba652b0da84e7f15a4c992bf0003fc1efb733eb58b82b`.
+Inventory `../s29-catalog-reconnect-evidence.json` records seven source hashes,
+eleven executed logs and complete production patch SHA-256
+`970077a86cd75802ce50eb95e27e6d085b28cc4004083e2b4c3428f1ee222c36`.
+That text patch includes a post-run Javadoc correction to saturation ownership;
+executable production code did not change after the successful checks.
+Independent catalog/reconnect frontier review completed as recorded below.
+
+### Independent frontier acceptance — 2026-10-03
+
+ADVERSARY independently passed catalog rollback with honest digest/invalid JSON
+and normal persistent dedicated reconnect in one lane, BUILD SUCCESSFUL 2m32s,
+clean teardown. Log `../s29-adversarial-catalog-normal-reconnect.log`, SHA-256
+`568972ed8157843f66f5dd29f0376957af191de3c1d098a2c858ac2c304d2801`.
+Its separate original early-replay lane passed `authoritative=false` and closed
+cleanly, log `../s29-adversarial-early-reconnect-green.log`, SHA-256
+`2abc0a73aea9ac833a95d07d7c67d0bbcd5687d30ec2bb2e6cce497a9ccca333`.
+The latter spans a host-clock discontinuity; printed 5h4m46s is not performance
+evidence. Expanded independent strict-window/locality probe also passed, log
+`../s29-adversarial-replay-closed-window-green.log`, SHA-256
+`dd1c08993c72940d9071953c38407b13ee689da05621d85c3ffc9b4d79fbffc7`.
+
+IMPLEMENTER then reproduced the revealed catalog proof without modifying it,
+BUILD SUCCESSFUL 1m49s, clean teardown. Log
+`../s29-implementer-adversarial-catalog.log`, SHA-256
+`14c75c5ffb1406ed44e02780e8730613b143a0ec66187f7d756ab98de7bc00fb`.
+The prior adversarial run reached green assertions but blocked during Fabric's
+integrated-server cleanup. It remains infrastructure evidence, not a completed
+successful build. ADVERSARY's two-tick fixture cleanup repair was repeated cleanly
+by both roles; production was unchanged. Its thread dump and inconclusive log are
+preserved separately in the adversarial sprint record.
+
+IMPLEMENTER verified the independent client/fence source inventory against the
+frozen production and all eleven evidence hashes. Both roles' final complete
+review of this frontier requested zero production changes. This closes the tested
+catalog rejection and persistent reconnect defect frontier, not S29/G4.5: full
+accepted-catalog client/dimension/permutation matrix, applicable visual/contact
+snapshots, sustained heap/GC/fan-out and whole-sprint review remain open. No G4.6
+work or publication occurred.
+
+## G4 / S29 accepted catalog live-client development proof — IMPLEMENTER — 2026-10-03
+
+`S29ImplementerAcceptedCatalogClientProof` used a real prepared cow, a genuine
+server-issued ROOT certificate, a valid `AnatomyRuntime.reload` from test resources,
+and a second real ROOT move. The same client process rejected the old revision's
+certificate, recovered current presentation plus physical query on the committed
+revision, and materialized a fresh exact certificate with higher binding generation.
+BUILD SUCCESSFUL **1m42s**, exit 0 and clean teardown. Log
+`../s29-accepted-client-third.log`, SHA-256
+`64a6b5557bebe846dd7b0643f6c58afd4ae58be3dbc1cdfe8c5695837a03af50`.
+
+The subsequent ordinary build passed **462/462 required server GameTests**,
+BUILD SUCCESSFUL **1m51s**. Log `../s29-accepted-ordinary-build.log`, SHA-256
+`91ddb0406d8703cc72106e4abb8f4d121922dfaafaac039d64b1213ec15a5329`.
+The first client attempt failed before reload because its fixture asserted physical
+registration before the next client tick. A second attempt was blocked at compile
+by a concurrently authored adversarial fixture's package access, which ADVERSARY
+corrected in test code. Neither is classified as a production failure or a
+successful acceptance run. All seven production source hashes remained equal to
+`../s29-catalog-reconnect-evidence.json`; independent dimension/catalog review
+and the complete G4.5 acceptance matrix remain open.
+
+### Independent accepted replacement and dimension transitions — 2026-10-03
+
+ADVERSARY's real-client fixture accepted a replacement model/binding, rejected a
+captured older catalog bundle and interval, and materialized a new certified ROOT
+interval. It then completed an active Overworld-Nether-Overworld round trip with
+fresh tracking, followed by an early replay round trip inside TTL with publication
+stopped before fresh pose. The three PASS markers appeared with clean teardown,
+BUILD SUCCESSFUL **1m6s**: `../s29-adversarial-catalog-dimension-scoped.log`,
+SHA-256 `9f35fd6daadd14eacc49d4c1409df246e1ae51fb0cba103effc1d69861a28bc0`.
+IMPLEMENTER reviewed the revealed fixture and independently repeated the same
+three assertions with clean teardown, BUILD SUCCESSFUL **1m12s**:
+`../s29-implementer-catalog-dimension.log`, SHA-256
+`8d6886230120b0774b46ae0281b6271c8f200b499911316a74d2b15982381634`.
+The adversarial source-hash inventory matches current client networking, runtime
+and replay fence files. Earlier fixture diagnostics (invalid model source, physical
+ready ordering and reused numeric material serial) were classified and corrected
+only in test code, as recorded in its sprint execution record. No production
+source changed in this slice. G4.5 remains open for broader connection/contact
+permutations, visual/contact snapshots, sustained heap/GC/fan-out and final review.
+
+## G4 / S29 certified-inbox virtual-clock soak — IMPLEMENTER — 2026-10-03
+
+The isolated `S29ImplementerIntervalSoak` GameTest ran a 12,000-tick **virtual**
+receiver clock over 16 independent inboxes and 64 supports, publishing one
+independently allocated certificate per support/recipient every four virtual
+ticks. It accepted 3,073,024 exact
+certificates, retained at most 26 live entries per support, and kept all 64
+support identities per inbox without saturation. Settled heap after explicit GC
+at ticks 6,000/12,000 was 237,681,888 / 237,685,832 bytes; six GC cycles
+occurred across the run. Both selected GameTests passed and the server shut down
+cleanly: `../s29-implementer-interval-soak.log`, SHA-256
+`737d13062927261a446ab6054cf5bdbdd96dee7b96da1a901c951b994dae3d0c`.
+This is bounded retention evidence for the S29 receiver. The synchronous
+virtual-clock workload does not measure real server TPS, packet fan-out, bodies,
+rendering or NFR-014's baseline-relative p95/p99 budget; those remain separate
+acceptance work. No production code changed for this probe.
+
+## G4 / S29 contact replay over persistent-server reconnect — 2026-10-03
+
+ADVERSARY's real-client `S29AdversarialContactLifecycleProof` captured a genuine
+confirmed passive pig-on-cow contact, disconnected from a persistent dedicated
+server, cleared its server contact, and replayed the old packet after the same
+catalog and fresh support tracking had arrived. The original candidate was
+RED: `presentationContact` returned authority for that old packet while
+`physicalSupported=false` (`../s29-adversarial-contact-reconnect-dimensions.log`).
+This was an NFR-017/FR-080 client lifecycle defect: disconnect and same-catalog
+reacceptance erased contact ordering watermarks. IMPLEMENTER now preserves only
+the bounded watermark across socket replacement for the same accepted
+`(epoch,revision)` and clears it for a different catalog identity. The exact
+holdout passed unchanged: `../s29-implementer-contact-fix.log`, SHA-256
+`42fbd8e23ab571c0ac574e38f2ad345a7fc6e594a5c734f299305bfa1cbfbfa1`,
+BUILD SUCCESSFUL 1m42s, clean shutdown. Old replay returned
+`authoritative=false physicalSupported=false`; a new generation's contact
+then materialized. Independent retest and affected-suite closure are pending.
+
+The expanded ordinary client run stopped in the older
+`S00ClientBoundaryTests` before reaching the newly registered S29 proofs:
+`Fixture did not record the actual applied delta`. The same S00 fixture failed
+alone (`../s29-s00-isolated-baseline.log`, SHA-256
+`d742f4f9bcd2993aff566b27b347db167494f1c625b8e7cce3abc6c755ab0e0f`).
+It attempted to record a server receipt without first opening the recipient's
+self-tracking window; that read became pure in S24. The test-only fixture now
+starts an empty prepared runtime and verifies the explicit window before its
+receipt assertion. The unchanged isolation assertions passed alone:
+`../s29-s00-isolated-repaired.log`, SHA-256
+`be516463f75b7b5ae7705eb6312f224408e9464aeb792daa1f2ce48d5913b65b`,
+BUILD SUCCESSFUL 1m28s. This is a fixture repair, not a production receipt
+change; the expanded whole-client suite still needs rerun.
+
+ADVERSARY then varied only the captured old contact's sequence and reproduced
+another RED after the first fix: an unseen later sequence from the retired
+body tracking generation revived presentation (`../s29-adversarial-contact-delayed-window.log`,
+SHA-256 `af75dbf9deb9e33f14d078622df6ce5572fbc1a4cc1598da7bcf42cc0dbd0b49`).
+The client now retires the **entire** observed body tracking generation at
+every level/socket barrier, retaining only a scalar in its bounded contact
+entry. The same delayed-window holdout passed with old replay absent and a
+fresh-generation positive control present: `../s29-implementer-contact-delayed-fix.log`,
+SHA-256 `f1fa1ec5ab8501d9f7bd859c6ce3356a09c99fb129298de8bda794f524cd8bdf`,
+BUILD SUCCESSFUL 1m32s.
+
+A development GameTest also proved that two recipient ledgers on one server
+could reuse `old=1 fresh=1` (`../s29-recipient-generation-red.log`, SHA-256
+`f15bf873c05c1d5c9536dba328959ac0624ca35a50304e82d61bb85fbe422a94`).
+Server tracking windows now allocate from one monotonic scalar across
+recipients for that server, without retaining retired UUIDs. The same test
+passed 2/2: `../s29-recipient-generation-repaired.log`, SHA-256
+`687e51f545cbd7cee7e01b3f9b3b7b10757baa46512b864f86535ba09ef4404b`,
+BUILD SUCCESSFUL 39s. This closes the proved generator reuse, pending
+independent retest and the full affected suites.
+
+The ordinary build after strict contact-window retirement, shared server
+tracking generation and the S00 fixture repair passed **462/462** required
+server GameTests and `build`, with clean shutdown:
+`../s29-ordinary-after-contact.log`, SHA-256
+`a5e178fc3fc82c2f6a00e686161c78ce80b2bde34b5a2917d424648084d0f23a`,
+BUILD SUCCESSFUL 1m29s. The recipient-generation regression was registered in
+the ordinary manifest after this run and therefore requires the final ordinary
+rerun.
+
+The expanded ordinary client battery passed through all registered client
+GameTests, including the repaired S00 boundary, accepted/rejected catalog,
+A-B-A dimension, interval identity/order/bounds and cross-support proofs:
+`../s29-default-client-after-contact.log`, SHA-256
+`fc73fc5e012bc96dda25c8e932b4f8d50f29b153d63760c756897950d450722c`,
+BUILD SUCCESSFUL 4m25s with clean integrated-server shutdown. The Mojang
+profile-key HTTP 401 messages in the offline test client did not fail the run.
+This battery predates final live-contact adversarial confirmation and does not
+by itself close G4.5.
+
+The final ordinary build, now including the recipient-generation regression
+in the default server manifest, passed **463/463** required GameTests and
+`build`: `../s29-ordinary-final-candidate.log`, SHA-256
+`99b8f2ea0c211b59b313fcd28f251e3081e0697a70261bbca603f75b6d14d79b`,
+BUILD SUCCESSFUL 1m44s, clean test-server shutdown.
+
+ADVERSARY repeated the exact and unseen-later-sequence contact replays over
+real dedicated reconnect and integrated A-B-A dimension transitions on the
+current repair. `../s29-adversarial-contact-final-delayed.log`, SHA-256
+`59c0fd949b558efd1db9abc79a49e2c6e861b118dc6eedb3f0608b6159fc17ff`,
+passed in 1m25s with clean shutdown. A separate no-injection holdout obtained
+both contacts from the real solver and compared actual server/client body
+generations across two sockets of the same persistent server: **3 -> 6**;
+catalog identity stayed equal, the observer remained passive and the new
+contact became drawable and physically supported. Its log is
+`../s29-adversarial-contact-final-exact-live-port.log`, SHA-256
+`8fb9accd00f8296449c131fa20584fafbaa8a797e5b0e414b73de6c85e17cdf27`,
+BUILD SUCCESSFUL 1m28s with clean shutdown. The first attempted live run was
+blocked by concurrent test servers using port 25565 and is not product evidence.
+
+The independent final-candidate client repetition selected 13 ADVERSARY proof
+classes and passed: `../s29-adversarial-final-candidate-client.log`, SHA-256
+`d7a34216f5af622502d43a44d7aa67724b15afee3e7ec4699c38ef74f61b6f51`,
+BUILD SUCCESSFUL 2m25s. The final presentation-work server holdouts passed
+3/3, with no duplicate first-joint evaluation and no additional joint
+evaluation when alternating current/historical endpoints:
+`../s29-adversarial-final-presentation-work.log`, SHA-256
+`93a240320aea339605776eab191a17e9ea0cfabe9b81830bfde5ff253ec64afa`,
+BUILD SUCCESSFUL 38s. The independent source-level inbox campaign killed
+eight targeted mutants on the final candidate:
+`../s29-adversarial-final-inbox-mutants.log`, SHA-256
+`9e7c4d9e70fceef89976c54d209af14ac65aab8a6986664868ad254115a94154`.
+These are causal/order/bounds and structural-work results; the global sustained
+network/tick benchmark and real-renderer acceptance are separate.
+
+## G4 / S29 changing-fraction presentation preparation — 2026-10-03
+
+ADVERSARY's real-client batch proof built 64 tracked anatomical supports and
+queried the same certified endpoint pair at changing fractions. A disposable
+observational copy of `HierarchyMotion` counted 64,000 invariant motion
+preparations in 1,000 one-consumer batches on the preceding candidate:
+`../s29-adversarial-presentation-preparation-counter-retry.log`, BUILD FAILED
+at the explicit HOT_PRESENTATION assertion. The associated uninstrumented
+batch measured about 6.77 MB allocated and p95 5.84 ms per 64-support
+one-consumer batch (`../s29-adversarial-presentation-batch-repeat.log`). This
+is a repeated-preparation defect, not a measured violation of G9/NFR-014.
+
+IMPLEMENTER cached one prepared motion per live entity and exact endpoint
+pair, leaving fraction-specific geometry evaluation and all receiver authority
+checks in place. The unchanged instrumented holdout then passed:
+`../s29-implementer-motion-preparation-fix.log`, SHA-256
+`662f677a2765fad9cd2b7a87976ea067f5539b5fcde17d841680d2e178f09ad9`,
+BUILD SUCCESSFUL 1m40s with clean shutdown. It recorded **zero** repeated
+motion preparations and zero duplicate joint evaluations under 64 supports;
+one-consumer changing-fraction allocation was 2,274,153 bytes/batch and p95
+3.105 ms, while 16-consumer batching was 3,095,552 bytes/batch and p95
+3.189 ms. Both are synthetic render-query batches under a frozen server clock,
+not real-tick p95/p99/TPS or the full NFR-014 workload. The new material
+evaluation still allocates for each distinct fraction; this measurement does
+not erase that remaining cost. Default suites and independent retest follow.
+
+The ordinary server build after this cache repair passed **463/463** required
+GameTests and `build`, with clean shutdown: `../s29-ordinary-after-motion-cache.log`,
+SHA-256 `08df1529668945aa502594a5cc6066d3d0bbaf1e3ac8cf80491a253b61128738`,
+BUILD SUCCESSFUL 1m21s. The full default client suite and independent
+adversarial repetition were then run on the same source candidate.
+
+The expanded default client battery after the repair passed:
+`../s29-default-client-after-motion-cache.log`, SHA-256
+`81014b605840b1e5bf37277ee2457a728525bfb4d5264f9b9a8b48d048e00715`,
+BUILD SUCCESSFUL 4m46s, clean integrated-server shutdown. The independent
+instrumented presentation repetition passed with zero repeated preparation
+and zero duplicate joints:
+`../s29-adversarial-presentation-preparation-repaired.log`, SHA-256
+`8df997b797b04911024d96562991297aeca82b6f0b7b146376fc755524d8444a`,
+BUILD SUCCESSFUL 1m45s. ADVERSARY's separate full client repetition passed:
+`../s29-adversarial-preparation-repair-full-client.log`, SHA-256
+`63e0a97e067ab5f33925add86e49dc080c0aaeaa569711aae3a2ff4e2541c206`,
+BUILD SUCCESSFUL 2m40s. The independent barrier-specific run passed:
+`../s29-adversarial-preparation-repair-barriers.log`, SHA-256
+`e054b3242d8c3b07065de786d8018bda0b14f26dc90dfc1348ef083189cf0620`,
+BUILD SUCCESSFUL 1m32s with clean exit. Three affected server presentation-work
+holdouts passed:
+`../s29-adversarial-preparation-repair-server-work.log`, SHA-256
+`54d99a40b9f3f5790a568cb908c45951823cec400ebc64199bdf256d8aa5635e`,
+BUILD SUCCESSFUL 39s with clean exit. ADVERSARY compared the candidate's nine
+productive hashes with its pre-run snapshot, checked the source diff, and gave
+a GREEN whole-sprint S29/G4.5 zero-change verdict. Its matrix and the applicable
+ROOT/JOINT/contact visual inspection are recorded in
+`docs/sprints/S29-adversarial-recertification.md`. These results close S29's
+certified primitive; they do not claim the G9 real-tick NFR-014 benchmark or
+the G4.6 renderer/residual/camera consumer.
+

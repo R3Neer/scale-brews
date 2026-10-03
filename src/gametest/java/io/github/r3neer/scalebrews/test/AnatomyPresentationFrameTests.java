@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.model.animal.cow.CowModel;
@@ -40,6 +41,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
         var rootUpdate=new AtomicReference<GeometryProvider.PublishedFrame>();
         var unavailableUpdate=new AtomicReference<GeometryProvider.PublishedFrame>();
         var recoveredUpdate=new AtomicReference<GeometryProvider.PublishedFrame>();
+        var trackingGeneration=new AtomicLong();
         var world=context.worldBuilder().create();Throwable failure=null;
         try {
             world.getServer().runOnServer(server->boot(server,geometry,profile,cowId));
@@ -59,13 +61,15 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
             world.getServer().runOnServer(server->{
                 var cow=(Cow)server.overworld().getEntity(cowId.get());
                 var published=AnatomyMovement.publishedFrame(cow).orElseThrow();latest.set(published);
+                trackingGeneration.set(AnatomyRuntime.trackingGeneration(server.getPlayerList().getPlayers().getFirst(),cow));
+                if(trackingGeneration.get()<1)throw new AssertionError("Presentation fixture has no live recipient tracking authority");
                 // Stop only after capturing the core-produced full frame. It
                 // prevents the live publisher from racing the deliberately
                 // ordered receiver inputs below; every injected packet still
                 // uses the real PublishedFrame codec, never render state.
                 AnatomyRuntime.stop(server);
                 var next=rootOnly(published,published.endpoint().frameSerial()+1,new Vec3(7,3,-2),33);rootUpdate.set(next);
-                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next,trackingGeneration.get());
             });
             context.waitFor(client->{
                 var entity=client.level==null?null:client.level.getEntity(cowId.get());
@@ -81,7 +85,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                 if(frame.kind()!=AnatomyClientNetworking.PresentationKind.CURRENT_ENDPOINT || frame.before()!=frame.after() || frame.fraction()!=1)
                     throw new AssertionError("Two ordered endpoints without a server interval certificate must not fabricate CERTIFIED_INTERVAL");
             });
-            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),latest.get()));
+            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),latest.get(),trackingGeneration.get()));
             context.waitTicks(3);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(cowId.get());
@@ -90,7 +94,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
             });
             world.getServer().runOnServer(server->{
                 var next=unavailable(rootUpdate.get(),latest.get().endpoint().frameSerial()+2);unavailableUpdate.set(next);
-                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next,trackingGeneration.get());
             });
             context.waitFor(client->{
                 var entity=client.level==null?null:client.level.getEntity(cowId.get());
@@ -102,7 +106,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
             });
             world.getServer().runOnServer(server->{
                 var next=availableAfterGap(unavailableUpdate.get(),latest.get().endpoint().frameSerial()+3,new Vec3(-3,5,1),-12);recoveredUpdate.set(next);
-                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next);
+                AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),next,trackingGeneration.get());
             });
             context.waitFor(client->{
                 var entity=client.level==null?null:client.level.getEntity(cowId.get());
@@ -119,7 +123,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
                     throw new AssertionError("Available endpoint after an unavailable gap did not reacquire a fresh static frame");
             });
             long reboundBinding=latest.get().identity().bindingGeneration()+1;
-            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),rebound(recoveredUpdate.get(),latest.get().endpoint().frameSerial()+4,new Vec3(2,4,8),reboundBinding)));
+            world.getServer().runOnServer(server->AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),rebound(recoveredUpdate.get(),latest.get().endpoint().frameSerial()+4,new Vec3(2,4,8),reboundBinding),trackingGeneration.get()));
             context.waitFor(client->{
                 var entity=client.level==null?null:client.level.getEntity(cowId.get());
                 return entity instanceof Cow cow && AnatomyClientNetworking.presentationFrame(cow)

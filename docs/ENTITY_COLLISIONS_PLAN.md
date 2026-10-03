@@ -166,7 +166,7 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 2. [x] prediction sólo para player/controlled vehicle local;
 3. [x] observer path sin carry local;
 4. [x] reconciliación sin double-apply ni drift;
-5. [ ] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
+5. [x] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
 6. [ ] residual visual/camera en única capa `client.collision.presentation`;
 7. [ ] dedicated `allow-flight=false` 0/100/200 ms y late tracking/reconnect.
 
@@ -174,9 +174,47 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **G4.5 / S29 — presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
+**Prioridad G4 vigente:** **G4.6 — residual visual/cámara en la capa de presentación cliente**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
 
 **S29 adversarial baseline RED / G4.5:** `CERTIFIED_INTERVAL` existe sólo como enum reservado. Presence run `37006651350`, job `110836393829`, falla exactamente porque no hay constructor/factory productiva, `PresentationFrame` aún rechaza todo no-`CURRENT_ENDPOINT` y no existe certificación S2C de material interval. Ordinary del mismo snapshot `37006651353` es verde. Threat model/handoff: `docs/sprints/S29-g4-certified-presentation.md`.
+
+**S29 candidato IMPLEMENTER en recertificación (2026-10-02):** el HEAD remoto
+`a54031b9` ya incorpora certificación S2C y materialización exacta de intervalos;
+el RED anterior describe sólo su baseline histórico. La tanda actual repara
+replay tras TTL, retención a través de unavailable/gravity, caducidad de endpoints,
+publicación de endpoints intermedios y DERIVED_CARRY, llegada del certificado
+antes del nuevo lifecycle y reutilización de joint samples en presentación.
+La continuación añade prueba JOINT real sin cambio de root y localiza la consulta
+de replay fences por UUID/dimensión; build local **459/459** y batería final de
+**nueve proofs cliente** verdes. La campaña independiente mata nueve mutantes
+frontend compilados de las ocho familias mínimas; revisión de esta frontera de
+receiver sin nuevos cambios. G4.5 conserva pendientes las transiciones completas
+dedicated/reconnect/catalog/dimension, heap/GC/fan-out y snapshots visual/contact
+aplicables; esa frontera parcial no declara cerrado el sprint completo.
+Registro IMPLEMENTER: `docs/sprints/S29-implementer-recertification.md`.
+**Continuación local S29 (2026-10-03):** rechazo de catálogo y reconexión con
+servidor persistente recertificados por ambos roles. La revisión aceptada retira
+el intervalo anterior y materializa un nuevo intervalo ROOT en cliente real;
+un modelo/binding de reemplazo y dos vueltas reales A-B-A, incluida la repetición
+antigua dentro del TTL antes de pose fresca, pasaron por ambos roles. La
+reparación posterior del replay de contacto cierra la generación anterior en
+reconexión y cambio de dimensión; un contacto genuino del solver avanza de 3 a 6
+en el mismo servidor. El build ordinario final pasa **463/463** y la batería
+cliente ampliada pasa completa. Los snapshots deterministas de geometría/contacto
+y el soak virtual del receiver ya estaban registrados. En ese punto seguía
+pendiente la revisión adversarial de rendimiento/evidencia; G4.6 aún no se
+había iniciado.
+**Cierre S29 / G4.5 (2026-10-03):** el candidato reparado pasa 463/463 GameTests
+ordinarios y la batería cliente ampliada. La repetición ADVERSARY pasa 14 clases
+cliente, barreras específicas de gravedad/reconexión temprana, tres holdouts
+servidor y el holdout instrumentado de 64 soportes sin preparación repetida
+después del warm-up. Las mutaciones de las familias mínimas están muertas; el
+soak virtual bounded de receiver y los snapshots ROOT/JOINT/contacto pasan.
+Los hashes productivos permanecen intactos en la pasada adversarial final, que
+no pide cambios. Evidencia: `docs/sprints/S29-adversarial-recertification.md`,
+`docs/sprints/S29-implementer-recertification.md` y `docs/VALIDATION.md`.
+El benchmark normativo integrado de NFR-014 sigue en G9 y el consumidor real
+de renderer/residual/cámara en G4.6.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
@@ -241,6 +279,10 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 4. [ ] QA humana de superficies animadas, cámaras, cadenas, vehículos y pack;
 5. [ ] artefactos sólo tras gates obligatorios;
 6. [ ] sin tag/release/publicación/instalación salvo instrucción explícita.
+
+**Intervenciones del propietario aplazadas hasta cerrar la épica completa (no al cerrar un sprint):**
+
+- [ ] QA humana de la versión candidata exacta en el entorno de aceptación: superficies animadas, cámara, cadenas de soportes, vehículos y pack, incluidos los objetivos visuales Fresh Animations/EMF de G8. Los agentes preparan builds, casos reproducibles, capturas y resultados automáticos antes de solicitar el veredicto. Se añadirán aquí únicamente necesidades humanas reales que aparezcan durante la épica; ninguna detiene por sí sola el trabajo independiente anterior.
 
 ## 4. Dependencias
 

@@ -292,7 +292,9 @@ public final class MaterialPhysicsRuntime {
                     || bounds.getYsize()>MAX_ENVELOPE_SPAN || bounds.getZsize()>MAX_ENVELOPE_SPAN)return null;
             try {
                 var interval=new MaterialEventDispatcher.MaterialInterval(handle,bounds);
-                derivedMotions.put(handle,motion);return interval;
+                derivedMotions.put(handle,motion);
+                AnatomyRuntime.publishInterval(support,handle);
+                return interval;
             } catch(RuntimeException rejected){return null;}
         }
         private TreeMap<String,ConservativeSweep.Motion> scopedPieces(MaterialEventDispatcher.Event<Entity> event,

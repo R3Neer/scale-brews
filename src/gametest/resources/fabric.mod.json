@@ -104,7 +104,11 @@
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReferenceV2Tests",
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptPublicationBoundaryTests",
       "io.github.r3neer.scalebrews.collision.internal.S25ReceiptTokenInboxTests",
-      "io.github.r3neer.scalebrews.test.S28BaselineOwnershipTests"
+      "io.github.r3neer.scalebrews.test.S28BaselineOwnershipTests",
+      "io.github.r3neer.scalebrews.collision.internal.S29ImplementerEndpointRetentionTests",
+      "io.github.r3neer.scalebrews.collision.internal.S29ImplementerCatalogIntervalTests",
+      "io.github.r3neer.scalebrews.collision.internal.S29ImplementerRecipientGenerationTests",
+      "io.github.r3neer.scalebrews.test.S29AdversarialPresentationWorkTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
@@ -118,7 +122,18 @@
       "io.github.r3neer.scalebrews.test.S18ZeroDurationCompilerClientTests",
       "io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof",
       "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests",
-      "io.github.r3neer.scalebrews.test.S26ControlHandoffClientProof"
+      "io.github.r3neer.scalebrews.test.S26ControlHandoffClientProof",
+      "io.github.r3neer.scalebrews.test.S29ImplementerJointPresentationProof",
+      "io.github.r3neer.scalebrews.test.S29ImplementerRejectedCatalogClientProof",
+      "io.github.r3neer.scalebrews.test.S29ImplementerAcceptedCatalogClientProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialCatalogDimensionProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialUnavailableReplayProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialDerivedPresentationProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialCertificateIdentityProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialLifecycleOrderingProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialWireBoundsProof",
+      "io.github.r3neer.scalebrews.test.S29AdversarialCrossSupportProof"
     ]
   }
 }
