@@ -71,13 +71,14 @@ public final class AnatomyClientNetworking {
     public enum PresentationKind { CURRENT_ENDPOINT, CERTIFIED_INTERVAL }
     public static final class PresentationFrame {
         private final PresentationIdentity identity;
+        private final long trackingGeneration;
         private final GeometryProvider.CausalEndpoint before,after;
         private final double authorityTime,fraction;
         private final PresentationKind kind;
         private final HierarchyMotion.EvaluatedFrame evaluated;
-        private PresentationFrame(PresentationIdentity identity,GeometryProvider.CausalEndpoint before,GeometryProvider.CausalEndpoint after,
+        private PresentationFrame(PresentationIdentity identity,long trackingGeneration,GeometryProvider.CausalEndpoint before,GeometryProvider.CausalEndpoint after,
                 double authorityTime,double fraction,PresentationKind kind,HierarchyMotion.EvaluatedFrame evaluated) {
-            if(identity==null || before==null || after==null || !Double.isFinite(authorityTime) || !Double.isFinite(fraction)
+            if(identity==null || trackingGeneration<1 || before==null || after==null || !Double.isFinite(authorityTime) || !Double.isFinite(fraction)
                     || fraction<0 || fraction>1 || kind==null || evaluated==null)throw new IllegalArgumentException("Invalid presentation frame");
             if(kind==PresentationKind.CURRENT_ENDPOINT) {
                 if(before!=after || fraction!=1 || authorityTime!=before.authorityTick())
@@ -91,17 +92,18 @@ public final class AnatomyClientNetworking {
                         || Double.compare(authorityTime,expected)!=0)
                     throw new IllegalArgumentException("Invalid certified presentation interval");
             }
-            this.identity=identity;this.before=before;this.after=after;this.authorityTime=authorityTime;this.fraction=fraction;this.kind=kind;this.evaluated=evaluated;
+            this.identity=identity;this.trackingGeneration=trackingGeneration;this.before=before;this.after=after;this.authorityTime=authorityTime;this.fraction=fraction;this.kind=kind;this.evaluated=evaluated;
         }
-        private static PresentationFrame current(PresentationIdentity identity,GeometryProvider.CausalEndpoint endpoint,HierarchyMotion.EvaluatedFrame evaluated) {
-            return new PresentationFrame(identity,endpoint,endpoint,endpoint.authorityTick(),1,PresentationKind.CURRENT_ENDPOINT,evaluated);
+        private static PresentationFrame current(PresentationIdentity identity,long trackingGeneration,GeometryProvider.CausalEndpoint endpoint,HierarchyMotion.EvaluatedFrame evaluated) {
+            return new PresentationFrame(identity,trackingGeneration,endpoint,endpoint,endpoint.authorityTick(),1,PresentationKind.CURRENT_ENDPOINT,evaluated);
         }
-        private static PresentationFrame interval(PresentationIdentity identity,GeometryProvider.CausalEndpoint before,
+        private static PresentationFrame interval(PresentationIdentity identity,long trackingGeneration,GeometryProvider.CausalEndpoint before,
                 GeometryProvider.CausalEndpoint after,double fraction,HierarchyMotion.EvaluatedFrame evaluated) {
             double authorityTime=before.authorityTick()+fraction*(after.authorityTick()-before.authorityTick());
-            return new PresentationFrame(identity,before,after,authorityTime,fraction,PresentationKind.CERTIFIED_INTERVAL,evaluated);
+            return new PresentationFrame(identity,trackingGeneration,before,after,authorityTime,fraction,PresentationKind.CERTIFIED_INTERVAL,evaluated);
         }
         public PresentationIdentity identity(){return identity;}
+        public long trackingGeneration(){return trackingGeneration;}
         public GeometryProvider.CausalEndpoint before(){return before;}
         public GeometryProvider.CausalEndpoint after(){return after;}
         public double authorityTime(){return authorityTime;}
@@ -109,7 +111,7 @@ public final class AnatomyClientNetworking {
         public PresentationKind kind(){return kind;}
         public HierarchyMotion.EvaluatedFrame evaluated(){return evaluated;}
     }
-    private record PresentationCacheKey(PresentationIdentity identity,PresentationKind kind,long materialSerial,
+    private record PresentationCacheKey(PresentationIdentity identity,long trackingGeneration,PresentationKind kind,long materialSerial,
             long beforeFrameSerial,long afterFrameSerial,long fractionBits) {}
     private record CachedPresentationFrame(PresentationCacheKey key,PresentationFrame frame) {}
     public static AnatomyMode mode(net.minecraft.world.entity.Entity entity) {
@@ -245,12 +247,12 @@ public final class AnatomyClientNetworking {
         var endpoint=history.endpoint().orElse(null);
         if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
         var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration());
-        var key=new PresentationCacheKey(identity,PresentationKind.CURRENT_ENDPOINT,0,
+        var key=new PresentationCacheKey(identity,packet.trackingGeneration(),PresentationKind.CURRENT_ENDPOINT,0,
             endpoint.frameSerial(),endpoint.frameSerial(),Double.doubleToLongBits(1));
         var cached=presentationFrames.get(support.getUUID());
         if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
         return evaluator(support,packet).flatMap(evaluator->evaluator.evaluatePresentation(support,endpoint)).map(evaluated->{
-            var frame=PresentationFrame.current(identity,endpoint,evaluated);
+            var frame=PresentationFrame.current(identity,packet.trackingGeneration(),endpoint,evaluated);
             presentationFrames.put(support.getUUID(),new CachedPresentationFrame(key,frame));
             return frame;
         });
@@ -286,12 +288,12 @@ public final class AnatomyClientNetworking {
         if(before==null || after==null)return java.util.Optional.empty();
         var identity=new PresentationIdentity(afterPacket.epoch(),afterPacket.dimension(),afterPacket.entity(),afterPacket.entityId(),
             afterPacket.revision(),afterPacket.model(),afterPacket.provider(),afterPacket.rootProvider(),afterPacket.bindingGeneration());
-        var key=new PresentationCacheKey(identity,PresentationKind.CERTIFIED_INTERVAL,materialSerial,
+        var key=new PresentationCacheKey(identity,afterPacket.trackingGeneration(),PresentationKind.CERTIFIED_INTERVAL,materialSerial,
             before.frameSerial(),after.frameSerial(),Double.doubleToLongBits(fraction));
         var cached=presentationIntervals.get(support.getUUID());
         if(cached!=null && cached.key().equals(key))return java.util.Optional.of(cached.frame());
         return evaluator(support,afterPacket).flatMap(evaluator->evaluator.evaluatePresentation(support,before,after,fraction)).map(evaluated->{
-            var frame=PresentationFrame.interval(identity,before,after,fraction,evaluated);
+            var frame=PresentationFrame.interval(identity,afterPacket.trackingGeneration(),before,after,fraction,evaluated);
             presentationIntervals.put(support.getUUID(),new CachedPresentationFrame(key,frame));
             return frame;
         });

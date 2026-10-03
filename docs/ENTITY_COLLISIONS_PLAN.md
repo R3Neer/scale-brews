@@ -216,6 +216,18 @@ no pide cambios. Evidencia: `docs/sprints/S29-adversarial-recertification.md`,
 El benchmark normativo integrado de NFR-014 sigue en G9 y el consumidor real
 de renderer/residual/cámara en G4.6.
 
+**Cierre S30 / G4.6a (2026-10-03):** el renderer del modelo original usa el
+endpoint/intervalo causal aceptado, valida la geometría del modelo vivo y
+restaura los campos compartidos tras el draw. La revisión adversarial final
+inspeccionó ROOT/JOINT, lifecycle, 512 poses, ocho combinaciones de escala
+signada, siete mutantes y coste de consulta; cero cambios posteriores de
+producción. El build ordinario pasa 463/463 GameTests servidor y la suite
+cliente completa en la tercera ejecución tras dos fallos intermitentes de
+pruebas de catálogo S29, documentados en `docs/VALIDATION.md`. S31 debe cerrar
+el residual/cámara local y S32 la procedencia del observador remoto antes de
+dar G4.6 por cerrado. El plan S31 permanece bajo revisión adversarial; no hay
+implementación S31 aún.
+
 **Salida:** multiplayer autoritativo y prediction estable.
 
 ### G5 — categorías especiales, placement, interacción y retirada del motor legacy

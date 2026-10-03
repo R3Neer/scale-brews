@@ -63,6 +63,15 @@ public final class ModelPartGeometryEngine implements GeometryEngine {
         return Collections.unmodifiableMap(new LinkedHashMap<>(INSTANCE.sources));
     }
 
+    /** One preparation-time inspection of the actual visible model; never call from a render hot loop. */
+    public static ModelGeometry inspectVisible(Identifier model, ModelPart root, Matrix4f modelTransform) {
+        Objects.requireNonNull(model, "model");
+        Objects.requireNonNull(root, "root");
+        Objects.requireNonNull(modelTransform, "modelTransform");
+        return ModelPartGeometryExtractor.extract(model.toString(), "visible", root, java.util.Set.of())
+            .withModelTransform(new Matrix4f(modelTransform));
+    }
+
     @Override
     public Optional<ModelGeometry> prepare(Request request) {
         Objects.requireNonNull(request, "request");

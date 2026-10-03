@@ -69,8 +69,11 @@ public final class S29ImplementerAcceptedCatalogClientProof implements FabricCli
             },160);
             context.runOnClient(client->{
                 var cow=(Cow)client.level.getEntity(supportId.get());
-                if(inbox().certificates(cow.getUUID(),clientTick()).stream().anyMatch(token->token.revision()==prior.revision()))
-                    throw new AssertionError("Accepted catalog retained a prior-revision certificate");
+                var liveCertificates=inbox().certificates(cow.getUUID(),clientTick());
+                if(liveCertificates.stream().anyMatch(token->token.revision()==prior.revision()))
+                    throw new AssertionError("Accepted catalog retained a prior-revision certificate: accepted="
+                        +AnatomyClientNetworking.catalog().revision()+" prior="+prior.revision()+" tokens="
+                        +liveCertificates.stream().map(token->token.revision()+"/"+token.materialSerial()+"/"+token.trackingGeneration()).toList());
                 if(AnatomyClientNetworking.presentationInterval(cow,prior.materialSerial(),.5)
                         .map(frame->frame.identity().revision()==prior.revision()).orElse(false))
                     throw new AssertionError("Accepted catalog revived the prior certified interval");

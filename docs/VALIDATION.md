@@ -1829,3 +1829,104 @@ ROOT/JOINT/contact visual inspection are recorded in
 certified primitive; they do not claim the G9 real-tick NFR-014 benchmark or
 the G4.6 renderer/residual/camera consumer.
 
+## S30 causal original-model renderer — post-RED IMPLEMENTER verification (2026-10-03)
+
+The first independent S30 pose holdout rejected one valid near-gimbal Cow
+ModelPart TRS; its original-model oracle proved the accepted matrix drawable.
+After the production Euler-extraction repair, the unchanged 512-case holdout
+passed in both lanes, including nested/exceptional full-field restoration and
+shear rejection: IMPLEMENTER `../s30-fix-pose-proof.log` (SHA-256
+`17e679cbe8fdd658b00d1578a1108f11798ab849287cec3e3e20690cc8cf4c29`,
+BUILD SUCCESSFUL 1m12s); independent ADVERSARY
+`../s30-adversarial-model-pose-repaired.log` (SHA-256
+`0dc108e23f970cadcd798b4169fc07b6340707e261652b2aabd63e49495c33cc`,
+BUILD SUCCESSFUL 1m9s). The targeted renderer/adapter client proof passed in
+`../s30-implementer-client-after-fix.log` (SHA-256
+`cd5aa07c3192f2d0403fe85cecc7cfb9d3c2b3793a327001bad69521c3a56cbf`).
+The server battery passed **463/463** required GameTests in
+`../s30-server-after-fix.log` (SHA-256
+`5340ccd6ec0a94580684782ef55d5f7d27471e3c003efa693a762c7e7ae1436c`).
+
+The first full ordinary client run after the repair failed in the pre-existing
+`S29ImplementerAcceptedCatalogClientProof` retained-certificate assertion:
+`../s30-ordinary-after-fix.log` (SHA-256
+`b9056b74d4fdce82c8aa2f485cfaa6f56776c0115ab87692023b692d277f47ff`,
+BUILD FAILED 3m31s). The exact proof passed alone in `../s30-s29-isolated.log`
+(SHA-256 `90b22208d0972d7a43bc9d35ea0aa93eadc23aa8053b48f00365998d0fbf045d`,
+BUILD SUCCESSFUL 1m41s). The full ordinary suite then passed, including that
+proof, in `../s30-ordinary-after-fix-retry.log` (SHA-256
+`215c50f9b311e6b2ab72a26b70b06bedb128fc9c11e8af94cc9c6a57b0e2fce2`,
+BUILD SUCCESSFUL 3m55s). The earlier failure is an intermittent observation,
+not a repaired or explained S29 bug. A separate ordered run of the adjacent
+rejected- and accepted-catalog proofs also passed:
+`../s30-s29-pair.log` (SHA-256
+`3c301865d0249c2db015c7c66ea04c0240623eb22bf2127938264db7df7b590a`,
+BUILD SUCCESSFUL 2m1s). S30 still needs independent renderer,
+snapshot, performance and zero-change review before closure.
+
+The subsequent S30 reflected-scale RED was repaired by trying determinant-
+compatible local scale sign assignments before accepting a recomposed
+`ModelPart` TRS. The unchanged original-model signed-scale holdout passed all
+eight masks in `../s30-signed-fix.log` (SHA-256
+`4da3732dcbcdf89648774f016ff9236cd7e9483fc023102a4de3bc9f068bebdd`,
+BUILD SUCCESSFUL 1m9s). A combined run of that holdout and the earlier 512-pose
+near-gimbal/restoration/shear holdout passed in
+`../s30-pose-combined-after-signed-fix.log` (SHA-256
+`48d358abddae2b0ee9714f3712a6c958e229d5bfabafcd1e0149902c1a04afcd`,
+BUILD SUCCESSFUL 1m21s). Independent revalidation and final full suites on
+this second repair are pending. The implementer-directed client renderer suite
+passed in `../s30-implementer-client-after-signed-fix.log` (SHA-256
+`15bdfeacefd21224de1f70c225c46016d925c6565b5bb410983c4b4a1cb8d2c8`,
+BUILD SUCCESSFUL 1m21s), and the server suite passed **463/463** in
+`../s30-server-after-signed-fix.log` (SHA-256
+`90bc6ff523b006fd2d21fa53795242637e1f82a316395bda6e40c9ded3fd85ec`,
+BUILD SUCCESSFUL 1m40s). The final ordinary client suite on this source passed,
+including `S29ImplementerAcceptedCatalogClientProof`, in
+`../s30-ordinary-after-signed-fix.log` (SHA-256
+`2d4b9315af3a6f19c4f381c70528a9f5264aded06f14b90e38648c28723bc730`,
+BUILD SUCCESSFUL 3m55s). Independent zero-change review remains pending.
+
+The later S30 tracking-window alias RED was repaired by including the accepted
+support tracking generation in the `PresentationFrame` cache key and queued
+original-model draw token. The unchanged real-network holdout passes: an old
+submit draws no vertices after generation 1→2 even when entity, selection
+identity and frame serial are reused; a fresh submit draws normally.
+`../s30-tracking-fix.log` (SHA-256
+`be041557cebb1159c03805dbcbf11c2119ef96e404370fd9f9db2162b098462d`,
+BUILD SUCCESSFUL 45s). Independent repetition and final suites on this
+candidate are recorded below.
+
+The independent six-class battery passed on the repaired source in
+`../s30-adversarial-tracking-repair-complete.log` (SHA-256
+`65be6481a84184fcceaf5bc459215dca44652722c87d4a6f1e54860a3bc0e72a`,
+BUILD SUCCESSFUL 1m2s). The separate native receiver/interval route passed in
+`../s30-adversarial-final-native-receiver.log` (SHA-256
+`f9bea58ad981b0144c6a42a8f2cc79148a94a58dc2d86cafdda04cd4b4be0444`,
+BUILD SUCCESSFUL 37s). ADVERSARY killed seven semantic mutants, inspected
+fixed ROOT/JOINT captures, and reported a complete zero-change review. Its
+isolated native cost probe measured 64 supports / 1 consumer at 632,762 bytes
+per batch, p95 .4815 ms, p99 .624 ms; 16 consumers at 9,682,944 bytes,
+p95 2.9194 ms, p99 5.8002 ms. These are synthetic batches, not G9 real-tick/TPS
+acceptance.
+
+IMPLEMENTER's targeted client proof passed in
+`../s30-implementer-client-after-tracking-fix.log` (SHA-256
+`2f15f79f8216863dfc839c93e336ccf4f3093083161be0bd6777efa848ec82fa`,
+BUILD SUCCESSFUL 55s). `../s30-server-after-tracking-fix.log` (SHA-256
+`969236ee38c8e925b2c3af996ef2bd128ed7dbf15b83d96548a00a6fdd9ba25f`,
+BUILD SUCCESSFUL 1m3s) passed **463/463** required GameTests and `build`.
+The first full ordinary client pass failed in the pre-existing S29 rejected
+catalog physical-registration proof, `../s30-ordinary-after-tracking-fix.log`
+(SHA-256 `fbec9b0a7ceca70706fc8d31dc1601bbdce5597ce41aadf14a440f19531c83bd`,
+BUILD FAILED 2m48s). The second passed that proof, then failed in the prior
+S29 accepted-catalog certificate assertion,
+`../s30-ordinary-after-tracking-fix-retry.log` (SHA-256
+`f321a676c10e12163d856e859ee1e28f8bee8f7ecc13d507ed3aefed572c9f3f`,
+BUILD FAILED 2m37s). An assertion-only diagnostic was then added to that S29
+proof; its oracle and all production remained unchanged. The third complete
+ordinary client pass succeeded, including both S29 catalog proofs:
+`../s30-ordinary-diagnostic.log` (SHA-256
+`192d5049ae51e4de15349430101db3f20bddd247d7978675793be565d5597bbd`,
+BUILD SUCCESSFUL 3m2s). This supports S30/G4.6a closure but does not identify
+or repair the S29 intermittent cause. Full G4.6 remains open.
+
