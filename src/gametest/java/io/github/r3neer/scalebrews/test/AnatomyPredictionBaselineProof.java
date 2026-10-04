@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
@@ -54,6 +55,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         "1".equals(System.getenv("SCALEBREWS_S25_REFERENCE_ACCEPTANCE"));
     private static final boolean S28_RECONCILIATION_ACCEPTANCE=
         "1".equals(System.getenv("SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE"));
+    private static final boolean S39_PASSIVE_ACCOUNTING=
+        "1".equals(System.getenv("SCALEBREWS_S39_PASSIVE_ACCOUNTING"));
     private static final int PHASE_TICKS=200;
     private static final int[] RTT_MILLIS={0,100,200};
 
@@ -86,8 +89,14 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 context.waitFor(client->client.player!=null && client.player.position().distanceToSqr(playerTarget)<.0025,100);
                 world.runOnServer(server->confirmTeleportedPlayer(server,fixture));
                 awaitPlayerContact(context,fixture);
+                // The first material confirmation can precede the player's ordinary post-
+                // teleport settling on the cow. Starting the bounded excursion immediately
+                // makes the fixture depend on chunk/connection startup timing.
+                context.waitTicks(40);
+                awaitPlayerContact(context,fixture);
 
                 runRootPhases(context,world,fixture,latency.get());
+                if(S39_PASSIVE_ACCOUNTING)runPassiveAccounting(context,world,fixture,latency.get());
 
                 world.runOnServer(server->confirmBoatAndObserver(server,fixture));
                 awaitBoatContact(context,fixture);
@@ -127,6 +136,69 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
     private static void runBoatPhases(ClientGameTestContext context,TestDedicatedServerContext world,Fixture fixture,PlatformTestLatency latency) throws Exception {
         for(int rtt:RTT_MILLIS)runPhase(context,world,fixture,latency,rtt,true);
     }
+
+    /** S39: the same live handler must ignore support carry and count voluntary input. */
+    private static void runPassiveAccounting(ClientGameTestContext context,TestDedicatedServerContext world,
+            Fixture fixture,PlatformTestLatency latency) throws Exception {
+        latency.latency(0);
+        context.runOnClient(client->{client.options.keyUp.setDown(false);client.options.keyDown.setDown(false);});
+        context.waitTicks(5);
+        var before=world.computeOnServer(server->account(server.getPlayerList().getPlayers().getFirst()));
+        latency.resetBaseline();
+        for(int tick=0;tick<24;tick++) {
+            final int step=tick;
+            world.runOnServer(server->{
+                var player=server.getPlayerList().getPlayers().getFirst();
+                var support=fixture.cow.get();
+                if(AnatomyMovement.contact(player)==null || !AnatomyMovement.supported(player))
+                    throw new AssertionError("S39 passive phase lost the real material relation at tick "+step);
+                double vertical=step<8?.006:step<16?-.006:0;
+                support.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(.014,vertical,.002));
+            });
+            context.waitTicks(1);
+        }
+        context.waitTicks(5);
+        var fence=latency.fence();context.waitFor(client->latency.passed(fence),40);
+        var passive=world.computeOnServer(server->account(server.getPlayerList().getPlayers().getFirst()));
+        var packetEvidence=latency.baseline();
+        if(packetEvidence.playerMoves()==0 || passive.transportSequence()<=before.transportSequence()
+                || passive.position().distanceToSqr(before.position())<.02
+                || passive.walk()!=before.walk() || passive.sprint()!=before.sprint()
+                || passive.swim()!=before.swim() || passive.fallStat()!=before.fallStat()
+                || Math.abs(passive.exhaustion()-before.exhaustion())>1e-5
+                || Math.abs(passive.fallDistance()-before.fallDistance())>1e-5)
+            throw new AssertionError("S39 native packet accounting charged passive ROOT: before="+before
+                +" passive="+passive+" packets="+packetEvidence);
+
+        latency.resetBaseline();
+        context.runOnClient(client->client.options.keyUp.setDown(true));
+        context.waitTicks(6);
+        context.runOnClient(client->client.options.keyUp.setDown(false));
+        context.waitTicks(6);
+        var positiveFence=latency.fence();context.waitFor(client->latency.passed(positiveFence),40);
+        var voluntary=world.computeOnServer(server->account(server.getPlayerList().getPlayers().getFirst()));
+        if(latency.baseline().playerMoves()==0 || voluntary.walk()<=passive.walk()
+                || voluntary.position().distanceToSqr(passive.position())<.0025)
+            throw new AssertionError("S39 same native handler failed voluntary positive control: passive="
+                +passive+" voluntary="+voluntary+" packets="+latency.baseline());
+        System.out.println("S39_PASSIVE_ACCOUNTING PASS horizontal/up/down ROOT preserved native accounts"
+            +" through real player packets; voluntary same-path walk increased stat: passive="+passive
+            +" voluntary="+voluntary);
+    }
+
+    private static Accounting account(ServerPlayer player) {
+        var stats=player.getStats();
+        return new Accounting(stats.getValue(Stats.CUSTOM.get(Stats.WALK_ONE_CM)),
+            stats.getValue(Stats.CUSTOM.get(Stats.SPRINT_ONE_CM)),
+            stats.getValue(Stats.CUSTOM.get(Stats.SWIM_ONE_CM)),
+            stats.getValue(Stats.CUSTOM.get(Stats.FALL_ONE_CM)),
+            ((io.github.r3neer.scalebrews.test.mixin.TestFoodAccess)player.getFoodData()).test$exhaustion(),
+            player.fallDistance,player.position(),
+            AnatomyMovement.transport(player)==null?0:AnatomyMovement.transport(player).sequence());
+    }
+
+    private record Accounting(int walk,int sprint,int swim,int fallStat,float exhaustion,
+            double fallDistance,Vec3 position,long transportSequence) {}
 
     private static void runPhase(ClientGameTestContext context,TestDedicatedServerContext world,Fixture fixture,
             PlatformTestLatency latency,int rtt,boolean boat) throws Exception {

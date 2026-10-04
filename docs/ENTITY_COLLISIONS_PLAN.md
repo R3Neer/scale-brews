@@ -266,7 +266,7 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 2. [ ] verificar agua, rail, despawn, hardening, placement y anvil una vez;
 3. [ ] portar sneak edge y jump release;
 4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
-5. [ ] demostrar no regresión de fall/exhaustion/stats/Growth landing;
+5. [x] demostrar no regresión de fall/exhaustion/stats/Growth landing (S39/G5.6);
 6. [ ] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez;
 7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
 8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
@@ -325,6 +325,22 @@ completo fue verde y no cambió fuentes. Evidencia en
 `docs/VALIDATION.md`. G5 permanece abierto para minecarts experimentales,
 sneak/jump, regresiones de caída y la retirada legacy; G9 conserva el
 benchmark y la QA humana al final de la épica.
+
+**S39/G5.6 cerrado localmente (FR-061/062):** la prueba de red real distingue
+transporte pasivo de movimiento voluntario en los contadores nativos; la caída
+real sobre material viviente conserva el daño propio sin fabricar impacto
+Growth, y una caída posterior sobre terreno produce ambos efectos. Un holdout
+independiente descubrió que la predicción cliente aceptaba un carry parcial
+contra pared cuando el servidor rechazaba el intervalo entero, cobrando 43 cm
+de `FLY_ONE_CM`. La predicción ahora retira el contacto antes de aplicar o
+publicar ese tramo; el mismo holdout pasó sin cambiar su oráculo. Suite
+preparada completa **2/2** con 22 escenarios, build ordinario **466/466** y
+cliente completo verdes. La revisión independiente final mantuvo intactos sus
+oráculos, pasó caída y obstrucción, y midió 10.000 consultas quietas y 10.000
+retiradas sin deuda ni preparación de geometría adicional. La pasada final no
+produjo cambios de producción; G5 sigue abierto para los demás frentes.
+Evidencia ejecutada en
+`docs/sprints/S39-g5-passive-movement-accounting.md` y `docs/VALIDATION.md`.
 
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 

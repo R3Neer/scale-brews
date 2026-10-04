@@ -2656,3 +2656,57 @@ manifest `../s38-adversary-private/zero-review-evidence.json` (SHA-256
 S38 is closed locally. This closes neither experimental minecart
 behavior nor whole G5, legacy retirement, integrated G9 or human pack QA.
 
+S39/G5.6 passive accounting and landing candidate: the real dedicated-client
+proof runs player and controlled-boat RTT 0/100/200 ms phases, then keeps a
+client-controlled player idle through horizontal, rising and descending
+certified cow ROOT intervals. The native server movement handler receives
+accepted packets while WALK/SPRINT/SWIM/FALL stats, exhaustion and fall
+distance stay unchanged; a following voluntary input pulse through the same
+handler increases WALK. Two earlier N2 attempts failed the pre-existing 0.8
+relative-excursion bound before reaching S39 because the first player contact
+arrived before ordinary post-teleport settling. Waiting 40 real ticks before
+measurement and reconfirming contact preserved the same bound; the complete
+N2+S39 run passed in `../s39-client-accounting-settled-first.log`, SHA-256
+`52fb8804c3e88d2d7248fe9a9a1016cbfc21017e2c4b90d351ba32670abc8822`.
+
+The prepared landing proof uses an actual Growth III pig fall onto canonical
+living material with a non-AIR native ground argument: vanilla self damage
+occurs, but Growth terrain impact does not. After release, another actual fall
+onto stone produces both native self damage and exactly one Growth impact.
+The post-fix integrated prepared suite passed **2/2**, all 22 scenarios on
+distinct ticks, in `../s39-prepared-full-postfix.log`, SHA-256
+`7e6dcedb82baa5bafb2290ccf3e560f547c189e36ff3e047dd9c527385b27a08`.
+
+An independent synchronized-wall client/server holdout exposed a production
+RED: the server rejected an obstructed ROOT carry, while client prediction
+accepted a partial block clip and the native packet charged 43 cm of FLY
+without voluntary input. `AnatomyMovement.carry` now rejects a clipped delta
+before changing position or publishing transport. Its SHA-256 is
+`d2467b72accf48002cb2e9a273de8e544b0319035e7b2db78719ca9379790928`.
+The unchanged independent obstruction holdout passed after the fix, with zero
+client/server movement and zero FLY; log
+`../s39-adversary-private/packet-obstruction-postfix-repeat.log`, SHA-256
+`a787368261244d6d6d658950e71f244059c2e8f0bfb71b658a5acc69158fd6f9`.
+A public ordinary GameTest compares a free carry with a real wall's partial
+clip and repeated rejected carry. The final ordinary build passed **466/466**
+in `../s39-build-postfix.log`, SHA-256
+`962f36274233d3e5290c816482730728943f60229a33adfc30a713f0cc325b89`.
+The complete general client suite passed in `../s39-client-full-postfix.log`,
+SHA-256 `1b10d352dc73ebfee89ee4a8fdc0fa0e855679fd3db2c33ae8c1f6d51cd1480b`.
+The independent final review kept its original packet and landing oracles
+unchanged. The packet obstruction proof passed with zero server/client carry
+and zero FLY; `../s39-adversary-private/landing-postfix.log` passed **2/2**
+(SHA-256 `138ec31fea7a3ca01d6e2e90817cb1c782d3ea3647bf6b3b2801c1c858148976`).
+Its auxiliary release/locality lane passed in
+`../s39-adversary-private/release-locality-separated.log` (SHA-256
+`7cae1cf01518788a8ba7c91fc87149fb74a2ac079f694f52cf28043cc08b130c`):
+10,000 quiet carries added no geometry/joint evaluations or displacement,
+10,000 post-release queries recreated no transport, and a later native own
+movement counted FLY +31 without passive debt. The prior Growth guard-removal
+mutation remained RED. Final independent inventory
+`../s39-adversary-private/review-evidence.json` has SHA-256
+`1b1af34edf0d8ebbf56cdb511de0cd75f1ee66c3d1ce2743152a93662ef2ad4f`.
+No production or IMPLEMENTER tests changed in that review; `git diff --check`
+passed. S39/G5.6 is closed locally for FR-061/062. Whole G5, G9 benchmarks
+and final human pack QA remain open.
+

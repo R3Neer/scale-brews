@@ -5,6 +5,8 @@ public final class LandingObservation implements AutoCloseable {
     public static final ThreadLocal<LandingObservation> ACTIVE = new ThreadLocal<>();
     public final net.minecraft.world.entity.Entity entity;
     public int landings, gusts, terrain;
+    public int groundedChecks, nonAirGroundedChecks;
+    public boolean materialAtGroundedCheck;
     public LandingObservation(net.minecraft.world.entity.Entity entity) {
         this.entity = entity;
         ACTIVE.set(this);

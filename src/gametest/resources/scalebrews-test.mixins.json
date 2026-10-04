@@ -5,6 +5,7 @@
   "mixins": [
     "TestScaleTransitionAccess",
     "TestLandingObservationMixin",
+    "TestLandingArgumentMixin",
     "TestCreeperAccess",
     "TestExplosionMixin",
     "TestEntityAccess",

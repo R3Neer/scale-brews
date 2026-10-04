@@ -888,6 +888,10 @@ public final class AnatomyMovement {
                 try {
                     allowed=Entity.collideBoundingBox(body,delta,body.getBoundingBox(),body.level(),body.level().getEntityCollisions(body,body.getBoundingBox().expandTowards(delta)));
                 } finally {io.github.r3neer.scalebrews.platform.PlatformPhysics.exit(previous);}
+                // Server anchored transport releases the contact when an obstacle clips the
+                // certified path. A locally clipped partial move would otherwise reach the
+                // native movement packet as voluntary distance without a server receipt.
+                if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
                 body.setPos(body.position().add(allowed));
                 positionPassengers(body);
                 if(body instanceof net.minecraft.server.level.ServerPlayer player)
@@ -902,7 +906,6 @@ public final class AnatomyMovement {
                 AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore(),piece);
                 AnatomyObserverCarries.record(body,c.support(),surface,anchor.supportFrameSerial(),
                     causalFrame==null?0:causalFrame.endpoint().frameSerial(),transport,anchor.materialBefore(),piece);
-                if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
                 if(causalFrame!=null)publishClientTransport(body,c.support(),surface,anchor,now,causalFrame.endpoint().frameSerial(),transport);
             } else if(causalFrame!=null)publishClientQuietFrame(body,c.support(),surface,anchor,now,
                 causalFrame.endpoint().frameSerial());

@@ -14,6 +14,50 @@ import net.minecraft.world.phys.*;
 import org.joml.Matrix4f;
 
 public class AnatomyGeometryTests {
+    @GameTest public void obstructedLocalCarryCannotPublishPartialTransport(GameTestHelper h) {
+        var support=h.spawn(net.minecraft.world.entity.EntityTypes.COW,2,20,2);
+        support.setNoAi(true);support.setNoGravity(true);
+        var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);
+        body.refreshDimensions();
+        AnatomyMovement.activate(h.getLevel());
+        AnatomyMovement.register(support,entity->java.util.Optional.of(new GeometryProvider.Snapshot(7,
+            java.util.Map.of("body",ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(entity.position())))));
+        try {
+            body.setPos(support.getX()+.5,support.getY()+1,support.getZ()+.5);
+            var surface=new SurfaceContact(support.getUUID(),7,"body",3,new Vec3(.5,1,.5),
+                new Vec3(0,1,0),h.getLevel().getGameTime());
+            h.assertTrue(AnatomyMovement.confirm(body,support,surface) && AnatomyMovement.supported(body),
+                "The control begins on a genuine material contact");
+            var start=body.position();
+            support.setPos(support.position().add(.1,0,0));AnatomyMovement.carry(body);
+            h.assertTrue(body.position().distanceToSqr(start.add(.1,0,0))<1e-10
+                    && AnatomyMovement.transport(body)!=null,
+                "Unobstructed carry must still move and record a transport");
+            var before=body.position();var sequence=AnatomyMovement.transport(body).sequence();
+            int wallX=net.minecraft.util.Mth.floor(body.getBoundingBox().maxX)+1;
+            int wallY=net.minecraft.util.Mth.floor(body.getBoundingBox().minY);
+            int wallZ=net.minecraft.util.Mth.floor(body.getZ());
+            for(int y=wallY;y<=wallY+1;y++)for(int z=wallZ-1;z<=wallZ+1;z++)
+                h.getLevel().setBlockAndUpdate(new net.minecraft.core.BlockPos(wallX,y,z),
+                    net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+            var requested=new Vec3(1.2,0,0);
+            var clipped=net.minecraft.world.entity.Entity.collideBoundingBox(body,requested,body.getBoundingBox(),
+                h.getLevel(),h.getLevel().getEntityCollisions(body,body.getBoundingBox().expandTowards(requested)));
+            h.assertTrue(clipped.x>.05 && clipped.x<requested.x-.05,
+                "The real wall must allow only a nonzero partial local movement: "+clipped);
+            support.setPos(support.position().add(requested));AnatomyMovement.carry(body);
+            h.assertTrue(body.position().distanceToSqr(before)<1e-10
+                    && AnatomyMovement.contact(body)==null
+                    && AnatomyMovement.transport(body).sequence()==sequence,
+                "A clipped carry releases contact without moving the body or publishing passive distance");
+            AnatomyMovement.carry(body);
+            h.assertTrue(body.position().distanceToSqr(before)<1e-10
+                    && AnatomyMovement.transport(body).sequence()==sequence,
+                "Repeated carry after contact retirement cannot replay the rejected displacement");
+        } finally {AnatomyMovement.deactivate(h.getLevel());support.discard();body.discard();}
+        h.succeed();
+    }
     /** Invoked only by the isolated prepared-anatomy proof. */
     public void exportedCowRepeatedTransportAndIndependentMovement(GameTestHelper h) throws java.io.IOException {
         AnatomyMovement.activate(h.getLevel());
