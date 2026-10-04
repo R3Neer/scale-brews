@@ -85,10 +85,15 @@ final class S37PreparedMinecartProof {
                 var materialAfter=AnatomyMovement.queryFrame(support).orElseThrow().snapshot().pieces().get(retained.piece());
                 var expected=materialAfter.point(retained.localPoint()).subtract(materialBefore.point(retained.localPoint()));
                 var metricsAfter=MaterialPhysicsRuntime.metrics(level);
+                long admittedBefore=metricsBefore.tick()==level.getGameTime()?metricsBefore.admitted():0;
                 h.assertTrue(cart.position().distanceToSqr(before.add(expected))<1e-8
                         && cart.getFirstPassenger()==rider && rider.getVehicle()==cart
-                        && metricsAfter.admitted()==metricsBefore.admitted()+1,
-                    "One ROOT interval carries the occupied cart root once");
+                        && metricsAfter.admitted()==admittedBefore+1,
+                    "One ROOT interval carries the occupied cart root once: before="+before
+                        +" after="+cart.position()+" expected="+expected
+                        +" rider="+(cart.getFirstPassenger()==rider && rider.getVehicle()==cart)
+                        +" metricsBefore="+metricsBefore+" metricsAfter="+metricsAfter
+                        +" contact="+AnatomyMovement.contact(cart));
                 var once=cart.position();MaterialPhysicsRuntime.drain(level);
                 h.assertTrue(cart.position().equals(once),"Second material drain cannot replay cart carry");
                 var yawSurface=AnatomyMovement.surface(cart);
@@ -106,6 +111,7 @@ final class S37PreparedMinecartProof {
                 rider.discard();
             }
         } finally {
+            if(cart instanceof AbstractMinecartContainer chest)chest.setItem(0,ItemStack.EMPTY);
             if(cart!=null)cart.discard();
             support.discard();
         }

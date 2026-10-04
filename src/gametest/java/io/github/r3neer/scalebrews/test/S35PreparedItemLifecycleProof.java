@@ -125,10 +125,26 @@ final class S35PreparedItemLifecycleProof {
                 "Retiring the canonical support releases the item without a legacy owner");
             double releasedY=item.getY();
             item.setDeltaMovement(Vec3.ZERO);
+            // Direct tick() calls do not advance Entity.tickCount; the server
+            // dispatcher normally does. Model that clock for vanilla's quiet
+            // onGround item movement cadence, which also uses the entity id.
+            item.tickCount++;control.tickCount++;
             item.tick();control.tick();
+            h.assertTrue(item.getDeltaMovement().y<-.039 && item.getAge()==control.getAge()
+                    && AnatomyMovement.contact(item)==null,
+                "The first real tick after release resumes native gravity and age without stale material contact");
+            // Vanilla 26.2 defers move for a quiet onGround item except when
+            // (tickCount + entity id) % 4 == 0. The old one-tick position
+            // assertion depended on the randomly assigned GameTest entity id.
+            for(int tick=0;tick<3 && item.getY()>=releasedY-.02;tick++) {
+                item.tickCount++;control.tickCount++;
+                item.tick();control.tick();
+            }
             h.assertTrue(item.getY()<releasedY-.02 && item.getAge()==control.getAge()
                     && AnatomyMovement.contact(item)==null,
-                "The first real tick after release resumes ordinary gravity and age without stale material contact");
+                "Released item falls within the native four-tick movement cadence: "
+                    +"y="+item.getY()+" releasedY="+releasedY+" age="+item.getAge()
+                    +" controlAge="+control.getAge()+" tickCount="+item.tickCount);
             item.setPickUpDelay(0);
             item.playerTouch(collector);
             h.assertTrue(item.isRemoved() && collector.getInventory().countItem(Items.STONE)==beforeInventory+2,

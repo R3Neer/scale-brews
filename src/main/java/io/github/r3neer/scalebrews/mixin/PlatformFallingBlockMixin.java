@@ -20,6 +20,15 @@ public abstract class PlatformFallingBlockMixin {
     private boolean scalebrews$deferPlacement(boolean ground) {
         return ground && !Platforms.supported((FallingBlockEntity)(Object)this);
     }
+    // Concrete powder also reaches the terminal placement branch through its
+    // current-cell or fast-sweep source-water test, independently of onGround.
+    // Defer only that water decision while a current material contact owns the
+    // entity; after release the same vanilla tick can harden it normally.
+    @ModifyExpressionValue(method="tick",at=@At(value="INVOKE",
+        target="Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z"))
+    private boolean scalebrews$deferConcreteWater(boolean water) {
+        return water && !Platforms.supported((FallingBlockEntity)(Object)this);
+    }
     @ModifyExpressionValue(method="causeFallDamage",at=@At(value="INVOKE",
         target="Lnet/minecraft/world/level/Level;getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;"))
     private java.util.List<net.minecraft.world.entity.Entity> scalebrews$impactSupport(java.util.List<net.minecraft.world.entity.Entity> original) {

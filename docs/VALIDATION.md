@@ -2614,3 +2614,45 @@ No client runtime path changed, so no new client execution is claimed here.
 This closes only the standard minecart behavior slice; experimental movement,
 falling blocks, legacy removal, global G9 benchmark and human QA remain open.
 
+S38/G5.5 falling-block candidate: the prepared real-server proof covers sand,
+concrete powder and anvil entities with canonical-only material contact, ROOT
+translation/yaw, wall and ratio rejection, 650 held ticks, native 600→601
+timeout/drop, post-release placement, source/flowing-water hardening and
+initial/later native anvil impacts without passive repeat. The only production
+change suspends the installed 26.2 current-cell water predicate while eligible
+material support holds, then restores vanilla behavior upon retirement.
+Production mixin SHA-256:
+`04f372826979c01d0e83ff29f6177634463e7b3bb6a219d2c7fc5abe6a186b0c`;
+public S38 proof SHA-256:
+`2b0d2f92ea97439631078ffac92872a3046a78fb79d90edc29045d03eb6f6803`.
+The final targeted selector passed **2/2** in `../s38-targeted-after-fixtures.log`
+(SHA-256 `814ced506400728874cba3cfb4a5ea7d061ed96e9e0be6104f4dc81d49bd9703`).
+The complete prepared sequence passed **2/2** with all 21 scenarios on
+distinct consecutive level ticks in `../s38-prepared-scheduled-third.log`
+(SHA-256 `08fbc81962a1463b30fd7d9557ef97f153bb19ec2588321efbd880301544132d`).
+Final ordinary `build` passed **465/465** in `../s38-build-final.log`
+(SHA-256 `b432dd538c07b3215d48a0e81d77670846bcd66284ac8c3cb6d08ce0597e0346`),
+and the full real-client suite passed in `../s38-client-final.log`
+(SHA-256 `0d0dec9b67db802c89f18c5fc2e39967d88f1bc64e2c03e2de8f4b39aaef686e`).
+
+ADVERSARY independently passed three **2/2** real-server holdouts for actual
+anvil damage attempts, current-cell source/flowing-water retirement and native
+age/drop branches; its own full-client rerun passed after one preserved S29
+reload-predicate timeout on an earlier run. Its unchanged water holdout killed
+the pre-fix mixin mutation. The final independent manifest is
+`../s38-adversary-private/final-evidence.json`, SHA-256
+`410256f9ac076df7aebea8439b443551b41aaec620a6fd168557777429a46413`.
+An earlier RED in the full prepared composition came from one-tick scenario
+scheduling and cross-tick fixture metrics; the accepted test-only scheduler
+runs every scenario on its own real tick in one prepared session. S35 item
+cadence, S36 obstruction distance and S36/S37 chest cleanup were also repaired
+as fixtures without changing production budgets or physics. ADVERSARY's final
+complete-tree zero-change review repeated the integrated prepared sequence
+**2/2**, all 21 scenarios on distinct ticks, in
+`../s38-adversary-private/zero-review-composite.log` (SHA-256
+`abf6a23558bec89fb2d3e6f94bb77063be65454657f8808aad436aa0ff5a0a35`);
+manifest `../s38-adversary-private/zero-review-evidence.json` (SHA-256
+`a570f057461828862fcf602b5a335aaf6dddc1cdbb7274bb504913d79e386262`).
+S38 is closed locally. This closes neither experimental minecart
+behavior nor whole G5, legacy retirement, integrated G9 or human pack QA.
+

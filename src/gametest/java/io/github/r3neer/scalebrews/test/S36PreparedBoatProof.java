@@ -77,8 +77,9 @@ final class S36PreparedBoatProof {
                 var materialAfter=AnatomyMovement.queryFrame(support).orElseThrow().snapshot().pieces().get(retained.piece());
                 var expected=materialAfter.point(retained.localPoint()).subtract(materialBefore.point(retained.localPoint()));
                 var metricsAfter=MaterialPhysicsRuntime.metrics(level);
+                long admittedBefore=metricsBefore.tick()==level.getGameTime()?metricsBefore.admitted():0;
                 h.assertTrue(boat.position().distanceToSqr(before.add(expected))<1e-8
-                        && Platforms.supported(boat) && metricsAfter.admitted()==metricsBefore.admitted()+1,
+                        && Platforms.supported(boat) && metricsAfter.admitted()==admittedBefore+1,
                     "One certified ROOT carries a resting canonical boat once: expected="+expected
                         +" actual="+boat.position().subtract(before)+" metrics="+metricsAfter);
                 var once=boat.position();MaterialPhysicsRuntime.drain(level);
@@ -97,6 +98,7 @@ final class S36PreparedBoatProof {
                     "Retained local material point carries real hull through one ROOT yaw");
             }
         } finally {
+            if(boat instanceof ContainerEntity chest)chest.setItem(0,ItemStack.EMPTY);
             if(boat!=null)boat.discard();
             support.discard();
         }
@@ -156,9 +158,17 @@ final class S36PreparedBoatProof {
                 level.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
             }
             var before=boat.position();
-            support.move(MoverType.SELF,new Vec3(.6,0,0));
-            h.assertTrue(boat.getBoundingBox().maxX<=x+1e-6 && boat.getX()<before.x+.6-1e-4,
-                "Material ROOT cannot carry a boat through a real block wall");
+            double gap=x-boat.getBoundingBox().maxX;
+            double supportBeforeX=support.getX();
+            // The next integer block boundary can be nearly a full block from
+            // the hull. Move beyond that gap so this always tests obstruction.
+            support.move(MoverType.SELF,new Vec3(1.2,0,0));
+            h.assertTrue(support.getX()-supportBeforeX>gap+.05,
+                "The support crosses the hull-to-wall gap in the obstruction fixture");
+            h.assertTrue(boat.getBoundingBox().maxX<=x+1e-6 && boat.getX()<before.x+1.2-1e-4,
+                "Material ROOT cannot carry a boat through a real block wall: before="+before
+                    +" after="+boat.position()+" box="+boat.getBoundingBox()+" wallX="+x
+                    +" wallY="+y+" contact="+AnatomyMovement.contact(boat));
             var stopped=boat.position();
             for(var pos:wall)level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState());
             wall.clear();MaterialPhysicsRuntime.drain(level);

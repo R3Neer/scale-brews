@@ -310,6 +310,22 @@ El comportamiento experimental `MINECART_IMPROVEMENTS` no está certificado
 por esta ejecución y permanece explícitamente abierto, junto a falling blocks,
 retirada legacy y G9.
 
+**S38/G5.5 cerrado localmente para falling blocks (FR-007/067/068):** arena,
+concreto en polvo y yunque reales mantienen la misma entidad sobre material
+canónico preparado durante ROOT, sin placement, timeout, endurecimiento en agua
+ni daño de impacto duplicados. Al perder el soporte vuelven a las decisiones
+nativas de Minecraft: placement/drop, expiración, endurecimiento y caída con
+impacto posterior. La única corrección productiva suspende el predicado de
+agua del tick nativo mientras existe contacto material elegible. Prueba
+preparada focal e integrada **2/2**, build ordinario **465/465**, cliente
+completo y tres oráculos independientes **2/2**; la mutación que elimina la
+corrección de agua fue detectada. La pasada final independiente de árbol
+completo fue verde y no cambió fuentes. Evidencia en
+`docs/sprints/S38-g5-falling-block-lifecycle.md` y
+`docs/VALIDATION.md`. G5 permanece abierto para minecarts experimentales,
+sneak/jump, regresiones de caída y la retirada legacy; G9 conserva el
+benchmark y la QA humana al final de la épica.
+
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general

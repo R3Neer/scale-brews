@@ -121,7 +121,7 @@ final class S08PreparedPermutationProof {
                     "Baseline cadence must preserve only the causal A -> B -> C relations");
 
                 Vec3 beforeB=activeB.position(),beforeC=c.position(),beforeBystander=activeBystander.position();
-                var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+                var metricsBefore=PreparedMetricBaseline.current(level);
                 a.move(MoverType.SELF,rootDelta);
                 var metricsAfter=MaterialPhysicsRuntime.metrics(level);
 

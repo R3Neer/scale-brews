@@ -71,7 +71,7 @@ public final class S08PreparedDerivedChainProof {
 
                     var beforeB=b.position();
                     var beforeC=c.position();
-                    var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+                    var metricsBefore=PreparedMetricBaseline.current(level);
                     var rootDelta=new Vec3(.2,0,0);
 
                     // Production route: Entity.move captures/commits ROOT and drains synchronously.

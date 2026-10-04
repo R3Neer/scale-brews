@@ -53,7 +53,7 @@ final class S09PreparedIntervalContactProof {
                     "A8 baseline must contain no pre-existing material debt");
 
                 var before=body.position();
-                var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+                var metricsBefore=PreparedMetricBaseline.current(level);
                 var lift=new Vec3(0,.20,0);
 
                 // Production route: the support's own Entity.move captures/commits ROOT and drains
@@ -112,7 +112,7 @@ final class S09PreparedIntervalContactProof {
                 h.assertTrue(MaterialIntervalRuntime.poll(level).isEmpty(),
                     "A10 baseline must contain no material debt from earlier prepared scenarios");
 
-                var bodyBefore=body.position();var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+                var bodyBefore=body.position();var metricsBefore=PreparedMetricBaseline.current(level);
                 support.move(MoverType.SELF,new Vec3(0,.040,0));
 
                 var afterFrame=AnatomyMovement.queryFrame(support).orElseThrow();

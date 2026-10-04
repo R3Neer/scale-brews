@@ -38,69 +38,78 @@ public final class AnatomyPreparedIntegrationProof {
             Optional.of(new AnatomyDefinition(Identifier.parse(cow.source()),Identifier.parse("scalebrews:static"),AnatomyFilter.DEFAULT)));
         var playerProfile=new PlatformDefinition(Identifier.parse("minecraft:player"),true,.6,Optional.empty(),List.of(),
             Optional.of(new AnatomyDefinition(Identifier.parse(player.source()),Identifier.parse("scalebrews:player_walking"),AnatomyFilter.DEFAULT)));
-        try(var session=AnatomyPreparedSession.start(h.getLevel().getServer(),
+        var session=AnatomyPreparedSession.start(h.getLevel().getServer(),
                 Map.of(cow.source(),cow,player.source(),player),
-                Map.of("scalebrews:prepared_proof_cow",cowProfile,"scalebrews:prepared_proof_player",playerProfile))) {
+                Map.of("scalebrews:prepared_proof_cow",cowProfile,"scalebrews:prepared_proof_player",playerProfile));
+        try {
             var probe=h.spawn(net.minecraft.world.entity.EntityTypes.COW,0,20,0);
             try {
                 h.assertTrue(AnatomyApi.mode(probe)==AnatomyMode.READY && AnatomyApi.ownsSharedPhysics(probe),
                     "Prepared catalog makes the shared mode ready for a body without requiring that body to be a support binding");
             } finally {probe.discard();}
-            if(Boolean.getBoolean("scalebrews.s35Only")){S35PreparedItemLifecycleProof.run(h);h.succeed();return;}
-            if(Boolean.getBoolean("scalebrews.s36Only")){S36PreparedBoatProof.run(h);h.succeed();return;}
-            if(Boolean.getBoolean("scalebrews.s37Only")){S37PreparedMinecartProof.run(h);h.succeed();return;}
-            if(!Boolean.getBoolean("scalebrews.s33Skip"))S33PreparedPlacementProof.run(h);
-            if(Boolean.getBoolean("scalebrews.s33Only")){h.succeed();return;}
-            S35PreparedItemLifecycleProof.run(h);
-            S36PreparedBoatProof.run(h);
-            S37PreparedMinecartProof.run(h);
-            staleBindingIdentityCannotCertifyInterval(h);
-            // The helpers retain their production route: actual Entity.move,
-            // mixins, core queries and material contacts.  They do not start,
-            // stop or otherwise simulate the session.
-            AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h);
-            AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h);
-            // S08 I6 boundary proof. This support is registered manually inside an otherwise
-            // prepared server session; it is not an AnatomyRuntime active binding and setPos
-            // therefore creates no certified ROOT/JOINT interval for the dispatcher to own.
-            // The legacy endpoint carry remains the required fallback until a material interval
-            // actually exists. Its expectation is derived from the exact SurfaceContact.localPoint
-            // published at acquisition, not from the entity origin pretending to be that anchor.
-            S08PreparedLegacyEndpointCarryProof.run(h);
-            AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h);
-            AnatomyGeometryTests.exportedCowActualMovementPrepared(h);
-            AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h);
-            AnatomyGeometryTests.actualMovementSixDirectionsPrepared(h);
-            AnatomyGeometryTests.geometryBroadphaseFindsPieceOutsideSupportAabbPrepared(h);
-            // Pair-local recovery must be proven geometrically, not via a block-wall fixture
-            // whose absolute GameTest coordinates can accidentally leave an escape route.
-            S07PreparedPairSuspensionProof.run(h);
-            // S08 proves ROOT ownership, synchronous dispatcher drain and A -> B -> C derived
-            // carry through the same prepared catalog/runtime. This complements, rather than
-            // replaces, the I6 fallback-boundary proof above.
-            S08PreparedDerivedChainProof.run(h);
-            // A10 adversarial permutation: an active but non-causal cow sits inside the same
-            // material envelope. Reversing whether it or B receives the earlier runtime binding
-            // generation must not poison, reorder or add a DERIVED_CARRY to the real chain.
-            S08PreparedPermutationProof.run(h);
-            // FR-057 must also see a stationary anatomical support outside A's event batch.
-            // Its vanilla pair is intentionally suppressed because the anatomy core owns it;
-            // the replacement geometry therefore has to remain a continuous path obstacle.
-            io.github.r3neer.scalebrews.collision.internal.S08PreparedStaticAnatomicalObstacleProof.run(h);
-            // S09 A8: a body that never calls own-move must still be acquired by a real published
-            // material interval. This distinguishes dispatcher contact establishment from an
-            // own-movement path that merely happens to land on the new endpoint.
-            S09PreparedIntervalContactProof.run(h);
-            // S09 A10: the inverse of A8. A real ROOT interval may end inside the wider retention
-            // tolerance while remaining outside CCD skin for the whole interval. Nearness alone
-            // must not create movement or a new material relation.
-            S09PreparedIntervalContactProof.nearEndpointWithoutTemporalContact(h);
-            // S09 A9: both endpoint frames are clear. Only the certified interior trajectory
-            // intersects the stationary body, so the event must affect it without retaining a
-            // contact after the moving piece has withdrawn again.
-            S09PreparedIntermediateContactProof.run(h);
+            var scenarios=new java.util.ArrayList<Scenario>();
+            if(Boolean.getBoolean("scalebrews.s35Only"))scenarios.add(()->S35PreparedItemLifecycleProof.run(h));
+            else if(Boolean.getBoolean("scalebrews.s36Only"))scenarios.add(()->S36PreparedBoatProof.run(h));
+            else if(Boolean.getBoolean("scalebrews.s37Only"))scenarios.add(()->S37PreparedMinecartProof.run(h));
+            else if(Boolean.getBoolean("scalebrews.s38Only"))scenarios.add(()->S38PreparedFallingBlockProof.run(h));
+            else {
+                if(!Boolean.getBoolean("scalebrews.s33Skip"))scenarios.add(()->S33PreparedPlacementProof.run(h));
+                if(!Boolean.getBoolean("scalebrews.s33Only")) {
+                    scenarios.add(()->S35PreparedItemLifecycleProof.run(h));
+                    scenarios.add(()->S36PreparedBoatProof.run(h));
+                    scenarios.add(()->S37PreparedMinecartProof.run(h));
+                    scenarios.add(()->S38PreparedFallingBlockProof.run(h));
+                    scenarios.add(()->staleBindingIdentityCannotCertifyInterval(h));
+                    scenarios.add(()->AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h));
+                    scenarios.add(()->AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h));
+                    scenarios.add(()->S08PreparedLegacyEndpointCarryProof.run(h));
+                    scenarios.add(()->AnatomyGeometryTests.exportedPlayerHeadCarriesBoatPrepared(h));
+                    scenarios.add(()->AnatomyGeometryTests.exportedCowActualMovementPrepared(h));
+                    scenarios.add(()->AnatomyGeometryTests.gravityChangesInvalidateMaterialTransportPrepared(h));
+                    scenarios.add(()->AnatomyGeometryTests.actualMovementSixDirectionsPrepared(h));
+                    scenarios.add(()->AnatomyGeometryTests.geometryBroadphaseFindsPieceOutsideSupportAabbPrepared(h));
+                    scenarios.add(()->S07PreparedPairSuspensionProof.run(h));
+                    scenarios.add(()->S08PreparedDerivedChainProof.run(h));
+                    scenarios.add(()->S08PreparedPermutationProof.run(h));
+                    scenarios.add(()->io.github.r3neer.scalebrews.collision.internal.S08PreparedStaticAnatomicalObstacleProof.run(h));
+                    scenarios.add(()->S09PreparedIntervalContactProof.run(h));
+                    scenarios.add(()->S09PreparedIntervalContactProof.nearEndpointWithoutTemporalContact(h));
+                    scenarios.add(()->S09PreparedIntermediateContactProof.run(h));
+                }
+            }
+            runNextScenario(h,session,List.copyOf(scenarios),0,h.getLevel().getGameTime());
+        } catch(RuntimeException | Error failure) {
+            session.close();
+            throw failure;
         }
-        h.succeed();
+    }
+
+    @FunctionalInterface
+    private interface Scenario { void run() throws IOException; }
+
+    /** Preserve one prepared lifetime, but give each scenario a fresh real level tick. */
+    private static void runNextScenario(GameTestHelper h,AnatomyPreparedSession session,
+            List<Scenario> scenarios,int index,long previousTick) {
+        h.runAfterDelay(1,()->{
+            try {
+                long tick=h.getLevel().getGameTime();
+                h.assertTrue(tick>previousTick,"Prepared scenarios require distinct real level ticks");
+                if(index==scenarios.size()) {
+                    session.close();
+                    h.succeed();
+                    return;
+                }
+                System.out.println("PREPARED_SCENARIO index="+index+" levelTick="+tick);
+                scenarios.get(index).run();
+                runNextScenario(h,session,scenarios,index+1,tick);
+            } catch(IOException failure) {
+                session.close();
+                throw new java.io.UncheckedIOException(failure);
+            } catch(RuntimeException | Error failure) {
+                session.close();
+                throw failure;
+            }
+        });
     }
 
     /**

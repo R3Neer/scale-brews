@@ -74,7 +74,7 @@ final class S09PreparedIntermediateContactProof {
             h.assertTrue(certified.pieces().get(chosen).at().apply(.5).overlaps(captured),
                 "A9 selected piece must really intersect the stationary body at t=.5; piece="+chosen+" mid="+chosenMid);
 
-            var bodyBefore=body.position();var metricsBefore=MaterialPhysicsRuntime.metrics(level);
+            var bodyBefore=body.position();var metricsBefore=PreparedMetricBaseline.current(level);
             var capture=MaterialIntervalRuntime.captureRoot(support);
             h.assertTrue(capture.before()!=null && capture.before().identity().equals(before.identity()),"A9 live root capture must preserve the prepared binding identity");
             support.yBodyRot=capture.root().yaw()+yawDelta;
