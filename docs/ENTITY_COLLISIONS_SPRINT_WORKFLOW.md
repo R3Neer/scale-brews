@@ -527,11 +527,13 @@ El documento de sprint explica **qué ocurrió en ese sprint**. No mantiene una 
 
 La unidad lógica de integración es el sprint.
 
-- cada sprint cerrado produce un commit lógico;
+- cada sprint cerrado con éxito produce su propio **commit local de cierre** antes de avanzar al siguiente sprint;
 - no se mezclan dos sprints;
 - no se declara cerrado con tests rojos o revisión pendiente;
 - implementación, pruebas y documentación necesaria pertenecen al mismo cierre lógico aunque la herramienta obligue a commits intermedios;
+- el asunto identifica `Sxx` o el commit incluye el trailer `Sprint: Sxx`; se verifica el HEAD creado y el estado del árbol antes de continuar;
 - commits intermedios de tooling/probes no autorizan avanzar de sprint;
+- un commit local de cierre no autoriza push, tag ni release; los cierres históricos ya guardados se conservan sin reescribir historia para adaptar sus mensajes;
 - no se toca otra rama salvo autorización explícita;
 - no se force-pushea, reescribe historia, crea tag/release ni publica/instala artefactos por inferencia.
 
