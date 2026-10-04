@@ -180,6 +180,8 @@ public final class HierarchyMotion {
                 speed=node.translationSpeed+node.derivative*radius+node.norm*speed;
                 radius=node.translation+node.norm*radius;
             }
+            double rigidSpeed=rigidRootRotationSpeed(path,box);
+            if(Double.isFinite(rigidSpeed))speed=Math.min(speed,rigidSpeed);
             // Small safety margin for float matrix/quaternion evaluation.
             double bound=speed==0?0:speed*1.0001+1e-5;
             java.util.function.DoubleFunction<ConvexBox> trajectory=t->{
@@ -197,6 +199,36 @@ public final class HierarchyMotion {
             result.put(piece.id(),new ConservativeSweep.Motion(trajectory,bound,originAfter.subtract(originBefore),planes));
         }
         pieces=Collections.unmodifiableMap(result);
+    }
+    /** Tighter root-only TRS speed bound for a slerp with a fixed descendant path. */
+    private double rigidRootRotationSpeed(List<Node> path,net.minecraft.world.phys.AABB box) {
+        if(path.isEmpty() || path.getFirst()!=root || root.fixed!=null)return Double.NaN;
+        var relative=new Quaternionf(root.b.rotation).mul(new Quaternionf(root.a.rotation).conjugate());
+        double axisLength=Math.sqrt((double)relative.x*relative.x+(double)relative.y*relative.y+(double)relative.z*relative.z);
+        if(!Double.isFinite(axisLength) || axisLength<1e-10)return Double.NaN;
+        // The relative quaternion's axis is in world orientation. The fixed downstream
+        // vertices below are still in root-local coordinates, so pull the axis back first.
+        var localAxis=new Vector3f(relative.x,relative.y,relative.z).rotate(new Quaternionf(root.a.rotation).conjugate());
+        double localAxisLength=Math.sqrt((double)localAxis.x*localAxis.x+(double)localAxis.y*localAxis.y+(double)localAxis.z*localAxis.z);
+        if(!Double.isFinite(localAxisLength) || localAxisLength<1e-10)return Double.NaN;
+        Vec3 axis=new Vec3(localAxis.x/localAxisLength,localAxis.y/localAxisLength,localAxis.z/localAxisLength);
+        var downstream=new Matrix4f();
+        for(int i=1;i<path.size();i++) {
+            if(path.get(i).fixed==null)return Double.NaN;
+            downstream.mul(path.get(i).fixed);
+        }
+        double radius=0,scaleSpeed=0;
+        for(int i=0;i<8;i++) {
+            var local=downstream.transformPosition(
+                (float)((i&1)==0?box.minX:box.maxX),
+                (float)((i&2)==0?box.minY:box.maxY),
+                (float)((i&4)==0?box.minZ:box.maxZ),new Vector3f());
+            Vec3 before=new Vec3(local.x*root.a.scale.x,local.y*root.a.scale.y,local.z*root.a.scale.z);
+            Vec3 after=new Vec3(local.x*root.b.scale.x,local.y*root.b.scale.y,local.z*root.b.scale.z);
+            radius=Math.max(radius,Math.max(axis.cross(before).length(),axis.cross(after).length()));
+            scaleSpeed=Math.max(scaleSpeed,after.subtract(before).length());
+        }
+        return Math.nextUp(root.translationSpeed+Node.rotationSpeed(root.a.rotation,root.b.rotation)*Math.nextUp(radius)+scaleSpeed);
     }
     /**
      * Evaluates each local node once. This is intentionally separate from

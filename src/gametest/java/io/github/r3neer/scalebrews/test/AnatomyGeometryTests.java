@@ -392,6 +392,48 @@ public class AnatomyGeometryTests {
         catch(IllegalArgumentException expected){rejected=true;}
         h.assertTrue(rejected,"Unsupported animated shear is not silently approximated");h.succeed();
     }
+    @GameTest public void rootYawSpeedBoundExcludesFixedVerticalOffset(GameTestHelper h) {
+        var model=new ModelGeometry(1,"test:root_yaw_speed","1",java.util.List.of(
+            new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f().translation(2,10,0)))),
+            java.util.List.of(new ModelGeometry.Piece("tip","root",java.util.List.of(-.1d,-.1d,-.1d),java.util.List.of(.1d,.1d,.1d),null)));
+        var before=new Matrix4f().translation(.1f,0,0).rotateY(-.5f).scale(1.001f,.999f,1.002f);
+        var after=new Matrix4f().translation(.2f,.05f,-.1f).rotateY(.5f).scale(.999f,1.001f,1f);
+        var motion=new HierarchyMotion(model,java.util.Map.of(),java.util.Map.of(),before,after,
+            Vec3.ZERO,Vec3.ZERO,AnatomyFilter.DEFAULT).pieces().get("tip");
+        h.assertTrue(motion.maxPointSpeed()<4,"Root yaw must use distance from its rotation axis, not the fixed vertical offset");
+        var previous=motion.at().apply(0);
+        for(int step=1;step<=2048;step++) {
+            var next=motion.at().apply(step/2048d);
+            for(int vertex=0;vertex<8;vertex++)
+                h.assertTrue(next.vertices().get(vertex).distanceTo(previous.vertices().get(vertex))*2048<=motion.maxPointSpeed()+.001,
+                    "Tight root yaw/scale/translation speed still bounds every sampled vertex; step="+step+" vertex="+vertex);
+            previous=next;
+        }
+        h.succeed();
+    }
+    @GameTest public void rootSpeedBoundUsesInitialOrientationFrame(GameTestHelper h) {
+        var model=new ModelGeometry(1,"test:root_axis_frame","1",java.util.List.of(
+            new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f()))),
+            java.util.List.of(new ModelGeometry.Piece("lever","root",java.util.List.of(3d,-.05d,-.05d),
+                java.util.List.of(4d,.05d,.05d),null)));
+        var before=new Matrix4f().rotateZ((float)(Math.PI*.5));
+        var after=new Matrix4f().rotateX((float)(Math.PI*.5)).mul(before);
+        var motion=new HierarchyMotion(model,java.util.Map.of(),java.util.Map.of(),before,after,
+            Vec3.ZERO,Vec3.ZERO,AnatomyFilter.DEFAULT).pieces().get("lever");
+        var first=motion.at().apply(0);var last=motion.at().apply(1);var mid=motion.at().apply(.5);
+        double secant=0;
+        for(int vertex=0;vertex<8;vertex++)
+            secant=Math.max(secant,first.vertices().get(vertex).distanceTo(last.vertices().get(vertex)));
+        h.assertTrue(motion.maxPointSpeed()+1e-4>=secant,
+            "Root speed must cover a vertex secant after a nonidentity initial orientation");
+        var center=mid.bounds().getCenter();var body=new AABB(center.x-.03,center.y-.03,center.z-.03,
+            center.x+.03,center.y+.03,center.z+.03);
+        h.assertTrue(!first.overlaps(body) && !last.overlaps(body) && mid.overlaps(body),
+            "Root axis-frame fixture has an interior-only contact");
+        h.assertTrue(ConservativeSweep.query(body,Vec3.ZERO,motion,256).status()!=ConservativeSweep.Status.CLEAR,
+            "A certified speed bound cannot tunnel through an interior material hit");
+        h.succeed();
+    }
     @GameTest public void evaluatedHierarchyFramesShareCcdTrajectoryAndStaticShear(GameTestHelper h) {
         var model=new ModelGeometry(2,"test:evaluated_frame","1",java.util.List.of(
             new ModelGeometry.Part("root",null,ModelGeometry.values(new Matrix4f())),

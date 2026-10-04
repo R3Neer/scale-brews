@@ -7,12 +7,16 @@ import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 
 /** Affine image of a box. Rotation and shear retain the actual convex volume. */
-public record ConvexBox(List<Vec3> vertices) {
+public final class ConvexBox {
     private static final double EPS=1e-9;
-    public ConvexBox {
+    private final List<Vec3> vertices;
+    private final double coordinateUlp;
+    public ConvexBox(List<Vec3> vertices) {this(vertices,0);}
+    private ConvexBox(List<Vec3> vertices,double inheritedUlp) {
         if(vertices==null || vertices.size()!=8 || vertices.stream().anyMatch(v->v==null || !Double.isFinite(v.lengthSqr())))
             throw new IllegalArgumentException("Eight finite vertices required");
-        vertices=List.copyOf(vertices);
+        this.vertices=vertices=List.copyOf(vertices);
+        coordinateUlp=Math.max(inheritedUlp,coordinateUlp(vertices));
         Vec3 x=vertices.get(1).subtract(vertices.get(0)),y=vertices.get(2).subtract(vertices.get(0)),z=vertices.get(4).subtract(vertices.get(0));
         double determinant=x.dot(y.cross(z));
         if(!Double.isFinite(determinant) || Math.abs(determinant)<1e-15)
@@ -25,6 +29,17 @@ public record ConvexBox(List<Vec3> vertices) {
         for(int i=0;i<8;i++) if(vertices.get(0).add(x.scale(i&1)).add(y.scale((i>>1)&1)).add(z.scale((i>>2)&1)).distanceToSqr(vertices.get(i))>1e-10)
             throw new IllegalArgumentException("Non-affine vertices");
     }
+    public List<Vec3> vertices() {return vertices;}
+    /** Largest coordinate ulp in this box's arithmetic history, retained across a translation. */
+    public double coordinateUlp() {return coordinateUlp;}
+    private static double coordinateUlp(List<Vec3> points) {
+        double result=0;
+        for(Vec3 p:points)result=Math.max(result,Math.max(Math.ulp(p.x),Math.max(Math.ulp(p.y),Math.ulp(p.z))));
+        return result;
+    }
+    @Override public boolean equals(Object other) {return other instanceof ConvexBox box && vertices.equals(box.vertices);}
+    @Override public int hashCode() {return vertices.hashCode();}
+    @Override public String toString() {return "ConvexBox[vertices="+vertices+"]";}
     /** Reject invalid physical bounds before SAT or any temporal early exit. */
     public static void requireBounds(AABB b) {
         if(b==null || !Double.isFinite(b.minX) || !Double.isFinite(b.minY) || !Double.isFinite(b.minZ)
@@ -54,7 +69,11 @@ public record ConvexBox(List<Vec3> vertices) {
         for(Vec3 p:vertices) {x=Math.min(x,p.x);y=Math.min(y,p.y);z=Math.min(z,p.z);X=Math.max(X,p.x);Y=Math.max(Y,p.y);Z=Math.max(Z,p.z);}
         return new AABB(x,y,z,X,Y,Z);
     }
-    public ConvexBox move(Vec3 delta) {requireVector(delta);return new ConvexBox(vertices.stream().map(v->v.add(delta)).toList());}
+    public ConvexBox move(Vec3 delta) {
+        requireVector(delta);
+        double translatedUlp=Math.max(coordinateUlp,Math.max(Math.ulp(delta.x),Math.max(Math.ulp(delta.y),Math.ulp(delta.z))));
+        return new ConvexBox(vertices.stream().map(v->v.add(delta)).toList(),translatedUlp);
+    }
     public Vec3 point(Vec3 local) {
         requireVector(local);
         Vec3 origin=vertices.getFirst();
@@ -119,25 +138,27 @@ public record ConvexBox(List<Vec3> vertices) {
         }
         return List.copyOf(normalized);
     }
-    private double[] interval(Vec3 axis) {
+    private double[] interval(Vec3 axis,Vec3 origin) {
         double lo=Double.POSITIVE_INFINITY,hi=-lo;
-        for(Vec3 p:vertices){double d=p.dot(axis);lo=Math.min(lo,d);hi=Math.max(hi,d);}return new double[]{lo,hi};
+        for(Vec3 p:vertices){double d=p.subtract(origin).dot(axis);lo=Math.min(lo,d);hi=Math.max(hi,d);}return new double[]{lo,hi};
     }
-    private static double[] interval(AABB b,Vec3 a) {
-        double c=b.getCenter().dot(a),r=(b.getXsize()*Math.abs(a.x)+b.getYsize()*Math.abs(a.y)+b.getZsize()*Math.abs(a.z))*.5;
+    private static double[] interval(AABB b,Vec3 a,Vec3 origin) {
+        double c=b.getCenter().subtract(origin).dot(a),r=(b.getXsize()*Math.abs(a.x)+b.getYsize()*Math.abs(a.y)+b.getZsize()*Math.abs(a.z))*.5;
         return new double[]{c-r,c+r};
     }
     public boolean overlaps(AABB body) {
         requireBounds(body);
-        for(Vec3 axis:axes()){double[] a=interval(axis),b=interval(body,axis);if(b[1]<=a[0]+EPS || b[0]>=a[1]-EPS)return false;}return true;
+        Vec3 origin=body.getCenter();
+        for(Vec3 axis:axes()){double[] a=interval(axis,origin),b=interval(body,axis,origin);if(b[1]<=a[0]+EPS || b[0]>=a[1]-EPS)return false;}return true;
     }
     public record Separation(double gap,Vec3 normal) {}
     /** Candidate minimum translations along SAT axes; includes both exits for blocked-side recovery. */
     public List<Vec3> escapeVectors(AABB body) {
         if(!overlaps(body))return List.of();
         List<Vec3> result=new ArrayList<>();
+        Vec3 origin=body.getCenter();
         for(Vec3 axis:axes()) {
-            double[] a=interval(axis),b=interval(body,axis);
+            double[] a=interval(axis,origin),b=interval(body,axis,origin);
             result.add(axis.scale(a[1]-b[0]+1e-6));result.add(axis.scale(a[0]-b[1]-1e-6));
         }
         result.sort(Comparator.comparingDouble(Vec3::lengthSqr));return List.copyOf(result);
@@ -146,8 +167,9 @@ public record ConvexBox(List<Vec3> vertices) {
     public Separation separation(AABB body) {
         requireBounds(body);
         double gap=Double.NEGATIVE_INFINITY;Vec3 normal=Vec3.ZERO;
+        Vec3 origin=body.getCenter();
         for(Vec3 axis:axes()) {
-            double[] a=interval(axis),b=interval(body,axis);
+            double[] a=interval(axis,origin),b=interval(body,axis,origin);
             double positive=b[0]-a[1],negative=a[0]-b[1];
             if(positive>gap){gap=positive;normal=axis;}
             if(negative>gap){gap=negative;normal=axis.scale(-1);}
@@ -160,8 +182,9 @@ public record ConvexBox(List<Vec3> vertices) {
         requireVector(movement);
         if(overlaps(body))return new Hit(0,Vec3.ZERO,true);
         double enter=Double.NEGATIVE_INFINITY,exit=Double.POSITIVE_INFINITY;Vec3 normal=Vec3.ZERO;
+        Vec3 origin=body.getCenter();
         for(Vec3 axis:axes()) {
-            double[] a=interval(axis),b=interval(body,axis);double speed=movement.dot(axis);
+            double[] a=interval(axis,origin),b=interval(body,axis,origin);double speed=movement.dot(axis);
             if(Math.abs(speed)<EPS){if(b[1]<=a[0]+EPS || b[0]>=a[1]-EPS)return null;continue;}
             double t1=(a[0]-b[1])/speed,t2=(a[1]-b[0])/speed,near=Math.min(t1,t2),far=Math.max(t1,t2);
             if(near>enter){enter=near;normal=axis.scale(speed>0?-1:1);}exit=Math.min(exit,far);

@@ -2318,3 +2318,119 @@ Review index `../s32-adversary-private/s32-final-zero-change-review.json`
 S32/G4.6 is closed within the documented test limits. Integrated NFR-014
 benchmarking and human/pack/external-model acceptance remain in G9.
 
+## S34 / G4 A9 large-coordinate temporal reopening — candidate evidence (2026-10-04)
+
+The required prepared A9 proof was RED before S34 on both a run omitting S33
+and a fresh GameTest world, as recorded above. Temporary opt-in traces over
+the same certified cow motion showed selected direct CCD work varying from
+432 evaluations near origin to 87 after a common large translation in one
+sample, while the full 10-piece manifold exhausted 256. Other samples had a
+selected piece within budget but exhausted after contact when later clear
+pieces joined. Logs and classifications are recorded in the S34 sprint file;
+none of these RED runs is counted as a pass.
+
+The candidate computes `ConvexBox` SAT projections relative to one nearby
+body-center origin. Its diagnostic prepared run completed the full manifold
+in 170/171/171 evaluations at origin and two previously failing translations
+(`../s34-relative-prepared.log`, SHA-256
+`d69923e000b1e69aa74b1f76eb55489e657289be586c8e1e3d79337ee7bc0ce5`,
+BUILD SUCCESSFUL). After removing instrumentation, the full prepared suite
+with S33 enabled passed **2/2** and checked six translated real cow manifolds
+before aggregation (`../s34-full-prepared-candidate.log`, SHA-256
+`6d320c4b15fc5a846986b215cff1354ecb8d5c47b3dae0e7e1a2556c7bd43917`,
+BUILD SUCCESSFUL). The existing 32-event/256-evaluation budget and skin were
+unchanged. Ordinary/client and independent verification remain pending.
+
+The same candidate then passed local `build` with **463/463** ordinary
+GameTests (`../s34-relative-build.log`, SHA-256
+`f21d7da266da66d857cdbcbb0f0bfd38caea99a5560d8799174feec43a70efe0`,
+BUILD SUCCESSFUL). Client and adversarial verification remain in progress.
+
+The ordinary `runClientGameTest` also completed `BUILD SUCCESSFUL` on the
+relative-SAT candidate (`../s34-relative-client.log`, SHA-256
+`33ae1539daeeee00bb396a96c6a758343440d85400b3e0d762b74a5c2994e397`).
+This is client regression evidence, not a substitute for the independent
+prepared-catalog and native packet proofs.
+
+The adversary's independent S34 run invalidated closure of this candidate:
+`../s34-adversary-private/candidate-sat-prepared.log` (SHA-256
+`8697c522b02deb48b11090c009c4e034cc46004202d0536f2d1deefc3925ae19`)
+passed its SAT and translation holdouts, but the required real prepared A9
+GameTest exhausted the 256-evaluation budget for **all six** translated cow
+manifolds, including the near-origin case. The near-origin input reached two
+`root/head/cube_0` contacts at t≈0.2839344 before exhaustion; some large-world
+translations exhausted before any contact. The process reported one required
+failure, `BUILD FAILED`, and shut down cleanly. This RED is a G4/FR-048–049
+acceptance blocker, and therefore S33 remains unclosed. The prior green logs
+remain valid only for their sampled GameTest inputs.
+
+The revised S34 candidate retains the original coordinate ulp when a convex
+box is translated, uses the same bounded numeric band for CCD and temporal
+screens, and charges a post-contact clear certificate before an inconclusive
+CCD probe. The base `SKIN`, `SKIN/4` numeric cap, 32-event and 256-evaluation
+limits are unchanged; the ulp factor increased from 8 to 13 and is subject to
+independent tangent/clear review. With a six-level chronological fallback,
+the cleaned prepared suite passed **2/2** on two fixed real cow yaw paths and
+all six complete-manifold translations per path: `../s34-final-prepared-depth6.log`,
+SHA-256 `133dc6ddab5c2ff8af8f4afd9858fcc89830287dacd98c045b61a6c3efa41198`,
+`BUILD SUCCESSFUL`. The same source passed the ordinary `build` with
+**463/463** required GameTests: `../s34-final-build-depth6.log`, SHA-256
+`50ab58e75f43eebb76ef24df33a4d06b96a2230e4e9651c45b3d654f5d7ea153`.
+The ordinary `runClientGameTest --offline` also completed `BUILD SUCCESSFUL`
+on this candidate (`../s34-final-client.log`, SHA-256
+`562ca9b6f3b781265aebc1a8fb9595072a4609b292c808ce64c2ee754e003bbb`).
+The historic depth-eight fallback remained RED on one near-origin replay
+(`../s34-final-prepared.log`, SHA-256
+`e980289767e7657e5568fc2fb745a38623fd76857b71d6805255e08fc9f1bcdc`)
+and is not counted as success. Exact code hashes and work analysis are in the
+S34 sprint file. Independent adversarial results remain pending;
+the candidate is not yet G4 or S33 closure.
+
+The earlier adversarial S34 GREEN was pinned to a candidate with only two
+fixed A9 yaws. Restoring the original live yaw exposed another true 256-query
+exhaustion at 0.5 degrees near the vanilla border. A tighter root-only
+rotation-axis speed bound repaired that work cost, but the adversary's private
+nonidentity-root fixture exposed an unsafe coordinate-frame error in its first
+revision: declared speed 0.117179 versus observed unit-interval vertex secant
+5.657297; an actual interior hit was reported CLEAR. That RED is preserved in
+`../s34-adversary-private/rigid-root-bound.log` (SHA-256
+`4dc27efc1344f91b3cdf79b4d2fed79823c9bfe4e306fb2e7713c18f94547266`).
+The revised bound expresses the relative rotation axis in the initial root's
+local frame before measuring fixed downstream vertices. Its first private
+reruns passed: original holdout in `rigid-root-fixed-campaign.log` (SHA-256
+`1c3f94d05ef0936693e2ffa45a384a7cb2af19c6afe686125f5eb2478f5a7661`)
+and expanded holdout in `rigid-root-expanded.log` (SHA-256
+`0669f9c97ed4707255c0907d82829f58991b92bd61cd5636564613b84f920b22`),
+each `BUILD SUCCESSFUL`. These are bounded independent checks, not yet the
+final adversarial S34 verdict.
+
+On the corrected source, the full prepared suite passed **2/2**, including
+four real cow yaw cases and six complete-manifold translations per case:
+`../s34-axis-prepared.log` (SHA-256
+`43ad1a00aaf68617220210ff990a3c2fde08b6521b65616c25b87b000f5dd01a`,
+`BUILD SUCCESSFUL`). The ordinary `build` passed **465/465** required GameTests,
+including the permanent nonidentity-root tunneling and vertical-offset bound
+regressions: `../s34-axis-build.log` (SHA-256
+`c82b2888ba7bfecdaa224be347885756283f5593e3d4b968a8b1d6afc3088318`,
+`BUILD SUCCESSFUL`). Production source SHA-256: `HierarchyMotion.java`
+`b26d21335a35c298fbfdfb2f491fddde9af8e6bd65bb1b1e563c8dffc38cc454`,
+`ConvexBox.java` `591caca1f655d8d3fb785d9721758f880bf12491b4b8a461c94ffc6d82c05beb`,
+`ConservativeSweep.java` `86cf8d9e148032aa7888f6870761bd35bac0a492efe4daa4cb4646c701ab20ca`,
+`TemporalResponse.java` `b93da6b1404aeeb27b6877e893e1ab87686c303fa249bfe252ac9cb438cdc12e`.
+The corrected-source ordinary `runClientGameTest --offline` also completed
+`BUILD SUCCESSFUL` with clean integrated-world shutdown in
+`../s34-axis-client.log` (SHA-256
+`0cca144cba9bb0624a8c009e6199c1a6ecfb64823c3a6759a4194ba5ef87639f`).
+This uses the same `HierarchyMotion.java` hash above. The adversary's
+`rigid-root-fixed-campaign.log` subsequently passed **6/6** across its
+unchanged ROOT, SAT, translation, window, prepared and sentinel selectors;
+`rigid-root-expanded.log` passed **2/2** with 48 nonidentity-root TRS cases
+and 12,288 observed vertex secants. Its affected-surface zero-change verdict
+is GREEN in the S34 sprint record. The independent final cross-sprint S34/S33
+review found zero new production defects or evidence gaps on the same source
+hashes and verified the final ordinary, prepared and client logs above. Its
+manifest is `../s34-adversary-private/final-cross-sprint-evidence.json`
+(SHA-256 `bdee2f672c28fc5071fa52c095cc6f4fe3bf272edff9a0b77d3a20e4566dd8fe`).
+The historical S33/A9 and unsafe ROOT REDs remain classified in their sprint
+records; S34 repair and S33 placement meet their tested closure criteria.
+

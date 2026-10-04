@@ -92,9 +92,12 @@ public final class ConservativeSweep {
     /**
      * SAT operates on world-space doubles. At Minecraft-scale coordinates, storing two nearby
      * endpoints can move their reconstructed gap by a few ulps even under a common translation.
+     * A translated box retains the ulp scale of the coordinates used before translation: moving a
+     * sampled large-world box near zero does not undo the precision lost when it was sampled.
      * CCD must not spend its whole iteration budget chasing a separation smaller than that numeric
-     * floor. Eight coordinate ulps cover endpoint rounding plus three-term SAT projections while
-     * remaining below 3e-8 blocks throughout the vanilla world border, far smaller than SKIN.
+     * floor. Thirteen coordinate ulps cover the measured endpoint/pose quantization and SAT
+     * projections in the prepared rotating-cow replay; even at the vanilla world border this
+     * remains below 5e-8 blocks, far smaller than SKIN.
      */
     private static double numericalGapTolerance(AABB body,ConvexBox material) {
         AABB bounds=material.bounds();
@@ -103,7 +106,7 @@ public final class ConservativeSweep {
             Math.max(
                 Math.max(Math.max(Math.abs(body.minY),Math.abs(body.maxY)),Math.max(Math.abs(bounds.minY),Math.abs(bounds.maxY))),
                 Math.max(Math.max(Math.abs(body.minZ),Math.abs(body.maxZ)),Math.max(Math.abs(bounds.minZ),Math.abs(bounds.maxZ)))));
-        double tolerance=8*Math.ulp(magnitude);
+        double tolerance=13*Math.max(Math.ulp(magnitude),material.coordinateUlp());
         return Math.min(SKIN*.25,tolerance);
     }
 }

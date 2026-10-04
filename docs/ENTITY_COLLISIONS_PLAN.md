@@ -159,7 +159,11 @@ el siguiente gate canónico es G5.
 
 ### G4 — red, prediction, reconciliación y presentación causal
 
-**Estado:** **CERRADO tras S32/G4.6c**. La prioridad vigente es G5.
+**Estado:** **CERRADO tras recierre S34**. S32/G4.6c cerró la batería entonces
+ejecutada; S34 reparó un RED de S09 A9 a traslaciones válidas y una posterior
+cota ROOT insegura. La suite preparada, 465 GameTests ordinarios, cliente,
+controles adversariales y revisión cruzada sin cambios son verdes. Los RED
+históricos y los resultados S32 conservan su clasificación original.
 
 **Requisitos:** FR-077..088; NFR-001..018, NFR-026..031.
 

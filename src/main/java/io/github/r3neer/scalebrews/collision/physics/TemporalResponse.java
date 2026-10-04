@@ -20,7 +20,7 @@ public final class TemporalResponse {
     private static final double TIME_EPS=1e-10;
     private static final double Q_MIN=4*ConservativeSweep.SKIN,Q_MAX=8*ConservativeSweep.SKIN;
     private static final int MAX_Q_PROJECTIONS=4,MAX_BISECTIONS=8,PROBE_QUERY_BUDGET=8,
-        MIDPOINT_CONTACT_PROBE_BUDGET=80,SCREEN_DEPTH=8;
+        HORIZON_SCREEN_BUDGET=32,POST_CONTACT_SCREEN_BUDGET=10,SCREEN_DEPTH=6;
     private static final int MIDPOINT_ORDER_MIN_PIECES=4,MIDPOINT_ORDER_MAX_PIECES=64;
     private static final class Budget {
         private int remaining,used;
@@ -151,17 +151,20 @@ public final class TemporalResponse {
             var interval=pieces.get(id).interval(start,start+(end-start)*horizon);
             Vec3 queryDelta=delta.scale(horizon);
             // Before the first hit, an unknown piece still needs the full temporal screening path.
-            // Once earliest is known, the horizon above is already the complete simultaneous-contact
-            // window that can change this event. Query every remaining piece exactly in that bounded
-            // window instead of paying probe + whole-trajectory screening again. The same shared
-            // response budget still pays every CCD and no piece is skipped.
+            // Once earliest is known, only the simultaneous-contact horizon can change this event.
+            // A bounded fixed-plane cover may prove an unrelated piece clear more cheaply than CCD;
+            // an ambiguous cover always falls through to exact CCD within the same shared budget.
             ConservativeSweep.Result result;
             if(constraint!=null || Double.isFinite(earliest)) {
-                result=budget.query(body,queryDelta,interval);
+                if(constraint==null && Double.isFinite(earliest)) {
+                    Boolean clear=certifiedClearTrajectory(body,queryDelta,interval,budget,HORIZON_SCREEN_BUDGET);
+                    result=clear==null
+                        ?new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0)
+                        :clear?new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0)
+                        :budget.query(body,queryDelta,interval);
+                } else result=budget.query(body,queryDelta,interval);
             } else {
-                int probeBudget=midpointOverlapping.contains(id)
-                    ?MIDPOINT_CONTACT_PROBE_BUDGET:PROBE_QUERY_BUDGET;
-                result=firstForPiece(body,queryDelta,interval,budget,probeBudget);
+                result=firstForPiece(body,queryDelta,interval,budget,midpointOverlapping.contains(id),start>TIME_EPS);
             }
             if(horizon<1)result=new ConservativeSweep.Result(result.status(),
                 Math.clamp(result.safeFraction(),0,1)*horizon,result.normal(),result.evaluations());
@@ -175,15 +178,21 @@ public final class TemporalResponse {
     }
 
     /**
-     * Cheap CCD is cheaper than screening for many ordinary pieces. Probe first with a deliberately
-     * small local allowance: a conclusive CLEAR/contact is final, while a local ITERATION_LIMIT only
-     * means "not cheap" and falls through to certified temporal screening. A trajectory that cannot
-     * be certified fully clear is then narrowed chronologically before exact CCD spends the shared
-     * remainder, so a real interior contact does not restart from the whole tick.
+     * A witnessed midpoint overlap goes straight to chronological search: a long CCD probe cannot
+     * prove it clear and would be repeated after its local cap. Other pieces get a cheap CCD probe,
+     * then certified screening before chronological narrowing if the probe is inconclusive.
      */
-    private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget,int probeBudget) {
+    private static ConservativeSweep.Result firstForPiece(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget,boolean midpointOverlap,boolean afterContact) {
         if(interval.deformationSpeed()==0)return budget.query(body,delta,interval);
-        var probe=budget.query(body,delta,interval,probeBudget);
+        if(midpointOverlap)return firstWindow(body,delta,interval,0,0,1,budget);
+        if(afterContact) {
+            // A fresh piece in a post-contact event often has a certified clear residual trajectory.
+            // Screen it before spending the same samples in a CCD probe; ambiguity still falls through.
+            Boolean clear=certifiedClearTrajectory(body,delta,interval,budget,POST_CONTACT_SCREEN_BUDGET);
+            if(clear==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
+            if(clear)return new ConservativeSweep.Result(ConservativeSweep.Status.CLEAR,1,Vec3.ZERO,0);
+        }
+        var probe=budget.query(body,delta,interval,PROBE_QUERY_BUDGET);
         if(probe.status()!=ConservativeSweep.Status.ITERATION_LIMIT || budget.exhausted())return probe;
         Boolean possible=mayIntersect(body,delta,interval,budget);
         if(possible==null)return new ConservativeSweep.Result(ConservativeSweep.Status.ITERATION_LIMIT,0,Vec3.ZERO,0);
@@ -236,6 +245,10 @@ public final class TemporalResponse {
         var material=interval.at().apply(.5);
         if(material==null)return false;
         AABB sampledBody=body.move(delta.scale(.5));
+        return certifiesMidpointWindow(material,sampledBody,delta,interval);
+    }
+
+    private static boolean certifiesMidpointWindow(ConvexBox material,AABB sampledBody,Vec3 delta,ConservativeSweep.Motion interval) {
         var separation=material.separation(sampledBody);
         Vec3 normal=separation.normal();
         if(!Double.isFinite(separation.gap()) || !Double.isFinite(normal.lengthSqr())
@@ -257,6 +270,10 @@ public final class TemporalResponse {
      * prove clearance and the caller must fall back to exact CCD.
      */
     private static Boolean certifiedClearTrajectory(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget) {
+        return certifiedClearTrajectory(body,delta,interval,budget,Integer.MAX_VALUE);
+    }
+    private static Boolean certifiedClearTrajectory(AABB body,Vec3 delta,ConservativeSweep.Motion interval,Budget budget,int maxSamples) {
+        int startUsed=budget.used;
         var pending=new PriorityQueue<Uncovered>(Comparator
             .comparingDouble((Uncovered window)->window.end()-window.start()).reversed()
             .thenComparingDouble(Uncovered::start));
@@ -265,6 +282,7 @@ public final class TemporalResponse {
         while(!pending.isEmpty()) {
             var window=pending.remove();
             if(window.end()-window.start()<=TIME_EPS)continue;
+            if(budget.used-startUsed>=maxSamples)return false;
             if(!budget.sample())return null;
             double time=(window.start()+window.end())*.5;
             var material=interval.at().apply(time);

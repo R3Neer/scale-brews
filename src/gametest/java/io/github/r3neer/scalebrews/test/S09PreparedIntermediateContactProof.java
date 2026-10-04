@@ -27,9 +27,18 @@ final class S09PreparedIntermediateContactProof {
     private S09PreparedIntermediateContactProof() {}
 
     static void run(GameTestHelper h) {
+        // Preserve the live spawn yaw alongside fixed regression angles.
+        runCase(h,3.2268698f);
+        runCase(h,3.8949702f);
+        runCase(h,.5f);
+        runCase(h,null);
+    }
+
+    private static void runCase(GameTestHelper h,Float initialYaw) {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,20,20,20);
         support.setNoAi(true);support.setNoGravity(true);
+        if(initialYaw!=null)support.yBodyRot=initialYaw;
         support.getAttribute(Attributes.SCALE).setBaseValue(1);support.refreshDimensions();
         var body=h.spawn(EntityTypes.SHEEP,24,20,20);
         body.setNoAi(true);body.setNoGravity(true);
@@ -121,9 +130,9 @@ final class S09PreparedIntermediateContactProof {
                         +" maxPointSpeed="+failedMotion.maxPointSpeed()+" bodyCenter="+captured.getCenter();
                 } else manifoldDiagnostics=" prefix="+prefix+" noPrefixFailure=true bodyCenter="+captured.getCenter();
             }
+            assertTranslatedManifolds(h,captured,liveMotion.pieces());
             h.assertTrue(manifoldResponse.status()==TemporalResponse.Status.COMPLETE && manifoldResponse.displacement().lengthSqr()>1e-10,
                 "A9 full live cow manifold must resolve the same interior-only contact without exhausting: "+manifoldResponse+manifoldDiagnostics);
-            assertTranslatedManifolds(h,captured,liveMotion.pieces());
 
             MaterialPhysicsRuntime.drain(level);
 
@@ -153,20 +162,37 @@ final class S09PreparedIntermediateContactProof {
 
     private static void assertTranslatedManifolds(GameTestHelper h,AABB body,Map<String,ConservativeSweep.Motion> pieces) {
         var center=body.getCenter();
-        double[][] targets={{0,0},{8_000_000,-4_000_000},{-13_000_000,8_000_000},{29_000_000,-29_000_000}};
+        double[][] targets={{0,0},{11_429_794.892375544,8_110_932.821634389},
+            {-4_663_482.101555854,-14_573_532.167153247},
+            {8_000_000,-4_000_000},{-13_000_000,8_000_000},{29_000_000,-29_000_000}};
+        var errors=new ArrayList<String>();
+        TemporalResponse.Result reference=null;
         for(var target:targets) {
             var shift=new Vec3(target[0]-center.x,0,target[1]-center.z);
             var translatedBody=body.move(shift);
             var translated=new TreeMap<String,ConservativeSweep.Motion>();
             pieces.forEach((id,motion)->translated.put(id,translate(motion,shift)));
             var response=TemporalResponse.resolve(translatedBody,Vec3.ZERO,translated,32,256);
-            h.assertTrue(response.status()==TemporalResponse.Status.COMPLETE && response.displacement().lengthSqr()>1e-10,
-                "A9 translated prepared manifold must complete under the same 256 budget at x/z="
-                    +target[0]+"/"+target[1]+": "+response);
+            String label="x/z="+target[0]+"/"+target[1];
+            if(reference==null)reference=response;
+            if(response.status()!=TemporalResponse.Status.COMPLETE || response.displacement().lengthSqr()<=1e-10
+                    || response.contacts().isEmpty() || response.evaluations()>256) {
+                errors.add(label+" failed: "+response);
+                continue;
+            }
             AABB finalBody=translatedBody.move(response.displacement());
-            h.assertTrue(translated.values().stream().noneMatch(motion->motion.at().apply(1).overlaps(finalBody)),
-                "A9 translated prepared manifold must finish endpoint-clear at x/z="+target[0]+"/"+target[1]);
+            if(translated.values().stream().anyMatch(motion->motion.at().apply(1).overlaps(finalBody)))
+                errors.add(label+" ends inside material: "+response);
+            if(reference.status()==TemporalResponse.Status.COMPLETE && !reference.contacts().isEmpty()) {
+                var expected=reference.contacts().getFirst();var actual=response.contacts().getFirst();
+                if(response.displacement().distanceToSqr(reference.displacement())>4e-10
+                        || !actual.piece().equals(expected.piece())
+                        || Math.abs(actual.time()-expected.time())>2e-5
+                        || actual.normal().distanceToSqr(expected.normal())>4e-10)
+                    errors.add(label+" differs from origin contact/response: "+response);
+            }
         }
+        h.assertTrue(errors.isEmpty(),"A9 complete translated cow manifolds must agree and finish clear: "+errors);
     }
 
     private static ConservativeSweep.Motion translate(ConservativeSweep.Motion motion,Vec3 shift) {
