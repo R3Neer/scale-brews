@@ -2549,3 +2549,39 @@ The independent final review found no production diff or further candidate
 change. This closes only FR-007/066 for items; boats, rails, falling blocks,
 legacy retirement and G9 acceptance remain open.
 
+S36/G5.3 boat/raft slice closed locally after the final independent
+zero-change review. The IMPLEMENTER's actual prepared server proof covers
+ordinary boat, chest boat, bamboo raft and chest raft, canonical-only material
+contact/friction, retained ROOT translation and yaw, ratio-rejected native
+interaction/push, wall obstruction without replay and support release.
+`../s36-prepared-push.log` passed **465/465**, SHA-256
+`919375c726a496679df489664e96fb9d34a7b9b1b171f5611f0e084e9eaec1c2`.
+The real local-controller client/server GameTest rows an occupied oak boat on
+the prepared support, takes one ROOT carry, then enters source water, retires
+material contact and exits onto dry stone with native `ON_LAND` status.
+`../s36-client-final-candidate.log` passed, SHA-256
+`04e6ca71348f393a22c61237dc8c019c77285de5f49a6fc6c8a12658da8afb23`.
+The same production candidate passed ordinary **465/465** in
+`../s36-final-ordinary-build.log`, SHA-256
+`6d9fdf12c077571fd20fff28e9d3233e842e333dd41c39c01ac2de0c0bd5f43e`,
+and the full client suite in `../s36-final-full-client.log`, SHA-256
+`0d12e0f70c81945c0eaf67340a5908f239ecda62321e68593d495bbe2d6e8eab`.
+
+ADVERSARY RED2 exposed an integer-loop overflow in the first vehicle-packet
+fluid probe at a finite out-of-world coordinate. The bounded replacement was
+retested by the unchanged original oracle **2/2 GREEN**. Independent server
+oracles for the four hulls/native seats and contents, overlapping water/contact
+retirement, and packet projection/controls also passed **2/2 each**. The
+ADVERSARY reran the public real-client proof unchanged in its own build and
+found no further defect in the final zero-change review. Its manifest is
+`../s36-adversary-private/final-evidence.json`, SHA-256
+`92de7d2e4c551e1500056f817d35657eb9241b747323793f09ce29f3b61f97f8`.
+Final production SHA-256:
+`AnatomyMovement.java` `ea50e54ffdb8ea0226dc82e3fb4ba246c81ba4a2b3fabc8724fa4449a1f1e433`;
+`PlatformConnectionMixin.java` `12adf0c1661ebb0288ce323d4347018623d13a7bd59282c5c2dd8a024c441f6c`.
+The HOT_NETWORK projection inspects at most 64 local fluid cells; the
+independent 10,000-query check observed zero extra geometry/joint evaluations.
+This evidence closes FR-007/064 for boats/rafts only. Minecarts, falling
+blocks, legacy removal, global G9 benchmark and human pack/gameplay QA remain
+open.
+

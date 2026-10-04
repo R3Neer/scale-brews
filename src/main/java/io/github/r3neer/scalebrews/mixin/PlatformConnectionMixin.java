@@ -43,6 +43,8 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
             Vec3 target=io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)
                 ?io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference.resolve(player,body,packet.position())
                 :PlatformMovementReference.resolve(body,packet.position());
+            if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ready(body))
+                target=io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.acceptedBoatPacketPosition(body,target);
             if(!target.equals(packet.position())) packet=new ServerboundMoveVehiclePacket(target,packet.yRot(),packet.xRot(),packet.onGround());
         }
         original.call(packet);

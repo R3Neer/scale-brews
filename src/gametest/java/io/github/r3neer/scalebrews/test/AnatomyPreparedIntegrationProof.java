@@ -47,9 +47,11 @@ public final class AnatomyPreparedIntegrationProof {
                     "Prepared catalog makes the shared mode ready for a body without requiring that body to be a support binding");
             } finally {probe.discard();}
             if(Boolean.getBoolean("scalebrews.s35Only")){S35PreparedItemLifecycleProof.run(h);h.succeed();return;}
+            if(Boolean.getBoolean("scalebrews.s36Only")){S36PreparedBoatProof.run(h);h.succeed();return;}
             if(!Boolean.getBoolean("scalebrews.s33Skip"))S33PreparedPlacementProof.run(h);
             if(Boolean.getBoolean("scalebrews.s33Only")){h.succeed();return;}
             S35PreparedItemLifecycleProof.run(h);
+            S36PreparedBoatProof.run(h);
             staleBindingIdentityCannotCertifyInterval(h);
             // The helpers retain their production route: actual Entity.move,
             // mixins, core queries and material contacts.  They do not start,

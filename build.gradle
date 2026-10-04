@@ -90,6 +90,8 @@ tasks.withType(JavaExec).configureEach {
 		systemProperty 'scalebrews.s33Skip', providers.gradleProperty('scalebrewsS33Skip').get()
 	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS35Only').isPresent())
 		systemProperty 'scalebrews.s35Only', providers.gradleProperty('scalebrewsS35Only').get()
+	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS36Only').isPresent())
+		systemProperty 'scalebrews.s36Only', providers.gradleProperty('scalebrewsS36Only').get()
 	// Opt-in GameTest evidence.  This is never set for normal gameplay runs.
 	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsGameTestReport').isPresent()) {
 		systemProperty 'fabric-api.gametest.report-file', file(providers.gradleProperty('scalebrewsGameTestReport').get()).absolutePath
@@ -107,6 +109,7 @@ tasks.named('processGametestResources') {
 	def predictionBaselineProof = providers.gradleProperty('scalebrewsAnatomyPredictionBaselineProof').orElse('false')
 	def readmeCapture = providers.gradleProperty('scalebrewsReadmeCapture').orElse('false')
 	def tinyMountVisualProof = providers.gradleProperty('scalebrewsTinyMountVisualProof').orElse('false')
+	def s36ClientOnly = providers.gradleProperty('scalebrewsS36ClientOnly').orElse('false')
 	inputs.property('anatomyOnly', anatomyOnly)
 	inputs.property('preparedAnatomySuite', preparedAnatomySuite)
 	inputs.property('trackerLifecycleSuite', trackerLifecycleSuite)
@@ -114,7 +117,14 @@ tasks.named('processGametestResources') {
 	inputs.property('predictionBaselineProof', predictionBaselineProof)
 	inputs.property('readmeCapture', readmeCapture)
 	inputs.property('tinyMountVisualProof', tinyMountVisualProof)
+	inputs.property('s36ClientOnly', s36ClientOnly)
 	doLast {
+		if (s36ClientOnly.get().toBoolean()) {
+			def manifest = new File(destinationDir, 'fabric.mod.json')
+			def metadata = new groovy.json.JsonSlurper().parse(manifest)
+			metadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.S36LocalBoatControlProof']
+			manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
+		}
 		if (tinyMountVisualProof.get().toBoolean()) {
 			def visualManifest = new File(destinationDir, 'fabric.mod.json')
 			def visualMetadata = new groovy.json.JsonSlurper().parse(visualManifest)

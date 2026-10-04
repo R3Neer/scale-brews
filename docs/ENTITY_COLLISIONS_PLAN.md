@@ -283,6 +283,19 @@ obstrucción y budget. No hubo cambio de producción. Evidencia exacta:
 amplio de G5 sigue abierto para boats/rafts, minecarts, falling blocks y la
 retirada legacy; el benchmark y la QA humana se mantienen en G9.
 
+**S36/G5.3 cerrado localmente para barcos y balsas (FR-007/064):** los cuatro
+cascos reales (ordinario y cofre, barco y balsa) adquieren contacto material
+canónico sobre soporte preparado, conservan tipo/contenido, fricción seca y
+pasajeros, y siguen un único ROOT con obstrucción sin deuda. Un controlador
+local real rema del soporte al agua y después a tierra seca; el contacto
+material se retira en agua y la navegación nativa conserva la prioridad.
+La corrección acotada del destino de paquete de vehículo fue revalidada tras
+el RED numérico adversarial. Servidor **465/465**, cliente focal y suite de
+cliente completa verdes; cuatro oráculos independientes y pasada final sin
+cambios. Evidencia exacta en `docs/sprints/S36-g5-boats-rafts-water.md` y
+`docs/VALIDATION.md`. G5 sigue abierto para minecarts, falling blocks y la
+retirada del motor legacy; G9 conserva benchmark integrado y QA humana.
+
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general

@@ -354,6 +354,55 @@ public final class AnatomyMovement {
         if(body!=null && !body.level().isClientSide())AnatomyObserverCarries.invalidate(body);
     }
     public static synchronized SurfaceContact surface(Entity body){return AnatomyContactState.surface(body);}
+    /** Keep a controlled boat's server packet on its already accepted material face.
+     * Vanilla may accept the client's small gravity step through absSnapTo even after its
+     * collision probe was clipped, then the next material drain retires the old contact.
+     * Only a shallow inward correction on the same face is projected; fluid, a real exit,
+     * or a different support face keeps the unmodified native packet destination. */
+    public static synchronized Vec3 acceptedBoatPacketPosition(Entity body,Vec3 target) {
+        if(!(body instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat)
+                || body.level().isClientSide() || !(body.getControllingPassenger() instanceof net.minecraft.server.level.ServerPlayer)
+                || target==null || !Double.isFinite(target.lengthSqr()))return target;
+        var c=contact(body);var surface=surface(body);
+        if(c==null || surface==null || !surface.support().equals(c.support().getUUID())
+                || !surface.piece().equals(c.piece()) || surface.revision()!=c.revision()
+                || !Platforms.eligible(body,c.support()) || body.isInWater())return target;
+        // The projection only repairs the local gravity step. Leave distant packet targets
+        // for vanilla's movement validation without looking up remote fluid/chunks first.
+        var packetDelta=target.subtract(body.position());
+        double packetDistanceSqr=packetDelta.lengthSqr();
+        if(!Double.isFinite(packetDistanceSqr) || packetDistanceSqr>1)return target;
+        var snapshot=currentSnapshot(c.support(),AnatomyBindingState.provider(c.support())).orElse(null);
+        var piece=snapshot==null?null:snapshot.pieces().get(c.piece());
+        if(piece==null || snapshot.revision()!=c.revision())return target;
+        var targetBox=body.getBoundingBox().move(packetDelta);
+        var separation=piece.separation(targetBox);
+        if(separation.gap()>=0 || separation.gap()<-.125
+                || separation.normal().dot(piece.faceNormal(surface.face()))<.99
+                || !gravity(body).supports(separation.normal()))return target;
+        if(packetIntersectsFluid(body,targetBox))return target;
+        return target.add(separation.normal().scale(-separation.gap()));
+    }
+    private static boolean packetIntersectsFluid(Entity body,AABB box) {
+        // This runs before vanilla clamps vehicle packet coordinates. Reject an out-of-world
+        // probe before narrowing doubles to int: saturated int endpoints can wrap a loop.
+        if(!Double.isFinite(box.minX) || !Double.isFinite(box.minY) || !Double.isFinite(box.minZ)
+                || !Double.isFinite(box.maxX) || !Double.isFinite(box.maxY) || !Double.isFinite(box.maxZ)
+                || box.minX < -net.minecraft.world.level.Level.MAX_LEVEL_SIZE
+                || box.maxX > net.minecraft.world.level.Level.MAX_LEVEL_SIZE
+                || box.minZ < -net.minecraft.world.level.Level.MAX_LEVEL_SIZE
+                || box.maxZ > net.minecraft.world.level.Level.MAX_LEVEL_SIZE
+                || box.minY < net.minecraft.world.level.Level.MIN_ENTITY_SPAWN_Y
+                || box.maxY > net.minecraft.world.level.Level.MAX_ENTITY_SPAWN_Y)return true;
+        int minX=(int)Math.floor(box.minX),maxX=(int)Math.floor(box.maxX);
+        int minY=(int)Math.floor(box.minY-.05),maxY=(int)Math.floor(box.maxY);
+        int minZ=(int)Math.floor(box.minZ),maxZ=(int)Math.floor(box.maxZ);
+        long sx=(long)maxX-minX+1,sy=(long)maxY-minY+1,sz=(long)maxZ-minZ+1;
+        if(sx<=0 || sy<=0 || sz<=0 || sx>64 || sy>64 || sz>64 || sx*sy*sz>64)return true;
+        for(int x=minX;x<=maxX;x++)for(int y=minY;y<=maxY;y++)for(int z=minZ;z<=maxZ;z++)
+            if(!body.level().getFluidState(new net.minecraft.core.BlockPos(x,y,z)).isEmpty())return true;
+        return false;
+    }
     /** Transitional façade while callers migrate to the runtime ledger. */
     public static synchronized SupportTransport transport(Entity body){return TransportLedger.current(body);}
     /** Transitional lifecycle façade paired with the transport cursor. */
