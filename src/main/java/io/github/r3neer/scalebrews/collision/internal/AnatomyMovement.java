@@ -546,6 +546,12 @@ public final class AnatomyMovement {
         return best;
     }
     public record Selection(LivingEntity support,SurfaceContact contact,Vec3 position,double fraction) {}
+    /** Client miss is conclusive only when this support has a current accepted material snapshot. */
+    public static boolean placementMaterialKnown(LivingEntity support) {
+        if(support==null || !active(support))return false;
+        var provider=AnatomyBindingState.provider(support);
+        return currentSnapshot(support,provider).isPresent();
+    }
     public static Selection raycast(Entity observer,Vec3 start,Vec3 end) {
         if(!active(observer))return null;
         var query=candidates(observer,new AABB(start,end).inflate(.001));
@@ -558,6 +564,44 @@ public final class AnatomyMovement {
             best=new Selection(candidate.entity,contact,start.add(end.subtract(start).scale(hit.fraction())),hit.fraction());
         }
         return best;
+    }
+    /** Validate the full gravity-facing placement footprint against the selected current material face. */
+    public static boolean placementFits(Entity body,LivingEntity support,SurfaceContact surface) {
+        if(body==null || support==null || surface==null || !active(body) || body.level()!=support.level()
+                || !support.getUUID().equals(surface.support()) || !Platforms.eligible(body,support))return false;
+        var provider=AnatomyBindingState.provider(support);
+        var snapshot=currentSnapshot(support,provider).orElse(null);
+        var piece=snapshot==null?null:snapshot.pieces().get(surface.piece());
+        if(piece==null || snapshot.revision()!=surface.revision() || surface.face()<0 || surface.face()>5)return false;
+        Vec3 local=surface.localPoint();
+        if(local==null || !Double.isFinite(local.lengthSqr()))return false;
+        double[] hit={local.x,local.y,local.z};int axis=surface.face()/2;
+        if(Math.abs(hit[axis]-(surface.face()%2))>1e-6)return false;
+        for(double coordinate:hit)if(coordinate < -1e-6 || coordinate > 1+1e-6)return false;
+        Vec3 normal=piece.faceNormal(surface.face()),gravity=gravity(body).gravity();
+        double along=normal.dot(gravity);
+        if(normal.dot(surface.normal())<1-1e-6 || !gravity(body).supports(normal) || along>=-1e-6)return false;
+        var box=body.getBoundingBox();
+        try {ConvexBox.requireBounds(box);}catch(IllegalArgumentException invalid){return false;}
+        Vec3 plane=piece.point(local);
+        double[] xs={box.minX,box.maxX},ys={box.minY,box.maxY},zs={box.minZ,box.maxZ};
+        for(int corner=0;corner<4;corner++) {
+            Vec3 p=switch(gravity(body).down()) {
+                case DOWN -> new Vec3(xs[corner&1],box.minY,zs[(corner>>1)&1]);
+                case UP -> new Vec3(xs[corner&1],box.maxY,zs[(corner>>1)&1]);
+                case NORTH -> new Vec3(xs[corner&1],ys[(corner>>1)&1],box.minZ);
+                case SOUTH -> new Vec3(xs[corner&1],ys[(corner>>1)&1],box.maxZ);
+                case WEST -> new Vec3(box.minX,ys[corner&1],zs[(corner>>1)&1]);
+                case EAST -> new Vec3(box.maxX,ys[corner&1],zs[(corner>>1)&1]);
+            };
+            double distance=normal.dot(plane.subtract(p))/along;
+            if(!Double.isFinite(distance) || distance < -1e-4)return false;
+            Vec3 projected=piece.coordinates(p.add(gravity.scale(distance)));
+            double[] q={projected.x,projected.y,projected.z};
+            if(Math.abs(q[axis]-(surface.face()%2))>1e-5)return false;
+            for(int tangent=0;tangent<3;tangent++)if(tangent!=axis && (q[tangent]<-1e-6 || q[tangent]>1+1e-6))return false;
+        }
+        return true;
     }
     static CandidateQuery candidates(Entity body,AABB swept) {
         List<Candidate> result=new ArrayList<>();

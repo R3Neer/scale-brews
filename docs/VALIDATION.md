@@ -2318,6 +2318,99 @@ Review index `../s32-adversary-private/s32-final-zero-change-review.json`
 S32/G4.6 is closed within the documented test limits. Integrated NFR-014
 benchmarking and human/pack/external-model acceptance remain in G9.
 
+## S33 / G5.1 material-face placement — closure evidence (2026-10-04)
+
+On the uncommitted `chatgpt-editing` candidate, `../s33-build-final.log`
+(SHA-256 `c4c62dc0079f7c941ac7d1c36e7ce4b4eaf05d39dd84cd5e7fafa9929a8d3822`)
+completed `build` with **463/463** required ordinary GameTests and
+`BUILD SUCCESSFUL`. A separate final ordinary `runGameTest` also passed
+463/463 (`../s33-ordinary-run-final.log`, SHA-256
+`6653ed6ff93ca4be7bce1b154e2585b5c2c92bcb2eab2a08ee35ada543d533de`).
+The S33-only prepared server run passed 2/2 with real `Player.interactOn`
+six-face boat placement, physical AABB/owner gravity assertions, egg and raft
+successes, same-species vanilla PASS, and permission, reach, block, occupied
+volume, narrow-face and zombie-egg/chicken rejection controls
+(`../s33-isolated-run-7.log`, SHA-256
+`90cda86fbf7b59db3b94488aefbb02ab88ef3fdde758b73da82b13dde6985ad0`).
+The ordinary client `runClientGameTest` completed successfully in
+`../s33-client-run.log` (SHA-256
+`0d9467c86fc8e5d92480975b2a9953b955b3e6fc66612f47afd981cb75eb995f`);
+that run preceded the server-side exceptional-insertion cleanup.
+
+The **full prepared suite is red in the older S09 A9 temporal response** at
+large world coordinates. Disabling S33's fixture did not remove the A9 failure
+(`../s33-prepared-skip-run-2.log`, SHA-256
+`aa8ea35b33546ebb4c7be88e52d3f78065ba5e79a3a2532633a844a32ae73e79`).
+A new GameTest world also placed the test at large coordinates and failed A9
+in the full cow manifold after the selected causal piece completed
+(`../s33-prepared-fresh-run.log`, SHA-256
+`f329da71f5ba457b1d04b9efa953d7c5f57ef729e8c507225655173fa8f058b4`).
+Neither red is a S33 placement assertion; they remain a separate temporal
+numeric/work-budget reopening. No full-prepared green or G5 close is claimed.
+The independent S33 holdout battery, final unchanged-source review and local
+commit are still pending at this record point.
+
+Minecraft 26.2's native `ServerboundInteractPacket` uses `Vec3.LP_STREAM_CODEC`;
+independent client/server proof found an accepted face point rounding just
+outside material, leaving the ordinary pig egg untouched. The production
+raycast now retries only an exact miss within the `LpVec3` quantization bound.
+After that repair, `../s33-packet-isolated.log` (SHA-256
+`f5c8d0c0f3d75664c51dbd9fa86bf626f7b58268c43525fc2187be3d1960cad6`)
+passed the ordinary **463/463** GameTests, BUILD SUCCESSFUL. The prepared S33
+selector with the exported catalog passed **2/2** (`../s33-packet-prepared.log`,
+SHA-256 `86ec82478b0155e4b066558efab9aebf06936f19bb3bbf03f5896570f6da8d90`),
+including a +0.00012 outward endpoint accepted and a +0.001 miss rejected
+without insertion/consumption. These are IMPLEMENTER runs; the native packet
+rerun remains an independent open check at this point.
+
+The first short-ray continuation failed a second independent native packet
+proof at a near-parallel viewing angle: the exact control placed, while the
+quantized packet retained the egg and placed no pig. This was a production
+RED (`../s33-adversary-private/native-codec-grazing-stable.log`), not a
+completed S33 gate. The revised implementation searches only the codec error
+cell and checks eye visibility plus one unambiguous material face. The
+IMPLEMENTER prepared selector then passed **2/2**, including normal and
+grazing precision recoveries and a farther miss rejection
+(`../s33-cell-prepared.log`, SHA-256
+`6342a909c6a2041c2a2ab787ba7444b99a84c0e89321e27f30672e1c0f577cdc`,
+BUILD SUCCESSFUL). The adversary's unchanged native grazing packet rerun is
+still pending at this point.
+
+The final precision-cell candidate passed a full local `build` with **463/463**
+ordinary GameTests (`../s33-cell-build.log`, SHA-256
+`cb25bf0b55184478f18046910556956fe269e6873f6c806c962e2066f0b7b745`,
+BUILD SUCCESSFUL). Independent unchanged native oracles also passed: ordinary
+packet `../s33-adversary-private/cell-S33PrivatePlacementNetworkProof.log`
+(SHA-256 `2abf0a53f724f221231bc1dcf03473943b182da7a6197474fc886b3c0e9a0515`),
+grazing packet `../s33-adversary-private/cell-S33PrivateGrazingPacketProof.log`
+(SHA-256 `65f1e54eaca9b7f0fb7d9125cb99cac72804fb9a4c66e9569808c4111f49a289`),
+and border/edge/reach/block/entity rejection matrix
+`../s33-adversary-private/cell-rejections.log` (SHA-256
+`a371d9f2c74e0091def1c334a3ed4d25893944ebf6454557862351df3d3ee675`,
+2/2). Both native positives inserted exactly one supported body/anchor and
+consumed one survival egg; all three processes shut down cleanly. The ordinary
+client rerun and final zero-change S33 review are pending at this record point.
+
+The ordinary client rerun also completed `BUILD SUCCESSFUL` with clean
+integrated-world shutdown (`../s33-cell-client.log`, SHA-256
+`30c98dc80f5eb906a76ed6cad194cbb6abf300a4e021ea64647dc3d1a8d90294`).
+It exercised the existing client battery on the final precision-cell source;
+the two native packet positives above remain the direct client/server
+placement evidence. Final S33 zero-change review is still in progress.
+
+S33/G5.1's final integration blocker was the older S09 A9 temporal RED,
+repaired in S34. On the combined source, the prepared suite passed **2/2**
+(`../s34-axis-prepared.log`) and ordinary build passed **465/465**
+(`../s34-axis-build.log`); the corrected-source client passed as recorded in
+the S34 section below. The independent final cross-sprint review found no
+new placement defect and zero production changes, with manifest
+`../s34-adversary-private/final-cross-sprint-evidence.json` (SHA-256
+`bdee2f672c28fc5071fa52c095cc6f4fe3bf272edff9a0b77d3a20e4566dd8fe`).
+S33's native packet and rejection oracles remained fingerprint-identical to
+their earlier GREEN runs; they were not relabelled as newly rerun. The
+independent verdict is GREEN for S33 placement and its required integrated
+regression. Later G5 special-body/legacy and G9 acceptance remain open.
+
 ## S34 / G4 A9 large-coordinate temporal reopening — candidate evidence (2026-10-04)
 
 The required prepared A9 proof was RED before S34 on both a run omitting S33

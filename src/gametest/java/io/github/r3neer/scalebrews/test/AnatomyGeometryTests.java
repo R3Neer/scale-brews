@@ -7,6 +7,7 @@ import io.github.r3neer.scalebrews.collision.geometry.*;
 import io.github.r3neer.scalebrews.collision.pose.*;
 import io.github.r3neer.scalebrews.collision.physics.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
+import io.github.r3neer.scalebrews.platform.Platforms;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.phys.*;
@@ -548,9 +549,15 @@ public class AnatomyGeometryTests {
         catch(java.io.IOException e){throw new RuntimeException(e);}
         h.assertTrue(geometry.format()==2 && Math.abs(ModelGeometry.matrix(geometry.modelTransform()).m00()+.9375)<1e-7,"Player renderer root scale is catalog data");
         var giant=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-        giant.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(3);giant.refreshDimensions();
+        // The prepared profile caps body/support width at .6. A scale-3
+        // player is too narrow for an oak boat and is correctly ineligible.
+        giant.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(4);giant.refreshDimensions();
         giant.setPos(h.absoluteVec(new Vec3(2,20,2)));giant.yBodyRot=0;giant.setNoGravity(true);h.getLevel().addFreshEntity(giant);
-        var provider=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),AnatomyFilter.DEFAULT,1);
+        // Skin overlay is cosmetic; this fixture specifically proves the
+        // anatomical head cube rather than the larger optional hat shell.
+        var filter=new AnatomyFilter(AnatomyFilter.DEFAULT.minThickness(),AnatomyFilter.DEFAULT.minAspect(),
+            AnatomyFilter.DEFAULT.minVolumeRatio(),java.util.Set.of(),java.util.Set.of("root/head/hat"));
+        var provider=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),filter,1);
         provider.pose(giant,new PoseEngine.Inputs(0,0,0,0,0,true));
         var head=provider.sample(giant).orElseThrow().pieces().get("root/head/cube_0");
         var boat=h.spawn(net.minecraft.world.entity.EntityTypes.OAK_BOAT,2,27,2);
@@ -559,7 +566,10 @@ public class AnatomyGeometryTests {
         try {
             var center=head.bounds().getCenter();boat.setPos(center.x,head.bounds().maxY+1,center.z);
             boat.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-2,0));
-            h.assertTrue(AnatomyMovement.contact(boat)!=null && AnatomyMovement.contact(boat).piece().equals("root/head/cube_0"),"Occupied boat lands on exported player head, not bounding-box top");
+            h.assertTrue(AnatomyMovement.contact(boat)!=null && AnatomyMovement.contact(boat).piece().equals("root/head/cube_0"),
+                "Occupied boat lands on exported player head, not bounding-box top: eligible="+Platforms.eligible(boat,giant)
+                    +" ratio="+(boat.getBbWidth()/giant.getBbWidth())+" contact="+AnatomyMovement.contact(boat)
+                    +" head="+head.bounds()+" boat="+boat.getBoundingBox()+" mode="+AnatomyApi.mode(boat));
             h.assertTrue(Math.abs(boat.getY()-head.bounds().maxY)<1e-5,"Contact height matches original player renderer");
             var before=boat.position();giant.setPos(giant.position().add(.2,.1,.3));AnatomyMovement.carry(boat);
             h.assertTrue(boat.position().distanceToSqr(before.add(.2,.1,.3))<1e-9,"Original head contact transports occupied boat");

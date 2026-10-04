@@ -265,7 +265,7 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 1. [ ] portar boat/raft, off-rail minecart, item y falling-block semantics;
 2. [ ] verificar agua, rail, despawn, hardening, placement y anvil una vez;
 3. [ ] portar sneak edge y jump release;
-4. [ ] portar raycast/placement con permisos/inventario/footprint;
+4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
 5. [ ] demostrar no regresión de fall/exhaustion/stats/Growth landing;
 6. [ ] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez;
 7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
