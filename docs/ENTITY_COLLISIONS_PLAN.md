@@ -272,6 +272,17 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
 9. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción.
 
+**S35/G5.2 cerrado localmente para items (FR-007/066):** un `ItemEntity`
+ordinario usa contacto y transporte material canónicos en el servidor preparado
+sin `PlatformState`, conserva fricción de suelo, edad, delay, merge, pickup y
+despawn vanilla, y reanuda física normal al retirarse el soporte. La suite
+preparada final pasó **2/2**, la ordinaria **465/465** y seis pruebas
+adversariales independientes **2/2 cada una**, incluidas policy/ratio, agua,
+obstrucción y budget. No hubo cambio de producción. Evidencia exacta:
+`docs/sprints/S35-g5-item-lifecycle.md` y `docs/VALIDATION.md`. El checklist
+amplio de G5 sigue abierto para boats/rafts, minecarts, falling blocks y la
+retirada legacy; el benchmark y la QA humana se mantienen en G9.
+
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general

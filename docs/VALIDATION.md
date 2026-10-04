@@ -2527,3 +2527,25 @@ manifest is `../s34-adversary-private/final-cross-sprint-evidence.json`
 The historical S33/A9 and unsafe ROOT REDs remain classified in their sprint
 records; S34 repair and S33 placement meet their tested closure criteria.
 
+S35/G5.2 item slice closed locally: the real prepared
+`ItemEntity` proof passed **2/2** including material contact, separate ROOT
+translation/yaw carry, canonical dry-ground friction, vanilla age/pickup delay,
+supported and released pickup, post-release gravity/fall and near-expiry
+despawn. `../s35-release-prepared.log` is `BUILD SUCCESSFUL`, SHA-256
+`df679cfd0e091424cbd925728e811fbc6d73ff0739b595d5b62dbcf79c8b3165`.
+The same candidate's ordinary `build` passed **465/465**,
+`../s35-final-ordinary-build.log`, SHA-256
+`84072e55de24ac020029dc7f547f08999b841034a9a4a372ca5d81f6b745c859`.
+Proof SHA-256:
+`7467b5ccef2d8ce6c13207ef0be4f849c8831ec6dfe99b31bd50a8c4783484de`.
+This adds test wiring and evidence only; S35 has no production change. Six
+independent ADVERSARY real-server selectors then passed **2/2 each** for
+lifecycle/ROOT, friction/merge/release, policy/ratio, water versus a vanilla
+control, wall obstruction and an actual `ItemEntity` 256-evaluation budget
+exhaustion. Their final manifest is
+`../s35-adversary-private/final-evidence.json`, SHA-256
+`9e2f8d3d425b9596e3f17d53b3e85d1af348a1f4e835b82229fc5db86e4a20eb`.
+The independent final review found no production diff or further candidate
+change. This closes only FR-007/066 for items; boats, rails, falling blocks,
+legacy retirement and G9 acceptance remain open.
+
