@@ -2585,3 +2585,32 @@ This evidence closes FR-007/064 for boats/rafts only. Minecarts, falling
 blocks, legacy removal, global G9 benchmark and human pack/gameplay QA remain
 open.
 
+S37/G5.4 ordinary off-rail minecart slice closed locally with no production
+change. The prepared real-server proof covers ordinary, chest and furnace
+minecarts, exact canonical contact without `PlatformState`, native off-track
+ticks/chest contents, one occupied ROOT translation and yaw, ratio-rejected
+native push, block-wall clipping without replay, real rail entry/travel/exit,
+and fresh contact on a second prepared support. The fixture reports installed
+26.2 `OldMinecartBehavior`; it does not certify experimental
+`MINECART_IMPROVEMENTS`. `../s37-prepared-candidate.log` passed **2/2**,
+SHA-256 `36596c421453e66c0c6d8e484fddcb7832c7e6fad85da211d728cc106bbed53c`.
+The ordinary `build` passed **465/465** in `../s37-ordinary-candidate.log`,
+SHA-256 `b7925714aeb6f88901762d86fb41f4be1c6e3736e945cf807090b0c9c56f56cb`.
+Public proof source SHA-256:
+`f47f22af7abe8ec98d7f06fcda085d2921938685833a2487c2498ee3637ef377`.
+
+ADVERSARY independent real-server boundary and native-rejection oracles passed
+**2/2 each**. They add an occupied fixed-yaw cart with exact relative-seat
+and container checks, stationary actual rail detection after support motion,
+fresh reacquisition, unchanged nearby nonparticipant, and ratio/disabled-policy
+native clipping/push controls. The public prepared selector was independently
+repeated unchanged, **2/2**. Thirty thousand current-support queries across
+three variants added zero geometry/joint evaluations; each yaw captured one
+ROOT. A deterministic point/seat comparison was inspected. Final independent
+review found no further concrete defect or candidate change. Manifest:
+`../s37-adversary-private/final-evidence.json`, SHA-256
+`ad37cf7f8802377d68d2411eea6361e9af51b4843275e71136fa1ec81071a158`.
+No client runtime path changed, so no new client execution is claimed here.
+This closes only the standard minecart behavior slice; experimental movement,
+falling blocks, legacy removal, global G9 benchmark and human QA remain open.
+

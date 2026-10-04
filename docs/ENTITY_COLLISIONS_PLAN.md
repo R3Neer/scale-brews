@@ -296,6 +296,20 @@ cambios. Evidencia exacta en `docs/sprints/S36-g5-boats-rafts-water.md` y
 `docs/VALIDATION.md`. G5 sigue abierto para minecarts, falling blocks y la
 retirada del motor legacy; G9 conserva benchmark integrado y QA humana.
 
+**S37/G5.4 cerrado localmente para minecarts ordinarios fuera de raíles
+(FR-007/065, comportamiento estándar):** carro normal, con cofre y con horno
+usan contacto canónico preparado sin `PlatformState`; conservan pasajeros,
+inventario y un único ROOT con giro. La entrada en raíles físicos retira el
+contacto y devuelve el movimiento a Minecraft, y una salida posterior permite
+adquirir otro soporte. Rechazo por ratio/policy, push nativo, pared sin deuda,
+control no participante y coste local se revalidaron de forma independiente.
+Suite preparada **2/2**, ordinaria **465/465** y dos oráculos adversariales
+**2/2 cada uno**, más repetición pública **2/2**. No cambió producción.
+Evidencia en `docs/sprints/S37-g5-off-rail-minecarts.md` y `docs/VALIDATION.md`.
+El comportamiento experimental `MINECART_IMPROVEMENTS` no está certificado
+por esta ejecución y permanece explícitamente abierto, junto a falling blocks,
+retirada legacy y G9.
+
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general
