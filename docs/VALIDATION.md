@@ -1958,3 +1958,363 @@ BUILD SUCCESSFUL 1m). The complete ordinary client suite passed in
 BUILD SUCCESSFUL 3m). S31 closes only the locally predicted body/camera route;
 remote observer incorporation provenance remains S32 and G4.6 remains open.
 
+### S32 / G4.6c remote observer provenance — active verification (2026-10-04)
+
+On the S32 candidate after the recipient teleport-cursor barrier, `build
+runGameTest --offline --console=plain` passed **463/463** required server
+GameTests in `../s32-server-after-teleport.log` (SHA-256
+`f9dcdd4928dcea90a5154d675a97575e52dedd97f9ea63f1e47d98018c16c71c`,
+BUILD SUCCESSFUL 5m8s). The complete ordinary client GameTest suite after
+the gravity and support-material barriers passed in
+`../s32-ordinary-client-after-barriers.log` (SHA-256
+`530a34f0e61d3399e4f9416700094bc9a73fdc9452de6069d36d731bb9f2b8a7`,
+BUILD SUCCESSFUL 5m14s), including existing 0/100/200 ms dedicated soaks.
+After the bounded history reclamation, a second `build runGameTest --offline
+--console=plain` passed **463/463** in `../s32-server-after-history-reclaim.log`
+(SHA-256 `a7720db57419c68998dc687108370da32705a53f952fa894da9f41fb5f5de3e1`,
+BUILD SUCCESSFUL 4m3s).
+These regressions do not by themselves close S32/G4.6; the independent R5/R6
+and final zero-change review remain pending.
+
+After the delayed-render token and fallback checks, the first complete
+ordinary client run failed at the pre-existing S29 rejected-catalog physical
+registration assertion: `../s32-ordinary-client-final-candidate.log` (SHA-256
+`07cf816d9bb6a17deed06d47f3fef22afa73e73b2935c3e1c28cd6fbbaa1909d`,
+BUILD FAILED 4m49s). The exact unchanged S29 proof passed alone in
+`../s32-s29-isolated.log` (SHA-256
+`9334a3ffda541d8597dea497eb9f131b7d81f0e1ccbd5210514538bc325de20c`,
+BUILD SUCCESSFUL 2m1s). The full ordinary client suite then passed on the
+unchanged production candidate, including that S29 proof, in
+`../s32-ordinary-client-repeat.log` (SHA-256
+`58737623b5c6fb4bd9c738bb5ea6aebfe82035767deb37ba2d1aeb605d687b2a`,
+BUILD SUCCESSFUL 4m23s). This is another intermittent S29 observation;
+its cause remains unexplained. The final S32 adversarial R6 and zero-change
+review remain open.
+
+The adversary's public native-baseline holdout found a real R4/R6 presentation
+failure: after a valid ROOT carry and native interpolation, a same-tick
+`Entity.setOldPosAndRot()` replacement left a stale remote offset. RED
+`../s32-adversarial-native-baseline-red.log` (SHA-256
+`8a338ae4f73a0d764c9d48ecfe4462d531492437ac488241718f39701e83367a`,
+BUILD FAILED 2m39s). The implementer recorded the native `oldPosition` with
+each accepted observation/step, gated the pure render read on it and retired
+the relation at the next tick boundary. The unchanged public proof passed in
+`../s32-native-baseline-implementer-green.log` (SHA-256
+`877090b9e1c60ec6206903f25f7796f51b0562f83a4804757e38dae44043f041`,
+BUILD SUCCESSFUL 2m10s), preserving the prior fractional positive samples.
+Independent repetition and the full R6 matrix remain pending.
+
+The complete ordinary client suite on the native-baseline repair passed,
+including the S29 rejected-catalog proof and existing dedicated latency
+soaks: `../s32-ordinary-client-after-baseline.log` (SHA-256
+`911bfdb73aad592fd58ce893287b2b4fef7d4d6b0094a984075d08797d46208a`,
+BUILD SUCCESSFUL 5m45s). This does not replace the independent R6 matrix.
+ADVERSARY reran the unchanged public baseline holdout in its independent lane:
+`../s32-adversarial-native-baseline-green.log` (SHA-256
+`596d132ec0c2c9a843fbdb49781d4119f6199f104ce7e0f882eba5a54cb2d03e`,
+BUILD SUCCESSFUL 5m25s with clean shutdown). This confirms the reduced repair,
+while the remaining R6 matrix stays open.
+
+A second, stronger R6 holdout changed native `oldPosition`, then restored the
+exact `(position, oldPosition)` values with no intervening query or tick.
+The value-only guard let the stale residual revive. RED
+`../s32-adversarial-native-baseline-roundtrip-red.log` (SHA-256
+`af21e58f7f73b1400b9d690d37a3aaba7e3e0eff89898142c57461add62a76e7`,
+BUILD FAILED 2m17s). The implementer added an event generation around changed
+vanilla `setOldPosAndRot` writes and verified the unchanged public oracle:
+`../s32-native-baseline-roundtrip-implementer.log` (SHA-256
+`46d17aa45eeadf311688e9793861e1687c36c2185eb4ecfd77b6d773c109f4d1`,
+BUILD SUCCESSFUL 2m4s; two active native steps and zero offset after the
+round trip). ADVERSARY independently reran both unchanged baseline oracles in
+`../s32-adversarial-native-baseline-roundtrip-green-second.log` (SHA-256
+`9de4e435c20971898016e6a719ffdae07838fb28542964f7651e0866ea7e8f91`,
+BUILD SUCCESSFUL 5m46s with clean shutdown). Its separate voluntary
+cancel/return case also passed with no attestation and zero residual despite
+active native interpolation (`../s32-adversary-private/voluntary-cancel-return.log`,
+SHA-256 `1df0a33940b02711492ee7779ccd9fa4113fa0c6d47803a100b16bc18629f20d`,
+BUILD SUCCESSFUL 5m56s). The remaining R6 matrix stays open.
+
+The first complete ordinary client suite after the baseline-event hook again
+failed at the pre-existing S29 rejected-catalog physical-registration
+assertion: `../s32-ordinary-client-after-baseline-stamp.log` (SHA-256
+`6728cb05550af0439c7e05d4d79b264c416086fcb2c61d491f22066a62e627aa`,
+BUILD FAILED 4m55s). An assertion-only diagnostic was added to that S29 proof,
+without changing its oracle or production. The next complete ordinary suite
+passed, including S29 and dedicated soaks:
+`../s32-ordinary-client-s29-diagnostic.log` (SHA-256
+`413815f7181d953f1dd619ea3dd5e67311459621713a99bb2a22fd2204db4d5c`,
+BUILD SUCCESSFUL 6m48s). The diagnostic therefore did not capture a failing
+state; the S29 intermittent cause remains open and is not attributed to the
+S32 baseline hook.
+
+ADVERSARY's independent affected-root run passed the actual +3X custom-root
+catalog and all 11 receiver scenarios: `../s32-adversary-private/custom-root-affected.log`
+(SHA-256 `e64f7f09b397fd17a6d7f0110683f15abefd37ef8ffc1c2d9768b3a14753790a`,
+BUILD SUCCESSFUL 2m43s). The affected-root gate suppresses remote residual
+while the accepted custom root owns the visual offset. The JOINT and latency
+portions of the dedicated matrix and final R6 review remain open.
+
+The independent dedicated `allow-flight=false` production-pair ROOT fixture
+passed on two real recipients with clean shutdown:
+`../s32-adversary-private/production-pair-20261004-034432-196/host.log`
+(SHA-256 `7d8316adfe077f19e2a2bd395ad546a7af0c466c0694571f39a00359674edfe1`,
+BUILD SUCCESSFUL 55s) and its `peer.log` (SHA-256
+`04ec588190040657b3fc64c15d4d7ffaacab508c0e539139ef04b10d4db23763`,
+BUILD SUCCESSFUL 53s). A late receiver omitted already incorporated sequence 1;
+sequences 2 and 3 matched five render fractions on both receivers. The
+reconnected peer received only sequence 4 with a new tracking generation and
+nonce 1, and no spawn residual. This proves the executed ROOT pair/reconnect
+fixture; JOINT, latency and the rest of R6 remain under review. An earlier
+fixture attempt sampled before accepted material was ready and observed a
+transient zero; it did not establish a production defect.
+
+ADVERSARY found a production R2/R4 mismatch after a real Z+.12345 carry had
+settled and a later X+.25 carry arrived with accepted contact and Q2 material.
+The server had attested Z=5.24845 from `ServerEntity`'s exact base, while the
+client's native codec decoded Z=5.24853515625; the strict event-scope check
+retired the valid X residual. Public unchanged oracle
+`S32AdversarialCodecAxisProof` was RED in
+`../s32-codec-axis-adversary-red.log` (SHA-256
+`61c9bc40fa3b5bd80c03abadae5fc36ad4b26277e3d7844a8b08c9e8152b8317`,
+BUILD FAILED 1m36s). The implementer now tracks each recipient's actual
+decoded native codec base across position sends, preserving it across catalog
+rebinds of the same live entity. The same public oracle passed unchanged in
+`../s32-codec-axis-implementer-green.log` (SHA-256
+`8a7e2e8a91a9534aa9955183e5c9e7eab7a7feb831f34ed7383454a91bd67de0`,
+BUILD SUCCESSFUL 2m54s): the attested and actual codec Z both read
+5.24853515625 and the new X residual was positive. Independent repetition
+and the affected full battery remain pending.
+
+The complete post-codec-change server build and GameTests passed 463/463:
+`../s32-server-after-codec.log` (SHA-256
+`66974c588de7b7452c4c1c0693cb0bde9ad87b903ce1015db9dbb062d2eb0fe5`,
+BUILD SUCCESSFUL 6m26s). This includes compilation of the new cursor path;
+the ordinary client battery and independent R6 repetitions remain pending.
+
+ADVERSARY independently reran the unchanged public codec-axis and both native
+baseline oracles together: `../s32-codec-axis-adversary-green-retest.log`
+(SHA-256 `7543703f1e52f5ab528b9caa699965a2fff6245d097683c72216cb42909805de`,
+BUILD SUCCESSFUL 2m24s, clean shutdown). Its 13-case affected receiver battery
+also passed in `../s32-adversary-private/codec-affected-retest.log` (SHA-256
+`f4332eec6f7cead378974cede3c077df1e232c04669b6a064c1c8cab70af228d`,
+BUILD SUCCESSFUL 7m4s): codec, voluntary cancel/return, custom root,
+rotation/no-op/restart, replay, bad Q2 and recovery, snap, scope reorder and
+body/support/burst gravity. JOINT dedicated and latency cases still remain.
+
+The complete ordinary client GameTest run after the codec fix passed in
+`../s32-ordinary-client-after-codec.log` (SHA-256
+`8d758e72af68ff5666e517a3f7d1afd300826b2338a1470099e9860a3a6a9647`,
+BUILD SUCCESSFUL 4m31s), including the S29 rejected-catalog proof and the
+existing dedicated latency soaks. This is the latest ordinary client-source
+regression, separate from the remaining S32 adversarial R6 dedicated matrix.
+
+ADVERSARY's dedicated two-recipient ROOT/JOINT fixture passed with
+`allow-flight=false`, a zero-delay host and a peer behind a FIFO proxy with
+nominal 50 ms each-way delay (100 ms RTT):
+`../s32-adversary-private/production-pair-20261004-044927-957/host.log`
+(SHA-256 `0553c6bf28c0a3981ca5d47bd4755c1f7519c38780036813c8314b9b32768e0c`,
+BUILD SUCCESSFUL 2m20s) and `peer.log` (SHA-256
+`8b51899a8b89a662ad3e0903daa32b8bd1eb64ae72c37f7d6d679a87c966ff91`,
+BUILD SUCCESSFUL 2m19s), both clean shutdowns. The late peer excluded ROOT
+sequence 1; shared ROOT +.75/-.25 and a genuine one-degree JOINT material
+carry reached both recipients. The JOINT physical applied delta was
+(-.019805312156677246, 0, .0194627046585083). Five partial fractions,
+repeated queries, unchanged physical state and camera ownership passed;
+quiet incorporation returned zero. Reconnect excluded old carries and advanced
+tracking generation 8 to 13 with a fresh nonce 1. Proxy report SHA-256
+`e41cf1a4151070d0cc810b72be946015f90880848089fccb34511a4b27bae9a9`;
+native-consumer snapshot SHA-256
+`e08148978ab26374a5785900b43dab06a8025fb648cf5a90bbc69c3f48d5586a`;
+contact-sheet PNG SHA-256
+`f9921e5b51552ee48ee7912c99693a70f649349fc295a92c461d24452ca2d77b`.
+The proxy reports socket close errors during shutdown, while both client
+proofs complete. This is an injected delay, not a measured packet RTT; 200 ms
+and remaining R6 acceptance are pending.
+
+The same dedicated ROOT/JOINT, late-tracking and reconnect fixture passed at
+nominal 0/100/200 ms RTT with `allow-flight=false` and clean host/peer
+shutdown. The 0 ms host/peer logs are in
+`../s32-adversary-private/production-pair-20261004-045627-393/` (SHA-256
+`461f8cb3ab602337712dccc01345be2da0a9663992b139c260b4f1ef5c85e483` /
+`527282f5a718fd7c26a2c3ef39fa28ba0b2cac4a5e74ca38a1bc396eb1b06638`,
+BUILD SUCCESSFUL 2m27s/2m26s). The 200 ms logs are in
+`../s32-adversary-private/production-pair-20261004-045312-506/` (SHA-256
+`db12f51c6baee4e3bfc762aecf6086d8f72dec6ec61ac94f96d83d14cbcb7d5c` /
+`852f91182ecc177bed9f71ae9c42ba17d5ff0271f59e8ce99807b6ee5bd96318`,
+BUILD SUCCESSFUL 1m53s/1m52s). The 100 ms record above is the middle profile.
+The 200 ms proxy counted two connections, 250369 bytes and at most 10 queued
+chunks. Delays are injected socket delays, not measured packet RTT or a claim
+about arbitrary loss.
+
+ADVERSARY's final independent ordinary build passed 463/463 in
+`../s32-adversary-final-ordinary-build.log` (SHA-256
+`5ccb35e97443c1c03b54c8888d7892d0bfb1e2f820d0c6ec38b30090d49c5eff`,
+BUILD SUCCESSFUL 3m21s); its complete ordinary client run passed in
+`../s32-adversary-final-ordinary-client.log` (SHA-256
+`9c1243c00384aa53ea7447f0fbea3bde26164795be4b8d6f5eead6eeb83b1a62`,
+BUILD SUCCESSFUL 4m2s, clean shutdown). Positive actual deferred model draw
+and fallback passed in `../s32-adversary-private/final-draw-fallback-positive.log`
+(SHA-256 `9ea3b0d9ee08d92cf3ad4cfad9709ffaeff1d0122bb1209fd19415e6d14f7df3`,
+BUILD SUCCESSFUL 1m45s), with 8000 actual/reference native-consumer CSV rows
+(SHA-256 `398a12ec19db2bb89cdc8ec63c3bb92d5e5453c949d050d4b04511e1dc010c13`)
+and contact-sheet PNG (SHA-256
+`09b24b6658caab73abcd88c57732d68d00153cefc4ef0505b8dc8ed5811c1e4b`).
+The dense history oracle passed separately in
+`../s32-adversary-private/final-history-dense-isolated.log` (SHA-256
+`07fb618065ebec526791d342b779130f8545360b940b4772137f0beefd5d11bd`,
+BUILD SUCCESSFUL 1m34s): 64/65 per body, 512/513 global, 32768 combined,
+identity ABA, immutable snapshots and TTL recovery to one retained record.
+
+Two private source-copy mutations died at semantic assertions after positive
+controls: replacing recipient codec base with the raw server base in
+`../s32-adversary-private/mutation-raw-codec.log` (SHA-256
+`b9a9805398d72195cc86bbe15df4ade2d72a99c8a4670ff25b03d9c0b37ef52b`,
+BUILD FAILED 3m25s), and omitting the immediate gravity barrier in
+`../s32-adversary-private/mutation-gravity-guard.log` (SHA-256
+`e963d4b5530cd4d8d49e39757c6e75639b8370f9fe153494a45b62a1e5296d8f`,
+BUILD FAILED 2m43s). Nominal production was unchanged. A bounded work/heap
+smoke probe passed in `../s32-adversary-private/remote-work-heap.log` (SHA-256
+`d10145a15b93953dd52cdb97e41edef608f8e5c3977e00487b9c4d98fb3a6c7e`,
+BUILD SUCCESSFUL 2m17s): 8192 same-tick query pairs, zero repeated motion
+preparations and 6849608 thread-allocated bytes, with identical physics and
+query results. This is not a long retained-heap soak or an FPS/TPS benchmark.
+R6 remains open for fanout/queue/watermark stress and an expanded mixed
+dedicated lifecycle matrix.
+
+Final test-tooling review removed a machine-specific JDK path from
+`tools/s32_adversarial_pair.ps1` and a duplicate/misplaced OpenGL hook from
+the adversarial Gradle init script. The affected public native-bundle selector
+passed with explicit OpenGL in `../s32-adversary-private/tool-native-selector.log`
+(SHA-256 `9bb284a6430300fd216fa12bccff0e75ba3f9be8d08547db083053294da5662c`,
+BUILD SUCCESSFUL 1m29s, clean shutdown). Production was unchanged.
+
+The independent receiver-capacity repetition passed in
+`../s32-adversary-private/receiver-capacity-retention.log` (SHA-256
+`ed04cfd9ef239fe1109f776670ca608a348bb5f9f308f28c8cc71f5967f6ad86`,
+BUILD SUCCESSFUL 2m35s). It covered 8/9 pending packets per body, 16 carry
+marks, 512/513 global pending packets, 4096/4097 replay watermarks, 40
+full-capacity drain cycles and explicit unload. After four GC passes across
+client ticks, 6699 observed owned objects had zero live weak references;
+heap used fell from 398029328 to 277234960 bytes. These are bounded storage
+and retention checks with synthetic receiver inputs, not a network soak or
+FPS/TPS measurement. Evidence index SHA-256
+`8a364ac368cf4778d2e7353780d3ee9476095d5ba97f1a811d00efb476133bc7`.
+
+The first mixed-voluntary dedicated pair passed its positive contact, ROOT,
+JOINT, interpolation and reconnect assertions, then crashed during host
+disconnect. `../s32-adversary-private/production-pair-20261004-053110-237/host.log`
+(SHA-256 `1eaaee788dc2975841e49256181da55f9e92d01f249dc28160a42d9267b25eb2`)
+records `ConcurrentModificationException` from
+`AnatomyClientNetworking.discardSupportMaterial` while removing presentation
+contacts in `ENTITY_UNLOAD`. A second unchanged pair closed cleanly. The
+implementer changed that map to a synchronized map so the whole `removeIf`
+and its other operations use one lock; `compileClientJava` passed in
+`../s32-contact-cleanup-compile.log` (SHA-256
+`bae589ee5cef6ebb5e7538c5a58bd8664440adaef4fe4d3f130f1de124a43a9a`,
+BUILD SUCCESSFUL 15s). The independent dedicated/lifecycle repetition is
+pending, so R6 remains open.
+
+The complete ordinary client suite after that change passed in
+`../s32-client-after-close-fix.log` (SHA-256
+`84e7eb7703737921aa46e201316f3150a68e7037c005a7ebca03fc5de686603d`,
+BUILD SUCCESSFUL 7m10s), including its dedicated 0/100/200 ms soaks. This
+does not reproduce the intermittent mixed-pair disconnect by itself.
+
+ADVERSARY then repeated its original, unchanged mixed dedicated pair three
+times after the synchronized-map change. Both host and peer passed every
+positive ROOT/JOINT, voluntary-motion, late-tracking and reconnect assertion
+and closed cleanly in `../s32-adversary-private/production-pair-20261004-054252-659/`
+(host/peer SHA-256 `7c46f67b17a3b214e78b4b3563fd5c93aa15898a6fa55c813eeb4261cca6ddc0` /
+`507dac7dcb138c21b3f7fa2ac982c2460a091c5351ff1c749b58d0a742bad14a`),
+`production-pair-20261004-054549-634/`
+(`b688b2b5e1e372629c1aeb41bbe78b0f911922c2d6ccc472894eea06715b7c31` /
+`c54dab79b02cc4ee4abd60fbc781e9d1406991f3c77e766d9915f78d14381e1a`),
+and `production-pair-20261004-054951-895/`
+(`0d27057754881f5441eb8c62071f17baaae306e9e968f5c8db6ce6e46e78701e` /
+`0e1e1a471650460f9fc2c9bbb605c2e9feede9777e034924ee757132991ed277`).
+The previously observed disconnect exception did not recur in these 3/3 runs;
+this cannot prove all thread schedules safe. Nine unchanged receiver lifecycle
+lanes passed in `../s32-adversary-private/contact-sync-receiver-lifecycle.log`
+(SHA-256 `52ce538f2d83ebff51cccc44b29745550e93a79a7ed7d296d8aae6653f385484`,
+BUILD SUCCESSFUL 4m43s); five public catalog/dimension/unavailable/lifecycle/
+cross-support oracles passed in `contact-sync-catalog-lifecycle.log` (SHA-256
+`c7c084934f47949e02fcefbd9f29145aaa74b1492d97fd4a82b62bbb78e380cd`,
+BUILD SUCCESSFUL 2m45s). Evidence index SHA-256
+`8a77db2065a0b2d92393b0f2a2d504ae5e90a30487d9a1e6ee37d408429b5a25`.
+R6 remains open for its wider multi-body, traffic-retention and dedicated
+teleport/dimension/reorder matrix.
+
+The post-repair `build runGameTest` passed 463/463 server GameTests in
+`../s32-build-after-close-fix.log` (SHA-256
+`cc67b8aa9366109b238f133b7efaa0f408e773c4650362bebe4bbfa00d96a4b`,
+BUILD SUCCESSFUL 2m32s). `git diff --check` reported no whitespace errors.
+
+Subsequent implementer review found two unguarded iterations over
+`CausalRemoteResidual.RELATIONS.entrySet()` despite that map being wrapped by
+`Collections.synchronizedMap`. Both support retirement and end-tick now copy
+immutable key/value entries while holding the map monitor, then process the
+snapshot outside it. `compileClientJava` passed in
+`../s32-relation-snapshot-compile.log` (SHA-256
+`ca43ae4cf26e311efadae3c0786c2e14f29866b1d0fa74aa7edae6682fa7ac1b`,
+BUILD SUCCESSFUL 52s); candidate source SHA-256
+`cd65cc6cadec2801e690b6ea198010f40491538d009a93ca0fdc0c6715e077a5`.
+The dedicated/fanout and ordinary client evidence above predates this last
+change; its affected regression pass is pending.
+
+The complete ordinary client suite on the synchronized relation-snapshot
+candidate passed in `../s32-client-after-snapshot-fix.log` (SHA-256
+`79cbebf6d1ff08d71e3ac492428c75fe57d64b90924e705b43a03596a5bed9da`,
+BUILD SUCCESSFUL 4m15s), including its dedicated 0/100/200 ms soaks. The
+independent expanded R6 matrix and final no-change review remain pending.
+
+The matching `build runGameTest` passed all 463 required server GameTests in
+`../s32-build-after-snapshot-fix.log` (SHA-256
+`e98b846d7c2477d9f9041c71af8f97cfbf27bb364a0df832b26f66a66d3d1af3`,
+BUILD SUCCESSFUL 2m19s).
+
+The independent S32 fanout fixture passed on the exact synchronized-snapshot
+class hash `5e43aa5dea0a88bb9737d2a34b39903ece8d6870234a16d8a4cbbd083c49e80b`
+at both clients. Sixteen supported bodies, sixteen supports, two recipients
+and 128 physical ROOT rounds produced 4096 actual attested native packet
+occurrences. Five partial samples per round, unchanged physical state,
+bounded relation/watermark storage, zero pending packets at checkpoints and
+zero owned receiver storage after explicit retirement passed. In roughly one
+minute of ordinary dedicated traffic, four post-GC heap samples were
+331708840/331597712/331592760/331597136 bytes at the host and
+241012304/241109688/241120544/241166064 at the peer. Logs:
+`../s32-adversary-private/production-fanout-20261004-061646-966/host.log`
+(SHA-256 `286661179a1327e89d5a90299f061326b069dcc99c40088afb38a7dbb2bf5ee5`,
+BUILD SUCCESSFUL 3m9s) and `peer.log` (SHA-256
+`b4bbf213e5e59ec1dcb50464928e85c8bdc69551704ef8fa0d310419825e41bf`,
+BUILD SUCCESSFUL 3m8s), both clean shutdown. This is bounded real-traffic
+retention evidence, not an arbitrary-duration heap soak or FPS/TPS benchmark.
+
+The dedicated observer-transition fixture passed on the same class: actual
+observer teleport out/back and Nether/Overworld round-trip retired old body
+relations, increased tracking generations 8→12→16, restarted nonce 1, and
+recovered positive ROOT correction. Two carries in one native occurrence,
+an immediate entity-teleport visual barrier, reversed bundle parts and a
+stale tracking attestation all passed their fail-closed/recovery assertions.
+The separate entity-teleport packet was injected at an aligned native codec
+base; it was not a naturally emitted Cow teleport. Logs:
+`../s32-adversary-private/production-transitions-20261004-063225-246/host.log`
+(SHA-256 `b62fa3a104bfba40b20ca9c84e7fd0f4c736348ee50b5b7184219787bd6314ab`,
+BUILD SUCCESSFUL 2m23s) and `peer.log` (SHA-256
+`520f1461c037af7a094bcb9d2fd1d2244bc2af4d73acf9b09616db06de6ec87e`,
+BUILD SUCCESSFUL 2m21s), both clean shutdown. Evidence index SHA-256
+`da83e4a76028a74643042827019f221464595a2dda652be25307a04dc316882e`.
+The final unchanged-production review of G4 was still pending at this point.
+
+The final independent S32 R1–R6/G4.6 review compared the complete current
+production-source manifest with the fanout/transition candidate and found
+zero added, removed or changed production files. It verified the current
+ordinary logs above by SHA-256, reconciled the earlier positive/negative,
+mutation, capacity, work and native-consumer visual evidence, and found no
+unresolved classified RED or missing evidence within S32's scope. The
+native-consumer contact sheet was re-inspected across 25 tick/partial samples
+and 8000 vertices; it is geometry capture rather than a framebuffer screenshot.
+Review index `../s32-adversary-private/s32-final-zero-change-review.json`
+(SHA-256 `0c34369e716357b71770828093fc10e3b5faac0d9d0b3ecb8ddfb95a3b9d619b`).
+S32/G4.6 is closed within the documented test limits. Integrated NFR-014
+benchmarking and human/pack/external-model acceptance remain in G9.
+

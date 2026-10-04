@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.client.mixin;
 
 import io.github.r3neer.scalebrews.client.platform.*;
 import io.github.r3neer.scalebrews.client.collision.presentation.CausalBodyResidual;
+import io.github.r3neer.scalebrews.client.collision.presentation.CausalRemoteResidual;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
@@ -15,7 +16,8 @@ public abstract class PlatformRendererMixin {
     @Inject(method="extractRenderState",at=@At("RETURN"))
     private void scalebrews$state(Entity entity,EntityRenderState state,float partial,CallbackInfo ci) {
         ((PlatformRenderState)state).scalebrews$platformOffset(PlatformVisuals.sampling()?Vec3.ZERO:
-            PlatformVisuals.offset(entity,partial).add(CausalBodyResidual.rendererOffset(entity,partial)));
+            PlatformVisuals.offset(entity,partial).add(CausalBodyResidual.rendererOffset(entity,partial))
+                .add(CausalRemoteResidual.rendererOffset(entity,partial)));
     }
     @Inject(method="getRenderOffset",at=@At("RETURN"),cancellable=true)
     private void scalebrews$offset(EntityRenderState state,CallbackInfoReturnable<Vec3> cir) {

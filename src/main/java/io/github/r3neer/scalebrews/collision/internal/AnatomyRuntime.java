@@ -76,10 +76,12 @@ public final class AnatomyRuntime {
         EntityTrackingEvents.START_TRACKING.register((entity,player)->{
             var state=STATES.get(player.level().getServer());
             if(state!=null && generation(state,player,entity.getUUID())<1)return;
+            if(state!=null)AnatomyObserverAttestations.startTracking(player,entity);
             if(entity instanceof LivingEntity living)send(living,player);
             contact(entity,player,true);
         });
         EntityTrackingEvents.STOP_TRACKING.register((entity,player)->{
+            AnatomyObserverAttestations.stopTracking(player,entity);
             var state=STATES.get(player.level().getServer());
             if(state!=null) {
                 clearContact(state,entity,player);
@@ -96,6 +98,7 @@ public final class AnatomyRuntime {
             }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler,server)->{
+            AnatomyObserverAttestations.disconnect(handler.player);
             var state=STATES.get(server);if(state!=null){state.sent.remove(handler.player);state.contacts.remove(handler.player);state.trackingGenerations.remove(handler.player);}
             AnatomyTransportReceipts.disconnect(handler.player);
             AnatomyMovementReference.disconnect(handler.player);
@@ -127,6 +130,8 @@ public final class AnatomyRuntime {
     }
     private static void reset(MinecraftServer server,State state) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
+        // A catalog reset retires carry provenance at the new tracking generation,
+        // but the recipients' native quantized position baselines remain live.
         state.entities.clear();state.sent.clear();state.contacts.clear();state.trackingGenerations.clear();
         AnatomyTransportReceipts.clear(server);AnatomyMovementReference.clear(server);
         var snapshot=state.catalog.snapshot();
@@ -147,7 +152,9 @@ public final class AnatomyRuntime {
         for(var entity:level.getAllEntities()) {
             // START_TRACKING may have happened before AnatomyRuntime started/reloaded. Reconstruct that
             // already-authorized vanilla window exactly once here instead of letting a later consumer mint it.
-            for(var player:PlayerLookup.tracking(entity))generation(state,player,entity.getUUID());
+            for(var player:PlayerLookup.tracking(entity)) {
+                if(generation(state,player,entity.getUUID())>0)AnatomyObserverAttestations.startTracking(player,entity);
+            }
             if(entity instanceof LivingEntity living)bindIfEligible(state,living);
         }
     }
@@ -166,6 +173,7 @@ public final class AnatomyRuntime {
     }
     public static void stop(MinecraftServer server) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
+        for(var player:server.getPlayerList().getPlayers())AnatomyObserverAttestations.disconnect(player);
         AnatomyTransportReceipts.clear(server);AnatomyMovementReference.clear(server);
         if(STATES.remove(server)!=null)for(var level:server.getAllLevels())AnatomyMovement.deactivate(level);
     }
@@ -377,7 +385,8 @@ public final class AnatomyRuntime {
         if(!ServerPlayNetworking.canSend(player,AnatomyCatalogPayload.TYPE) || !ServerPlayNetworking.canSend(player,AnatomyPosePayload.TYPE)
                 || !ServerPlayNetworking.canSend(player,AnatomyContactPayload.TYPE)
                 || !ServerPlayNetworking.canSend(player,AnatomyTransportReceiptPayload.TYPE)
-                || !ServerPlayNetworking.canSend(player,AnatomyMaterialIntervalPayload.TYPE)) {
+                || !ServerPlayNetworking.canSend(player,AnatomyMaterialIntervalPayload.TYPE)
+                || !ServerPlayNetworking.canSend(player,AnatomyObserverCarryPayload.TYPE)) {
             player.connection.disconnect(Component.literal("Scale Brews: incompatible anatomical protocol; update the client mod."));return false;
         }
         var snapshot=state.catalog.snapshot();

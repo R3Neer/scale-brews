@@ -26,9 +26,12 @@ import org.joml.Matrix4f;
 
 /** Original-model presentation consumer. Accepted wire frames remain the only pose authority. */
 public final class CausalModelRender {
-    public record Token(WeakReference<LivingEntity> support,PresentationIdentity identity,long trackingGeneration,long frameSerial) {
+    public record Token(WeakReference<LivingEntity> support,PresentationIdentity identity,long trackingGeneration,
+            long frameSerial,float partial,Vec3 remoteResidual,long remoteNonce) {
         public Token {
-            if(support==null || identity==null || trackingGeneration<1 || frameSerial<1)throw new IllegalArgumentException("Invalid causal render token");
+            if(support==null || identity==null || trackingGeneration<1 || frameSerial<1
+                    || !Float.isFinite(partial) || partial<0 || partial>1 || remoteResidual==null || remoteNonce<0)
+                throw new IllegalArgumentException("Invalid causal render token");
         }
     }
     private record Key(UUID epoch,long revision,Identifier model,AnatomyFilter filter,long resourceGeneration) {}
@@ -40,13 +43,15 @@ public final class CausalModelRender {
     private static long resourceGeneration;
     private CausalModelRender() {}
 
-    public static void capture(LivingEntity support,LivingEntityRenderState state) {
+    public static void capture(LivingEntity support,LivingEntityRenderState state,float partial) {
         var stored=(CausalPresentationState)state;
         stored.scalebrews$causalToken(null);
         stored.scalebrews$causalSubmitted(false);
         if(support==null || support.isPassenger())return;
         var frame=AnatomyClientNetworking.presentationFrame(support).orElse(null);
-        if(frame!=null)stored.scalebrews$causalToken(new Token(new WeakReference<>(support),frame.identity(),frame.trackingGeneration(),frame.after().frameSerial()));
+        if(frame!=null)stored.scalebrews$causalToken(new Token(new WeakReference<>(support),frame.identity(),
+            frame.trackingGeneration(),frame.after().frameSerial(),partial,CausalRemoteResidual.rendererOffset(support,partial),
+            CausalRemoteResidual.renderNonce(support)));
     }
     /** Resource reload re-bakes renderer models even if the server catalog remains the same. */
     public static void resourceReload(){resourceGeneration++;PREPARED.clear();CausalBodyResidual.reset();}
@@ -124,12 +129,10 @@ public final class CausalModelRender {
         if(adapter==null || !adapter.representable(frame.evaluated()))return;
         try {
             var origin=frame.evaluated().origin();
-            // A locally predicted contact body's own entity_root frame can lag its physical
-            // carry even after vanilla incorporates that carry on the following tick. Keep
-            // the local root on vanilla's interpolation baseline for the whole accepted
-            // contact; the accepted frame still supplies its model transform and joint pose.
+            // A contact body's own ENTITY_ROOT frame can lag its native body interpolation.
+            // Keep that original model on the same vanilla root for the entire accepted contact;
+            // local and remote residuals are added once by the shared entity render offset.
             if(frame.identity().rootProvider().equals(BuiltInRootTransformProviders.ENTITY_ROOT)
-                    && AnatomyClientNetworking.isCurrentPredictionBody(support)
                     && AnatomyClientNetworking.presentationContact(support,support.level().getGameTime()).isPresent())
                 origin=new Vec3(state.x,state.y,state.z);
             var desired=new Matrix4f(scope.base).translate((float)(origin.x-state.x),(float)(origin.y-state.y),(float)(origin.z-state.z))
@@ -160,10 +163,13 @@ public final class CausalModelRender {
     public static void draw(Object renderState,Object model,Runnable original) {
         if(!(renderState instanceof LivingEntityRenderState state)
                 || !(model instanceof EntityModel<?> rendererModel)
-                || !(state instanceof CausalPresentationState stored)
-                || !stored.scalebrews$causalSubmitted()) {original.run();return;}
-        var frame=current(state);
+                || !(state instanceof CausalPresentationState stored)) {original.run();return;}
         var token=stored.scalebrews$causalToken();
+        // The fallback model uses the same queued entity root. It must not bypass
+        // the authority check merely because no causal adapter was submitted.
+        if(token!=null && !remoteStillCurrent(token))return;
+        if(!stored.scalebrews$causalSubmitted()) {original.run();return;}
+        var frame=current(state);
         var support=token==null?null:token.support().get();
         // A queued submit cannot retain authority across a lifecycle barrier.
         if(frame==null || support==null)return;
@@ -172,5 +178,10 @@ public final class CausalModelRender {
         var applied=adapter.apply(frame.evaluated()).orElse(null);
         if(applied==null)return;
         try {original.run();} finally {applied.close();}
+    }
+    private static boolean remoteStillCurrent(Token token) {
+        var body=token.support().get();
+        return body!=null && token.remoteNonce()==CausalRemoteResidual.renderNonce(body)
+            && token.remoteResidual().equals(CausalRemoteResidual.rendererOffset(body,token.partial()));
     }
 }

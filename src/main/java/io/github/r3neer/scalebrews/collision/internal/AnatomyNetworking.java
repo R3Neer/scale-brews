@@ -28,6 +28,7 @@ public final class AnatomyNetworking {
         PayloadTypeRegistry.clientboundPlay().register(AnatomyContactPayload.TYPE,AnatomyContactPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyTransportReceiptPayload.TYPE,AnatomyTransportReceiptPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AnatomyMaterialIntervalPayload.TYPE,AnatomyMaterialIntervalPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(AnatomyObserverCarryPayload.TYPE,AnatomyObserverCarryPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferencePayload.TYPE,AnatomyMoveReferencePayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(AnatomyMoveReferenceV2Payload.TYPE,AnatomyMoveReferenceV2Payload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(AnatomyMoveReferencePayload.TYPE,

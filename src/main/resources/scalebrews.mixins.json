@@ -45,7 +45,8 @@
 		"ScaleFallDamageMixin",
 		"GrowthImpactMixin",
 		"ScaleMovementExhaustionMixin",
-		"ScaleAttackExhaustionMixin"
+		"ScaleAttackExhaustionMixin",
+		"AnatomyObserverPacketMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

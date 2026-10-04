@@ -23,7 +23,7 @@ public abstract class CausalLivingRendererMixin {
 
     @Inject(method="extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",at=@At("RETURN"))
     private void scalebrews$capture(LivingEntity entity,LivingEntityRenderState state,float partialTick,CallbackInfo ci){
-        CausalModelRender.capture(entity,state);
+        CausalModelRender.capture(entity,state,partialTick);
     }
 
     @WrapMethod(method="submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V")

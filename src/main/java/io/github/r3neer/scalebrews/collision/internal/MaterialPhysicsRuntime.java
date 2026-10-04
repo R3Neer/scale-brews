@@ -516,7 +516,8 @@ public final class MaterialPhysicsRuntime {
                     if(plan.transport()!=null) {
                         var evidence=plan.transport();
                         if(!AnatomyMovement.recordCertifiedTransport(plan.body(),evidence.support(),evidence.surface(),evidence.root(),
-                                evidence.supportFrameSerial(),plan.displacement(),evidence.materialBefore(),evidence.materialAfter()))
+                                evidence.materialSerial(),evidence.beforeSupportFrameSerial(),evidence.supportFrameSerial(),plan.displacement(),
+                                evidence.materialBefore(),evidence.materialAfter()))
                             AnatomyMovement.clear(plan.body());
                     }
                 }

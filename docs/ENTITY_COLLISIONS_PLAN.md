@@ -50,7 +50,7 @@ Estado: **cerrado**.
 
 Estado: **cerrado**. El prerrequisito definido en `ENTITY_COLLISIONS_FOUNDATION_AUDIT.md` completó modelo adversarial clean-room, inventario/clasificación, reparaciones bloqueantes, holdouts, campaña de mutaciones y revisión final cero-cambios. Registro: `docs/sprints/S00-foundation-audit.md`; evidencia: `VALIDATION.md`.
 
-Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5. La reapertura adversarial posterior de G1 fue reparada y revalidada; **G1 está cerrado. G2 cerró históricamente después, pero permanece reabierto de forma localizada por la revisión posterior de FR-053 descrita en su gate.**
+Los componentes que siguen `REWORK` o `REPLACE` tienen owner explícito en G1-G5. Las reaperturas adversariales de G1 y G2/FR-053 fueron reparadas y revalidadas; **ambos gates están cerrados**. El estado y la evidencia vigentes de G2 figuran en su gate.
 
 ### G1 — contrato público y data model desacoplados del legacy
 
@@ -152,13 +152,14 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 
 **S24 cerrado adversarialmente:** G3 tareas 9-12 quedan completadas. El RED de tracking-authority revival se reparó en `256ab44...` + `99969cc...` y la campaña final añadió mutation adequacy para lectura/adquisición, dimensión, reconnect, `UNAVAILABLE → recovery`, orden same-window y ownership root/endpoint. Run de tracking-read `35333686648`: baseline + dos mutantes verdes. Run de UNAVAILABLE `35335621883`: baseline + transition/recovery mutants verdes. Run de late tracking/order `35336440655`: client real + owner baseline + ordering mutant verdes. Ownership boundary `35333447075`: baseline + duplicate-root/endpoint mutants verdes. Ordinary final `35336440635`, job `105572251864`: **442/442 required GameTests passed**. Cierre completo: `docs/sprints/S24-adversarial-closeout.md`.
 
-**Prioridad vigente:** **G3 está cerrado**. El siguiente gate canónico es **G4 — red, prediction, reconciliación y presentación causal**.
+**Cierre histórico G3:** G3 está cerrado. G4 también se cerró después en S32;
+el siguiente gate canónico es G5.
 
 **Salida:** catálogo general reproducible, extensible y con lifecycle transaccional.
 
 ### G4 — red, prediction, reconciliación y presentación causal
 
-**Estado:** **ABIERTO / siguiente gate**.
+**Estado:** **CERRADO tras S32/G4.6c**. La prioridad vigente es G5.
 
 **Requisitos:** FR-077..088; NFR-001..018, NFR-026..031.
 
@@ -167,14 +168,14 @@ El cierre histórico de G2 no afirmaba que `AnatomyMovement` hubiera desaparecid
 3. [x] observer path sin carry local;
 4. [x] reconciliación sin double-apply ni drift;
 5. [x] presentación `CURRENT_ENDPOINT` → intervalo certificado donde Q2 lo requiera;
-6. [ ] residual visual/camera en única capa `client.collision.presentation`;
-7. [ ] dedicated `allow-flight=false` 0/100/200 ms y late tracking/reconnect.
+6. [x] residual visual/camera en única capa `client.collision.presentation`;
+7. [x] dedicated `allow-flight=false` 0/100/200 ms y late tracking/reconnect.
 
 **S25 adversarial baseline RED / G4.1:** receipts server-side ya existen y están bounded, pero todavía no hay una ruta C2S anatómica de movement reference. El único receiver C2S de movimiento es `PlatformMovePayload` legacy y sale inmediatamente bajo `AnatomyApi.ownsSharedPhysics(body)`; `PlatformMovementReference.resolve(...)` tampoco rebasa anatomy. Presence gate `s25-adversarial-reference-presence` run **`35337131202`**, job **`105574448871`**: RED esperado con `no non-legacy anatomy/collision C2S receiver is registered`. Ordinary del mismo snapshot **`35337131192`**, job **`105574448591`**: **442/442 required GameTests**, build verde. Threat model: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
 **S25 / G4.1 recerrado adversarialmente tras la reapertura token-lifecycle:** el RED `36319103378` probó que un same-dimension teleport podía reiniciar `TransportLedger` sin retirar un token cliente viejo con el mismo `receiptSequence`. La reparación `263071814...` + `25803838...` + `78e8ec6a...` publica/consume la barrera física y cubre también bodies no-Living. Run final `36319615155`: baseline player+boat `108620791027` verde, lifecycle-observer mutant `108621043309` muerto y non-Living mutant `108621043326` muerto. Inbox bounded + tres mutantes: `36319228108`. Dedicated integrado: `36319203501` verde. Ordinary final `36319615112`: **451/451**. Zero-change desde `78e8ec6a...`: cero cambios posteriores de producto. Detalle: `docs/sprints/S25-g4-reference-adversarial-model.md`.
 
-**Prioridad G4 vigente:** **G4.6 — residual visual/cámara en la capa de presentación cliente**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
+**Prioridad histórica de G4:** **G4.6 — residual visual/cámara en la capa de presentación cliente**. S28/G4.4 quedó cerrado sin cambios de producción: run `36987926148` deja verde el dedicated de reconciliación + owner exacto de los cuatro baselines vanilla y mata los mutantes `baseline-double` y `reference-double`; ordinary `36987926156` verde; zero-change desde `94a0a9b...`.
 
 **S29 adversarial baseline RED / G4.5:** `CERTIFIED_INTERVAL` existe sólo como enum reservado. Presence run `37006651350`, job `110836393829`, falla exactamente porque no hay constructor/factory productiva, `PresentationFrame` aún rechaza todo no-`CURRENT_ENDPOINT` y no existe certificación S2C de material interval. Ordinary del mismo snapshot `37006651353` es verde. Threat model/handoff: `docs/sprints/S29-g4-certified-presentation.md`.
 
@@ -238,6 +239,18 @@ posterior no pidió cambios productivos. El `build runGameTest` final pasó
 `docs/sprints/S31-g4-residual-camera.md` y `docs/VALIDATION.md`. **G4.6 sigue
 abierto:** S32 debe probar la procedencia de incorporación vanilla del body
 observado remotamente antes de permitirle un residual.
+
+**Cierre S32 / G4.6c remoto (2026-10-04):** el observador recibe una
+atestación ligada al paquete nativo exacto de posición y al carry físico
+certificado para ese destinatario. Su residual es sólo visual, se compone una
+vez con la interpolación vanilla y se retira en barreras de contacto, gravedad,
+tracking, teleport y dimensión. La pasada final independiente R1–R6 no encontró
+RED ni cambios productivos pendientes. Pasaron 463/463 GameTests, la suite
+cliente completa, dos clientes dedicados a 0/100/200 ms, ROOT/JOINT y movimiento
+voluntario, 16 cuerpos/4096 atestaciones y las transiciones de observador.
+La evidencia, hashes y límites están en `docs/sprints/S32-g4-remote-observer.md`
+y `docs/VALIDATION.md`. **G4 y G4.6 quedan cerrados.** El benchmark normativo
+integrado NFR-014 y la QA humana/pack permanecen en G9.
 
 **Salida:** multiplayer autoritativo y prediction estable.
 
@@ -305,7 +318,7 @@ observado remotamente antes de permitirle un residual.
 
 **Intervenciones del propietario aplazadas hasta cerrar la épica completa (no al cerrar un sprint):**
 
-- [ ] QA humana de la versión candidata exacta en el entorno de aceptación: superficies animadas, cámara, cadenas de soportes, vehículos y pack, incluidos los objetivos visuales Fresh Animations/EMF de G8. Los agentes preparan builds, casos reproducibles, capturas y resultados automáticos antes de solicitar el veredicto. Se añadirán aquí únicamente necesidades humanas reales que aparezcan durante la épica; ninguna detiene por sí sola el trabajo independiente anterior.
+- [ ] QA humana de la versión candidata exacta en el entorno de aceptación: superficies animadas, cámara, cadenas de soportes, vehículos y pack, incluidos los objetivos visuales Fresh Animations/EMF de G8 y la continuidad visual del observador remoto con latencia en G4. Los agentes preparan builds, casos reproducibles, capturas y resultados automáticos antes de solicitar el veredicto. Se añadirán aquí únicamente necesidades humanas reales que aparezcan durante la épica; ninguna detiene por sí sola el trabajo independiente anterior.
 
 ## 4. Dependencias
 

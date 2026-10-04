@@ -6,6 +6,7 @@ import io.github.r3neer.scalebrews.collision.pose.*;
 import io.github.r3neer.scalebrews.collision.physics.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.client.collision.presentation.CausalBodyResidual;
+import io.github.r3neer.scalebrews.client.collision.presentation.CausalRemoteResidual;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
@@ -32,7 +33,10 @@ public final class AnatomyClientNetworking {
     /** Server-issued Q2 interval certificates; exact serial lookup only. */
     private static final AnatomyCertifiedIntervalInbox certifiedIntervals=new AnatomyCertifiedIntervalInbox();
     private static final AnatomyContactInbox contacts=new AnatomyContactInbox();
-    private static final java.util.Map<java.util.UUID,AnatomyContactPayload> presentationContacts=new java.util.HashMap<>();
+    // Disconnect/entity-unload can race an arriving contact callback. The whole
+    // removeIf must hold the same lock as put/remove/clear, not iterate a plain HashMap.
+    private static final java.util.Map<java.util.UUID,AnatomyContactPayload> presentationContacts=
+        java.util.Collections.synchronizedMap(new java.util.HashMap<>());
     private static net.minecraft.client.multiplayer.ClientLevel poseLevel;
     private static long clientTick;
     /** Exact server-issued receipt token staged only after a local carry has incorporated its support endpoint. */
@@ -124,6 +128,7 @@ public final class AnatomyClientNetworking {
     /** Level-owned material/caches only. Connection/revision replay watermarks deliberately survive. */
     private static void clearLevelMaterial(){
         CausalBodyResidual.reset();
+        CausalRemoteResidual.reset();
         if(poseLevel!=null)AnatomyMovement.deactivate(poseLevel);
         poses.clear();frames.clear();staleFrames.clear();receivedAt.clear();evaluators.clear();providers.clear();presentationFrames.clear();presentationIntervals.clear();certifiedIntervals.clear();contacts.retireWindows();presentationContacts.clear();
         predictedMovementReferences.clear();transportReceiptTokens.clear();predictionOwner=null;
@@ -143,6 +148,7 @@ public final class AnatomyClientNetworking {
     }
     private static void discardSupportMaterial(net.minecraft.client.multiplayer.ClientLevel level,java.util.UUID supportId,int entityId,boolean discardCertificates) {
         CausalBodyResidual.retireSupport(supportId);
+        CausalRemoteResidual.retireSupport(supportId);
         poses.remove(supportId);evaluators.remove(supportId);providers.remove(supportId);presentationFrames.remove(supportId);presentationIntervals.remove(supportId);
         if(discardCertificates)certifiedIntervals.discardSupport(supportId);
         var support=level==null?null:level.getEntity(entityId);
@@ -434,10 +440,12 @@ public final class AnatomyClientNetworking {
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
             CausalBodyResidual.retireBody(entity);
+            CausalRemoteResidual.forget(entity);
             predictedMovementReferences.remove(entity.getUUID());
             transportReceiptTokens.discardBody(entity.getUUID());
             if(entity instanceof net.minecraft.world.entity.LivingEntity living) {
                 CausalBodyResidual.retireSupport(living.getUUID());
+                CausalRemoteResidual.retireSupport(living.getUUID());
                 var history=frames.remove(living.getUUID());
                 if(history!=null)retireFrameHistory(level,living.getUUID(),history);
             }
@@ -464,6 +472,7 @@ public final class AnatomyClientNetworking {
                     || !(support instanceof net.minecraft.world.entity.LivingEntity) || !support.getUUID().equals(packet.support());
             });
             bindPhysics();
+            CausalRemoteResidual.endTick();
             var predictionBody=currentPredictionBody(client);
             CausalBodyResidual.refresh(predictionBody);
             if(poseLevel!=null) {
@@ -505,7 +514,10 @@ public final class AnatomyClientNetworking {
                 staleFrames.remove(packet.entity());
                 var history=poses.computeIfAbsent(packet.entity(),id->new AnatomyPoseHistory());
                 if(history.current()==null || packet.jointSampleTick()>history.current().jointSampleTick())history.accept(packet);
-                if(entity instanceof net.minecraft.world.entity.LivingEntity living)CausalBodyResidual.acceptedEndpoint(living);
+                if(entity instanceof net.minecraft.world.entity.LivingEntity living) {
+                    CausalBodyResidual.acceptedEndpoint(living);
+                    CausalRemoteResidual.acceptedOwnFrame(living);
+                }
             } catch(IllegalArgumentException invalid) {
                 io.github.r3neer.scalebrews.ScaleBrews.LOGGER.warn("Rejected causal pose frame for {}",packet.entity(),invalid);
             }
@@ -516,6 +528,8 @@ public final class AnatomyClientNetworking {
                     || packet.tick()+100<level.getGameTime())return;
             if(contacts.accept(level.dimension().identifier(),packet)){
                 CausalBodyResidual.contactPacket(packet);
+                var body=level.getEntity(packet.bodyId());
+                if(body!=null && body.getUUID().equals(packet.body()))CausalRemoteResidual.contactPacket(body,packet);
                 presentationContacts.remove(packet.body());
             }
         });
@@ -536,5 +550,8 @@ public final class AnatomyClientNetworking {
             if(body==null || !body.getUUID().equals(packet.body()))return;
             transportReceiptTokens.accept(packet,level.getGameTime());
         });
+        // The bundle/native-handler scope validates observer attestations synchronously.
+        // This receiver advertises protocol support but never treats callback order as provenance.
+        ClientPlayNetworking.registerGlobalReceiver(AnatomyObserverCarryPayload.TYPE,(packet,context)->{});
     }
 }

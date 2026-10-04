@@ -171,6 +171,15 @@ El cliente posee sólo material recibido para la conexión/nivel actual y predic
 El servidor origina catálogo, frames y contactos. El cliente no aporta geometría ni pose. Para player/controlled vehicle se permite prediction del mismo core. La reconciliación correlaciona movimiento vanilla con transportes confirmados; un receipt acredita un delta aplicado y nunca lo vuelve a aplicar.
 
 Un observador remoto no ejecuta carry físico local de la entidad observada. Usa posición vanilla y presentación derivada del material confirmado.
+Cuando el servidor acredita un carry remoto, la acreditación pertenece al envío
+real de un paquete de posición vanilla a un destinatario concreto. La identidad
+de esa ocurrencia y el intervalo material Q2 confirmado deben concordar con el
+contacto recibido. El target del paquete relativo se reconstruye desde la base
+del códec **decodificada por ese destinatario**: la base física exacta de
+`ServerEntity` puede diferir tras la cuantización de un envío anterior. Sin
+paquete de posición, intervalo aceptado o continuidad nativa demostrable, el
+residual remoto es cero. Esta acreditación sólo gobierna dibujo; nunca mueve la
+entidad observada ni altera su AABB, velocidad o gravedad.
 
 ### 4.10 Presentación y cámara
 

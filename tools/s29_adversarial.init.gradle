@@ -4,6 +4,35 @@ gradle.projectsEvaluated {
         systemProperty 'scalebrews.s29GravityRoundTrip', rootProject.findProperty('s29GravityRoundTrip') ?: 'false'
         systemProperty 'scalebrews.s29EarlyReconnectReplay', rootProject.findProperty('s29EarlyReconnectReplay') ?: 'false'
         systemProperty 'scalebrews.s29ContactDelayedSequence', rootProject.findProperty('s29ContactDelayedSequence') ?: 'false'
+        systemProperty 'scalebrews.s32NativePairDir', rootProject.findProperty('s32NativePairDir') ?: ''
+        systemProperty 'scalebrews.s32NativePairRole', rootProject.findProperty('s32NativePairRole') ?: ''
+        systemProperty 'scalebrews.s32NativePairProxyPort', rootProject.findProperty('s32NativePairProxyPort') ?: '0'
+        systemProperty 'scalebrews.s32HistoryDense', rootProject.findProperty('s32HistoryDense') ?: 'false'
+        systemProperty 'scalebrews.s32ReceiverCase', rootProject.findProperty('s32ReceiverCase') ?: 'CAPTURE'
+        if(rootProject.findProperty('s32ReceiverCases'))systemProperty 'scalebrews.s32ReceiverCases', rootProject.findProperty('s32ReceiverCases')
+        if(rootProject.findProperty('s32PrivateSource') || rootProject.findProperty('s32AdversarialOpenGL')) {
+            doFirst { args '--graphicsBackend', 'opengl' }
+        }
+        if(rootProject.findProperty('s32NativePairRole')) {
+            doFirst {
+                def name=rootProject.findProperty('s32NativePairRole')=='peer'?'S32Peer':'S32Host'
+                // Loom contributes its default user through argument providers.
+                // Flatten once so a later duplicate cannot override this lane's user.
+                def values=args.toList()
+                argumentProviders.each { values.addAll(it.asArguments().toList()) }
+                argumentProviders.clear()
+                while(values.contains('--username')) {
+                    def i=values.indexOf('--username'); values.remove(i+1); values.remove(i)
+                }
+                values.addAll(['--username',name])
+                setArgs(values)
+            }
+        }
+    }
+    if(rootProject.findProperty('s32PrivateSource')) {
+        rootProject.sourceSets.named('gametest') {
+            java.srcDir(rootProject.file(rootProject.findProperty('s32PrivateSource')))
+        }
     }
     if(rootProject.findProperty('s29MutationOriginal')) {
         def original = rootProject.file(rootProject.findProperty('s29MutationOriginal')).absolutePath
@@ -21,10 +50,92 @@ gradle.projectsEvaluated {
     rootProject.tasks.named('processGametestResources') {
         inputs.property('s29AdversarialProof', rootProject.findProperty('s29AdversarialProof') ?: 'io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof')
         inputs.property('s29AdversarialServerProof', rootProject.findProperty('s29AdversarialServerProof') ?: '')
+        inputs.property('s32NativePairRole', rootProject.findProperty('s32NativePairRole') ?: '')
+        inputs.property('s32PrivateSource', rootProject.findProperty('s32PrivateSource') ?: '')
         doLast {
             def manifest = new File(destinationDir, 'fabric.mod.json')
             def metadata = new groovy.json.JsonSlurper().parse(manifest)
             metadata.entrypoints['fabric-client-gametest'] = (rootProject.findProperty('s29AdversarialProof') ?: 'io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof').split(',').toList()
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialCertificateRecoveryProof')) {
+                def mixin='s32-adversarial-certificate-recovery.mixins.json'
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S32AdversarialCertificateRecoveryTap'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialNativeBaseline') || (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialCodecAxisProof')) {
+                def mixin='s32-adversarial-native-baseline.mixins.json'
+                def selected=(rootProject.findProperty('s29AdversarialProof') ?: '').split(',').toList()
+                def baselineTaps=[]
+                if(selected.contains('io.github.r3neer.scalebrews.test.S32AdversarialCodecAxisProof'))baselineTaps.add('S32AdversarialCodecAxisTap')
+                if(selected.contains('io.github.r3neer.scalebrews.test.S32AdversarialNativeBaselineProof'))baselineTaps.add('S32AdversarialNativeBaselineTap')
+                if(selected.contains('io.github.r3neer.scalebrews.test.S32AdversarialNativeBaselineRoundTripProof'))baselineTaps.add('S32AdversarialNativeBaselineRoundTripTap')
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:baselineTaps,injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialGravityBarrierProof')) {
+                def mixin='s32-adversarial-gravity-barrier.mixins.json'
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S32AdversarialGravityBarrierTap'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialDeferredRemoteBarrierProof')) {
+                def mixin='s32-adversarial-deferred-remote-barrier.mixins.json'
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S32AdversarialDeferredRemoteBarrierTap'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if(rootProject.findProperty('s32PrivateSource')) {
+                def mixin='s32-private-receiver.mixins.json'
+                def productionPair=(rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32PrivateProduction')
+                def privateCommonMixins=productionPair ? ['S32PrivateRootLockMixin'] : []
+                def privateClientMixins=productionPair ? ['S32PrivateProductionPairTap','S32PrivateRetireTrace'] : [((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32PrivateDrawProof') || (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32PrivateRemoteWorkProof')?'S32PrivateDrawTap':'S32PrivateReceiverTap')]
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    mixins:privateCommonMixins,
+                    client:privateClientMixins,injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialPhysicalCarryProof')) {
+                def mixin='s32-adversarial-physical-bundle.mixins.json'
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S32AdversarialPhysicalBundleMixin'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32AdversarialNativeBundle')) {
+                def mixin='s32-adversarial-native-bundle.mixins.json'
+                new File(destinationDir,mixin).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S32AdversarialNativeBundleMixin'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[mixin]
+                if(rootProject.findProperty('s32NativePairRole')) {
+                    def defaults=new File(destinationDir,'scalebrews-test.mixins.json')
+                    def d=new groovy.json.JsonSlurper().parse(defaults)
+                    d.client=d.client.findAll {it!='TestPackStartupTimeoutMixin'}
+                    defaults.text=groovy.json.JsonOutput.toJson(d)
+                    def startup='s32-adversarial-native-startup.mixins.json'
+                    new File(destinationDir,startup).text=groovy.json.JsonOutput.toJson([
+                        required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                        client:['S29AdversarialDedicatedStartupTimeoutMixin'],injectors:[defaultRequire:1]])
+                    metadata.mixins=(metadata.mixins ?: [])+[startup]
+                }
+            }
+            if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S32PrivateProduction')) {
+                def defaults=new File(destinationDir,'scalebrews-test.mixins.json')
+                def d=new groovy.json.JsonSlurper().parse(defaults)
+                d.client=d.client.findAll {it!='TestPackStartupTimeoutMixin'}
+                defaults.text=groovy.json.JsonOutput.toJson(d)
+                def startup='s32-adversarial-production-startup.mixins.json'
+                new File(destinationDir,startup).text=groovy.json.JsonOutput.toJson([
+                    required:true,package:'io.github.r3neer.scalebrews.test.mixin',compatibilityLevel:'JAVA_25',
+                    client:['S29AdversarialDedicatedStartupTimeoutMixin'],injectors:[defaultRequire:1]])
+                metadata.mixins=(metadata.mixins ?: [])+[startup]
+            }
             if((rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialDedicatedReconnectProof') ||
                (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialContactLifecycleProof') || (rootProject.findProperty('s29AdversarialProof') ?: '').contains('S29AdversarialContactLiveReconnectProof')) {
                 // This lane uses one startup hook. The default pack-only hook targets

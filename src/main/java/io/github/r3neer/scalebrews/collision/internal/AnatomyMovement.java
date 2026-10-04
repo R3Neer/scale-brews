@@ -351,6 +351,7 @@ public final class AnatomyMovement {
     public static synchronized void clear(Entity body){
         AnatomyContactState.clear(body);
         AnatomyTransportReceipts.invalidate(body);
+        if(body!=null && !body.level().isClientSide())AnatomyObserverCarries.invalidate(body);
     }
     public static synchronized SurfaceContact surface(Entity body){return AnatomyContactState.surface(body);}
     /** Transitional façade while callers migrate to the runtime ledger. */
@@ -458,6 +459,10 @@ public final class AnatomyMovement {
         AnatomySpatialIndex.deactivate(level);
     }
     private static synchronized Contact setContact(Entity body,LivingEntity support,String piece,long revision,Vec3 normal) {
+        var previous=AnatomyContactState.contact(body);
+        if(previous!=null && !body.level().isClientSide()
+                && (previous.support()!=support || !previous.piece().equals(piece) || previous.revision()!=revision))
+            AnatomyObserverCarries.invalidate(body);
         var contact=AnatomyContactState.setContact(body,support,piece,revision,normal);
         return new Contact(contact.support(),contact.piece(),contact.revision(),contact.normal(),contact.sequence());
     }
@@ -728,13 +733,21 @@ public final class AnatomyMovement {
     /** Source-compatible fixture seam; non-causal transports cannot be referenced by G4. */
     static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,
             Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
-        return recordCertifiedTransport(body,support,surface,root,0,applied,materialBefore,materialAfter);
+        return recordCertifiedTransport(body,support,surface,root,0,0,0,applied,materialBefore,materialAfter);
+    }
+    static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,
+            long beforeSupportFrameSerial,long supportFrameSerial,
+            Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
+        return recordCertifiedTransport(body,support,surface,root,0,beforeSupportFrameSerial,supportFrameSerial,
+            applied,materialBefore,materialAfter);
     }
     /** Record one displacement already certified/applied by the S08 material dispatcher. */
-    static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,long supportFrameSerial,
+    static boolean recordCertifiedTransport(Entity body,LivingEntity support,SurfaceContact surface,RootFrame root,
+            long materialSerial,long beforeSupportFrameSerial,long supportFrameSerial,
             Vec3 applied,ConvexBox materialBefore,ConvexBox materialAfter) {
         var contact=contact(body);
-        if(body==null || support==null || surface==null || root==null || supportFrameSerial<0 || applied==null || materialBefore==null || materialAfter==null
+        if(body==null || support==null || surface==null || root==null || beforeSupportFrameSerial<0 || supportFrameSerial<0
+                || applied==null || materialBefore==null || materialAfter==null
                 || contact==null || contact.support()!=support || !surface.support().equals(support.getUUID())
                 || contact.revision()!=surface.revision() || !contact.piece().equals(surface.piece())
                 || !Double.isFinite(applied.lengthSqr()))return false;
@@ -750,6 +763,8 @@ public final class AnatomyMovement {
             before!=null && before.tick()==tick?before.displacement().add(applied):applied,applied);
         TransportLedger.record(body,transport);
         AnatomyTransportReceipts.record(body,contact,surface,root,supportFrameSerial,transport,materialBefore,materialAfter);
+        AnatomyObserverCarries.record(body,support,surface,materialSerial,beforeSupportFrameSerial,supportFrameSerial,
+            transport,materialBefore,materialAfter);
         return true;
     }
     public static void carry(Entity body){carry(body,Collections.newSetFromMap(new IdentityHashMap<>()));}
@@ -792,6 +807,8 @@ public final class AnatomyMovement {
                     before!=null && before.tick()==tick?before.displacement().add(allowed):allowed,allowed);
                 TransportLedger.record(body,transport);
                 AnatomyTransportReceipts.record(body,c,surface,root,transport,anchor.materialBefore(),piece);
+                AnatomyObserverCarries.record(body,c.support(),surface,anchor.supportFrameSerial(),
+                    causalFrame==null?0:causalFrame.endpoint().frameSerial(),transport,anchor.materialBefore(),piece);
                 if(allowed.distanceToSqr(delta)>1e-8){clear(body);return;}
                 if(causalFrame!=null)publishClientTransport(body,c.support(),surface,anchor,now,causalFrame.endpoint().frameSerial(),transport);
             } else if(causalFrame!=null)publishClientQuietFrame(body,c.support(),surface,anchor,now,

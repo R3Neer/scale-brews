@@ -59,7 +59,16 @@ public final class S29ImplementerRejectedCatalogClientProof implements FabricCli
                 if(AnatomyClientNetworking.catalog().revision()!=fragments.get().getFirst().revision()-1)
                     throw new AssertionError("Rejected candidate replaced the accepted revision");
                 if(AnatomyClientNetworking.presentationFrame(cow).isEmpty())throw new AssertionError("Rejected catalog lost accepted presentation authority");
-                if(AnatomyMovement.queryFrame(cow).isEmpty())throw new AssertionError("NFR-016: rejected catalog recovered READY but left accepted support physically unregistered");
+                if(AnatomyMovement.queryFrame(cow).isEmpty()) {
+                    boolean cached;
+                    try {
+                        var field=AnatomyClientNetworking.class.getDeclaredField("providers");field.setAccessible(true);
+                        cached=((Map<?,?>)field.get(null)).containsKey(cow.getUUID());
+                    } catch(ReflectiveOperationException diagnosticFailure) {throw new AssertionError("S29 provider diagnostic unavailable",diagnosticFailure);}
+                    throw new AssertionError("NFR-016: rejected catalog recovered READY but left accepted support physically unregistered"
+                        +" active="+AnatomyMovement.active(cow)+" registration="+AnatomyMovement.registrationGeneration(cow)
+                        +" clientProviderCached="+cached+" published="+AnatomyMovement.publishedFrame(cow).isPresent());
+                }
                 System.out.println("S29 REJECTED CATALOG PASS accepted presentation and physical authority recovered");
             });
         } finally {world.getServer().runOnServer(AnatomyRuntime::stop);world.close();}
