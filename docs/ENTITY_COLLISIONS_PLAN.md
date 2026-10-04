@@ -264,7 +264,7 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 
 1. [ ] portar boat/raft, off-rail minecart, item y falling-block semantics;
 2. [ ] verificar agua, rail, despawn, hardening, placement y anvil una vez;
-3. [ ] portar sneak edge y jump release;
+3. [x] portar sneak edge y jump release (S40/G5.7);
 4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
 5. [x] demostrar no regresión de fall/exhaustion/stats/Growth landing (S39/G5.6);
 6. [ ] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez;
@@ -341,6 +341,20 @@ retiradas sin deuda ni preparación de geometría adicional. La pasada final no
 produjo cambios de producción; G5 sigue abierto para los demás frentes.
 Evidencia ejecutada en
 `docs/sprints/S39-g5-passive-movement-accounting.md` y `docs/VALIDATION.md`.
+
+**S40/G5.7 cerrado localmente (FR-054/063):** el input nativo de agacharse
+retiene al jugador en el borde medido del material preparado y permite salir
+al soltar la tecla. El salto nativo libera la relación antes de otro intervalo
+ROOT sin alterar el impulso vanilla; cliente y servidor retiran el contacto
+tras recibir el movimiento y sólo lo readquieren tras un aterrizaje real.
+La consulta de borde limita su coste a 137 barridos de piezas locales por
+movimiento sin nueva preparación geométrica. Pruebas ordinarias **466/466**,
+composición preparada **2/2**, input real de cliente, suite completa de cliente
+y holdouts independientes verdes; mutar el hook de liberación produjo el RED
+esperado. La pasada final no requirió cambios productivos. Evidencia exacta en
+`docs/sprints/S40-g5-sneak-jump-boundary.md` y `docs/VALIDATION.md`. G5 sigue
+abierto para minecarts experimentales, equivalencia/no-participación completa
+y retirada del motor legacy; G9 y QA humana permanecen al final de la épica.
 
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 

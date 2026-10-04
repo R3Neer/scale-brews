@@ -447,24 +447,50 @@ public final class AnatomyMovement {
         var separation=piece.separation(body.getBoundingBox());
         return Math.abs(separation.gap())<=.025 && gravity(body).supports(separation.normal());
     }
+    /** A successful native jump releases its support before another ROOT interval can carry it. */
+    public static void releaseOnJump(LivingEntity body) {
+        if(active(body) && predictsBody(body) && contact(body)!=null
+                && gravity(body).vertical(body.getDeltaMovement())>1e-5)
+            clear(body);
+    }
     /** Crouch edge protection in the body's gravity tangent plane, never legacy world-Y surfaces. */
     public static Vec3 edge(net.minecraft.world.entity.player.Player body,Vec3 requested) {
         if(!active(body) || !predictsBody(body) || !body.isShiftKeyDown())return requested;
         var contact=contact(body);if(contact==null || !Platforms.eligible(body,contact.support()))return requested;
         var frame=gravity(body);double vertical=frame.vertical(requested);
         if(vertical>1e-5)return requested; // Moving away from support is not an edge walk.
-        Vec3 tangent=frame.tangent(requested);double step=Math.max(.005,.05*body.getScale());
-        while(tangent.lengthSqr()>1e-10 && !hasEdgeSupport(body,contact,body.getBoundingBox().move(tangent),-vertical))
-            tangent=tangent.length()<=step?Vec3.ZERO:tangent.subtract(tangent.scale(step/tangent.length()));
-        return tangent.add(frame.up().scale(vertical));
+        var snapshot=currentSnapshot(contact.support(),AnatomyBindingState.provider(contact.support())).orElse(null);
+        if(snapshot==null || snapshot.revision()!=contact.revision())return frame.up().scale(vertical);
+        Vec3 requestedTangent=frame.tangent(requested);
+        double length=requestedTangent.length();
+        if(!Double.isFinite(length))return frame.up().scale(vertical);
+        if(length<=1e-5)return requested;
+        Vec3 drop=frame.gravity().scale(Math.max(.001,body.maxUpStep())-vertical+.001);
+        AABB box=body.getBoundingBox();
+        if(hasEdgeSupport(snapshot,box.move(requestedTangent),drop,frame))return requested;
+        // At most 128 coarse sweeps and eight local refinements, regardless of input magnitude.
+        double step=Math.max(Math.max(.005,.05*body.getScale()),length/128);
+        double unsafe=length,safe=0;
+        for(int attempt=0;attempt<128;attempt++) {
+            double distance=Math.max(0,length-(attempt+1)*step);
+            if(hasEdgeSupport(snapshot,box.move(requestedTangent.scale(distance/length)),drop,frame)) {
+                safe=distance;break;
+            }
+            unsafe=distance;
+            if(distance==0)break;
+        }
+        if(safe==0)return frame.up().scale(vertical);
+        for(int refinement=0;refinement<8;refinement++) {
+            double middle=(safe+unsafe)*.5;
+            if(hasEdgeSupport(snapshot,box.move(requestedTangent.scale(middle/length)),drop,frame))safe=middle;
+            else unsafe=middle;
+        }
+        return requestedTangent.scale(safe/length).add(frame.up().scale(vertical));
     }
-    private static boolean hasEdgeSupport(Entity body,Contact contact,AABB candidate,double extraDrop) {
-        var provider=AnatomyBindingState.provider(contact.support());var snapshot=currentSnapshot(contact.support(),provider).orElse(null);
-        if(snapshot==null || snapshot.revision()!=contact.revision())return false;
-        Vec3 drop=gravity(body).gravity().scale(Math.max(.001,body instanceof LivingEntity living?living.maxUpStep():0)+extraDrop+.001);
+    private static boolean hasEdgeSupport(GeometryProvider.Snapshot snapshot,AABB candidate,Vec3 drop,GravityFrame frame) {
         for(var piece:snapshot.pieces().values()) {
             var hit=piece.sweep(candidate,drop);
-            if(hit!=null && !hit.penetrating() && gravity(body).supports(hit.normal()))return true;
+            if(hit!=null && !hit.penetrating() && frame.supports(hit.normal()))return true;
         }
         return false;
     }

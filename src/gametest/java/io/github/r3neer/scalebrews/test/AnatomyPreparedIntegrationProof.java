@@ -53,6 +53,7 @@ public final class AnatomyPreparedIntegrationProof {
             else if(Boolean.getBoolean("scalebrews.s37Only"))scenarios.add(()->S37PreparedMinecartProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s38Only"))scenarios.add(()->S38PreparedFallingBlockProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s39Only"))scenarios.add(()->S39PreparedLandingProof.run(h));
+            else if(Boolean.getBoolean("scalebrews.s40Only"))scenarios.add(()->S40PreparedSneakJumpProof.run(h));
             else {
                 if(!Boolean.getBoolean("scalebrews.s33Skip"))scenarios.add(()->S33PreparedPlacementProof.run(h));
                 if(!Boolean.getBoolean("scalebrews.s33Only")) {
@@ -61,6 +62,7 @@ public final class AnatomyPreparedIntegrationProof {
                     scenarios.add(()->S37PreparedMinecartProof.run(h));
                     scenarios.add(()->S38PreparedFallingBlockProof.run(h));
                     scenarios.add(()->S39PreparedLandingProof.run(h));
+                    scenarios.add(()->S40PreparedSneakJumpProof.run(h));
                     scenarios.add(()->staleBindingIdentityCannotCertifyInterval(h));
                     scenarios.add(()->AnatomyGeometryTests.exportedCowRepeatedTransportAndIndependentMovementPrepared(h));
                     scenarios.add(()->AnatomyGeometryTests.actualEntityMovesWithAscendingAnatomyPrepared(h));

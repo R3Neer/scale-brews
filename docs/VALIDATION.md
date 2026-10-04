@@ -2710,3 +2710,67 @@ No production or IMPLEMENTER tests changed in that review; `git diff --check`
 passed. S39/G5.6 is closed locally for FR-061/062. Whole G5, G9 benchmarks
 and final human pack QA remain open.
 
+S40/G5.7 IMPLEMENTER candidate: a prepared native `Player.move` regression
+first proved that `jumpFromGround` left its old material contact live before
+the next own movement; after the native jump-release hook, the focal test
+passed. The edge helper now reads one accepted support snapshot and caps work
+at 128 coarse plus eight refinement sweeps over local pieces. Ordinary build
+passed **466/466** in `../s40-build-candidate-final.log` (SHA-256
+`e83d82da73bd232c2f5b8a7810e50e2f7141d558e9759eb6b007163fe46ed6e1`).
+The complete prepared sequence passed **2/2**, all 23 scenarios including
+`Player.move` edge tests in down/up/north test gravity frames, in
+`../s40-build-and-prepared-candidate.log` (SHA-256
+`b5fc4f00475d92d0389323555c5ac42a959ac88500e6bf5b7b349bfccbfdcda5`).
+Separate original-catalog dedicated-client runs used actual local sneak/jump
+keys and native packets. Sneak retained the measured convex boundary, then
+left it on release, with both peers' contact and transport converging:
+`../s40-client-sneak-close.log` (SHA-256
+`8ef01ea60dca00c22b9bab2de3020680c5c49bb968788e7e7da65628c386ee17`).
+After native jump packets retired the server relation, a later ROOT produced
+no carry or extra transport; the exact local jump impulse matched the same
+native input on stone, `(0, 0.4482024610042572, 0)`:
+`../s40-client-jump-final.log` (SHA-256
+`240612306851705714d559ac176fd831644bba34f1360c5bc9789a834bef457d`).
+The full general client suite passed in
+`../s40-client-full-candidate-final.log` (SHA-256
+`1d5dd3b46eb7273addee637a8f30420548209277c8b4a7c380c11daa2192467f`).
+These runs do not close S40: independent holdouts, ownership controls and a
+complete zero-change review are pending. Whole G5/G9 and final human pack QA
+remain open.
+
+S40/G5.7 final independent ADVERSARY pass: native real-input and genuine
+post-landing reacquisition passed in `../s40-adversary-private/native-input-snapshot.log`
+and `../s40-adversary-private/native-reacquire-grounded.log`; the immediate
+jump-to-ROOT span passed and removing the production jump-return hook in an
+isolated overlay made its oracle RED as expected. Six prepared gravity frames
+passed through native `Player.move`. A work probe measured 128,700 local-piece
+sweeps across 100 long edge queries, below its 137,000 bound, with no additional
+geometry or joint preparation and no physical-state mutation. The measured
+footprint was also inspected as a deterministic contact sheet. Exact logs,
+snapshot parameters/hashes and fixture-failure classifications are recorded
+in `../s40-adversary-private/evidence.json` and the ADVERSARY section of
+`docs/sprints/S40-g5-sneak-jump-boundary.md`. The adversary reported no
+remaining S40 product RED and made no production or IMPLEMENTER-test changes.
+
+On the final unchanged tree, `build runGameTest` passed **466/466** ordinary
+server tests in `../s40-zero-ordinary-final.log` (SHA-256
+`57fd67101417be230e35a6c45661f86a1f33e167cfd2678f72818b4d83a30c7b`),
+and the prepared composition passed **2/2** with 23 scenarios in
+`../s40-zero-build-prepared-final.log` (SHA-256
+`633aafbd6c785cc27236ed4c34c72b07071baafb56c446a3049ee4e5cab0ae5c`).
+The final native-input sneak and jump invocations added explicit client/server
+position-convergence assertions and passed in
+`../s40-client-sneak-assert-final.log` (SHA-256
+`9e68f1456d13225c554f86754f73bcd7a6a9b3bb3d4710133779e7773c436d86`)
+and `../s40-client-jump-assert-final.log` (SHA-256
+`f34a751e71f7c86f0703a36a8e6018c04899e374cfdc952858f584f2267898db`).
+The full client suite passed in `../s40-zero-client-rerun.log` (SHA-256
+`cbb7245c0595f4382c102a47d11947f6d69bb46f3861c5e08fe83368e5a11f20`).
+An earlier final-client invocation timed out at an S29 catalog-certificate
+wait; the complete suite had passed before it and passed afterward on the
+unchanged source. Its cause was not established, so that invocation is not
+counted as acceptance evidence. An initial prepared invocation used the wrong
+Gradle selector; the corrected isolated prepared run above passed. `git diff
+--check` passed. S40/G5.7 is closed locally for FR-054/063; whole G5, G9,
+external-mod gameplay and human pack QA remain open.
+

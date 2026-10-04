@@ -13,6 +13,7 @@
     "TestEggAccess",
     "TestFoodAccess",
     "TestMountAccess",
+    "S40NativeJumpAuditMixin",
     "TestBeeAccess",
     "TestVillagerSensorAccess",
     "TestRulesMixin",

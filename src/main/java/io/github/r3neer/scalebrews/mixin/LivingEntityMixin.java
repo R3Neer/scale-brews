@@ -44,6 +44,11 @@ public abstract class LivingEntityMixin {
         }
     }
 
+    @Inject(method = "jumpFromGround", at = @At("RETURN"))
+    private void scalebrews$releaseMaterialOnJump(CallbackInfo ci) {
+        io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.releaseOnJump((LivingEntity)(Object)this);
+    }
+
     @ModifyArg(
             method = "setSprinting",
             at = @At(

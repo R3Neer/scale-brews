@@ -98,6 +98,8 @@ tasks.withType(JavaExec).configureEach {
 		systemProperty 'scalebrews.s38Only', providers.gradleProperty('scalebrewsS38Only').get()
 	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS39Only').isPresent())
 		systemProperty 'scalebrews.s39Only', providers.gradleProperty('scalebrewsS39Only').get()
+	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS40Only').isPresent())
+		systemProperty 'scalebrews.s40Only', providers.gradleProperty('scalebrewsS40Only').get()
 	// Opt-in GameTest evidence.  This is never set for normal gameplay runs.
 	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsGameTestReport').isPresent()) {
 		systemProperty 'fabric-api.gametest.report-file', file(providers.gradleProperty('scalebrewsGameTestReport').get()).absolutePath

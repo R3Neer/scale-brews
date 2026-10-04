@@ -57,16 +57,25 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
         "1".equals(System.getenv("SCALEBREWS_S28_RECONCILIATION_ACCEPTANCE"));
     private static final boolean S39_PASSIVE_ACCOUNTING=
         "1".equals(System.getenv("SCALEBREWS_S39_PASSIVE_ACCOUNTING"));
+    private static final S40Phase S40_NATIVE_INPUT=switch(String.valueOf(System.getenv("SCALEBREWS_S40_NATIVE_INPUT"))) {
+        case "sneak" -> S40Phase.SNEAK;
+        case "jump" -> S40Phase.JUMP;
+        default -> null;
+    };
     private static final int PHASE_TICKS=200;
     private static final int[] RTT_MILLIS={0,100,200};
+    private enum S40Phase { SNEAK, JUMP }
 
     @Override
     public void runTest(ClientGameTestContext context) {
-        try {runMeasured(context);}
-        catch(Throwable failure) {throw new AssertionError("N2 baseline dedicated proof failed; inspect the emitted phase evidence",failure);}
+        try {
+            runMeasured(context,S40_NATIVE_INPUT);
+        }
+        catch(Throwable failure) {throw new AssertionError((S40_NATIVE_INPUT==null?"N2 baseline":
+            "S40 native "+S40_NATIVE_INPUT)+" dedicated proof failed; inspect the emitted phase evidence",failure);}
     }
 
-    private static void runMeasured(ClientGameTestContext context) throws Throwable {
+    private static void runMeasured(ClientGameTestContext context,S40Phase s40Phase) throws Throwable {
         var catalog=loadOriginalCatalog();
         var profiles=Map.of("scalebrews:n2_cow",cowProfile(catalog.cow()));
         var properties=new java.util.Properties();properties.setProperty("allow-flight","false");
@@ -95,6 +104,12 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 context.waitTicks(40);
                 awaitPlayerContact(context,fixture);
 
+                if(s40Phase!=null) {
+                    if(s40Phase==S40Phase.SNEAK)runS40SneakInput(context,world,fixture,latency.get());
+                    else runS40JumpInput(context,world,fixture,latency.get());
+                    return;
+                }
+
                 runRootPhases(context,world,fixture,latency.get());
                 if(S39_PASSIVE_ACCOUNTING)runPassiveAccounting(context,world,fixture,latency.get());
 
@@ -117,6 +132,8 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
                 Throwable cleanupFailure=null;
                 try {context.runOnClient(client->{
                     client.options.keyUp.setDown(false);client.options.keyDown.setDown(false);
+                    client.options.keyShift.setDown(false);client.options.keyJump.setDown(false);
+                    S40NativeJumpAudit.stop();
                     var handler=latency.get();if(handler!=null)handler.close(client);
                 });}
                 catch(Throwable cleanup) {cleanupFailure=cleanup;}
@@ -128,6 +145,185 @@ public final class AnatomyPredictionBaselineProof implements FabricClientGameTes
             }
         }
     }
+
+    private static void runS40SneakInput(ClientGameTestContext context,TestDedicatedServerContext world,
+            Fixture fixture,PlatformTestLatency latency) throws Exception {
+        latency.latency(0);
+        var baselineFence=latency.fence();context.waitFor(client->latency.passed(baselineFence),40);
+        latency.resetBaseline();
+        var start=world.computeOnServer(server->server.getPlayerList().getPlayers().getFirst().position());
+        context.runOnClient(client->client.options.keyUp.setDown(true));
+        ServerSupportSample approach=null;
+        for(int tick=0;tick<120;tick++) {
+            context.waitTicks(1);
+            approach=world.computeOnServer(server->serverSupportSample(
+                server.getPlayerList().getPlayers().getFirst(),fixture.cow.get()));
+            if(!approach.supported())throw new AssertionError("S40 native approach exited prepared face before sneak: "+approach);
+            if(approach.edgeMargin()<.6)break;
+        }
+        if(approach==null || approach.edgeMargin()>=.6)
+            throw new AssertionError("S40 native approach did not reach a measured prepared edge: "+approach);
+        context.runOnClient(client->client.options.keyShift.setDown(true));
+        context.waitTicks(2);
+        var shiftClient=context.computeOnClient(client->client.player.isShiftKeyDown());
+        var shiftServer=world.computeOnServer(server->server.getPlayerList().getPlayers().getFirst().isShiftKeyDown());
+        if(!shiftClient || !shiftServer)
+            throw new AssertionError("S40 native sneak input did not set both peer shift states: client="
+                +shiftClient+" server="+shiftServer);
+        for(int interval=0;interval<15;interval++) {
+            context.waitTicks(10);
+            var observed=world.computeOnServer(server->serverSupportSample(
+                server.getPlayerList().getPlayers().getFirst(),fixture.cow.get()));
+            if(!observed.supported())
+                throw new AssertionError("S40 native sneak exited prepared edge during held shift at interval "
+                    +interval+" after approach="+approach+" current="+observed);
+        }
+        context.runOnClient(client->client.options.keyUp.setDown(false));
+        context.waitTicks(8);
+        var sneakFence=latency.fence();context.waitFor(client->latency.passed(sneakFence),40);
+        var sneakServer=world.computeOnServer(server->{
+            var player=server.getPlayerList().getPlayers().getFirst();
+            return serverSupportSample(player,fixture.cow.get());
+        });
+        var sneakClient=context.computeOnClient(client->new S40Peer(client.player.position(),
+            AnatomyMovement.supported(client.player),transportSequence(client.player)));
+        if(latency.baseline().playerMoves()==0 || !sneakServer.supported() || !sneakClient.supported()
+                || sneakServer.edgeMargin()<-.01 || sneakServer.edgeMargin()>.2)
+            throw new AssertionError("S40 native sneak did not reach and retain the prepared face: start="+start
+                +" approach="+approach+" server="+sneakServer+" client="+sneakClient
+                +" packets="+latency.baseline().playerMoves());
+
+        context.runOnClient(client->client.options.keyShift.setDown(false));
+        context.waitTicks(2);
+        var releasedClient=context.computeOnClient(client->client.player.isShiftKeyDown());
+        var releasedServer=world.computeOnServer(server->server.getPlayerList().getPlayers().getFirst().isShiftKeyDown());
+        if(releasedClient || releasedServer)
+            throw new AssertionError("S40 release of native sneak did not clear both shift states: client="
+                +releasedClient+" server="+releasedServer);
+        latency.resetBaseline();
+        context.runOnClient(client->client.options.keyUp.setDown(true));
+        boolean exited=false;
+        for(int tick=0;tick<30;tick++) {
+            context.waitTicks(1);
+            var serverSupported=world.computeOnServer(server->AnatomyMovement.supported(
+                server.getPlayerList().getPlayers().getFirst()));
+            var clientSupported=context.computeOnClient(client->AnatomyMovement.supported(client.player));
+            if(!serverSupported && !clientSupported) {exited=true;break;}
+        }
+        context.runOnClient(client->client.options.keyUp.setDown(false));
+        context.waitTicks(4);
+        var exitFence=latency.fence();context.waitFor(client->latency.passed(exitFence),40);
+        var exitServer=world.computeOnServer(server->{
+            var player=server.getPlayerList().getPlayers().getFirst();
+            return new S40Peer(player.position(),AnatomyMovement.supported(player),transportSequence(player));
+        });
+        var exitClient=context.computeOnClient(client->new S40Peer(client.player.position(),
+            AnatomyMovement.supported(client.player),transportSequence(client.player)));
+        if(!exited || latency.baseline().playerMoves()==0 || exitServer.supported() || exitClient.supported()
+                || exitServer.position().distanceTo(sneakClient.position())<.1
+                || Math.abs(exitServer.position().x-exitClient.position().x)>.1
+                || Math.abs(exitServer.position().z-exitClient.position().z)>.1
+                || Math.abs(exitServer.position().y-exitClient.position().y)>.75
+                || exitServer.transportSequence()!=sneakClient.transportSequence()
+                || exitClient.transportSequence()!=sneakClient.transportSequence())
+            throw new AssertionError("S40 release of native sneak did not leave prepared material: start="+start
+                +" guarded="+sneakServer+" server="+exitServer+" client="+exitClient
+                +" packets="+latency.baseline().playerMoves());
+        System.out.println("S40_NATIVE_SNEAK PASS guarded edge and released exit: guarded="+sneakServer
+            +" exitServer="+exitServer+" exitClient="+exitClient);
+    }
+
+    private static void runS40JumpInput(ClientGameTestContext context,TestDedicatedServerContext world,
+            Fixture fixture,PlatformTestLatency latency) throws Exception {
+        latency.latency(0);
+        var setupFence=latency.fence();context.waitFor(client->latency.passed(setupFence),40);
+        latency.resetBaseline();
+        var jumpBefore=world.computeOnServer(server->{
+            var player=server.getPlayerList().getPlayers().getFirst();
+            return new S40Peer(player.position(),AnatomyMovement.supported(player),transportSequence(player));
+        });
+        if(!jumpBefore.supported())throw new AssertionError("S40 jump setup lacks authoritative contact: "+jumpBefore);
+        context.runOnClient(client->{S40NativeJumpAudit.reset();client.options.keyJump.setDown(true);});
+        context.waitTicks(1);
+        context.runOnClient(client->client.options.keyJump.setDown(false));
+        var jump=context.computeOnClient(client->S40NativeJumpAudit.get(client.player.getUUID()));
+        var jumpContactAfter=context.computeOnClient(client->AnatomyMovement.contact(client.player)!=null);
+        if(jump==null || !jump.hadMaterialAtEntry() || jumpContactAfter || jump.impulse().y<.1)
+            throw new AssertionError("S40 native local jump did not retire accepted material before next tick: audit="
+                +jump+" contactAfter="+jumpContactAfter);
+        boolean serverReleased=false;
+        for(int tick=0;tick<20;tick++) {
+            serverReleased=world.computeOnServer(server->AnatomyMovement.contact(
+                server.getPlayerList().getPlayers().getFirst())==null);
+            if(serverReleased)break;
+            context.waitTicks(1);
+        }
+        if(!serverReleased || latency.baseline().playerMoves()==0)
+            throw new AssertionError("S40 server did not retire contact after native jump packets: moves="
+                +latency.baseline().playerMoves()+" released="+serverReleased);
+        var root=world.computeOnServer(server->{
+            var player=server.getPlayerList().getPlayers().getFirst();
+            var before=new S40Peer(player.position(),AnatomyMovement.supported(player),transportSequence(player));
+            fixture.cow.get().move(net.minecraft.world.entity.MoverType.SELF,new Vec3(.04,0,.02));
+            AnatomyMovement.carry(player);
+            var after=new S40Peer(player.position(),AnatomyMovement.supported(player),transportSequence(player));
+            return new S40Root(before,after);
+        });
+        context.waitTicks(8);
+        var jumpFence=latency.fence();context.waitFor(client->latency.passed(jumpFence),40);
+        var jumpServer=world.computeOnServer(server->{
+            var player=server.getPlayerList().getPlayers().getFirst();
+            return new S40Peer(player.position(),AnatomyMovement.supported(player),transportSequence(player));
+        });
+        var jumpClient=context.computeOnClient(client->new S40Peer(client.player.position(),
+            AnatomyMovement.supported(client.player),transportSequence(client.player)));
+        if(root.before().supported() || root.after().supported()
+                || root.after().position().distanceToSqr(root.before().position())>1e-12
+                || root.after().transportSequence()!=root.before().transportSequence()
+                || jumpServer.supported() || jumpClient.supported()
+                || jumpServer.transportSequence()!=jumpBefore.transportSequence()
+                || jumpClient.transportSequence()>jumpBefore.transportSequence()+1
+                || Math.abs(jumpServer.position().x-jumpClient.position().x)>.1
+                || Math.abs(jumpServer.position().z-jumpClient.position().z)>.1
+                || Math.abs(jumpServer.position().y-jumpClient.position().y)>.6
+                || latency.baseline().playerMoves()==0 || latency.baseline().playerCorrections()!=0)
+            throw new AssertionError("S40 jump/ROOT/packet boundary retained or transported old contact: before="
+                +jumpBefore+" root="+root+" server="+jumpServer+" client="+jumpClient
+                +" packets="+latency.baseline());
+
+        world.runCommand("fill 18 29 18 22 29 22 minecraft:stone");
+        world.runCommand("tp @a[limit=1] 20 30 20");
+        var floorTeleportServer=world.computeOnServer(server->server.getPlayerList().getPlayers().getFirst().position());
+        context.waitTicks(5);
+        var floorTeleportClient=context.computeOnClient(client->client.player.position());
+        if(Math.abs(floorTeleportServer.x-20)>.5 || Math.abs(floorTeleportServer.z-20)>.5
+                || Math.abs(floorTeleportClient.x-20)>.5 || Math.abs(floorTeleportClient.z-20)>.5)
+            throw new AssertionError("S40 static-floor control teleport missed: server="+floorTeleportServer
+                +" client="+floorTeleportClient);
+        world.runOnServer(server->server.getPlayerList().getPlayers().getFirst().setDeltaMovement(Vec3.ZERO));
+        context.runOnClient(client->client.player.setDeltaMovement(Vec3.ZERO));
+        context.waitTicks(15);
+        var floorReady=context.computeOnClient(client->client.player.onGround()
+            && Math.abs(client.player.getY()-30)<.1 && AnatomyMovement.contact(client.player)==null);
+        if(!floorReady)throw new AssertionError("S40 static-floor native input control did not settle on stone");
+        context.runOnClient(client->{S40NativeJumpAudit.reset();client.options.keyJump.setDown(true);});
+        context.waitTicks(1);
+        context.runOnClient(client->client.options.keyJump.setDown(false));
+        var floor=context.computeOnClient(client->S40NativeJumpAudit.get(client.player.getUUID()));
+        if(floor==null || floor.hadMaterialAtEntry()
+                || floor.impulse().distanceToSqr(jump.impulse())>1e-10)
+            throw new AssertionError("S40 static-floor native-input jump has a different own impulse: material="
+                +jump+" floor="+floor);
+        System.out.println("S40_NATIVE_JUMP PASS jump-before-ROOT, both peers and same-input static-floor impulse; material="
+            +jump+" floor="+floor+" server="+jumpServer+" client="+jumpClient);
+    }
+
+    private static long transportSequence(Entity body) {
+        var transport=AnatomyMovement.transport(body);
+        return transport==null?0:transport.sequence();
+    }
+    private record S40Peer(Vec3 position,boolean supported,long transportSequence) {}
+    private record S40Root(S40Peer before,S40Peer after) {}
 
     private static void runRootPhases(ClientGameTestContext context,TestDedicatedServerContext world,Fixture fixture,PlatformTestLatency latency) throws Exception {
         for(int rtt:RTT_MILLIS)runPhase(context,world,fixture,latency,rtt,false);
