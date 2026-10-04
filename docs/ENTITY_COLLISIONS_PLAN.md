@@ -262,8 +262,8 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 
 **Requisitos:** FR-007..013, FR-053..071, FR-089..093; NFR-033..035.
 
-1. [ ] portar boat/raft, off-rail minecart, item y falling-block semantics;
-2. [ ] verificar agua, rail, despawn, hardening, placement y anvil una vez;
+1. [x] portar boat/raft, off-rail minecart, item y falling-block semantics (S35-S38 y S41);
+2. [x] verificar agua, rail, despawn, hardening, placement y anvil una vez (S35-S38 y S41);
 3. [x] portar sneak edge y jump release (S40/G5.7);
 4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
 5. [x] demostrar no regresión de fall/exhaustion/stats/Growth landing (S39/G5.6);
@@ -355,6 +355,23 @@ esperado. La pasada final no requirió cambios productivos. Evidencia exacta en
 `docs/sprints/S40-g5-sneak-jump-boundary.md` y `docs/VALIDATION.md`. G5 sigue
 abierto para minecarts experimentales, equivalencia/no-participación completa
 y retirada del motor legacy; G9 y QA humana permanecen al final de la épica.
+
+**S41/G5.8 cerrado localmente para minecarts experimentales (FR-007/065):**
+un mundo real con `MINECART_IMPROVEMENTS` construye `NewMinecartBehavior` en
+servidor y cliente; el control ordinario conserva `OldMinecartBehavior`. Un
+carro ocupado y otro vacío reciben ROOT una vez bajo autoridad servidor y
+sus réplicas nativas convergen. El holdout independiente con ticks reales del
+mundo demuestra entrada física al raíl, retirada de contacto, salida y una
+relación nueva con secuencia 2 y un carry posterior. El giro ROOT de 45 grados
+coincide con una referencia analítica y conserva el seat; el pickup vanilla
+del soporte como pasajero retira la relación sin crear ciclos. La mutación
+aislada que omite el commit ROOT produce el rojo esperado. Ratio/policy off,
+muro sin deuda, build 466/466, preparada 2/2 y cliente completo están verdes.
+No fue necesario cambiar producción. Evidencia, límites y revisión completa
+sin cambios: `docs/sprints/S41-g5-experimental-minecart-handoff.md` y
+`docs/VALIDATION.md`. Las tareas 1-2 de G5 quedan cerradas por S35-S41;
+equivalencia/no-participación, retirada legacy y single owner siguen abiertas.
+G6-G9 y QA humana permanecen al final de la épica.
 
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 

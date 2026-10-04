@@ -2774,3 +2774,54 @@ Gradle selector; the corrected isolated prepared run above passed. `git diff
 --check` passed. S40/G5.7 is closed locally for FR-054/063; whole G5, G9,
 external-mod gameplay and human pack QA remain open.
 
+S41/G5.8 IMPLEMENTER candidate uses a genuine 26.2 feature-enabled client/
+integrated-server world and real `NewMinecartBehavior` on both peers. The local
+rider remains on a server-authoritative cart. An original prepared cow carries
+that occupied cart through one ROOT translation and one ROOT yaw interval,
+each with one transport-sequence advance; physical rail entry retires contact,
+native experimental interpolation reaches the client, physical rail exit
+permits a fresh cow contact and later ROOT carry. A separate unoccupied cart
+retains native track physics and observer interpolation. Ratio-rejected and
+profile-policy-disabled pairs retain vanilla push, while a real-wall control
+shows no delayed carry debt in the same feature world. The fresh contact's
+later ROOT moves the cart exactly 0.2 blocks and advances transport once. The
+current focal log `../s41-experimental-exact-reacquire.log` has SHA-256
+`E7D52C40E6527E20442D2F97C6788426E9300FAF3366024F4A676EC83414E079`.
+The ordinary feature-off/`OldMinecartBehavior` client/server control passed
+on the final test source in `../s41-ordinary-final-tree.log` (SHA-256
+`89325AAE46536D40E6E93F784CC213DA902E4105B8B8852D10B2F4C00DF18F67`).
+Ordinary `build runGameTest` passed **466/466** in `../s41-ordinary-full.log`
+(SHA-256 `C5222CBBF556A9EEE562E58B0DA09A6851D7F08420B2324C57B24768C2AD992C`);
+the prepared suite passed **2/2** with 23 scenarios in
+`../s41-prepared-full.log` (SHA-256
+`E771FED48F128850240EF09E4D89CFE4E28883690B51CA4C4D3C85E950F9AC23`);
+and the full general client suite passed in `../s41-client-full.log`
+(SHA-256 `DBE8568AA58868C3DE2490BF0DEE82DEB9AFFE61914C0792059644A37A259089`).
+No product source changed for this candidate.
+
+S41/G5.8 final independent ADVERSARY pass: `original-aligned.log` proves four
+exact ROOT translations including vertical carry for occupied and empty real
+experimental carts, settled native replicas and unchanged rider seat;
+`handoff-unblocked.log` uses real world ticks for physical rail entry/exit,
+old-support retirement, fresh contact sequence 2 and one later ROOT. The
+independent 45-degree `rotation-first.log` matches an analytic rigid-rotation
+reference within about 6e-8 blocks, refreshes the native seat once and rejects
+a repeated drain. `empty-native-retirement.log` proves that vanilla pickup of
+the prepared cow as a passenger retires the material relation. An isolated
+overlay omitting only the ROOT commit makes the unchanged root oracle RED
+at its first interval. The final public candidate and ordinary controls were
+also independently rerun GREEN. No production or IMPLEMENTER test was changed
+by the adversary; all 370 production source/resource hashes match S40.
+
+The executed snapshots, private test sources, commands and log digests are
+recorded in `../s41-adversary-private/evidence.json` (SHA-256
+`316A7307BCAF2E6E9CA6CBEC57C92F8D755900658A911258A411EF6BCAFFEFA9`).
+Both coordinate contact sheets were generated from runtime evidence and
+inspected; they do not claim client framebuffer or human gameplay acceptance.
+Invalid zero-lag comparisons while native push continued and initial fixture
+obstacles were classified and corrected without weakening native physics.
+Full source/evidence review ended with no further changes. `git diff --check`
+passed. S41/G5.8 and G5 category/lifecycle tasks 1-2 close locally; broad
+nonparticipant equivalence, legacy retirement, G6-G9 and final human pack QA
+remain open.
+
