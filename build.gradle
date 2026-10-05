@@ -101,6 +101,8 @@ tasks.withType(JavaExec).configureEach {
 		systemProperty 'scalebrews.s39Only', providers.gradleProperty('scalebrewsS39Only').get()
 	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS40Only').isPresent())
 		systemProperty 'scalebrews.s40Only', providers.gradleProperty('scalebrewsS40Only').get()
+	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS43Only').isPresent())
+		systemProperty 'scalebrews.s43Only', providers.gradleProperty('scalebrewsS43Only').get()
 	// Opt-in GameTest evidence.  This is never set for normal gameplay runs.
 	if (name in ['runGameTest', 'runClientGameTest'] && providers.gradleProperty('scalebrewsGameTestReport').isPresent()) {
 		systemProperty 'fabric-api.gametest.report-file', file(providers.gradleProperty('scalebrewsGameTestReport').get()).absolutePath
@@ -120,6 +122,7 @@ tasks.named('processGametestResources') {
 	def tinyMountVisualProof = providers.gradleProperty('scalebrewsTinyMountVisualProof').orElse('false')
 	def s36ClientOnly = providers.gradleProperty('scalebrewsS36ClientOnly').orElse('false')
 	def s41ExperimentalClientOnly = providers.gradleProperty('scalebrewsS41ExperimentalClientOnly').orElse('false')
+	def s43ClientOnly = providers.gradleProperty('scalebrewsS43ClientOnly').orElse('false')
 	inputs.property('anatomyOnly', anatomyOnly)
 	inputs.property('preparedAnatomySuite', preparedAnatomySuite)
 	inputs.property('trackerLifecycleSuite', trackerLifecycleSuite)
@@ -129,7 +132,18 @@ tasks.named('processGametestResources') {
 	inputs.property('tinyMountVisualProof', tinyMountVisualProof)
 	inputs.property('s36ClientOnly', s36ClientOnly)
 	inputs.property('s41ExperimentalClientOnly', s41ExperimentalClientOnly)
+	inputs.property('s43ClientOnly', s43ClientOnly)
 	doLast {
+		if (s43ClientOnly.get().toBoolean()) {
+			def nativePairManifest = new File(destinationDir, 'fabric.mod.json')
+			def nativePairMetadata = new groovy.json.JsonSlurper().parse(nativePairManifest)
+			nativePairMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.S43LocalNativePairProof',
+				'io.github.r3neer.scalebrews.collision.internal.S43ContactIndexClientProof',
+				'io.github.r3neer.scalebrews.test.S43AdversarialSupportRetirementProof',
+				'io.github.r3neer.scalebrews.test.S43AdversarialRetirementLocalityProof',
+				'io.github.r3neer.scalebrews.collision.internal.S43AdversarialReceiptStateProof']
+			nativePairManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(nativePairMetadata))
+		}
 		if (s41ExperimentalClientOnly.get().toBoolean()) {
 			def experimentalManifest = new File(destinationDir, 'fabric.mod.json')
 			def experimentalMetadata = new groovy.json.JsonSlurper().parse(experimentalManifest)

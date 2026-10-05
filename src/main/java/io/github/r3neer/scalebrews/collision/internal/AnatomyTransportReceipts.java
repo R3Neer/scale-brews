@@ -25,6 +25,15 @@ public final class AnatomyTransportReceipts {
     // replacement connection distinct until its explicit disconnect cleanup.
     private static final Map<ServerPlayer,Map<UUID,History>> HISTORIES=Collections.synchronizedMap(
         new com.google.common.collect.MapMaker().weakKeys().<ServerPlayer,Map<UUID,History>>makeMap());
+    /** Derived lookup only. Historical recipients, including dismounted riders, stay indexed. */
+    private static final Map<UUID,Recipients> RECIPIENTS=new com.google.common.collect.MapMaker()
+        .weakValues().<UUID,Recipients>makeMap();
+    private static final class Recipients {
+        final UUID body;
+        final Map<ServerPlayer,Boolean> members=new com.google.common.collect.MapMaker()
+            .weakKeys().<ServerPlayer,Boolean>makeMap();
+        Recipients(UUID body){this.body=body;}
+    }
     private static long recorded,duplicates,overflows,invalidations;
     private AnatomyTransportReceipts() {}
 
@@ -48,6 +57,9 @@ public final class AnatomyTransportReceipts {
     }
     public record Metrics(long recorded,long duplicates,long overflows,long invalidations,long entries) {}
     private static final class History {
+        // Every authoritative history keeps the shared weak reverse value alive. The reverse
+        // lookup itself retains neither histories nor recipients nor an ever-growing UUID set.
+        final Recipients recipients;
         final ArrayDeque<Receipt> entries=new ArrayDeque<>();
         /** Server causal endpoint that produced each canonical runtime transport sequence. */
         final Map<Long,Long> supportFrameSerials=new HashMap<>();
@@ -57,6 +69,7 @@ public final class AnatomyTransportReceipts {
         final ArrayDeque<Long> saturatedTicks=new ArrayDeque<>();
         long countTick=Long.MIN_VALUE;
         int count;
+        History(Recipients recipients){this.recipients=recipients;}
     }
 
     /** Called only after P1 has moved the root and refreshed every vanilla baseline. */
@@ -93,7 +106,13 @@ public final class AnatomyTransportReceipts {
     }
 
     private static void append(ServerPlayer recipient,Receipt receipt,long supportFrameSerial) {
-        var history=HISTORIES.computeIfAbsent(recipient,ignored->new HashMap<>()).computeIfAbsent(receipt.body(),ignored->new History());
+        var roots=HISTORIES.computeIfAbsent(recipient,ignored->new HashMap<>());
+        var history=roots.get(receipt.body());
+        if(history==null) {
+            var recipients=RECIPIENTS.computeIfAbsent(receipt.body(),Recipients::new);
+            history=new History(recipients);roots.put(receipt.body(),history);
+            recipients.members.put(recipient,Boolean.TRUE);
+        }
         prune(history,receipt.tick());
         if(history.countTick!=receipt.tick()) {history.countTick=receipt.tick();history.count=0;}
         for(var entry:history.entries)if(entry.body().equals(receipt.body())
@@ -126,8 +145,14 @@ public final class AnatomyTransportReceipts {
         var history=roots.get(body);if(history==null)return null;
         prune(history,tick);
         if(!empty(history))return history;
-        roots.remove(body);if(roots.isEmpty())HISTORIES.remove(recipient);
+        roots.remove(body);unindex(recipient,history);
+        if(roots.isEmpty())HISTORIES.remove(recipient);
         return null;
+    }
+    private static void unindex(ServerPlayer recipient,History history) {
+        var recipients=history.recipients;
+        recipients.members.remove(recipient);
+        if(recipients.members.isEmpty())RECIPIENTS.remove(recipients.body,recipients);
     }
     /** Immutable diagnostic snapshot; authority stays in claim(...), never in callers of this view. */
     public static synchronized List<Receipt> history(ServerPlayer recipient,UUID body) {
@@ -198,20 +223,23 @@ public final class AnatomyTransportReceipts {
 
     public static synchronized void invalidate(Entity body) {
         if(body==null || body.level().isClientSide())return;
-        var emptyRecipients=new ArrayList<ServerPlayer>();
-        for(var entry:HISTORIES.entrySet()) {
-            var roots=entry.getValue();roots.remove(body.getUUID());
-            if(roots.isEmpty())emptyRecipients.add(entry.getKey());
+        var recipients=RECIPIENTS.remove(body.getUUID());
+        if(recipients!=null)for(var recipient:List.copyOf(recipients.members.keySet())) {
+            var roots=HISTORIES.get(recipient);if(roots==null)continue;
+            roots.remove(body.getUUID());
+            if(roots.isEmpty())HISTORIES.remove(recipient);
         }
-        for(var recipient:emptyRecipients)HISTORIES.remove(recipient);
         invalidations++;
     }
     public static synchronized void disconnect(ServerPlayer player) {
-        if(player!=null)HISTORIES.remove(player);
+        if(player==null)return;
+        var roots=HISTORIES.remove(player);
+        if(roots!=null)for(var history:roots.values())unindex(player,history);
     }
     public static synchronized void clear(MinecraftServer server) {
         if(server==null)return;
-        HISTORIES.keySet().removeIf(player->player.level().getServer()==server);
+        for(var player:new ArrayList<>(HISTORIES.keySet()))
+            if(player.level().getServer()==server)disconnect(player);
     }
     public static synchronized Metrics metrics() {
         long entries=0;
@@ -221,7 +249,8 @@ public final class AnatomyTransportReceipts {
             var bodies=roots.entrySet().iterator();
             while(bodies.hasNext()) {
                 var history=bodies.next().getValue();prune(history,tick);
-                if(empty(history))bodies.remove();else entries+=history.entries.size();
+                if(empty(history)) {bodies.remove();unindex(recipient.getKey(),history);}
+                else entries+=history.entries.size();
             }
             if(roots.isEmpty())emptyRecipients.add(recipient.getKey());
         }

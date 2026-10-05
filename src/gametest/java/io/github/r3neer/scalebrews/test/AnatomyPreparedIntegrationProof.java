@@ -38,9 +38,13 @@ public final class AnatomyPreparedIntegrationProof {
             Optional.of(new AnatomyDefinition(Identifier.parse(cow.source()),Identifier.parse("scalebrews:static"),AnatomyFilter.DEFAULT)));
         var playerProfile=new PlatformDefinition(Identifier.parse("minecraft:player"),true,.6,Optional.empty(),List.of(),
             Optional.of(new AnatomyDefinition(Identifier.parse(player.source()),Identifier.parse("scalebrews:player_walking"),AnatomyFilter.DEFAULT)));
-        var session=AnatomyPreparedSession.start(h.getLevel().getServer(),
-                Map.of(cow.source(),cow,player.source(),player),
-                Map.of("scalebrews:prepared_proof_cow",cowProfile,"scalebrews:prepared_proof_player",playerProfile));
+        var models=Map.of(cow.source(),cow,player.source(),player);
+        var profiles=Map.of("scalebrews:prepared_proof_cow",cowProfile,"scalebrews:prepared_proof_player",playerProfile);
+        boolean runS43=Boolean.getBoolean("scalebrews.s43Only") || java.util.stream.Stream.of("s33Only","s35Only",
+                "s36Only","s37Only","s38Only","s39Only","s40Only")
+            .noneMatch(selector->Boolean.getBoolean("scalebrews."+selector));
+        var nativeReference=runS43?S43PreparedNativePairProof.captureNative(h,cow):null;
+        var session=AnatomyPreparedSession.start(h.getLevel().getServer(),models,profiles);
         try {
             var probe=h.spawn(net.minecraft.world.entity.EntityTypes.COW,0,20,0);
             try {
@@ -48,13 +52,15 @@ public final class AnatomyPreparedIntegrationProof {
                     "Prepared catalog makes the shared mode ready for a body without requiring that body to be a support binding");
             } finally {probe.discard();}
             var scenarios=new java.util.ArrayList<Scenario>();
-            if(Boolean.getBoolean("scalebrews.s35Only"))scenarios.add(()->S35PreparedItemLifecycleProof.run(h));
+            if(Boolean.getBoolean("scalebrews.s43Only"))scenarios.add(()->S43PreparedNativePairProof.run(h,nativeReference,models,profiles));
+            else if(Boolean.getBoolean("scalebrews.s35Only"))scenarios.add(()->S35PreparedItemLifecycleProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s36Only"))scenarios.add(()->S36PreparedBoatProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s37Only"))scenarios.add(()->S37PreparedMinecartProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s38Only"))scenarios.add(()->S38PreparedFallingBlockProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s39Only"))scenarios.add(()->S39PreparedLandingProof.run(h));
             else if(Boolean.getBoolean("scalebrews.s40Only"))scenarios.add(()->S40PreparedSneakJumpProof.run(h));
             else {
+                if(runS43)scenarios.add(()->S43PreparedNativePairProof.run(h,nativeReference,models,profiles));
                 if(!Boolean.getBoolean("scalebrews.s33Skip"))scenarios.add(()->S33PreparedPlacementProof.run(h));
                 if(!Boolean.getBoolean("scalebrews.s33Only")) {
                     scenarios.add(()->S35PreparedItemLifecycleProof.run(h));

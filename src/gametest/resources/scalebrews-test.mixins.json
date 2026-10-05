@@ -25,7 +25,8 @@
     "TestTrackingAuthorityMixin",
     "TestVehicleMoveListenerAccess",
     "TestVehicleMoveTraceMixin",
-    "TestConnectedServerPlayerMixin"
+    "TestConnectedServerPlayerMixin",
+    "TestS43ReceiptVisits"
   ],
   "client": [
     "TestPackStartupTimeoutMixin",

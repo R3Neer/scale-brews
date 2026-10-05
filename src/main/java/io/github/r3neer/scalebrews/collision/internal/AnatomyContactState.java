@@ -40,6 +40,8 @@ final class AnatomyContactState {
     }
 
     private static final Map<Entity, ContactEntry> CONTACTS = entityMap();
+    /** Derived membership only; CONTACTS remains the sole retained contact truth. */
+    private static final Map<LivingEntity, Map<Entity, Boolean>> SUPPORTED_BODIES = entityMap();
     private static final Map<Entity, Long> CONTACT_SEQUENCES = entityMap();
     private static final Map<Entity, Anchor> ANCHORS = entityMap();
     private static final Map<Entity, SurfaceContact> SURFACES = entityMap();
@@ -61,13 +63,18 @@ final class AnatomyContactState {
         long sequence = same ? old.sequence() : Math.incrementExact(CONTACT_SEQUENCES.getOrDefault(body, 0L));
         if (!same) CONTACT_SEQUENCES.put(body, sequence);
         var contact = new ContactEntry(support, piece, revision, normal, sequence);
+        if(old==null || old.support()!=support) {
+            if(old!=null)unindex(body,old.support());
+            SUPPORTED_BODIES.computeIfAbsent(support,ignored->entityMap()).put(body,Boolean.TRUE);
+        }
         CONTACTS.put(body, contact);
         return contact;
     }
 
     /** Clears the retained material relation, but deliberately preserves its sequence watermark. */
     static synchronized void clear(Entity body) {
-        CONTACTS.remove(body);
+        var old=CONTACTS.remove(body);
+        if(old!=null)unindex(body,old.support());
         ANCHORS.remove(body);
         SURFACES.remove(body);
     }
@@ -95,9 +102,15 @@ final class AnatomyContactState {
     }
 
     static synchronized List<Entity> bodiesSupportedBy(LivingEntity support) {
-        var bodies = new ArrayList<Entity>();
-        for (var entry : CONTACTS.entrySet()) if (entry.getValue().support() == support) bodies.add(entry.getKey());
-        return List.copyOf(bodies);
+        var bodies=SUPPORTED_BODIES.get(support);
+        return bodies==null?List.of():List.copyOf(bodies.keySet());
+    }
+
+    private static void unindex(Entity body,LivingEntity support) {
+        var bodies=SUPPORTED_BODIES.get(support);
+        if(bodies==null)return;
+        bodies.remove(body);
+        if(bodies.isEmpty())SUPPORTED_BODIES.remove(support);
     }
 
     static synchronized Long suspensionGeneration(Entity body, LivingEntity support) {
@@ -124,9 +137,7 @@ final class AnatomyContactState {
             var body = entry.getKey();
             var support = entry.getValue().support();
             if (body.level() != level && support.level() != level) continue;
-            CONTACTS.remove(body);
-            ANCHORS.remove(body);
-            SURFACES.remove(body);
+            clear(body);
         }
         CONTACT_SEQUENCES.keySet().removeIf(entity -> entity.level() == level);
         ANCHORS.keySet().removeIf(entity -> entity.level() == level);

@@ -267,7 +267,7 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 3. [x] portar sneak edge y jump release (S40/G5.7);
 4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
 5. [x] demostrar no regresión de fall/exhaustion/stats/Growth landing (S39/G5.6);
-6. [ ] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez;
+6. [x] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez (S43);
 7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
 8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
 9. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción.
@@ -389,6 +389,21 @@ local de integración identifica `Sprint: S42`. Las tareas 6-9 de G5 y G6-G9
 siguen abiertas; no se adelanta la QA humana al final de un sprint.
 
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
+
+**S43/G5 task6 cerrado localmente (FR-011/053/093):** siete categorías reales
+preservan movimiento, flags e impulso nativos al rechazar ratio/policy, sin pared,
+ray target ni carry material. Las parejas elegibles adquieren contacto y ROOT
+real y conservan push no nulo en ambos sentidos una vez. El jugador local real
+y servidor convergen; pathfinding, combate e interacción de no participantes
+conservan su control nativo. Dos RED de escala y uno de localidad se repararon
+sin otro owner: índices derivados débiles permiten retirar sólo dependientes y
+destinatarios históricos propios. Ambos fundamentos fueron recertificados;
+ocho holdouts, mutaciones sensibles, proyección espacial, build483/483,
+cliente32, preparada24/2, RTT player/boat0/100/200 y control experimental verdes.
+Ambas revisiones finales requieren cero cambios. Evidencia y límites en
+`docs/sprints/S43-g5-native-pair-equivalence.md` y `docs/VALIDATION.md`.
+El cierre tiene commit local propio `Sprint: S43`; G5 tareas7–9 y G6–G9 siguen
+abiertas. Las necesidades humanas continúan al final de la épica en G9.
 
 ### G6 — cobertura completa de Minecraft general
 

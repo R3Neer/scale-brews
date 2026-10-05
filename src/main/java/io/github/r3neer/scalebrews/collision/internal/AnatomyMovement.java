@@ -353,6 +353,18 @@ public final class AnatomyMovement {
         AnatomyTransportReceipts.invalidate(body);
         if(body!=null && !body.level().isClientSide())AnatomyObserverCarries.invalidate(body);
     }
+    /** Dimension changes affect this body and this support's retained dependents only. */
+    public static synchronized void revalidateDimensions(Entity entity) {
+        revalidateBodyContact(entity);
+        if(entity instanceof LivingEntity support)
+            for(var body:AnatomyContactState.bodiesSupportedBy(support))revalidateBodyContact(body);
+    }
+    /** Local state validation only; no geometry sampling or passive movement. */
+    private static void revalidateBodyContact(Entity body) {
+        if(body==null)return;
+        var contact=AnatomyContactState.contact(body);
+        if(contact!=null && !Platforms.eligible(body,contact.support()))clear(body);
+    }
     public static synchronized SurfaceContact surface(Entity body){return AnatomyContactState.surface(body);}
     /** Keep a controlled boat's server packet on its already accepted material face.
      * Vanilla may accept the client's small gravity step through absSnapTo even after its
@@ -891,11 +903,12 @@ public final class AnatomyMovement {
         if(!predictsBody(body))return;
         var c=contact(body);var anchor=AnatomyContactState.anchor(body);
         if(c==null || anchor==null)return;
-        // Server runtime material intervals own carry. Keeping this endpoint path active in
-        // parallel would double-apply ROOT/JOINT work before the causal dispatcher drains it.
-        if(!body.level().isClientSide() && AnatomyRuntime.ownsSupportBinding(c.support()))return;
         if(!visiting.add(body) || !Platforms.eligible(body,c.support)
             || !gravity(body).equals(anchor.bodyGravity()) || !gravity(c.support).equals(anchor.supportGravity())){clear(body);return;}
+        // Server runtime material intervals own carry. Keeping this endpoint path active in
+        // parallel would double-apply ROOT/JOINT work before the causal dispatcher drains it.
+        // Delegation owns movement, but cannot retain an already-invalid relation.
+        if(!body.level().isClientSide() && AnatomyRuntime.ownsSupportBinding(c.support()))return;
         try {
             carry(c.support,visiting);var root=observeRoot(c.support);
             var provider=AnatomyBindingState.provider(c.support);

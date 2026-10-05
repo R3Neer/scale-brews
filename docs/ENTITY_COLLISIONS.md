@@ -199,6 +199,24 @@ La decisión soporte-cuerpo es **relacional y direccional**. Para cada posible c
 
 Si la entidad objetivo es demasiado pequeña para servir como soporte material al actor, o la policy/estado la excluyen, **no existe pared anatómica** para esa pareja. El actor la atraviesa/empieza a desplazar exactamente como lo permitiría la física vanilla entre entidades; sólo permanecen sus colisiones y pushes vanilla normales.
 
+Un cambio de dimensiones físicas revalida el contacto retenido por ese cuerpo
+y los dependientes de ese soporte, y retira las relaciones cuyo ratio/estado
+actual ya no permite contacto. `AnatomyContactState` conserva la única verdad
+de contacto; su índice derivado de miembros usa identidad débil de ambos extremos
+y se mantiene al reemplazar, limpiar o retirar el nivel. La consulta de dependientes
+es local al soporte, sin recorrer contactos ajenos. Esta validación no mueve al
+cuerpo ni prepara geometría. La ruta de carry comprueba
+elegibilidad y gravedad antes de delegar el movimiento al runtime material del
+servidor: delegar transporte no permite conservar un contacto inválido.
+
+El retiro de recibos consulta sólo los destinatarios históricos de ese cuerpo,
+incluidos pasajeros que ya desmontaron. Los historiales autoritativos siguen en
+`AnatomyTransportReceipts`; el índice inverso usa UUID por valor para el cuerpo
+e identidad débil para los destinatarios. Append, expiración, disconnect y clear
+mantienen esa pertenencia. El bucket inverso usa valor débil y cada historial
+autoritativo lo conserva mientras exista, sin retener entidades ni acumular UUIDs
+retirados. Limpiar un contacto sin recibos no recorre historiales de otros jugadores.
+
 Si la entidad sí califica como moving platform para el actor, Scale añade la geometría material necesaria para apoyar, caminar, deslizar, chocar con partes y recibir carry. Eso no concede ownership del push vanilla: la entidad soporte sigue empujando al actor como lo haría sin el subsistema. La integración debe garantizar que el push ocurra una vez aunque el bloqueo AABB global sea sustituido por anatomía. El mismo principio evita dos errores opuestos: una vaca pequeña convertida en muro por tener `ModelGeometry`, y una vaca grande convertida en suelo inerte que deja de empujar al jugador.
 
 ### 4.12 Clinging Reoriented: landing surfaces y Reorientation

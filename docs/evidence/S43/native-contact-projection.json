@@ -1,0 +1,37 @@
+{
+  "material": [
+    -0.3999999999999999,
+    16.008000373840332,
+    8.0,
+    0.10000000000000009,
+    17.508000373840332,
+    8.5
+  ],
+  "initialBody": [
+    -0.45000001192092887,
+    17.508000373840332,
+    7.949999988079071,
+    0.15000001192092904,
+    19.308000326156616,
+    8.550000011920929
+  ],
+  "heldBody": [
+    0.09295182022127957,
+    17.508000373840332,
+    7.949999988079071,
+    0.6929518440631375,
+    19.308000326156616,
+    8.550000011920929
+  ],
+  "nativeInput": "yaw=-90; shift+forward=35ticks; release=2ticks",
+  "tickReference": "same static prepared support before jump",
+  "referenceLog": "s43-adversary-local-first.log",
+  "currentLog": "s43-adversary-final-current.log",
+  "referenceAgreementMaxError": 1e-10,
+  "projection": "XZ top and XY side, immutable actual AABB dataset",
+  "supportState": "Cow scale8, no AI, no gravity, yaw/bodyYaw/headYaw0; prepared static original cow model; friction .25",
+  "input": "LocalPlayer yaw-90, Shift+forward35ticks, release2ticks; static support before ROOT .25",
+  "capturePhase": "initial after acquisition +8 ticks; held after native input release +2 ticks",
+  "rendererScreenshot": false,
+  "reproduction": "Use stored immutable AABBs as drawing inputs. Geometry projection has no RNG, lighting, weather or world-seed dependency. Native Minecraft world seed was not captured; no full-world visual claim."
+}

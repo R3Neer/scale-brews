@@ -44,6 +44,7 @@ public abstract class PlatformEntityMixin implements PlatformBody {
     }
     @Inject(method="refreshDimensions",at=@At("RETURN"))
     private void scalebrews$spatialDimensions(CallbackInfo ci) {
+        AnatomyMovement.revalidateDimensions((Entity)(Object)this);
         if((Object)this instanceof LivingEntity living) {
             // Search-margin metadata changes only when dimensions/scale change; update this support
             // locally instead of rescanning every entity at END_LEVEL_TICK.

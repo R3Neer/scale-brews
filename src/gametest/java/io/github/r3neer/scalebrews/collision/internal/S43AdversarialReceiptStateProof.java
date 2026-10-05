@@ -1,0 +1,34 @@
+package io.github.r3neer.scalebrews.collision.internal;
+import net.fabricmc.fabric.api.client.gametest.v1.*;
+import net.fabricmc.fabric.api.client.gametest.v1.context.*;
+import net.minecraft.server.level.*;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.animal.cow.Cow;
+import net.minecraft.world.phys.*;
+import com.mojang.authlib.GameProfile;
+import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
+import io.github.r3neer.scalebrews.collision.api.GravityFrame;
+import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
+import org.joml.Matrix4f;
+import java.util.*;
+public final class S43AdversarialReceiptStateProof implements FabricClientGameTest {
+ static void check(boolean ok,String m){if(!ok)throw new AssertionError(m);}
+ static ServerPlayer player(ServerLevel l,UUID identity){return new ServerPlayer(l.getServer(),l,new GameProfile(identity,"receipt-index"),ClientInformation.createDefault());}
+ static Cow body(ServerLevel l){var e=EntityTypes.COW.create(l,EntitySpawnReason.COMMAND);e.setPos(2,30,2);return e;}
+ static AnatomyTransportReceipts.Receipt receipt(ServerPlayer recipient,Entity body,Cow support,long seq){var server=body.level().getServer();long tick=body.level().getGameTime();var delta=new Vec3(.125,0,0);var before=body.position().subtract(delta);var material=ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(support.position());return new AnatomyTransportReceipts.Receipt(AnatomyNetworking.epoch(server),AnatomyNetworking.revision(server),body.level().dimension().identifier(),body.getId(),new UUID(body.getUUID().getMostSignificantBits(),body.getUUID().getLeastSignificantBits()),1,support.getUUID(),"piece",3,new Vec3(.5,1,.5),new Vec3(0,1,0),tick,1,1,seq,tick,before,body.position(),new RootFrame(1,tick,support.position(),0,1,GravityFrame.VANILLA),material,material.move(delta),delta);}
+ // Component-level stored-fact seam. Actual live physical origin is tested separately.
+ static void append(ServerPlayer p,AnatomyTransportReceipts.Receipt r,long serial){try{var method=AnatomyTransportReceipts.class.getDeclaredMethod("append",ServerPlayer.class,AnatomyTransportReceipts.Receipt.class,long.class);method.setAccessible(true);method.invoke(null,p,r,serial);}catch(ReflectiveOperationException e){throw new AssertionError("Append seam",e);}}
+ static Map<?,?> reverse(){try{var f=AnatomyTransportReceipts.class.getDeclaredField("RECIPIENTS");f.setAccessible(true);return (Map<?,?>)f.get(null);}catch(ReflectiveOperationException e){throw new AssertionError("Reverse diagnostic",e);}}
+ static int members(UUID body){var bucket=reverse().get(body);if(bucket==null)return 0;try{var f=bucket.getClass().getDeclaredField("members");f.setAccessible(true);return ((Map<?,?>)f.get(bucket)).size();}catch(ReflectiveOperationException e){throw new AssertionError(e);}}
+ static AnatomyTransportReceipts.Receipt claim(ServerPlayer p,Entity b,long seq){AnatomyTransportReceipts.Receipt[] r={null};S24TrackingAuthorityTestSeam.run(p,b,1,()->r[0]=AnatomyTransportReceipts.claim(p,b,seq));return r[0];}
+ public void runTest(ClientGameTestContext c){var world=c.worldBuilder().create();var server=world.getServer();var retained=new ArrayList<Object>();UUID[] keys=new UUID[3];ServerPlayer[] ps=new ServerPlayer[2];Cow[] bs=new Cow[3];
+  try{server.runOnServer(s->{var l=s.overworld();AnatomyTransportReceipts.clear(s);var p=player(l,UUID.randomUUID());var replacement=player(l,p.getUUID());replacement.setId(p.getId());ps[0]=p;ps[1]=replacement;retained.add(p);retained.add(replacement);var support=body(l);var a=body(l);var b=body(l);var saturated=body(l);bs[0]=a;bs[1]=b;bs[2]=saturated;for(var e:bs)retained.add(e);retained.add(support);for(int i=0;i<3;i++)keys[i]=bs[i].getUUID();
+   var first=receipt(p,a,support,1);append(p,first,101);append(p,first,999);check(AnatomyTransportReceipts.history(p,a.getUUID()).size()==1,"Duplicate append created history entry");append(replacement,receipt(replacement,a,support,1),101);append(p,receipt(p,b,support,1),102);check(members(a.getUUID())==2&&members(b.getUUID())==1,"Equal UUID reverse membership missing");check(claim(p,a,1)==first&&claim(p,a,1)==null,"Exactly-once claim changed");check(claim(replacement,a,1)!=null,"Replacement identity borrowed consumed claim");
+   var equalBody=body(l);equalBody.setUUID(new UUID(a.getUUID().getMostSignificantBits(),a.getUUID().getLeastSignificantBits()));check(a.getPassengers().isEmpty(),"History fixture must have no current riders");AnatomyTransportReceipts.invalidate(equalBody);check(AnatomyTransportReceipts.history(p,a.getUUID()).isEmpty()&&AnatomyTransportReceipts.history(replacement,a.getUUID()).isEmpty(),"Historical recipients survived equal-UUID invalidation");check(AnatomyTransportReceipts.history(p,b.getUUID()).size()==1&&members(b.getUUID())==1,"Invalidation removed unrelated root");check(!reverse().containsKey(a.getUUID()),"Invalidation retained reverse root bucket");
+   append(replacement,receipt(replacement,b,support,1),102);AnatomyTransportReceipts.disconnect(p);check(AnatomyTransportReceipts.history(p,b.getUUID()).isEmpty()&&AnatomyTransportReceipts.history(replacement,b.getUUID()).size()==1&&members(b.getUUID())==1,"Disconnect crossed recipient identity or retained membership");
+   for(int i=1;i<=17;i++)append(replacement,receipt(replacement,saturated,support,i),200+i);check(AnatomyTransportReceipts.history(replacement,saturated.getUUID()).size()==16&&AnatomyTransportReceipts.saturated(replacement,saturated.getUUID(),l.getGameTime()),"Saturation fence changed");check(claim(replacement,saturated,1)==null&&members(saturated.getUUID())==1,"Saturated history became claimable or unindexed");
+  });c.waitTicks(AnatomyTransportReceipts.HISTORY_TICKS+1);
+  server.runOnServer(s->{check(AnatomyTransportReceipts.history(ps[1],keys[2]).isEmpty()&&!reverse().containsKey(keys[2]),"Lazy TTL left reverse membership");check(claim(ps[1],bs[2],1)==null,"Expired receipt revived");var support=body(s.overworld());var fresh=body(s.overworld());retained.add(fresh);append(ps[1],receipt(ps[1],fresh,support,1),301);var metrics=AnatomyTransportReceipts.metrics();check(metrics.entries()==1&&!reverse().containsKey(keys[1])&&members(fresh.getUUID())==1,"Diagnostic pruning dropped fresh history or retained expired bucket");AnatomyTransportReceipts.clear(s);check(reverse().isEmpty()&&AnatomyTransportReceipts.history(ps[1],fresh.getUUID()).isEmpty(),"Server teardown retained receipts/reverse buckets");check(retained.size()>=7,"Fixture lost strong references");System.out.println("S43_RECEIPT_FOUNDATION_PASS equalUuid=true historicalRecipients=true replacementIdentity=true duplicate=true claim=true saturation=true ttl=true diagnosticPruning=true disconnect=true serverClear=true");});
+  }finally{server.runOnServer(AnatomyTransportReceipts::clear);world.close();}
+ }
+}

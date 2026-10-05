@@ -2994,3 +2994,137 @@ product or fixture edits. Main still resolves to the pinned merge parent.
 S42 closes through its own local `Sprint: S42` merge commit. Broad G5 equivalence,
 legacy retirement and G6-G9 remain open; human QA stays at the end of the epic.
 
+S43 verification in progress (2026-10-05, IMPLEMENTER): the converged native
+pair differential exposed FR-011 ghost contact after an actual effective-scale
+change. At ratio `1.777777974007075`, ROOT drain correctly applied no movement,
+but kept the old material relation (`../s43-prepared-sixth.log`, SHA-256
+`bba23a9fc82224a4ca335ba4f4ecd5bea985b5054215c69f3e6307ad8c121e1b`).
+ADVERSARY independently reproduced the defect before the repair. The I7 repair
+locally retires ineligible contacts on actual dimensions changes and validates
+state/gravity before server carry delegation; it adds no physics owner or model
+preparation. The unchanged scope remains in
+`docs/sprints/S43-g5-native-pair-equivalence.md`.
+
+The repaired prepared focal passes 2/2 required tests and 28 actual seven-category
+ratio/policy comparisons, with 14 nonzero push controls, global native
+collision/pathfinding/combat/milking controls, rejected-pair no-carry and genuine
+accepted ROOT carry, effective-scale retirement and support-baby release:
+`../s43-prepared-repaired.log`, BUILD SUCCESSFUL 1m42, SHA-256
+`501d1ea5d334b84ed85b9200daa678b569d6024d7516580ec5777223df39c1d5`.
+Full prepared composition also passes all 24 scenarios (indices0–23), 2/2 tests
+and clean exit 1m13: `../s43-prepared-full.log`, SHA-256
+`6694f077120d641baea285ae93ec205fdf3f5552af862f4fafb1eeb7dbc81171`.
+
+The actual local-client/connected-server focal passes after repair and cleanly
+exits in 2m53: `../s43-local-repaired.log`, SHA-256
+`38a90687e1bc3072057bdc450a47e1b7c3f5e139bd2ef40148d800666fadf656`.
+Rejected local Entity.move equals the native control in displacement, flags and
+velocity. Both actual push callers and both bodies retain nonzero native impulse
+during real accepted contact/carry. Server and predicted local actor receive
+one `.25` ROOT; the local transport is observed, repeated drain is inert, and
+actual client/server positions agree after native support interpolation. The
+clear-face control avoids native automatic overlap pushes without disabling
+native push. The proof is in the default client manifest; full default client,
+ordinary build/server, adversarial holdouts/mutations/snapshots/cost and final
+zero-change review remain pending. This evidence does not yet close S43 or G5.
+
+S43 I8 candidate (IMPLEMENTER): independent support-scale RED2 reopened final
+acceptance after the I7 greens. The derived weak-identity membership index now
+revalidates only the changed support's retained dependents; CONTACTS remains
+the sole contact truth. This modified foundation requires recertification within
+S43 before another sprint may rely on it. Actual I8 executions:
+
+- Prepared focal: 28 native/material comparisons, 14 nonzero push controls,
+  2/2 tests, clean exit 2m07; `../s43-prepared-i8-focal.log`, SHA-256
+  `52a768127053f509693d29d5891ab7764a0524ba42ab3672ef4bcf6e9f6f8f50`.
+- Full original prepared composition: 24 scenarios, 2/2 tests, clean exit
+  1m01; `../s43-prepared-i8-full.log`, SHA-256
+  `e1a9460e9f3503522f7a9d03727be8efc560f2d55af4fa6ef95df53cacd1a938`.
+- Actual local-player/client-server differential and isolated index bookkeeping:
+  both pass, clean exit 2m50; `../s43-local-i8-focal.log`, SHA-256
+  `06311dfd962c24a400302f7a5aefa4f011e84cfff72112a52459985ad92e9390`.
+- Ordinary build/server: 483/483 tests, clean exit 1m53;
+  `../s43-server-i8-full.log`, SHA-256
+  `e4201bc6f542ad33865c863398a7e7619555b4e468dcb71c926654e2d153fb35`.
+
+The deprecation guard passes the uncapped focal compilation (273 intentional
+test-only adapter diagnostics) and the ordinary incremental build (zero).
+These greens do not certify the still-pending independent final review or
+default client composition. No S43/G5 closure is claimed yet.
+
+S43 I9 candidate: independent RED3 shows that downstream receipt invalidation
+visits 128 unrelated recipient histories while retiring a Cow with no receipts
+(`../s43-adversary-receipt-cost-first.log`, failed1m08). I9 adds a derived
+historical-recipient lookup to the existing receipt owner. The first candidate
+`dd878050` passed functional/regression probes but its WeakHashMap could drain
+an unbounded stale-reference queue during a hot access. IMPLEMENTER static review
+replaced it within the same converged contract with MapMaker weak values;
+authoritative History owns the corresponding bucket, preserving UUID value
+equality and weak recipient identity with bounded weak-reference maintenance.
+No packet/claim/TTL/saturation or movement contract changed. Final receipt source
+SHA-256 is `f98300e23cb6b35e5b29578fd24989446f3f49b61079e486b0eaf64d2572f7d1`.
+
+Executed final-candidate IMPLEMENTER evidence:
+
+- Build/server 483/483, clean exit3m01; `../s43-server-i9b-full.log`, SHA-256
+  `fc665d17b765d33958e01bf56e5c51cade1dcad5fd2ce799bd2d02fc9637db61`.
+- Prepared composition 24 distinct-tick scenarios, 2/2 tests, 28 pair comparisons
+  and14 nonzero native push controls, clean exit1m19;
+  `../s43-prepared-i9b-full.log`, SHA-256
+  `335c137daeaa9c7bc121041d85b20713a9144f7a0680e87c87a4608f8966801b`.
+- Real dedicated player/boat RTT0/100/200ms receipts/references and reconciliation,
+  zero vanilla corrections and client/server convergence, clean exit4m04;
+  `../s43-receipt-i9b-reconciliation.log`, SHA-256
+  `59ef88504fcc97ffed5b3cab31665958c91774b5882d4592b5f3ba8703f0e3a1`.
+
+The final build's deprecation audit passes 21 intentional test-only adapter
+diagnostics. Independent foundation/mutation/snapshot acceptance, final default
+client32, experimental-cart recheck and closure reviews remain pending.
+
+Final IMPLEMENTER execution subsequently completed on the same four production
+hashes: full default client32, clean exit4m39 (`../s43-client-i9b-full.log`,
+SHA-256 `d82d3fd51c1a074c9c2f58f07c795d7e7b6cfcc754f3d23b807a60192f850739`),
+including both public scale-retirement cases and the receipt-state foundation,
+and real experimental NewMinecartBehavior, clean exit59s
+(`../s43-experimental-i9b.log`, SHA-256
+`ff3bf4e0c69ba08097a7567c0a84d778d2c3ed963a4e37db7015821052d281a4`).
+The default manifest was archived as executed before selecting the experimental
+proof, then restored in generated resources without source changes.
+`../s43-final-source-review.json` SHA-256
+`9103eef2c084887c2ef3274b2ded46c9181825beab0855b376ec8440baff9898` verifies
+exactly four production changes from S42 and all other gameplay/client paths
+unchanged. `../s43-final-evidence.json` SHA-256
+`9ea22db764377246e1021a0b4d0fc966461486e9b41b989ba1b0ba67c9baf0ee`
+records the exact logs,24 native distinct-tick scenarios, default32 manifest and
+production JAR. Beta9 JAR SHA-256
+`883cba595594adffe87be37365ec763bb0b8d1e23bb1ce1dee005831cfae0f8d`
+has correct metadata and no test-class/nested-class leak across all367 GameTest
+source classes. IMPLEMENTER's complete final pass needs zero production changes;
+independent final acceptance is still pending. This is not whole G5/G9 closure.
+
+S43 final independent acceptance: `../s43-adversary-final-current.log` passes
+all eight independent holdouts on the same final source, clean exit2m06,
+SHA-256 `5e86d7f27c81178411971e173b85319505b8196a40545f70285314adc45f2cda`.
+It includes real native push/no-wall, body/support scale retirement, actual local
+input/carry, 1,000 warm revalidations with zero added geometry/joint evaluations,
+2,048 unrelated contacts with zero global query visits, receipt lifecycle and
+the unchanged128-unrelated-recipient RED. The three reusable public regressions
+also pass together, clean exit1m15, `../s43-adversary-public-final-first.log`,
+SHA-256 `e53b88f14ecd9625d9c903c86f34ba7befe00a866c27b5b41dcbb9e81c5422c5`.
+The final external membership mutation compiles and fails at the expected
+disconnect assertion, `../s43-adversary-receipt-mutant-final.log`, failed2m,
+SHA-256 `047b008c35c3f94f3cb91f6abb7af489fbb1d81ceee8f2b8f052e7f1ea3ce09b`.
+Earlier eligibility, push and contact-index mutations are recorded in the sprint.
+
+Both derived-membership foundations are independently TRUSTED for the extended
+scope. The actual native-input AABB top/side projection and reproducible metadata
+are `docs/evidence/S43/native-contact-projection.png` (SHA-256
+`e0cc57ee915b68a82687dd1ee8edbe5b1964dd60dd9d6127ccb5631dd246af30`) and
+JSON (SHA-256 `93f63d775d9e8a81ed87006aa388647d74d3f400b6d3b09cadde7867e6073ff7`).
+The final sample agrees with its native-input baseline within1e-10; IMPLEMENTER
+viewed the projection. This supplements spatial assertions and is not a renderer
+screenshot, global TPS/heap/GC soak or full-pack visual acceptance. Both complete
+reviews require zero additional source changes. S43/G5 task6 closes locally
+through its own `Sprint: S43` commit; legacy retirement, later gates and final
+human acceptance remain open. No publication/install authorization follows.
+
