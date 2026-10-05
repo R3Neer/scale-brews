@@ -1,5 +1,124 @@
 # Changelog
 
+## [0.1.0-beta.9] - 2026-09-16
+
+This hotfix corrects Tiny Mount rendering across world, inventory and
+First-person Model contexts, and changes the tamed-wolf interaction grammar to
+match ordinary saddled mounts. It retains the Alchemical Leather compatibility
+work already present on `main`.
+
+### Tiny Mount visual hotfix
+
+- Resolve saddle surfaces from canonical rest geometry rather than the first
+  camera or GUI orientation, follow explicit group anchors into their geometry,
+  prefer torso geometry over same-level heads, manes, tails, legs and wings,
+  and invalidate cached chains when EMF replaces an equivalent model part.
+- Treat Fresh Animations `EMF_*rotation` parts as coordinate-conversion wrappers:
+  bake their authored rest chain into the seat instead of transmitting the
+  inverted animated basis to Chicken and Wolf saddles or riders.
+- Isolate world-frame attachment samples from inventory previews, guarantee
+  cleanup after failed render submission, and clear interpolation history across
+  resource reloads and world changes.
+- Replace abrupt large-angle rider rebasing with bounded quaternion interpolation.
+  This removes the visible snapping without reusing stale frame transforms.
+- Add an optional First-person Model 2.7 bridge that aligns the rendered body to
+  the camera's actual smoothed and collision-clipped mount displacement while
+  preserving the mod's temporary extraction offset and player scale.
+- Restore the mounted Bee inventory paperdoll in the exercised compatibility
+  stack and keep Bee, Chicken and Wolf saddles attached across animated frames.
+
+### Wolf interaction and inventory polish
+
+- Ordinary Use mounts a saddled tame wolf with an empty hand or spare saddle;
+  without a saddle it retains vanilla sit/stand. Crouch + Use opens equipment.
+- Preserve food, dye, repair and other native item interactions, wild-wolf
+  ride-taming, owner-protected BODY equipment and ordinary crouch dismounting.
+- Replace the wolf armor empty-slot sprite with the approved hand-authored 16x16
+  icon and keep its exact pixel source reproducible through `GenerateArt`.
+
+### Validation
+
+- Add synthetic regressions for GUI/world isolation, large-angle interpolation,
+  scaled First-person origins, same-shape model replacement, and oversized
+  accessory geometry below explicit body anchors.
+- Observe real submitted Bee, Chicken and Wolf frames with First-person Model
+  2.7.2, EMF 3.3.5, ETF 7.2, Fresh Animations 1.10.5, FA Details 2.3 and FA Player
+  1.1. The final local gate passed all 154 required server GameTests and all five
+  real-client GameTest entrypoints.
+
+## [0.1.0-beta.8] - 2026-09-14
+
+This prerelease replaces fixed Tiny Mount saddle anchors with a shared, data-driven visual attachment frame derived from the model actually rendered by the client. It targets the floating and desynchronized saddle/rider presentation visible on Bees, Chickens and Wolves, especially with Fresh Animations.
+
+### Extensible visual attachments
+
+- Add a `SeatFrame` resolver that traverses the complete animated `ModelPart` hierarchy, selects a stable upper body surface and captures its current affine transform for the saddle, rider and translation-only camera correction.
+- Replace the persistent previous-frame entity cache with same-frame mount/rider submission ordering and a frame-scoped context. Missing or failed captures now fall back to vanilla rendering instead of reusing stale transforms.
+- Render one generic saddle mesh in the selected normalized right/up/front frame. Saddles inherit model scale and animation; riders inherit only translation and orthonormal rotation.
+- Add optional reloadable resource-pack profiles at `assets/<namespace>/scalebrews/tiny_mount_visual/<path>.json`, including explicit model paths, normalized anchor points, pixel offsets, rotations, saddle dimensions and texture overrides.
+- Permit minimal Tiny Mount definitions containing only `entity`, with safe defaults for family, movement, speed, size ratio, ability and enabled state. Legacy `saddle_visual` textures remain supported as compatibility hints.
+- Add a small client adapter registry for renderers that do not expose ordinary `LivingEntityRenderer` plus `ModelPart` models.
+
+### Compatibility and validation
+
+- Correct rotated torso axes such as the Chicken model so the saddle remains horizontal and centred rather than following the model's internal Y axis.
+- Rebase model reference transforms when EMF changes internal base poses, allowing Fresh Animations groups such as Bee body rotations to remain synchronized without deforming the player.
+- Cover nested/hidden model parts, explicit-path fallback, invalid profile data, stable same-frame ordering, stale-state clearing and native-mount exclusion.
+- Exercise and visually inspect mounted, unmounted and motion snapshots for Bee, Chicken and Wolf with Entity Model Features 3.3.5, Entity Texture Features 7.2 and Fresh Animations 1.10.5.
+
+## [0.1.0-beta.7] - 2026-09-14
+
+This prerelease makes Tiny Mount interaction and equipment data-driven through three vanilla-style behavior families, synchronizes saddles and riders with final animated mount models, and polishes wolf riding. It also adds size-scaled gait/footstep presentation and updates interaction-reach balance. The experimental all-direction anatomical collision system remains unfinished and disabled in normal gameplay.
+
+### Tiny Mount behavior families
+
+- Replace independent `saddle` / `control` JSON switches with `family`: `direct`, `tameable_direct`, or `item_steered`. The codec rejects contradictory combinations while movement and abilities remain independent.
+- Chicken uses `direct`: it can carry a passenger unsaddled, needs a saddle for direct control, and exposes its mount equipment menu. Bee uses `item_steered`: it needs a saddle even to mount, needs Flower on a Stick to control, has no mount menu, and E opens the player's normal inventory. Wolf uses `tameable_direct`: native taming gates equipment/control and its menu exposes SADDLE plus configured BODY equipment.
+- Remove species-hardcoded inventory routing. Inventory-bearing families open their menus dynamically; `direct` mounts also support Crouch + Use from outside, while `tameable_direct` keeps Crouch + Use as the wolf mounting gesture and uses E for equipment while mounted.
+- Preserve vanilla equipment semantics: SADDLE/BODY are real equipment slots, shearability comes from each item's `Equippable` component, vanilla BODY-before-SADDLE shearing order remains intact, wolf owner-only shearing remains authoritative, and vanilla dispensers can saddle configured Tiny Mount species.
+- Custom Tiny Mount datapacks using the old `saddle` and `control` fields must migrate to `family`; `item_steered` definitions still require `steering_item`.
+
+### Wolf mount polish
+
+- Add a horse-style equipment menu backed by the wolf's native SADDLE and BODY slots, including configured Wolf Armor and owner protection for BODY management.
+- Set controlled wolf travel speed to 0.20 and make pounce charging progressively slow ground movement to 50% at full charge, preserving the established pounce travel envelope instead of turning the wolf into a better long-distance horse.
+- Add squash/stretch, a short FOV kick, damped camera impact feedback, gravity-aware landing dust and concise audiovisual landing feedback without changing server pounce physics.
+
+### Animated saddles and riders
+
+- Capture the mount model's final rendered attachment transform after vanilla `setupAnim` and optional model animation, then share that same transform with saddle and rider rendering. This removes separate pose reconstruction and covers Tiny Mounts plus native horse body animation.
+- Validate the path against the exact VanillaPlus stack of EMF 3.3.5, ETF 7.2 and Fresh Animations 1.10.5: Fresh Animations produces an active EMF bee model and the mounted rider receives a finite, non-identity final attachment transform. These remain optional dependencies.
+
+### Size-scaled gait and interaction reach
+
+- Scale ordinary footstep pitch with `clamp(1 / sqrt(scale), 0.5, 2.0)` and walk-animation time with `clamp(1 / scale, 0.25, 4.0)`, following effective physical scale while leaving vanilla cadence/amplitude ownership intact.
+- Growth block reach remains +20% per equivalent level (5.4 / 6.3 / 7.2 blocks), while entity reach is +30% per equivalent level (3.9 / 4.8 / 5.7) and continues the same curve beyond Growth III. Shrinking block/entity reach both decrease by 10% per equivalent level.
+
+### Validation
+
+- Add adversarial family tests using a data-only Cow to prove mounting, control, inventory and dispenser behavior come from decoded family data rather than species branches.
+- Exercise real client/server inventory routing, external `direct` menu interaction, vanilla saddle shearing/drop behavior, wolf BODY-before-SADDLE shearing, owner protection, horse rider animation and the pinned EMF/Fresh Animations runtime proof.
+
+## [0.1.0-beta.6] - 2026-09-11
+
+This prerelease adds optional effective-gravity support to Scale-owned Tiny Mount movement and moves the real-client GameTest into ordinary GitHub Actions validation. The all-direction anatomical collision system remains unfinished and disabled in normal gameplay.
+
+### Tiny Mount effective gravity
+
+- Bee flight, controlled chicken glide and wolf pounce/landing now generate their Scale-owned movement in the root mount's effective gravity frame instead of assuming world-down. Existing world-space momentum is not reinterpreted when the frame changes.
+- Centralize effective gravity behind one Scale-side service with vanilla `DOWN` fallback. Gravity Changer is discovered reflectively when present and remains an optional dependency.
+- Cover all six cardinal frames, root-versus-rider ownership, frame changes between actions and preservation of pre-existing momentum with dedicated regressions.
+
+### Validation and release engineering
+
+- Run both server and real-client GameTests in ordinary GitHub Actions CI. Client assertions execute headlessly under Xvfb; screenshots/logs are retained as workflow artifacts for inspection.
+- Add a guarded prerelease workflow that validates the exact release tree, checks packaged metadata and test-class exclusion, calculates the regular-JAR SHA-256 and creates the GitHub prerelease only after all gates pass.
+- Maintenance refresh: migrate stable GameTests away from the deprecated `makeMockServerPlayerInLevel()` helper while preserving connected-player semantics, remove remaining direct Java deprecation warnings, reject future deprecation regressions in CI, and verify refreshed prerelease tags/assets against the exact validated commit and JAR SHA-256.
+
+### Development prototype - anatomical geometry (not active gameplay)
+
+- Retain and extend the internal anatomical/contact synchronization and gravity-frame preparation without enabling it in normal worlds. The existing upper-surface living-platform system remains the released behavior.
+
 ## [0.1.0-beta.5] - 2026-09-09
 
 This prerelease consolidates the previous local betas and the changes below.

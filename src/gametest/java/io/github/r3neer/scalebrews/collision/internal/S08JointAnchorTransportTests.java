@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
@@ -26,7 +28,7 @@ public final class S08JointAnchorTransportTests {
     public void jointChangingIntervalUsesMaterialAnchorInsteadOfEndpointChordGate(GameTestHelper h) {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();body.setNoGravity(true);
+        var body=connectedCreative(h);body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
         Vec3 origin=support.position().add(0,1,0);
         var localBox=new AABB(-.5,-.10,-.5,.5,0,.5);

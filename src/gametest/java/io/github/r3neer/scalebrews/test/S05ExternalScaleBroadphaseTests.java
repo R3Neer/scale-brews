@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -23,7 +25,7 @@ public final class S05ExternalScaleBroadphaseTests {
     @GameTest
     public void externalScaleGrowthMustExposeNewRemoteMaterialBoundsInSameTick(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var support=h.spawn(EntityTypes.COW,2,20,2);
@@ -59,7 +61,7 @@ public final class S05ExternalScaleBroadphaseTests {
     @GameTest
     public void externalScaleShrinkMustRemoveOldRemoteMaterialBoundsInSameTick(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var support=h.spawn(EntityTypes.COW,2,20,2);
@@ -93,7 +95,7 @@ public final class S05ExternalScaleBroadphaseTests {
     @GameTest
     public void sameTickRootYawMustExposeNewRemoteMaterialBoundsWithoutManualPublication(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var support=h.spawn(EntityTypes.COW,2,20,2);
@@ -128,7 +130,7 @@ public final class S05ExternalScaleBroadphaseTests {
     @GameTest
     public void publishedRootYawMustKeepUpdatedSupportDiscoverable(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var support=h.spawn(EntityTypes.COW,2,20,2);

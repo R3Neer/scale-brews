@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
@@ -52,9 +54,9 @@ public final class S07PlanConflictLocalizationTests {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
-        var leftBody=h.makeMockServerPlayerInLevel();
-        var rightBody=h.makeMockServerPlayerInLevel();
-        var safe=h.makeMockServerPlayerInLevel();
+        var leftBody=connectedCreative(h);
+        var rightBody=connectedCreative(h);
+        var safe=connectedCreative(h);
         for(var body:List.of(leftBody,rightBody,safe)) {
             body.setNoGravity(true);
             body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();

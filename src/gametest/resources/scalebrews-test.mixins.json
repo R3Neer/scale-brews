@@ -24,7 +24,8 @@
     "TestCollisionEntityScanMixin",
     "TestTrackingAuthorityMixin",
     "TestVehicleMoveListenerAccess",
-    "TestVehicleMoveTraceMixin"
+    "TestVehicleMoveTraceMixin",
+    "TestConnectedServerPlayerMixin"
   ],
   "client": [
     "TestPackStartupTimeoutMixin",
@@ -33,7 +34,10 @@
     "TestWorldgenValidationMixin",
     "TestCameraAccess",
     "TestConnectionAccess",
-    "TestClientStartupRaceMixin"
+    "TestClientStartupRaceMixin",
+    "TestMountFrameProbeMixin",
+    "S42AdversarialRetiredDisconnectGate",
+    "S42AdversarialConnectionListenerAccess"
   ],
   "injectors": {
     "defaultRequire": 1

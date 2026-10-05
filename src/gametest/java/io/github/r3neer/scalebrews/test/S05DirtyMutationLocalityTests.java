@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
@@ -21,7 +23,7 @@ public final class S05DirtyMutationLocalityTests {
     @GameTest
     public void manyFarRebindsMustNotBeProcessedByUnrelatedLocalQuery(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         var supports=new ArrayList<LivingEntity>();
         var farSamples=new AtomicInteger();

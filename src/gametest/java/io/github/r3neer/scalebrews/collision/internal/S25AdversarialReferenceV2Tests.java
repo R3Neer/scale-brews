@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -79,8 +81,8 @@ public final class S25AdversarialReferenceV2Tests {
         AnatomyTransportReceipts.clear(server);AnatomyMovementReference.clear(server);
         var support=h.spawn(EntityTypes.COW,2,4,2);
         var player=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);player.setPos(3,4,2);
-        var controller=(ServerPlayer)h.makeMockServerPlayerInLevel();
-        var passenger=(ServerPlayer)h.makeMockServerPlayerInLevel();
+        var controller=(ServerPlayer)connectedCreative(h);
+        var passenger=(ServerPlayer)connectedCreative(h);
         var boat=h.spawn(EntityTypes.OAK_BOAT,7,4,2);
         try {
             var stale=record(player,player,support,1,1,new Vec3(.03125,0,0));

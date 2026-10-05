@@ -69,7 +69,7 @@ public final class ImpactSurfaces {
             var surfaces=new ArrayList<Surface>();
             for(int y=(int)Math.floor(origin.y-radius)-1;y<=Math.ceil(origin.y+radius);y++) {
                 var pos=new BlockPos(x,y,z);
-                if(!level.hasChunkAt(pos))continue;
+                if(!level.isLoaded(pos))continue;
                 var shape=level.getBlockState(pos).getCollisionShape(level,pos);
                 for(var box:shape.toAabbs()) {
                     if(box.minX>.5 || box.maxX<.5 || box.minZ>.5 || box.maxZ<.5)continue;

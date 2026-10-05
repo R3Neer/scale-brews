@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -24,7 +26,7 @@ public final class S09LiveOwnMoveTests {
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
         support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var floor=ConvexBox.of(new AABB(-2,-.2,-2,2,0,2),new Matrix4f()).move(support.position().add(0,1,0));
@@ -74,7 +76,7 @@ public final class S09LiveOwnMoveTests {
             support.setNoAi(true);support.setNoGravity(true);
             support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
         }
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(h.absoluteVec(new Vec3(15,22,6)));
@@ -150,7 +152,7 @@ public final class S09LiveOwnMoveTests {
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
         support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(h.absoluteVec(new Vec3(8,22,6)));
@@ -234,7 +236,7 @@ public final class S09LiveOwnMoveTests {
             support.setNoAi(true);support.setNoGravity(true);
             support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
         }
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(h.absoluteVec(new Vec3(9,22,6)));

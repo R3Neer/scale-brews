@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.AnatomyFilter;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
@@ -30,7 +32,7 @@ public final class S05LiveBroadphaseLocalityTests {
     @GameTest
     public void localQueryMustNotResampleEveryFarWorldSupport(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         var supports=new ArrayList<LivingEntity>();
         var samples=new AtomicInteger();
@@ -61,7 +63,7 @@ public final class S05LiveBroadphaseLocalityTests {
     @GameTest
     public void firstLocalQueryAfterLegitimateRebindMustNotResampleFarWorld(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         var supports=new ArrayList<LivingEntity>();
         var farSamples=new AtomicInteger();
@@ -105,7 +107,7 @@ public final class S05LiveBroadphaseLocalityTests {
     @GameTest
     public void firstLocalQueryAfterSupportedRootCommitMustNotResampleFarWorld(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var supports=new ArrayList<LivingEntity>();
@@ -162,7 +164,7 @@ public final class S05LiveBroadphaseLocalityTests {
     @GameTest
     public void firstLocalQueryOnNextTickMustNotTriggerWorldRebuild(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         var supports=new ArrayList<LivingEntity>();
         var farSamples=new AtomicInteger();

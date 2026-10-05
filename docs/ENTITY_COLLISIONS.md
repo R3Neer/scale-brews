@@ -166,6 +166,12 @@ El servidor posee catálogo aceptado, bindings activos, trackers/pose cache, gen
 
 El cliente posee sólo material recibido para la conexión/nivel actual y prediction de entidades localmente autoritativas. Una barrera de lifecycle invalida histories/material previos antes de aceptar otra identidad.
 
+Las transiciones JOIN/DISCONNECT se ejecutan en el executor del cliente y
+validan allí la identidad del listener que posee la sesión. Un callback
+atrasado de una conexión retirada no puede limpiar el catálogo/material de
+la conexión nueva; la desconexión vigente sí conserva su barrera completa.
+La identidad se comprueba al ejecutar la transición, no sólo al encolarla.
+
 ### 4.9 Red, prediction y reconciliación
 
 El servidor origina catálogo, frames y contactos. El cliente no aporta geometría ni pose. Para player/controlled vehicle se permite prediction del mismo core. La reconciliación correlaciona movimiento vanilla con transportes confirmados; un receipt acredita un delta aplicado y nunca lo vuelve a aplicar.

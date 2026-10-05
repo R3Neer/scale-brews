@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
@@ -45,7 +47,7 @@ public final class S00ReceiptTests {
         S24TrackingAuthorityTestSeam.run(body,body,()->AnatomyTransportReceipts.record(body,contact,surface,root,new SupportTransport(tick,sequence,1,Vec3.ZERO,Vec3.ZERO),material,material));
     }
     @GameTest public void receiptRecorderRejectsAResultFromAnotherTick(GameTestHelper h) {
-        var support=h.spawn(EntityTypes.COW,2,20,2);var body=h.makeMockServerPlayerInLevel();
+        var support=h.spawn(EntityTypes.COW,2,20,2);var body=connectedCreative(h);
         try {
             record(body,support,h.getLevel().getGameTime()+1,1);
             check(AnatomyTransportReceipts.history(body,body.getUUID()).isEmpty(),"Recorder gave current authority to future transport");
@@ -53,7 +55,7 @@ public final class S00ReceiptTests {
     }
     @GameTest(maxTicks=50) public void holdoutH02SaturationSurvivesBoundaryAndRejectsExpiredReplay(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();long tick=h.getLevel().getGameTime();
+        var body=connectedCreative(h);long tick=h.getLevel().getGameTime();
         Runnable cleanup=()->{AnatomyTransportReceipts.invalidate(body);support.discard();body.discard();};
         for(int i=0;i<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;i++)record(body,support,tick,1+i);
         check(AnatomyTransportReceipts.history(body,body.getUUID()).size()==AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK,"Saturation retained unbounded receipt prefix");

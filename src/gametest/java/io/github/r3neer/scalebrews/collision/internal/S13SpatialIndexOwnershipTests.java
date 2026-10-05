@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.MaterialBroadphase;
 import java.io.IOException;
@@ -148,7 +150,7 @@ public final class S13SpatialIndexOwnershipTests {
     @GameTest
     public void rebuildSamplesEachLegacyProviderOnce(GameTestHelper h) {
         var level=h.getLevel();
-        var body=h.makeMockServerPlayerInLevel();body.setNoGravity(true);
+        var body=connectedCreative(h);body.setNoGravity(true);
         var support=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);
         h.assertTrue(support!=null,"S13 sampling fixture requires a creatable support");
         support.setNoAi(true);support.setNoGravity(true);support.setPos(body.position().add(64,0,0));

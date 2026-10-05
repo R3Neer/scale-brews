@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -251,7 +253,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                 "Receipt from retired tracking generation must not stage or rebase a movement reference");
 
             // Saturated ticks are historical evidence but never admissible reference authority.
-            var saturated=(ServerPlayer)h.makeMockServerPlayerInLevel();saturated.setPos(5,4,2);
+            var saturated=(ServerPlayer)connectedCreative(h);saturated.setPos(5,4,2);
             long saturatedFrame=100;
             for(int sequence=1;sequence<=AnatomyTransportReceipts.MAX_RECEIPTS_PER_TICK;sequence++)
                 record(saturated,saturated,support,1,saturatedFrame+sequence-1,sequence,new Vec3(.015625,0,0));
@@ -273,8 +275,8 @@ public final class S25AdversarialReferenceBehaviorTests {
 
             // Receipt existence is not control authority: both passengers receive a receipt, but
             // only the controlling passenger may use the vehicle reference.
-            var controller=(ServerPlayer)h.makeMockServerPlayerInLevel();
-            var passenger=(ServerPlayer)h.makeMockServerPlayerInLevel();passenger.setGameMode(GameType.SURVIVAL);
+            var controller=(ServerPlayer)connectedCreative(h);
+            var passenger=(ServerPlayer)connectedCreative(h);passenger.setGameMode(GameType.SURVIVAL);
             var boat=h.spawn(EntityTypes.OAK_BOAT,7,4,2);
             h.assertTrue(controller.startRiding(boat,true,true) && passenger.startRiding(boat,true,true)
                     && boat.getControllingPassenger()==controller,
@@ -305,7 +307,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             // Per-recipient rate budget: sixteen rejected metadata attempts may consume only
             // the attempt budget, never a valid receipt. The seventeenth attempt in the same tick
             // must fail closed before claim/consumption.
-            var budgetPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();budgetPlayer.setPos(8,4,2);
+            var budgetPlayer=(ServerPlayer)connectedCreative(h);budgetPlayer.setPos(8,4,2);
             long budgetFrame=400;
             record(budgetPlayer,budgetPlayer,support,1,budgetFrame,1,new Vec3(.03125,0,0));
             for(int attempt=0;attempt<AnatomyMovementReference.MAX_REFERENCES_PER_TICK;attempt++) {
@@ -343,7 +345,7 @@ public final class S25AdversarialReferenceBehaviorTests {
             // Pending reference TTL is independent from receipt TTL. A valid cursor may be
             // consumed/staged, but if its following vanilla movement packet arrives too late the
             // staging must fail closed rather than rebase an unrelated later packet.
-            var pendingPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();pendingPlayer.setPos(9,4,2);
+            var pendingPlayer=(ServerPlayer)connectedCreative(h);pendingPlayer.setPos(9,4,2);
             long pendingFrame=500;
             record(pendingPlayer,pendingPlayer,support,1,pendingFrame,1,new Vec3(.03125,0,0));
             Vec3 pendingAbsolute=pendingPlayer.position();
@@ -363,7 +365,7 @@ public final class S25AdversarialReferenceBehaviorTests {
                         "Pending reference older than PENDING_TICKS must not rebase a later vanilla movement packet");
 
                     // Receipt TTL owner-level check. The receipt remains untouched until it naturally expires.
-                    var ttlPlayer=(ServerPlayer)h.makeMockServerPlayerInLevel();ttlPlayer.setPos(10,4,2);
+                    var ttlPlayer=(ServerPlayer)connectedCreative(h);ttlPlayer.setPos(10,4,2);
                     long ttlFrame=300;
                     record(ttlPlayer,ttlPlayer,support,1,ttlFrame,1,new Vec3(.03125,0,0));
                     h.runAfterDelay(AnatomyTransportReceipts.HISTORY_TICKS,()->{

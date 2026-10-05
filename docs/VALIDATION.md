@@ -19,6 +19,30 @@ Normative entity-collision behavior lives in [ENTITY_COLLISIONS_REQUIREMENTS](EN
 - Packaging proves packaging only unless gameplay was separately exercised.
 - A later red snapshot can reopen a previously green gate; history is retained as red-before-green evidence.
 
+## 0.1.0-beta.8 release candidate — 2026-09-14
+
+This release replaces direct `body` / `bone` anchors and the previous-frame entity-ID cache with an autodetected, complete `SeatFrame`. Checks cover the minimal gameplay codec, legacy `saddle_visual` decoding, strict visual-profile values, nested/rest-scaled `ModelPart` resolution, explicit-path override, same-frame topological ordering and cache clearing. The final source passed the complete base client suite and the pinned EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5 lane. Sixteen mounted, unmounted, movement and pounce snapshots for Bee, Chicken and Wolf were inspected directly; saddle orientation and rider contact remained coherent in those captures, and the native Horse stayed outside this renderer path. The planned two-minute-per-creature human-controlled play session and broad multiplayer latency check were not performed; publication remains explicitly prerelease-scoped.
+
+## Previous prerelease: 0.1.0-beta.7 — 2026-09-14
+
+- The guarded prerelease lane passes **154 required server GameTests**, the complete real-client/integrated-server GameTest suite, packaged-version/test-class checks, tag verification and a post-upload SHA-256 comparison of the regular JAR.
+- Tiny Mount interaction is validated by `family`, including data-only Cow adversaries proving `direct` / `item_steered` behavior without species branches, dynamic equipment menus, Bee player-inventory UX, vanilla saddle shearing/drop behavior, Wolf owner protection and BODY-before-SADDLE shearing, plus the real dispenser equipment path.
+- Animated saddle/rider attachment uses the final rendered mount transform. A separate reproducible optional-mod lane passed with the VanillaPlus-pinned **EMF 3.3.5 + ETF 7.2 + Fresh Animations 1.10.5** stack and verified an active EMF bee model plus a finite, non-identity rider attachment transform.
+- Size presentation/reach coverage includes scale-dependent step pitch and gait timing plus the final reach contract: Growth block +20% per equivalent level, Growth entity +30%, and Shrinking block/entity -10%.
+- Normal gameplay still uses the released upper-surface living-platform system. All-direction anatomical collisions and shared Clinging Reoriented physics remain unfinished and disabled in ordinary worlds. Full-pack human acceptance and broad multiplayer/mod-combination QA remain bounded separately.
+
+## Historical validation records
+
+The dated sections below are retained as evidence of earlier milestones. They may describe behavior or balances that were later superseded; current gameplay contracts live in the player/configuration/mechanics references and the beta.7 section above.
+
+## 0.1.0-beta.6 candidate — 2026-09-11
+
+- Candidate scope adds optional effective-gravity support for Scale-generated Tiny Mount movement: bee flight, chicken glide and wolf pounce/landing use the root mount's effective gravity frame rather than assuming world-down.
+- Gravity Changer is the concrete provider recognized automatically. It is not a hard dependency; without a provider, the shared frame service resolves to vanilla `DOWN` and the existing Tiny Mount behavior is retained.
+- Normal gameplay still uses the released upper-surface living-platform system. All-direction anatomical collisions and the shared Clinging Reoriented physics remain unfinished and disabled in ordinary worlds.
+- Prerelease publication is gated by `.github/workflows/prerelease.yml`: the exact release tree must pass `git diff --check`, build, every required server GameTest, the real client GameTest suite, and packaged-version checks before the workflow may create a tag or GitHub prerelease.
+- Full-pack human acceptance, broad optional-mod combinations and multiplayer latency/host-change coverage remain bounded separately; a passing prerelease lane does not certify every modpack.
+
 ## 0.1.0-beta.5 candidate — 2026-09-09
 
 Snapshot `33b1f5c`:
@@ -41,6 +65,8 @@ Historical evidence includes oriented top-surface collision, ratio boundaries, w
 A real-client dedicated proof completed **0 / 100 / 200 ms RTT** with `allow-flight=false`; a player transport soak reached **12,000 ticks**. Later bounded VP26 runs reached 106 passing tests after an e4mc permission compatibility issue was repaired. This evidence describes the temporary legacy engine that G5 must retire after feature-equivalent replacement.
 
 ## All-direction entity-collision historical evidence
+
+GitHub Actions runs both the build/server suite and the real client GameTest under Xvfb on Ubuntu with Java 25 for every push and pull request. Screenshot interpretation remains a human/local task, but client assertions now run in CI and CI uploads logs/screenshots for inspection. Packaging checks ensure production JARs include sprites/languages/tags/mixins but exclude GameTest classes and test-only mixins. `git diff --check` checks patch whitespace.
 
 Historical prototype work demonstrated:
 
@@ -2824,4 +2850,147 @@ Full source/evidence review ended with no further changes. `git diff --check`
 passed. S41/G5.8 and G5 category/lifecycle tasks 1-2 close locally; broad
 nonparticipant equivalence, legacy retirement, G6-G9 and final human pack QA
 remain open.
+
+S42 IMPLEMENTER reconciles `main@b5e6253584b2233e5dd0039203c8a251bf10cdeb`
+with the S41 canonical branch. The pre-I5 parent audit verifies all 69 changed
+mainline product/resource/tool/workflow paths, one gravity frame/provider and
+the exact union of both parents' test entrypoints (102 server, 25 client, no
+duplicates). Of 112 canonical collision production files, 111 are unchanged
+after line-ending normalization; GravityFrame adds the equivalent cardinal
+coordinate/vertical conveniences. Current mainline mount families, inventory,
+body equipment, gestures, gait, reach, render membership and optional-mod data
+remain. `../s42-current-review.json` has SHA-256
+`bbad102c0f53afdee7cb00c45ff874f524182c7cc5fad30daf2dfeb73423da84`.
+
+Pre-I5 affected-source ordinary `build runGameTest` passes **483/483**, exits
+cleanly in 3m23s, and the complete client suite exits cleanly in 5m27s. Logs:
+`../s42-ordinary-final-tree.log` (SHA-256
+`d52fad5b02807c5d71d20c6b3691ddbffe68979390021e4194eb7bede3866e0a`)
+and `../s42-client-final-candidate.log` (SHA-256
+`045c38b1d2ffd0327e2dff41815e21ce6a8b91d8417757d43f4b8fce6cd86a11`).
+The prepared original-model suite passes **2/2**, 23 scenarios, in 2m08s:
+`../s42-prepared-final-catalog-candidate.log` (SHA-256
+`b214769104fec7d08896cc308cc0048ad99d8700606ac0ebba67369228b91dab`).
+The real feature-enabled experimental minecart/native interpolation/control
+proof passes in 2m22s: `../s42-experimental-client-final-candidate.log`
+(SHA-256 `d6a2a6348741b987bed8e27e8e6c09a51700b6602692809d32deefef4ba8e71f`).
+Prepared/experimental invocations explicitly use the isolated original client
+export `-PscalebrewsAnatomyCatalog=../s36-impl-run/anatomy-export`; tests were
+neither skipped nor weakened when that required argument was initially omitted.
+
+Mainline's deprecation guard is retained with a finite, exact test-only
+collision-adapter diagnostic allowlist and full compiler reporting. The real
+full compile reports **387** expected adapter diagnostics and passes the guard
+(`../s42-ci-real-final-candidate.log`, SHA-256
+`d1b2ee9f4a274fc650d14ad54536483e3d9450b5b80e49037eb2521faf6ab463`).
+The six IMPLEMENTER guard controls reject production, native, external,
+unparsed and compiler-cap-omitted warnings while accepting the named fixture
+adapter (`../s42-ci-guard-probes.json`, SHA-256
+`2901e39e1488c4fe5f0d8ca31f65f68226acc68e6441f51e3a6f2d0dacfc83bd`).
+The pre-I5 cache-reused server compilation reports zero
+new diagnostics; it does not replace that earlier full-compile audit. Deprecated
+Minecraft player helpers were migrated to the mainline connected-player test
+seam. ADVERSARY preserves S25's intentionally disconnected receipt oracle by
+constructing a genuine player without a listener, instead of expecting the new
+connection mixin to keep a helper-created player disconnected.
+
+The optional FirstPerson bridge prepares typed MethodHandles during explicit
+client initialization without initializing external classes early; extraction
+has four constant-cost samples and no reflective metadata/invocation discovery.
+The real pinned FirstPerson 2.7.2/26.2 JAR was verified against its actual public
+API and SHA-512
+`a1822273015aeb291bdc6ceeb2787e2734a9bde1f20abbea613b1088ad34fed84a9a37953efc842650ad597d557df868d4b5142502fcb648121a25fa83a3350b`.
+TinyMountClientAcceptance with that isolated JAR passes and exits cleanly in
+3m55s, recording 124/130/113 bee/chicken/wolf first-person frames:
+`../s42-firstperson-client-candidate.log` (SHA-256
+`5403fa8eb403273684b32607ce6f85a759e35d894691c46aa03aee6334767140`).
+Thirty captures from each lane are preserved in
+`../s42-firstperson-visual/firstperson/` and `../s42-firstperson-visual/base/`
+with names, capture timestamps and hashes in `capture-hashes.json`. The same
+fixed camera/pitch/menu commands generated both lanes; IMPLEMENTER inspected
+the chicken first-person pair, wolf equipment menu and bee mounted front.
+FirstPerson adds the expected player-body render while preserving the mount
+view. These are runtime visual observations, not final human pack acceptance.
+
+The initial ordinary client invocation failed S29's old-catalog/material replay
+oracle. It is preserved as RED; subsequent complete-suite green and isolated/
+prefix/stress greens on unchanged production do not establish its chronology.
+An independent real-event holdout then deterministically reproduced a production
+NFR-017 defect: a callback from the previous connection executes on its Netty
+thread after a new connection has accepted revision 2. The unqualified reset
+clears the live catalog, after which a revision-1 replay on the unchanged new
+connection is accepted. `../s42-adversary-retired-first.log` is RED and its
+sources/log are fixed by `../s42-adversary-private/retired-evidence.json`.
+This reproduces the failure class; it does not retrospectively prove the
+uninstrumented log's exact event order. I5 returned to planning and converged
+independently before production repair. The repaired transitions execute on the
+client executor and check the exact current/owning listener identity at execution.
+The genuine current disconnect retains its cleanup path. Post-I5 ordinary
+build/server **483/483** and all 25 client entrypoints exit cleanly:
+`../s42-i5-ordinary-full.log` (3m39s, SHA-256
+`fe8b7975a49e143f401a3e65e5cea1dadd40665cdcefaa2b2c12b0481584c2db`)
+and `../s42-i5-client-full.log` (6m04s, SHA-256
+`022bf554a41546c1e1d6b561c16ccb4268d51618a649133316c5998c4e81787d`).
+The repaired ledger `../s42-i5-current-review.json` (SHA-256
+`d7eaedc258db106e93a29bcbbc57bfab955f5fcbc5f0b80be2f19d92244d6aba`)
+identifies exactly two changed canonical production files: GravityFrame and
+AnatomyClientNetworking. The beta.9 production JAR has SHA-256
+`b2dafaa5e2a1f9785a6959e60506c4ef91707d9bf833ee5bce3b02bfd0ad8b26`,
+correct version metadata and zero leaked GameTest classes/nested classes
+from all 354 fixture-source paths at that stage. Independent positive controls,
+targeted mutation and final review were still pending; earlier logs describe
+pre-I5 source.
+Other failures are
+classified separately: unquoted/omitted Gradle arguments, the connected-player
+fixture conflict, deprecation-gate integration and Gradle's rejection of a
+combined server/client task graph under a temporary shared run directory.
+Corrected server/client invocations are separate and clean. Main still resolves
+to the pinned merge parent after a fresh fetch. That candidate record alone did
+not certify S42 closure, broad G5 equivalence, legacy retirement or G6-G9.
+
+S42 final closure verification (2026-10-05) is now green on the durable lifecycle
+regression tree. `../s42-final-server.log` passes build and **483/483** tests,
+clean exit 2m31s, SHA-256
+`9a5a79b5926060a70e7f7bffe593e1f6359d0ca16fadf0ac480696b8c0b8ced3`.
+The exact deprecation guard accepts all 147 uncapped incremental test-adapter
+diagnostics, with no production/native warning present; the earlier full audit
+remains separately recorded. `../s42-final-client.log` passes the complete
+**27-entrypoint** default manifest and exits cleanly in 5m53s, SHA-256
+`c896863a68cdfb58a2b27d217c1cfbd47ae75d5fd0c72bc71a3d20273642e231`.
+The processed manifest exactly matches source, including both new regressions.
+Actual retired-callback output preserves ready revision 2; the actual current
+callback subsequently clears owner/catalog. S29's original assertions remain.
+The final experimental minecart proof passes native behavior, ROOT, rail
+release/reacquisition, interpolation and ratio/policy/obstruction controls in
+1m08s: `../s42-final-experimental-client.log`, SHA-256
+`f5ed37afd333fc7f7bb32c52a2d25c3475c981800e39215a8ed613dd4c0b1c54`.
+
+Independent I5 evidence fixes the unmutated GREEN, the identity-guard mutant's
+semantic RED (`accepted=2 actual=1`), reusable regression sources, exact-handler
+gate and positive current-disconnect control in
+`../s42-adversary-private/i5-final-evidence.json`, SHA-256
+`960566fecbed6f15a10e2d5f5e15776d6b4f6b8e37570ae9a4746879fc118bbe`.
+Its complete independent source/infrastructure review required no more changes.
+The exact-listener gate's inherited-field linkage fault and earlier positive
+fixture cleanup faults remain classified as test infrastructure, without
+weakening the catalog or genuine-disconnect expectations. The reusable tests
+and two client-only mixins are retained; temporary runners/overlays stay outside
+the repository and generated Python cache files were removed.
+
+The final parent/source ledger `../s42-final-source-review.json`, SHA-256
+`a211ed8be38146e27d7bba162caaf17dd79dbd220f0b3b1166fad16f28c2b8e0`,
+checks all 69 main-changed paths, both parents' test subsets, 102 server and
+27 client entries without duplication. Exactly 110/112 canonical production
+files remain unchanged after line-ending normalization; GravityFrame and I5
+networking are the only changed ones. `../s42-final-evidence.json`, SHA-256
+`c57a03fd862125c504dc387ea9ed9b6cdf11a702bd3b12599d0ad5f4c5ee1c7d`,
+records the logs, processed manifest and beta.9 JAR digest
+`b2dafaa5e2a1f9785a6959e60506c4ef91707d9bf833ee5bce3b02bfd0ad8b26`:
+metadata is correct and none of all **358** GameTest source classes/nested
+classes across any package leaks into production. The revealed seat contact
+sheet/reference metadata was also inspected by IMPLEMENTER. Final source,
+ownership, cost and evidence review and `git diff --check` require no further
+product or fixture edits. Main still resolves to the pinned merge parent.
+S42 closes through its own local `Sprint: S42` merge commit. Broad G5 equivalence,
+legacy retirement and G6-G9 remain open; human QA stays at the end of the epic.
 

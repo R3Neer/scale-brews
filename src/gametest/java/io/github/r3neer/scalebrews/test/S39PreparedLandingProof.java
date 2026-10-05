@@ -56,7 +56,7 @@ final class S39PreparedLandingProof {
                     "Native landing sees a non-AIR ground argument and current material contact: "
                         +"checks="+observed.groundedChecks+" nonAir="+observed.nonAirGroundedChecks
                         +" supported="+observed.materialAtGroundedCheck+" feet="+actor.getY()
-                        +" decoy="+decoy+" ground="+level.getBlockState(actor.getOnPosLegacy()));
+                        +" decoy="+decoy+" ground="+level.getBlockState(actor.getOnPos()));
                 h.assertTrue(observed.landings==1 && observed.gusts==0
                         && actor.getHealth()<ownBefore && actor.fallDistance==0
                         && target.getHealth()==targetBefore && target.getDeltaMovement().lengthSqr()<1e-12,

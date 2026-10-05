@@ -1,6 +1,6 @@
 {
   "tiny_mounts": true,
-  "mounts": { "minecraft:chicken": true, "minecraft:bee": true },
+  "mounts": { "minecraft:chicken": true, "minecraft:bee": true, "minecraft:wolf": true },
   "villager_fear": true,
   "growth_landing_impact": true,
   "environment_interactions": true,

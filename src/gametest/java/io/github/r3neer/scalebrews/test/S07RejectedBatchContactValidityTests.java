@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
@@ -45,8 +47,8 @@ public final class S07RejectedBatchContactValidityTests {
         var supportB=h.spawn(EntityTypes.COW,22,20,2);
         supportA.setNoAi(true);supportA.setNoGravity(true);
         supportB.setNoAi(true);supportB.setNoGravity(true);
-        var left=h.makeMockServerPlayerInLevel();
-        var right=h.makeMockServerPlayerInLevel();
+        var left=connectedCreative(h);
+        var right=connectedCreative(h);
         for(var body:List.of(left,right)) {
             body.setNoGravity(true);
             body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();

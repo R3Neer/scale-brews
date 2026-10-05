@@ -20,6 +20,9 @@ public abstract class AnimatedRiderRendererMixin {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("RETURN"))
     private void scalebrews$pose(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         var vehicle = entity.getVehicle();
+        ((RiderPoseState)state).scalebrews$firstPersonOffset(
+                entity == net.minecraft.client.Minecraft.getInstance().player
+                ? io.github.r3neer.scalebrews.client.render.FirstPersonMountCompat.extractedOffset() : null);
         ((RiderPoseState)state).scalebrews$vehicleId(vehicle instanceof LivingEntity living
                 && io.github.r3neer.scalebrews.mount.TinyMounts.definition(living) != null ? vehicle.getId() : -1);
     }

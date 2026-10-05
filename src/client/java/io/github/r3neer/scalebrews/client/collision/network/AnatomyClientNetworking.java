@@ -13,6 +13,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 /** Catalog is supplied exclusively by the connected server, independent of render/resource packs. */
 public final class AnatomyClientNetworking {
     private static final AnatomyClientSession session=new AnatomyClientSession();
+    /** Client-thread-owned listener identity; retired callbacks cannot reset a newer session. */
+    private static net.minecraft.client.multiplayer.ClientPacketListener connectionOwner;
     private static final java.util.Map<java.util.UUID,AnatomyPoseHistory> poses=new java.util.HashMap<>();
     /** Root/joint endpoint order is independent of joint-history interpolation. */
     private static final java.util.Map<java.util.UUID,AnatomyFrameHistory> frames=new java.util.HashMap<>();
@@ -436,8 +438,14 @@ public final class AnatomyClientNetworking {
             predictedMovementReferences.remove(body.getUUID());
             transportReceiptTokens.discardBody(body.getUUID());
         });
-        ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->reset());
-        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->reset());
+        ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->client.execute(()->{
+            if(client.getConnection()!=handler)return;
+            reset();connectionOwner=handler;
+        }));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->client.execute(()->{
+            if(connectionOwner!=handler)return;
+            reset();connectionOwner=null;
+        }));
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register((entity,level)->{
             CausalBodyResidual.retireBody(entity);
             CausalRemoteResidual.forget(entity);

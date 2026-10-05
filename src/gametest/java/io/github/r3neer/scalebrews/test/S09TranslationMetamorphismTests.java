@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
@@ -98,7 +100,7 @@ public final class S09TranslationMetamorphismTests {
             support.setNoAi(true);support.setNoGravity(true);
             support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
         }
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(h.absoluteVec(new Vec3(9+dx,22,6+dz)));

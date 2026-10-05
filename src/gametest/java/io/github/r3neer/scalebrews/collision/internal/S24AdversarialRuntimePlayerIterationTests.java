@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import java.util.Map;
 import java.util.ConcurrentModificationException;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -13,8 +15,8 @@ public final class S24AdversarialRuntimePlayerIterationTests {
     @GameTest
     public void resetMustTolerateMultipleRecipientsRejectedDuringCatalogBootstrap(GameTestHelper h) {
         var server=h.getLevel().getServer();
-        var first=h.makeMockServerPlayerInLevel();
-        var second=h.makeMockServerPlayerInLevel();
+        var first=connectedCreative(h);
+        var second=connectedCreative(h);
         h.assertTrue(server.getPlayerList().getPlayers().contains(first)
                 && server.getPlayerList().getPlayers().contains(second),
             "Fixture requires two live recipients in the server player list before runtime bootstrap");

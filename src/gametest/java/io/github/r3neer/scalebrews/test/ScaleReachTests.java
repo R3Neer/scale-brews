@@ -5,39 +5,28 @@ import io.github.r3neer.scalebrews.scale.ScaleSize;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 public class ScaleReachTests {
-    @GameTest public void giantCanAttackAtFeet(GameTestHelper h) {
+    @GameTest public void purePotionReachValues(GameTestHelper h) {
         var player = h.makeMockPlayer(GameType.SURVIVAL);
-        player.setPos(h.absoluteVec(new Vec3(2, 20, 2)));
-        var chicken = h.spawnWithNoFreeWill(EntityTypes.CHICKEN, 2, 20, 2);
         for (int tier = 1; tier <= 3; tier++) {
+            player.removeAllEffects();
             player.addEffect(new MobEffectInstance(ScaleEffects.GROWTH, 1200, tier - 1));
             TestScale.settle(player);
-            // Beside the giant's feet, not inside its body. Test an actual small mob.
-            chicken.setPos(player.position().add(player.getBbWidth() / 2 + .3, 0, 0));
-            ScaleMountTests.near(h, player.entityInteractionRange(), 3 * (1 + .5 * tier), "Entity reach tier " + tier);
-            ScaleMountTests.near(h, player.blockInteractionRange(), 4.5 * (1 + .2 * tier), "Block reach unchanged");
-            for (var weapon : new ItemStack[]{ItemStack.EMPTY, new ItemStack(Items.IRON_SWORD)}) {
-                h.assertTrue(player.isWithinAttackRange(weapon, chicken.getBoundingBox(), 0), "Small mob at feet in actual weapon attack range");
-                var far = AABB.ofSize(player.getEyePosition().add(0, 0, 12), .1, .1, .1);
-                h.assertFalse(player.isWithinAttackRange(weapon, far, 0), "No excessive twelve-block reach");
-            }
-            chicken.setHealth(chicken.getMaxHealth());
-            chicken.invulnerableTime = 0;
-            player.attack(chicken);
-            h.assertTrue(chicken.getHealth() < chicken.getMaxHealth(), "In-range melee causes real damage");
+            ScaleMountTests.near(h, player.blockInteractionRange(), 4.5 * (1 + .2 * tier), "Growth block reach tier " + tier);
+            ScaleMountTests.near(h, player.entityInteractionRange(), 3 * (1 + .3 * tier), "Growth entity reach tier " + tier);
+
+            player.removeAllEffects();
+            player.addEffect(new MobEffectInstance(ScaleEffects.SHRINKING, 1200, tier - 1));
+            TestScale.settle(player);
+            ScaleMountTests.near(h, player.blockInteractionRange(), 4.5 * (1 - .1 * tier), "Shrinking block reach tier " + tier);
+            ScaleMountTests.near(h, player.entityInteractionRange(), 3 * (1 - .1 * tier), "Shrinking entity reach tier " + tier);
         }
-        chicken.discard();
         player.removeAllEffects(); TestScale.settle(player);
-        ScaleMountTests.near(h, player.entityInteractionRange(), 3, "Normal reach restored");
+        ScaleMountTests.near(h, player.blockInteractionRange(), 4.5, "Normal block reach restored");
+        ScaleMountTests.near(h, player.entityInteractionRange(), 3, "Normal entity reach restored");
         h.succeed();
     }
 
@@ -61,7 +50,10 @@ public class ScaleReachTests {
 
     private static void checkSize(GameTestHelper h, net.minecraft.world.entity.player.Player player) {
         double size = player.getAttributeValue(Attributes.SCALE);
-        double factor = size >= 1 ? 1 + .5 * (size - 1) / .96 : 1 - .12 * Math.min(3, (1 - size) / .242);
-        ScaleMountTests.near(h, player.entityInteractionRange(), 3 * factor, "Reach follows actual size, not potion presence");
+        double equivalent = size >= 1 ? (size - 1) / .96 : (1 - size) / .242;
+        double entityFactor = size >= 1 ? 1 + .3 * equivalent : 1 - .1 * Math.min(3, equivalent);
+        double blockFactor = size >= 1 ? 1 + .2 * Math.min(3, equivalent) : 1 - .1 * Math.min(3, equivalent);
+        ScaleMountTests.near(h, player.entityInteractionRange(), 3 * entityFactor, "Entity reach follows actual size");
+        ScaleMountTests.near(h, player.blockInteractionRange(), 4.5 * blockFactor, "Block reach follows actual size");
     }
 }

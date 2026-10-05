@@ -27,7 +27,10 @@
     "TinyMountRenderFrameMixin",
     "ExampleClientMixin",
     "ScaleCameraMixin",
-    "WolfChargeBarMixin"
+    "WolfChargeBarMixin",
+    "TinyMountClientInventoryMixin",
+    "WolfPounceRenderMixin",
+    "WolfPounceCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1

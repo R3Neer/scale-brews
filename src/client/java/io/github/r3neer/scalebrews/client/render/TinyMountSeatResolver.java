@@ -37,37 +37,42 @@ public final class TinyMountSeatResolver {
             Map<String, Selection> variants = CACHE.computeIfAbsent(root, ignored -> new java.util.HashMap<>());
             selection = variants.get(variantKey);
             if (selection == null || !usable(selection)) {
-                selection = select(root, outer, requested, diagnosticName);
+                // Selection is model-space metadata, not a property of the first
+                // entity/camera/GUI orientation that happens to use this model.
+                selection = select(root, new Matrix4f().scale(-1, -1, 1), requested, diagnosticName);
                 variants.put(variantKey, selection);
             }
         }
-        Matrix4f currentPart = chain(selection.chain, false);
-        Matrix4f referencePart = new Matrix4f(selection.referencePart);
+        boolean staticGeneratedBasis = generatedRotationWrapper(selection);
+        List<ModelPart> animatedChain = selection.chain;
+        Matrix4f bakedModelBasis = new Matrix4f();
+        if (staticGeneratedBasis) {
+            // EMF may animate both its generated suffix and the vanilla-named
+            // body container with the converted basis. Keep the stable model
+            // root and bake the complete authored rest chain below it.
+            int basisStart = 1;
+            animatedChain = selection.chain.subList(0, basisStart);
+            bakedModelBasis = chain(selection.chain.subList(basisStart, selection.chain.size()), true);
+        }
+        Matrix4f currentPart = chain(animatedChain, staticGeneratedBasis);
+        Matrix4f referencePart = staticGeneratedBasis
+                ? chain(animatedChain, true) : new Matrix4f(selection.referencePart);
         var anchor = profile.anchor();
         Vector3f local = new Vector3f(selection.right).mul(lerp(selection.rightMin, selection.rightMax, anchor.point().x))
                 .add(new Vector3f(selection.up).mul(lerp(selection.upMin, selection.upMax, anchor.point().y)))
                 .add(new Vector3f(selection.front).mul(lerp(selection.frontMin, selection.frontMax, anchor.point().z)));
-        Matrix4f localSeat = new Matrix4f().identity()
+        Matrix4f localSeat = bakedModelBasis.mul(new Matrix4f().identity()
                 .setColumn(0, new Vector4f(selection.right, 0))
                 .setColumn(1, new Vector4f(new Vector3f(selection.up).negate(), 0))
                 .setColumn(2, new Vector4f(selection.front, 0))
                 .setColumn(3, new Vector4f(local, 1))
                 .translate(anchor.offset().x / 16F, -anchor.offset().y / 16F, anchor.offset().z / 16F)
                 .rotateXYZ((float)Math.toRadians(anchor.rotation().x), (float)Math.toRadians(anchor.rotation().y),
-                        (float)Math.toRadians(anchor.rotation().z));
+                        (float)Math.toRadians(anchor.rotation().z)));
         Matrix4f currentAbsolute = new Matrix4f(outer).mul(currentPart).mul(localSeat);
         Matrix4f referenceAbsolute = new Matrix4f(outer).mul(referencePart).mul(localSeat);
         Matrix4f relative = new Matrix4f(currentAbsolute).mul(new Matrix4f(referenceAbsolute).invert());
-        Quaternionf relativeRotation = relative.getUnnormalizedRotation(new Quaternionf()).normalize();
-        float angularDiscontinuity = 2F * (float)Math.acos(Math.clamp(Math.abs(relativeRotation.w), 0F, 1F));
-        Matrix4f delta;
-        if (angularDiscontinuity > Math.toRadians(60)) {
-            // EMF models may replace their logical base transform between render contexts
-            // (for example inventory preview -> world). That is not animation and must not
-            // roll the rider by 90 degrees. Rebase atomically on the final posed model.
-            selection.referencePart.set(currentPart);
-            delta = new Matrix4f();
-        } else delta = rigid(relative);
+        Matrix4f delta = rigid(relative);
         float width = Math.max(1F / 16, selection.width * profile.saddle().width());
         float depth = Math.max(1F / 16, selection.depth * profile.saddle().length());
         Matrix4f saddle = new Matrix4f(currentPart).mul(localSeat);
@@ -85,7 +90,24 @@ public final class TinyMountSeatResolver {
             String normalized = requested.equals("root") || requested.startsWith("root/") ? requested : "root/" + requested;
             Node explicit = nodes.stream().filter(n -> n.path.equals(normalized)).findFirst().orElse(null);
             if (explicit != null) {
-                Selection found = bestInNode(explicit, outer);
+                List<Face> candidates = new ArrayList<>();
+                int nearestGeometryDepth = Integer.MAX_VALUE;
+                for (Node node : nodes) {
+                    if (!node.path.equals(normalized) && !node.path.startsWith(normalized + "/")) continue;
+                    List<Face> local = new ArrayList<>();
+                    collectFaces(node, outer, local);
+                    if (local.isEmpty()) continue;
+                    int depth = node.chain.size();
+                    if (depth < nearestGeometryDepth) {
+                        nearestGeometryDepth = depth;
+                        candidates.clear();
+                    }
+                    if (depth == nearestGeometryDepth) candidates.addAll(local);
+                }
+                if (candidates.stream().anyMatch(face -> !accessoryPath(face.node.path)))
+                    candidates.removeIf(face -> accessoryPath(face.node.path));
+                Selection found = candidates.stream().max(Comparator.comparingDouble(f -> f.area))
+                        .map(Face::selection).orElse(null);
                 if (found != null) return found;
             }
             warnOnce(diagnosticName + ":missing:" + requested,
@@ -136,7 +158,7 @@ public final class TinyMountSeatResolver {
 
     private static void collectFaces(Node node, Matrix4fc outer, List<Face> output) {
         if (!node.visible || node.part.skipDraw) return;
-        Matrix4f posed = chain(node.chain, false);
+        Matrix4f posed = chain(node.chain, true);
         Matrix4f renderedPose = new Matrix4f(outer).mul(posed);
         Matrix3f normalTransform = new Matrix3f(renderedPose).invert().transpose();
         for (ModelPart.Cube cube : ((ModelPartAccess)(Object)node.part).scalebrews$cubes()) {
@@ -167,11 +189,25 @@ public final class TinyMountSeatResolver {
         return !selected.skipDraw && !((ModelPartAccess)(Object)selected).scalebrews$cubes().isEmpty();
     }
 
-    /** Cheap model-variant fingerprint: hierarchy/visibility only, never walks polygon data. */
+    private static boolean accessoryPath(String path) {
+        String lower = path.toLowerCase(java.util.Locale.ROOT);
+        return lower.contains("head") || lower.contains("mane") || lower.contains("tail")
+                || lower.contains("leg") || lower.contains("wing");
+    }
+
+    /** EMF uses these generated leaf parts to convert model coordinates, not as animated torso bones. */
+    private static boolean generatedRotationWrapper(Selection selection) {
+        String leaf = selection.path.substring(selection.path.lastIndexOf('/') + 1).toLowerCase(java.util.Locale.ROOT);
+        return selection.chain.size() > 1 && leaf.startsWith("emf_") && leaf.contains("rotation");
+    }
+
+    /** Includes replacement parts/cubes, but never walks polygon data or animated poses. */
     private static int variantSignature(ModelPart part) {
-        int hash = 31 * Boolean.hashCode(part.visible) + Boolean.hashCode(part.skipDraw);
+        int hash = 31 * System.identityHashCode(part) + Boolean.hashCode(part.visible);
+        hash = 31 * hash + Boolean.hashCode(part.skipDraw);
         var access = (ModelPartAccess)(Object)part;
         hash = 31 * hash + access.scalebrews$cubes().size();
+        for (var cube : access.scalebrews$cubes()) hash = 31 * hash + System.identityHashCode(cube);
         for (var entry : access.scalebrews$children().entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
             hash = 31 * hash + entry.getKey().hashCode();
             hash = 31 * hash + variantSignature(entry.getValue());

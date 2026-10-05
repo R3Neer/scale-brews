@@ -76,7 +76,10 @@ public final class S29AdversarialCatalogDimensionProof implements FabricClientGa
                     || AnatomyClientNetworking.presentationInterval(cow,first.certificate.materialSerial(),.5)
                         .filter(frame->frame.identity().revision()==first.certificate.revision()).isPresent()
                     || inbox().certificates(uuid.get(),clientTick()).stream().anyMatch(token->token.revision()==first.certificate.revision()))
-                    throw new AssertionError("Old catalog/interval replay rolled accepted reload backward");
+                    throw new AssertionError("Old catalog/interval replay rolled accepted reload backward: oldRevision="
+                        +first.certificate.revision()+" catalogRevision="+AnatomyClientNetworking.catalog().revision()
+                        +" catalogEpoch="+AnatomyClientNetworking.catalog().epoch()+" oldEpoch="+first.certificate.epoch()
+                        +" certificates="+inbox().certificates(uuid.get(),clientTick()));
             });
             var second=move(context,world,id,uuid);
             if(second.certificate.revision()<=first.certificate.revision())throw new AssertionError("Fresh interval uses old catalog revision");
@@ -133,11 +136,21 @@ public final class S29AdversarialCatalogDimensionProof implements FabricClientGa
     }
     private static PlatformDefinition profile(String model){return new PlatformDefinition(Identifier.parse("minecraft:cow"),true,.6,Optional.empty(),List.of(),
         Optional.of(new AnatomyDefinition(Identifier.parse(model),Identifier.parse("scalebrews:quadruped"),AnatomyFilter.DEFAULT)));}
-    private static void await(ClientGameTestContext c,AtomicInteger id,long revision){c.waitFor(client->{
+    private static void await(ClientGameTestContext c,AtomicInteger id,long revision){try {c.waitFor(client->{
         if(client.level==null || client.level.dimension()!=Level.OVERWORLD || !(client.level.getEntity(id.get()) instanceof Cow cow))return false;
         var frame=AnatomyClientNetworking.presentationFrame(cow);return frame.isPresent() && frame.get().identity().revision()>=revision
             && AnatomyMovement.queryFrame(cow).isPresent();
-    },260);}
+    },260);} catch(AssertionError failure) {
+        c.runOnClient(client->{var entity=client.level==null?null:client.level.getEntity(id.get());
+            System.out.println("S29 AWAIT DIAGNOSTIC requested="+revision+" level="+client.level
+                +" entity="+entity+" catalogEpoch="+AnatomyClientNetworking.catalog().epoch()
+                +" catalogRevision="+AnatomyClientNetworking.catalog().revision()+" ready="+AnatomyClientNetworking.catalog().ready()
+                +" bindings="+AnatomyClientNetworking.catalog().snapshot().bindings().keySet()
+                +" pose="+(entity==null?null:AnatomyClientNetworking.pose(entity.getUUID()))
+                +" presentation="+(entity instanceof Cow cow?AnatomyClientNetworking.presentationFrame(cow):null)
+                +" physical="+(entity instanceof Cow cow?AnatomyMovement.queryFrame(cow):null));});
+        throw failure;
+    }}
     private static Material move(ClientGameTestContext c,net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext world,AtomicInteger id,AtomicReference<UUID> uuid){
         var before=new AtomicReference<GeometryProvider.PublishedFrame>();var after=new AtomicReference<GeometryProvider.PublishedFrame>();var generation=new AtomicLong();
         world.getServer().runOnServer(server->{var cow=(Cow)server.overworld().getEntity(id.get());

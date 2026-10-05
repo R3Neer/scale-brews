@@ -108,7 +108,12 @@
       "io.github.r3neer.scalebrews.collision.internal.S29ImplementerEndpointRetentionTests",
       "io.github.r3neer.scalebrews.collision.internal.S29ImplementerCatalogIntervalTests",
       "io.github.r3neer.scalebrews.collision.internal.S29ImplementerRecipientGenerationTests",
-      "io.github.r3neer.scalebrews.test.S29AdversarialPresentationWorkTests"
+      "io.github.r3neer.scalebrews.test.S29AdversarialPresentationWorkTests",
+      "io.github.r3neer.scalebrews.test.ScaleGaitTests",
+      "io.github.r3neer.scalebrews.test.TinyMountMenuTests",
+      "io.github.r3neer.scalebrews.test.TinyMountFamilyTests",
+      "io.github.r3neer.scalebrews.test.GravityFrameTests",
+      "io.github.r3neer.scalebrews.test.TinyMountGravityTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
@@ -134,7 +139,10 @@
       "io.github.r3neer.scalebrews.test.S29AdversarialCertificateIdentityProof",
       "io.github.r3neer.scalebrews.test.S29AdversarialLifecycleOrderingProof",
       "io.github.r3neer.scalebrews.test.S29AdversarialWireBoundsProof",
-      "io.github.r3neer.scalebrews.test.S29AdversarialCrossSupportProof"
+      "io.github.r3neer.scalebrews.test.S29AdversarialCrossSupportProof",
+      "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance",
+      "io.github.r3neer.scalebrews.test.S42AdversarialRetiredDisconnectProof",
+      "io.github.r3neer.scalebrews.test.S42AdversarialCurrentDisconnectProof"
     ]
   }
 }

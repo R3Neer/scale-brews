@@ -7,6 +7,8 @@
 		"WolfMountMixin",
 		"WolfRiderLifecycleMixin",
 		"TinyMountDismountInputMixin",
+		"TinyMountServerInventoryMixin",
+		"TinyMountDispenserMixin",
 		"WolfAuthorityMixin",
 		"WolfConnectionMixin",
 		"ScaleHarvestPlayerMixin",
@@ -35,6 +37,7 @@
 		"MountedBeeHiveMixin",
 		"GiantVillagerFearMixin",
 		"LivingEntityMixin",
+		"ScaleStepSoundMixin",
 		"BeaconEffectsAccessor",
 		"ScaleHealthMixin",
 		"ScaleTerrainMixin",
@@ -48,10 +51,6 @@
 		"ScaleAttackExhaustionMixin",
 		"AnatomyObserverPacketMixin"
 	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+	"injectors": { "defaultRequire": 1 },
+	"overwrites": { "requireAnnotations": true }
 }

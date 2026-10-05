@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -21,8 +23,8 @@ public final class S25ReceiptAuthorityIsolationTests {
         var support=h.spawn(EntityTypes.COW,2,2,2);
         support.setNoAi(true);support.setNoGravity(true);
         var body=h.spawn(EntityTypes.OAK_BOAT,3,2,2);
-        var first=h.makeMockServerPlayerInLevel();
-        var second=h.makeMockServerPlayerInLevel();
+        var first=connectedCreative(h);
+        var second=connectedCreative(h);
 
         h.assertTrue(first.startRiding(body,true,true) && second.startRiding(body,true,true),
             "Fixture requires two recipients observing the same controlled/passenger body");

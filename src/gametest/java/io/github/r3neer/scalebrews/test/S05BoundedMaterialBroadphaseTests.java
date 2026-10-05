@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
@@ -155,7 +157,7 @@ public final class S05BoundedMaterialBroadphaseTests {
 
     @GameTest
     public void runtimeClearanceFailsClosedWhenBroadphaseBudgetExhausts(GameTestHelper h) {
-        var body = h.makeMockServerPlayerInLevel();
+        var body = connectedCreative(h);
         AnatomyMovement.activate(h.getLevel());
         try {
             var pathological = new AABB(-1000, -1000, -1000, 1000, 1000, 1000);
@@ -170,7 +172,7 @@ public final class S05BoundedMaterialBroadphaseTests {
 
     @GameTest
     public void runtimeMovementBlocksWhenBroadphaseBudgetExhausts(GameTestHelper h) {
-        var body = h.makeMockServerPlayerInLevel();
+        var body = connectedCreative(h);
         AnatomyMovement.activate(h.getLevel());
         try {
             var requested = new Vec3(100000, 0, 0);
@@ -186,7 +188,7 @@ public final class S05BoundedMaterialBroadphaseTests {
     @GameTest
     public void oversizedRuntimeSupportQuarantinesUntilExplicitRebind(GameTestHelper h) {
         var support = h.spawn(net.minecraft.world.entity.EntityTypes.COW, 2, 20, 2);
-        var body = h.makeMockServerPlayerInLevel();
+        var body = connectedCreative(h);
         support.setNoAi(true);
         support.setNoGravity(true);
         GeometryProvider huge = entity -> java.util.Optional.of(new GeometryProvider.Snapshot(1, Map.of("body",

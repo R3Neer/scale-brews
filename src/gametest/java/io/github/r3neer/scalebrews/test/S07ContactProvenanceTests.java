@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -45,7 +47,7 @@ public final class S07ContactProvenanceTests {
         var nearSupport=h.spawn(EntityTypes.COW,3,20,2);
         hitSupport.setNoAi(true);hitSupport.setNoGravity(true);
         nearSupport.setNoAi(true);nearSupport.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();
+        var body=connectedCreative(h);
         body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();
 

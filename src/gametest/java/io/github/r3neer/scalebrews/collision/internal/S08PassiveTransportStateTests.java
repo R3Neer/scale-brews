@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -17,7 +19,7 @@ public final class S08PassiveTransportStateTests {
     @GameTest
     public void certifiedPassiveCarryDoesNotRewriteVoluntaryMovementAccounting(GameTestHelper h) {
         var level=h.getLevel();var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();body.setNoGravity(true);body.setPos(support.position().add(0,1,0));
+        var body=connectedCreative(h);body.setNoGravity(true);body.setPos(support.position().add(0,1,0));
         long revision=311,tick=level.getGameTime();
         var material=ConvexBox.of(new AABB(-.5,-.1,-.5,.5,0,.5),new Matrix4f()).move(support.position().add(0,1,0));
         int face=3;Vec3 normal=material.faceNormal(face),local=material.facePoint(face,body.getBoundingBox().getCenter());

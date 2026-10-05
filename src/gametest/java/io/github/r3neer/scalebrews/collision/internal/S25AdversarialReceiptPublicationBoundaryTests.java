@@ -5,10 +5,12 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
-import java.util.concurrent.atomic.AtomicReference;
+import com.mojang.authlib.GameProfile;
+import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
@@ -22,7 +24,11 @@ public final class S25AdversarialReceiptPublicationBoundaryTests {
         var server=h.getLevel().getServer();
         AnatomyTransportReceipts.clear(server);
         var support=h.spawn(EntityTypes.COW,2,4,2);
-        var body=(ServerPlayer)h.makeMockServerPlayer(GameType.SURVIVAL);
+        // The general mock helper now completes a network login. This oracle
+        // deliberately needs an unregistered recipient with no listener.
+        var body=new ServerPlayer(server,h.getLevel(),
+            new GameProfile(UUID.randomUUID(),"receipt-offline"),ClientInformation.createDefault());
+        GameType.SURVIVAL.updatePlayerAbilities(body.getAbilities());
         body.setPos(3,4,2);
 
         h.assertTrue(body.connection==null,

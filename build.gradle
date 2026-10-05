@@ -78,6 +78,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
+	it.options.compilerArgs += ['-Xlint:deprecation', '-Xmaxwarns', '10000']
 }
 
 tasks.withType(JavaExec).configureEach {
@@ -144,7 +145,7 @@ tasks.named('processGametestResources') {
 		if (tinyMountVisualProof.get().toBoolean()) {
 			def visualManifest = new File(destinationDir, 'fabric.mod.json')
 			def visualMetadata = new groovy.json.JsonSlurper().parse(visualManifest)
-			visualMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.ScaleBrewsClientTests']
+			visualMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.TinyMountClientAcceptance']
 			visualManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(visualMetadata))
 		}
 		if (hostIndependenceProof.get().toBoolean() && (anatomyOnly.get().toBoolean() || readmeCapture.get().toBoolean()

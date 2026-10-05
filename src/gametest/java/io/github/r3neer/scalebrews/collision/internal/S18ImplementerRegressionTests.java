@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.CollisionEngines;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
@@ -99,7 +101,7 @@ public final class S18ImplementerRegressionTests {
 
     @GameTest
     public void playerResidualSwimBlendFailsOrdinaryWalkingClosed(GameTestHelper h) {
-        var player = h.makeMockServerPlayerInLevel();
+        var player = connectedCreative(h);
         player.setPose(Pose.STANDING);
         try {
             var swim = net.minecraft.world.entity.LivingEntity.class.getDeclaredField("swimAmount");

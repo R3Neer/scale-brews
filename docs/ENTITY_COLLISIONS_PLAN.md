@@ -373,6 +373,21 @@ sin cambios: `docs/sprints/S41-g5-experimental-minecart-handoff.md` y
 equivalencia/no-participación, retirada legacy y single owner siguen abiertas.
 G6-G9 y QA humana permanecen al final de la épica.
 
+**S42 cerrado localmente, integración previa a la retirada legacy:** se integra
+`main@b5e62535` con sus monturas, inventario, equipo, render, gait y reach,
+conservando el motor canónico y una sola autoridad/frame de gravedad. El puente
+opcional FirstPerson prepara sus accesores una vez y fue ejecutado con el JAR
+real fijado del pack. Un holdout de desconexión real tardía descubrió un reset
+de la sesión nueva; JOIN/DISCONNECT ahora se ejecutan en el executor cliente y
+comprueban la identidad propietaria. El mismo oracle pasa, la desconexión actual
+limpia correctamente y la mutación de ownership queda detectada. Build y servidor
+**483/483**, cliente completo **27 entrypoints**, composición preparada **2/2**
+y control experimental real están verdes. La revisión independiente y la final
+del implementador no requieren más cambios productivos. Evidencia y límites en
+`docs/sprints/S42-mainline-reconciliation.md` y `docs/VALIDATION.md`; el commit
+local de integración identifica `Sprint: S42`. Las tareas 6-9 de G5 y G6-G9
+siguen abiertas; no se adelanta la QA humana al final de un sprint.
+
 **Salida:** un solo motor físico, sin convertir entidades no elegibles en paredes ni borrar el push vanilla de una moving platform.
 
 ### G6 — cobertura completa de Minecraft general

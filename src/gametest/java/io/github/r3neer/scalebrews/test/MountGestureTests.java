@@ -12,26 +12,36 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
 public class MountGestureTests {
-    @GameTest public void anyItemMountsAndSameWolfCanBeRemounted(GameTestHelper h) {
-        var player=h.makeMockServerPlayerInLevel();
+    @GameTest public void saddledWolfMountsWithoutFeedingAndCanBeRemounted(GameTestHelper h) {
+        var player=h.makeMockServerPlayer(GameType.CREATIVE);
         player.getAttribute(Attributes.SCALE).setBaseValue(.52);
         var wolf=h.spawn(EntityTypes.WOLF,2,2,2);wolf.tame(player);wolf.setNoAi(true);
-        for(boolean saddled:new boolean[]{false,true}) {
-            wolf.setItemSlot(EquipmentSlot.SADDLE,saddled?new ItemStack(Items.SADDLE):ItemStack.EMPTY);
-            for(var item:java.util.List.of(Items.STONE,Items.BEEF,Items.BONE,Items.SADDLE,Items.LEAD,Items.WOLF_ARMOR,Items.NAME_TAG,Items.WOLF_SPAWN_EGG)) {
-                player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(item,2));
-                player.setShiftKeyDown(true);
+        wolf.setItemSlot(EquipmentSlot.SADDLE,new ItemStack(Items.SADDLE));
+        for(int attempt=0;attempt<3;attempt++) {
+                player.setItemInHand(InteractionHand.MAIN_HAND,ItemStack.EMPTY);
+                player.setShiftKeyDown(false);
                 player.interactOn(wolf,InteractionHand.MAIN_HAND,Vec3.ZERO);
-                h.assertTrue(player.getVehicle()==wolf,"Shift mounts with "+item+" saddled="+saddled);
+                h.assertTrue(player.getVehicle()==wolf,"Ordinary use mounts a saddled tame wolf");
                 player.rideTick();
-                h.assertTrue(player.getVehicle()==wolf,"Held mounting Shift must not eject a repeated rider");
-                h.assertTrue(player.getMainHandItem().getCount()==2 && !wolf.isInLove(),"Mount gesture cannot use the item");
-                h.assertTrue(wolf.getItemBySlot(EquipmentSlot.SADDLE).is(Items.SADDLE)==saddled,"Mount gesture does not saddle");
-                player.setShiftKeyDown(false);player.rideTick();
+                h.assertTrue(player.getVehicle()==wolf,"Repeated rider stays mounted");
+                for(int tick=0;tick<120;tick++) io.github.r3neer.scalebrews.mount.WolfTaming.tick(wolf);
+                h.assertTrue(!wolf.isInLove() && wolf.isTame(),"Mounting cannot activate breeding or change taming");
+                h.assertTrue(wolf.isOwnedBy(player) && io.github.r3neer.scalebrews.mount.WolfTaming.trust(wolf)==0,
+                        "Tamed riding never re-enters the wild taming timer");
                 player.setShiftKeyDown(true);player.rideTick();
                 h.assertFalse(player.isPassenger(),"Fresh Shift press still dismounts");
-            }
         }
+        player.setShiftKeyDown(true);
+        var oldMenu=player.containerMenu;
+        player.interactOn(wolf,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertTrue(player.containerMenu!=oldMenu && !player.isPassenger(),"Shift use opens inventory, never mounts");
+        player.containerMenu=player.inventoryMenu;
+        wolf.setItemSlot(EquipmentSlot.SADDLE,ItemStack.EMPTY);
+        player.setShiftKeyDown(false);
+        player.interactOn(wolf,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertTrue(wolf.isOrderedToSit() && !player.isPassenger(),"Unsaddled wolf sits");
+        player.interactOn(wolf,InteractionHand.MAIN_HAND,Vec3.ZERO);
+        h.assertFalse(wolf.isOrderedToSit(),"Unsaddled wolf stands");
         player.setShiftKeyDown(false);player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.BEEF));
         player.interactOn(wolf,InteractionHand.MAIN_HAND,Vec3.ZERO);
         h.assertTrue(wolf.isInLove(),"Ordinary feeding retains vanilla breeding");
@@ -39,17 +49,17 @@ public class MountGestureTests {
     }
 
     @GameTest public void configuredCatUsesSameGesture(GameTestHelper h) {
-        try(var scope=new TinyDefinitionTestScope("{\"entity\":\"minecraft:cat\",\"saddle\":false,\"control\":\"direct\",\"movement\":\"ground\",\"speed\":0.3}")) {
+        try(var scope=new TinyDefinitionTestScope("{\"entity\":\"minecraft:cat\",\"family\":\"tameable_direct\",\"movement\":\"ground\",\"speed\":0.3,\"saddle_visual\":{\"texture\":\"scalebrews:textures/entity/saddle/chicken.png\",\"anchor\":\"body\"}}")) {
             var player=h.makeMockPlayer(GameType.SURVIVAL);
             player.getAttribute(Attributes.SCALE).setBaseValue(.28);
             var cat=h.spawn(EntityTypes.CAT,2,2,2);cat.tame(player);cat.setNoAi(true);
             player.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.COD,2));
             for(int attempt=0;attempt<2;attempt++) {
                 player.setShiftKeyDown(true);player.interactOn(cat,InteractionHand.MAIN_HAND,Vec3.ZERO);player.rideTick();
-                h.assertTrue(player.getVehicle()==cat && !cat.isInLove(),"Configured tameable mounts instead of feeding");
+                h.assertTrue(player.getVehicle()==cat && !cat.isInLove(),"Configured tameable family mounts instead of feeding");
                 player.setShiftKeyDown(false);player.rideTick();
                 player.setShiftKeyDown(true);player.rideTick();
-                h.assertFalse(player.isPassenger(),"Configured tameable dismounts on new Shift");
+                h.assertFalse(player.isPassenger(),"Configured tameable family dismounts on new Shift");
             }
             h.assertTrue(player.getMainHandItem().getCount()==2,"Held food preserved");
         }

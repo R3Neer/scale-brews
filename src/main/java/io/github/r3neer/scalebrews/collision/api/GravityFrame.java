@@ -11,14 +11,36 @@ public record GravityFrame(Direction down) {
     public Vec3 up(){return gravity().scale(-1);}
     /** Cardinal basis matches Gravity Changer 1.5.2-beta.5's RotationUtil, without a dependency. */
     public Vec3 toWorld(Vec3 local) {
+        java.util.Objects.requireNonNull(local,"local");
+        return down==Direction.DOWN?local:toWorld(local.x,local.y,local.z);
+    }
+    public Vec3 toWorld(double x,double y,double z) {
         return switch(down) {
-            case DOWN->local;case UP->new Vec3(-local.x,-local.y,local.z);
-            case NORTH->new Vec3(local.x,-local.z,local.y);case SOUTH->new Vec3(-local.x,-local.z,-local.y);
-            case WEST->new Vec3(local.y,-local.z,-local.x);case EAST->new Vec3(-local.y,-local.z,local.x);
+            case DOWN->new Vec3(x,y,z);case UP->new Vec3(-x,-y,z);
+            case NORTH->new Vec3(x,-z,y);case SOUTH->new Vec3(-x,-z,-y);
+            case WEST->new Vec3(y,-z,-x);case EAST->new Vec3(-y,-z,x);
         };
     }
     public Vec3 toLocal(Vec3 world) {
-        return new Vec3(world.dot(toWorld(new Vec3(1,0,0))),world.dot(up()),world.dot(toWorld(new Vec3(0,0,1))));
+        java.util.Objects.requireNonNull(world,"world");
+        return down==Direction.DOWN?world:toLocal(world.x,world.y,world.z);
+    }
+    public Vec3 toLocal(double x,double y,double z) {
+        return switch(down) {
+            case DOWN->new Vec3(x,y,z);case UP->new Vec3(-x,-y,z);
+            case NORTH->new Vec3(x,z,-y);case SOUTH->new Vec3(-x,-z,-y);
+            case WEST->new Vec3(-z,x,-y);case EAST->new Vec3(z,-x,-y);
+        };
+    }
+    /** Keep the effective local vertical of existing world momentum. */
+    public Vec3 keepLocalVertical(Vec3 world) {
+        Vec3 local=toLocal(world);
+        return toWorld(0,local.y,0);
+    }
+    /** Change only local vertical; preserve both tangential components. */
+    public Vec3 multiplyLocalVertical(Vec3 world,double multiplier) {
+        Vec3 local=toLocal(world);
+        return toWorld(local.x,local.y*multiplier,local.z);
     }
     public org.joml.Matrix4f matrix() {
         var x=toWorld(new Vec3(1,0,0));var y=up();var z=toWorld(new Vec3(0,0,1));

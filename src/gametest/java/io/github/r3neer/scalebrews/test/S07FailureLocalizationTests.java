@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
@@ -40,8 +42,8 @@ public final class S07FailureLocalizationTests {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
-        var trapped=h.makeMockServerPlayerInLevel();
-        var safe=h.makeMockServerPlayerInLevel();
+        var trapped=connectedCreative(h);
+        var safe=connectedCreative(h);
         trapped.setNoGravity(true);safe.setNoGravity(true);
         trapped.getAttribute(Attributes.SCALE).setBaseValue(.2);trapped.refreshDimensions();
         safe.getAttribute(Attributes.SCALE).setBaseValue(.2);safe.refreshDimensions();

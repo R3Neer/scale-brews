@@ -39,6 +39,7 @@ public record TinyMountVisualProfile(Anchor anchor, Saddle saddle) {
                 generation++;
                 TinyMountSeatResolver.clearCaches();
                 TinyMountCamera.clear();
+                MountRenderFrame.clear();
             }
         });
     }
@@ -50,7 +51,8 @@ public record TinyMountVisualProfile(Anchor anchor, Saddle saddle) {
     public static TinyMountVisualProfile resolve(Identifier entity, io.github.r3neer.scalebrews.mount.TinyMountDefinition.SaddleVisual legacy) {
         TinyMountVisualProfile explicit = profiles.get(entity);
         if (explicit != null || legacy == null) return explicit == null ? DEFAULT : explicit;
-        return new TinyMountVisualProfile(Anchor.DEFAULT,
+        return new TinyMountVisualProfile(new Anchor(legacy.anchor().isBlank() ? null : legacy.anchor(),
+                new Vector3f(.5F, 1, .5F), new Vector3f(), new Vector3f()),
                 new Saddle(legacy.texture(), 1, 1, 1, 1));
     }
 

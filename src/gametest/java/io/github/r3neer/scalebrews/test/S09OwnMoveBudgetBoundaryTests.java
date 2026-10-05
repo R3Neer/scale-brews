@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.GeometryProvider;
@@ -22,7 +24,7 @@ public final class S09OwnMoveBudgetBoundaryTests {
     public void queryBudgetExhaustionCannotBecomePartialOwnMovement(GameTestHelper h) {
         var level=h.getLevel();
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();body.setNoGravity(true);
+        var body=connectedCreative(h);body.setNoGravity(true);
         body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(support.position().add(0,2,0));
         var captured=body.getBoundingBox();

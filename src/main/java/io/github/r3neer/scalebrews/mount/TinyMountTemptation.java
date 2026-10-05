@@ -19,7 +19,7 @@ public final class TinyMountTemptation {
     private TinyMountTemptation() {}
 
     public static boolean matches(TinyMountDefinition definition, ItemStack stack) {
-        return definition != null && definition.control() == TinyMountDefinition.Control.ITEM_STEERED
+        return definition != null && definition.family().usesSteeringItem()
                 && !stack.isEmpty() && definition.steeringItem().flatMap(BuiltInRegistries.ITEM::getOptional)
                 .map(stack::is).orElse(false);
     }
@@ -32,7 +32,7 @@ public final class TinyMountTemptation {
 
     public static void install(Mob mob, GoalSelector goals) {
         var definition = TinyMounts.definition(mob);
-        if (definition == null || definition.control() != TinyMountDefinition.Control.ITEM_STEERED) return;
+        if (definition == null || !definition.family().usesSteeringItem()) return;
         if (goals.getAvailableGoals().stream().anyMatch(goal -> goal.getGoal() instanceof TemptGoal)) return;
         // Priority 3 leaves the usual emergency/combat goals above attraction.
         goals.addGoal(3, new SteeringGoal(mob));

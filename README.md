@@ -27,7 +27,7 @@ Brew an **Awkward Potion with a Slime Ball** to begin growing, then try a Fermen
 
 The brewing stand has more to offer. When you want the answers, the **[player guide](docs/GUIDE.md)** contains recipes, exact numbers, controls and all the less-obvious interactions. It is deliberately spoiler-rich.
 
-One control worth knowing: for wolves, use **Crouch + Use** to mount, leaving ordinary Use for feeding, sitting and equipping. These follow your configured bindings, not hardcoded keys.
+One control worth knowing: ordinary **Use** mounts a saddled tame wolf with an empty hand; without a saddle it keeps sit/stand. **Crouch + Use** opens its equipment inventory. Feeding and other item interactions retain their vanilla meaning. Wild ride-taming still uses Crouch + Use. These follow your configured bindings, not hardcoded keys.
 
 ## Install
 
@@ -39,9 +39,15 @@ Requires **Minecraft 26.2**, **Java 25**, **Fabric Loader 0.19.5+** and **Fabric
 
 No other mod is required. English and Spanish translations are included. World owners can tune or disable optional mechanics through [JSON configuration](docs/CONFIGURATION.md).
 
+## Optional Alchemical Leather integration
+
+When Alchemical Leather is installed, Scale Brews owns the compatibility declarations for its own potion effects. Growth and Shrinking are mapped to chestplate infusions, and both explicitly declare `wear: none`: maintaining a size state does not consume armor durability merely because time passes. The integration is data-only and adds no hard dependency, so Scale Brews behaves normally when Alchemical Leather is absent. The implementation and validation record lives in [the TM compatibility note](docs/TM_ALCHEMICAL_LEATHER_COMPAT.md).
+
 ## Before you jump in
 
 This is a **beta**, not a promise of compatibility with every pack. Back up worlds before updating. See [tested behavior and remaining QA](docs/VALIDATION.md).
+
+Tiny Mounts remain ordinary Minecraft mounts at the integration boundary. When a compatible gravity provider is present, Scale-generated bee flight, chicken glide and wolf pounce/landing use the root mount's effective gravity frame instead of assuming world-down. **Gravity Changer is the provider Scale Brews currently recognizes automatically**; with no provider installed, the frame falls back to vanilla `DOWN` and Tiny Mount behavior is unchanged. See [effective-gravity integration](docs/GRAVITY_INTEGRATION.md).
 
 The released beta still uses its existing upper-surface living-platform behavior. The replacement **all-direction entity-collision system is development work and is not a released gameplay feature**. Its architecture, requirements and implementation order are maintained only in the canonical [entity-collision documentation](docs/ENTITY_COLLISIONS.md); test evidence remains in [Validation](docs/VALIDATION.md).
 
@@ -50,6 +56,8 @@ The released beta still uses its existing upper-surface living-platform behavior
 - [Player guide / wiki](docs/GUIDE.md) — the full reference, with spoilers.
 - [World configuration](docs/CONFIGURATION.md) — make the released rules fit your world.
 - [Entity-collision architecture](docs/ENTITY_COLLISIONS.md) · [requirements](docs/ENTITY_COLLISIONS_REQUIREMENTS.md) · [implementation plan](docs/ENTITY_COLLISIONS_PLAN.md)
+- [Alchemical Leather compatibility](docs/TM_ALCHEMICAL_LEATHER_COMPAT.md) — owned slot/wear declarations and validation evidence.
+- [Effective-gravity integration](docs/GRAVITY_INTEGRATION.md) — how mount-generated movement composes with optional gravity providers.
 - [Build and contribute](docs/GUIDE.md#development) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/R3Neer/scale-brews/issues)
 
 [GPL-3.0-or-later](LICENSE). Original pixel art is hand-authored, not AI-generated; the images above are real in-game captures. [Artwork and screenshot details](docs/GUIDE.md#license-and-artwork).

@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.test;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -42,7 +44,7 @@ public final class S07MaterialBoundaryTests {
 
     @GameTest public void contactExistingOnlyMidIntervalCannotTunnel(GameTestHelper h) throws Exception {
         var support=h.spawn(EntityTypes.GHAST,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var body=connectedCreative(h);body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(support.position().add(0,1,0));
         try {
             var center=body.getBoundingBox().getCenter();
@@ -82,7 +84,7 @@ public final class S07MaterialBoundaryTests {
 
     @GameTest public void preexistingBodyOverlapDoesNotQuarantineUnchangedEvent(GameTestHelper h) throws Exception {
         var support=h.spawn(EntityTypes.GHAST,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var first=h.makeMockServerPlayerInLevel();var second=h.makeMockServerPlayerInLevel();
+        var first=connectedCreative(h);var second=connectedCreative(h);
         first.setPos(support.position().add(8,1,0));second.setPos(first.position());
         try {
             var box=ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(support.position());
@@ -98,7 +100,7 @@ public final class S07MaterialBoundaryTests {
 
     @GameTest public void staticBlockObstructionPreventsMaterialPushThroughWall(GameTestHelper h) throws Exception {
         var support=h.spawn(EntityTypes.GHAST,2,20,2);support.setNoAi(true);support.setNoGravity(true);
-        var body=h.makeMockServerPlayerInLevel();body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
+        var body=connectedCreative(h);body.getAttribute(Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         body.setPos(support.position().add(0,1,0));
         try {
             var startBox=body.getBoundingBox();

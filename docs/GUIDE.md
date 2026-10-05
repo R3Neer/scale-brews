@@ -64,7 +64,7 @@ Base durations are **3 minutes / 90 seconds / 45 seconds** for levels I / II / I
 
 **Growth** makes you larger, tougher and stronger, with more health, interaction reach and step height. Walking feels like longer strides, while sprinting adds progressively less acceleration. Physical activity costs more exhaustion.
 
-Growth's entity reach increases by 50% / 100% / 150% at its pure-potion sizes: 4.5 / 6 / 7.5 blocks from a survival baseline of 3. This keeps small targets beside a giant's feet reachable from eye height. Block reach retains +20% / +40% / +60%; Shrinking's reach penalties are unchanged. Entity reach follows effective size throughout blending and mixed effects, continuing the same linear growth curve beyond Growth III for external scales (subject to vanilla attribute limits). Other reach modifiers still compose multiplicatively; explicit item attack-range components may use their own ranges.
+Growth's entity reach increases by 30% / 60% / 90% at its pure-potion sizes: **3.9 / 4.8 / 5.7 blocks** from a survival baseline of 3. Block reach remains +20% / +40% / +60%: **5.4 / 6.3 / 7.2 blocks** from a survival baseline of 4.5. Shrinking reduces both block and entity reach by 10% per equivalent level, giving entity ranges of **2.7 / 2.4 / 2.1** and block ranges of **4.05 / 3.60 / 3.15**. Entity reach follows effective size throughout blending and mixed effects, continuing the same linear Growth curve beyond Growth III for external scales (subject to vanilla attribute limits); Growth block reach and Shrinking reach retain their tier-III caps. Other reach modifiers still compose through Minecraft's attribute system, while explicit item attack-range components may use their own ranges.
 
 **Shrinking** trades health, damage and reach for a smaller body, explosive sprinting, slightly stronger jumps and lower physical exhaustion. It also reduces fall damage and movement-vibration detection range, with Swift Sneak synergy at levels II and III.
 
@@ -107,15 +107,19 @@ Use a boat item or spawn egg on an eligible living surface to place its entity w
 
 ### Ride and steer
 
-Equip an adult chicken, bee or tamed wolf with a saddle; equipping does not require being small. Riding does require the appropriate size ratio.
+The three default Tiny Mounts deliberately use different interaction families. A **Chicken** (`direct`) can carry a passive rider without a saddle and needs the vanilla saddle only for manual control. A **Wolf** (`tameable_direct`) can also carry a passive rider before it is tamed, which allows the riding-based taming route; equipment is unavailable until the animal is tamed, and after taming the wolf can still be ridden unsaddled while the saddle is required only for manual control. A **Bee** (`item_steered`) follows Pig/Strider-style rules: it must be saddled even to mount and then needs a Flower on a Stick for manual control. Equipping a saddle never requires the rider to be small, but tameable mounts must first be tamed; riding still requires the appropriate size ratio.
 
-For wolves and other configured tameables, hold **Crouch + Use** (your configured controls, normally Shift + right-click) with any item or an empty hand. This gesture mounts without using the held item, including food and saddles. Release Crouch before pressing it again to dismount; you can then mount the same animal again. Use without Crouch retains feeding, sitting and saddle equipment.
+For a tamed wolf, **Use** (normally right-click) with an empty hand mounts it if saddled; without a saddle it keeps the owner's sit/stand command. A spare saddle also permits mounting an already-saddled wolf. Food and other item interactions keep their vanilla meaning. **Crouch + Use** opens its equipment inventory. Wild wolves and other configured tameables retain Crouch + Use mounting; release Crouch before pressing again to dismount after that gesture.
 
 | Mount | Controls |
 | --- | --- |
 | Wolf | WASD movement; tap Space to bite, or hold and release for a pounce. Wolf Armor and saddle coexist. |
 | Chicken | WASD movement; hold Space while falling to glide. No ordinary jump. |
 | Bee | Hold a Flower on a Stick and look where you want to fly. Remove the item to release manual control. |
+
+Equipment UI follows the same families. **Chicken:** Crouch + Use from outside opens its saddle menu, and E opens that menu while riding. **Tamed wolf:** Crouch + Use opens its SADDLE + BODY equipment menu; E opens the same menu while mounted. **Bee:** there is no mount menu, so E opens the player's normal inventory. The saddle is Minecraft's normal shearable equipment in 26.2; shears remove it when the entity's own permissions allow. Shearable BODY equipment is removed before SADDLE by vanilla slot order, and a wolf keeps its vanilla owner-only shearing permission.
+
+Scale-generated bee flight, chicken glide and wolf pounce/landing use the **root mount's effective gravity frame** when a compatible provider is available. Gravity Changer is recognized automatically; no gravity mod is required, and without one the frame is vanilla `DOWN`. See [Effective-gravity integration](GRAVITY_INTEGRATION.md) for the ownership boundary and validation scope.
 
 Craft **Flower on a Stick** from a fishing rod and any vanilla small flower. Chicken and bee saddles have separate hand-authored visual layers; wolves can wear their saddle and Wolf Armor together. Each tiny mount carries one rider. Mounted bees stay out of hives.
 
@@ -149,7 +153,7 @@ Copy the [example datapack](../examples/world-config) into your world's `datapac
 
 The released optional mechanics below default to enabled. This does not enable the replacement all-direction collision subsystem. Configure:
 
-- Tiny Mounts as a whole, individual mount types, controls and saddle visuals.
+- Tiny Mounts as a whole, individual mount types, interaction `family`, steering item, movement/ability, optional BODY equipment and saddle visuals.
 - Living-mount size ratios, independently of the Tiny Mounts switch.
 - Legacy Living Platforms categories, support species, friction and physical-width ratios while that released engine exists.
 - Entity-scoped material drops through the separate reloadable loot definitions.
@@ -163,9 +167,11 @@ See [Configuration](CONFIGURATION.md) for paths, complete JSON examples, extensi
 
 ## Compatibility and validation
 
-The current released suite includes server GameTests plus a real client/integrated-server test covering camera, beacons, resources, synchronization, tiny-mount input, animated saddle/rider transforms and unmounted steering-item attraction. Collision-prototype evidence is tracked separately in the same [Validation](VALIDATION.md) record and does not imply release readiness. Changes after beta.7 require a fresh base-client run, the pinned EMF/Fresh Animations lane and manual visual acceptance before release.
+The current GitHub Actions workflow runs server GameTests plus a real client/integrated-server GameTest under Xvfb, covering camera, beacons, resources, synchronization, family-driven Tiny Mount mounting/inventory rules, saddle shearing and dispenser equipment, animated saddle/rider transforms, wolf controls and unmounted steering-item attraction. The released beta.7 evidence remains recorded in [Validation](VALIDATION.md). Changes after beta.7 require a fresh base-client run, the pinned EMF/Fresh Animations lane and manual visual acceptance before release.
 
 Base Fabric behavior has also been exercised with bounded optional integrations including **Combatify 1.4.0-26.2** and **Alex's Mobs Continued 2.1.9**. These are version-bounded checks, not a guarantee for every modpack, configuration or future version. Custom projectile, camera, movement, renderer or multipart implementations may need adapters or compatibility data.
+
+**Gravity Changer** is the concrete optional gravity provider currently recognized automatically. Six-frame Tiny Mount semantics are covered by provider-fixture regressions, while ordinary base CI verifies that the integration remains optional and vanilla-DOWN behavior still works without a gravity mod. See [Effective-gravity integration](GRAVITY_INTEGRATION.md).
 
 The target design deliberately separates generic Scale Brews collision engines from modpack-specific bindings. See [entity-collision architecture](ENTITY_COLLISIONS.md) for that developer contract and [Validation](VALIDATION.md) for what has actually been executed.
 

@@ -1,5 +1,7 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
+import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
+
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
@@ -24,7 +26,7 @@ public final class S25ImplementerReferenceTests {
     public void serverFrameClaimPreservesReceiptAndRejectsReplay(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,2,2);
         support.setNoAi(true);support.setNoGravity(true);
-        var player=h.makeMockServerPlayerInLevel();
+        var player=connectedCreative(h);
         player.setPos(3,2,2);
 
         long revision=AnatomyNetworking.revision(player.level().getServer());
@@ -63,7 +65,7 @@ public final class S25ImplementerReferenceTests {
     public void serverReceiptSequenceIsExactAndOneShot(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,2,2);
         support.setNoAi(true);support.setNoGravity(true);
-        var player=h.makeMockServerPlayerInLevel();
+        var player=connectedCreative(h);
         player.setPos(3,2,2);
 
         long revision=AnatomyNetworking.revision(player.level().getServer());

@@ -72,11 +72,11 @@ public class MountPlaytestTests {
         owner.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         wolf.setOrderedToSit(false);
         wolf.interact(owner, InteractionHand.MAIN_HAND, Vec3.ZERO);
-        h.assertTrue(wolf.isOrderedToSit() && !owner.isPassenger(), "Normal click retains sit command despite rider size");
+        h.assertTrue(!wolf.isOrderedToSit() && !owner.isPassenger(), "Oversized rider cannot mount or toggle a saddled wolf");
         guest.getAttribute(Attributes.SCALE).setBaseValue(.52);
-        guest.setShiftKeyDown(true); // Still holding the spare saddle from equipment above.
+        guest.setShiftKeyDown(false); // Still holding the spare saddle from equipment above.
         wolf.interact(guest, InteractionHand.MAIN_HAND, Vec3.ZERO);
-        h.assertTrue(guest.getVehicle() == wolf && !wolf.isOrderedToSit(), "Shift click mounts borrowed wolf");
+        h.assertTrue(guest.getVehicle() == wolf && !wolf.isOrderedToSit(), "Ordinary click mounts borrowed saddled wolf");
         h.assertTrue(guest.getMainHandItem().is(Items.SADDLE) && guest.getMainHandItem().getCount() == 1,
                 "Mounting an equipped wolf does not consume the held saddle");
         wolf.setItemSlot(EquipmentSlot.SADDLE, ItemStack.EMPTY); TinyMounts.enforceRider(guest);
@@ -156,18 +156,32 @@ public class MountPlaytestTests {
         h.assertTrue(wolf.isOwnedBy(rider),"Maximum trust guarantees next complete ride");
         rider.stopRiding();h.succeed();
     }
-    @GameTest public void unsaddledChickenAndBeeRetainOwnControl(GameTestHelper h) {
-        for (var type : java.util.List.of(EntityTypes.CHICKEN, EntityTypes.BEE)) {
-            var mob = (Mob)h.spawn(type, 2, 2, 2);
-            var player = h.makeMockPlayer(GameType.SURVIVAL);
-            player.getAttribute(Attributes.SCALE).setBaseValue(.28);
-            mob.interact(player, InteractionHand.MAIN_HAND, Vec3.ZERO);
-            h.assertTrue(player.getVehicle() == mob && TinyMounts.controller(mob) == null, "Unsaddled passive mount " + type);
-            TinyMounts.enforceRider(player);
-            h.assertTrue(player.getVehicle() == mob, "Passive rider retained");
-            player.stopRiding(); mob.discard();
-        }
-        h.succeed();
+    @GameTest public void unsaddledPassengerRulesFollowFamily(GameTestHelper h) {
+        var chicken = h.spawn(EntityTypes.CHICKEN, 2, 2, 2);
+        var chickenRider = h.makeMockPlayer(GameType.SURVIVAL);
+        chickenRider.getAttribute(Attributes.SCALE).setBaseValue(.28);
+        chicken.interact(chickenRider, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertTrue(chickenRider.getVehicle() == chicken && TinyMounts.controller(chicken) == null,
+                "Direct family permits an unsaddled passive passenger");
+        TinyMounts.enforceRider(chickenRider);
+        h.assertTrue(chickenRider.getVehicle() == chicken, "Direct family retains its unsaddled passive passenger");
+        chickenRider.stopRiding();
+
+        var bee = h.spawn(EntityTypes.BEE, 4, 2, 2);
+        var beeRider = h.makeMockPlayer(GameType.SURVIVAL);
+        beeRider.getAttribute(Attributes.SCALE).setBaseValue(.28);
+        bee.interact(beeRider, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertFalse(beeRider.isPassenger(), "Item-steered family rejects mounting without a saddle");
+        h.assertFalse(beeRider.startRiding(bee, true, true), "Generic riding path also enforces item-steered saddle requirement");
+        bee.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
+        bee.interact(beeRider, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        h.assertTrue(beeRider.getVehicle() == bee && TinyMounts.controller(bee) == null,
+                "Saddled item-steered mount accepts passenger but needs its steering item for control");
+        bee.setItemSlot(EquipmentSlot.SADDLE, ItemStack.EMPTY);
+        TinyMounts.enforceRider(beeRider);
+        h.assertFalse(beeRider.isPassenger(), "Removing saddle ejects an item-steered passenger like pig/strider");
+
+        chicken.discard(); bee.discard(); h.succeed();
     }
     @GameTest public void playerHeadRemainsAnatomical(GameTestHelper h) {
         var giant=h.makeMockPlayer(GameType.SURVIVAL);
