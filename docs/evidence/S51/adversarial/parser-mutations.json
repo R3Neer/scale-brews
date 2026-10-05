@@ -1,0 +1,53 @@
+{
+  "sourceSha256": "68b54c14d4a441f93842a4b891f3905105d7f32dac25d1d28994f5684c540f8d",
+  "results": [
+    {
+      "mutant": "instruction-cap",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted instruction_limit"
+    },
+    {
+      "mutant": "class-cap",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted class_limit"
+    },
+    {
+      "mutant": "method-cap",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted class_identity_or_method_limit"
+    },
+    {
+      "mutant": "whole-program",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted extra_program"
+    },
+    {
+      "mutant": "resource-digest",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted original_dependency_changed"
+    },
+    {
+      "mutant": "local-reference-type",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted program_local"
+    },
+    {
+      "mutant": "local-float-type",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted program_float_local"
+    },
+    {
+      "mutant": "identity-cache",
+      "exit": 1,
+      "killed": true,
+      "reason": "Exception in thread \"main\" java.lang.IllegalArgumentException: original_selector:class_limit"
+    }
+  ]
+}

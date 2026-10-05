@@ -1,0 +1,17 @@
+[
+  "native.init.gradle",
+  "parser_mutations.py",
+  "render_snapshot.py",
+  "write_receipt.py",
+  "finalize_evidence.py",
+  "src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\S51IndependentNativeProof.java",
+  "src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\S51ParserProbe.java",
+  "mutations\\instruction-cap\\OriginalModelPrograms.java",
+  "mutations\\class-cap\\OriginalModelPrograms.java",
+  "mutations\\method-cap\\OriginalModelPrograms.java",
+  "mutations\\whole-program\\OriginalModelPrograms.java",
+  "mutations\\resource-digest\\OriginalModelPrograms.java",
+  "mutations\\local-reference-type\\OriginalModelPrograms.java",
+  "mutations\\local-float-type\\OriginalModelPrograms.java",
+  "mutations\\identity-cache\\OriginalModelPrograms.java"
+]

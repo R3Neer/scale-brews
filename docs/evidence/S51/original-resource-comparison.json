@@ -1,0 +1,86 @@
+{
+  "net.minecraft.client.renderer.entity.LivingEntityRenderer": {
+    "runtimeResourceSha256": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+    "sameCompleteMethodCount": 29,
+    "differentCompleteMethods": [],
+    "removedMethods": [],
+    "addedMethods": []
+  },
+  "net.minecraft.client.renderer.entity.EntityRenderer": {
+    "runtimeResourceSha256": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+    "sameCompleteMethodCount": 21,
+    "differentCompleteMethods": [
+      "final <S extends net.minecraft.client.renderer.entity.state.EntityRenderState> void submitNameDisplay(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState, int);",
+      "void extractShadow(S, net.minecraft.client.Minecraft, net.minecraft.world.level.Level);",
+      "void extractShadowPiece(S, net.minecraft.world.level.Level, float, net.minecraft.core.BlockPos$MutableBlockPos, net.minecraft.world.level.chunk.ChunkAccess);"
+    ],
+    "removedMethods": [],
+    "addedMethods": [],
+    "normalizingConstantPoolWidthsAndBranchAddresses": {
+      "sameCompleteMethods": 24,
+      "differentCompleteMethods": []
+    }
+  },
+  "net.minecraft.client.model.AdultAndBabyModelPair": {
+    "runtimeResourceSha256": "f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d",
+    "sameCompleteMethodCount": 7,
+    "differentCompleteMethods": [],
+    "removedMethods": [],
+    "addedMethods": []
+  },
+  "net.minecraft.world.entity.variant.ModelAndTexture": {
+    "runtimeResourceSha256": "a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc4832",
+    "sameCompleteMethodCount": 10,
+    "differentCompleteMethods": [],
+    "removedMethods": [],
+    "addedMethods": []
+  },
+  "net.minecraft.world.entity.LivingEntity": {
+    "runtimeResourceSha256": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+    "sameCompleteMethodCount": 376,
+    "differentCompleteMethods": [
+      "boolean hurtServer(net.minecraft.server.level.ServerLevel, net.minecraft.world.damagesource.DamageSource, float);",
+      "boolean stabAttack(net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.entity.Entity, float, boolean, boolean, boolean);",
+      "float getAgeScale();",
+      "float getAirDrag();",
+      "float getFlyingSpeed();",
+      "float getWaterSlowDown();",
+      "net.minecraft.world.entity.LivingEntity(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.LivingEntity>, net.minecraft.world.level.Level);",
+      "net.minecraft.world.entity.item.ItemEntity createItemStackToDrop(net.minecraft.world.item.ItemStack, boolean, boolean);",
+      "static void lambda$addAdditionalSaveData$0(net.minecraft.world.level.storage.ValueOutput, net.minecraft.core.BlockPos);",
+      "void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput);",
+      "void applyInput();",
+      "void breakItem(net.minecraft.world.item.ItemStack);",
+      "void handleEntityEvent(byte);",
+      "void kill(net.minecraft.server.level.ServerLevel);",
+      "void playBlockFallSound();",
+      "void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput);",
+      "void travelFlying(net.minecraft.world.phys.Vec3, float);",
+      "void travelInAir(net.minecraft.world.phys.Vec3);",
+      "void travelInLava(net.minecraft.world.phys.Vec3, double, boolean, double);",
+      "void travelInWater(net.minecraft.world.phys.Vec3, double, boolean, double);",
+      "void updateSwimAmount();",
+      "void updateWalkAnimation(float);"
+    ],
+    "removedMethods": [],
+    "addedMethods": [],
+    "normalizingConstantPoolWidthsAndBranchAddresses": {
+      "sameCompleteMethods": 398,
+      "differentCompleteMethods": []
+    }
+  },
+  "net.minecraft.world.item.ItemStack": {
+    "runtimeResourceSha256": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198",
+    "sameCompleteMethodCount": 143,
+    "differentCompleteMethods": [],
+    "removedMethods": [],
+    "addedMethods": []
+  },
+  "net.minecraft.util.Mth": {
+    "runtimeResourceSha256": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+    "sameCompleteMethodCount": 115,
+    "differentCompleteMethods": [],
+    "removedMethods": [],
+    "addedMethods": []
+  }
+}

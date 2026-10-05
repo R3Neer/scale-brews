@@ -178,6 +178,18 @@ los Holder ni skins. Los readers están TRUSTED en el scope independiente S50
 de schema/enum/accesor y lifecycle: cuatro proyecciones nativas reconocidas,
 13 Holder fuera de esta tecnología. No certifica geometría/poses originales ni FULL.
 
+S51 `EnumAgeModelPreparation` está TRUSTED para PREPARATION cliente explícita de
+una familia original enum/AdultAndBabyModelPair. Lee programas completos y
+resources originales acotados, verifica la cadena componente/getter -> estado
+variant/age -> submit real y sus bridges, y produce metadatos de filas inmutables
+con slots/digests/fingerprints iniciales. Ausencia de un tramo no admite filas.
+No recibe ni infiere EntityType; el caller/discovery debe certificar asociación.
+Actor/renderer deben proceder del artefacto original y la clase actor es exacta;
+bytecode transformado/compat no probado queda fuera del scope. No instala un
+resolver físico alternativo ni llama desde un hook hot. Campaña independiente y
+replay original verifican esta frontera; elección/estructura no certifican pose, root, geometría
+física, catálogo FULL ni cobertura G6. Evidencia ejecutada y estado en VALIDATION.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

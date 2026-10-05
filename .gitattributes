@@ -17,3 +17,9 @@
 /docs/evidence/S50/adversarial/*.log -text -whitespace
 /docs/evidence/S50/adversarial/*.javap.txt -text -whitespace
 
+# S51 records exact original-program and simulator evidence bytes.
+/docs/evidence/S51/** -text whitespace=cr-at-eol
+/docs/evidence/S51/implementation/*.javap.txt -text -whitespace
+/docs/evidence/S51/adversarial/*.javap.txt -text -whitespace
+/docs/evidence/S51/adversarial/*.log -text -whitespace
+

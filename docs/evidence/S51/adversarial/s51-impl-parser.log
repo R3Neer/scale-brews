@@ -1,0 +1,52 @@
+Failed to find real location of C:\Python314\python.exe
+S51_PARSER_PASS checks=18 reads=71
+[
+  {
+    "mutant": "instruction-cap",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted instruction_limit"
+  },
+  {
+    "mutant": "class-cap",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted class_limit"
+  },
+  {
+    "mutant": "method-cap",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted class_identity_or_method_limit"
+  },
+  {
+    "mutant": "whole-program",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted extra_program"
+  },
+  {
+    "mutant": "resource-digest",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted original_dependency_changed"
+  },
+  {
+    "mutant": "local-reference-type",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted program_local"
+  },
+  {
+    "mutant": "local-float-type",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.AssertionError: Accepted program_float_local"
+  },
+  {
+    "mutant": "identity-cache",
+    "exit": 1,
+    "killed": true,
+    "reason": "Exception in thread \"main\" java.lang.IllegalArgumentException: original_selector:class_limit"
+  }
+]

@@ -1,0 +1,275 @@
+[
+  {
+    "tool": "original-enum-age-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.CowRenderer",
+    "exactActorClass": "net.minecraft.world.entity.animal.cow.Cow",
+    "stateClass": "net.minecraft.client.renderer.entity.state.CowRenderState",
+    "sourceKey": "component.minecraft.cow_2fvariant.model",
+    "componentId": "minecraft:cow/variant",
+    "variantGetter": "net.minecraft.world.entity.animal.cow.Cow#getVariant()Lnet/minecraft/core/Holder;",
+    "modelField": "net.minecraft.client.renderer.entity.CowRenderer#models",
+    "originalResources": {
+      "/net/minecraft/client/model/AdultAndBabyModelPair.class": "f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d",
+      "/net/minecraft/client/renderer/entity/CowRenderer.class": "5481d1aa61616c92905130216baeab770a6e6fae3adaa8f0331118b382648891",
+      "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/state/CowRenderState.class": "cb9ce3d89dbb0b4e056b304769e4fbc2761752dfa31a150983ec40d09923c4ed",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+      "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+      "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+      "/net/minecraft/world/entity/animal/cow/Cow.class": "7ab8f66383e478a289310b8204d774c9a08180ae307ad2d513fc2951ed992011",
+      "/net/minecraft/world/entity/animal/cow/CowVariant$ModelType.class": "374fb0a524b1ea0446a6ca73f63b5517bad7348beee61962a4094f69fce1eb41",
+      "/net/minecraft/world/entity/animal/cow/CowVariant.class": "78389c648258244b3f38802c2e8f281696f90aa44b3411bfa8216398dffbe8a9",
+      "/net/minecraft/world/entity/variant/ModelAndTexture.class": "a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc4832"
+    },
+    "rows": [
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "cold",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[cold].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "bc881fe7e596475f47ccc3ac6eb15515f7ccf5d33e2bf9c22584dd01684f960a",
+          "parts": 9,
+          "cubes": 11,
+          "solidPieces": 11
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "cold",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[cold].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea1",
+          "parts": 7,
+          "cubes": 9,
+          "solidPieces": 9
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "normal",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[normal].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "ae22967cf9aaf331bc3729b00281d2d27a011ec788b1c4787a25f88dc0c61b4d",
+          "parts": 7,
+          "cubes": 10,
+          "solidPieces": 10
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "normal",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[normal].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea1",
+          "parts": 7,
+          "cubes": 9,
+          "solidPieces": 9
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "warm",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[warm].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "bd9a7b55a1bef5296a7703293a923055bb5fdcc03c882e2cb9d4f7156a46f68d",
+          "parts": 7,
+          "cubes": 12,
+          "solidPieces": 12
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.cow_2fvariant.model",
+        "modelValue": "warm",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.CowRenderer#models[warm].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.cow.CowModel",
+        "initialStructure": {
+          "digest": "97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea1",
+          "parts": 7,
+          "cubes": 9,
+          "solidPieces": 9
+        }
+      }
+    ],
+    "uniqueModels": 6,
+    "canonicalText": "original-enum-age-selector-v1|original-resources-only|48:net.minecraft.client.renderer.entity.CowRenderer41:net.minecraft.world.entity.animal.cow.Cow57:net.minecraft.client.renderer.entity.state.CowRenderState39:component.minecraft.cow_2fvariant.model21:minecraft:cow/variant81:net.minecraft.world.entity.animal.cow.Cow#getVariant()Lnet/minecraft/core/Holder;55:net.minecraft.client.renderer.entity.CowRenderer#models55:/net/minecraft/client/model/AdultAndBabyModelPair.class64:f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d55:/net/minecraft/client/renderer/entity/CowRenderer.class64:5481d1aa61616c92905130216baeab770a6e6fae3adaa8f0331118b38264889158:/net/minecraft/client/renderer/entity/EntityRenderer.class64:a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad164:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c964:/net/minecraft/client/renderer/entity/state/CowRenderState.class64:cb9ce3d89dbb0b4e056b304769e4fbc2761752dfa31a150983ec40d09923c4ed73:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd9650:/net/minecraft/core/component/DataComponents.class64:e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba9440:/net/minecraft/world/entity/Entity.class64:4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea48:/net/minecraft/world/entity/animal/cow/Cow.class64:7ab8f66383e478a289310b8204d774c9a08180ae307ad2d513fc2951ed99201165:/net/minecraft/world/entity/animal/cow/CowVariant$ModelType.class64:374fb0a524b1ea0446a6ca73f63b5517bad7348beee61962a4094f69fce1eb4155:/net/minecraft/world/entity/animal/cow/CowVariant.class64:78389c648258244b3f38802c2e8f281696f90aa44b3411bfa8216398dffbe8a957:/net/minecraft/world/entity/variant/ModelAndTexture.class64:a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc48324:cold5:adult72:net.minecraft.client.renderer.entity.CowRenderer#models[cold].adultModel46:net.minecraft.client.model.animal.cow.CowModel64:bc881fe7e596475f47ccc3ac6eb15515f7ccf5d33e2bf9c22584dd01684f960a1:92:112:114:cold4:baby71:net.minecraft.client.renderer.entity.CowRenderer#models[cold].babyModel46:net.minecraft.client.model.animal.cow.CowModel64:97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea11:71:91:96:normal5:adult74:net.minecraft.client.renderer.entity.CowRenderer#models[normal].adultModel46:net.minecraft.client.model.animal.cow.CowModel64:ae22967cf9aaf331bc3729b00281d2d27a011ec788b1c4787a25f88dc0c61b4d1:72:102:106:normal4:baby73:net.minecraft.client.renderer.entity.CowRenderer#models[normal].babyModel46:net.minecraft.client.model.animal.cow.CowModel64:97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea11:71:91:94:warm5:adult72:net.minecraft.client.renderer.entity.CowRenderer#models[warm].adultModel46:net.minecraft.client.model.animal.cow.CowModel64:bd9a7b55a1bef5296a7703293a923055bb5fdcc03c882e2cb9d4f7156a46f68d1:72:122:124:warm4:baby71:net.minecraft.client.renderer.entity.CowRenderer#models[warm].babyModel46:net.minecraft.client.model.animal.cow.CowModel64:97cb5ecc5a6412b063896d144c754ceaf361854505279fb859e1c02b638dbea11:71:91:9",
+    "digest": "f96b670d379e332f28132e513b6f823fac90f6e1b9d91b527f1e4bc87d7f401d"
+  },
+  {
+    "tool": "original-enum-age-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.PigRenderer",
+    "exactActorClass": "net.minecraft.world.entity.animal.pig.Pig",
+    "stateClass": "net.minecraft.client.renderer.entity.state.PigRenderState",
+    "sourceKey": "component.minecraft.pig_2fvariant.model",
+    "componentId": "minecraft:pig/variant",
+    "variantGetter": "net.minecraft.world.entity.animal.pig.Pig#getVariant()Lnet/minecraft/core/Holder;",
+    "modelField": "net.minecraft.client.renderer.entity.PigRenderer#models",
+    "originalResources": {
+      "/net/minecraft/client/model/AdultAndBabyModelPair.class": "f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d",
+      "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/PigRenderer.class": "f283b4dd31a8aa672c9ed4c303ea2d62f8e3d59e24ee4fce94dcdbdc5525305e",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+      "/net/minecraft/client/renderer/entity/state/PigRenderState.class": "7e967e0cfbe5d63e0e349d9fc7284c8cac8be73dcfdf0c6271c07a04538a4e4e",
+      "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+      "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+      "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+      "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+      "/net/minecraft/world/entity/animal/pig/Pig.class": "082701bfa8073e6508658d57f9792bb1e47d862007f324be4fb4dfee3066870e",
+      "/net/minecraft/world/entity/animal/pig/PigVariant$ModelType.class": "5a2431dc10986c7b32ef92628ed615ec496101be30dea0026d5bc3afa88c10ce",
+      "/net/minecraft/world/entity/animal/pig/PigVariant.class": "8255effa5be81e9710f4d8edb50eb9b4c6db0df6bce3501946862bb5665deb01",
+      "/net/minecraft/world/entity/variant/ModelAndTexture.class": "a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc4832",
+      "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+    },
+    "rows": [
+      {
+        "sourceKey": "component.minecraft.pig_2fvariant.model",
+        "modelValue": "cold",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.PigRenderer#models[cold].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.pig.ColdPigModel",
+        "initialStructure": {
+          "digest": "dd41588ad4335a688103e7eee78f50d32a138db5687b72046320effbaacce6a7",
+          "parts": 7,
+          "cubes": 8,
+          "solidPieces": 8
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.pig_2fvariant.model",
+        "modelValue": "cold",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.PigRenderer#models[cold].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.pig.BabyPigModel",
+        "initialStructure": {
+          "digest": "81325871fd4e2fb5d2c6dd89639dcad67dee683dfa8e2f7421ed771a868de4c4",
+          "parts": 7,
+          "cubes": 7,
+          "solidPieces": 7
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.pig_2fvariant.model",
+        "modelValue": "normal",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.PigRenderer#models[normal].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.pig.PigModel",
+        "initialStructure": {
+          "digest": "d4995dcc6dd92d9bb13b91132a92a4ba9ba86c51a0836e7845ae0fe2659ce873",
+          "parts": 7,
+          "cubes": 7,
+          "solidPieces": 7
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.pig_2fvariant.model",
+        "modelValue": "normal",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.PigRenderer#models[normal].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.pig.BabyPigModel",
+        "initialStructure": {
+          "digest": "81325871fd4e2fb5d2c6dd89639dcad67dee683dfa8e2f7421ed771a868de4c4",
+          "parts": 7,
+          "cubes": 7,
+          "solidPieces": 7
+        }
+      }
+    ],
+    "uniqueModels": 4,
+    "canonicalText": "original-enum-age-selector-v1|original-resources-only|48:net.minecraft.client.renderer.entity.PigRenderer41:net.minecraft.world.entity.animal.pig.Pig57:net.minecraft.client.renderer.entity.state.PigRenderState39:component.minecraft.pig_2fvariant.model21:minecraft:pig/variant81:net.minecraft.world.entity.animal.pig.Pig#getVariant()Lnet/minecraft/core/Holder;55:net.minecraft.client.renderer.entity.PigRenderer#models55:/net/minecraft/client/model/AdultAndBabyModelPair.class64:f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d58:/net/minecraft/client/renderer/entity/EntityRenderer.class64:a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad164:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c955:/net/minecraft/client/renderer/entity/PigRenderer.class64:f283b4dd31a8aa672c9ed4c303ea2d62f8e3d59e24ee4fce94dcdbdc5525305e73:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd9664:/net/minecraft/client/renderer/entity/state/PigRenderState.class64:7e967e0cfbe5d63e0e349d9fc7284c8cac8be73dcfdf0c6271c07a04538a4e4e50:/net/minecraft/core/component/DataComponents.class64:e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba9440:/net/minecraft/world/entity/Entity.class64:4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea47:/net/minecraft/world/entity/EquipmentSlot.class64:b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c46:/net/minecraft/world/entity/LivingEntity.class64:109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d6648:/net/minecraft/world/entity/animal/pig/Pig.class64:082701bfa8073e6508658d57f9792bb1e47d862007f324be4fb4dfee3066870e65:/net/minecraft/world/entity/animal/pig/PigVariant$ModelType.class64:5a2431dc10986c7b32ef92628ed615ec496101be30dea0026d5bc3afa88c10ce55:/net/minecraft/world/entity/animal/pig/PigVariant.class64:8255effa5be81e9710f4d8edb50eb9b4c6db0df6bce3501946862bb5665deb0157:/net/minecraft/world/entity/variant/ModelAndTexture.class64:a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc483241:/net/minecraft/world/item/ItemStack.class64:7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a1984:cold5:adult72:net.minecraft.client.renderer.entity.PigRenderer#models[cold].adultModel50:net.minecraft.client.model.animal.pig.ColdPigModel64:dd41588ad4335a688103e7eee78f50d32a138db5687b72046320effbaacce6a71:71:81:84:cold4:baby71:net.minecraft.client.renderer.entity.PigRenderer#models[cold].babyModel50:net.minecraft.client.model.animal.pig.BabyPigModel64:81325871fd4e2fb5d2c6dd89639dcad67dee683dfa8e2f7421ed771a868de4c41:71:71:76:normal5:adult74:net.minecraft.client.renderer.entity.PigRenderer#models[normal].adultModel46:net.minecraft.client.model.animal.pig.PigModel64:d4995dcc6dd92d9bb13b91132a92a4ba9ba86c51a0836e7845ae0fe2659ce8731:71:71:76:normal4:baby73:net.minecraft.client.renderer.entity.PigRenderer#models[normal].babyModel50:net.minecraft.client.model.animal.pig.BabyPigModel64:81325871fd4e2fb5d2c6dd89639dcad67dee683dfa8e2f7421ed771a868de4c41:71:71:7",
+    "digest": "5e2f28fcd3e03ab7b29faf16c2faed0f3250a10a02ab1d6a9a6a5d40405dd161"
+  },
+  {
+    "tool": "original-enum-age-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.ChickenRenderer",
+    "exactActorClass": "net.minecraft.world.entity.animal.chicken.Chicken",
+    "stateClass": "net.minecraft.client.renderer.entity.state.ChickenRenderState",
+    "sourceKey": "component.minecraft.chicken_2fvariant.model",
+    "componentId": "minecraft:chicken/variant",
+    "variantGetter": "net.minecraft.world.entity.animal.chicken.Chicken#getVariant()Lnet/minecraft/core/Holder;",
+    "modelField": "net.minecraft.client.renderer.entity.ChickenRenderer#models",
+    "originalResources": {
+      "/net/minecraft/client/model/AdultAndBabyModelPair.class": "f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d",
+      "/net/minecraft/client/renderer/entity/ChickenRenderer.class": "edac461fe32a0bca79a3209204d47cfd18bf8a4af156fc622d42ded52108e3d5",
+      "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/state/ChickenRenderState.class": "eba1938575f7be604e997e884f9e67fa13c877390546c3842c4b3175e8b83de0",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+      "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+      "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+      "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+      "/net/minecraft/world/entity/animal/chicken/Chicken.class": "842ad2586f4813811e6ae02790355ad7dd1a6d8719b99a9f8beb30f2fe40d18d",
+      "/net/minecraft/world/entity/animal/chicken/ChickenVariant$ModelType.class": "d11d72918e027aa61842a6d6ddcc267bc4e6d35e9ccffaa73f62b39a85d59e4d",
+      "/net/minecraft/world/entity/animal/chicken/ChickenVariant.class": "9fd2a5c3ce8b7bf8e4daab8b17f8b7e8ec6adbd3cd5127fdfa00e1b8295b5ac5",
+      "/net/minecraft/world/entity/variant/ModelAndTexture.class": "a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc4832"
+    },
+    "rows": [
+      {
+        "sourceKey": "component.minecraft.chicken_2fvariant.model",
+        "modelValue": "cold",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.ChickenRenderer#models[cold].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.chicken.ColdChickenModel",
+        "initialStructure": {
+          "digest": "83271be34aa2c2bb7b6fb0c1146fd615b82a34472580caa67938572d49b7991d",
+          "parts": 9,
+          "cubes": 10,
+          "solidPieces": 9
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.chicken_2fvariant.model",
+        "modelValue": "cold",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.ChickenRenderer#models[cold].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.chicken.BabyChickenModel",
+        "initialStructure": {
+          "digest": "3edfbfab5f4758bb4b1d290aefbaeace128bdbd4aa8a42787abd1a6722d99488",
+          "parts": 6,
+          "cubes": 8,
+          "solidPieces": 2
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.chicken_2fvariant.model",
+        "modelValue": "normal",
+        "age": "adult",
+        "slot": "net.minecraft.client.renderer.entity.ChickenRenderer#models[normal].adultModel",
+        "modelClass": "net.minecraft.client.model.animal.chicken.AdultChickenModel",
+        "initialStructure": {
+          "digest": "b6203cc5cbf107003544782330d01ba5bb8938c0e68d8cbea103c5714e9b0e5c",
+          "parts": 9,
+          "cubes": 8,
+          "solidPieces": 8
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.chicken_2fvariant.model",
+        "modelValue": "normal",
+        "age": "baby",
+        "slot": "net.minecraft.client.renderer.entity.ChickenRenderer#models[normal].babyModel",
+        "modelClass": "net.minecraft.client.model.animal.chicken.BabyChickenModel",
+        "initialStructure": {
+          "digest": "3edfbfab5f4758bb4b1d290aefbaeace128bdbd4aa8a42787abd1a6722d99488",
+          "parts": 6,
+          "cubes": 8,
+          "solidPieces": 2
+        }
+      }
+    ],
+    "uniqueModels": 4,
+    "canonicalText": "original-enum-age-selector-v1|original-resources-only|52:net.minecraft.client.renderer.entity.ChickenRenderer49:net.minecraft.world.entity.animal.chicken.Chicken61:net.minecraft.client.renderer.entity.state.ChickenRenderState43:component.minecraft.chicken_2fvariant.model25:minecraft:chicken/variant89:net.minecraft.world.entity.animal.chicken.Chicken#getVariant()Lnet/minecraft/core/Holder;59:net.minecraft.client.renderer.entity.ChickenRenderer#models55:/net/minecraft/client/model/AdultAndBabyModelPair.class64:f9c371601aecca00d9d3ab1aa1dd886b53f9922192e7baf5e55f47bdebe5ca7d59:/net/minecraft/client/renderer/entity/ChickenRenderer.class64:edac461fe32a0bca79a3209204d47cfd18bf8a4af156fc622d42ded52108e3d558:/net/minecraft/client/renderer/entity/EntityRenderer.class64:a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad164:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c968:/net/minecraft/client/renderer/entity/state/ChickenRenderState.class64:eba1938575f7be604e997e884f9e67fa13c877390546c3842c4b3175e8b83de073:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd9650:/net/minecraft/core/component/DataComponents.class64:e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba9429:/net/minecraft/util/Mth.class64:4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef40:/net/minecraft/world/entity/Entity.class64:4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea56:/net/minecraft/world/entity/animal/chicken/Chicken.class64:842ad2586f4813811e6ae02790355ad7dd1a6d8719b99a9f8beb30f2fe40d18d73:/net/minecraft/world/entity/animal/chicken/ChickenVariant$ModelType.class64:d11d72918e027aa61842a6d6ddcc267bc4e6d35e9ccffaa73f62b39a85d59e4d63:/net/minecraft/world/entity/animal/chicken/ChickenVariant.class64:9fd2a5c3ce8b7bf8e4daab8b17f8b7e8ec6adbd3cd5127fdfa00e1b8295b5ac557:/net/minecraft/world/entity/variant/ModelAndTexture.class64:a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc48324:cold5:adult76:net.minecraft.client.renderer.entity.ChickenRenderer#models[cold].adultModel58:net.minecraft.client.model.animal.chicken.ColdChickenModel64:83271be34aa2c2bb7b6fb0c1146fd615b82a34472580caa67938572d49b7991d1:92:101:94:cold4:baby75:net.minecraft.client.renderer.entity.ChickenRenderer#models[cold].babyModel58:net.minecraft.client.model.animal.chicken.BabyChickenModel64:3edfbfab5f4758bb4b1d290aefbaeace128bdbd4aa8a42787abd1a6722d994881:61:81:26:normal5:adult78:net.minecraft.client.renderer.entity.ChickenRenderer#models[normal].adultModel59:net.minecraft.client.model.animal.chicken.AdultChickenModel64:b6203cc5cbf107003544782330d01ba5bb8938c0e68d8cbea103c5714e9b0e5c1:91:81:86:normal4:baby77:net.minecraft.client.renderer.entity.ChickenRenderer#models[normal].babyModel58:net.minecraft.client.model.animal.chicken.BabyChickenModel64:3edfbfab5f4758bb4b1d290aefbaeace128bdbd4aa8a42787abd1a6722d994881:61:81:2",
+    "digest": "80a6721ff022a374ca08e0b71a9c878ceedd57fddc3527d56d13ea55b9f091ca"
+  }
+]

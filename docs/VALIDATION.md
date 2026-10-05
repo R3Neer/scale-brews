@@ -3545,3 +3545,58 @@ cleanup receipt accounts for25 individually removed one-offs with logs/builds/
 models retained. Both complete final reviews require zero production changes.
 Closure identifies local Sprint:S50; G6 tasks2-6/G7-G9 and human acceptance remain
 open.
+
+
+S51 closed scoped verification (IMPLEMENTER and independent ADVERSARY):
+client-only explicit PREPARATION has two new owners, no changes to the367 existing
+production files.369file hashes and JAR are fixed in
+`docs/evidence/S51/implementation-verification.json`. Original class resources,
+full typed/bridge dispatch, component/getter/state provenance and finite domains
+are inspected; rows retain only immutable selection/initial-structure metadata.
+No pose/root/physical-geometry/FULL claim and no new hot caller.
+
+Executed `build -x runGameTest compileGametestJava runClientGameTest -I
+tools/s51_implementer.init.gradle -Ps51CensusRegression=true
+-PscalebrewsBuildDir=../s51-impl-build --offline`: PASS37s, clean exit in
+`../s51-original-selection-r6.log`. Three native renderers cover7enum keys and
+14enum x age combinations via public native component setter -> authoritative
+getter -> original extraction -> source -> actual original queued model.
+Determinism, immutable rows and unchanged shared parts during PREPARATION pass;
+absent renderer and ZombieNautilus's other selector family remain unadmitted.
+
+S45 affected census/structure proof also passes93living,120candidate groups,
+561slots,464unique structures and4775shared parts after original model submits.
+The three `.model` slots now alias map entries instead of retaining initial
+unused duplicates; this is an observed capture-state census, no coverage
+promotion.92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL remains the scoped boundary.
+No unrelated Tiny Mounts or full-server regression repeated. Default manifest
+112server/34client matches source after processGametestResources PASS6s in
+../s51-restore-manifest.log; no suites executed for restoration. Independent
+checks below certify only this preparation boundary; ordinary CI/G9 stays required.
+
+Development failures remain recorded, not successful lanes: resource metadata
+mismatch FAIL39s/diagnosis34s; official Entity exceeds initial512method cap
+FAIL31s; missing client fixture ID FAIL32s; setter identity oracle FAIL30s;
+private Pig.setVariant fixture lookup FAIL32s. Whole original programs from
+merged vs split/access-widened resources were audited before exact hashes were
+approved; independently converged method cap1024 preserves other bounds.
+Fixture uses authoritative getter because SynchedEntityData can retain an equal
+prior value, and public setComponent for all native cases. No Tiny/solver repair.
+Selection recipes and resource comparison are durable under docs/evidence/S51;
+G6 tasks2–6/G7–G9 and epic-end human acceptance remain open.
+
+S51 independent public native lane PASS30s and IMPLEMENTER replay PASS57s, both
+clean exits:14 original enum/age combinations and12 fail-closed map/model cases.
+Java25 parser PASS18 controls and eight compiled mutants detected. Root replay
+with absolute --output preserved baseline.log/parser-mutations.json and mutant
+outputs in ../s51-impl-parser-final; its raw exit0 log is
+../s51-impl-parser-final.log. The earlier relative parser output was located in
+work/s51-impl-parser and relocated intact to ../s51-impl-parser-first-relative;
+no test repeated for that relocation. No production changes after focal GREEN.
+Initial native SVG/PNG snapshots inspected by both agents; root native replay
+SVG is byte-identical. This captures initial structures, not GPU/root/pose/physics.
+369 production hashes and packaged JAR SHAfb5a1a48 remain identical; two complete
+reviews per role require zero changes. Independent raw evidence, failures,
+replay and exact-path one-off cleanup are retained in adversarial-verification.json.
+Both new owners are TRUSTED only for this explicit PREPARATION family. G6 tasks2–6,
+G7–G9,92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL and epic-end human needs remain open.

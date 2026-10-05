@@ -502,6 +502,17 @@ cero cambios y commit local Sprint:S50. Manifest112servidor/34cliente restaurado
 no full-suite claim ni Tiny ajeno repetido. Original models/poses/familias FULL,
 G6 tareas2–6, G7–G9 y aceptación humana siguen abiertas.
 
+**S51 cerrado adversarialmente:** preparación de una familia
+original enum/edad desde programas completos source/extract/submit y bridges.
+Build/compileGameTests y cliente focal S51/S45 PASS37s: tres renderers nativos,
+14combinaciones originales, snapshot de PREPARATION y censo93. Metadata inmutable,
+provenance acotada y ausencia ante tramo no probado; no hooks hot/Tiny añadidos.
+Campaña nativa14/12 y replay57s, parser18 controles/ocho mutantes detectados,
+snapshot inicial y dos reviews completos sin cambios certifican sólo PREPARATION.
+Recibos369 hashes/JAR y tooling público conservados; commit local Sprint:S51.
+No certifica pose/root/geometría física ni ejecuta bindings. Tarea2 permanece
+abierta, igual que tareas3–6/G7–G9 y necesidades humanas al final de la épica.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.
