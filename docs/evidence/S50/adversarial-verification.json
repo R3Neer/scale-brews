@@ -1863,8 +1863,11 @@
     },
     {
       "path": "tools/s50_adversarial.init.gradle",
-      "bytes": 1085,
-      "sha256": "9cae215094786b848f0f639b2ea47da0335421630b5495bee7eb6996ba3cf192"
+      "bytes": 1083,
+      "sha256": "5acfbf584bee06e279c8ce635215fb6a5eafbbc2fb9283fdb0031801ac861b5e",
+      "executedSha256": "9cae215094786b848f0f639b2ea47da0335421630b5495bee7eb6996ba3cf192",
+      "executedBytes": 1085,
+      "changeAfterExecution": "Formatting only: remove trailing whitespace at line12. No oracle/selection/command change; no GameTests repetition."
     },
     {
       "path": "tools/s50_adversarial_mutations.py",
@@ -2058,5 +2061,13 @@
   ],
   "reproduction": ".\\gradlew.bat --project-cache-dir ../s50-public/cache -I tools/s50_adversarial.init.gradle '-PscalebrewsBuildDir=../s50-public/build' runGameTest",
   "cleanupReceipt": "docs/evidence/S50/adversarial-private-cleanup.json",
-  "finalDocumentationReview": "PASS:367 production hashes,4 public files and evidence retained;25 one-offs removed individually after public replay;UTF8 strict/diff-check."
+  "finalDocumentationReview": "PASS:367 production hashes,4 public files and evidence retained;25 one-offs removed individually after public replay;UTF8 strict/diff-check.",
+  "toolingWhitespaceCorrection": {
+    "path": "tools/s50_adversarial.init.gradle",
+    "line": 12,
+    "executedSha256": "9cae215094786b848f0f639b2ea47da0335421630b5495bee7eb6996ba3cf192",
+    "currentSha256": "5acfbf584bee06e279c8ce635215fb6a5eafbbc2fb9283fdb0031801ac861b5e",
+    "testsRepeated": false,
+    "productionOrOracleChanged": false
+  }
 }

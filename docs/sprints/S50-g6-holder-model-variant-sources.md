@@ -209,6 +209,11 @@ Holder sealed y warmup están clasificados y preservados en §7/receipt adversar
 se corrigen fixtures sin filtrar fuentes ni elevar la cota de allocs. Un defecto
 documental de encoding en el párrafo de aceptación se devuelve a ADVERSARY antes
 del commit; no requiere repetir GameTests ni modificar producción/oracles.
+Después, el check del índice detecta dos espacios en línea12 del init adversarial.
+Root crea337aeb89 antes de resolver ese check: fallo de cierre operativo, no PASS
+del check. ADVERSARY elimina sólo esos espacios; receipt conserva SHA ejecutado
+y SHA actual. Se verifica el diff/check completo y se registra corrección local
+Sprint:S50 antes de avanzar, sin repetir pruebas por un cambio de formato.
 
 ## 9. Revisión final
 

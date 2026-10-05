@@ -9,7 +9,7 @@ allprojects { afterEvaluate {
   def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
   m.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S50AdversarialHolderPreparationTests']
   if(!(findProperty('s50PreparationOnly') ?: 'false').toBoolean())m.entrypoints['fabric-gametest'].add('io.github.r3neer.scalebrews.collision.internal.S50AdversarialHolderLifecycleTests')
-  
+
   m.entrypoints['fabric-client-gametest']=[]
   f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
  }}
