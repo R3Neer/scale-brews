@@ -1,0 +1,16 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ def shadow=providers.gradleProperty('s52AdversarialShadow').getOrNull()
+ if(shadow!=null){
+  def original=file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalAgeStateModelPreparation.java').canonicalFile
+  sourceSets.client.java.srcDir(file(shadow))
+  sourceSets.client.java.exclude { element -> element.file.canonicalFile==original }
+ }
+ loom.runs.configureEach { runDir=providers.gradleProperty('s52AdversarialRunDir').getOrElse(file('../s52-adversary-run').absolutePath) }
+ tasks.named('runClientGameTest') { doFirst { args '--graphicsBackend','opengl' } }
+ tasks.named('processGametestResources') { outputs.upToDateWhen { false }; doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S52AdversarialStateProof'];f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ } }
+} }

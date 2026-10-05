@@ -23,3 +23,10 @@
 /docs/evidence/S51/adversarial/*.javap.txt -text -whitespace
 /docs/evidence/S51/adversarial/*.log -text -whitespace
 
+# Exact S52 preparation/program/simulator evidence bytes.
+/docs/evidence/S52/** -text whitespace=cr-at-eol
+/docs/evidence/S52/implementation/*.javap.txt -text -whitespace
+/docs/evidence/S52/implementation/*.log -text -whitespace
+/docs/evidence/S52/adversarial/*.javap.txt -text -whitespace
+/docs/evidence/S52/adversarial/*.log -text -whitespace
+

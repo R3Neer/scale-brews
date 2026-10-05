@@ -190,6 +190,15 @@ resolver físico alternativo ni llama desde un hook hot. Campaña independiente 
 replay original verifican esta frontera; elección/estructura no certifican pose, root, geometría
 física, catálogo FULL ni cobertura G6. Evidencia ejecutada y estado en VALIDATION.
 
+S52 `OriginalAgeStateModelPreparation` prepara explícitamente la relación
+`LivingEntityRenderState.isBaby` → slots adult/baby del selector heredado
+AgeableMobRenderer. Verifica entrypoints reales, bridge/selector/constructor
+completos y slots originales; dos filas inmutables describen el predicado del
+estado y la estructura inicial. `extractionAuthority=UNPROVEN`: no define source
+age, actor ni binding físico, ni presume cómo llega la edad de la entidad al
+estado. Sólo PREPARATION sin callers hot; TRUSTED scoped tras campaña
+independiente y replay. G6, poses/root/capas/material físico/FULL permanecen abiertos.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

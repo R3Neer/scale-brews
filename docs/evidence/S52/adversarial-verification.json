@@ -1,0 +1,199 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S52",
+  "status": "SCOPED_PASS",
+  "productionFilesVerified": 370,
+  "existingOwnersChanged": 0,
+  "candidate": {
+    "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalAgeStateModelPreparation.java",
+    "bytes": 11631,
+    "sha256": "c51f419a85ae5107bcbc6f18004087e0df7a36261ce1ef554722cc7eec8397d7"
+  },
+  "jar": {
+    "sha256": "14aeed4fc5c535f91f24dece09b08434ca506264b864b39e72416e5a3b509e2a",
+    "bytes": 1251404,
+    "entries": 758,
+    "testLeaks": 0
+  },
+  "publicFiles": [
+    {
+      "path": "src/gametest/java/io/github/r3neer/scalebrews/client/collision/preparation/S52AdversarialStateProof.java",
+      "sha256": "033596d54da9a2a70e243f26d7beb21a0081dc54486beae37c85d46ac7636845",
+      "bytes": 10056
+    },
+    {
+      "path": "tools/s52_adversarial.init.gradle",
+      "sha256": "4f405763eda36a6adc472914259639969c39d4f7472e86cf3bfc9f545e45bd29",
+      "bytes": 1043
+    },
+    {
+      "path": "tools/s52_adversarial_mutations.ps1",
+      "sha256": "f5d01ea7be3dc16988248e1e036a8079a75cb865b51243deeaccd4006fda8eb1",
+      "bytes": 3897
+    }
+  ],
+  "positive": {
+    "nativeFamilies": [
+      "rabbit",
+      "goat",
+      "turtle"
+    ],
+    "selections": 12,
+    "missingSlots": 6,
+    "programFaults": 3,
+    "sharedModelAlias": true,
+    "immutableDeterministic": true,
+    "preservesCurrentAndInitialState": true,
+    "clientThreadConfinement": true
+  },
+  "sensitivity": {
+    "killed": 6,
+    "mutants": [
+      "authority",
+      "slot-inversion",
+      "origin",
+      "constructor",
+      "bridge-flags",
+      "join-target"
+    ],
+    "classification": "semantic assertion, no compiler failures counted",
+    "joinOracleRepair": "Initial malformed label hit branch_target_missing before target guard; strengthened exact reasons and patched single original GOTO operand preserving stack maps. Old survivor and fixture RED retained; corrected baseline and mutant pass.",
+    "historicalOracle": {
+      "path": "adversarial/oracle-before-label-fix.txt",
+      "sha256": "97e887a6d1dfd23aae09a97a5a281fc547a0eb181bcec7197f4d9cc91c87ee50",
+      "bytes": 9632,
+      "scope": "Preserved pre-repair fixture: first five guard kills and first join survivor. Current public fixture strengthens only join failure attribution."
+    }
+  },
+  "publicBaseline": {
+    "log": "adversarial/s52-adversary-public.log",
+    "duration": "36s",
+    "cleanExit": true
+  },
+  "implementerReplay": {
+    "log": "adversarial/s52-impl-public-replay.log",
+    "duration": "73s",
+    "cleanExit": true,
+    "svgByteIdentical": true
+  },
+  "visual": {
+    "scope": "Six original initial-pose model cuboid projections, deterministic SVG; no GPU/layers/root/animation claim",
+    "svgSha256": "d0983aa152037bb461f9ad9cfa536f2833cb463348e58b57ac7a00bba7933870"
+  },
+  "cost": {
+    "scope": "Explicit CLIENT_PREPARATION only, no runtime callers",
+    "hierarchyLimit": 12,
+    "resourceLimits": "Existing S51 OriginalModelPrograms unchanged: 64 classes, 1 MiB/class, 8 MiB total, 1024 methods/class, 512 instructions/method",
+    "structureLimits": "Existing S45 ModelPartStructure unchanged: 512 parts,4096 cubes,depth64,65536 vertices",
+    "uniqueModelMaximum": 2,
+    "caches": "pass-local identity, immutable result holds fingerprints/resource hashes, no live model/world references",
+    "unchangedFoundations": "S45/S51 hashes verified, pertinent structure calls only; no unrelated Tiny/full regression"
+  },
+  "scopes": {
+    "trusted": "OriginalAgeStateModelPreparation render-state predicate to exact original slot assignment only",
+    "extractionAuthority": "UNPROVEN",
+    "entitySourceAge": false,
+    "poseRootPhysicalGeometry": "UNPROVEN",
+    "full": false,
+    "g6Tasks2To6": "OPEN"
+  },
+  "finalReviewPasses": 2,
+  "productionEditsByAdversary": 0,
+  "evidence": [
+    {
+      "path": "adversarial/initial-slots.png",
+      "sha256": "a38bdeded40f53cb7f336bd3a493d7f8bba3fb1a1dc969d3a6bf1df07e1f609f",
+      "bytes": 4842
+    },
+    {
+      "path": "adversarial/initial-slots.svg",
+      "sha256": "d0983aa152037bb461f9ad9cfa536f2833cb463348e58b57ac7a00bba7933870",
+      "bytes": 8472
+    },
+    {
+      "path": "adversarial/public-driver-join-target.log",
+      "sha256": "51e78737b79195254cc901350c18213f577b7272d7d5a5757a85e4a934d14538",
+      "bytes": 204921
+    },
+    {
+      "path": "adversarial/public-driver-results.json",
+      "sha256": "43ceeaba0a621b539d0b36383293905607bba3c66bbab742b6533f629bc85b9a",
+      "bytes": 526
+    },
+    {
+      "path": "adversarial/s52-adversary-join-corrected.log",
+      "sha256": "8aca9a8cd559d190240e2848388598867f183f8d6cfc02a1a344b4dda82e792d",
+      "bytes": 33662
+    },
+    {
+      "path": "adversarial/s52-adversary-join-diagnostic.log",
+      "sha256": "2da209feeeee93943e9abefde8e5e296f40e54beb80869da15983141c8cfae28",
+      "bytes": 29216
+    },
+    {
+      "path": "adversarial/s52-adversary-label-corrected.log",
+      "sha256": "70164a7950d2cabc3ba8ac9a6cbc8b4ff6105787ca6b0873fd975401af6b49f7",
+      "bytes": 32695
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-authority.log",
+      "sha256": "7bbfa80e7589142f62d5c791c0e8382654b6c11fe5159e6558cac2695531fa53",
+      "bytes": 203128
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-bridge-flags.log",
+      "sha256": "a3688264659767fd2c0f49447236a9e260854323cb45e67427af2f887404f482",
+      "bytes": 32888
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-constructor.log",
+      "sha256": "3973f9be640301f4250c2a4ff41fc2ad398e460f8470ad25a26b9c6149ef6a21",
+      "bytes": 32746
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-join-target.log",
+      "sha256": "dc3d9c0ae32e43f1bfa7e3e0047bcd34233e92f87f197b3b6fd896e5a4925ba1",
+      "bytes": 29200
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-origin.log",
+      "sha256": "e764eb490cf643482f7d025a59b050077a4a6018a0dc94235e00d99084246129",
+      "bytes": 32950
+    },
+    {
+      "path": "adversarial/s52-adversary-mutant-slot-inversion.log",
+      "sha256": "a1d26741b8ae768566c3de1174f5bee4bc4eca3b51585663eef30c13b7917823",
+      "bytes": 33233
+    },
+    {
+      "path": "adversarial/s52-adversary-public.log",
+      "sha256": "9678492e9b27884701f52a67019704dfece739424a2686d9887545193aba5413",
+      "bytes": 30192
+    },
+    {
+      "path": "adversarial/s52-adversary-raw-label.log",
+      "sha256": "764ec2e59e57d47ba5888ed70e770f456b8de84b491d95f338617382c913b4da",
+      "bytes": 30121
+    },
+    {
+      "path": "adversarial/s52-adversary-state-expanded.log",
+      "sha256": "bc64eb0c25c2efab93af897ff2e3fd568855d874309b4a78616a6aa3992808fc",
+      "bytes": 27393
+    },
+    {
+      "path": "adversarial/s52-adversary-state-first.log",
+      "sha256": "8304c7e36a8b1d22aa24d5fa7d75c261b085052d6892e00b2588c8a3be3e3bef",
+      "bytes": 196061
+    },
+    {
+      "path": "adversarial/s52-impl-public-replay.log",
+      "sha256": "49038c574e1a9b21f2ccd19d80fa2158d72b2f6e366e57ffdb61b4e65caf39c8",
+      "bytes": 203221
+    },
+    {
+      "path": "adversarial/oracle-before-label-fix.txt",
+      "sha256": "97e887a6d1dfd23aae09a97a5a281fc547a0eb181bcec7197f4d9cc91c87ee50",
+      "bytes": 9632
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "removedExactPrivateOneOffFiles": [
+    "generate_mutants.py",
+    "state.init.gradle",
+    "mutation.init.gradle",
+    "collect.py",
+    "src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\S52IndependentStateProof.java",
+    "shadows\\authority\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java",
+    "shadows\\bridge-flags\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java",
+    "shadows\\constructor\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java",
+    "shadows\\join-target\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java",
+    "shadows\\origin\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java",
+    "shadows\\slot-inversion\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalAgeStateModelPreparation.java"
+  ],
+  "count": 11,
+  "replacement": "public S52AdversarialStateProof, init, mutation driver",
+  "preserved": "models, logs, evidence, caches, builds, oracle history, future holdouts",
+  "recursiveDeletion": false
+}

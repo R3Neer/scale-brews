@@ -1,0 +1,308 @@
+Compiled from "AgeableMobRenderer.java"
+public abstract class net.minecraft.client.renderer.entity.AgeableMobRenderer<T extends net.minecraft.world.entity.Mob, S extends net.minecraft.client.renderer.entity.state.LivingEntityRenderState, M extends net.minecraft.client.model.EntityModel<? super S>> extends net.minecraft.client.renderer.entity.MobRenderer<T, S, M> {
+  private final M adultModel;
+
+  private final M babyModel;
+
+  public net.minecraft.client.renderer.entity.AgeableMobRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context, M, M, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: fload         4
+         5: invokespecial #24                 // Method net/minecraft/client/renderer/entity/MobRenderer."<init>":(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;Lnet/minecraft/client/model/EntityModel;F)V
+         8: aload_0
+         9: aload_2
+        10: putfield      #26                 // Field adultModel:Lnet/minecraft/client/model/EntityModel;
+        13: aload_0
+        14: aload_3
+        15: putfield      #28                 // Field babyModel:Lnet/minecraft/client/model/EntityModel;
+        18: return
+
+  public void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: getfield      #46                 // Field net/minecraft/client/renderer/entity/state/LivingEntityRenderState.isBaby:Z
+         5: ifeq          15
+         8: aload_0
+         9: getfield      #28                 // Field babyModel:Lnet/minecraft/client/model/EntityModel;
+        12: goto          19
+        15: aload_0
+        16: getfield      #26                 // Field adultModel:Lnet/minecraft/client/model/EntityModel;
+        19: putfield      #57                 // Field model:Lnet/minecraft/client/model/EntityModel;
+        22: aload_0
+        23: aload_1
+        24: aload_2
+        25: aload_3
+        26: aload         4
+        28: invokespecial #59                 // Method net/minecraft/client/renderer/entity/MobRenderer.submit:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        31: return
+
+  public void submit(net.minecraft.client.renderer.entity.state.EntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #42                 // class net/minecraft/client/renderer/entity/state/LivingEntityRenderState
+         5: aload_2
+         6: aload_3
+         7: aload         4
+         9: invokevirtual #66                 // Method submit:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        12: return
+}
+Compiled from "WolfRenderer.java"
+public class net.minecraft.client.renderer.entity.WolfRenderer extends net.minecraft.client.renderer.entity.AgeableMobRenderer<net.minecraft.world.entity.animal.wolf.Wolf, net.minecraft.client.renderer.entity.state.WolfRenderState, net.minecraft.client.model.animal.wolf.WolfModel> {
+  public net.minecraft.client.renderer.entity.WolfRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: new           #16                 // class net/minecraft/client/model/animal/wolf/AdultWolfModel
+         5: dup
+         6: aload_1
+         7: getstatic     #22                 // Field net/minecraft/client/model/geom/ModelLayers.WOLF:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        10: invokevirtual #26                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        13: invokespecial #29                 // Method net/minecraft/client/model/animal/wolf/AdultWolfModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        16: new           #31                 // class net/minecraft/client/model/animal/wolf/BabyWolfModel
+        19: dup
+        20: aload_1
+        21: getstatic     #34                 // Field net/minecraft/client/model/geom/ModelLayers.WOLF_BABY:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        24: invokevirtual #26                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        27: invokespecial #35                 // Method net/minecraft/client/model/animal/wolf/BabyWolfModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        30: ldc           #36                 // float 0.5f
+        32: invokespecial #39                 // Method net/minecraft/client/renderer/entity/AgeableMobRenderer."<init>":(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;Lnet/minecraft/client/model/EntityModel;Lnet/minecraft/client/model/EntityModel;F)V
+        35: aload_0
+        36: new           #41                 // class net/minecraft/client/renderer/entity/layers/WolfArmorLayer
+        39: dup
+        40: aload_0
+        41: aload_1
+        42: invokevirtual #45                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.getModelSet:()Lnet/minecraft/client/model/geom/EntityModelSet;
+        45: aload_1
+        46: invokevirtual #49                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.getEquipmentRenderer:()Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;
+        49: invokespecial #52                 // Method net/minecraft/client/renderer/entity/layers/WolfArmorLayer."<init>":(Lnet/minecraft/client/renderer/entity/RenderLayerParent;Lnet/minecraft/client/model/geom/EntityModelSet;Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;)V
+        52: invokevirtual #56                 // Method addLayer:(Lnet/minecraft/client/renderer/entity/layers/RenderLayer;)Z
+        55: pop
+        56: aload_0
+        57: new           #58                 // class net/minecraft/client/renderer/entity/layers/WolfCollarLayer
+        60: dup
+        61: aload_0
+        62: invokespecial #61                 // Method net/minecraft/client/renderer/entity/layers/WolfCollarLayer."<init>":(Lnet/minecraft/client/renderer/entity/RenderLayerParent;)V
+        65: invokevirtual #56                 // Method addLayer:(Lnet/minecraft/client/renderer/entity/layers/RenderLayer;)Z
+        68: pop
+        69: return
+
+  protected int getModelTint(net.minecraft.client.renderer.entity.state.WolfRenderState);
+    Code:
+         0: aload_1
+         1: getfield      #73                 // Field net/minecraft/client/renderer/entity/state/WolfRenderState.wetShade:F
+         4: fstore_2
+         5: fload_2
+         6: fconst_1
+         7: fcmpl
+         8: ifne          13
+        11: iconst_m1
+        12: ireturn
+        13: fconst_1
+        14: fload_2
+        15: fload_2
+        16: fload_2
+        17: invokestatic  #79                 // Method net/minecraft/util/ARGB.colorFromFloat:(FFFF)I
+        20: ireturn
+
+  public net.minecraft.resources.Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.WolfRenderState);
+    Code:
+         0: aload_1
+         1: getfield      #86                 // Field net/minecraft/client/renderer/entity/state/WolfRenderState.texture:Lnet/minecraft/resources/Identifier;
+         4: areturn
+
+  public net.minecraft.client.renderer.entity.state.WolfRenderState createRenderState();
+    Code:
+         0: new           #69                 // class net/minecraft/client/renderer/entity/state/WolfRenderState
+         3: dup
+         4: invokespecial #91                 // Method net/minecraft/client/renderer/entity/state/WolfRenderState."<init>":()V
+         7: areturn
+
+  public void extractRenderState(net.minecraft.world.entity.animal.wolf.Wolf, net.minecraft.client.renderer.entity.state.WolfRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: fload_3
+         4: invokespecial #98                 // Method net/minecraft/client/renderer/entity/AgeableMobRenderer.extractRenderState:(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V
+         7: aload_2
+         8: aload_1
+         9: invokevirtual #104                // Method net/minecraft/world/entity/animal/wolf/Wolf.isAngry:()Z
+        12: putfield      #107                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.isAngry:Z
+        15: aload_2
+        16: aload_1
+        17: invokevirtual #110                // Method net/minecraft/world/entity/animal/wolf/Wolf.isInSittingPose:()Z
+        20: putfield      #113                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.isSitting:Z
+        23: aload_2
+        24: aload_1
+        25: invokevirtual #117                // Method net/minecraft/world/entity/animal/wolf/Wolf.getTailAngle:()F
+        28: putfield      #120                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.tailAngle:F
+        31: aload_2
+        32: aload_1
+        33: fload_3
+        34: invokevirtual #124                // Method net/minecraft/world/entity/animal/wolf/Wolf.getHeadRollAngle:(F)F
+        37: putfield      #127                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.headRollAngle:F
+        40: aload_2
+        41: aload_1
+        42: fload_3
+        43: invokevirtual #130                // Method net/minecraft/world/entity/animal/wolf/Wolf.getShakeAnim:(F)F
+        46: putfield      #133                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.shakeAnim:F
+        49: aload_2
+        50: aload_1
+        51: invokevirtual #137                // Method net/minecraft/world/entity/animal/wolf/Wolf.getTexture:()Lnet/minecraft/resources/Identifier;
+        54: putfield      #86                 // Field net/minecraft/client/renderer/entity/state/WolfRenderState.texture:Lnet/minecraft/resources/Identifier;
+        57: aload_2
+        58: aload_1
+        59: fload_3
+        60: invokevirtual #140                // Method net/minecraft/world/entity/animal/wolf/Wolf.getWetShade:(F)F
+        63: putfield      #73                 // Field net/minecraft/client/renderer/entity/state/WolfRenderState.wetShade:F
+        66: aload_2
+        67: aload_1
+        68: invokevirtual #143                // Method net/minecraft/world/entity/animal/wolf/Wolf.isTame:()Z
+        71: ifeq          81
+        74: aload_1
+        75: invokevirtual #147                // Method net/minecraft/world/entity/animal/wolf/Wolf.getCollarColor:()Lnet/minecraft/world/item/DyeColor;
+        78: goto          82
+        81: aconst_null
+        82: putfield      #153                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.collarColor:Lnet/minecraft/world/item/DyeColor;
+        85: aload_2
+        86: aload_1
+        87: invokevirtual #157                // Method net/minecraft/world/entity/animal/wolf/Wolf.getBodyArmorItem:()Lnet/minecraft/world/item/ItemStack;
+        90: invokevirtual #162                // Method net/minecraft/world/item/ItemStack.copy:()Lnet/minecraft/world/item/ItemStack;
+        93: putfield      #166                // Field net/minecraft/client/renderer/entity/state/WolfRenderState.bodyArmorItem:Lnet/minecraft/world/item/ItemStack;
+        96: return
+
+  public void extractRenderState(net.minecraft.world.entity.LivingEntity, net.minecraft.client.renderer.entity.state.LivingEntityRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #100                // class net/minecraft/world/entity/animal/wolf/Wolf
+         5: aload_2
+         6: checkcast     #69                 // class net/minecraft/client/renderer/entity/state/WolfRenderState
+         9: fload_3
+        10: invokevirtual #169                // Method extractRenderState:(Lnet/minecraft/world/entity/animal/wolf/Wolf;Lnet/minecraft/client/renderer/entity/state/WolfRenderState;F)V
+        13: return
+
+  public net.minecraft.resources.Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.LivingEntityRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #69                 // class net/minecraft/client/renderer/entity/state/WolfRenderState
+         5: invokevirtual #172                // Method getTextureLocation:(Lnet/minecraft/client/renderer/entity/state/WolfRenderState;)Lnet/minecraft/resources/Identifier;
+         8: areturn
+
+  protected int getModelTint(net.minecraft.client.renderer.entity.state.LivingEntityRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #69                 // class net/minecraft/client/renderer/entity/state/WolfRenderState
+         5: invokevirtual #175                // Method getModelTint:(Lnet/minecraft/client/renderer/entity/state/WolfRenderState;)I
+         8: ireturn
+
+  public void extractRenderState(net.minecraft.world.entity.Entity, net.minecraft.client.renderer.entity.state.EntityRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #100                // class net/minecraft/world/entity/animal/wolf/Wolf
+         5: aload_2
+         6: checkcast     #69                 // class net/minecraft/client/renderer/entity/state/WolfRenderState
+         9: fload_3
+        10: invokevirtual #169                // Method extractRenderState:(Lnet/minecraft/world/entity/animal/wolf/Wolf;Lnet/minecraft/client/renderer/entity/state/WolfRenderState;F)V
+        13: return
+
+  public net.minecraft.client.renderer.entity.state.EntityRenderState createRenderState();
+    Code:
+         0: aload_0
+         1: invokevirtual #179                // Method createRenderState:()Lnet/minecraft/client/renderer/entity/state/WolfRenderState;
+         4: areturn
+}
+Compiled from "MobRenderer.java"
+public abstract class net.minecraft.client.renderer.entity.MobRenderer<T extends net.minecraft.world.entity.Mob, S extends net.minecraft.client.renderer.entity.state.LivingEntityRenderState, M extends net.minecraft.client.model.EntityModel<? super S>> extends net.minecraft.client.renderer.entity.LivingEntityRenderer<T, S, M> {
+  public net.minecraft.client.renderer.entity.MobRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context, M, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: fload_3
+         4: invokespecial #19                 // Method net/minecraft/client/renderer/entity/LivingEntityRenderer."<init>":(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;Lnet/minecraft/client/model/EntityModel;F)V
+         7: return
+
+  protected boolean shouldShowName(T, double);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: dload_2
+         3: invokespecial #34                 // Method net/minecraft/client/renderer/entity/LivingEntityRenderer.shouldShowName:(Lnet/minecraft/world/entity/LivingEntity;D)Z
+         6: ifeq          38
+         9: aload_1
+        10: invokevirtual #39                 // Method net/minecraft/world/entity/Mob.shouldShowName:()Z
+        13: ifne          34
+        16: aload_1
+        17: invokevirtual #42                 // Method net/minecraft/world/entity/Mob.hasCustomName:()Z
+        20: ifeq          38
+        23: aload_1
+        24: aload_0
+        25: getfield      #46                 // Field entityRenderDispatcher:Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;
+        28: getfield      #52                 // Field net/minecraft/client/renderer/entity/EntityRenderDispatcher.crosshairPickEntity:Lnet/minecraft/world/entity/Entity;
+        31: if_acmpne     38
+        34: iconst_1
+        35: goto          39
+        38: iconst_0
+        39: ireturn
+
+  protected float getShadowRadius(S);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #61                 // Method net/minecraft/client/renderer/entity/LivingEntityRenderer.getShadowRadius:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;)F
+         5: aload_1
+         6: getfield      #66                 // Field net/minecraft/client/renderer/entity/state/LivingEntityRenderState.ageScale:F
+         9: fmul
+        10: freturn
+
+  protected static boolean checkMagicName(net.minecraft.world.entity.Entity, java.lang.String);
+    Code:
+         0: aload_0
+         1: invokevirtual #77                 // Method net/minecraft/world/entity/Entity.getCustomName:()Lnet/minecraft/network/chat/Component;
+         4: astore_2
+         5: aload_2
+         6: ifnull        26
+         9: aload_1
+        10: aload_2
+        11: invokeinterface #83,  1           // InterfaceMethod net/minecraft/network/chat/Component.getString:()Ljava/lang/String;
+        16: invokevirtual #89                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        19: ifeq          26
+        22: iconst_1
+        23: goto          27
+        26: iconst_0
+        27: ireturn
+
+  protected boolean shouldShowName(net.minecraft.world.entity.LivingEntity, double);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #36                 // class net/minecraft/world/entity/Mob
+         5: dload_2
+         6: invokevirtual #94                 // Method shouldShowName:(Lnet/minecraft/world/entity/Mob;D)Z
+         9: ireturn
+
+  protected float getShadowRadius(net.minecraft.client.renderer.entity.state.EntityRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #63                 // class net/minecraft/client/renderer/entity/state/LivingEntityRenderState
+         5: invokevirtual #96                 // Method getShadowRadius:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;)F
+         8: freturn
+
+  protected boolean shouldShowName(net.minecraft.world.entity.Entity, double);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #36                 // class net/minecraft/world/entity/Mob
+         5: dload_2
+         6: invokevirtual #94                 // Method shouldShowName:(Lnet/minecraft/world/entity/Mob;D)Z
+         9: ireturn
+}

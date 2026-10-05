@@ -1,0 +1,6 @@
+{
+  "className": "net.minecraft.client.renderer.entity.AgeableMobRenderer",
+  "completeProgramsEqualAfterConstantPoolIndexAndJavapPaddingNormalization": true,
+  "mergedSha256": "92c23aeb955c0bd560db2e8e7d0fdb1d2bb3faf22b8a4ea5897437ce5e6ee70f",
+  "runtimeSha256": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34"
+}

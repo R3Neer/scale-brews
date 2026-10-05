@@ -513,6 +513,16 @@ Recibos369 hashes/JAR y tooling público conservados; commit local Sprint:S51.
 No certifica pose/root/geometría física ni ejecuta bindings. Tarea2 permanece
 abierta, igual que tareas3–6/G7–G9 y necesidades humanas al final de la épica.
 
+**S52 cerrado adversarialmente:** otra tecnología original,
+selector heredado AgeableMobRenderer, prepara dos filas del predicado de estado
+isBaby hacia slots adult/baby. Entrypoints/constructor/bridge/programa completos
+acotados y estructura inicial; extractionAuthority UNPROVEN, sin source age/actor
+ni binding ejecutable. Build/compileGameTests/client focal PASS55s,24 selecciones
+sobre seis nativos;369 owners previos sin cambios. Campaña pública12 selecciones/
+6 slots ausentes/3 defectos de programa, replay73s y6 mutantes detectados;
+snapshot inicial, dos reviews sin cambios y commit local Sprint:S52. G6 tareas2–6/G7–G9 siguen
+abiertas; no inferir autoridad de extracción ni FULL por metadata del selector.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

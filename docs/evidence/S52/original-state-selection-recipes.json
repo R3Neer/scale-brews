@@ -1,0 +1,242 @@
+[
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.WolfRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/WolfRenderer.class": "40d4622fcdecc8b4e14a60683c051b7e7ba57d2ec1a3db704e3864f0a3e7c405",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.wolf.AdultWolfModel",
+        "initialStructure": {
+          "digest": "203dfb4e139ae14ad2fda7cb9c30e108f56f2c7d8ff92d0606e3e7444efd7496",
+          "parts": 11,
+          "cubes": 11,
+          "solidPieces": 11
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.wolf.BabyWolfModel",
+        "initialStructure": {
+          "digest": "f07aa7205abfca0e95dcb82c70d3618e95b771efea0ea7cca76e89de7f8683e5",
+          "parts": 11,
+          "cubes": 10,
+          "solidPieces": 10
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|49:net.minecraft.client.renderer.entity.WolfRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3464:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c956:/net/minecraft/client/renderer/entity/WolfRenderer.class64:40d4622fcdecc8b4e14a60683c051b7e7ba57d2ec1a3db704e3864f0a3e7c40573:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;53:net.minecraft.client.model.animal.wolf.AdultWolfModel64:203dfb4e139ae14ad2fda7cb9c30e108f56f2c7d8ff92d0606e3e7444efd7496true|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;52:net.minecraft.client.model.animal.wolf.BabyWolfModel64:f07aa7205abfca0e95dcb82c70d3618e95b771efea0ea7cca76e89de7f8683e5unique:2|",
+    "digest": "c1935a625e755bd971e9704e69826ff7c839f2520453ae81bd4d7f94dc067fc6"
+  },
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.PolarBearRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/PolarBearRenderer.class": "36f11a9967b9c034661a2fbfeff4da389590e2043e71484a66cd439d9d93344d",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.polarbear.PolarBearModel",
+        "initialStructure": {
+          "digest": "0e35302f7af22c4e9b3fb5b78a7dd3747415a55724b470112b466cc0da051201",
+          "parts": 7,
+          "cubes": 10,
+          "solidPieces": 10
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.polarbear.PolarBearModel",
+        "initialStructure": {
+          "digest": "a702cac0636829ae8f0df3d1c510f7c3ab928b483d96e39a114ce9cdb6b0a424",
+          "parts": 7,
+          "cubes": 9,
+          "solidPieces": 9
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|54:net.minecraft.client.renderer.entity.PolarBearRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3464:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c961:/net/minecraft/client/renderer/entity/PolarBearRenderer.class64:36f11a9967b9c034661a2fbfeff4da389590e2043e71484a66cd439d9d93344d73:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;58:net.minecraft.client.model.animal.polarbear.PolarBearModel64:0e35302f7af22c4e9b3fb5b78a7dd3747415a55724b470112b466cc0da051201true|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;58:net.minecraft.client.model.animal.polarbear.PolarBearModel64:a702cac0636829ae8f0df3d1c510f7c3ab928b483d96e39a114ce9cdb6b0a424unique:2|",
+    "digest": "32f51e058b46f4c3e1b18659b3a5b0923d5781ef6ae8902439a47c7460b2d59b"
+  },
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.BeeRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/BeeRenderer.class": "2010c52d1d826ddfe938e136b77012a508a0b52856002f708d2d1dfe1e1cf1ff",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.bee.AdultBeeModel",
+        "initialStructure": {
+          "digest": "880f49ca45facf097c7e31be6e236db58f1f8a7bf9db86bae3ed3817636ab18b",
+          "parts": 11,
+          "cubes": 9,
+          "solidPieces": 5
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.bee.BabyBeeModel",
+        "initialStructure": {
+          "digest": "95c414e5ec3c9446a3400968cb1a25a2baa43818950ca48f5aec3a3bb6b391fd",
+          "parts": 9,
+          "cubes": 9,
+          "solidPieces": 3
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|48:net.minecraft.client.renderer.entity.BeeRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3455:/net/minecraft/client/renderer/entity/BeeRenderer.class64:2010c52d1d826ddfe938e136b77012a508a0b52856002f708d2d1dfe1e1cf1ff64:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c973:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;51:net.minecraft.client.model.animal.bee.AdultBeeModel64:880f49ca45facf097c7e31be6e236db58f1f8a7bf9db86bae3ed3817636ab18btrue|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;50:net.minecraft.client.model.animal.bee.BabyBeeModel64:95c414e5ec3c9446a3400968cb1a25a2baa43818950ca48f5aec3a3bb6b391fdunique:2|",
+    "digest": "cc18199c3021968c52e923350a2fc358d214bb5300a9e75fd4c1775b65251694"
+  },
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.GoatRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/GoatRenderer.class": "6f98bb832d782a891d6a324edbc58987e398c61354f285eef5bd539783acc3fe",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.goat.GoatModel",
+        "initialStructure": {
+          "digest": "b052574de5ffd349dd56451935e5b5c72e26a763e226c259ff1650a2c7f9b984",
+          "parts": 10,
+          "cubes": 12,
+          "solidPieces": 11
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.goat.BabyGoatModel",
+        "initialStructure": {
+          "digest": "f6f7ba983cede78618e950c30ce18fa7148ce121fc188f0c1df0e6741590c2f8",
+          "parts": 12,
+          "cubes": 12,
+          "solidPieces": 12
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|49:net.minecraft.client.renderer.entity.GoatRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3456:/net/minecraft/client/renderer/entity/GoatRenderer.class64:6f98bb832d782a891d6a324edbc58987e398c61354f285eef5bd539783acc3fe64:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c973:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;48:net.minecraft.client.model.animal.goat.GoatModel64:b052574de5ffd349dd56451935e5b5c72e26a763e226c259ff1650a2c7f9b984true|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;52:net.minecraft.client.model.animal.goat.BabyGoatModel64:f6f7ba983cede78618e950c30ce18fa7148ce121fc188f0c1df0e6741590c2f8unique:2|",
+    "digest": "39f1cf19d1444b9dab3090be44bd2410a0419294c8a0274c0ab6b9d18c50fbd1"
+  },
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.TurtleRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/TurtleRenderer.class": "8e2f746f43adce4def32ec0fae1cfdb380feafbbd6ac201b07eb6b3233c29762",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.turtle.AdultTurtleModel",
+        "initialStructure": {
+          "digest": "3ecf4f2dfb0aa1077514cba391788c0a70412d53e76c115e362fa60f72ab6b9a",
+          "parts": 8,
+          "cubes": 8,
+          "solidPieces": 8
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.turtle.BabyTurtleModel",
+        "initialStructure": {
+          "digest": "e173548e479d3aab7b4bf5cb598746ac63c472c43befefe9561195f3c812a426",
+          "parts": 7,
+          "cubes": 6,
+          "solidPieces": 2
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|51:net.minecraft.client.renderer.entity.TurtleRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3464:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c958:/net/minecraft/client/renderer/entity/TurtleRenderer.class64:8e2f746f43adce4def32ec0fae1cfdb380feafbbd6ac201b07eb6b3233c2976273:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;57:net.minecraft.client.model.animal.turtle.AdultTurtleModel64:3ecf4f2dfb0aa1077514cba391788c0a70412d53e76c115e362fa60f72ab6b9atrue|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;56:net.minecraft.client.model.animal.turtle.BabyTurtleModel64:e173548e479d3aab7b4bf5cb598746ac63c472c43befefe9561195f3c812a426unique:2|",
+    "digest": "290b26ad01469fb8a024b50bb65bdc220cfc8739170eba23cbf0dd4c70c94442"
+  },
+  {
+    "tool": "original-age-state-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.OcelotRenderer",
+    "statePredicateField": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z",
+    "assignmentField": "net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;",
+    "extractionAuthority": "UNPROVEN",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/AgeableMobRenderer.class": "5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e34",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/OcelotRenderer.class": "affd5ee2b8323a3416f9d33aef3291fe71f867b1658127b758a75b8038fe853a",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96"
+    },
+    "rows": [
+      {
+        "statePredicate": false,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.feline.AdultOcelotModel",
+        "initialStructure": {
+          "digest": "920b416b42d4121dfa771b1bc78dc0d88957ee7a0e67500355a260d835b40e4e",
+          "parts": 9,
+          "cubes": 11,
+          "solidPieces": 11
+        }
+      },
+      {
+        "statePredicate": true,
+        "slot": "net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;",
+        "modelClass": "net.minecraft.client.model.animal.feline.BabyOcelotModel",
+        "initialStructure": {
+          "digest": "19502c163cd4bc222c8f24e5b7b088d77a443d1617ae63110beeb107bc5a8a61",
+          "parts": 9,
+          "cubes": 10,
+          "solidPieces": 10
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-age-state-selector-v1|51:net.minecraft.client.renderer.entity.OcelotRenderer75:net.minecraft.client.renderer.entity.state.LivingEntityRenderState#isBaby:Z104:net.minecraft.client.renderer.entity.LivingEntityRenderer#model:Lnet/minecraft/client/model/EntityModel;8:UNPROVEN62:/net/minecraft/client/renderer/entity/AgeableMobRenderer.class64:5019f524aa756e09fcb672d3cce17a3803953e7e1015baaf9e06433415121e3464:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c958:/net/minecraft/client/renderer/entity/OcelotRenderer.class64:affd5ee2b8323a3416f9d33aef3291fe71f867b1658127b758a75b8038fe853a73:/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class64:4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96false|107:net.minecraft.client.renderer.entity.AgeableMobRenderer#adultModel:Lnet/minecraft/client/model/EntityModel;57:net.minecraft.client.model.animal.feline.AdultOcelotModel64:920b416b42d4121dfa771b1bc78dc0d88957ee7a0e67500355a260d835b40e4etrue|106:net.minecraft.client.renderer.entity.AgeableMobRenderer#babyModel:Lnet/minecraft/client/model/EntityModel;56:net.minecraft.client.model.animal.feline.BabyOcelotModel64:19502c163cd4bc222c8f24e5b7b088d77a443d1617ae63110beeb107bc5a8a61unique:2|",
+    "digest": "f9d835df7a264f9714f0662095ef048af258401f4cc66f0202625ba674f7fe81"
+  }
+]

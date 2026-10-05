@@ -1,0 +1,13 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+    loom.runs.configureEach { runDir=providers.gradleProperty('s52RunDir').getOrElse(file('../s52-impl-run').absolutePath) }
+    tasks.named('runClientGameTest') { doFirst { args '--graphicsBackend','opengl' } }
+    tasks.named('processGametestResources') { outputs.upToDateWhen { false }; doLast {
+        def manifest=new File(destinationDir,'fabric.mod.json'); def meta=new JsonSlurper().parse(manifest)
+        meta.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S52AgeStateSelectionProof']
+        if (providers.gradleProperty('s52SelectorRegression').getOrElse('false').toBoolean())
+            meta.entrypoints['fabric-client-gametest'].addAll(['io.github.r3neer.scalebrews.test.S51OriginalSelectionProof','io.github.r3neer.scalebrews.test.S45MinecraftCensusProof'])
+        manifest.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+    } }
+} }

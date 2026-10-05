@@ -1,0 +1,14 @@
+{
+  "sourceSha256": "c51f419a85ae5107bcbc6f18004087e0df7a36261ce1ef554722cc7eec8397d7",
+  "fixtureSha256": "033596d54da9a2a70e243f26d7beb21a0081dc54486beae37c85d46ac7636845",
+  "baseline": null,
+  "results": [
+    {
+      "name": "join-target",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s52-impl-mutation-replay\\join-target.log",
+      "shadowSha256": "1baeda286cf7f7dad953d9a86b68c07748b9bf7b4cec77fcf5a0387a5450fa26"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+Compiled from "AgeableMobRenderer.java"
+public abstract class net.minecraft.client.renderer.entity.AgeableMobRenderer<T extends net.minecraft.world.entity.Mob, S extends net.minecraft.client.renderer.entity.state.LivingEntityRenderState, M extends net.minecraft.client.model.EntityModel<? super S>> extends net.minecraft.client.renderer.entity.MobRenderer<T, S, M> {
+  private final M adultModel;
+
+  private final M babyModel;
+
+  public net.minecraft.client.renderer.entity.AgeableMobRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context, M, M, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: fload         4
+         5: invokespecial #1                  // Method net/minecraft/client/renderer/entity/MobRenderer."<init>":(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;Lnet/minecraft/client/model/EntityModel;F)V
+         8: aload_0
+         9: aload_2
+        10: putfield      #7                  // Field adultModel:Lnet/minecraft/client/model/EntityModel;
+        13: aload_0
+        14: aload_3
+        15: putfield      #13                 // Field babyModel:Lnet/minecraft/client/model/EntityModel;
+        18: return
+
+  public void submit(S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: getfield      #16                 // Field net/minecraft/client/renderer/entity/state/LivingEntityRenderState.isBaby:Z
+         5: ifeq          15
+         8: aload_0
+         9: getfield      #13                 // Field babyModel:Lnet/minecraft/client/model/EntityModel;
+        12: goto          19
+        15: aload_0
+        16: getfield      #7                  // Field adultModel:Lnet/minecraft/client/model/EntityModel;
+        19: putfield      #22                 // Field model:Lnet/minecraft/client/model/EntityModel;
+        22: aload_0
+        23: aload_1
+        24: aload_2
+        25: aload_3
+        26: aload         4
+        28: invokespecial #25                 // Method net/minecraft/client/renderer/entity/MobRenderer.submit:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        31: return
+
+  public void submit(net.minecraft.client.renderer.entity.state.EntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #17                 // class net/minecraft/client/renderer/entity/state/LivingEntityRenderState
+         5: aload_2
+         6: aload_3
+         7: aload         4
+         9: invokevirtual #29                 // Method submit:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        12: return
+}

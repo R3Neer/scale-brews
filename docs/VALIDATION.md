@@ -3600,3 +3600,42 @@ reviews per role require zero changes. Independent raw evidence, failures,
 replay and exact-path one-off cleanup are retained in adversarial-verification.json.
 Both new owners are TRUSTED only for this explicit PREPARATION family. G6 tasks2–6,
 G7–G9,92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL and epic-end human needs remain open.
+
+S52 closed scoped verification (IMPLEMENTER and independent ADVERSARY):
+Executed build -x runGameTest compileGametestJava runClientGameTest -I
+ tools/s52_implementer.init.gradle -PscalebrewsBuildDir=../s52-impl-build --offline:
+PASS55s, clean exit, six native inherited age-state renderers and24 original
+queued model selections (12 native extraction witnesses +12 perturbed state
+predicates). No source age/actor/extraction authority claim: recipe explicitly
+keeps extractionAuthority UNPROVEN. Deterministic immutable metadata, initial
+structure fingerprints/shared state preservation and absent/other-family rejection.
+Exactly one new client preparation owner; all369 existing production hashes unchanged.
+370 hashes and JAR758entries SHA14aeed4f fixed in implementation-verification.json;
+no GameTest classes leaked. Whole AgeableMobRenderer merged/runtime programs
+compared before approving exact resource digests (CP indices/javap padding only).
+
+Regression selection follows changed boundaries: focal S45 structure inspection
+on12 original model slots; S51/S45 owners unchanged, so previous clients/full census
+not repeated. No Tiny Mounts, full server or ordinary client suite repeated. Default
+manifest112server/34client restored processGametestResources PASS1s, source/processed
+entrypoints identical; no additional suite. CI/G9 integrated acceptance remains.
+Collector Path.resolve(relative) behaved incorrectly in this Python314 environment;
+using Path.cwd()/absolute paths fixed tooling output without production repair.
+Logs/resources/comparison/recipes durable in docs/evidence/S52. Two final root reviews
+without production changes; independent acceptance below, G6/FULL/G7–G9 still open.
+
+S52 independent public baseline PASS36s and root replay PASS73s, clean exit:
+12 state selections/6 missing slots, external hierarchy/client confinement,
+shared aliases, immutability and three exact semantic program rejections.
+Six compiled/executed mutants detected; the initial join survivor and two failed
+infrastructure replays remain recorded as ADVERSARY_FIXTURE. Corrected oracle
+patches only native GOTO operand while preserving labels/frames and requires
+model_join_target; no production defect/repair. Root reproduces public PS1 driver
+only for that corrected join-target: aggregate exit0, native mutant exit1/55s
+with AssertionError malformed program admitted 1, killed=true. Raw driver/log/JSON
+captured under implementation/; full sensitivity receipt belongs to ADVERSARY.
+Initial six-slot SVG/PNG inspected by both roles; replay SVG byte-identical.
+370 hashes/JAR758 unchanged; two complete zero-change reviews per role,11 private
+adversarial one-offs retired exactly and reusable tooling retained. TRUSTED only
+state predicate->original slot assignment; entity extraction, pose/root/material,
+G6/FULL/G7–G9 and epic-end human acceptance remain open. No Tiny regression repeated.
