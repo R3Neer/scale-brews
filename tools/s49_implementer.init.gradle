@@ -1,0 +1,15 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+// Explicit development selector. Ordinary CI never loads this init script.
+allprojects { afterEvaluate {
+ loom.runs.configureEach {runDir=file(findProperty('s49ImplementerRunDir') ?: new File(buildDir,'s49-implementer-run')).absolutePath}
+ tasks.named('runGameTest') {dependsOn tasks.named('downloadAssets')}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  def prefix='io.github.r3neer.scalebrews.collision.internal.'
+  def selected=findProperty('s49Selected') ?: 'S49ImplementerEnumPreparationTests,S49ImplementerComponentLifecycleTests'
+  m.entrypoints['fabric-gametest']=selected.split(',').collect{prefix+it}
+  m.entrypoints['fabric-client-gametest']=[]
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+}}

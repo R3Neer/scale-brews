@@ -3422,3 +3422,62 @@ tools remain isolated. The closure has its own local Sprint:S48 commit before
 advancing; no push/tag/release is implied.
 G6 tasks2-6/G7-G9 and human acceptance remain open. Micro allocation/counter
 evidence does not establish integrated p95/p99, GC,20TPS or the G9 workload.
+
+## S49 - enum component sources (closed within common-reader/lifecycle scope)
+
+Only CollisionVariantSources and BuiltInVariantSources change production. One
+common enum-component family prepares original serialized names and reads native
+components locally without runtime reflection or allocation. Discovery uses
+typed DataComponents fields and actual registry IDs, not a species list. The
+preimplementation adversary rejected literal slash-containing IDs; the revised
+injective key encoding converged before production. No schema/wire/solver,
+mount/passenger/seat/render changes, or FULL/model certification.
+
+Executed development build and GameTest compilation PASS45s. First selected lane
+fails30s in the synthetic extension fixture because its component lacks a Codec;
+native fox/salmon/rabbit and live component transition probes pass. An attempted
+Codec.unit fix fails compilation2s against installed DFU10.0.21. The fixture uses
+the verified Codec.STRING.xmap API; no production correction or oracle weakening.
+Complete selected lane then passes4/4 and build34s, clean exit. The affected S48
+selection/preparation/retirement regression passes8/8 in38s, clean exit, including
+100000 stable cursor reads allocating312bytes. No unrelated Tiny Mounts or full
+client/server suite is repeated. Ordinary CI and final G9 integration are retained.
+
+Temporary development selector is replaced by tools/s49_implementer.init.gradle.
+Reproducible new lane: ./gradlew build compileGametestJava runGameTest --offline
+-I tools/s49_implementer.init.gradle -PscalebrewsBuildDir=<isolated-output>.
+Affected lane uses runGameTest with the same script and
+-Ps49Selected=S48ImplementerLiveVariantTests,S48AdversarialVariantPreparationTests.
+Restore ordinary resources with processGametestResources without the init script;
+the executed restoration passes1s and source/processed109server+34client agree.
+Those manifest counts are not a claim that the full suite was executed.
+
+Implementation receipt docs/evidence/S49/implementation-verification.json pins
+367 raw production/resource files, exactly the two changed production owners,
+and the745-entry1207866-byte JAR SHA-256
+65f06fd1c55bae5ae0adc78cb5ae951a4494024addbeffebbd051bb3258f756a,
+with zero test leakage. Compiled reader bytecode calls get(component), checks
+Enum.getDeclaringClass and loads the prepared array by ordinal. Synthetic live
+fox geometry proves variant selection/retirement/ABA identity only, not original
+fox model/pose. Independent public lane passes4/4 in1m11s, clean exit; the
+IMPLEMENTER reproduces it4/4 in1m23s. Seven semantic mutants compile and execute
+before their expected oracle failures; eight historical ownership/presence gates
+pass within their stated limits. Eighteen original enum domains,17 excluded
+Holder domains and132 independently encoded registry IDs are checked. The
+100000-read native-reader probe allocates3400bytes in the independent public
+run under its4096-byte bound, and0bytes in the root replays. These local
+measurements do not establish integrated TPS, p95/p99, GC or NFR-014.
+
+Promoted preparation classes execute5/5 in28s, clean exit, using
+-I tools/s49_implementer.init.gradle
+-Ps49Selected=S49ImplementerEnumPreparationTests,S49AdversarialEnumPreparationTests.
+Lifecycle fixtures remain isolated because they own start/reload/stop. Final
+ordinary processGametestResources restoration passes1s; source/processed agree
+at110server+34client, without claiming the full suite was executed. Public
+adversarial replay uses -I tools/s49_adversarial.init.gradle runGameTest with an
+isolated scalebrewsBuildDir. Raw public logs, shadow recipes and independent
+receipt are retained under docs/evidence/S49. Both receipts match all367
+production hashes. The independent cleanup receipt accounts for20 individually
+removed one-offs while retaining evidence/builds/models; reusable tools remain.
+Both final reviews require zero changes; local closure identifies Sprint:S49.
+G6 tasks2-6/G7-G9 and epic-end human acceptance remain open.

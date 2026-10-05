@@ -480,6 +480,16 @@ VALIDATION. Commit local propio Sprint:S48. G6 tareas2–6 siguen abiertas para
 selectores originales/familias/catálogo FULL; G7–G9 y necesidades humanas al final
 de la épica permanecen pendientes.
 
+**S49 cerrado adversarialmente:** una familia común observa18 componentes enum
+originales mediante nombres preparados e IDs codificados sin alias;17 componentes
+Holder quedan explícitamente pendientes. Se contrastan132 IDs, límites y ownership.
+Lane nueva4/4, regresión afectada8/8, adversarial pública4/4 y reproducción4/4,
+preparación promovida5/5, siete mutantes semánticos detectados y ocho gates PASS.
+Ambos reviews finales cero cambios;367 hashes coinciden y JAR fijado en VALIDATION.
+Manifest ordinario110servidor/34cliente restaurado, sin atribuirle una ejecución
+completa ni repetir Tiny Mounts. Commit local propio Sprint:S49. La observación
+no certifica modelos/poses; G6 tareas2–6, G7–G9 y aceptación humana siguen abiertas.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

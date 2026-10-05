@@ -1,0 +1,37 @@
+{
+  "foreign-enum": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "d683471d0edd6f1fd0a4637775bdc3e4869157d60eebbfc2bcff24bef3f61166",
+    "shadowSha256": "2af20885fd0dd3d0dfb3a083f4bb9a5e6ec5fac9c53c33f071812ec631567e4a"
+  },
+  "constant-subclass": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "d683471d0edd6f1fd0a4637775bdc3e4869157d60eebbfc2bcff24bef3f61166",
+    "shadowSha256": "68b10c40416e60a95515c6cf6043f55bab7d17aa6096ef573a971b000d85212f"
+  },
+  "runtime-serialize": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "d683471d0edd6f1fd0a4637775bdc3e4869157d60eebbfc2bcff24bef3f61166",
+    "shadowSha256": "4dd595b9b650d7e471a19549aa7d959b01a5b127368ab07315d4c7ad8afd5b15"
+  },
+  "key-escape": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "d683471d0edd6f1fd0a4637775bdc3e4869157d60eebbfc2bcff24bef3f61166",
+    "shadowSha256": "938b2badbf257599838fe93c29b5b322d75aaeafa34336076e660e261762f539"
+  },
+  "discovery-omitted": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInVariantSources.java",
+    "productionSha256": "7941f74f0e97185a64151550d8e009e937a1bda755205da6670b78c21333c14a",
+    "shadowSha256": "f7809599da7076231c7596ac79950741cbeff23204dc6a58d1793caf399798df"
+  },
+  "ownership-blind": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInVariantSources.java",
+    "productionSha256": "7941f74f0e97185a64151550d8e009e937a1bda755205da6670b78c21333c14a",
+    "shadowSha256": "705e0ee46e7136106790dd78a904db67f916e635ab8acfc5549f53e78e394d4f"
+  },
+  "reader-registry-copy": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "d683471d0edd6f1fd0a4637775bdc3e4869157d60eebbfc2bcff24bef3f61166",
+    "shadowSha256": "0d5d0105ddbcdc45a073f581a03eb473082d5b9a61456fc25c4c02baae4afa80"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "role": "ADVERSARY",
+  "removedFiles": [
+    {
+      "path": "capture_receipt.py",
+      "sha256": "947414ee8a5d6abdf43a7471f6f982efb10f7b4e859bc385049e7cb925106af7"
+    },
+    {
+      "path": "generate_mutations.py",
+      "sha256": "d5a4f7e069c1695c441b57943e872a934453ba97b787bc0e4a053295c6032470"
+    },
+    {
+      "path": "lane.init.gradle",
+      "sha256": "ce395428ef31a9ef9646f3785922ddd908a83b1baea3e9060d3453352857fb41"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S49PrivateDomains.java",
+      "sha256": "234b8f8b41fd73c95c15759b817cf185f5111cbd9714ac93e0ee8c9fda54b232"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S49PrivateEnumProof.java",
+      "sha256": "d7ed2226c640b7c8b0ae760518267380071c1bfc61bb0f75d27d327764ca4e5b"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S49PrivateNativeLifecycleProof.java",
+      "sha256": "2e5619bcbd4b28fb76f856851ee7e71f02644f0064ba5d2bf405a30bc9ccc80e"
+    },
+    {
+      "path": "shadows\\constant-subclass\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "68b10c40416e60a95515c6cf6043f55bab7d17aa6096ef573a971b000d85212f"
+    },
+    {
+      "path": "shadows\\foreign-enum\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "2af20885fd0dd3d0dfb3a083f4bb9a5e6ec5fac9c53c33f071812ec631567e4a"
+    },
+    {
+      "path": "shadows\\key-escape\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "938b2badbf257599838fe93c29b5b322d75aaeafa34336076e660e261762f539"
+    },
+    {
+      "path": "shadows\\reader-registry-copy\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "0d5d0105ddbcdc45a073f581a03eb473082d5b9a61456fc25c4c02baae4afa80"
+    },
+    {
+      "path": "shadows\\runtime-serialize\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "4dd595b9b650d7e471a19549aa7d959b01a5b127368ab07315d4c7ad8afd5b15"
+    },
+    {
+      "path": "shadows\\discovery-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "f7809599da7076231c7596ac79950741cbeff23204dc6a58d1793caf399798df"
+    },
+    {
+      "path": "shadows\\ownership-blind\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "705e0ee46e7136106790dd78a904db67f916e635ab8acfc5549f53e78e394d4f"
+    },
+    {
+      "path": "public-shadows\\constant-subclass\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "68b10c40416e60a95515c6cf6043f55bab7d17aa6096ef573a971b000d85212f"
+    },
+    {
+      "path": "public-shadows\\foreign-enum\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "2af20885fd0dd3d0dfb3a083f4bb9a5e6ec5fac9c53c33f071812ec631567e4a"
+    },
+    {
+      "path": "public-shadows\\key-escape\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "938b2badbf257599838fe93c29b5b322d75aaeafa34336076e660e261762f539"
+    },
+    {
+      "path": "public-shadows\\reader-registry-copy\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "0d5d0105ddbcdc45a073f581a03eb473082d5b9a61456fc25c4c02baae4afa80"
+    },
+    {
+      "path": "public-shadows\\runtime-serialize\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "4dd595b9b650d7e471a19549aa7d959b01a5b127368ab07315d4c7ad8afd5b15"
+    },
+    {
+      "path": "public-shadows\\discovery-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "f7809599da7076231c7596ac79950741cbeff23204dc6a58d1793caf399798df"
+    },
+    {
+      "path": "public-shadows\\ownership-blind\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "705e0ee46e7136106790dd78a904db67f916e635ab8acfc5549f53e78e394d4f"
+    }
+  ],
+  "preserved": "All logs, javap/preimplementation models, mutation JSON receipts, caches, builds and future holdouts; public tests/init/mutation generator kept.",
+  "sprint": "S49",
+  "recursiveDeletion": false
+}

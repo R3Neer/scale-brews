@@ -10,3 +10,6 @@
 # Preserve raw S48 evidence bytes and simulator-generated whitespace.
 /docs/evidence/S48/adversarial/*.log -text -whitespace
 
+# The independent S49 simulator receipts also hash exact raw log bytes.
+/docs/evidence/S49/adversarial/*.log -text -whitespace
+

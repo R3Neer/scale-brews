@@ -1,0 +1,5 @@
+S25_REFERENCE_AUTHORITY_GATE PASS
+ - retired legacy authority is absent; one canonical native-packet emitter is ownership-fenced
+ - registered collision C2S payload schemas are metadata-only:
+    AnatomyMoveReferencePayload
+    AnatomyMoveReferenceV2Payload

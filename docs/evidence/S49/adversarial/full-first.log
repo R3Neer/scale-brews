@@ -1,0 +1,39 @@
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileClientJava UP-TO-DATE
+> Task :processClientResources UP-TO-DATE
+> Task :clientClasses UP-TO-DATE
+
+> Task :compileGametestJava FAILED
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\s49-adversary-private\src\io\github\r3neer\scalebrews\collision\internal\S49PrivateNativeLifecycleProof.java:29: error: cannot find symbol
+    static CollisionBinding row(String key,String value){return new CollisionBinding(1,net.minecraft.resources.Identifier.parse("minecraft:fox"),Map.of(key,value),new CollisionBinding.Geometry(BuiltInGeometryEngines.MODEL_PART,S48AdversarialVariantFixtures.MODEL,Map.of(),AnatomyFilter.DEFAULT),new CollisionBinding.Pose(S48AdversarialVariantFixtures.POSE,Map.of(),Set.of()),S48AdversarialVariantFixtures.ROOT,CollisionPolicy.Patch.EMPTY,Set.of());}
+                                                                                                                                                                                                                                                                                ^
+  symbol:   variable AnatomyFilter
+
+  location: class S49PrivateNativeLifecycleProof
+1 error
+[Incubating] Problems report is available at: file:///C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/s49-adversary-private/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileGametestJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
+> Compilation failed; see the compiler output below.
+  C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\s49-adversary-private\src\io\github\r3neer\scalebrews\collision\internal\S49PrivateNativeLifecycleProof.java:29: error: cannot find symbol
+      static CollisionBinding row(String key,String value){return new CollisionBinding(1,net.minecraft.resources.Identifier.parse("minecraft:fox"),Map.of(key,value),new CollisionBinding.Geometry(BuiltInGeometryEngines.MODEL_PART,S48AdversarialVariantFixtures.MODEL,Map.of(),AnatomyFilter.DEFAULT),new CollisionBinding.Pose(S48AdversarialVariantFixtures.POSE,Map.of(),Set.of()),S48AdversarialVariantFixtures.ROOT,CollisionPolicy.Patch.EMPTY,Set.of());}
+                                                                                                                                                                                                                                                                                  ^
+    symbol:   variable AnatomyFilter
+    location: class S49PrivateNativeLifecycleProof
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 4s
+5 actionable tasks: 1 executed, 4 up-to-date

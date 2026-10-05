@@ -119,7 +119,9 @@
       "io.github.r3neer.scalebrews.collision.internal.S47ImplementerBindingTransportTests",
       "io.github.r3neer.scalebrews.collision.internal.S47AdversarialBindingTransportTests",
       "io.github.r3neer.scalebrews.collision.internal.S48ImplementerLiveVariantTests",
-      "io.github.r3neer.scalebrews.collision.internal.S48AdversarialVariantPreparationTests"
+      "io.github.r3neer.scalebrews.collision.internal.S48AdversarialVariantPreparationTests",
+      "io.github.r3neer.scalebrews.collision.internal.S49ImplementerEnumPreparationTests",
+      "io.github.r3neer.scalebrews.collision.internal.S49AdversarialEnumPreparationTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",

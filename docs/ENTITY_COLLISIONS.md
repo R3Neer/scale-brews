@@ -151,6 +151,20 @@ frontera está TRUSTED en el scope independiente S48 de fuentes finitas capturad
 retirada/recuperación local, clock y transporte exacto. No certifica selectores
 originales generales, familias FULL ni el benchmark global de G9.
 
+La familia aditiva S49 `CollisionVariantSources.enumComponent` prepara los nombres
+serializados de un componente enum `StringRepresentable`; la lectura server-safe
+obtiene el valor original, verifica su enum propietario y retorna el nombre
+preparado por ordinal. Ausencia/tipo ajeno permanece unknown. La inicialización
+descubre campos enum tipados de `DataComponents`, sin dispatch físico por especie;
+la reflexión sólo ocurre en preparación y la revisión conserva sus readers.
+`componentKey` expresa el ID original mediante `component.<namespace>.<path>`
+con `_`→`_5f`, `.`→`_2e` y `/`→`_2f` dentro de segmentos, respetando el límite64.
+Así `minecraft:fox/variant` usa `component.minecraft.fox_2fvariant` sin alias con
+escapes literales. Mods pueden preparar/registrar sources de esta misma familia
+por API. Holder/skin/dispatch original de modelos son fronteras diferentes;
+Los readers están TRUSTED en el scope independiente S49 de componentes enum,
+dominios preparados y lifecycle existente; no promueve FULL ni certifica modelos.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.
