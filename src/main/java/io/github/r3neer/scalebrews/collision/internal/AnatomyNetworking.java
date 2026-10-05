@@ -54,7 +54,7 @@ public final class AnatomyNetworking {
     public static AnatomyPosePayload posePayload(GeometryProvider.PublishedFrame frame) {
         return posePayload(frame,1);
     }
-    /** Builds v6 from one immutable server-authoritative published endpoint and recipient tracking generation. */
+    /** Builds v7 from one immutable server-authoritative published endpoint and recipient tracking generation. */
     public static AnatomyPosePayload posePayload(GeometryProvider.PublishedFrame frame,long trackingGeneration) {
         if(frame==null)throw new IllegalArgumentException("Missing authoritative published frame");
         if(trackingGeneration<1)throw new IllegalArgumentException("Invalid tracking generation");
@@ -62,7 +62,7 @@ public final class AnatomyNetworking {
         return new AnatomyPosePayload(identity.epoch(),identity.revision(),identity.dimension().identifier(),identity.entityId(),identity.support(),
             identity.model(),identity.poseProvider(),identity.rootProvider(),endpoint.frameSerial(),endpoint.authorityTick(),endpoint.jointSampleTick(),root.sequence(),root.tick(),
             identity.bindingGeneration(),trackingGeneration,endpoint.availability()==GeometryProvider.Availability.AVAILABLE,sample.inputs(),sample.origin(),sample.yaw(),sample.scale(),sample.gravity().down(),
-            endpoint.rootTransform());
+            endpoint.rootTransform(),identity.bindingIdentity());
     }
     /** Typed fixture factory; production must pass {@link GeometryProvider.PublishedFrame}. */
     public static AnatomyPosePayload posePayload(UUID epoch,long revision,net.minecraft.resources.Identifier dimension,int entityId,UUID entity,
@@ -102,7 +102,9 @@ public final class AnatomyNetworking {
     }
     /** Sends exactly one immutable server published endpoint in the recipient's current tracking generation. */
     public static void sendPose(ServerPlayer recipient,GeometryProvider.PublishedFrame frame,long trackingGeneration) {
-        if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose/root protocol v6");
+        if(frame==null || !CollisionBindingIdentity.validToken(frame.identity().bindingIdentity()))
+            throw new IllegalArgumentException("Live pose publication requires complete binding identity");
+        if(!ServerPlayNetworking.canSend(recipient,AnatomyPosePayload.TYPE))throw new IllegalStateException("Client lacks anatomy pose/root/binding protocol v7");
         ServerPlayNetworking.send(recipient,posePayload(frame,trackingGeneration));
     }
     /** Hot recipient path: packets were serialized, hashed and fragmented when the revision was accepted. */

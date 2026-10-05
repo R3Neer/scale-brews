@@ -65,6 +65,11 @@ public final class PreparedBindingIndex {
         return binding != null && entity.equals(binding.selection().entity()) ? Optional.of(binding) : Optional.empty();
     }
 
+    /** Member lookup before a network entity exists; does not confer entity-type ownership. */
+    public Optional<WorldAnatomyCatalog.Binding> resolveIdentity(Identifier identity) {
+        return Optional.ofNullable(byIdentity.get(identity));
+    }
+
     /** Only the owned prepared Binding instance has an ID here; foreign equal objects confer no ownership. */
     public Optional<Identifier> identity(WorldAnatomyCatalog.Binding binding) {
         return Optional.ofNullable(identities.get(binding));

@@ -45,7 +45,7 @@ final class AnatomyBindingState {
         slot.generation=Math.incrementExact(slot.generation);
         if(descriptor!=null && descriptor.bindingGeneration()==0)
             descriptor=new GeometryProvider.GeometryIdentityDescriptor(descriptor.epoch(),descriptor.revision(),
-                descriptor.model(),descriptor.poseProvider(),slot.generation);
+                descriptor.model(),descriptor.poseProvider(),descriptor.rootProvider(),slot.generation,descriptor.bindingIdentity());
         slot.provider=provider;
         slot.descriptor=descriptor;
         slot.binding=binding;

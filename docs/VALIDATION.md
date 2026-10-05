@@ -3294,3 +3294,64 @@ index, canonical selection, ownership/bounds, acceptance/reconstruction. Default
 runtime selection, wire protocol and engine/solver/render behavior stay at their
 prior certified scope. Live selectors, variant transitions, generation/replay,
 model agreement, G6 tasks2-6 and G7-G9 remain open; human needs stay at epic end.
+
+
+## S47 - exact authoritative binding identity (closed within transport scope)
+
+IMPLEMENTER production now carries the complete prepared S46 token from runtime
+registration through immutable GeometryIdentity/PublishedFrame to anatomy_pose_v7.
+Catalog protocol remains independent. Receiver physics/evaluator/presentation and
+original-model selection resolve the exact accepted row, including variant-only
+catalogs; frame/pose histories and compressed replay fences retain content identity.
+This is transport of an already chosen row, not live trait selection or FULL coverage.
+
+Executed production builds pass481/481 server GameTests: ../s47-build-i1.log
+(1m29s) and latest-source ../s47-build-i2.log (3m10s), clean exits. The six new
+IMPLEMENTER probes include the real RegistryFriendlyByteBuf codec and complete
+row/identity boundaries. Normal client32 passes ../s47-client-i2.log (4m46s), clean
+exit. Earlier ../s47-client-i1.log is RED3m18s: the historical presentation rebind
+fixture copied a live identity through an incomplete compatibility constructor.
+ADVERSARY migrates those copies preserving root/token and every original oracle;
+production never infers a missing token or relaxes the v7 wire contract.
+
+Command/evidence correction: ../s47-prepared-i1.log PASS5m49s ran the32 client
+entrypoints with a selector that only changes the SERVER entrypoints; it does
+not demonstrate the prepared server suite. Correct invocation
+../s47-prepared-server-i1.log PASS35s records24 scenarios (indices0-23) within
+AnatomyPreparedIntegrationProof plus the sentinel,2/2 required GameTests.
+Both normal processed manifests are restored explicitly (2s each) and equal
+source105server/32client. The old log and its correct classification are retained.
+
+Initial receipts under docs/evidence/S47 pin362 raw production/resource hashes
+and the real734-entry/1184617-byte JAR SHA-256
+ a535f512111e04df4f7174da70c8eb07a5edb90bff9365251b6de227dcbf9c19.
+No new product owner/resource or test leakage is introduced. The final source
+remains362 production/resource files and14 modified existing production sources.
+
+ADVERSARY independently passes6/6 server plus exact-binding client; five isolated
+mutants produce expected semantic RED, and an explicitly required preparation
+counter records200000 lookups with zero repeated hashes. Real Cow snapshots
+prove10→9pieces, exactly one declared exclusion and identical retained vertices.
+Physics, presentation and renderer selection agree on variant A→B without a
+default; old A replay is rejected. Unknown-token serial100 before entity arrival
+does not suppress the valid member serial1. Eight ownership/protocol gates pass,
+retaining the presence-only limits. Complete classifications, recipes, log and
+fixture hashes and scoped TRUSTED findings are in adversarial-verification.json.
+The long1h56m9 combined adversarial run includes an unexplained startup pause;
+separate server18s/client52s repeats pass. It is not used as a hot-path metric.
+
+IMPLEMENTER reproduces the public6/6+exact client lane in1m33s, clean exit,
+../s47-impl-public-final.log, and regenerates/inspects its deterministic overlay.
+After promotion, normal integrated build passes486/48644s and normal client33
+passes3m33s, clean exits, ../s47-build-final.log and ../s47-client-final.log.
+The client includes the final canonical ModelPart factory fixture: the helper
+migration is classified and snapshots remain logically identical. Final normal
+processed manifests match source106server/33client. Source/artifact hashes are
+unchanged from independently verified production; final implementation receipt
+and manifest record these exact results. Both complete final reviews produce
+zero production changes. Closure has its own local Sprint:S47 commit before
+advancing; no push/tag/release is implied.
+
+G6 tasks2-6/G7-G9 and human epic-end acceptance remain open. Transport of an
+accepted identity does not certify live trait selection, general FULL families,
+p95/p99/GC, or the global G9 benchmark.

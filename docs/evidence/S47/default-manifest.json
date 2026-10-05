@@ -1,0 +1,56 @@
+{
+  "scope": "Normal default suite retains previous32 clients and adds exact-binding proof:106server entrypoints /33client entrypoints; focal lane independently reproduced",
+  "source": {
+    "path": "src/gametest/resources/fabric.mod.json",
+    "sha256": "86686935a7d7fdcea9a157bcecac6619c648561cc354e3e6d6f5aa430a2ee7c9",
+    "bytes": 10821
+  },
+  "processed": [
+    {
+      "path": "../s47-impl-build/resources/gametest/fabric.mod.json",
+      "sha256": "86686935a7d7fdcea9a157bcecac6619c648561cc354e3e6d6f5aa430a2ee7c9",
+      "bytes": 10821
+    },
+    {
+      "path": "../s47-impl-client-build/resources/gametest/fabric.mod.json",
+      "sha256": "86686935a7d7fdcea9a157bcecac6619c648561cc354e3e6d6f5aa430a2ee7c9",
+      "bytes": 10821
+    }
+  ],
+  "clientEntrypoints": [
+    "io.github.r3neer.scalebrews.test.AnatomyExportProof",
+    "io.github.r3neer.scalebrews.test.WolfClientProof",
+    "io.github.r3neer.scalebrews.test.S36LocalBoatControlProof",
+    "io.github.r3neer.scalebrews.test.S43LocalNativePairProof",
+    "io.github.r3neer.scalebrews.collision.internal.S43ContactIndexClientProof",
+    "io.github.r3neer.scalebrews.test.S43AdversarialSupportRetirementProof",
+    "io.github.r3neer.scalebrews.test.S43AdversarialRetirementLocalityProof",
+    "io.github.r3neer.scalebrews.collision.internal.S43AdversarialReceiptStateProof",
+    "io.github.r3neer.scalebrews.test.ScaleBrewsClientTests",
+    "io.github.r3neer.scalebrews.test.AnatomyPresentationFrameTests",
+    "io.github.r3neer.scalebrews.test.S00ClientBoundaryTests",
+    "io.github.r3neer.scalebrews.test.S00ObserverBoundaryTests",
+    "io.github.r3neer.scalebrews.test.S17ModelPartGeometryEngineClientTests",
+    "io.github.r3neer.scalebrews.test.S18ZeroDurationCompilerClientTests",
+    "io.github.r3neer.scalebrews.test.S19AdvancedModelBoxClientProof",
+    "io.github.r3neer.scalebrews.collision.internal.S25AdversarialReceiptTokenTeleportTests",
+    "io.github.r3neer.scalebrews.test.S26ControlHandoffClientProof",
+    "io.github.r3neer.scalebrews.test.S29ImplementerJointPresentationProof",
+    "io.github.r3neer.scalebrews.test.S29ImplementerRejectedCatalogClientProof",
+    "io.github.r3neer.scalebrews.test.S29ImplementerAcceptedCatalogClientProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialCatalogDimensionProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialLiveEndpointProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialUnavailableReplayProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialDerivedPresentationProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialCertificateIdentityProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialLifecycleOrderingProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialWireBoundsProof",
+    "io.github.r3neer.scalebrews.test.S29AdversarialCrossSupportProof",
+    "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance",
+    "io.github.r3neer.scalebrews.test.S42AdversarialRetiredDisconnectProof",
+    "io.github.r3neer.scalebrews.test.S42AdversarialCurrentDisconnectProof",
+    "io.github.r3neer.scalebrews.test.S44AdversarialScopeProof",
+    "io.github.r3neer.scalebrews.collision.internal.S47AdversarialExactBindingClientProof"
+  ],
+  "serverEntrypointCount": 106
+}

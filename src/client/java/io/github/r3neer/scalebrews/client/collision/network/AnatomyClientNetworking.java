@@ -51,16 +51,13 @@ public final class AnatomyClientNetworking {
     private AnatomyClientNetworking() {}
     public static AnatomyCatalogTransfer catalog(){return session.catalog();}
     public static AnatomyPoseHistory pose(java.util.UUID entity){return poses.get(entity);}
-    private static WorldAnatomyCatalog.Binding binding(net.minecraft.world.entity.Entity entity) {
+    private static WorldAnatomyCatalog.Binding binding(net.minecraft.world.entity.Entity entity,AnatomyPosePayload packet) {
         if(entity==null)return null;
-        return session.catalog().snapshot().bindings().get(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+        return session.catalog().snapshot().resolvePose(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()),packet).orElse(null);
     }
     /** Wire identity is the complete canonical selection identity, including root authority. */
     private static boolean bindingMatches(net.minecraft.world.entity.LivingEntity entity,AnatomyPosePayload packet) {
-        var binding=binding(entity);if(binding==null)return false;
-        var selection=binding.selection();
-        return selection.geometry().model().equals(packet.model()) && selection.pose().engine().equals(packet.provider())
-            && selection.rootTransform().equals(packet.rootProvider());
+        return binding(entity,packet)!=null;
     }
     /** Client-only, server-confirmed material data for residual camera presentation. */
     public record PresentationContact(net.minecraft.world.entity.Entity body,net.minecraft.world.entity.LivingEntity support,
@@ -68,9 +65,16 @@ public final class AnatomyClientNetworking {
     /** Server identity attached to a drawable original-model frame; no local adapter generation is protocol state. */
     public record PresentationIdentity(java.util.UUID epoch,net.minecraft.resources.Identifier dimension,java.util.UUID support,int entityId,
             long revision,net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,
-            net.minecraft.resources.Identifier rootProvider,long bindingGeneration) {
+            net.minecraft.resources.Identifier rootProvider,long bindingGeneration,net.minecraft.resources.Identifier bindingIdentity) {
+        /** Local fixture compatibility; live presentation always supplies the accepted token. */
+        public PresentationIdentity(java.util.UUID epoch,net.minecraft.resources.Identifier dimension,java.util.UUID support,int entityId,
+                long revision,net.minecraft.resources.Identifier model,net.minecraft.resources.Identifier provider,
+                net.minecraft.resources.Identifier rootProvider,long bindingGeneration) {
+            this(epoch,dimension,support,entityId,revision,model,provider,rootProvider,bindingGeneration,null);
+        }
         public PresentationIdentity {
-            if(epoch==null || dimension==null || support==null || entityId<0 || revision<0 || model==null || provider==null || rootProvider==null || bindingGeneration<1)
+            if(epoch==null || dimension==null || support==null || entityId<0 || revision<0 || model==null || provider==null || rootProvider==null || bindingGeneration<1
+                    || bindingIdentity!=null && !io.github.r3neer.scalebrews.collision.internal.CollisionBindingIdentity.validToken(bindingIdentity))
                 throw new IllegalArgumentException("Invalid presentation identity");
         }
     }
@@ -183,7 +187,7 @@ public final class AnatomyClientNetworking {
     }
     private static void bindPhysics() {
         var transfer=session.catalog();
-        if(poseLevel==null || !transfer.ready() || transfer.snapshot().bindings().isEmpty()) {
+        if(poseLevel==null || !transfer.ready() || transfer.snapshot().prepared().size()==0) {
             if(poseLevel!=null && transfer.binding()) {
                 AnatomyMovement.deactivate(poseLevel);
                 // The core lost these registrations. A rejected candidate must be able to
@@ -200,7 +204,7 @@ public final class AnatomyClientNetworking {
             if(providers.containsKey(packet.entity()))continue;
             var provider=new ClientGeometryProvider(packet.entity());providers.put(packet.entity(),provider);
             AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(packet.epoch(),packet.revision(),
-                packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration()),binding(living).selection());
+                packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration(),packet.bindingIdentity()),binding(living,packet).selection());
         }
         for(var packet:contacts.pending().values()) {
             var body=poseLevel.getEntity(packet.bodyId());
@@ -239,7 +243,7 @@ public final class AnatomyClientNetworking {
         return frame==null?java.util.Optional.empty():frame.endpoint();
     }
     private static java.util.Optional<ModelGeometryProvider> evaluator(net.minecraft.world.entity.LivingEntity entity,AnatomyPosePayload packet) {
-        var transfer=session.catalog();var binding=binding(entity);
+        var transfer=session.catalog();var binding=binding(entity,packet);
         if(!transfer.ready() || binding==null || !bindingMatches(entity,packet))return java.util.Optional.empty();
         var evaluator=evaluators.get(entity.getUUID());
         if(evaluator==null) {
@@ -260,7 +264,7 @@ public final class AnatomyClientNetworking {
         if(packet==null || !packet.available() || !presentationIdentityMatches(support,packet))return java.util.Optional.empty();
         var endpoint=history.endpoint().orElse(null);
         if(endpoint==null || endpoint.availability()!=GeometryProvider.Availability.AVAILABLE)return java.util.Optional.empty();
-        var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration());
+        var identity=new PresentationIdentity(packet.epoch(),packet.dimension(),packet.entity(),packet.entityId(),packet.revision(),packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration(),packet.bindingIdentity());
         var key=new PresentationCacheKey(identity,packet.trackingGeneration(),PresentationKind.CURRENT_ENDPOINT,0,
             endpoint.frameSerial(),endpoint.frameSerial(),Double.doubleToLongBits(1));
         var cached=presentationFrames.get(support.getUUID());
@@ -301,7 +305,7 @@ public final class AnatomyClientNetworking {
         var after=history.endpoint(certificate.afterFrameSerial()).orElse(null);
         if(before==null || after==null)return java.util.Optional.empty();
         var identity=new PresentationIdentity(afterPacket.epoch(),afterPacket.dimension(),afterPacket.entity(),afterPacket.entityId(),
-            afterPacket.revision(),afterPacket.model(),afterPacket.provider(),afterPacket.rootProvider(),afterPacket.bindingGeneration());
+            afterPacket.revision(),afterPacket.model(),afterPacket.provider(),afterPacket.rootProvider(),afterPacket.bindingGeneration(),afterPacket.bindingIdentity());
         var key=new PresentationCacheKey(identity,afterPacket.trackingGeneration(),PresentationKind.CERTIFIED_INTERVAL,materialSerial,
             before.frameSerial(),after.frameSerial(),Double.doubleToLongBits(fraction));
         var cached=presentationIntervals.get(support.getUUID());
@@ -500,7 +504,7 @@ public final class AnatomyClientNetworking {
         ClientPlayNetworking.registerGlobalReceiver(AnatomyPosePayload.TYPE,(packet,context)->{
             var level=context.client().level;useLevel(level);var transfer=session.catalog();
             if(level==null || !packet.epoch().equals(transfer.epoch()) || packet.revision()!=transfer.revision() || !packet.dimension().equals(level.dimension().identifier())
-                || !transfer.snapshot().models().containsKey(packet.model().toString()) || frameReplayFence.rejects(packet))return;
+                || transfer.snapshot().resolvePose(null,packet).isEmpty() || frameReplayFence.rejects(packet))return;
             var entity=level.getEntity(packet.entityId());
             if(entity!=null) {
                 if(!entity.getUUID().equals(packet.entity()) || !(entity instanceof net.minecraft.world.entity.LivingEntity living) || !bindingMatches(living,packet))return;

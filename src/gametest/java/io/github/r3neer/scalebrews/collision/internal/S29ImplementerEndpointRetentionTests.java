@@ -15,9 +15,9 @@ public final class S29ImplementerEndpointRetentionTests {
     public void explicitBarrierClosesQuietWindowButAllowsFreshTracking(GameTestHelper h) {
         var fixture=new Fixture(h);var fence=new TrackingReplayFence();
         var old=fixture.scopedFrame(fixture.support,fixture.dimension,3);
-        var forward=new AnatomyPosePayload(old.epoch(),old.revision(),old.dimension(),old.entityId(),old.entity(),
+        var forward=io.github.r3neer.scalebrews.test.TestBindingTokens.preserve(new AnatomyPosePayload(old.epoch(),old.revision(),old.dimension(),old.entityId(),old.entity(),
             old.model(),old.provider(),2,11,11,2,11,old.bindingGeneration(),old.trackingGeneration(),true,
-            new PoseProvider.Inputs(0,0,11,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN);
+            new PoseProvider.Inputs(0,0,11,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN), old);
         fence.retire(old);
         h.assertTrue(!fence.rejects(forward),"Quiet expiry permits forward recovery in the same window");
         fence.closeWindows();

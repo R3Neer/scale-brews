@@ -119,6 +119,17 @@ no certifica los bytes del modelo ni sustituye epoch/revisión/provenance o las
 generaciones de binding/tracking. La disponibilidad del índice no implica que
 el runtime haya seleccionado una variant del estado vivo de la entidad.
 
+El frame causal conserva además esa identidad completa de contenido, desde el
+descriptor instalado hasta su publicación. `anatomy_pose_v7` exige el token;
+las sobrecargas locales históricas sin token no son codificables como autoridad
+wire. Catálogo mantiene su versión independiente. El cliente resuelve el miembro
+preparado por token, verifica su tuple modelo/pose/root y, al existir la entidad,
+su tipo. Física, filtros, policy, evaluador y presentación usan esa misma fila,
+incluso en un catálogo sólo de variantes. History y tombstone consideran el token
+parte de la identidad estable: tracking nuevo por sí solo no permite cambiarlo.
+La selección de traits del estado vivo sigue siendo una frontera posterior;
+transportar una selección preparada no demuestra todavía su derivación original.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

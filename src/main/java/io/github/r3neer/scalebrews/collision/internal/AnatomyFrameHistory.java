@@ -74,7 +74,8 @@ public final class AnatomyFrameHistory {
     }
     private boolean stableBindingIdentity(AnatomyPosePayload next) {
         return current.entityId()==next.entityId() && current.model().equals(next.model())
-            && current.provider().equals(next.provider()) && current.rootProvider().equals(next.rootProvider());
+            && current.provider().equals(next.provider()) && current.rootProvider().equals(next.rootProvider())
+            && java.util.Objects.equals(current.bindingIdentity(),next.bindingIdentity());
     }
     /**
      * Accepts only another publication belonging to the exact same causal history identity.
@@ -94,6 +95,7 @@ public final class AnatomyFrameHistory {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
                     || current.entityId()!=next.entityId() || !current.entity().equals(next.entity()) || !current.model().equals(next.model())
                     || !current.provider().equals(next.provider()) || !current.rootProvider().equals(next.rootProvider())
+                    || !java.util.Objects.equals(current.bindingIdentity(),next.bindingIdentity())
                     || current.bindingGeneration()!=next.bindingGeneration() || current.trackingGeneration()!=next.trackingGeneration())
                 throw new IllegalArgumentException("Causal frame identity changed without receiver restart");
             if(next.frameSerial()<=current.frameSerial() || next.authorityTick()<current.authorityTick()

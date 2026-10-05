@@ -22,7 +22,21 @@ import org.joml.Quaternionf;
 public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
         Identifier model,Identifier provider,Identifier rootProvider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,
         long bindingGeneration,long trackingGeneration,boolean available,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity,
-        RootTransformProvider.RootTransform rootTransform) implements CustomPacketPayload {
+        RootTransformProvider.RootTransform rootTransform,Identifier bindingIdentity) implements CustomPacketPayload {
+    /** Pre-S47 local fixture constructor. Missing selection is deliberately not encodable on v7. */
+    public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
+            Identifier model,Identifier provider,Identifier rootProvider,long frameSerial,long authorityTick,long jointSampleTick,long rootFrameSequence,long rootFrameTick,
+            long bindingGeneration,long trackingGeneration,boolean available,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity,
+            RootTransformProvider.RootTransform rootTransform) {
+        this(epoch,revision,dimension,entityId,entity,model,provider,rootProvider,frameSerial,authorityTick,jointSampleTick,rootFrameSequence,rootFrameTick,
+            bindingGeneration,trackingGeneration,available,inputs,origin,yaw,scale,gravity,rootTransform,null);
+    }
+    /** Explicit fixture/copy seam; never derives a selection from model/provider/root. */
+    public AnatomyPosePayload withBindingIdentity(Identifier identity) {
+        if(!CollisionBindingIdentity.validToken(identity))throw new IllegalArgumentException("Missing or invalid binding identity");
+        return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,rootProvider,frameSerial,authorityTick,jointSampleTick,
+            rootFrameSequence,rootFrameTick,bindingGeneration,trackingGeneration,available,inputs,origin,yaw,scale,gravity,rootTransform,identity);
+    }
     /** Fixture/source compatibility only. Production uses the causal constructor. */
     public AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,Identifier model,Identifier provider,long tick,PoseEngine.Inputs inputs,Vec3 origin,float yaw,float scale) {
         this(epoch,revision,dimension,entityId,entity,model,provider,GeometryProvider.DEFAULT_ROOT_PROVIDER,tick,tick,tick,tick,tick,1,1,true,inputs,origin,yaw,scale,
@@ -59,12 +73,15 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
         if(epoch==null || entity==null || dimension==null || model==null || provider==null || rootProvider==null || inputs==null || gravity==null || rootTransform==null
             || revision<0 || frameSerial<1 || authorityTick<0 || jointSampleTick<0 || jointSampleTick>authorityTick || rootFrameSequence<0 || rootFrameTick<0
             || rootFrameTick>authorityTick || bindingGeneration<1 || trackingGeneration<1 || entityId<0 || origin==null || !Double.isFinite(origin.lengthSqr())
-            || !Float.isFinite(yaw+scale) || scale<=0 || scale>1024 || !rootTransform.origin().equals(origin) || Float.compare(rootTransform.scale(),scale)!=0)
+            || !Float.isFinite(yaw+scale) || scale<=0 || scale>1024 || !rootTransform.origin().equals(origin) || Float.compare(rootTransform.scale(),scale)!=0
+            || bindingIdentity!=null && !CollisionBindingIdentity.validToken(bindingIdentity))
             throw new IllegalArgumentException("Invalid anatomical pose frame");
     }
-    /** S24 pose/root packet. Catalog protocol versioning remains independent. */
-    public static final Type<AnatomyPosePayload> TYPE=new Type<>(ScaleBrews.id("anatomy_pose_v6"));
+    /** Complete accepted binding identity; catalog protocol versioning remains independent. */
+    public static final Type<AnatomyPosePayload> TYPE=new Type<>(ScaleBrews.id("anatomy_pose_v7"));
     public static final StreamCodec<RegistryFriendlyByteBuf,AnatomyPosePayload> CODEC=StreamCodec.of((b,p)->{
+        if(!CollisionBindingIdentity.validToken(p.bindingIdentity))throw new IllegalArgumentException("Pose wire requires complete binding identity");
+        b.writeIdentifier(p.bindingIdentity);
         b.writeUUID(p.epoch);b.writeVarLong(p.revision);b.writeIdentifier(p.dimension);b.writeVarInt(p.entityId);b.writeUUID(p.entity);
         b.writeIdentifier(p.model);b.writeIdentifier(p.provider);b.writeIdentifier(p.rootProvider);b.writeVarLong(p.frameSerial);b.writeVarLong(p.authorityTick);b.writeVarLong(p.jointSampleTick);
         b.writeVarLong(p.rootFrameSequence);b.writeVarLong(p.rootFrameTick);b.writeVarLong(p.bindingGeneration);b.writeVarLong(p.trackingGeneration);b.writeBoolean(p.available);
@@ -75,6 +92,8 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
         b.writeDouble(root.origin().x);b.writeDouble(root.origin().y);b.writeDouble(root.origin().z);
         b.writeFloat(q.x);b.writeFloat(q.y);b.writeFloat(q.z);b.writeFloat(q.w);b.writeFloat(root.scale());
     },b->{
+        var bindingIdentity=Identifier.parse(b.readUtf(CollisionBindingIdentity.TOKEN_LENGTH));
+        if(!CollisionBindingIdentity.validToken(bindingIdentity))throw new IllegalArgumentException("Invalid pose binding identity token");
         var epoch=b.readUUID();long revision=b.readVarLong();var dimension=b.readIdentifier();int entityId=b.readVarInt();var entity=b.readUUID();
         var model=b.readIdentifier();var provider=b.readIdentifier();var rootProvider=b.readIdentifier();
         long frameSerial=b.readVarLong(),authorityTick=b.readVarLong(),jointSampleTick=b.readVarLong(),rootFrameSequence=b.readVarLong(),rootFrameTick=b.readVarLong(),bindingGeneration=b.readVarLong(),trackingGeneration=b.readVarLong();boolean available=b.readBoolean();
@@ -85,7 +104,7 @@ public record AnatomyPosePayload(UUID epoch,long revision,Identifier dimension,i
         var rootOrigin=new Vec3(b.readDouble(),b.readDouble(),b.readDouble());
         var rootTransform=new RootTransformProvider.RootTransform(rootOrigin,new Quaternionf(b.readFloat(),b.readFloat(),b.readFloat(),b.readFloat()),b.readFloat());
         return new AnatomyPosePayload(epoch,revision,dimension,entityId,entity,model,provider,rootProvider,frameSerial,authorityTick,jointSampleTick,rootFrameSequence,rootFrameTick,
-            bindingGeneration,trackingGeneration,available,new PoseEngine.Inputs(walkPhase,walkAmount,age,headYaw,headPitch,ordinary,channels),origin,yaw,scale,gravity,rootTransform);
+            bindingGeneration,trackingGeneration,available,new PoseEngine.Inputs(walkPhase,walkAmount,age,headYaw,headPitch,ordinary,channels),origin,yaw,scale,gravity,rootTransform,bindingIdentity);
     });
     private static RootTransformProvider.RootTransform legacyRoot(Vec3 origin,float yaw,float scale,net.minecraft.core.Direction gravity) {
         if(origin==null || gravity==null)throw new IllegalArgumentException("Missing legacy root authority");

@@ -456,6 +456,18 @@ Tarea2 sigue abierta: falta la selección del estado vivo y su lifecycle/replay,
 antes de certificar engines/variantes/familias. G6 tareas2–6 y G7–G9 continúan;
 los asuntos humanos siguen al final de la épica.
 
+**S47 cerrado adversarialmente:** los frames inmutables transportan el ID completo
+del binding aceptado mediante anatomy_pose_v7; física/presentación/renderer
+resuelven exactamente ese miembro, también con catálogo sólo de variantes.
+Histories y tombstones conservan el token como eje independiente del binding
+restart/retracking; recepción adelantada rechaza miembros inexistentes antes de
+guardar historia.486/486 servidor, cliente33, prepared24escenarios y reproducción
+independiente6/6+cliente, cinco mutantes y200000lookups sin hashes repetidos
+recertifican únicamente esa frontera.362 hashes y JAR real están documentados.
+Cierre con commit local propio Sprint:S47. El runtime todavía elige defaults:
+selección de traits vivos, lifecycle de cambios autoritativos y familias originales
+siguen pendientes de tarea2; G6 tareas2–6/G7–G9 y necesidades humanas continúan.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

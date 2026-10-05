@@ -115,7 +115,9 @@
       "io.github.r3neer.scalebrews.test.GravityFrameTests",
       "io.github.r3neer.scalebrews.test.TinyMountGravityTests",
       "io.github.r3neer.scalebrews.test.S44RuntimeRetirementTests",
-      "io.github.r3neer.scalebrews.collision.internal.S46ImplementerPreparedVariantTests"
+      "io.github.r3neer.scalebrews.collision.internal.S46ImplementerPreparedVariantTests",
+      "io.github.r3neer.scalebrews.collision.internal.S47ImplementerBindingTransportTests",
+      "io.github.r3neer.scalebrews.collision.internal.S47AdversarialBindingTransportTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
@@ -149,7 +151,8 @@
       "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance",
       "io.github.r3neer.scalebrews.test.S42AdversarialRetiredDisconnectProof",
       "io.github.r3neer.scalebrews.test.S42AdversarialCurrentDisconnectProof",
-      "io.github.r3neer.scalebrews.test.S44AdversarialScopeProof"
+      "io.github.r3neer.scalebrews.test.S44AdversarialScopeProof",
+      "io.github.r3neer.scalebrews.collision.internal.S47AdversarialExactBindingClientProof"
     ]
   }
 }

@@ -1,0 +1,1933 @@
+{
+  "role": "IMPLEMENTER",
+  "sprint": "S47",
+  "status": "CLOSED_SCOPED_WITH_INDEPENDENT_VERIFICATION",
+  "baseCommit": "6e7044a6b575b39336e54be077b8ff0af4faed29",
+  "main": "b5e6253584b2233e5dd0039203c8a251bf10cdeb",
+  "scope": "Exact prepared binding identity from authoritative frame to wire/physics/presentation; no live trait selector or FULL promotion",
+  "productionFiles": [
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java",
+      "sha256": "65892acac30ca561af8d53380ef5691458679518923d36a9a8b7cf997e6642fe",
+      "bytes": 43781
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyObserverBundleScope.java",
+      "sha256": "2957cc3a33193dee0e2e67521cf90ee693b2fbd6494298a6a37bd7b9aa092e17",
+      "bytes": 4825
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryEngine.java",
+      "sha256": "d98c0e41e869e6b3adc3749552d7dcd623a5492cf7c1c6bf9c5d112213ba4c83",
+      "bytes": 8033
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AdvancedModelBoxGeometryExtractor.java",
+      "sha256": "5fbacd61ccda033869ec7aced5e58298db80b69d353f8fcc805a956ed641c1db",
+      "bytes": 20688
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/AnimationDefinitionCompiler.java",
+      "sha256": "ae476e654e3ad464583cea3391555d2c2cb2adc2bb09ca20e7925d3500b40cef",
+      "bytes": 4524
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/GeometryExtractor.java",
+      "sha256": "2dfc9f5831a54e807541b503b732ef0cdc90fd1fe2e2ce3883f606da3a52d905",
+      "bytes": 2307
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelFamilyCensus.java",
+      "sha256": "a5ff6c1fa843e5c2d5bc3b97ee5acc43dde7d86905671fc66df726e4639c6511",
+      "bytes": 17085
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelPartGeometryEngine.java",
+      "sha256": "c6a9f1a095e6f0658b66fdb0ddcc9b8e09e554d65f8710fb12dd946a78360806",
+      "bytes": 4896
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelPartGeometryExtractor.java",
+      "sha256": "6a678939b33b500126981a1dc533a70c1f097fd7350443e468d33f4b49059579",
+      "bytes": 4859
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelPartStructure.java",
+      "sha256": "2de374c107be79d58c03aab155ecf515bf19a836dc34e98a37f8fb50fd1de098",
+      "bytes": 6872
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/BodyCameraOffset.java",
+      "sha256": "d5c35dddca2bfb9865cf46ade680caba0b45459d0bc39a3ab9c4df75174c40a2",
+      "bytes": 2534
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/BodyRenderOffset.java",
+      "sha256": "214f9cb833925c22c68c6acc5728f2d187449b1cf1fc5b6ccd31831a8ac6bf88",
+      "bytes": 221
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/CausalBodyResidual.java",
+      "sha256": "c13afccb0e92de5585ef85f88eaf40d32f6ea713cf3f30b855f123513012d6cf",
+      "bytes": 12613
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/CausalModelPartAdapter.java",
+      "sha256": "40de9d73df07e8d255d25a214677c550e65b94b8996d94ce3b759ccf0c5ee224",
+      "bytes": 11691
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/CausalModelRender.java",
+      "sha256": "aac29f9612dce4d58bbe6f4a23653f4158d77db5739e73003f0829c671e943de",
+      "bytes": 11999
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/CausalPresentationState.java",
+      "sha256": "eb54dcd733f986354ef800426c7f46da1f2175794e9e1308b636c79fbe1e6e28",
+      "bytes": 427
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/collision/presentation/CausalRemoteResidual.java",
+      "sha256": "cd65cc6cadec2801e690b6ea198010f40491538d009a93ca0fdc0c6715e077a5",
+      "bytes": 21206
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyInterpolationAccess.java",
+      "sha256": "c3d5e42b9fc28c030aa49bc3b11ec32f3608a4e210afd0090ba7f794783f885f",
+      "bytes": 356
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyObserverBaselineMixin.java",
+      "sha256": "fc10700731e304a855db18cb2523a302bd6f32dd59424b8cc7769cbe5778e7f3",
+      "bytes": 831
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyObserverClientPacketMixin.java",
+      "sha256": "b5ea6058685d15c28821a432800bbd2d061455d14c2be970dccd4a1a4dfacf6b",
+      "bytes": 3582
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyObserverInterpolationMixin.java",
+      "sha256": "22b965ab91281e4386c866c070f8c2be420d548229e75dc1e1e07b68a5a6d157",
+      "bytes": 1286
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyOutgoingMoveMixin.java",
+      "sha256": "c1b4ca0f7220fe918d84997747173662701d6f0ec15427445891a687d2490cca",
+      "bytes": 1424
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/AnimatedRiderRendererMixin.java",
+      "sha256": "9b6e3cc18dcc51d2956efc1e10c649c37e65b47c36c994e72e717aec6f68bf76",
+      "bytes": 2630
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/BodyCameraOffsetMixin.java",
+      "sha256": "124e9d8b8e79177267984e44e789353eb0ad587e5dab82a013c8f11312ccdf95",
+      "bytes": 752
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/BodyRendererOffsetMixin.java",
+      "sha256": "cbddc2e5abded80bae979be66020febe19beb61975b5350746fe6eee62ba4b9e",
+      "bytes": 1371
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/BodyRenderOffsetStateMixin.java",
+      "sha256": "a3026f258add67ff6e4f513c849af93f90d193b0a4b3a679981925c661885d93",
+      "bytes": 594
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/CausalLivingRendererMixin.java",
+      "sha256": "7c2b309e676418703a7787c3add465581be79b78777127f9bec93e098126b659",
+      "bytes": 3514
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/CausalModelFeatureMixin.java",
+      "sha256": "b162dfe1226aec565c1cc2af892afcbf6fdeb7b884ce62bf1b0268c4d7418e3e",
+      "bytes": 1256
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/CausalRenderReloadMixin.java",
+      "sha256": "7e66a97d842de307321dd36042a055479adfef8ea852d392dbaa5198f4950928",
+      "bytes": 797
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/CausalRenderStateMixin.java",
+      "sha256": "3f602ee5f0bfd6fe9313f66bc81583d6f1776637ec93f88400b37b26c25596f2",
+      "bytes": 1050
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/ExampleClientMixin.java",
+      "sha256": "fe8949203786bd4aac43c2bd35eb2dc82b45caa64f1930b9c4d2f2cab37da442",
+      "bytes": 524
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/LivingRendererAccess.java",
+      "sha256": "062b1b72793de89435740f1ee0ed4c680b88c3ff001ac302941043cbe62a1607",
+      "bytes": 640
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/ModelPartAccess.java",
+      "sha256": "acaa3beb898906c0e4bce58c0e62729c0bcbfe1af9202470ffd83736ca3e8d2e",
+      "bytes": 450
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformClientRidingMixin.java",
+      "sha256": "8a15e02620a4394c03f4a704468c42644519cd0749459fafb04afe4303e65c25",
+      "bytes": 1155
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformClientTeleportMixin.java",
+      "sha256": "72df597738310326e07a8084488dd040345a4f2c45573111c33b18b03ba9a411",
+      "bytes": 789
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/ScaleCameraMixin.java",
+      "sha256": "eda56129bee6a3ffc93f2b6d5dae3e3df98073330c62c4e70ddd1e14c60ede06",
+      "bytes": 1497
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/TinyMountClientInventoryMixin.java",
+      "sha256": "430ebe3b6ec475d173cd5419b822f0fce3822c388814278902a48af9e5299850",
+      "bytes": 1240
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/TinyMountRenderFrameMixin.java",
+      "sha256": "6c6bbc6763971062a9cde6288adbcd819a400ce85191241f3689a38aa28de93c",
+      "bytes": 926
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/TinySaddleRendererMixin.java",
+      "sha256": "d980616ed8a1b783ba46d0ffa4da159047a7e2de19af74c539c6799b4ea078cd",
+      "bytes": 2996
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/TinySaddleStateMixin.java",
+      "sha256": "c878d7646237a08d9169d6be728f98753df3f47f3b7cc45bd9dd04ef91d4a2ca",
+      "bytes": 3477
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/WolfChargeBarMixin.java",
+      "sha256": "c4c41cefaf8ccdb0b01c15d2396c0b9c6ce0fee7898826b756acf9fe9dd6057d",
+      "bytes": 986
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/WolfPounceCameraMixin.java",
+      "sha256": "508cf434524138d941ca82c91f6eaa3b66c3a786f75e9046024730ee79c7d33e",
+      "bytes": 809
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/mixin/WolfPounceRenderMixin.java",
+      "sha256": "9ab6b8f30ca09975b7c35665ba3774141844aa6ab70f5a5a8951f223f011dae7",
+      "bytes": 2438
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/FirstPersonMountCompat.java",
+      "sha256": "8192ce8a48ba63a212b3a808d799ce410fb75f9875097208b8d89f79d8b2b438",
+      "bytes": 2849
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/MountPoseCaptureLayer.java",
+      "sha256": "d084f8ab480078c575108180e7aeb21377665d17f519141c02149a52854a9425",
+      "bytes": 2673
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/MountPoseState.java",
+      "sha256": "e49b0891f987477c52618223319c39742b568635dc25dd0e0ea19c77d294f647",
+      "bytes": 477
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/MountRenderFrame.java",
+      "sha256": "e968f052057091b3db488d1ad2d01d8a7dc26462286b4a22a190c91f9a786413",
+      "bytes": 6015
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/RiderPoseState.java",
+      "sha256": "124d11fcaec906516f8673f2dd36fd5ebc7f0f37af01dec926fc17e882dd7122",
+      "bytes": 389
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/SaddleState.java",
+      "sha256": "17afa60da8c6cb94d8c1def3448482e1117a0ddf9a36c09a44e77092971803c9",
+      "bytes": 577
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/SeatFrame.java",
+      "sha256": "237044977c7be4e1897e59aaf8b850a6163c4a816b1a96d0fa17ad3b03cf561a",
+      "bytes": 452
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/TinyMountCamera.java",
+      "sha256": "9d3fe123b7974468bf3a8462de46262c7b4d23f115a28f02ccc906d21861c0b1",
+      "bytes": 3033
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/TinyMountSeatResolver.java",
+      "sha256": "8fda5ee2e864021f9870fa3b811421e7bf04bbea773b5be5a8b68fb5266349b5",
+      "bytes": 18870
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/TinyMountVisualAdapters.java",
+      "sha256": "9564e878581e170250ecefea5d604a3a2cbdb07b90bb279358eece0dc2fc6b37",
+      "bytes": 1423
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/TinyMountVisualProfile.java",
+      "sha256": "628247d450ee8001e48dcd4788efb1665748025e09225faf3c440dc193ce5bd3",
+      "bytes": 9113
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/TinySaddleLayer.java",
+      "sha256": "89b3741ac2212c80855988bf5c8f8c9701b185a5a14bf2cbaabb0ae99774c897",
+      "bytes": 4071
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/render/WolfPounceVisualState.java",
+      "sha256": "0f069a145072556ecf68ef2a42f2483d69a8496aec4246fa65087442ed14c8a0",
+      "bytes": 266
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/ScaleBrewsClient.java",
+      "sha256": "865ab1f93f74b3d1aacd41e597d72c4600da16cac6f23976bdaa23e5ee3d139f",
+      "bytes": 1166
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/ScaleBrewsDataGenerator.java",
+      "sha256": "8e01eddf488227836ec391c65bd898872dc6d156e625481a5de433623844dbff",
+      "bytes": 360
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/ScaleCamera.java",
+      "sha256": "2597d3625dd6c60cdc21761d7adf39e1bc73db85feb5f2b4028551c773d32fa4",
+      "bytes": 795
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/TinyMountScreen.java",
+      "sha256": "98fc6084f8a929a5a97eddea3dbf2ad00086400844a0bb1a9b21870835671f4a",
+      "bytes": 1379
+    },
+    {
+      "path": "src/client/java/io/github/r3neer/scalebrews/client/WolfPounceFeedback.java",
+      "sha256": "7797037f38cac690c3dea06e73adb9e907e423b945fc6f3d694cfb7dc0263dd6",
+      "bytes": 4158
+    },
+    {
+      "path": "src/client/resources/scalebrews.client.mixins.json",
+      "sha256": "a5cc9d3dd81b92f9ba289bbb69f95758fd93ac4d21282224c735eac9ce0a431c",
+      "bytes": 1051
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/beacon/ScaleBeacon.java",
+      "sha256": "e30f0b2ad7e687fff5401c1a9ac9544cd011fa5c676302a9cae3590d81345087",
+      "bytes": 1059
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/brewing/ScaleBrewing.java",
+      "sha256": "af53bed13fe2b4bd19263b311a30e5817f061ab404bacf7d13f7845d1a363369",
+      "bytes": 2729
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/AnatomyApi.java",
+      "sha256": "56dbe269b00d9d66bdc58253441689333ff3ba7220d6c2ac274668336c345cde",
+      "bytes": 6725
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/AnatomyMode.java",
+      "sha256": "e70429f1eccfab1fce7d443c5b4dcaa8a654000296f5f44ce2e92d3389b7648b",
+      "bytes": 599
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionAdapters.java",
+      "sha256": "21cc921222e7c6224cb3a6ed0affb9b4d458c182e33dc7666aff737948f78241",
+      "bytes": 3576
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionEngines.java",
+      "sha256": "43606e3ebb8d60197c1d1269a51736061a2597efc9d2db53f1d37a4535e8e9ab",
+      "bytes": 2902
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/GravityFrame.java",
+      "sha256": "0a5d8f86705065e743a30b50f4af361b74ef24acc36748101ebd719be7d48ce3",
+      "bytes": 3619
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/BodyAdapter.java",
+      "sha256": "f33801b4d2f74a0af2cee0ff00c84c85bcbede6e1c3fb1f1971370916a4419de",
+      "bytes": 585
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/GeometryEngine.java",
+      "sha256": "b66cf6c283eb53d4a994a1258cb220c0a1c771fec8385492558eaa03e7b83e63",
+      "bytes": 1357
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/PoseChannelAdapter.java",
+      "sha256": "4f2c1ca35fe3bb7cd56a2a5fc1410fcb96807facd8ee42fa9cfc575227390467",
+      "bytes": 666
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/PoseEngine.java",
+      "sha256": "49531f0774a0188bab78f589e159a5902bbb5f5faec056a72a80ee9f281f8bd8",
+      "bytes": 6262
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/RootTransformProvider.java",
+      "sha256": "7d75bdd4833b1184dafdedea89ab26cb35bdb1e08f63fadd894c9183bcba2e03",
+      "bytes": 2336
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/api/SurfaceContact.java",
+      "sha256": "46f99ad14735389abad127288c05dfceed6f20f3ce6a583fc1647c8ef29d27e6",
+      "bytes": 1204
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionBindingCatalog.java",
+      "sha256": "43d472fd97564f21a3ec041e7aaed4738cf2877a2fed456e005c84875474596b",
+      "bytes": 7546
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageDiscovery.java",
+      "sha256": "8443320402c65320c707c2bcaeb9d7e46c59db55d20d6b1fcd2a0d4b523dd8d3",
+      "bytes": 10044
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/catalog/CollisionCoverageScanner.java",
+      "sha256": "d315e8c10f858b92f6b57cd4baed904999abadb55a7ae0bc915fa6e712f80f60",
+      "bytes": 12328
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/data/CollisionBinding.java",
+      "sha256": "8f51ae51bb99f50ddb947762a7c7fdc039690849edf63562211c961e737ba768",
+      "bytes": 3170
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/data/CollisionCodecs.java",
+      "sha256": "f4f693e3e97a198d5c0e4aed991ed77b60c7335cf9998a1c13f8c31922207f75",
+      "bytes": 11513
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/data/CollisionPolicy.java",
+      "sha256": "0804102399082803b200533030885897baeeb052052407f857ab0b074feb4755",
+      "bytes": 3870
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/geometry/AnatomyFilter.java",
+      "sha256": "66eb3cd80c284bcee831b76e005da238338b2c59a8f56b7e7ca848af02ffc737",
+      "bytes": 2324
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/geometry/ConvexBox.java",
+      "sha256": "591caca1f655d8d3fb785d9721758f880bf12491b4b8a461c94ffc6d82c05beb",
+      "bytes": 12001
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java",
+      "sha256": "2e8737e4628c006b45a9e2d578015b174e6e578aab7011a694e75ff93a31ddaf",
+      "bytes": 8907
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/integration/BodyClassification.java",
+      "sha256": "63917769656030d6d998493e8ca18310a670be4046c7a817ba83d474fb593c06",
+      "bytes": 3050
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/integration/CollisionRules.java",
+      "sha256": "10f0325df2b8eda55afaca6c4fddc6656248aa28b1a6cd7b2f0896a1beae39ee",
+      "bytes": 1166
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/integration/MovingBodyContext.java",
+      "sha256": "af991296dd8b58faabcdace65deda18fc21d4236e4e4f2618bf1340198af61f0",
+      "bytes": 1056
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/integration/NativeMovementBaselines.java",
+      "sha256": "0332692ca204a5e7112e42fc5c7a7f02d8f3d6fcd076203d5dc2ffdb3c44d977",
+      "bytes": 347
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyBindingState.java",
+      "sha256": "d904c3bf938d7f0177b70960593d8f26aa1df912f28791b48822f868c518ec9e",
+      "bytes": 5879
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogPayload.java",
+      "sha256": "c5f6505ab990a1d10d8e721ea98de8423ad0558f7e77562aa9112eeb70d60570",
+      "bytes": 2053
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java",
+      "sha256": "20d3877c5713a211db6e2eafeea0f3bceb62e46d9c542c429c0567ceca4a4ec6",
+      "bytes": 14809
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCertifiedIntervalInbox.java",
+      "sha256": "6af597eae98f9fc6d97f9d2bf5dbdfae734d90018a504b186947eb15304cdcfb",
+      "bytes": 6508
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyClientSession.java",
+      "sha256": "7da3567e974ce6a934882ef391debad2ed0178ce666e77ce3a3218889fe0937f",
+      "bytes": 1070
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCodecs.java",
+      "sha256": "9032aa51d3bd448a42dd5d091253893ea00e57c7abef7b3904e0a87651815c4c",
+      "bytes": 1339
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactInbox.java",
+      "sha256": "c6d4b5165feefe5b78a04afefa157bf70138df14877a8c965791b2a1487ce0d9",
+      "bytes": 3567
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactOrdering.java",
+      "sha256": "9f2567570049c53eea2b7eaf0f5c083730bbf0b4cdf59ee4c4b83af35dbb6d5d",
+      "bytes": 989
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactPayload.java",
+      "sha256": "62274f35ae14cdbcc2ae2141717d21908192eeddc5ba27fef97d7a9f66685a06",
+      "bytes": 4457
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyContactState.java",
+      "sha256": "87a74dd276907323524d5174c73442614f15f57cf231b62e6ee4be2c04109478",
+      "bytes": 7045
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyDefinition.java",
+      "sha256": "9645c076b26f69bb6929b3af4219979f4dd49cc31b16c0c5d976c6ab58781c4a",
+      "bytes": 1043
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyEndpointLedger.java",
+      "sha256": "ee104a90125f5b76ecc7af200266847f90361d7a0971406779a30d162ddb4494",
+      "bytes": 2171
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java",
+      "sha256": "b7c86a77b57cc690dfe1c65a33ac25a5044882aa5dd95a9b95de9f2f3b9ad6e9",
+      "bytes": 8806
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMaterialIntervalPayload.java",
+      "sha256": "f70fc34896986535e2fab58eac4d770918b5b1f591172da2c4d0859f88a9a432",
+      "bytes": 2857
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java",
+      "sha256": "f119680a68ccd9aae0b18eb42e3d8409d1a443d1b73ab1a103ea9e0ef1cc4d56",
+      "bytes": 70851
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovementReference.java",
+      "sha256": "2433a33adc9c6bbfa856b491949f57c7aa55158225a5e416439f53c7f78fab84",
+      "bytes": 5913
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferencePayload.java",
+      "sha256": "a62d616dcb379f5267119614711c1bed0f57e3f97615cbd1d024c86f2cc07deb",
+      "bytes": 1518
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMoveReferenceV2Payload.java",
+      "sha256": "95fd6dd461fe25f3af266e8ba14014fb5bdba0c0b277a4bbf7825eb0b272d0d4",
+      "bytes": 1234
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java",
+      "sha256": "0daa0d12efcb8035df7f88bc34050bfe13cb205d8930cc2bf0f5c3e5b46f6830",
+      "bytes": 10497
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyObserverAttestations.java",
+      "sha256": "8d88cbd33236eb8f9d5a21c92a995769d336af0d859a8f131b511e62c1df8018",
+      "bytes": 9359
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyObserverCarries.java",
+      "sha256": "70aaa14071aaedc63feffee119afd12d88857e6d6d812f48c08482175100f690",
+      "bytes": 6967
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyObserverCarryPayload.java",
+      "sha256": "366fbdbbe31a344b8740b58173582190717ee76f134ba7c9663f7de7fe435e19",
+      "bytes": 5214
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseEligibility.java",
+      "sha256": "a43712756c42411f1d2266795a2419553e9407ee8bcb75d3fc25f600e67efd38",
+      "bytes": 3722
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPoseHistory.java",
+      "sha256": "22ca53aad4ae5123b4e4bf1740872a72e503e35cd53c70dde989b48c8d0ae95a",
+      "bytes": 4494
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java",
+      "sha256": "5f4c81eb2a257b09dd888558ccb6b56c69112d807f97fc383f501ae5b82c2a92",
+      "bytes": 12221
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyReceiptTokenInbox.java",
+      "sha256": "a26e9d30a63532b65af0ac5cd3ec9dd8e7f3196ffd461d1acc0ab1564fcef2d5",
+      "bytes": 4385
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyRuntime.java",
+      "sha256": "fb4a17f9f6ed8fa7ecd397dcb1f4ed3a1d804407f30a841d3fef0b7260dd7cfa",
+      "bytes": 28288
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomySession.java",
+      "sha256": "835839f087884faf13f982620e5d870163c37590830ebbf5c238468a41e94685",
+      "bytes": 1966
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomySpatialIndex.java",
+      "sha256": "268f57fef1b18545bf62994af2d493cf45a83b76c3146b445e23744c0af92890",
+      "bytes": 3856
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceiptPayload.java",
+      "sha256": "eab7104c21784c16b46ea9792b66d10ad750561ebf0e1f70cf4c9b9ec914c1bc",
+      "bytes": 2047
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyTransportReceipts.java",
+      "sha256": "f98300e23cb6b35e5b29578fd24989446f3f49b61079e486b0eaf64d2572f7d1",
+      "bytes": 16883
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnchoredTransportPlanner.java",
+      "sha256": "e45d0c8355a41d98e121841687ee08ccf19a03aa9ab6496d070e2489b1e38e2c",
+      "bytes": 16373
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java",
+      "sha256": "f2711ac50d26f873c777679dabb6846ed714c06878004affe8e409fc9f5d6c27",
+      "bytes": 6894
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInGeometryEngines.java",
+      "sha256": "00318ab3b6e19d66c0ac881a746d2c058155a5910f553d4826649a635e341b20",
+      "bytes": 3379
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInRootTransformProviders.java",
+      "sha256": "2f4698c5ab04af73bb25f6f49e7a3e74254e5546d8ae80e9af228f3687d9b9b4",
+      "bytes": 2084
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/CollisionBindingIdentity.java",
+      "sha256": "aa69092513bcbb20fec698e182cda440141dc06daa0374d3cb4f16ae58919293",
+      "bytes": 4773
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryCatalog.java",
+      "sha256": "5dd3e2058a4e13e8dc2390b26a6808eb0dd99a2880707f1980ee2e0739532d7f",
+      "bytes": 1949
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/GeometryProvider.java",
+      "sha256": "cd58989a430b8110fa38dbe005e6a7429ef0d7b5181828f49fb33b693575e83a",
+      "bytes": 11035
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/HierarchyMotion.java",
+      "sha256": "b26d21335a35c298fbfdfb2f491fddde9af8e6bd65bb1b1e563c8dffc38cc454",
+      "bytes": 18386
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialEventDispatcher.java",
+      "sha256": "c0fa136f59aa6d589806bf8b508ab72ee08da02006e834d242e8d0208ef47108",
+      "bytes": 15751
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialIntervalRuntime.java",
+      "sha256": "ad05b541e314ad8f9c267da2c96a8d2cf55a10776c82a3f9584fe1ef70e2a444",
+      "bytes": 8698
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialIntervalTracker.java",
+      "sha256": "512223e22652694b76d5de9bb7f0effb73867359d7c8279df09fa11388dc856d",
+      "bytes": 4241
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/MaterialPhysicsRuntime.java",
+      "sha256": "8a7a961f74a0cf67470048e0dfb0c97de37ebcf9630df92444e969364164ebbc",
+      "bytes": 40292
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/ModelGeometryProvider.java",
+      "sha256": "0be2b8009ff2fd4ba135568d755e73601cbd798e83a6d31ceff4e88320f8edee",
+      "bytes": 22512
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/OptionalPoseChannelAdapters.java",
+      "sha256": "f824c97fe53c2e25f2f84c6a3a06b849b6cb4f69ea0a32142e16170a13de38f7",
+      "bytes": 12280
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/PreparedBindingIndex.java",
+      "sha256": "c64cfa467adabe988351e7c1cee7c18d93db5a7cf1ea3dc3ba2e8688971adc08",
+      "bytes": 4462
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/ScaleAnatomyBackend.java",
+      "sha256": "e348036a11c90c162bed26f919c1cf82b1ef733bdcc2c5596e2164eca76096bb",
+      "bytes": 4078
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingGenerationLedger.java",
+      "sha256": "451f80437162333aadedf74e5abc953c1ad2bc71f7b5daf0f73244f102795016",
+      "bytes": 2428
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java",
+      "sha256": "71c218d17744ec3e5c94ea4b4b2d435fa11f6728979e9fcb4bb450c9c2c491f2",
+      "bytes": 7789
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java",
+      "sha256": "c1d0610469a667366453708de7de6735252de420093bd1c0d4909e00414b78d7",
+      "bytes": 26447
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/migration/LegacyAnatomyCatalogMigration.java",
+      "sha256": "e7878442a45a2eac198afe747a548747aac3747bbc556f3aead712e4f40e1f3f",
+      "bytes": 4699
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/migration/LegacyCollisionData.java",
+      "sha256": "2fc772ca7f1c163bba3e81cb55a2af2f99802bed09037ad0a2678b6faa537210",
+      "bytes": 6997
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/AnatomySeparation.java",
+      "sha256": "dccab99a25aa39248cfae4e6cd5f8a3be5ab9e98b4324e5ea1d83c21d112580b",
+      "bytes": 3658
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/BodyPath.java",
+      "sha256": "a0948afd0a8778d0d26eb3faee6621ecf0d7f31b8cf281f959e8b127a6b2e695",
+      "bytes": 6545
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/ConservativeSweep.java",
+      "sha256": "86cf8d9e148032aa7888f6870761bd35bac0a492efe4daa4cb4646c701ab20ca",
+      "bytes": 8046
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/MaterialBroadphase.java",
+      "sha256": "cfbabba7e2de0ef3345d86e91199d0522f2e0f34b535239b048f2e8c5f6606da",
+      "bytes": 10476
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/SupportTransport.java",
+      "sha256": "3744ecb6c3b20b8cf92710f781deac4b6f1dfeb6d7a7f5a41e827be7044eeea6",
+      "bytes": 622
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/physics/TemporalResponse.java",
+      "sha256": "b93da6b1404aeeb27b6877e893e1ab87686c303fa249bfe252ac9cb438cdc12e",
+      "bytes": 28793
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/BuiltInPoseEngines.java",
+      "sha256": "5eadced61c7e549768f2244065bf3828cbc28bf8cda32c9b076c0140479a1827",
+      "bytes": 2548
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseEngine.java",
+      "sha256": "b76a83ceedbfc57aa463c7772433e65d169280791c8cb8391bbeac9faba7fe90",
+      "bytes": 2549
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgram.java",
+      "sha256": "51ba057d13d1e1f6121c25490f8e8c846987e009dee4fa8c9bf31f1b02a1aa58",
+      "bytes": 15853
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/CitadelPoseProgramEvaluator.java",
+      "sha256": "93420daec8dabc075ed306093fc69e330a43ef8be0050f2a434dc1fff4f1d76d",
+      "bytes": 16545
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/FelinePoseEngine.java",
+      "sha256": "6c4ea7a58c3db7847ab5d160490a41c899d1ad401226f38d51b65928a9ee09aa",
+      "bytes": 9378
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/MojangKeyframePoseEngine.java",
+      "sha256": "327b76edc94f062ead3710a3f67bb6208bc2b819520b4c44aca7135c03496bed",
+      "bytes": 8001
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PlayerWalkingPose.java",
+      "sha256": "e7d8c98deb2a1bcfa4f95b6a2af65e5cbc698d57046f7647ce75103024bf396a",
+      "bytes": 976
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PlayerWalkingPoseEngine.java",
+      "sha256": "bbc38ebb0b2e35d4c3f10086a0def0a48cebd3a5267defcb7e88e6c7590ce0b0",
+      "bytes": 2927
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PoseChannels.java",
+      "sha256": "87023140a75cc8021ffbbed49effe01ea2d99b494294da11dc8faf688fcc9f4a",
+      "bytes": 1339
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PoseProgram.java",
+      "sha256": "232ec090373186cb84a9d023c84ab0e4a97b0e56585a94e348abbb804ed7c0e0",
+      "bytes": 4687
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PoseProgramEvaluator.java",
+      "sha256": "d4288b89d96e2b57aa4c8a976eae5b83cfdc84d94922043f1dc108fefe22f794",
+      "bytes": 9489
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PoseProvider.java",
+      "sha256": "63c82409adbd409076ecad9ddc09a790e447292933678dd190c42a30ba7d193c",
+      "bytes": 1252
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/PoseProviders.java",
+      "sha256": "d8c25427d20f89a0f78aaee8b45f9d914f3cd87d00d44132b1362ddbde1ad360",
+      "bytes": 675
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/QuadrupedPose.java",
+      "sha256": "61ea9f466a00675d1234b0f0859cd4fe19547828f9ffd7f6859b60dbec2b82f7",
+      "bytes": 960
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/QuadrupedPoseEngine.java",
+      "sha256": "94fb6a72fd2b3ebd6527e30360f98d69a1df127f55b63e83a853b55d2a3ea324",
+      "bytes": 2613
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/VanillaFamilyPose.java",
+      "sha256": "d56e8329caddae81691f8ba4f65cc185a5d59b234caf170ea662101def48129b",
+      "bytes": 1246
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/pose/VanillaFamilyPoseEngine.java",
+      "sha256": "191ec70bd21914c76ea959dce545e2e1cc5ecd5003d67e2c1884723f5a81b064",
+      "bytes": 14346
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/runtime/AnatomyBackend.java",
+      "sha256": "57bd9fe96ffac0d6d3ba6a607fdd843360bdb88543fd949ea2e5690623615441",
+      "bytes": 1746
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrame.java",
+      "sha256": "8cfdcd3dd8a90f21fe19f621295ac462960161192f983bd96fe6e6d7655a42ea",
+      "bytes": 649
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/runtime/RootFrameLedger.java",
+      "sha256": "149d47f18bafe62a77e1f0ccaefb4e196ec57dfcdb23611ba623055394062b34",
+      "bytes": 3939
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/collision/runtime/TransportLedger.java",
+      "sha256": "2a0bac0d022a6f090f622888005b47f8d1ffb24b83454e8d296a188d1d040495",
+      "bytes": 5707
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/config/ScaleRules.java",
+      "sha256": "4c6456f1cf583f0b22966953b93cecfa28de1d02ce0da6b762de5e6f8322bf54",
+      "bytes": 3812
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/effect/ScaleEffects.java",
+      "sha256": "5c26f359ebc85a4813b78748c8d185733c68760a8a0566fe3f829a3198471064",
+      "bytes": 5168
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/effect/ScaleMobEffect.java",
+      "sha256": "d1958bbd06405dd8593a10aecb41e835d2d1d5a5ccdcb81b3687ee836fa61919",
+      "bytes": 1756
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/integration/gravity/GravityFrames.java",
+      "sha256": "c272c871dee9bd92dbe571740a907339dec5d4277d889fd6234355218868a8f9",
+      "bytes": 6578
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/item/ScaleItems.java",
+      "sha256": "3f2f20e254e71c877afa5355f06d71bead5b88b743fb61161b17651d7df53da1",
+      "bytes": 1009
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/loot/ScaleLoot.java",
+      "sha256": "4a161dfc2e0fd36744fe96d311aef036feb58073372e769862df29250dd14481",
+      "bytes": 5877
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/AnatomyObserverPacketMixin.java",
+      "sha256": "82dbdc420a784121e141dc97cd7af22e5a19390b521f0354a40c8ce7bd7a1c50",
+      "bytes": 5512
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/BeaconEffectsAccessor.java",
+      "sha256": "624789d0412b110bcf67a0e57709c28f0ade7556e156a91436659457a91a12b2",
+      "bytes": 816
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/BeeStorageSafetyMixin.java",
+      "sha256": "4fe269942745d8317e5e9d2f91534d0b293c7db83f40ee6fdae6a4486a9896e3",
+      "bytes": 1054
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/E4mcPermissionMixin.java",
+      "sha256": "40fc25a4f641714a24af7737cd2309c62d96b5b6e9d7a4b69438b89e3d4b72e3",
+      "bytes": 1018
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/GiantVillagerFearMixin.java",
+      "sha256": "36beab2ba82e99657cce0f7d719568165b9759dd66f79d1caa4593cb482b2bbb",
+      "bytes": 1109
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/GrowthImpactMixin.java",
+      "sha256": "2af65074c1384c25603a25f0f6a409b2116884182962be17553cd8d0e9882016",
+      "bytes": 1072
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/LivingEntityMixin.java",
+      "sha256": "3d758bd0b15094aecd99e82b4f1fa00ce54b0d5d4818dd4a269fe28c3de4c2a9",
+      "bytes": 3511
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/MountedBeeHiveMixin.java",
+      "sha256": "fec0abc3b5bf05768a992e59fad66e0498b91fce506a018b7c059f1d82f4feb1",
+      "bytes": 736
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformBoatItemAccessor.java",
+      "sha256": "387fbdafebe1b7d59e142ddce2ed1daa4bc36e366780a1ed0b9cf9004ff2913f",
+      "bytes": 448
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformBoatMixin.java",
+      "sha256": "b72184f07f1f412cb67e213b52d292b19f5f790820d976a3742a42a262245b81",
+      "bytes": 1076
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformConnectionMixin.java",
+      "sha256": "40217e71bcac8ce2ff6760d1b3af3edc262b7b93b30ea57120a220dbf4a5a161",
+      "bytes": 3947
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java",
+      "sha256": "acaa045ee606230cfa60ff31119cdd098a41b7c6c10fb87642c42495ad6303db",
+      "bytes": 4073
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformFallingBlockMixin.java",
+      "sha256": "04f372826979c01d0e83ff29f6177634463e7b3bb6a219d2c7fc5abe6a186b0c",
+      "bytes": 2589
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformItemMixin.java",
+      "sha256": "f00534a8a18a22722b7df51aed3186a0398064bb3e791cc3cd4d4d12930168d0",
+      "bytes": 644
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformLivingFrictionMixin.java",
+      "sha256": "c2ff38d132b09868c54397277973fd71776fb708796ab3955eb7dbbce51435a3",
+      "bytes": 676
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/PlatformPlayerMixin.java",
+      "sha256": "93d7f2f2a7c7e38a2cc5afbf99aeb9b22208efb1ea4fbaeff671e7c225942dd3",
+      "bytes": 1411
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleAttackExhaustionMixin.java",
+      "sha256": "4371ded8c5b35bc01e1edaee8df53fe251db943bde24422e79cddbee04636ed0",
+      "bytes": 705
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleAttackKnockbackMixin.java",
+      "sha256": "5618c9ba22472b82f7a1c0ffecfaba4332f0d5187884391780ecfe662f46c3cf",
+      "bytes": 930
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleCreeperExplosionMixin.java",
+      "sha256": "f2772529facfcaf89d3ee0030bd7cc9cc3d59f69770c6e0b4649a3cef5498e74",
+      "bytes": 779
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleFallDamageMixin.java",
+      "sha256": "952ee5bfe6c4320e60bba6e06e7096c0c12a7c0771a3dac661e217b754341841",
+      "bytes": 917
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleFarmlandMixin.java",
+      "sha256": "76624dc87a9e97d34034f4770614667d939d476a9ee5a1a69649ee1346759505",
+      "bytes": 1120
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleHarvestDispenserMixin.java",
+      "sha256": "04d34317f4bcd135492be7dafc3ba56c7a3f04f125e05a57e948a8de98f86bff",
+      "bytes": 1292
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleHarvestDropMixin.java",
+      "sha256": "b5b572dbe469df62162690c2ddf43fdbcbf949b6b1ebed97fce902deab30ac1c",
+      "bytes": 1356
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleHarvestPlayerMixin.java",
+      "sha256": "463cf31c4b8632b5bed93dc6bbf92df7d942c74df2530c2023c6392048883107",
+      "bytes": 1035
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleHealthMixin.java",
+      "sha256": "dae79f97b7a40b62818e6858d4ac3bc43010b465efba2cd6e0fb27ffba401e34",
+      "bytes": 1746
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleLootMixin.java",
+      "sha256": "8c20e9a7462ddc684dbac145f5de92a1d59fe29aa818e35cabdcab748194deaa",
+      "bytes": 883
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleMovementExhaustionMixin.java",
+      "sha256": "725fceeeed5170b1b96a42c3bdb0236e87606737529d4f2085753a88ecbcabe6",
+      "bytes": 740
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScalePressurePlateMixin.java",
+      "sha256": "11f34bb1572603be5508f55d1b5f4ba698bd1c6072d407fd121401f937bb101a",
+      "bytes": 1225
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleRidingMixin.java",
+      "sha256": "663bc8c26e124dd75c9236dcccbc92c2cad9a18ac2818b3367b7977df34ded99",
+      "bytes": 1302
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleStepSoundMixin.java",
+      "sha256": "7d9fc86b9086b5a6c5ef31b35582af20c41803c7ecaec9de1abd2844498f9d1e",
+      "bytes": 963
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleTerrainMixin.java",
+      "sha256": "fa33e819c3d9ab0a7f2ec42062badca970441136a45d649a1fb0a847025d7434",
+      "bytes": 1817
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleTurtleEggMixin.java",
+      "sha256": "f7e3234459dff648a54e349769f9ca679ede606ef16d3fc4b4fae6679dbbc8e5",
+      "bytes": 917
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/ScaleVibrationMixin.java",
+      "sha256": "2eb19d2043d50d6b07f0e77208b186eafc131ec219a1d96a4693ef1989ef8dc2",
+      "bytes": 1784
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyChickenGlideMixin.java",
+      "sha256": "8e0a3303d35b3a326c5516657354afc99faeac7e106d3cb27edf86fd3d85a526",
+      "bytes": 2841
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountDismountInputMixin.java",
+      "sha256": "48167c3b7ef57dbf6fb766dbb8d903be0205867dffa5e276321aa964f1a11b7b",
+      "bytes": 1918
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountDispenserMixin.java",
+      "sha256": "7a96e95fa1a3f55de8f26310767fab39473db96fe6a3310c3451d02f2eb1eac3",
+      "bytes": 1578
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountGoalsMixin.java",
+      "sha256": "d7416204dc5cbcb629d7856559aae0da649428484ca35e0ef82812ee42801d7d",
+      "bytes": 1134
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountInteractionMixin.java",
+      "sha256": "8e2f17e24b13f2e6e2e6a014227b867b7b71fdb3e0ab0c07e2c794ba7cc01a40",
+      "bytes": 1339
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountMovementMixin.java",
+      "sha256": "47b9ca3979813e9ee069d92f715a6f565e45a87c3b9b107b90d4b4382214223a",
+      "bytes": 3133
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountRecipeMixin.java",
+      "sha256": "8eeb32a6deda40280200cfe116120d9619ddc77ea45e95bec082d9fb557e9699",
+      "bytes": 1178
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountServerInventoryMixin.java",
+      "sha256": "20f2c9955186d349605338de1752d69b21f399c9fab63643aab44b89b246b00d",
+      "bytes": 1306
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/TinyMountTemptGoalMixin.java",
+      "sha256": "67f51eeba8da5a236ff4290c18f795b71690dae5e1173a9251320dd7d0e03c3f",
+      "bytes": 979
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/WolfAuthorityMixin.java",
+      "sha256": "9b957b3d8f78e80cb595ced25c00491209ca87227a5af1d91bb049c55bdb3674",
+      "bytes": 800
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/WolfConnectionMixin.java",
+      "sha256": "44c4c43fca5411eef7142a00d06e3f73b8a9067b41df16c262214df8b3b7c136",
+      "bytes": 1146
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/WolfMountMixin.java",
+      "sha256": "a484c595b30d400da3c13145a9dd9391941af6bfd0e41a99ff7e4c09c78b8e28",
+      "bytes": 2680
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mixin/WolfRiderLifecycleMixin.java",
+      "sha256": "86566512727f48113c83936596b060cf62ef264b2a352742cd170a4718da4898",
+      "bytes": 721
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/MountSizePolicy.java",
+      "sha256": "4ac653d6f92c8b57ded33dfefa18ead388149995dc65725e735c625e7c75d9de",
+      "bytes": 2929
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMountDefinition.java",
+      "sha256": "d10972a1ea2bde13951f557251ffe871c838e94a1fb508442af17fcfa305ddb1",
+      "bytes": 5173
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMountGravity.java",
+      "sha256": "2a3653cb40f76e799079e760b89508386adf6cbeaed25f86fc7a08dd6ab86a9b",
+      "bytes": 811
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMountInventory.java",
+      "sha256": "f3a51853342338a328b263df86e5a0dce7486a03dc9867c896a1380753abea5b",
+      "bytes": 2122
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMountMenu.java",
+      "sha256": "914a85d5e14df9dfa89c5b01de3740ab04affc05db215adf03d58dfc104338a8",
+      "bytes": 5442
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMounts.java",
+      "sha256": "738616bb515f9bab1a55cc9ec2d353c9c6776df35e2cdf3a62032cf92fa0a98a",
+      "bytes": 13331
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/TinyMountTemptation.java",
+      "sha256": "9588343410e8f4d116c102fe6cbddbb055ee3446b61203866c5505eafae10dcd",
+      "bytes": 4149
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/WolfMount.java",
+      "sha256": "2cb28b1ec23d3c4c3cc68945121187183b1fbaf1180e64a0a8bed1398aaaefb7",
+      "bytes": 9807
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/mount/WolfTaming.java",
+      "sha256": "17e30a41648b22794bf628f240b48cb0df87cb7aac497913dde3196b171ae2d2",
+      "bytes": 3224
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/GrowthImpact.java",
+      "sha256": "aa03ef54fc2d8131b0098336b18258a4602dd70f80377d2254f229eeacea4b13",
+      "bytes": 4469
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ImpactSurfaces.java",
+      "sha256": "b72aa8d712c78af63f29f01c87edf15429100925a1fb97d8ba72ed91e650515d",
+      "bytes": 5882
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ScaleCombat.java",
+      "sha256": "17e6e7fee10e793e763baa94e00dc94d08da374992e28e2ced3f0fd48aa8e6d3",
+      "bytes": 1002
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ScaleExhaustion.java",
+      "sha256": "894550d1a22b442cf00dcfba367e55a6c057669ef652d4af5f66d1df1a5a6bb4",
+      "bytes": 572
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ScaleExplosions.java",
+      "sha256": "d8dc274f91365d93155727a17cb3c2b0e5101fe25e42dd749a3440916721524a",
+      "bytes": 707
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ScalePhysics.java",
+      "sha256": "8aa294aa74136728279fc79b5935d539b757b203de54c94e92f7d6dd706d8fa0",
+      "bytes": 3622
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/ScaleSneaking.java",
+      "sha256": "85a54421550c1e45b9d4a8656fe6de4f697a2ed3f9425e8477df857871e71fed",
+      "bytes": 2072
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/physics/VillagerFear.java",
+      "sha256": "32a9ff0b9211baf314b0b7f7bb4af2a0dad0dfe25292d3085cc2c84150d1d9cd",
+      "bytes": 1122
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/platform/PlatformDefinition.java",
+      "sha256": "4bcb528c940d7bfa2dbc3733ce7437e896fffdb260ecab261e5686e2506c1307",
+      "bytes": 3990
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/platform/PlatformPlacement.java",
+      "sha256": "cacb0a0456db9dc16aff0fd46df2dbaed32c6feab2b03c804da517893d506efb",
+      "bytes": 14718
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/platform/PlatformPolicy.java",
+      "sha256": "f5dfbcbac69fb539b1a79caf0475a21352345a419295165ae0ce4cb61b68ae08",
+      "bytes": 1245
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/platform/Platforms.java",
+      "sha256": "a3a5d02004c6de1b3b44b477357095237aa7b683edf79a76ca8e7e4b98c62629",
+      "bytes": 5693
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/potion/ScalePotions.java",
+      "sha256": "220ba3b2d6c4b113553da40457a05599685b62314e6acf36986538852c739ba7",
+      "bytes": 2709
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/scale/ScaleGait.java",
+      "sha256": "ebd0fc353c7d8fcca938837aa7ed335054cdd8e4e5a8591d216fc8743839605c",
+      "bytes": 1463
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/scale/ScaleHealthHandler.java",
+      "sha256": "108e6e8ca5792f7f51cc66eb3ed7efbc975462f51165879568a6948842742c57",
+      "bytes": 1029
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/scale/ScaleSize.java",
+      "sha256": "55a4cfb95835ca3ab6dba8decc0b623afbe45b6aa4219b1df4cd41d0d0baee5e",
+      "bytes": 3159
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/scale/ScaleSprintHandler.java",
+      "sha256": "d61dd8a70d8d0a8b0566193c1737ccbd11f8179a681adaf1a7165634cdf7b9bc",
+      "bytes": 2329
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/scale/ScaleTransition.java",
+      "sha256": "2c89e34c9d31cebd9b9d8d92bc038ba28e86945b009679bddac2c0d60ac1fb3d",
+      "bytes": 3309
+    },
+    {
+      "path": "src/main/java/io/github/r3neer/scalebrews/ScaleBrews.java",
+      "sha256": "f13f22983828bfeae54da4ab47fdb82480f36082c4e5ce6bcd5b1bf64197f775",
+      "bytes": 2292
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/citadel_pose_channel_adapters.json",
+      "sha256": "0776350f5d13c72df6ce323080139e03358c3cf5bc52d157d640fbea480d01e3",
+      "bytes": 1790
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/icon.png",
+      "sha256": "0a4a5f045bed66b3e62cc8bf98d565533c2a82d520b95b3bcd7212adcac3c30a",
+      "bytes": 1036
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/items/flower_on_a_stick.json",
+      "sha256": "55c513cf1a9848d6a2ecba3597e49dc077f65e8e42bfbb97b859e2f756e462ff",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/lang/en_us.json",
+      "sha256": "b9dca92c7b03dbee3149cee535611e555078dd100e9cdab23a15c8ac9d915e81",
+      "bytes": 1235
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/lang/es_es.json",
+      "sha256": "efab207b9d3cd01885ee902aaba604bbe84db552d6b7d07adb57dfbfe2723286",
+      "bytes": 1333
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/models/item/flower_on_a_stick.json",
+      "sha256": "de31c3cff8544aab2823c620170bd0f140f3cbf7720e5f0128ffbc4422ef7ef2",
+      "bytes": 176
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/entity/saddle/bee.png",
+      "sha256": "85d43f5177924d658b8fdc7687aa607a3e1652a7632e80702841383ff912e459",
+      "bytes": 283
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/entity/saddle/chicken.png",
+      "sha256": "ce87c3023b3f41475fdaa1f796ea6a6fa806dc895f27a5f8a8a17601583f2b24",
+      "bytes": 283
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/entity/saddle/generic.png",
+      "sha256": "ce87c3023b3f41475fdaa1f796ea6a6fa806dc895f27a5f8a8a17601583f2b24",
+      "bytes": 283
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/entity/saddle/wolf.png",
+      "sha256": "ce87c3023b3f41475fdaa1f796ea6a6fa806dc895f27a5f8a8a17601583f2b24",
+      "bytes": 283
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/gui/sprites/container/slot/wolf_armor.png",
+      "sha256": "97db304803b8f623dbe98cdf769cbba2cee2cb27b2d728cd04cf40d754360993",
+      "bytes": 132
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/gui/sprites/mob_effect/growth.png",
+      "sha256": "eb849e08c5e2847e86c2ad0a249d0ca01d1a7458f8d441a4083e6afd7ad14e7f",
+      "bytes": 183
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/gui/sprites/mob_effect/shrinking.png",
+      "sha256": "bbd5a2a4cd4602b31e6439ed3768071c5b8e01bbdc61fe58346ce31b01d54f07",
+      "bytes": 158
+    },
+    {
+      "path": "src/main/resources/assets/scalebrews/textures/item/flower_on_a_stick_overlay.png",
+      "sha256": "22b826ff693791089838ab576b6fa77985dc8656cdca3d042516ed5ead784d7d",
+      "bytes": 152
+    },
+    {
+      "path": "src/main/resources/data/alexsmobs/scalebrews/citadel_pose_programs/gazelle.json",
+      "sha256": "c66c8fd00e2da54b6386f5996054d8946cff7ecf0661a98acb0b45ec425c38bd",
+      "bytes": 10848
+    },
+    {
+      "path": "src/main/resources/data/alexsmobs/scalebrews/citadel_pose_programs/grizzly_bear.json",
+      "sha256": "c08a153c7aadcd7ca19c1dc1000bf133e52af907918ca8d281a76e4b28b74778",
+      "bytes": 18649
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/alchemical_leather/effect_slots/growth.json",
+      "sha256": "47a42d29a98fe97977559b7fb069ecb7e52d7f857af186790fff2e708e0ae09e",
+      "bytes": 73
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/alchemical_leather/effect_slots/shrinking.json",
+      "sha256": "c7880d20995f87a2b176d85a91c6926b1f7d0729d9ab28d0a35e94187fe5bf77",
+      "bytes": 76
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/alchemical_leather/wear_rules/growth.json",
+      "sha256": "2c0363b2f12c8b8ef69dd52ce5642f34c8ca6ef9c784247347a279d2621787d6",
+      "bytes": 67
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/alchemical_leather/wear_rules/shrinking.json",
+      "sha256": "1e237b9d3e3093dc44a9a45499a5910a92329f3976cd98360616ffb50e41c340",
+      "bytes": 70
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/damage_type/growth_landing.json",
+      "sha256": "a34cfc266c62e166ee0bb04c5026fb604481c7293af82efb87db215ec9a62c76",
+      "bytes": 67
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/recipe/flower_on_a_stick.json",
+      "sha256": "a0488a0097aa3f6ecf56a3113a70a6bcc2c1367148fca07d1358e693697a165e",
+      "bytes": 218
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/mount_size_policy/default.json",
+      "sha256": "d59be9ea2ae305c70d555d42749a14f99326697dc7404a11fd6a085d9b8b2144",
+      "bytes": 414
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/platform_policy/default.json",
+      "sha256": "89c9a8b223e1c15ee422fbc855fdd3204d0c9e0b45f919c672c6340594bec1cd",
+      "bytes": 213
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/rules/default.json",
+      "sha256": "a022ec7627a72fe92d5dce8c2b24f3513c19fe91ebedf5263e6e879a58307a0d",
+      "bytes": 358
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/alligator_snapping_turtle.json",
+      "sha256": "27febb62bf4ca03911995ffdc39812b93ac3309dc4410a12ed96f3ef775fa2a2",
+      "bytes": 107
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/bald_eagle.json",
+      "sha256": "d6b5790f72b935feaea22cb94ca18fa07773bf435d855087a09e7bfff500d954",
+      "bytes": 87
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/banana_slug.json",
+      "sha256": "a98b958e0c1f081ef7ad75cacd4a9991de226a9f21d2f3c27697c3af76f95a28",
+      "bytes": 98
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/bison.json",
+      "sha256": "0cf1793fa2c7de6d1691035bcca919baec4206efb0b1067792b83af546d5dc51",
+      "bytes": 137
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/blue_jay.json",
+      "sha256": "86e163270159376e2e97a8bcd7177dbcee414023173f2d887bb01f110eb46494",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/bone_serpent.json",
+      "sha256": "a9ca3691b37fe6ca4eb80f8b24fc0a3165fe8cfd8549ced681a59741ed206e98",
+      "bytes": 115
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/cockroach.json",
+      "sha256": "5cf859f52c69e66f9055e4af8a9d689c64d7559249f55026eccc5c729b89d469",
+      "bytes": 102
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/comb_jelly.json",
+      "sha256": "8307f6021c31c0ba85fdc3228f75b458a9406fa66b223c5ea90d53b9081a6727",
+      "bytes": 93
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/crimson_mosquito.json",
+      "sha256": "736df592605ba489308d9227b1c88b41aeb363c578688f755f1de684c1811ad2",
+      "bytes": 95
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/crocodile.json",
+      "sha256": "78b488d0137bb57d1e3bdede3a40818bda614a43a9a66e10b3e75b64f5bda63f",
+      "bytes": 94
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/crow.json",
+      "sha256": "c4ec78ecf77c0d91806dfe0b99dc839e2aa8221319e6096b0c7db54d6141d40a",
+      "bytes": 81
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/emu.json",
+      "sha256": "d0986bc17ab1fa6ea5521e1cb7b9f3e842a7473eca8c6cd4599d7ce09179feca",
+      "bytes": 110
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/gazelle.json",
+      "sha256": "5857319b6235f623ab77c4bd2c366e98151fbc453425760c43e2d308192981e7",
+      "bytes": 115
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/giant_squid.json",
+      "sha256": "b10cb422179e94e78ad2f0cc2fb8b8c6f6f62d554dc78820be31a7148093a1e6",
+      "bytes": 88
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/grizzly_bear.json",
+      "sha256": "a8a592c3a6520f456279dfc9bd4b704d5166935e6c5b792f56b8170a8cb73331",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/guster.json",
+      "sha256": "744be3a66f3b4dbc8bf092db73551d58f457a1d77e5948e9d91a486772171b9b",
+      "bytes": 135
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/kangaroo.json",
+      "sha256": "d9d9b846e4c93e81399537bbab1d0658f49f9aa8f073dfc2f44ba29ac3e56cd0",
+      "bytes": 162
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/laviathan.json",
+      "sha256": "71046aa2d6a94b5b46866f88b1f88780a30cd1108b705104cf7fad4dee620659",
+      "bytes": 146
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/mimic_octopus.json",
+      "sha256": "078ec23b5b67e99fb559cf8cd0e10065a3daa33fd7f6df5aeefc2188f6a2d37c",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/mimicube.json",
+      "sha256": "59636f709790b0c7cca5357afcd841420ed1f54f280d070cd186a5a191d73b65",
+      "bytes": 87
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/moose.json",
+      "sha256": "9ce1ad24e2b1af2e436cd3e79129298ad07c586a44357011571e6087593ee25c",
+      "bytes": 121
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/murmur.json",
+      "sha256": "c31f597cb55bbe1e29064e484821dc6a845b22ece45ea500a99416bfac2b4319",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/potoo.json",
+      "sha256": "d2fc91e1d475a880e91a845c37d3b58613a1124579c57d3ef38b1fe15dce84f0",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/roadrunner.json",
+      "sha256": "c5c364c8c1fc686c91aca346c0c03fe064fd700d56cfe3fe491a0a3ccf6fe3b6",
+      "bytes": 124
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/rocky_roller.json",
+      "sha256": "419aabf6f2900e47af7ee9af804a13a20903fdcfb7384802841f6cc74cbd1499",
+      "bytes": 122
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/seagull.json",
+      "sha256": "e91e1dedc1e5c375c2e6b582999451f92d489b4ee913a22a6a48ce33d3ded1eb",
+      "bytes": 84
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/shoebill.json",
+      "sha256": "041c676c7f11adb212bdb7cb7aa86db7577168ae93afcf6bbd89d096c68794de",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/skelewag.json",
+      "sha256": "1af78f6297b24a91a90ba7bda67cd1e23715a0398a71c21ee80c17094ca1a93a",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/soul_vulture.json",
+      "sha256": "bf51a254cb557d9ff50dda3b1ea44f9a81a3661e9b1bd8a0e8625c9b574238f5",
+      "bytes": 86
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/straddler.json",
+      "sha256": "0ca8c5f89f5ce0215efb3211f0bda82b8782f46cc21a82fdeeb5ca98a5eaf70d",
+      "bytes": 114
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/tarantula_hawk.json",
+      "sha256": "cd7de4879b1edff6b8661f02ac12f3db741d661ea7094c0ce4fffc09c373c276",
+      "bytes": 112
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/toucan.json",
+      "sha256": "4c832646077bd79537f489b2d18f3dfad2e231e5c6eb88afba817d3def9fc9c1",
+      "bytes": 83
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/tusklin.json",
+      "sha256": "24daa3c9eede7a360456b5428b1910a866404ce5ce3b1bf6ff4e22f55b43d124",
+      "bytes": 119
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/alexsmobs/warped_mosco.json",
+      "sha256": "d2f30c0bdd338aae17549c4454a2d5a8c8703f7e8fd7ed189add1732a042284b",
+      "bytes": 127
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/deeper_dark/shockwave.json",
+      "sha256": "2d63e40da4d943368b854126fb801a8ccdce05eab0d27e1eefef158499fbfe25",
+      "bytes": 124
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/friendsandfoes/moobloom.json",
+      "sha256": "04ab9c8292aa7abeeb49163651cf4e2c90198f824c72acb16111e6936a28ffbe",
+      "bytes": 143
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/friendsandfoes/tuff_golem.json",
+      "sha256": "572bc7693ab7a2bce3e7c6b9ff6373034672695b5e001c552d1a615d9e041b3c",
+      "bytes": 89
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/friendsandfoes/wildfire.json",
+      "sha256": "5c5f564bf6a0a467a6baf04c6ab6280c1edf2fb58fcad63d52f89b5f9980ec5d",
+      "bytes": 111
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/blaze.json",
+      "sha256": "6a50a23356ddf7b7cea3d4b4d6d12f0a720d8f658b4a1b01841baa644af14548",
+      "bytes": 84
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/bogged.json",
+      "sha256": "c63b444dfb1e0e948d82edc497299ab00de4d149a9cf8df894ce1a2c13d763a4",
+      "bytes": 80
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/cave_spider.json",
+      "sha256": "a34a79c22b6c8e07d3fce340e3a08884decff0a60370caef9da0c971289694da",
+      "bytes": 87
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/chicken.json",
+      "sha256": "40b7c0a1828c780d96836c3470e6a1c9b3d738597b97a4ebd9ba8cbd4715d0e5",
+      "bytes": 143
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/copper_golem.json",
+      "sha256": "c45ceb773df660a2e11bfe53ffdb465dae6b4e6f6fdc3a59db6c7885a85d4234",
+      "bytes": 94
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/cow.json",
+      "sha256": "205a5624454c2b768909781dcf10fbd4a12171d3741c56f580fe954eecf80242",
+      "bytes": 133
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/creeper.json",
+      "sha256": "0871cfc63b89aaa700820ff171db5a1e5fea75af50baa8a5f467728683470b08",
+      "bytes": 86
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/donkey.json",
+      "sha256": "89f5226ead6a63ef533d3eb4b573ad25092f50ef635dd39ec29551b791129120",
+      "bytes": 83
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/drowned.json",
+      "sha256": "6ae85268f31fd264ba7fb940938d6cf9025bb94c7d524fc2745e1a982bd030ae",
+      "bytes": 89
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/elder_guardian.json",
+      "sha256": "664565a5036037ad28ff3b4a08a9a02fd0b9beaf0c89e7b0aa69408efb14efec",
+      "bytes": 138
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/ghast.json",
+      "sha256": "a3f001d13140adafb6f170568b806d4693f813aadde5ee5e97ec746ad97be05b",
+      "bytes": 113
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/glow_squid.json",
+      "sha256": "f07be5555034ba90ea1f8361078407904a2e1f27e0aae586e72455c20e2f8fd4",
+      "bytes": 92
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/guardian.json",
+      "sha256": "bf2bb17d473d205fd4af328f1f3b623b40fdc3d1ac8f95b6f2516deb42ab5da3",
+      "bytes": 132
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/hoglin.json",
+      "sha256": "2f1c7ea023ad07bae5267c4e26de835d09a5fb74271bab52229f98c6a595bdbd",
+      "bytes": 144
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/horse.json",
+      "sha256": "19b0189cab247869e2bf224d2df96e2458326e9dcaa6aefa4e5fe5b3cceb1db5",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/husk.json",
+      "sha256": "d423297ec7c6926176deddc3060eb79364a773331d99403626e82df7e91f453d",
+      "bytes": 86
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/iron_golem.json",
+      "sha256": "209c3a4dc8a2a1f3cf1707736335911a160740719ee06a0988ee125d41e25b5b",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/llama.json",
+      "sha256": "1feeff9d1807eae80e88051db6b094f6db0b1989caa45bcec5d0cd9e154c2650",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/magma_cube.json",
+      "sha256": "87f70a3e37a18047ea191015e53a6e58db120ea51f7efd3a2a215fbd0045f619",
+      "bytes": 91
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/mooshroom.json",
+      "sha256": "1a5baa91fab70e05fa137aff82715f61373e0578b44eda37611b111dac42b3d5",
+      "bytes": 139
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/mule.json",
+      "sha256": "9eed92d90c2eded71f6c9ac5f3ddeecf649cc3ef38bbea09b18c177dfd5c1003",
+      "bytes": 81
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/parrot.json",
+      "sha256": "ff6b469974322162c5d1d8c3d29cdffed695f3946ad490eceb206ca711ed3d51",
+      "bytes": 83
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/phantom.json",
+      "sha256": "d3daf4c11a60183b43a97a63298f732f74f1f2db694f21ff7e263dd58b622f25",
+      "bytes": 93
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/pig.json",
+      "sha256": "3da7bed55aab005912488eec942504d487b8b8dcd8ae142925c3952b1067b925",
+      "bytes": 115
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/rabbit.json",
+      "sha256": "2f52afefc3a4e3e65fe3871c5cccd1667d7077e9664c5933cbe5114142d78f63",
+      "bytes": 144
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/sheep.json",
+      "sha256": "2847c4d02ee09888cd24369550abb446a4e75f50f9dd03d590dd1e8ad01d5c74",
+      "bytes": 137
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/shulker.json",
+      "sha256": "4422cbfa93eded5fb11bfb00f7aa73825ce7ed02079cd990587579718c082d2d",
+      "bytes": 90
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/skeleton.json",
+      "sha256": "b3586f2ea9bb8949dfe5803d87a3c99d787a8ac988d6baf1a1cdeb3ef9fca456",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/slime.json",
+      "sha256": "9adaabb951283c215ff0c15b981999c53bc46a058d64c1cef75d886f5b51847b",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/snow_golem.json",
+      "sha256": "d8917088cb8d738eef5dcc55b682df714879696b46f775dbbed141ee69ff4759",
+      "bytes": 88
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/spider.json",
+      "sha256": "73806aeb40ef4662caae1ce6dbcb51341c937d8271f336810993dab0275a982c",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/squid.json",
+      "sha256": "135b517a2d18646f83c75f1e2a8dded6ad2c6dd60053315655e0bb6986f8ecf9",
+      "bytes": 82
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/stray.json",
+      "sha256": "3d25c1d3180df58aac33fbd41bdcd044ad181da33f064ff9274fc01f219348ac",
+      "bytes": 79
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/trader_llama.json",
+      "sha256": "ea61fd146f4954b92ab536c8a00030974ecac1199415d67cf12b61536a11c0ff",
+      "bytes": 89
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/zoglin.json",
+      "sha256": "9c72dd54647e0bc081ce81d50b891d07b8f856be5bc48bc33e971facdd48dd59",
+      "bytes": 88
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/zombie.json",
+      "sha256": "eae51758cf51a0eefe72d8cb3b0ad6724becfa3fce824865469d1d690db088b3",
+      "bytes": 88
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/minecraft/zombified_piglin.json",
+      "sha256": "29fb36bba9e4277c9ed51289b902fe83eede952775d809d536fc4163f10336e3",
+      "bytes": 98
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/jellyfish.json",
+      "sha256": "2d7f41b0c28b094bde0a8977d46dc12f374632cb6a7f014c28d0b5bff6fab400",
+      "bytes": 333
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/moobloom.json",
+      "sha256": "7243115ff66423438c735a677111e834757c39b4e357318f5b4fed1fc42bedaf",
+      "bytes": 139
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/ostrich.json",
+      "sha256": "8a8364de75a5812a996d4f07b3e0174db5682f401bfaff59b3d0a793ed80c22e",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/penguin.json",
+      "sha256": "aca3e9d04d7fd1096322ada282ceffecbcc74952ccdbdc5d128fbb4fd688c529",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/scorched.json",
+      "sha256": "d0ba3c57fa7f42add391267f1857378a62d87e41af391f2d6927cd66e49f524d",
+      "bytes": 85
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/scale_loot/wilderwild/zombie_ostrich.json",
+      "sha256": "de297ee4f1bf510b46c48f2187f92afaeae2f095bea0dbce5ee52c1466b17caa",
+      "bytes": 97
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/tiny_mount/bee.json",
+      "sha256": "b6870249cb2be34500b84d42795e26e4fbebc3255dc1d6a8d974a74ec3f3b97d",
+      "bytes": 381
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/tiny_mount/chicken.json",
+      "sha256": "277f01d3e3e6ce83db198d20a97abb9cf16cc480fac6cdb8a789631f31a6b6b6",
+      "bytes": 272
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/scalebrews/tiny_mount/wolf.json",
+      "sha256": "6ccbde374c30d08ea9dbf8d9b0a8578219496d58faac348cc9debca24f4121f8",
+      "bytes": 395
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/tags/block/growth_resisted_slowdown.json",
+      "sha256": "287f04808ce302bd99607b4cf6f9faccf9a0b90b07cdd68f1ee8cc521746204b",
+      "bytes": 94
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/tags/block/insensitive_pressure_plates.json",
+      "sha256": "219c01e614923edde9e781eb903aaa60f1b7002bbf0418b55b5b96f37cee78e8",
+      "bytes": 166
+    },
+    {
+      "path": "src/main/resources/data/scalebrews/tags/game_event/shrinking_quiet_movement.json",
+      "sha256": "3dc2e14759dfe55b17765da53f8a0c133b8e3c1e8eee910b83a4d1f8c9067c28",
+      "bytes": 101
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "sha256": "813c670065171b65614be19f7d9673e64b6b134136cacb1b107f12b73c7cc687",
+      "bytes": 1009
+    },
+    {
+      "path": "src/main/resources/META-INF/services/io.github.r3neer.scalebrews.collision.runtime.AnatomyBackend",
+      "sha256": "b186d332ee8180e6c4bd7245ddba00d455bbbd22d99509be19802378202d30a1",
+      "bytes": 68
+    },
+    {
+      "path": "src/main/resources/scalebrews.mixins.json",
+      "sha256": "133cfce9e3acc0cb9c4ede07738eaf627e33d0ea56dfa5e958f495fc2ad71621",
+      "bytes": 1510
+    }
+  ],
+  "productionFileCount": 362,
+  "initialClientRed": {
+    "path": "../s47-client-i1.log",
+    "sha256": "6267309952176472d332e91e826b9b4dd5b6597cbb36a5a28a01e40eb0b978dc",
+    "bytes": 285724,
+    "result": "RED",
+    "classification": "fixture contract migration: live identity copy dropped binding token; no wire relaxation"
+  },
+  "commandClassification": {
+    "s47-prepared-i1.log": "PASS normal client32, not prepared server scenarios; corrected command recorded separately"
+  },
+  "logs": [
+    {
+      "path": "../s47-compile-i1.log",
+      "sha256": "30e26881adca7383944212e8545b044d8a6b472de1a198f701a38959dbfcdb62",
+      "bytes": 165698,
+      "result": "PASS",
+      "requiredServerTests": null,
+      "gradleElapsed": "48s"
+    },
+    {
+      "path": "../s47-build-i1.log",
+      "sha256": "2aa97a78484448f85b47aec9c1ba455a81f014d891d55836b343e3698b1123a2",
+      "bytes": 143961,
+      "result": "PASS",
+      "requiredServerTests": 481,
+      "gradleElapsed": "1m 29s"
+    },
+    {
+      "path": "../s47-build-i2.log",
+      "sha256": "7cba846048a97a82439cb410f501b1c77b8cbfc81161843cd9c85ca2b14681ee",
+      "bytes": 436215,
+      "result": "PASS",
+      "requiredServerTests": 481,
+      "gradleElapsed": "3m 10s"
+    },
+    {
+      "path": "../s47-prepared-i1.log",
+      "sha256": "4c4d389cd997af73a54de8de213c2261efa73f7bea4b9126ab6c666edf9f123a",
+      "bytes": 445089,
+      "result": "PASS",
+      "requiredServerTests": null,
+      "gradleElapsed": "5m 49s"
+    },
+    {
+      "path": "../s47-prepared-server-i1.log",
+      "sha256": "a8145f67eca16bc6c0c2d359d00d06ecc8ea9210a80b76ed5cd32bcb42832e66",
+      "bytes": 12071,
+      "result": "PASS",
+      "requiredServerTests": 2,
+      "gradleElapsed": "35s"
+    },
+    {
+      "path": "../s47-client-i2.log",
+      "sha256": "0a5f6071a2872b6ff5eaa784fab43c1ed4f230043a6c253d8b112c0d1931bccf",
+      "bytes": 304894,
+      "result": "PASS",
+      "requiredServerTests": null,
+      "gradleElapsed": "4m 46s"
+    },
+    {
+      "path": "../s47-default-manifest.log",
+      "sha256": "ef85c264f8b483007e61a57f1e4081a1b420fa8de2a915b75cd6d29bbd1aa4c1",
+      "bytes": 342,
+      "result": "PASS",
+      "requiredServerTests": null,
+      "gradleElapsed": "2s"
+    },
+    {
+      "path": "../s47-impl-public-final.log",
+      "sha256": "0306b002e69ff8bd2d77060600b351a67f8f9b2dafac1fc8951aaef08e915960",
+      "bytes": 199851,
+      "result": "PASS",
+      "requiredServerTests": 6,
+      "gradleElapsed": "1m 33s"
+    },
+    {
+      "path": "../s47-build-final.log",
+      "sha256": "adcc1bd0857b3b61066f20e743cac388698f87b4a25ac84d37fb55c2bb61ea39",
+      "bytes": 61141,
+      "result": "PASS",
+      "requiredServerTests": 486,
+      "gradleElapsed": "44s"
+    },
+    {
+      "path": "../s47-client-final.log",
+      "sha256": "aba4c4b008745f208059ecff41a21895719b44a2f0eca5d4e2e8f7bbfb22bd30",
+      "bytes": 300380,
+      "result": "PASS",
+      "requiredServerTests": null,
+      "gradleElapsed": "3m 33s"
+    }
+  ],
+  "jar": {
+    "path": "../s47-impl-build/libs/scalebrews-0.1.0-beta.9.jar",
+    "sha256": "a535f512111e04df4f7174da70c8eb07a5edb90bff9365251b6de227dcbf9c19",
+    "bytes": 1184617,
+    "entries": 734,
+    "version": "0.1.0-beta.9"
+  },
+  "claims": {
+    "allCanonicalVariantsRetained": true,
+    "singleCanonicalSelector": true,
+    "identityConstructionPreparedOnly": true,
+    "snapshotAndBundleAtomic": true,
+    "defaultRuntimeSelectionChanged": false,
+    "poseWireChanged": true,
+    "posePayloadType": "scalebrews:anatomy_pose_v7",
+    "catalogProtocolChanged": false,
+    "transportedSelectionLifecycleCertified": true,
+    "liveVariantLifecycleCertified": false,
+    "minecraftFullCoverageCertified": false
+  }
+}

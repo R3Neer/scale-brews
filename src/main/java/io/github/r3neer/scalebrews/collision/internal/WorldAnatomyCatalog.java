@@ -84,6 +84,19 @@ public final class WorldAnatomyCatalog {
             return prepared.resolveIdentity(entity, identity);
         }
         public Optional<Identifier> bindingIdentity(Binding binding) { return prepared.identity(binding); }
+
+        /** Exact authoritative row. A null type only permits admission before the entity exists. */
+        public Optional<Binding> resolvePose(Identifier entityType, AnatomyPosePayload packet) {
+            if (packet == null || packet.revision() != revision || packet.bindingIdentity() == null) return Optional.empty();
+            var resolved = entityType == null ? prepared.resolveIdentity(packet.bindingIdentity())
+                : prepared.resolveIdentity(entityType, packet.bindingIdentity());
+            var binding = resolved.orElse(null);
+            if (binding == null) return Optional.empty();
+            var selection = binding.selection();
+            return selection.geometry().model().equals(packet.model()) && selection.pose().engine().equals(packet.provider())
+                && selection.rootTransform().equals(packet.rootProvider()) && selection.policy().enabled().orElse(true)
+                ? resolved : Optional.empty();
+        }
     }
 
     private record Accepted(Snapshot snapshot, AnatomyCatalogTransfer.PreparedBundle bundle) {}

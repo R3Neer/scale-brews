@@ -169,7 +169,8 @@ public final class AnatomyRuntime {
         long bindingGeneration=state.allocateBindingGeneration();
         state.entities.put(living,new Active(binding,provider,bindingGeneration));
         AnatomyMovement.register(living,provider,new GeometryProvider.GeometryIdentityDescriptor(
-            AnatomyNetworking.epoch(living.level().getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),selection.rootTransform(),bindingGeneration),selection);
+            AnatomyNetworking.epoch(living.level().getServer()),snapshot.revision(),selection.geometry().model(),selection.pose().engine(),selection.rootTransform(),bindingGeneration,
+            snapshot.bindingIdentity(binding).orElseThrow()),selection);
     }
     public static void stop(MinecraftServer server) {
         MaterialIntervalRuntime.clear(server);MaterialPhysicsRuntime.clear(server);
@@ -252,7 +253,8 @@ public final class AnatomyRuntime {
             && identity.revision()==state.catalog.snapshot().revision()
             && identity.model().equals(selection.geometry().model())
             && identity.poseProvider().equals(selection.pose().engine())
-            && identity.rootProvider().equals(selection.rootTransform());
+            && identity.rootProvider().equals(selection.rootTransform())
+            && state.catalog.snapshot().bindingIdentity(active.binding()).filter(id->id.equals(identity.bindingIdentity())).isPresent();
     }
     /**
      * Publishes one provider-certified Q2 interval to recipients currently tracking this support.

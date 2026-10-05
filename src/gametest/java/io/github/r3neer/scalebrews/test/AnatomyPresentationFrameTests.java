@@ -181,7 +181,7 @@ public final class AnatomyPresentationFrameTests implements FabricClientGameTest
             old.sample().inputs(),origin,old.sample().yaw(),old.sample().scale(),old.sample().gravity());
         var root=new RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,sample.yaw(),sample.scale(),sample.gravity());
         var endpoint=new GeometryProvider.CausalEndpoint(serial,old.authorityTick()+1,old.jointSampleTick(),root,sample,GeometryProvider.Availability.AVAILABLE);
-        var rebound=new GeometryProvider.GeometryIdentity(identity.dimension(),identity.support(),identity.entityId(),identity.epoch(),identity.revision(),identity.model(),identity.poseProvider(),bindingGeneration,identity.localRegistrationGeneration()+1);
+        var rebound=new GeometryProvider.GeometryIdentity(identity.dimension(), identity.support(), identity.entityId(), identity.epoch(), identity.revision(), identity.model(), identity.poseProvider(), identity.rootProvider(), bindingGeneration, identity.localRegistrationGeneration()+1, identity.bindingIdentity());
         return new GeometryProvider.PublishedFrame(rebound,endpoint);
     }
 

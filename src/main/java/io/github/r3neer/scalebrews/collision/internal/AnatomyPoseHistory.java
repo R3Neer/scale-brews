@@ -31,7 +31,9 @@ public final class AnatomyPoseHistory {
         if(next==null)throw new IllegalArgumentException("Missing pose frame");
         if(current!=null) {
             if(!current.epoch().equals(next.epoch()) || current.revision()!=next.revision() || !current.dimension().equals(next.dimension())
-                || !current.entity().equals(next.entity()) || current.entityId()!=next.entityId() || !current.model().equals(next.model()) || !current.provider().equals(next.provider()) || current.bindingGeneration()!=next.bindingGeneration())
+                || !current.entity().equals(next.entity()) || current.entityId()!=next.entityId() || !current.model().equals(next.model()) || !current.provider().equals(next.provider())
+                || !current.rootProvider().equals(next.rootProvider()) || !java.util.Objects.equals(current.bindingIdentity(),next.bindingIdentity())
+                || current.bindingGeneration()!=next.bindingGeneration())
                 throw new IllegalArgumentException("Pose history identity changed without reset");
             if(next.jointSampleTick()<=current.jointSampleTick() || next.authorityTick()<current.authorityTick())return false;
         }

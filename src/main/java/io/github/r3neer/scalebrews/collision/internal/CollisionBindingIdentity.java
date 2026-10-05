@@ -17,11 +17,25 @@ import java.util.Objects;
 import java.util.TreeSet;
 import net.minecraft.resources.Identifier;
 
-/** Complete canonical binding content identity. PREPARATION only; never a runtime sampler. */
+/** Complete canonical binding content identity. Construction is PREPARATION only. */
 public final class CollisionBindingIdentity {
     public static final int FORMAT_VERSION = 1;
     private static final byte[] DOMAIN = ("scalebrews/collision-binding/v" + FORMAT_VERSION + "\n").getBytes(StandardCharsets.US_ASCII);
+    private static final String TOKEN_PREFIX = "binding/v" + FORMAT_VERSION + "/";
+    public static final int TOKEN_LENGTH = "scalebrews".length() + 1 + TOKEN_PREFIX.length() + 64;
     private CollisionBindingIdentity() {}
+
+    /** Bounded lexical wire validation only; never hashes, serializes or certifies catalog membership. */
+    public static boolean validToken(Identifier token) {
+        if (token == null || !token.getNamespace().equals("scalebrews")) return false;
+        var path = token.getPath();
+        if (path.length() != TOKEN_PREFIX.length() + 64 || !path.startsWith(TOKEN_PREFIX)) return false;
+        for (int i = TOKEN_PREFIX.length(); i < path.length(); i++) {
+            char c = path.charAt(i);
+            if (!(c >= '0' && c <= '9' || c >= 'a' && c <= 'f')) return false;
+        }
+        return true;
+    }
 
     /** Content identity only: epoch, revision, resource bytes and lifecycle ownership remain separate. */
     public static Identifier of(CollisionBinding binding) {
@@ -38,7 +52,7 @@ public final class CollisionBindingIdentity {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(DOMAIN);
             digest.update(bytes);
-            return Identifier.fromNamespaceAndPath("scalebrews", "binding/v" + FORMAT_VERSION + "/" + HexFormat.of().formatHex(digest.digest()));
+            return Identifier.fromNamespaceAndPath("scalebrews", TOKEN_PREFIX + HexFormat.of().formatHex(digest.digest()));
         } catch (CharacterCodingException invalid) {
             throw new IllegalArgumentException("Malformed Unicode in collision binding identity", invalid);
         } catch (NoSuchAlgorithmException impossible) {

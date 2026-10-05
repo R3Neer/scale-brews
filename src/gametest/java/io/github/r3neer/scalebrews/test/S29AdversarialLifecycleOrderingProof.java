@@ -100,7 +100,7 @@ public final class S29AdversarialLifecycleOrderingProof implements FabricClientG
         var old=prior.endpoint();var sample=old.sample();var origin=sample.origin().add(dx,0,0);
         var next=new AnatomyPoseHistory.Sample(sample.inputs(),origin,sample.yaw(),sample.scale(),sample.gravity());
         var root=new RootFrame(old.root().sequence()+1,old.root().tick()+1,origin,next.yaw(),next.scale(),next.gravity());
-        var i=prior.identity();var identity=new GeometryProvider.GeometryIdentity(i.dimension(),i.support(),i.entityId(),i.epoch(),i.revision(),i.model(),i.poseProvider(),i.rootProvider(),binding,i.localRegistrationGeneration());
+        var i=prior.identity();var identity=new GeometryProvider.GeometryIdentity(i.dimension(), i.support(), i.entityId(), i.epoch(), i.revision(), i.model(), i.poseProvider(), i.rootProvider(), binding, i.localRegistrationGeneration(), i.bindingIdentity());
         return new GeometryProvider.PublishedFrame(identity,new GeometryProvider.CausalEndpoint(old.frameSerial()+1,old.authorityTick()+1,old.jointSampleTick(),root,next,GeometryProvider.Availability.AVAILABLE));
     }
     private static AnatomyMaterialIntervalPayload certificate(GeometryProvider.PublishedFrame a,GeometryProvider.PublishedFrame b,long tracking,long serial) {

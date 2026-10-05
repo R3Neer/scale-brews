@@ -25,16 +25,16 @@ public final class TrackingReplayFence {
     public static final int MAX_RETIRED=4096;
 
     private record Tombstone(UUID epoch,long revision,Identifier dimension,int entityId,UUID entity,
-            Identifier model,Identifier provider,Identifier rootProvider,long bindingGeneration,long trackingGeneration,
+            Identifier model,Identifier provider,Identifier rootProvider,Identifier bindingIdentity,long bindingGeneration,long trackingGeneration,
             long frameSerial,long authorityTick,long jointSampleTick,boolean closedWindow) {
         static Tombstone of(AnatomyPosePayload packet,boolean closedWindow) {
             return new Tombstone(packet.epoch(),packet.revision(),packet.dimension(),packet.entityId(),packet.entity(),
-                packet.model(),packet.provider(),packet.rootProvider(),packet.bindingGeneration(),packet.trackingGeneration(),
+                packet.model(),packet.provider(),packet.rootProvider(),packet.bindingIdentity(),packet.bindingGeneration(),packet.trackingGeneration(),
                 packet.frameSerial(),packet.authorityTick(),packet.jointSampleTick(),closedWindow);
         }
         boolean stableBindingIdentity(AnatomyPosePayload packet) {
             return entityId==packet.entityId() && model.equals(packet.model()) && provider.equals(packet.provider())
-                && rootProvider.equals(packet.rootProvider());
+                && rootProvider.equals(packet.rootProvider()) && Objects.equals(bindingIdentity,packet.bindingIdentity());
         }
     }
 
@@ -120,7 +120,7 @@ public final class TrackingReplayFence {
     public void closeWindows(){
         for(var scopes:retired.values())scopes.replaceAll((dimension,current)->current.closedWindow?current:
             new Tombstone(current.epoch,current.revision,current.dimension,current.entityId,current.entity,
-                current.model,current.provider,current.rootProvider,current.bindingGeneration,current.trackingGeneration,
+                current.model,current.provider,current.rootProvider,current.bindingIdentity,current.bindingGeneration,current.trackingGeneration,
                 current.frameSerial,current.authorityTick,current.jointSampleTick,true));
     }
     public boolean saturated(){return saturated;}

@@ -103,7 +103,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 var root=new RootFrame(1,authorityTick,sample.origin(),sample.yaw(),sample.scale(),sample.gravity());
                 var identity=new GeometryProvider.GeometryIdentity(player.level().dimension(),player.getUUID(),player.getId(),
                     AnatomyNetworking.epoch(server),1,net.minecraft.resources.Identifier.parse("minecraft:player_wide"),
-                    net.minecraft.resources.Identifier.parse("scalebrews:player_walking"),1,1);
+                    net.minecraft.resources.Identifier.parse("scalebrews:player_walking"),GeometryProvider.DEFAULT_ROOT_PROVIDER,1,1,TestBindingTokens.accepted(player));
                 var endpoint=new GeometryProvider.CausalEndpoint(1,authorityTick,authorityTick,root,sample,GeometryProvider.Availability.AVAILABLE);
                 var published=new GeometryProvider.PublishedFrame(identity,endpoint);
                 sentFrame.set(sample);
@@ -138,8 +138,8 @@ public class AnatomyExportProof implements FabricClientGameTest {
                 for(int query=0;query<100;query++)evaluator.sampleAt(client.player,frame);
                 if(evaluator.evaluations()!=1)throw new AssertionError("Observer queries recomputed identical geometry");
                 var nextInputs=new PoseProvider.Inputs(2,.8f,13,-170,-20,true);
-                var next=new AnatomyPosePayload(packet.epoch(),packet.revision(),packet.dimension(),packet.entityId(),packet.entity(),packet.model(),packet.provider(),
-                    packet.tick()+1,nextInputs,packet.origin().add(.1,.05,0),packet.yaw()+10,packet.scale()*1.05f,packet.gravity());
+                var next=io.github.r3neer.scalebrews.test.TestBindingTokens.preserve(new AnatomyPosePayload(packet.epoch(),packet.revision(),packet.dimension(),packet.entityId(),packet.entity(),packet.model(),packet.provider(),
+                    packet.tick()+1,nextInputs,packet.origin().add(.1,.05,0),packet.yaw()+10,packet.scale()*1.05f,packet.gravity()), packet);
                 var interpolation=new AnatomyPoseHistory();interpolation.accept(packet);interpolation.accept(next);
                 var segment=interpolation.segment(packet.tick()+.5);
                 var trajectory=evaluator.motionBetween(segment.before(),segment.after()).orElseThrow();
@@ -186,8 +186,7 @@ public class AnatomyExportProof implements FabricClientGameTest {
             });
             world.getServer().runOnServer(server->{
                 var first=firstPublished.get();var endpoint=first.endpoint();var root=endpoint.root();
-                var reboundIdentity=new GeometryProvider.GeometryIdentity(first.identity().dimension(),first.identity().support(),first.identity().entityId(),
-                    first.identity().epoch(),first.identity().revision(),first.identity().model(),first.identity().poseProvider(),2,2);
+                var reboundIdentity=new GeometryProvider.GeometryIdentity(first.identity().dimension(), first.identity().support(), first.identity().entityId(), first.identity().epoch(), first.identity().revision(), first.identity().model(), first.identity().poseProvider(), first.identity().rootProvider(), 2, 2, first.identity().bindingIdentity());
                 var rebound=new GeometryProvider.CausalEndpoint(4,endpoint.authorityTick()+3,endpoint.jointSampleTick()+3,
                     new RootFrame(4,root.tick()+3,root.origin(),root.yaw(),root.scale(),root.gravity()),endpoint.sample(),GeometryProvider.Availability.AVAILABLE);
                 AnatomyNetworking.sendPose(server.getPlayerList().getPlayers().getFirst(),new GeometryProvider.PublishedFrame(reboundIdentity,rebound));

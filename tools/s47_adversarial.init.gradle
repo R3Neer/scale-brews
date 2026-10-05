@@ -1,0 +1,16 @@
+// Reusable test-only S47 selector; generated manifest only. Supply own build/cache/run per lane.
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ tasks.withType(JavaExec).configureEach { systemProperty "scalebrews.s47RequireHashCounter",findProperty("s47RequireHashCounter") ?: "false" }
+ if(findProperty('s47MutationDir')) { def original=file(findProperty('s47MutationOriginal')).absolutePath; sourceSets.named(findProperty('s47MutationEnvironment') ?: 'main') { java.exclude { it.file.absolutePath==original }; java.srcDir(file(findProperty('s47MutationDir'))) } }
+ tasks.named('runGameTest') { dependsOn tasks.named('downloadAssets') }
+ loom.runs.configureEach { runDir=providers.gradleProperty('s47AdversarialRunDir').getOrElse(new File(layout.buildDirectory.get().asFile,'s47-adversarial-run').absolutePath) }
+ tasks.named('runClientGameTest') {systemProperty 'scalebrews.s47SnapshotDir',new File(layout.buildDirectory.get().asFile,'s47-adversarial-snapshots').absolutePath;doFirst {args '--graphicsBackend','opengl'}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S47AdversarialBindingTransportTests']
+  m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.collision.internal.S47AdversarialExactBindingClientProof']
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ } }
+} }

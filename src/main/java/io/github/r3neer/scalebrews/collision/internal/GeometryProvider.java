@@ -23,7 +23,11 @@ public interface GeometryProvider {
     Identifier DEFAULT_ROOT_PROVIDER = Identifier.parse("scalebrews:entity_root");
 
     /** Runtime-supplied causal descriptor; never derive model/provider ids from ModelGeometry.source(). */
-    record GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration) {
+    record GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration,Identifier bindingIdentity) {
+        /** Local/source compatibility; an unspecified selection cannot be published on the live wire. */
+        public GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration) {
+            this(epoch,revision,model,poseProvider,rootProvider,bindingGeneration,null);
+        }
         /** Source-compatible pre-S21 constructor. Canonical runtime code must pass the binding root provider explicitly. */
         public GeometryIdentityDescriptor(UUID epoch,long revision,Identifier model,Identifier poseProvider,long bindingGeneration) {
             this(epoch,revision,model,poseProvider,DEFAULT_ROOT_PROVIDER,bindingGeneration);
@@ -33,12 +37,18 @@ public interface GeometryProvider {
             this(epoch,revision,model,poseProvider,DEFAULT_ROOT_PROVIDER,0);
         }
         public GeometryIdentityDescriptor {
-            if(epoch==null || revision<0 || model==null || poseProvider==null || rootProvider==null || bindingGeneration<0)
+            if(epoch==null || revision<0 || model==null || poseProvider==null || rootProvider==null || bindingGeneration<0
+                    || bindingIdentity!=null && !CollisionBindingIdentity.validToken(bindingIdentity))
                 throw new IllegalArgumentException("Invalid geometry descriptor");
         }
     }
     record GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
-            Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration,long localRegistrationGeneration) {
+            Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration,long localRegistrationGeneration,Identifier bindingIdentity) {
+        /** Local/source compatibility; does not infer a complete binding from nominal provider IDs. */
+        public GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
+                Identifier model,Identifier poseProvider,Identifier rootProvider,long bindingGeneration,long localRegistrationGeneration) {
+            this(dimension,support,entityId,epoch,revision,model,poseProvider,rootProvider,bindingGeneration,localRegistrationGeneration,null);
+        }
         /** Source-compatible pre-S21 constructor; canonical production identities always pass rootProvider. */
         public GeometryIdentity(ResourceKey<Level> dimension,UUID support,int entityId,UUID epoch,long revision,
                 Identifier model,Identifier poseProvider,long bindingGeneration,long localRegistrationGeneration) {
@@ -46,7 +56,8 @@ public interface GeometryProvider {
         }
         public GeometryIdentity {
             if(dimension==null || support==null || entityId<0 || epoch==null || revision<0 || model==null || poseProvider==null
-                    || rootProvider==null || bindingGeneration<1 || localRegistrationGeneration<1)
+                    || rootProvider==null || bindingGeneration<1 || localRegistrationGeneration<1
+                    || bindingIdentity!=null && !CollisionBindingIdentity.validToken(bindingIdentity))
                 throw new IllegalArgumentException("Invalid geometry identity");
         }
         /** Exact live support instance coordinates required before a handle can be certified or queued. */

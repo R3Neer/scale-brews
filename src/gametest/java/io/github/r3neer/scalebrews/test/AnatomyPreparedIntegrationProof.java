@@ -135,18 +135,12 @@ public final class AnatomyPreparedIntegrationProof {
             var current=AnatomyMovement.queryFrame(support).orElseThrow();
             var live=current.identity();
             var staleIdentities=List.of(
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
-                    live.model(),live.poseProvider(),Math.incrementExact(live.bindingGeneration()),live.localRegistrationGeneration()),
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
-                    live.model(),live.poseProvider(),live.bindingGeneration(),Math.incrementExact(live.localRegistrationGeneration())),
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),UUID.randomUUID(),live.revision(),
-                    live.model(),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration()),
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
-                    Identifier.parse("test:stale_model"),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration()),
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),live.revision(),
-                    live.model(),Identifier.parse("test:stale_pose"),live.bindingGeneration(),live.localRegistrationGeneration()),
-                new GeometryProvider.GeometryIdentity(live.dimension(),live.support(),live.entityId(),live.epoch(),Math.incrementExact(live.revision()),
-                    live.model(),live.poseProvider(),live.bindingGeneration(),live.localRegistrationGeneration())
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), live.epoch(), live.revision(), live.model(), live.poseProvider(), live.rootProvider(), Math.incrementExact(live.bindingGeneration()), live.localRegistrationGeneration(), live.bindingIdentity()),
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), live.epoch(), live.revision(), live.model(), live.poseProvider(), live.rootProvider(), live.bindingGeneration(), Math.incrementExact(live.localRegistrationGeneration()), live.bindingIdentity()),
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), UUID.randomUUID(), live.revision(), live.model(), live.poseProvider(), live.rootProvider(), live.bindingGeneration(), live.localRegistrationGeneration(), live.bindingIdentity()),
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), live.epoch(), live.revision(), Identifier.parse("test:stale_model"), live.poseProvider(), live.rootProvider(), live.bindingGeneration(), live.localRegistrationGeneration(), live.bindingIdentity()),
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), live.epoch(), live.revision(), live.model(), Identifier.parse("test:stale_pose"), live.rootProvider(), live.bindingGeneration(), live.localRegistrationGeneration(), live.bindingIdentity()),
+                new GeometryProvider.GeometryIdentity(live.dimension(), live.support(), live.entityId(), live.epoch(), Math.incrementExact(live.revision()), live.model(), live.poseProvider(), live.rootProvider(), live.bindingGeneration(), live.localRegistrationGeneration(), live.bindingIdentity())
             );
             for(var stale:staleIdentities) {
                 var snapshot=new GeometryProvider.Snapshot(stale.revision(),current.snapshot().pieces());

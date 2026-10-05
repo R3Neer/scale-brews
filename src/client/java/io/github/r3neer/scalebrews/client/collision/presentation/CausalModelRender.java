@@ -72,8 +72,11 @@ public final class CausalModelRender {
         if(!transfer.ready() || !frame.identity().epoch().equals(transfer.epoch())
                 || frame.identity().revision()!=transfer.revision())return null;
         var snapshot=transfer.snapshot();
-        var binding=snapshot.bindings().get(BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()));
-        if(binding==null || !binding.selection().geometry().model().equals(frame.identity().model()))return null;
+        var binding=snapshot.resolveIdentity(BuiltInRegistries.ENTITY_TYPE.getKey(support.getType()),frame.identity().bindingIdentity()).orElse(null);
+        if(binding==null || !binding.selection().geometry().model().equals(frame.identity().model())
+                || !binding.selection().pose().engine().equals(frame.identity().provider())
+                || !binding.selection().rootTransform().equals(frame.identity().rootProvider())
+                || !binding.selection().policy().enabled().orElse(true))return null;
         var engine=binding.selection().geometry().engine();
         if(!engine.equals(BuiltInGeometryEngines.MODEL_PART) && !engine.equals(LegacyCollisionData.PRECOMPUTED_GEOMETRY))return null;
         var model=snapshot.models().get(frame.identity().model().toString());

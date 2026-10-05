@@ -1,0 +1,89 @@
+{
+  "recipes": [
+    {
+      "case": "instrument-hash",
+      "environment": "main",
+      "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/CollisionBindingIdentity.java",
+      "shadow": "instrument-hash\\io\\github\\r3neer\\scalebrews\\collision\\internal\\CollisionBindingIdentity.java",
+      "originalSha256": "aa69092513bcbb20fec698e182cda440141dc06daa0374d3cb4f16ae58919293",
+      "shadowSha256": "fdfb7cab67b779288a5e730e6da1ccb657aaa8066e9aecf7f8f4c150332e57a2",
+      "replace": [
+        "public static Identifier of(CollisionBinding binding) {",
+        "public static final java.util.concurrent.atomic.AtomicLong ADVERSARIAL_HASH_COUNT=new java.util.concurrent.atomic.AtomicLong();\n    public static Identifier of(CollisionBinding binding) {\n        ADVERSARIAL_HASH_COUNT.incrementAndGet();"
+      ],
+      "expected": "PASS with active preparation counter and zero repeated hashes",
+      "requireHashCounter": true
+    },
+    {
+      "case": "mutant-history",
+      "environment": "main",
+      "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyFrameHistory.java",
+      "shadow": "mutant-history\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyFrameHistory.java",
+      "originalSha256": "b7c86a77b57cc690dfe1c65a33ac25a5044882aa5dd95a9b95de9f2f3b9ad6e9",
+      "shadowSha256": "20cad560854e906f5baccb907ec978f14554b6ef35673b0b8f27f9c8e6233919",
+      "replace": [
+        "&& java.util.Objects.equals(current.bindingIdentity(),next.bindingIdentity())",
+        "&& true"
+      ],
+      "expected": "RED",
+      "requireHashCounter": false
+    },
+    {
+      "case": "mutant-type",
+      "environment": "main",
+      "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java",
+      "shadow": "mutant-type\\io\\github\\r3neer\\scalebrews\\collision\\internal\\WorldAnatomyCatalog.java",
+      "originalSha256": "c1d0610469a667366453708de7de6735252de420093bd1c0d4909e00414b78d7",
+      "shadowSha256": "5530c1da674a323e11a9a75c92eca0afc6f8fbad9e175dd6616cf599600ee433",
+      "replace": [
+        "prepared.resolveIdentity(entityType, packet.bindingIdentity())",
+        "prepared.resolveIdentity(packet.bindingIdentity())"
+      ],
+      "expected": "RED",
+      "requireHashCounter": false
+    },
+    {
+      "case": "mutant-budget",
+      "environment": "main",
+      "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyPosePayload.java",
+      "shadow": "mutant-budget\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyPosePayload.java",
+      "originalSha256": "5f4c81eb2a257b09dd888558ccb6b56c69112d807f97fc383f501ae5b82c2a92",
+      "shadowSha256": "6c9ddaa3b93bec7919c3c51e4fa72add37480e39edcebcd6ef12c28bcd87d7e2",
+      "replace": [
+        "b.readUtf(CollisionBindingIdentity.TOKEN_LENGTH)",
+        "b.readUtf(32767)"
+      ],
+      "expected": "RED",
+      "requireHashCounter": false
+    },
+    {
+      "case": "mutant-fence",
+      "environment": "main",
+      "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/TrackingReplayFence.java",
+      "shadow": "mutant-fence\\io\\github\\r3neer\\scalebrews\\collision\\internal\\TrackingReplayFence.java",
+      "originalSha256": "71c218d17744ec3e5c94ea4b4b2d435fa11f6728979e9fcb4bb450c9c2c491f2",
+      "shadowSha256": "90c2a1e1e74b77b9336f9337370dac1f4fa1fceb29636b44af5bf4ccfb5e25f2",
+      "replace": [
+        "&& rootProvider.equals(packet.rootProvider()) && Objects.equals(bindingIdentity,packet.bindingIdentity())",
+        "&& rootProvider.equals(packet.rootProvider())"
+      ],
+      "expected": "RED",
+      "requireHashCounter": false
+    },
+    {
+      "case": "mutant-early",
+      "environment": "client",
+      "original": "src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java",
+      "shadow": "mutant-early\\io\\github\\r3neer\\scalebrews\\client\\collision\\network\\AnatomyClientNetworking.java",
+      "originalSha256": "65892acac30ca561af8d53380ef5691458679518923d36a9a8b7cf997e6642fe",
+      "shadowSha256": "b14b6d72aed730d5845d05ded14b896fcd25eefb48a8278ada5e0895f6d8bcc0",
+      "replace": [
+        "transfer.snapshot().resolvePose(null,packet).isEmpty()",
+        "!transfer.snapshot().models().containsKey(packet.model().toString())"
+      ],
+      "expected": "RED",
+      "requireHashCounter": false
+    }
+  ],
+  "executedShadowMismatches": []
+}

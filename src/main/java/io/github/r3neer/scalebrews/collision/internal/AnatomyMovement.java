@@ -217,7 +217,7 @@ public final class AnatomyMovement {
             var endpoint=causalEndpoint(support,provider,capture).orElse(null);
             if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
             var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
-                descriptor.model(),descriptor.poseProvider(),descriptor.rootProvider(),descriptor.bindingGeneration(),capture.registration());
+                descriptor.model(),descriptor.poseProvider(),descriptor.rootProvider(),descriptor.bindingGeneration(),capture.registration(),descriptor.bindingIdentity());
             return Optional.of(new GeometryProvider.PublishedFrame(identity,endpoint));
         } finally {AnatomyBindingState.endCapture(support);}
     }

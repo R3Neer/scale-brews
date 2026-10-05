@@ -1,0 +1,50 @@
+[
+  {
+    "tool": "s29_certified_interval_presence_gate",
+    "exit": 0,
+    "stdout": "S29_CERTIFIED_INTERVAL PRESENT\n - product has a CERTIFIED_INTERVAL presentation path\n - candidate interval wire surfaces: AnatomyMaterialIntervalPayload.java, AnatomyObserverCarryPayload.java\nNOTE: presence is not acceptance; behavioral/lifecycle/mutation gates are still required\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s26_prediction_authority_gate",
+    "exit": 0,
+    "stdout": "S26_PREDICTION_AUTHORITY PASS\n - core client simulation is local-authority gated\n - ordinary client carry loop is local-authority gated\n - outgoing prediction reference is local/control gated\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s25_reference_protocol_gate",
+    "exit": 0,
+    "stdout": "S25_REFERENCE_PROTOCOL PASS\n - anatomy_move_reference_v1 remains support+frame identity\n - anatomy_move_reference_v2 remains vehicle+server receiptSequence\n - anatomy_transport_receipt_v1 retains its server-issued token schema\n - semantic/schema changes require an explicitly versioned wire id\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s25_reference_presence_gate",
+    "exit": 0,
+    "stdout": "S25_REFERENCE_PRESENCE CANDIDATE\n - src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java\nPresence only: adversarial behavior/authority gates are still required before G4.1 can close.\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s25_reference_authority_gate",
+    "exit": 0,
+    "stdout": "S25_REFERENCE_AUTHORITY_GATE PASS\n - retired legacy authority is absent; one canonical native-packet emitter is ownership-fenced\n - registered collision C2S payload schemas are metadata-only:\n    AnatomyMoveReferencePayload\n    AnatomyMoveReferenceV2Payload\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s24_ownership_gate",
+    "exit": 0,
+    "stdout": "S24_OWNERSHIP_GATE PASS root and endpoint state have single extracted owners\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s23_spi_only_gate",
+    "exit": 0,
+    "stdout": "S23 SPI-only gate passed: no DisplayRig/display-composite-specific production knowledge found.\n",
+    "stderr": ""
+  },
+  {
+    "tool": "s22_coverage_hotpath_gate",
+    "exit": 0,
+    "stdout": "S22 coverage hot-path gate passed: no production caller references coverage discovery/scanner.\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,269 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S47",
+  "status": "PASS scoped S47; integrated final IMPLEMENTER regression verified; no live trait selector or G6 global closure",
+  "productionFilesVerified": 362,
+  "productionMismatches": [],
+  "tests": {
+    "server": "5 independent cases + sentinel, 6/6 final repeat18s",
+    "client": "public exact-binding proof repeat52s clean exit; historical migrated3 classes1m44 clean exit; canonical preparation owner finalPASS1m1s identical snapshots",
+    "counter": "required loaded counter;6/6;200000 lookups zero repeated preparation hashes;19s",
+    "mutations": "5 expected RED: history token axis, typed ownership, read budget, compact tombstone, unknown token before entity"
+  },
+  "spatial": {
+    "reference": "real26.2 Cow factory ModelPart geometry, fixed neutral pose and identity root",
+    "firstPieces": 10,
+    "secondPieces": 9,
+    "retired": [
+      "root/body/cube_0"
+    ],
+    "retainedVertices": "exact",
+    "renderer": "private selection seam returns the exact accepted filter for both packets; not a global resource-pack render acceptance"
+  },
+  "performance": {
+    "paths": [
+      "PREPARATION",
+      "HOT_TICK",
+      "HOT_MOVE_QUERY",
+      "HOT_NETWORK",
+      "HOT_PRESENTATION"
+    ],
+    "scaling": [
+      "R executable rows <=4096",
+      "S supports",
+      "O observers",
+      "H existing bounded histories",
+      "P unchanged geometry pieces"
+    ],
+    "newWireBytes": 87,
+    "tokenCharacterBound": 86,
+    "lookup": "prepared map lookup plus bounded tuple validation; no record hashing, reflection, binding compilation or catalog scans",
+    "allocations": "constant token decode/Optional wrappers; metadata references in immutable identities and existing bounded histories; no zero-allocation claim",
+    "longCombinedRun": "1h56m9 logged; gap between server completion12:32 and client startup14:25; not used as gameplay performance data. Client repeated52s and server18s. Cause of startup pause not attributed to production."
+  },
+  "foundations": {
+    "GeometryIdentity/BindingState metadata": "TRUSTED scoped root/token/generation preservation",
+    "Payload/Publication": "TRUSTED scoped codec v7 and frozen declaration preservation; local overloads remain local only",
+    "PreparedIndex/Snapshot lookup": "TRUSTED scoped exact member/type/nominal tuple with no fallback",
+    "Causal histories/replay": "TRUSTED scoped token axis and restart requirements",
+    "Client physics/presentation/renderer": "TRUSTED scoped exact member consumers and lifecycle withdrawal"
+  },
+  "limits": [
+    "No live trait-selection proof",
+    "No FULL family promotion",
+    "No closure of G6 tasks2-6 or G7-G9",
+    "No global p95/p99/heap benchmark or full-pack human acceptance"
+  ],
+  "fixtures": [
+    {
+      "path": "src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S47AdversarialBindingTransportTests.java",
+      "sha256": "9327c0c251fb080a3f1c4460acc75cb18d8ba8d1863a57cf2ce0bfba341202b0"
+    },
+    {
+      "path": "src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S47AdversarialExactBindingClientProof.java",
+      "sha256": "0dc388211d66a0ee44b5567c97bb5c197b9df93c5ac83003863de248b55a006c"
+    },
+    {
+      "path": "src/gametest/java/io/github/r3neer/scalebrews/test/TestBindingTokens.java",
+      "sha256": "71e0a45eb0bf0c63ee7a0f044b4d68dc1b021126efb4750039e95ad121b0ae6b"
+    },
+    {
+      "path": "tools/s47_adversarial.init.gradle",
+      "sha256": "4d251333abb4e59820a13fd61a0d0bc59988a3363a54bb6987193553a57a63f9"
+    },
+    {
+      "path": "tools/s47_adversarial_mutations.py",
+      "sha256": "96390b6887b93b3c8bed0ccb60680a7648a510789a6f626d96704a1d2e9cef39"
+    },
+    {
+      "path": "tools/s47_adversarial_snapshots.py",
+      "sha256": "6583c24c34311de420bb732b8c24fadc6bc34d5c534628cff484dad5490f76ad"
+    }
+  ],
+  "logs": [
+    {
+      "path": "..\\s47-adversary-client-first.log",
+      "sha256": "06424be4f99547ad77e5837d2dcc1f2ca93685e98e806142b1e79b6eb2abd10d",
+      "bytes": 43509,
+      "evidence": [
+        "BUILD SUCCESSFUL in 1m 44s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-exact-client-first.log",
+      "sha256": "7a86ee41de9959c4d128941a195615aa27d32f5d243c9ffae00d257a7bc257d2",
+      "bytes": 30806,
+      "evidence": [
+        "Caused by: java.lang.AssertionError: Variant-only physics activated",
+        "BUILD FAILED in 1m 19s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-exact-client-third.log",
+      "sha256": "f33301ce55f3797b29989464c4a0327cb1efe71cbcbf32dfbb27325fa3eb351e",
+      "bytes": 29264,
+      "evidence": [
+        "Caused by: java.lang.AssertionError: Exactly the declared piece removed, all other vertices preserved",
+        "BUILD FAILED in 1m 27s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-exact-client-fourth.log",
+      "sha256": "c2dad316d3bf727185011765f9685503882caf50fb6ba8afc21a3bef0884d17c",
+      "bytes": 26572,
+      "evidence": [
+        "[12:22:36] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV EXACT_CLIENT PASS original=10 excluded=root/body/cube_0",
+        "[12:22:36] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV BEFORE_ENTITY PASS rejectedSerial=100 acceptedSerial=1 exactToken=scalebrews:binding/v1/b7e11f668b3c25f701c51414e45f2c46890cab4465cfd4e62fe8788300614890",
+        "BUILD SUCCESSFUL in 1m 13s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-public-final.log",
+      "sha256": "bcd9345248c1c8bdbe1e1fe065895203b3cb26fd031b53bc7c463299ac020e87",
+      "bytes": 32784,
+      "evidence": [
+        "[12:32:05] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "[12:32:05] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.827 s ======================",
+        "[12:32:05] [Server thread/INFO] (Minecraft) All 6 required tests passed :)",
+        "[14:27:31] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV EXACT_CLIENT PASS original=10 excluded=root/body/cube_0",
+        "[14:27:32] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV BEFORE_ENTITY PASS rejectedSerial=100 acceptedSerial=1 exactToken=scalebrews:binding/v1/b7e11f668b3c25f701c51414e45f2c46890cab4465cfd4e62fe8788300614890",
+        "BUILD SUCCESSFUL in 1h 56m 9s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-public-client-repeat.log",
+      "sha256": "4cb5ecf0573fbc416c19b0b858f0edf6c9c0eb00be3515b1955b8f3066e6e6b4",
+      "bytes": 92787,
+      "evidence": [
+        "[14:31:33] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV EXACT_CLIENT PASS original=10 excluded=root/body/cube_0",
+        "[14:31:33] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV BEFORE_ENTITY PASS rejectedSerial=100 acceptedSerial=1 exactToken=scalebrews:binding/v1/b7e11f668b3c25f701c51414e45f2c46890cab4465cfd4e62fe8788300614890",
+        "BUILD SUCCESSFUL in 52s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-public-counter-required.log",
+      "sha256": "c4e9f72ce881e300c066e28559b4c45b813b2a3bd05c0c426ab51f3f9e825055",
+      "bytes": 9459,
+      "evidence": [
+        "[14:32:27] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "[14:32:27] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.056 s ======================",
+        "[14:32:27] [Server thread/INFO] (Minecraft) All 6 required tests passed :)",
+        "BUILD SUCCESSFUL in 19s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-public-server-repeat.log",
+      "sha256": "2f3eb114dc2d521575e4733d99c1fb09956cf9bc5fbb30b01e73fd5249dde9a9",
+      "bytes": 9457,
+      "evidence": [
+        "[14:32:45] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "[14:32:45] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.097 s ======================",
+        "[14:32:45] [Server thread/INFO] (Minecraft) All 6 required tests passed :)",
+        "BUILD SUCCESSFUL in 18s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-mutant-history.log",
+      "sha256": "b6d20e28e5b4ffbbef23467c5ea0f984dabf1ea516270f855614b18845aab5c0",
+      "bytes": 37114,
+      "evidence": [
+        "[12:24:51] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "Caused by: java.lang.AssertionError: Same generation cannot change only token",
+        "[12:24:51] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.479 s ======================",
+        "[12:24:51] [Server thread/INFO] (Minecraft) 1 required tests failed :(",
+        "BUILD FAILED in 28s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-mutant-type.log",
+      "sha256": "edfa651a7e90ac31b5e499a1aed882676fe1bcb96c53a4e037a79747e388ad4b",
+      "bytes": 11897,
+      "evidence": [
+        "Caused by: java.lang.AssertionError: Wrong entity cannot borrow token",
+        "[12:25:18] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "[12:25:18] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.627 s ======================",
+        "[12:25:18] [Server thread/INFO] (Minecraft) 1 required tests failed :(",
+        "BUILD FAILED in 26s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-mutant-budget.log",
+      "sha256": "cbc320b368e23280cd7d7c937496defdde619c782946fc9995a547a338f466ee",
+      "bytes": 11771,
+      "evidence": [
+        "Caused by: java.lang.AssertionError: Reader bounded before frame body",
+        "[12:25:46] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 1.295 s ======================",
+        "[12:25:46] [Server thread/INFO] (Minecraft) 1 required tests failed :(",
+        "BUILD FAILED in 26s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-mutant-fence.log",
+      "sha256": "b5aa367294dbf94cd7c6c19d43b6cd32d72cc75a71f62632469c7951db7d49e6",
+      "bytes": 38796,
+      "evidence": [
+        "[12:30:01] [Server thread/INFO] (Minecraft) [STDOUT]: S47 ADV PREPARED_LOOKUP PASS count=200000 repeatedHashes=0",
+        "Caused by: java.lang.AssertionError: Compact tombstone retains token axis",
+        "[12:30:01] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 5.570 s ======================",
+        "[12:30:01] [Server thread/INFO] (Minecraft) 1 required tests failed :(",
+        "BUILD FAILED in 2m 22s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-mutant-early.log",
+      "sha256": "efd80a963e12c0fe9f400f1d93e9bd0a5df2d74488b680dfc0cee5321247d704",
+      "bytes": 95917,
+      "evidence": [
+        "[12:31:14] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV EXACT_CLIENT PASS original=10 excluded=root/body/cube_0",
+        "java.lang.AssertionError: Timed out waiting for predicate",
+        "net.fabricmc.loader.impl.FormattedException: java.lang.AssertionError: Timed out waiting for predicate",
+        "Caused by: java.lang.AssertionError: Timed out waiting for predicate",
+        "BUILD FAILED in 1m 21s"
+      ]
+    },
+    {
+      "path": "..\\s47-adversary-public-canonical-factory.log",
+      "sha256": "0d34eda0b4ec59afc310bf6cb440eddfb23433b052218b67e078c8b4f29ecb10",
+      "bytes": 25290,
+      "evidence": [
+        "[14:39:31] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV EXACT_CLIENT PASS original=10 excluded=root/body/cube_0",
+        "[14:39:32] [Render thread/INFO] (Minecraft) [STDOUT]: S47 ADV BEFORE_ENTITY PASS rejectedSerial=100 acceptedSerial=1 exactToken=scalebrews:binding/v1/b7e11f668b3c25f701c51414e45f2c46890cab4465cfd4e62fe8788300614890",
+        "BUILD SUCCESSFUL in 1m 1s"
+      ]
+    }
+  ],
+  "zeroChangeReview": [
+    "Production receipt remains362/362 identical",
+    "JAR matches receipt734 entries1184617bytes SHA256a535f512;no fixtures/instrumentation",
+    "8 ownership gatesPASS",
+    "Independent assertion/source review did not request production repair",
+    "Final canonical preparation seam verified; subsequent source/oracle review zero changes"
+  ],
+  "fixtureFinalReviewChange": {
+    "classification": "test-only preparation seam; no oracle or production change",
+    "old": "GeometryExtractor.vanilla deprecated compatibility wrapper",
+    "current": "ModelPartGeometryEngine.inspectVisible canonical owner, same original Cow tree and exact vanilla matrix",
+    "result": "real client PASS1m1s clean exit; both complete snapshots logically identical",
+    "snapshotEquivalence": [
+      {
+        "snapshot": "variant-a.json",
+        "logicalContentIdentical": true,
+        "canonicalJsonSha256": "229707a1ccb8b61f7c9b81acf8af1442fecdce205153b31ccd16964e0324251f"
+      },
+      {
+        "snapshot": "variant-b.json",
+        "logicalContentIdentical": true,
+        "canonicalJsonSha256": "359791f95ed8f832378129912a5a9f6d353b8e4912a54c4e32361adec2f49b75"
+      }
+    ]
+  },
+  "finalImplementerReceiptReview": {
+    "productionCount": 362,
+    "productionMismatches": [],
+    "jarSha256": "a535f512111e04df4f7174da70c8eb07a5edb90bff9365251b6de227dcbf9c19",
+    "jarEntries": 734,
+    "serverEntrypoints": 106,
+    "clientEntrypoints": 33,
+    "result": "Zero changes requested; public oracles match frozen receipt"
+  }
+}
