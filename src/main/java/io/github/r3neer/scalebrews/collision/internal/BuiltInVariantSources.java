@@ -8,10 +8,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.variant.ModelAndTexture;
 
 /** Common/server-safe structural families, independent of concrete entity types. */
 public final class BuiltInVariantSources {
@@ -37,20 +39,38 @@ public final class BuiltInVariantSources {
         sources.put("age", new CollisionVariantSources.Source(Set.of("adult", "baby"), AGE));
         for (var field : DataComponents.class.getFields()) {
             if (!Modifier.isStatic(field.getModifiers()) || field.getType() != DataComponentType.class
-                || !(field.getGenericType() instanceof ParameterizedType type)
-                || !(type.getActualTypeArguments()[0] instanceof Class<?> valueType)
-                || !valueType.isEnum() || !StringRepresentable.class.isAssignableFrom(valueType)) continue;
+                || !(field.getGenericType() instanceof ParameterizedType type)) continue;
+            var argument = type.getActualTypeArguments()[0];
+            Class<?> valueType;
+            boolean modelProjection;
+            if (argument instanceof Class<?> direct && direct.isEnum()
+                && StringRepresentable.class.isAssignableFrom(direct)) {
+                valueType = direct;
+                modelProjection = false;
+            } else if (argument instanceof ParameterizedType holder && holder.getRawType() == Holder.class
+                && holder.getActualTypeArguments()[0] instanceof Class<?> record && record.isRecord()
+                && hasModelField(record)) {
+                valueType = record;
+                modelProjection = true;
+            } else continue;
             try {
                 var component = (DataComponentType<?>) field.get(null);
                 var id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(component);
-                if (id == null) throw new IllegalStateException("Unregistered enum component: " + field.getName());
-                String key = CollisionVariantSources.componentKey(id);
-                var source = CollisionVariantSources.enumComponent((DataComponentType) component, (Class) valueType);
+                if (id == null) throw new IllegalStateException("Unregistered variant component: " + field.getName());
+                String key = modelProjection ? CollisionVariantSources.modelComponentKey(id) : CollisionVariantSources.componentKey(id);
+                var source = modelProjection
+                    ? CollisionVariantSources.holderModelComponent((DataComponentType) component, (Class) valueType)
+                    : CollisionVariantSources.enumComponent((DataComponentType) component, (Class) valueType);
                 if (sources.putIfAbsent(key, source) != null) throw new IllegalStateException("Duplicate component trait: " + id);
             } catch (IllegalAccessException inaccessible) {
                 throw new IllegalStateException("Cannot prepare component source: " + field.getName(), inaccessible);
             }
         }
         return Collections.unmodifiableMap(sources);
+    }
+
+    private static boolean hasModelField(Class<?> record) {
+        for (var field : record.getRecordComponents()) if (field.getType() == ModelAndTexture.class) return true;
+        return false;
     }
 }

@@ -1,0 +1,52 @@
+{
+  "unbound-read": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "b9d2136d009a2aacfce590221e2f99f0e5f4294dc8021ce442a1bb8b1ec2afa3"
+  },
+  "record-owner": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "3141ca0b8a3bef312e0eb8ea12d59de2d4b0df8852343e0e683ddfe1291da802"
+  },
+  "ambiguous-schema": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "bfdba2655fa0dc58fff156e64bfcfa3695e7e84cc62ebb9ac86f2a3c813c1aea"
+  },
+  "foreign-enum": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "b72c47960d528819e351dacec0031f92b48fc08a672b3bb485d8709dbb66bbbc"
+  },
+  "projection-bound": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "b784c812c0f5957e7a8ce405a5f83d0f4ff66dc2d0815d7a986f865387c1e937"
+  },
+  "discovery-omitted": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInVariantSources.java",
+    "productionSha256": "d00a62fa488862f163ab0480a33ae9506e8ba2d75d92f864c2547f21856b2ad4",
+    "shadowSha256": "9db167a63a2fd30f9d205cfdf2e6bb2e1c4aedd1334c37c138e18dc97e382ada"
+  },
+  "runtime-serialize": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "88a080a05f9bf1e6fd0122573d5d864f1b5105efaccc61bb3981b3e61c40b68c"
+  },
+  "hot-registry-copy": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "257400ada2f279411f9210b3d2f35cd0a49850e4a6a553810567c989495e12c5"
+  },
+  "duplicate-component-read": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "8decdf37f0217cf6c8dba1f7662b1dbd6db941e2eeac480146de73de7b10a8d8"
+  },
+  "varargs-accessor": {
+    "original": "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java",
+    "productionSha256": "a54cf9b29b8d03dcbca9ef2e5b43469b6ebd8b5efadd2e7934e13a22eb55923e",
+    "shadowSha256": "114fdb2dceb3a191f465442f0a22c3887bd822db48f9995cbb5e792739875c31"
+  }
+}

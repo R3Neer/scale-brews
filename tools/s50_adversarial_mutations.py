@@ -1,0 +1,10 @@
+from pathlib import Path
+import json,hashlib,argparse
+root=Path(__file__).resolve().parents[1];parser=argparse.ArgumentParser(description='Generate isolated S50 shadow sources; pass s50ShadowDir/s50ShadowOriginal to public init.');parser.add_argument('output',type=Path);out=parser.parse_args().output
+api='src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionVariantSources.java';builtin='src/main/java/io/github/r3neer/scalebrews/collision/internal/BuiltInVariantSources.java'
+recipes={'unbound-read':(api,'!holder.isBound()','false'),'record-owner':(api,'variant.getClass() != recordType','false'),'ambiguous-schema':(api,'selected != null ||','false ||'),'foreign-enum':(api,'value.getDeclaringClass() != enumType','false'),'projection-bound':(api,'key.length() > 64','false'),'discovery-omitted':(builtin,'&& hasModelField(record)','&& false'),'runtime-serialize':(api,'return names[value.ordinal()];','return ((StringRepresentable)value).getSerializedName();'),'hot-registry-copy':(api,'Object observed = entity.get(component);','CollisionVariantSources.snapshot(); Object observed = entity.get(component);'),'duplicate-component-read':(api,'Object observed = entity.get(component);','entity.get(component); Object observed = entity.get(component);'),'varargs-accessor':(api,'accessor.invokeExact(variant)','accessor.invokeWithArguments(variant)')}
+receipt={}
+for name,(original,old,new) in recipes.items():
+ source=(root/original).read_text(encoding='utf-8');assert source.count(old)==1,(name,old)
+ path=out/name/Path(original).relative_to('src/main/java');path.parent.mkdir(parents=True,exist_ok=True);path.write_text(source.replace(old,new),encoding='utf-8',newline='\n');receipt[name]={'original':original,'productionSha256':hashlib.sha256((root/original).read_bytes()).hexdigest(),'shadowSha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+(out/'mutations.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8');print('generated',len(receipt),'isolated shadows')

@@ -165,6 +165,19 @@ por API. Holder/skin/dispatch original de modelos son fronteras diferentes;
 Los readers están TRUSTED en el scope independiente S49 de componentes enum,
 dominios preparados y lifecycle existente; no promueve FULL ni certifica modelos.
 
+La extensión S50 `holderModelComponent` proyecta un único campo tipado
+`ModelAndTexture<E>` de un record público contenido en `Holder`, siendo E un enum
+serializable finito. Schema y accessor se preparan una vez; la lectura local exige
+Holder bound, record propietario y enum exacto. El accessor enlazado usa
+`invokeExact`, sin introspección ni invocación varargs durante queries. La key
+`modelComponentKey` añade `.model` al ID codificado y conserva el límite64.
+Textura e identidad de registry no forman este eje: igual modelo mantiene la
+selección, distinto modelo usa retirada/rebind S48. Discovery reconoce esta
+tecnología desde firmas de componentes sin lista de especies. No observa todos
+los Holder ni skins. Los readers están TRUSTED en el scope independiente S50
+de schema/enum/accesor y lifecycle: cuatro proyecciones nativas reconocidas,
+13 Holder fuera de esta tecnología. No certifica geometría/poses originales ni FULL.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

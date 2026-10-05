@@ -490,6 +490,18 @@ Manifest ordinario110servidor/34cliente restaurado, sin atribuirle una ejecució
 completa ni repetir Tiny Mounts. Commit local propio Sprint:S49. La observación
 no certifica modelos/poses; G6 tareas2–6, G7–G9 y aceptación humana siguen abiertas.
 
+**S50 cerrado adversarialmente:** una familia estructural común proyecta el modelo
+enum desde Holder<Record<ModelAndTexture>>, con accesor enlazado en preparación.
+Cuatro proyecciones nativas descubiertas automáticamente y13 Holder fuera de
+esta tecnología; textura/ID cosméticos no retiran material. Cambio de modelo sí
+retira contacto y reabre generación mediante S48. Lane nueva3/3+build, regresión
+afectada6/6, pública5/5 y replay5/5, preparación promovida5/5; diez mutantes
+detectados y ocho gates PASS.100000lecturas warmed0bytes en reader instrumentado
+y componente Cow nativo; no equivale a benchmark G9.367hashes coinciden, reviews
+cero cambios y commit local Sprint:S50. Manifest112servidor/34cliente restaurado;
+no full-suite claim ni Tiny ajeno repetido. Original models/poses/familias FULL,
+G6 tareas2–6, G7–G9 y aceptación humana siguen abiertas.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

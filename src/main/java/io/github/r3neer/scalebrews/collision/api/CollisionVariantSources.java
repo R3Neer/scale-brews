@@ -1,15 +1,23 @@
 package io.github.r3neer.scalebrews.collision.api;
 
 import io.github.r3neer.scalebrews.collision.api.spi.VariantSource;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.variant.ModelAndTexture;
 
 /** Init-time trait-family registry. JSON selectors choose keys and values, never mob classes. */
 public final class CollisionVariantSources {
@@ -55,6 +63,13 @@ public final class CollisionVariantSources {
         return value.replace("_", "_5f").replace(".", "_2e").replace("/", "_2f");
     }
 
+    /** PREPARATION only: a structural-model projection has a distinct, bounded key. */
+    public static String modelComponentKey(Identifier id) {
+        String key = componentKey(id) + ".model";
+        if (key.length() > 64) throw new IllegalArgumentException("Model component trait key exceeds vocabulary: " + id);
+        return key;
+    }
+
     /**
      * PREPARATION factory for a common enum-component family. Names are captured once;
      * the local reader returns only a prepared name from the exact declaring enum.
@@ -62,20 +77,70 @@ public final class CollisionVariantSources {
      */
     public static <T extends Enum<T> & StringRepresentable> Source enumComponent(DataComponentType<T> component, Class<T> enumType) {
         Objects.requireNonNull(component, "component");
+        return enumProjection(enumType, entity -> entity.get(component));
+    }
+
+    /**
+     * PREPARATION factory for Holder records with one typed ModelAndTexture enum.
+     * Registry identity and cosmetic assets do not participate in this model axis.
+     * The record accessor is linked once; the reader performs only local typed calls.
+     */
+    public static <V> Source holderModelComponent(DataComponentType<Holder<V>> component, Class<V> recordType) {
+        Objects.requireNonNull(component, "component");
+        Objects.requireNonNull(recordType, "recordType");
+        if (!recordType.isRecord() || !Modifier.isPublic(recordType.getModifiers()))
+            throw new IllegalArgumentException("Model component value must be a public record");
+        java.lang.reflect.RecordComponent selected = null;
+        Class<?> enumType = null;
+        for (var field : recordType.getRecordComponents()) {
+            if (field.getType() != ModelAndTexture.class) continue;
+            if (selected != null || !(field.getGenericType() instanceof ParameterizedType type)
+                || !(type.getActualTypeArguments()[0] instanceof Class<?> candidate)
+                || !candidate.isEnum() || !StringRepresentable.class.isAssignableFrom(candidate))
+                throw new IllegalArgumentException("Model component requires one unambiguous serialized enum field");
+            selected = field;
+            enumType = candidate;
+        }
+        if (selected == null) throw new IllegalArgumentException("Model component record has no typed model field");
+        final java.lang.invoke.MethodHandle accessor;
+        try {
+            accessor = MethodHandles.publicLookup().unreflect(selected.getAccessor())
+                .asType(MethodType.methodType(ModelAndTexture.class, Object.class));
+        } catch (IllegalAccessException inaccessible) {
+            throw new IllegalArgumentException("Model component accessor is not public", inaccessible);
+        }
+        return enumProjection(enumType, entity -> {
+            Object observed = entity.get(component);
+            if (!(observed instanceof Holder<?> holder) || !holder.isBound()) return null;
+            Object variant = holder.value();
+            if (variant == null || variant.getClass() != recordType) return null;
+            try {
+                ModelAndTexture<?> model = (ModelAndTexture<?>) accessor.invokeExact(variant);
+                return model == null ? null : model.model();
+            } catch (RuntimeException | Error failure) {
+                throw failure;
+            } catch (Throwable failure) {
+                throw new IllegalStateException("Prepared model accessor failed", failure);
+            }
+        });
+    }
+
+    /** Shared preparation and enum-owner guard for direct and projected components. */
+    private static Source enumProjection(Class<?> enumType, Function<LivingEntity, ?> reader) {
         Objects.requireNonNull(enumType, "enumType");
         if (!enumType.isEnum() || !StringRepresentable.class.isAssignableFrom(enumType))
             throw new IllegalArgumentException("Component domain must be a serialized enum");
-        T[] constants = enumType.getEnumConstants();
+        Object[] constants = enumType.getEnumConstants();
         if (constants.length == 0 || constants.length > MAX_VALUES) throw new IllegalArgumentException("Invalid component enum domain");
         var values = new TreeSet<String>();
         var names = new String[constants.length];
         for (int i = 0; i < constants.length; i++) {
-            String name = constants[i].getSerializedName();
+            String name = ((StringRepresentable) constants[i]).getSerializedName();
             if (!validValue(name) || !values.add(name)) throw new IllegalArgumentException("Invalid or duplicate component enum name");
             names[i] = name;
         }
         return new Source(values, entity -> {
-            Object observed = entity.get(component);
+            Object observed = reader.apply(entity);
             if (!(observed instanceof Enum<?> value) || value.getDeclaringClass() != enumType) return null;
             return names[value.ordinal()];
         });

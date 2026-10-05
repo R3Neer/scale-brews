@@ -1,0 +1,175 @@
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileClientJava UP-TO-DATE
+> Task :processClientResources UP-TO-DATE
+> Task :clientClasses UP-TO-DATE
+> Task :compileGametestJava UP-TO-DATE
+> Task :acceptGameTestEula UP-TO-DATE
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateDLIConfig UP-TO-DATE
+> Task :configureLaunch UP-TO-DATE
+> Task :downloadAssets UP-TO-DATE
+> Task :processGametestResources
+> Task :gametestClasses
+
+> Task :runGameTest
+[21:00:59] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 26.2 with Fabric Loader 0.19.5
+[21:00:59] [main/INFO] (FabricLoader/Mappings) Mappings not present!
+[21:01:00] [main/INFO] (FabricLoader) Loading 44 mods:
+	- fabric-api 0.159.0+26.2
+	- fabric-api-base 2.0.4+ece063239e
+	- fabric-api-lookup-api-v1 2.0.18+11e1c9a39e
+	- fabric-biome-api-v1 18.0.6+c7bd5b8e9e
+	- fabric-block-api-v1 3.0.3+ec56b6019e
+	- fabric-block-getter-api-v2 2.0.7+ec56b6019e
+	- fabric-command-api-v2 3.1.0+00cb03469e
+	- fabric-content-registries-v0 11.3.2+37b1aa249e
+	- fabric-convention-tags-v2 4.7.1+1f023a9e9e
+	- fabric-crash-report-info-v1 1.0.5+086d547a9e
+	- fabric-creative-tab-api-v1 5.0.14+d871b99e9e
+	- fabric-data-attachment-api-v1 2.2.18+515ac5339e
+	- fabric-data-generation-api-v1 25.5.1+aed122aa9e
+	- fabric-debug-api-v1 1.0.2+c792624d9e
+	- fabric-dimensions-v1 5.1.12+515ac5339e
+	- fabric-entity-events-v1 5.0.5+06488ac19e
+	- fabric-events-interaction-v0 5.2.7+515ac5339e
+	- fabric-game-rule-api-v1 4.0.8+46a6d00c9e
+	- fabric-gametest-api-v1 4.0.21+4a7fa0819e
+	- fabric-item-api-v1 14.5.0+c68f6cbe9e
+	- fabric-lifecycle-events-v1 4.1.4+29b6eb019e
+	- fabric-loot-api-v3 3.0.17+06488ac19e
+	- fabric-menu-api-v1 2.0.16+086d547a9e
+	- fabric-message-api-v1 7.0.8+bb2ed3f79e
+	- fabric-networking-api-v1 6.3.3+72073ef09e
+	- fabric-object-builder-api-v1 24.1.0+6fcd5f039e
+	- fabric-particles-v1 5.0.18+d1756aa99e
+	- fabric-permission-api-v1 1.0.5+e442d8d09e
+	- fabric-recipe-api-v1 9.0.21+11e1c9a39e
+	- fabric-registry-sync-v0 7.1.0+c7bd5b8e9e
+	- fabric-rendering-fluids-v1 6.0.4+06488ac19e
+	- fabric-resource-conditions-api-v1 6.1.0+10e9a28b9e
+	- fabric-resource-loader-v0 3.3.20+4fc5413f9e
+	- fabric-resource-loader-v1 2.0.13+9edec1269e
+	- fabric-serialization-api-v1 2.0.4+11a26f319e
+	- fabric-tag-api-v1 2.1.4+515ac5339e
+	- fabric-transfer-api-v1 8.0.13+11dbb7d79e
+	- fabric-transitive-access-wideners-v1 8.1.4+67c847259e
+	- fabricloader 0.19.5
+	- java 25
+	- minecraft 26.2
+	- mixinextras 0.5.5
+	- scalebrews 0.1.0-beta.9
+	- scalebrews-test 1.0.0
+[21:01:00] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/C:/Users/Usuario/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/5f66cc9f59b8efaa942155a3d5a30599bf6640dd/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[21:01:00] [main/WARN] (FabricLoader/Mixin) Error loading class: link/e4mc/E4mcClient (java.lang.ClassNotFoundException: link/e4mc/E4mcClient)
+[21:01:00] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[21:01:02] [main/ERROR] (HkeyPerformanceDataUtil) Unable to locate English counter names in registry Perflib 009. Counters may need to be rebuilt: 
+
+com.sun.jna.platform.win32.Win32Exception: El parámetro no es correcto.
+	at knot//com.sun.jna.platform.win32.Advapi32Util.registryGetStringArray(Advapi32Util.java:921)
+	at knot//com.sun.jna.platform.win32.Advapi32Util.registryGetStringArray(Advapi32Util.java:898)
+	at knot//oshi.driver.windows.registry.HkeyPerformanceDataUtil.mapCounterIndicesFromRegistry(HkeyPerformanceDataUtil.java:274)
+	at knot//oshi.driver.windows.registry.HkeyPerformanceDataUtil.<clinit>(HkeyPerformanceDataUtil.java:51)
+	at knot//oshi.driver.windows.registry.ProcessPerformanceData.buildProcessMapFromRegistry(ProcessPerformanceData.java:45)
+	at knot//oshi.software.os.windows.WindowsOperatingSystem.queryProcessMapFromRegistry(WindowsOperatingSystem.java:328)
+	at knot//oshi.util.Memoizer$1.get(Memoizer.java:65)
+	at knot//oshi.software.os.windows.WindowsOperatingSystem.processMapToList(WindowsOperatingSystem.java:298)
+	at knot//oshi.software.os.windows.WindowsOperatingSystem.getProcess(WindowsOperatingSystem.java:292)
+	at knot//oshi.software.os.OperatingSystem.getCurrentProcess(OperatingSystem.java:246)
+	at knot//net.minecraft.SystemReport.lambda$putSoftware$0(SystemReport.java:116)
+	at knot//net.minecraft.SystemReport.ignoreErrors(SystemReport.java:121)
+	at knot//net.minecraft.SystemReport.putSoftware(SystemReport.java:116)
+	at knot//net.minecraft.SystemReport.lambda$new$7(SystemReport.java:68)
+	at knot//net.minecraft.SystemReport.ignoreErrors(SystemReport.java:121)
+	at knot//net.minecraft.SystemReport.<init>(SystemReport.java:68)
+	at knot//net.minecraft.CrashReport.<init>(CrashReport.java:35)
+	at knot//net.minecraft.CrashReport.preload(CrashReport.java:252)
+	at knot//net.minecraft.server.Main.main(Main.java:104)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:517)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotServer.main(KnotServer.java:23)
+	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86)
+[21:01:02] [main/WARN] (PerfCounterQuery) Unable to locate English counter names in registry Perflib 009. Assuming English counters. Error 0x80070057. See https://support.microsoft.com/en-us/help/300956/how-to-manually-rebuild-performance-counter-library-values
+[21:01:02] [main/WARN] (PerfCounterWildcardQuery) Failed to locate performance object for Process in the registry. Performance counters may be corrupt. Pdh call failed with error code 0xC0000BB8
+[21:01:02] [main/INFO] (PerfCounterWildcardQuery) Disabling further attempts to query Process.
+[21:01:08] [main/INFO] (scalebrews) Registering Scale Brews effects
+[21:01:08] [main/INFO] (scalebrews) Registering Scale Brews potions
+[21:01:08] [main/INFO] (scalebrews) Registering Scale Brews brewing recipes
+[21:01:08] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[21:01:08] [main/INFO] (FabricGameTestRunner) Starting test server
+[21:01:10] [main/INFO] (Minecraft) Loaded 1586 recipes
+[21:01:10] [main/INFO] (Minecraft) Loaded 1688 advancements
+[21:01:10] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 66 new biomes in 1.715 ms
+[21:01:10] [Server thread/INFO] (Minecraft) Selecting global world spawn...
+[21:01:10] [Server thread/INFO] (Minecraft) Loading 0 persistent chunks...
+[21:01:10] [Server thread/INFO] (Minecraft) Preparing spawn area: 100%
+[21:01:10] [Server thread/INFO] (Minecraft) Time elapsed: 183 ms
+[21:01:10] [Server thread/INFO] (Minecraft) Started game test server
+[21:01:10] [Server thread/INFO] (Minecraft) 4 tests are now running at position 13688963, -59, -5767039!
+[21:01:11] [Server thread/INFO] (Minecraft) Running test environment 'minecraft:default' batch 0 (4 tests)...
+[21:01:11] [Server thread/ERROR] (TestAnnotationLocator) Failed to invoke test method
+
+java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:119)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at knot//net.fabricmc.fabric.impl.gametest.TestAnnotationLocator$TestMethod.lambda$testFunction$0(TestAnnotationLocator.java:144)
+	at knot//net.minecraft.gametest.framework.FunctionGameTestInstance.run(FunctionGameTestInstance.java:32)
+	at knot//net.minecraft.gametest.framework.GameTestInfo.startTest(GameTestInfo.java:177)
+	at knot//net.minecraft.gametest.framework.GameTestInfo.tickInternal(GameTestInfo.java:137)
+	at knot//net.minecraft.gametest.framework.GameTestInfo.tick(GameTestInfo.java:120)
+	at knot//net.minecraft.gametest.framework.GameTestTicker.lambda$tick$0(GameTestTicker.java:56)
+	at java.base/java.util.concurrent.CopyOnWriteArrayList.forEach(CopyOnWriteArrayList.java:905)
+	at knot//net.minecraft.gametest.framework.GameTestTicker.tick(GameTestTicker.java:56)
+	at knot//net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1156)
+	at knot//net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:1001)
+	at knot//net.minecraft.gametest.framework.GameTestServer.tickServer(GameTestServer.java:228)
+	at knot//net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1034)
+	at knot//net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:773)
+	at knot//net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:320)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.lang.AssertionError: S50 ADV exactly one local component and accessor per read
+	at knot//io.github.r3neer.scalebrews.collision.internal.S50PrivateHolderProof.check(S50PrivateHolderProof.java:39)
+	at knot//io.github.r3neer.scalebrews.collision.internal.S50PrivateHolderProof.schemaTypingAndBoundedReader(S50PrivateHolderProof.java:48)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	... 16 more
+[21:01:12] [Server thread/INFO] (Minecraft) [STDOUT]: S50 ADV NATIVE PASS projected=4 unsupported=13 direct/reference/original-enums
+[21:01:12] [Server thread/INFO] (Minecraft) [STDOUT]: S50 ADV CURSOR PASS throw/unknown/recovery
+[21:01:12] [Server thread/ERROR] (Minecraft) scalebrews-test:s50private_holder_proof_schema_typing_and_bounded_reader failed at 13688969, -59, -5767039! Failed to invoke test method: null
+[21:01:12] [Server thread/INFO] (Minecraft) [+X++]
+[21:01:12] [Server thread/INFO] (Minecraft) ========= 4 GAME TESTS COMPLETE IN 1.125 s ======================
+[21:01:12] [Server thread/INFO] (Minecraft) 1 required tests failed :(
+[21:01:12] [Server thread/INFO] (Minecraft)    - scalebrews-test:s50private_holder_proof_schema_typing_and_bounded_reader: Unknown internal error: Failed to invoke test method: null
+[21:01:12] [Server thread/INFO] (Minecraft) ====================================================
+[21:01:12] [Server thread/INFO] (Minecraft) Stopping server
+[21:01:12] [Server thread/INFO] (Minecraft) Saving players
+[21:01:12] [Server thread/INFO] (Minecraft) Saving worlds
+[21:01:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[21:01:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[21:01:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[21:01:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[21:01:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[21:01:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[21:01:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[21:01:12] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+> Task :runGameTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runGameTest' (registered by plugin 'fabric-loom').
+> Process 'command 'C:\Users\Usuario\.jdks\ms-25.0.3\bin\java.exe'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+11 actionable tasks: 3 executed, 8 up-to-date
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 15s

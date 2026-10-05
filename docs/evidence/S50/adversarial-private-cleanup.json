@@ -1,0 +1,108 @@
+{
+  "sprint": "S50",
+  "removedFiles": [
+    {
+      "path": "capture_receipt.py",
+      "sha256": "d07375411546945f510420d49b61edec94fd7d6dc2876ad903ea96e8d5e7cd5b"
+    },
+    {
+      "path": "generate_mutations.py",
+      "sha256": "5adcef9c616da62a528ab583ba5986429f19a77c9f2d297ca77fe64a6660ebbe"
+    },
+    {
+      "path": "lane.init.gradle",
+      "sha256": "0feacabce67013217eccfe6b1b130347fd171aac9263315eb09dd772dd8f6828"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S50PrivateHolderProof.java",
+      "sha256": "8fe04c6156c624d757ac7ea2f832bfc10b761202ba72e9e6b4c90a7e91c4af80"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S50PrivateLifecycleProof.java",
+      "sha256": "54e259bf075fd3f6577bc2fc3238f6062a2fec53312858ecba3866f38912a53f"
+    },
+    {
+      "path": "shadows\\unbound-read\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b9d2136d009a2aacfce590221e2f99f0e5f4294dc8021ce442a1bb8b1ec2afa3"
+    },
+    {
+      "path": "shadows\\record-owner\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "3141ca0b8a3bef312e0eb8ea12d59de2d4b0df8852343e0e683ddfe1291da802"
+    },
+    {
+      "path": "shadows\\ambiguous-schema\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "bfdba2655fa0dc58fff156e64bfcfa3695e7e84cc62ebb9ac86f2a3c813c1aea"
+    },
+    {
+      "path": "shadows\\foreign-enum\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b72c47960d528819e351dacec0031f92b48fc08a672b3bb485d8709dbb66bbbc"
+    },
+    {
+      "path": "shadows\\projection-bound\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b784c812c0f5957e7a8ce405a5f83d0f4ff66dc2d0815d7a986f865387c1e937"
+    },
+    {
+      "path": "shadows\\discovery-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "9db167a63a2fd30f9d205cfdf2e6bb2e1c4aedd1334c37c138e18dc97e382ada"
+    },
+    {
+      "path": "shadows\\runtime-serialize\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "88a080a05f9bf1e6fd0122573d5d864f1b5105efaccc61bb3981b3e61c40b68c"
+    },
+    {
+      "path": "shadows\\hot-registry-copy\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "257400ada2f279411f9210b3d2f35cd0a49850e4a6a553810567c989495e12c5"
+    },
+    {
+      "path": "shadows\\duplicate-component-read\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "8decdf37f0217cf6c8dba1f7662b1dbd6db941e2eeac480146de73de7b10a8d8"
+    },
+    {
+      "path": "shadows\\varargs-accessor\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "114fdb2dceb3a191f465442f0a22c3887bd822db48f9995cbb5e792739875c31"
+    },
+    {
+      "path": "public-shadows\\unbound-read\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b9d2136d009a2aacfce590221e2f99f0e5f4294dc8021ce442a1bb8b1ec2afa3"
+    },
+    {
+      "path": "public-shadows\\record-owner\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "3141ca0b8a3bef312e0eb8ea12d59de2d4b0df8852343e0e683ddfe1291da802"
+    },
+    {
+      "path": "public-shadows\\ambiguous-schema\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "bfdba2655fa0dc58fff156e64bfcfa3695e7e84cc62ebb9ac86f2a3c813c1aea"
+    },
+    {
+      "path": "public-shadows\\foreign-enum\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b72c47960d528819e351dacec0031f92b48fc08a672b3bb485d8709dbb66bbbc"
+    },
+    {
+      "path": "public-shadows\\projection-bound\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "b784c812c0f5957e7a8ce405a5f83d0f4ff66dc2d0815d7a986f865387c1e937"
+    },
+    {
+      "path": "public-shadows\\discovery-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\BuiltInVariantSources.java",
+      "sha256": "9db167a63a2fd30f9d205cfdf2e6bb2e1c4aedd1334c37c138e18dc97e382ada"
+    },
+    {
+      "path": "public-shadows\\runtime-serialize\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "88a080a05f9bf1e6fd0122573d5d864f1b5105efaccc61bb3981b3e61c40b68c"
+    },
+    {
+      "path": "public-shadows\\hot-registry-copy\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "257400ada2f279411f9210b3d2f35cd0a49850e4a6a553810567c989495e12c5"
+    },
+    {
+      "path": "public-shadows\\duplicate-component-read\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "8decdf37f0217cf6c8dba1f7662b1dbd6db941e2eeac480146de73de7b10a8d8"
+    },
+    {
+      "path": "public-shadows\\varargs-accessor\\io\\github\\r3neer\\scalebrews\\collision\\api\\CollisionVariantSources.java",
+      "sha256": "114fdb2dceb3a191f465442f0a22c3887bd822db48f9995cbb5e792739875c31"
+    }
+  ],
+  "role": "ADVERSARY",
+  "preserved": "Preimplementation models, all logs/bytecode evidence, mutation JSON receipts, caches/builds, future holdouts and reusable public tools/tests.",
+  "recursiveDeletion": false
+}

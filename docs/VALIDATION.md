@@ -3481,3 +3481,67 @@ production hashes. The independent cleanup receipt accounts for20 individually
 removed one-offs while retaining evidence/builds/models; reusable tools remain.
 Both final reviews require zero changes; local closure identifies Sprint:S49.
 G6 tasks2-6/G7-G9 and epic-end human acceptance remain open.
+
+## S50 - Holder structural-model sources (closed within model-axis/lifecycle scope)
+
+Only CollisionVariantSources and BuiltInVariantSources change production. The
+additive holderModelComponent factory discovers one typed ModelAndTexture enum
+field in a public record, links its accessor during PREPARATION and reuses the
+prepared enum-name/owner guard. Native bound references and direct holders read
+their structural model locally; texture/registry identity do not select this axis.
+modelComponentKey adds a bounded .model projection suffix to encoded IDs.
+No solver/wire/render/mount/passenger change or original geometry/FULL claim.
+The plan converged in two independent passes before production.
+
+Executed build+GameTest compilation+selected new lane PASS3/3 in52s, clean exit.
+Command: ./gradlew build compileGametestJava runGameTest --offline
+-I tools/s49_implementer.init.gradle -PscalebrewsBuildDir=<isolated-output>
+-Ps49Selected=S50ImplementerModelComponentTests,S50ImplementerModelLifecycleTests.
+The reusable development selector is explicit; ordinary CI does not load it.
+Affected enum preparation/ownership/discovery and native lifecycle regression
+PASS6/6 in15s, clean exit, with the same selector and
+-Ps49Selected=S49ImplementerEnumPreparationTests,S49AdversarialEnumPreparationTests,S49ImplementerComponentLifecycleTests.
+The direct-enum100000-read allocation probe remains0bytes in that run; this is
+not yet an allocation measurement of the new Holder accessor or a G9 benchmark.
+No unrelated Tiny Mounts/client/full-server repetition. Ordinary
+processGametestResources restoration PASS920ms; source/processed111server+34client
+agree without claiming a full-suite run. Lifecycle fixtures stay isolated.
+
+Compiled new reader bytecode uses a local component read, Holder.isBound/value,
+exact record identity and MethodHandle.invokeExact(Object)->ModelAndTexture;
+no reflection/varargs array in the reader. Two own reviews require zero changes.
+docs/evidence/S50/implementation-verification.json fixes367 raw production files,
+two changed owners, and the745-entry1210193-byte production JAR SHA-256
+6b822e029a27b265bb9b2630c743e47fdb02c63d64303486941b622fc95ed858,
+with no test leakage. Native model ABA retires previous material and creates a
+fresh generation; cosmetic-only replacement preserves current identity. Cubes
+are explicit synthetic selection fixtures, not original Cow geometry.
+Independent public lane PASS5/5 in55s, clean exit; IMPLEMENTER reproduction
+PASS5/5 in49s. Original population is four model projections including
+ZombieNautilus,13 other Holder families outside this schema. Every original model
+enum is exercised with native references/direct holders and different textures.
+Cursor accessor failure clears selected material; unknown stays absent and known
+input recovers. Real contact survives cosmetic-only replacement and is retired
+by structural replacement.1000 stable queries retain provider/generation.
+
+Ten mutants compile and execute before their expected oracle failures; eight
+historical gates PASS with scoped limitations. Mutant registry-copy and varargs
+paths allocate104000000 and23200000bytes/100k; accepted reader after100k warmup
+allocates0bytes/100k with exactly one local get and accessor. The separate actual
+Cow component probe also measures0bytes/100k. Promoted preparation verifies5/5
+in18s, clean exit, with the development selector and
+-Ps49Selected=S50ImplementerModelComponentTests,S50AdversarialHolderPreparationTests.
+Final ordinary processGametestResources restoration PASS1s; source/processed
+112server+34client agree. Lifecycle remains isolated. No full-suite/Tiny/client
+repetition or integrated TPS/p95/p99/GC/NFR-014 claim.
+
+Independent fixture failures retained: initial population assumption3 was wrong
+(actual4); Proxy over sealed Holder was invalid (real unbound Reference replaces
+it);20k warmup yielded4144bytes, then100k warmup with unchanged100k measurement
+and4096 cap yields0bytes. These are test/probe corrections, not production RED.
+The implementation receipt and independent receipt match367 production hashes;
+public fixtures/init/shadow generator and raw logs are durable under S50. The
+cleanup receipt accounts for25 individually removed one-offs with logs/builds/
+models retained. Both complete final reviews require zero production changes.
+Closure identifies local Sprint:S50; G6 tasks2-6/G7-G9 and human acceptance remain
+open.

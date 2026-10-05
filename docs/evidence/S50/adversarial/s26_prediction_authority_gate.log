@@ -1,0 +1,4 @@
+S26_PREDICTION_AUTHORITY PASS
+ - core client simulation is local-authority gated
+ - ordinary client carry loop is local-authority gated
+ - outgoing prediction reference is local/control gated

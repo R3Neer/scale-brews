@@ -1,0 +1,16 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+
+ if(findProperty('s50ShadowDir')) {def original=file(findProperty('s50ShadowOriginal')).absolutePath;sourceSets.main.java.exclude {it.file.absolutePath==original};sourceSets.main.java.srcDir(file(findProperty('s50ShadowDir')))}
+ loom.runs.configureEach {runDir=file(findProperty('s50RunDir') ?: new File(buildDir,'s50-run')).absolutePath}
+ tasks.named('runGameTest') {dependsOn tasks.named('downloadAssets')}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S50AdversarialHolderPreparationTests']
+  if(!(findProperty('s50PreparationOnly') ?: 'false').toBoolean())m.entrypoints['fabric-gametest'].add('io.github.r3neer.scalebrews.collision.internal.S50AdversarialHolderLifecycleTests')
+  
+  m.entrypoints['fabric-client-gametest']=[]
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+}}
