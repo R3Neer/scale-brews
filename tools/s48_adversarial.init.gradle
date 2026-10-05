@@ -1,0 +1,21 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ tasks.withType(JavaExec).configureEach {systemProperty 's48.requireCounter',findProperty('s48RequireCounter') ?: 'false'}
+ if(findProperty('s48ShadowDir')) {def original=file(findProperty('s48ShadowOriginal')).absolutePath;sourceSets.main.java.exclude {it.file.absolutePath==original};sourceSets.main.java.srcDir(file(findProperty('s48ShadowDir')))}
+
+ tasks.named('runClientGameTest') {
+  if (!(findProperty('s48UseDefaultSnapshots') ?: 'false').toBoolean()) {
+   systemProperty 'scalebrews.s47SnapshotDir',file(findProperty('s48SnapshotDir') ?: new File(buildDir,'s48-snapshots')).absolutePath
+  }
+  doFirst {args '--graphicsBackend','opengl'}
+ }
+ tasks.named('runGameTest') {dependsOn tasks.named('downloadAssets')}
+ loom.runs.configureEach {runDir=file(findProperty('s48AdversarialRunDir') ?: new File(buildDir,'s48-run')).absolutePath}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S48AdversarialVariantPreparationTests','io.github.r3neer.scalebrews.collision.internal.S48AdversarialLiveLifecycleTests']
+  m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.collision.internal.S48AdversarialLiveBindingClientProof']
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+}}

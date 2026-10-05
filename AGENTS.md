@@ -17,6 +17,6 @@
 - Verify version-sensitive Minecraft/Fabric APIs against this project's 26.2 sources and dependencies.
 - Keep registries, brewing, scale state and physical mechanics separate. Mixins should delegate rules to helpers rather than owning alternate implementations.
 - Keep existing attribute balance unless rebalancing is explicitly in scope. Special head scaling is cancelled.
-- Run the build/server GameTests and the client GameTest when changing shared/client mixins or resources. Record only executed results in `docs/VALIDATION.md`.
+- Compile production and GameTests, and run server/client regressions selected by the boundaries actually changed. Exercise affected shared/client mixins or resources in a real Minecraft runtime. Do not repeat unrelated Tiny Mounts suites for local entity-collision or test-tooling changes; include them when mount/passenger movement, seats or rendering are affected. Keep the ordinary CI suite and the complete G9 integration gate; a local correction normally repeats the affected battery, not every product suite. Record the selection and only executed results in `docs/VALIDATION.md`.
 - The checkout deliberately lives in OneDrive. Use the optional `scalebrewsBuildDir` property for local generated output if necessary; do not move the source repository or delete broad cache directories.
 - Art is original geometric pixel art from `tools/GenerateArt.java`, not image-generation models. Keep its generator and PNGs synchronized.

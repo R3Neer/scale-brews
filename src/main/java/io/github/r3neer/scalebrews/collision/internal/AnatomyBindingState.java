@@ -73,6 +73,19 @@ final class AnatomyBindingState {
         var slot=SLOTS.get(support);return slot==null?0:slot.generation;
     }
 
+    static synchronized Level registrationLevel(LivingEntity support) {
+        var slot=SLOTS.get(support);return slot==null?null:slot.level;
+    }
+
+    /** Retains the local generation and outer capture guard, but no executable registration. */
+    static synchronized boolean detach(LivingEntity support,GeometryProvider expected,long bindingGeneration) {
+        var slot=SLOTS.get(support);
+        if(slot==null || slot.provider!=expected || slot.descriptor==null
+                || slot.descriptor.bindingGeneration()!=bindingGeneration)return false;
+        slot.provider=null;slot.descriptor=null;slot.binding=null;slot.level=null;slot.quarantinedGeneration=0;
+        return true;
+    }
+
     static synchronized Snapshot snapshot(LivingEntity support) {
         var slot=SLOTS.get(support);
         return slot==null || slot.provider==null?null:new Snapshot(slot.provider,slot.descriptor,slot.binding,slot.generation);

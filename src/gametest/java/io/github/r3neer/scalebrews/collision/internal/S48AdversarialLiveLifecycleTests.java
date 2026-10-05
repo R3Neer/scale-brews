@@ -1,0 +1,27 @@
+package io.github.r3neer.scalebrews.collision.internal;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Proxy;
+import com.mojang.serialization.JsonOps;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.*;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.animal.cow.Cow;
+import io.github.r3neer.scalebrews.collision.api.*;
+import io.github.r3neer.scalebrews.collision.api.spi.*;
+import io.github.r3neer.scalebrews.collision.data.*;
+import io.github.r3neer.scalebrews.collision.geometry.*;
+import static io.github.r3neer.scalebrews.collision.internal.S48AdversarialVariantFixtures.*;
+public final class S48AdversarialLiveLifecycleTests {
+ @GameTest public void synchronousRetirementAndManualPolicy(GameTestHelper h){
+ registry();var level=h.getLevel();var server=level.getServer();var cow=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);check(cow!=null,"original cow factory");cow.setNoAi(true);cow.setNoGravity(true);cow.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(2,3,2)));level.addFreshEntity(cow);
+  var a=row(Map.of("age","adult"));var b=row(Map.of("age","baby"));AnatomyRuntime.start(server);AnatomyRuntime.reload(server,resources(server.getResourceManager(),List.of(a,b)));var second=EntityTypes.COW.create(level,EntitySpawnReason.COMMAND);check(second!=null,"second original factory");second.setNoAi(true);second.setNoGravity(true);second.setPos(cow.position().add(5,0,0));level.addFreshEntity(second);AnatomyRuntime.prepare(level);AnatomyMovement.tickGeometry(level);
+  var first=AnatomyMovement.queryFrame(cow).orElseThrow();var unaffected=AnatomyBindingState.snapshot(second);check(AnatomyBindingState.binding(cow).variant().equals(a.variant()),"real adult selected without default");long generation=first.identity().bindingGeneration();var previousProvider=AnatomyBindingState.provider(cow);double originalPhase=first.endpoint().sample().inputs().walkPhase();cow.setPos(cow.position().add(.125,0,0));check(AnatomyMovement.queryFrame(cow).orElseThrow().endpoint().sample().inputs().walkPhase()==originalPhase,"root query does not advance joint clock");var actor=new net.minecraft.world.entity.item.ItemEntity(level,cow.getX(),cow.getY()+1.05,cow.getZ(),new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STONE));actor.setNoGravity(true);level.addFreshEntity(actor);actor.move(MoverType.SELF,new net.minecraft.world.phys.Vec3(0,-.2,0));AnatomyMovement.afterMove(actor);check(AnatomyMovement.contact(actor)!=null&&AnatomyMovement.contact(actor).support()==cow,"positive physical contact on A");var actorPosition=actor.position();cow.setBaby(true);check(AnatomyMovement.contact(actor)==null&&actor.position().equals(actorPosition),"age retires real contact without body movement");AnatomyMovement.carry(actor);check(actor.position().equals(actorPosition),"retired A cannot move body on next carry");check(AnatomyBindingState.binding(cow).variant().equals(b.variant()),"synchronous native baby selects B");check(AnatomyBindingState.provider(cow)!=previousProvider,"new physical provider");check(AnatomyMovement.queryFrame(cow).isEmpty(),"no query-created B endpoint");check(AnatomyBindingState.current(second,unaffected),"foreign support untouched");
+  h.runAfterDelay(2,()->{try{AnatomyRuntime.prepare(level);AnatomyMovement.tickGeometry(level);var baby=AnatomyMovement.queryFrame(cow).orElseThrow();check(baby.identity().bindingGeneration()>generation,"B generation advanced");check(baby.endpoint().sample().inputs().walkPhase()>originalPhase,"rebind preserves participant locomotion clock");long babyGeneration=baby.identity().bindingGeneration();cow.setBaby(false);check(AnatomyMovement.queryFrame(cow).isEmpty(),"round trip cannot revive A endpoint");check(AnatomyBindingState.descriptor(cow).bindingGeneration()>babyGeneration,"A return physical generation fresh");h.runAfterDelay(2,()->{try{AnatomyRuntime.prepare(level);AnatomyMovement.tickGeometry(level);check(AnatomyMovement.queryFrame(cow).isPresent(),"fresh A recovery endpoint");GeometryProvider manual=e->Optional.empty();AnatomyMovement.registerCore(cow,manual,a);cow.setBaby(true);check(AnatomyBindingState.provider(cow)==manual,"manual ownership preserved");check(AnatomyRuntime.catalogBinding(cow).orElseThrow().variant().equals(b.variant()),"loaded manual support borrows current live policy, not stale A");cow.setBaby(false);AnatomyRuntime.reload(server,resources(server.getResourceManager(),List.of(a)));AnatomyMovement.tickGeometry(level);var retired=(ModelGeometryProvider)AnatomyBindingState.provider(cow);check(AnatomyMovement.queryFrame(cow).isPresent(),"available before no-match withdrawal");cow.setBaby(true);check(AnatomyBindingState.provider(cow)==null&&AnatomyMovement.queryFrame(cow).isEmpty(),"no-match withdraws slot");check(retired.sample(cow).isPresent(),"retired provider can still evaluate as isolated positive control");check(staleSnapshot(cow,retired).isEmpty(),"registered-owner fence rejects stale fallback snapshot");System.out.println("S48 ADV LIFECYCLE PASS native-age A-B-A foreign-support manual-policy stale-provider");h.succeed();}finally{actor.discard();cow.discard();second.discard();AnatomyRuntime.stop(server);}});}catch(Throwable t){actor.discard();cow.discard();second.discard();AnatomyRuntime.stop(server);throw t;}});
+ }
+
+}

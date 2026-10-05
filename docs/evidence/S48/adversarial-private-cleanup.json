@@ -1,0 +1,137 @@
+{
+  "removed": [
+    {
+      "bytes": 1917,
+      "sha256": "5b308b7962861ab8c88c701342e931dbb5e8424fc9ea73bdbe4f1febfb638c7d",
+      "path": "compare_snapshots.py"
+    },
+    {
+      "bytes": 5868,
+      "sha256": "f56b33033f3010f9492c6ec5d7eb0c314ac29fced3d5e3a26dba3d4198dc9518",
+      "path": "final-section.md"
+    },
+    {
+      "bytes": 1300,
+      "sha256": "bd515f2166c2c0e13b8824cf75a32e2133fb314e5a4237fb186473a376b2e3fe",
+      "path": "lane.init.gradle"
+    },
+    {
+      "bytes": 1276,
+      "sha256": "84812841c9b3593adc13750fb229ae32ea1c79cede3ff0722f9843e9841eb44b",
+      "path": "no-snapshot-property.init.gradle"
+    },
+    {
+      "bytes": 1416,
+      "sha256": "0b2b2815aae86f5cc6635a30e659f934f87f63d22e1a1194fde0487ace9938ad",
+      "path": "promote.init.gradle"
+    },
+    {
+      "bytes": 4465,
+      "sha256": "9c5367fd55ccc77345e3fb6248e6f46b03d0d09ef0972252b9236eee9fc2a10f",
+      "path": "record_final.py"
+    },
+    {
+      "bytes": 10958,
+      "sha256": "a1479e683a54678f537b9a17425907106301b735e882100cbf9137cd93fe792f",
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48PrivateLifecycleProof.java"
+    },
+    {
+      "bytes": 7394,
+      "sha256": "a84ccfe99509554be326dea0355819681ea7529d02217bf67e10fa40ad55fc8c",
+      "path": "src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48PrivateLiveClientProof.java"
+    },
+    {
+      "bytes": 7455,
+      "sha256": "449896b060a18e450c0a96b0faa51345fe2f9bdeceed2b28949122fdc023eced",
+      "path": "promotion-src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48AdversarialLiveBindingClientProof.java"
+    },
+    {
+      "bytes": 5539,
+      "sha256": "13f6c34ec8684b30b10838141b517ae2c4e154fae8ba34005678fea7eb904246",
+      "path": "promotion-src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48AdversarialLiveLifecycleTests.java"
+    },
+    {
+      "bytes": 4025,
+      "sha256": "47436c7047f37ce8504e9852b21f3c867fd2310176e152bb909c572b4683319a",
+      "path": "promotion-src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48AdversarialVariantFixtures.java"
+    },
+    {
+      "bytes": 4873,
+      "sha256": "be5254699ec0ba968ba06b6b8fb17f8cf6bd71c0feddfef81e6f03b49f00332c",
+      "path": "promotion-src\\io\\github\\r3neer\\scalebrews\\collision\\internal\\S48AdversarialVariantPreparationTests.java"
+    },
+    {
+      "bytes": 37222,
+      "sha256": "b3c22b352cb868ca86976ff7ac98cef129bc864cc77b8eba09345aca44760454",
+      "path": "shadows\\clock-reset\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    },
+    {
+      "bytes": 37182,
+      "sha256": "4221a2cee4e8718544800782f2b71a03a4a847b19da5d23b3550c6a76908b843",
+      "path": "shadows\\generation-reuse\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    },
+    {
+      "bytes": 5361,
+      "sha256": "144cd2d4ef2ba1382e45f2a806fb8c99ef21fa023e14a8e0c0a9d498099234d9",
+      "path": "shadows\\instrument\\io\\github\\r3neer\\scalebrews\\collision\\internal\\PreparedVariantBindings.java"
+    },
+    {
+      "bytes": 73007,
+      "sha256": "41c9a85db005a95e3b38ce731fc7b91f7b5d086dbb5fa30caedae3b0f5597521",
+      "path": "shadows\\stale-provider\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyMovement.java"
+    },
+    {
+      "bytes": 5116,
+      "sha256": "6317ce374757270d8894370e58e0f1e8dc7c8a7ab989cb50cad475f8a148533f",
+      "path": "shadows\\unknown-default\\io\\github\\r3neer\\scalebrews\\collision\\internal\\PreparedVariantBindings.java"
+    },
+    {
+      "bytes": 37198,
+      "sha256": "73499911af5bc06b383324c11920549d21de30a5f0bbd00a552932aa928643b8",
+      "path": "shadows\\withdrawal-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    },
+    {
+      "bytes": 36678,
+      "sha256": "b5e12805b07fe48e1be615271fd991544e507c908e9afd2714819fcc90d2819d",
+      "path": "reusable-shadows\\clock-reset\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    },
+    {
+      "bytes": 36638,
+      "sha256": "b9cdf0b776ee1f647337f4e2eca63bb37d51bd7e12bd996b8223d09fc4a5a4bf",
+      "path": "reusable-shadows\\generation-reuse\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    },
+    {
+      "bytes": 5361,
+      "sha256": "144cd2d4ef2ba1382e45f2a806fb8c99ef21fa023e14a8e0c0a9d498099234d9",
+      "path": "reusable-shadows\\instrument\\io\\github\\r3neer\\scalebrews\\collision\\internal\\PreparedVariantBindings.java"
+    },
+    {
+      "bytes": 5114,
+      "sha256": "075e2b7dfcee0ecdb6a0ae09ea36f40904677d4a8715f9b025e943f3336545cb",
+      "path": "reusable-shadows\\stale-policy\\io\\github\\r3neer\\scalebrews\\collision\\internal\\PreparedVariantBindings.java"
+    },
+    {
+      "bytes": 73063,
+      "sha256": "cbef77fd19498fb98a34c36d3dcc9bd1f887324503965c1cc9dc7bd2e327096a",
+      "path": "reusable-shadows\\stale-provider\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyMovement.java"
+    },
+    {
+      "bytes": 36646,
+      "sha256": "ae97bf178a6d64fd93295cd6602819d61cd713c6a5017bc287a805291354e745",
+      "path": "reusable-shadows\\withdrawal-omitted\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyRuntime.java"
+    }
+  ],
+  "recursiveDelete": false,
+  "role": "ADVERSARY",
+  "scope": "explicit private one-off scripts and Java fixture/shadow sources superseded by public tooling",
+  "sprint": "S48",
+  "preservedTopLevelLogs": 38,
+  "preserved": [
+    "preimplementation-model.md",
+    "all logs",
+    "all cache directories",
+    "all build directories",
+    "snapshot/evidence files",
+    "public fixtures and tooling"
+  ]
+}

@@ -3355,3 +3355,70 @@ advancing; no push/tag/release is implied.
 G6 tasks2-6/G7-G9 and human epic-end acceptance remain open. Transport of an
 accepted identity does not certify live trait selection, general FULL families,
 p95/p99/GC, or the global G9 benchmark.
+
+## S48 - live authoritative variants (closed within selection/lifecycle scope)
+
+IMPLEMENTER adds revision-captured finite VariantSource readers, prepared local
+cursors and loaded participant/level ownership. Native synced-data mutations
+and the public neutral-backend notification refresh the selected canonical row.
+An effective change or unknown source retires the old slot, contacts, local
+queued work and endpoints; a frozen UNAVAILABLE retains the old full token for
+authorized observers. Recovery uses a fresh physical generation and the shared
+participant locomotion clock. Queries never advance that clock. No family FULL
+promotion, protocol change, Java provider per species or global G6/G9 closure.
+
+Executed IMPLEMENTER regressions: initial491/491 and client33; F3 corrected
+492/492+client33 PASS4m30s; latest production F4 normal492/492+client33 PASS5m24s,
+all clean exits. F4 own probes7/7 PASS1m9s and prepared24scenarios/2tests PASS1m56s.
+The first prepared command failed before any scenario because its export property
+was omitted; corrected invocation passed with the current original-model export.
+Development repairs cover guarded generation exhaustion, live policy under manual
+ownership (independent RED1) and rejection of locally retained retired providers.
+Their classification and untouched independent replay are recorded in S48.
+
+ADVERSARY public lane and IMPLEMENTER reproduction both pass server3/3 and the
+real original-Cow client in1m38s with clean exits. Native age A-B-A, real physical
+contact retirement without body movement, support isolation, stale-provider
+fence, unknown-source withdrawal without replacement, replay and recovery pass.
+Clock reset, generation reuse, stale policy, stale provider and omitted withdrawal
+mutants produce their required RED. Instrumented stable reads have a positive
+resolution control,10000 reader calls and zero repeated resolutions;100000 cursor
+reads allocate64bytes. Bounds distinguish32 axes accepted from33 rejected before
+runtime reads. Eight historical gates pass with their presence-only limits.
+
+Snapshots in docs/evidence/S48/adversarial and implementer-replay are regenerated
+and directly inspected:10 to9 original Cow pieces, exactly root/body/cube_0 removed,
+retained local vertex error0, physical generation1 to2 and actual rootScale1.
+This is static original geometry with a declared fixture filter, not original
+baby-pose coverage or viewport acceptance. Snapshot/tooling recipes and independent
+source/log/shadow hashes are in adversarial-verification.json.
+
+Promoted PreparationTests coexist in the normal build:493/493 PASS1m6s, clean exit,
+312bytes for100000 stable cursor reads. LiveLifecycle stays in the public isolated
+selector because it owns the fixture runtime across delayed ticks. Normal client34
+first fails3m45s solely at Path.of(null) in the new capture helper: the isolated
+init supplied a snapshot path but ordinary execution did not. This is TEST/TOOLING;
+ADVERSARY adds a default output path, without changing oracles or production.
+The independent client replay without that property passes1m25s, clean exit.
+IMPLEMENTER's subsequent normal34 repetition is interrupted by Ctrl+C after the
+owner requests focused regression rather than repeated unrelated Tiny Mounts
+suites. It is INTERRUPTED_SCOPE, not PASS or a production RED. Production F4 already
+passed normal33 and the promoted493 server build; the sole later change is fixture
+output. The final IMPLEMENTER focused client replay without a snapshot property
+passes45s, clean exit, ../s48-impl-default-client.log. Default snapshots reproduce
+10 to9pieces, error0/gen1 to2; their PNG is byte-identical to the inspected replay.
+AGENTS/CONTRIBUTING now require regression by affected boundary while
+retaining ordinary CI and the complete G9 integration gate.
+
+Current production receipt pins367 raw source/resource files and the745-entry,
+1204680-byte JAR SHA-256
+1ba19cdcd3f9503a158a601855dd2ab71810f8b856e812275534b5dfe4924ccd,
+with no test leakage. Default-manifest and implementation-verification receipts
+are refreshed after the focused replay and normal manifest restoration1s:
+source/processed108server and34client entrypoints agree. All367 production hashes
+match the independent receipt; both final reviews require zero production changes.
+One-off implementation init/collector scripts are removed, reusable adversarial
+tools remain isolated. The closure has its own local Sprint:S48 commit before
+advancing; no push/tag/release is implied.
+G6 tasks2-6/G7-G9 and human acceptance remain open. Micro allocation/counter
+evidence does not establish integrated p95/p99, GC,20TPS or the G9 workload.

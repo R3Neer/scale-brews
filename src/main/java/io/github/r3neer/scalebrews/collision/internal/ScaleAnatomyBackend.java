@@ -25,6 +25,7 @@ public final class ScaleAnatomyBackend implements AnatomyBackend {
     private boolean ready(Entity entity) { return mode(entity) == AnatomyBackend.Mode.READY; }
 
     @Override public void clearContact(Entity entity) { if (entity != null) AnatomyMovement.clear(entity); }
+    @Override public void variantChanged(LivingEntity entity) { AnatomyRuntime.variantChanged(entity); }
     @Override public boolean supported(Entity entity) { return ready(entity) && AnatomyMovement.supported(entity); }
 
     @Override public Optional<LivingEntity> support(Entity entity) {

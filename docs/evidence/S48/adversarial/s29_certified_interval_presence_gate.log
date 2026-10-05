@@ -1,0 +1,4 @@
+S29_CERTIFIED_INTERVAL PRESENT
+ - product has a CERTIFIED_INTERVAL presentation path
+ - candidate interval wire surfaces: AnatomyMaterialIntervalPayload.java, AnatomyObserverCarryPayload.java
+NOTE: presence is not acceptance; behavioral/lifecycle/mutation gates are still required

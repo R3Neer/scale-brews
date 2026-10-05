@@ -22,6 +22,7 @@ public class ScaleBrews implements ModInitializer {
 		io.github.r3neer.scalebrews.collision.internal.BuiltInGeometryEngines.initialize();
 		io.github.r3neer.scalebrews.collision.pose.BuiltInPoseEngines.initialize();
 		io.github.r3neer.scalebrews.collision.internal.BuiltInRootTransformProviders.initialize();
+		io.github.r3neer.scalebrews.collision.internal.BuiltInVariantSources.initialize();
 		// Optional model-family bridges are descriptor-driven and compile external MethodHandles
 		// only at server start, after installed compatibility mods have initialized.
 		io.github.r3neer.scalebrews.collision.internal.OptionalPoseChannelAdapters.initialize();

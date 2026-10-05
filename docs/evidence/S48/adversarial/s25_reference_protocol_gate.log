@@ -1,0 +1,5 @@
+S25_REFERENCE_PROTOCOL PASS
+ - anatomy_move_reference_v1 remains support+frame identity
+ - anatomy_move_reference_v2 remains vehicle+server receiptSequence
+ - anatomy_transport_receipt_v1 retains its server-issued token schema
+ - semantic/schema changes require an explicitly versioned wire id

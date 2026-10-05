@@ -127,8 +127,29 @@ preparado por token, verifica su tuple modelo/pose/root y, al existir la entidad
 su tipo. Física, filtros, policy, evaluador y presentación usan esa misma fila,
 incluso en un catálogo sólo de variantes. History y tombstone consideran el token
 parte de la identidad estable: tracking nuevo por sí solo no permite cambiarlo.
-La selección de traits del estado vivo sigue siendo una frontera posterior;
-transportar una selección preparada no demuestra todavía su derivación original.
+La procedencia de traits vivos se verifica separadamente del transporte preparado.
+
+S48 aporta `VariantSource` server-safe y `CollisionVariantSources`:
+cada fuente declara una clave y dominio finito; la revisión captura sus lectores
+al preparar la unión de ejes de todas las filas del tipo. `age` lee `isBaby()` y
+los datos eligen adult/baby. Fuente ausente/fallida/fuera de dominio deja ausencia;
+no equivale a inputs vacíos conocidos ni permite sustituirlos por default.
+`PreparedVariantBindings` reusa arrays y selección mientras los inputs sean
+iguales; sólo sus cambios invocan el selector canónico. El estado live se admite
+por carga y se indexa por participante/nivel, incluido el participante ausente
+recuperable. No se enumeran mundos en steady-state ni se resuelve en cliente.
+
+Los cambios sincronizados notifican mediante el hook genérico de entity data;
+otras fuentes usan `AnatomyApi.variantChanged` a través del backend neutral.
+Refresh local antes/después de captura y antes del tick/consumo material retira
+la registración anterior. La retirada congela un último UNAVAILABLE sin evaluar
+el provider, conserva su token/generación para destinatarios autorizados y libera
+contactos, cola local, espacio y slot. Un registro manual conserva ownership.
+Rebind conserva el clock del participante, pero abre generación física nueva:
+no adelanta joints desde queries ni produce un intervalo entre filas. Esta
+frontera está TRUSTED en el scope independiente S48 de fuentes finitas capturadas,
+retirada/recuperación local, clock y transporte exacto. No certifica selectores
+originales generales, familias FULL ni el benchmark global de G9.
 
 ### 4.3 GeometryEngine
 

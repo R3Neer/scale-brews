@@ -1,0 +1,16 @@
+{
+  "originalPieces": 10,
+  "replacementPieces": 9,
+  "removed": [
+    "root/body/cube_0"
+  ],
+  "maxRetainedLocalVertexError": 0.0,
+  "rootScale": [
+    1.0,
+    1.0
+  ],
+  "generation": [
+    1,
+    2
+  ]
+}

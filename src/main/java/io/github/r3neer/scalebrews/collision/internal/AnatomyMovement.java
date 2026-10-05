@@ -209,12 +209,14 @@ public final class AnatomyMovement {
     /** Causal publication survives an unavailable pose so networking can clear stale geometry. */
     public static synchronized Optional<GeometryProvider.PublishedFrame> publishedFrame(LivingEntity support){
         requireServerThread(support.level());
+        if(!AnatomyRuntime.refreshBinding(support))return Optional.empty();
         var binding=AnatomyBindingState.beginCapture(support);
         if(binding==null)return Optional.empty();
         try {
             var descriptor=binding.descriptor();var provider=binding.provider();
             var capture=new CaptureStamp(provider,descriptor,binding.generation(),transportGeneration(support));
             var endpoint=causalEndpoint(support,provider,capture).orElse(null);
+            if(!AnatomyRuntime.refreshBinding(support))return Optional.empty();
             if(endpoint==null || !captureCurrent(support,capture))return Optional.empty();
             var identity=new GeometryProvider.GeometryIdentity(support.level().dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
                 descriptor.model(),descriptor.poseProvider(),descriptor.rootProvider(),descriptor.bindingGeneration(),capture.registration(),descriptor.bindingIdentity());
@@ -345,9 +347,10 @@ public final class AnatomyMovement {
     }
     /** Instantaneous query geometry. A descriptor must have a causal endpoint; fixture-only legacy bindings retain sample(). */
     private static Optional<GeometryProvider.Snapshot> currentSnapshot(LivingEntity support,GeometryProvider provider) {
+        if(provider==null || provider!=AnatomyBindingState.provider(support))return Optional.empty();
         if(AnatomyBindingState.quarantined(support))return Optional.empty();
         if(AnatomyBindingState.causal(support))return queryFrame(support).map(GeometryProvider.QueryFrame::snapshot);
-        return provider==null?Optional.empty():provider.sample(support);
+        return provider.sample(support);
     }
     /** Fixture-only gravity seam; the effective value still lives in the shared Scale authority. */
     public static synchronized void gravity(Entity body,GravityFrame gravity){io.github.r3neer.scalebrews.integration.gravity.GravityFrames.overrideForTests(body,gravity);}
@@ -600,6 +603,33 @@ public final class AnatomyMovement {
      */
     public static synchronized void invalidateSupport(LivingEntity support) {
         clearSupportContacts(support);removeSpatialEntry(support);
+    }
+
+    /** Frozen withdrawal for one runtime-owned registration; never samples its retired provider. */
+    static synchronized Optional<GeometryProvider.PublishedFrame> withdrawRegistration(LivingEntity support,GeometryProvider expected,long bindingGeneration) {
+        requireServerThread(support.level());
+        var slot=AnatomyBindingState.snapshot(support);
+        if(slot==null || slot.provider()!=expected || slot.descriptor()==null
+                || slot.descriptor().bindingGeneration()!=bindingGeneration)return Optional.empty();
+        var level=AnatomyBindingState.registrationLevel(support);
+        GeometryProvider.PublishedFrame withdrawal=null;
+        try {
+            var old=AnatomyEndpointLedger.get(support);
+            if(old!=null && support.level()==level && old.endpoint().frameSerial()<Long.MAX_VALUE) {
+                var prior=old.endpoint();var descriptor=slot.descriptor();
+                var endpoint=new GeometryProvider.CausalEndpoint(prior.frameSerial()+1,level.getGameTime(),prior.jointSampleTick(),
+                    prior.root(),prior.rootTransform(),prior.sample(),GeometryProvider.Availability.UNAVAILABLE);
+                var identity=new GeometryProvider.GeometryIdentity(level.dimension(),support.getUUID(),support.getId(),descriptor.epoch(),descriptor.revision(),
+                    descriptor.model(),descriptor.poseProvider(),descriptor.rootProvider(),descriptor.bindingGeneration(),slot.generation(),descriptor.bindingIdentity());
+                withdrawal=new GeometryProvider.PublishedFrame(identity,endpoint);
+            }
+        } finally {
+            clearSupportContacts(support);AnatomySpatialIndex.removeIfCurrent(level,support);
+            MaterialIntervalRuntime.retire(support,level);
+            AnatomyEndpointLedger.clear(support);RootFrameLedger.clear(support);
+            AnatomyBindingState.detach(support,expected,bindingGeneration);
+        }
+        return Optional.ofNullable(withdrawal);
     }
     private static void clearSupportContacts(LivingEntity support) {
         for(var body:AnatomyContactState.bodiesSupportedBy(support))

@@ -92,7 +92,7 @@ public final class MaterialPhysicsRuntime {
         }
         if(prepared.isEmpty())return;
         var dispatcher=DISPATCHERS.computeIfAbsent(level,ignored->new MaterialEventDispatcher<>(MAX_BODIES,MAX_DEPTH,MAX_EVENTS,Entity::getUUID));
-        var backend=new Backend(level,prepared);
+        var backend=new Backend(level,prepared,true);
         for(int index=0;index<prepared.size();) {
             var first=prepared.get(index);
             if(first.pending().source()==MaterialIntervalRuntime.Source.ROOT) {
@@ -174,12 +174,18 @@ public final class MaterialPhysicsRuntime {
 
     private static final class Backend implements MaterialEventDispatcher.Backend<Entity> {
         private final ServerLevel level;
+        private final boolean liveAuthority;
         private final Map<GeometryProvider.MotionIntervalHandle,Prepared> prepared=new IdentityHashMap<>();
         private final Map<GeometryProvider.MotionIntervalHandle,GeometryProvider.MotionSnapshot> derivedMotions=new IdentityHashMap<>();
         private record Applied(List<MaterialEventDispatcher.DerivedCarry<Entity>> derived,Set<MaterialEventDispatcher.EventId> invalidParents) {
             private Applied {derived=List.copyOf(derived);invalidParents=Set.copyOf(invalidParents);}
         }
-        Backend(ServerLevel level,List<Prepared> values){this.level=level;for(var value:values)prepared.put(value.pending().handle(),value);}
+        /** Isolated generic-kernel fixtures do not claim a live S06 registration. */
+        Backend(ServerLevel level,List<Prepared> values){this(level,values,false);}
+        Backend(ServerLevel level,List<Prepared> values,boolean liveAuthority){
+            this.level=level;this.liveAuthority=liveAuthority;
+            for(var value:values)prepared.put(value.pending().handle(),value);
+        }
 
         @Override public MaterialEventDispatcher.Candidates<Entity> capture(MaterialEventDispatcher.Event<Entity> event,int maximumBodies) {
             if(!(event.support() instanceof LivingEntity support))return new MaterialEventDispatcher.Candidates<>(List.of(),true);
@@ -505,12 +511,20 @@ public final class MaterialPhysicsRuntime {
         private Applied apply(List<Plan> plans,List<MaterialEventDispatcher.Event<Entity>> events) {
             var derived=new ArrayList<MaterialEventDispatcher.DerivedCarry<Entity>>();
             var invalidParents=new java.util.HashSet<MaterialEventDispatcher.EventId>();
+            if(liveAuthority)for(var event:events)if(!(event.support() instanceof LivingEntity support)
+                    || !AnatomyRuntime.acceptsIntervalIdentity(support,event.interval().handle()))
+                return stale(events,derived,invalidParents);
             for(var plan:plans) {
                 LivingEntity childSupport=null;MaterialIntervalRuntime.RootCapture childBefore=null;
                 if(plan.transport()!=null && plan.displacement().lengthSqr()>1e-20
                         && plan.body() instanceof LivingEntity living && AnatomyRuntime.authoritativeFrame(living).isPresent()) {
                     childSupport=living;childBefore=MaterialIntervalRuntime.captureRoot(living);
                 }
+                // Planning and an earlier body's move can invoke user/entity callbacks. Old material
+                // is discarded, without quarantining the replacement registration or moving another body.
+                if(liveAuthority)for(var event:events)if(!(event.support() instanceof LivingEntity support)
+                        || !AnatomyRuntime.currentIntervalIdentity(support,event.interval().handle()))
+                    return stale(events,derived,invalidParents);
                 if(plan.displacement().lengthSqr()>1e-20) {
                     plan.body().setPos(plan.body().position().add(plan.displacement()));
                     if(plan.transport()!=null) {
@@ -533,11 +547,17 @@ public final class MaterialPhysicsRuntime {
                 if(AnatomyMovement.contact(plan.body())!=null)continue;
                 for(var event:events) {
                     if(!(event.support() instanceof LivingEntity support) || !Platforms.eligible(plan.body(),support)
+                            || liveAuthority && !AnatomyRuntime.acceptsIntervalIdentity(support,event.interval().handle())
                             || plan.forbiddenSupports().contains(support))continue;
                     var allowed=contactPieces(event,plan.contactPieces());if(allowed.isEmpty())continue;
                     if(establish(plan.body(),support,event.interval().handle().after(),allowed))break;
                 }
             }
+            return new Applied(derived,invalidParents);
+        }
+        private Applied stale(List<MaterialEventDispatcher.Event<Entity>> events,
+                List<MaterialEventDispatcher.DerivedCarry<Entity>> derived,Set<MaterialEventDispatcher.EventId> invalidParents) {
+            for(var event:events)invalidParents.add(event.id());
             return new Applied(derived,invalidParents);
         }
         private Set<String> contactPieces(MaterialEventDispatcher.Event<Entity> event,Set<String> evidence) {

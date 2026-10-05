@@ -22,6 +22,7 @@ public interface AnatomyBackend {
 
     default Mode mode(Entity entity) { return Mode.DISABLED; }
     default void clearContact(Entity entity) {}
+    default void variantChanged(LivingEntity entity) {}
     default boolean supported(Entity entity) { return false; }
     default Optional<LivingEntity> support(Entity entity) { return Optional.empty(); }
     default boolean spaceClear(Entity entity, AABB box) { return false; }

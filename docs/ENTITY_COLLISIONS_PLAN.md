@@ -468,6 +468,18 @@ Cierre con commit local propio Sprint:S47. El runtime todavía elige defaults:
 selección de traits vivos, lifecycle de cambios autoritativos y familias originales
 siguen pendientes de tarea2; G6 tareas2–6/G7–G9 y necesidades humanas continúan.
 
+**S48 cerrado adversarialmente:** selección de traits server capturados por revisión,
+retirada/recuperación local con generación nueva y clock compartido, sin intervalos
+entre filas. Contacto real, wire sin reemplazo, replay, ownership manual y referencia
+retirada pasan; cinco mutantes detectados, ocho gates,100000lecturas estables con
+64bytes/cero resolución repetida. Servidor normal493, producción F4 cliente33,
+lane pública3/3+cliente y replay focal default verdes. Una repetición normal34 se
+interrumpe por la política del propietario de regresión pertinente; no se cuenta
+como PASS. Ambos reviews finales cero cambios;367 hashes y JAR fijados en S48 y
+VALIDATION. Commit local propio Sprint:S48. G6 tareas2–6 siguen abiertas para
+selectores originales/familias/catálogo FULL; G7–G9 y necesidades humanas al final
+de la épica permanecen pendientes.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

@@ -77,6 +77,8 @@ public final class AnatomyApi {
     public static boolean ready(Entity entity) { return mode(entity) == AnatomyMode.READY; }
     /** Releases only Scale's transient physical contact and transport anchor. */
     public static void clearContact(Entity entity) { BACKEND.clearContact(entity); }
+    /** World-thread mutation barrier for structural traits not carried by synchronized entity data. */
+    public static void variantChanged(LivingEntity entity) { BACKEND.variantChanged(entity); }
     public static boolean supported(Entity entity) { return BACKEND.supported(entity); }
     /** Support identity is exposed; piece, anchor and response remain internal. */
     public static Optional<LivingEntity> support(Entity entity) { return BACKEND.support(entity); }

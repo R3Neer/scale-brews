@@ -60,7 +60,7 @@ public final class ModelGeometryProvider implements GeometryProvider {
         Trajectory(AnatomyPoseHistory.Segment segment,Optional<HierarchyMotion> motion){before=segment.before();after=segment.after();this.motion=motion;}
     }
     private long evaluations,jointEvaluations;
-    private final AuthorityPoseTracker authority=new AuthorityPoseTracker();
+    private AuthorityPoseTracker authority=new AuthorityPoseTracker();
     private java.util.function.Predicate<LivingEntity> poseEligibility;
     /** Root and joint cache keys are deliberately separate: joints() is keyed only by PoseEngine.Inputs. */
     private record Key(PoseEngine.Inputs inputs,RootTransformProvider.RootTransform root) {}
@@ -99,6 +99,10 @@ public final class ModelGeometryProvider implements GeometryProvider {
     public Optional<PoseEngine.Inputs> inputs(LivingEntity entity){return Optional.ofNullable(channels.get(entity));}
     public ModelGeometryProvider serverDriven(java.util.function.Predicate<LivingEntity> eligibility) {
         poseEligibility=Objects.requireNonNull(eligibility);return this;
+    }
+    /** Runtime participant clock survives replacement of its physical binding/provider. */
+    ModelGeometryProvider serverDriven(java.util.function.Predicate<LivingEntity> eligibility,AuthorityPoseTracker clock) {
+        authority=Objects.requireNonNull(clock);return serverDriven(eligibility);
     }
     /** Root authority sampling boundary. Callers that only consume an accepted endpoint must not invoke this again. */
     public Optional<RootTransformProvider.RootTransform> root(LivingEntity entity) {

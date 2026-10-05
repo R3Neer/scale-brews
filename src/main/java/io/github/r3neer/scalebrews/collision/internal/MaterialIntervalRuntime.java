@@ -128,6 +128,14 @@ public final class MaterialIntervalRuntime {
         PENDING.computeIfPresent(support.level(),(level,list)->{list.removeIf(p->p.support()==support);return list.isEmpty()?null:list;});
     }
 
+    /** Retires exactly one registration, including a tracker with no current endpoint. */
+    static void retire(LivingEntity support,Level registrationLevel) {
+        TRACKERS.remove(support);
+        PENDING.computeIfPresent(registrationLevel,(level,list)->{
+            list.removeIf(p->p.support()==support);return list.isEmpty()?null:list;
+        });
+    }
+
     /**
      * One-shot queue seam for S07. Root order is causal; joint subgroups are already canonical.
      * A local provider rebind can happen after publication and before drain; such work belongs to

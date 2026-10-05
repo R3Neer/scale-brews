@@ -54,7 +54,13 @@ final class AnatomySpatialIndex {
     /** Same-tick local maintenance only. */
     static synchronized void removeIfCurrent(LivingEntity support) {
         if(support==null)return;
-        var level=support.level();var index=INDEXES.get(level);
+        removeIfCurrent(support.level(),support);
+    }
+
+    /** Captured registration level remains valid even after an entity dimension mutation. */
+    static synchronized void removeIfCurrent(Level level,LivingEntity support) {
+        if(level==null || support==null)return;
+        var index=INDEXES.get(level);
         if(index==null || index.tick()!=level.getGameTime())return;
         index.broadphase().remove(support);
     }

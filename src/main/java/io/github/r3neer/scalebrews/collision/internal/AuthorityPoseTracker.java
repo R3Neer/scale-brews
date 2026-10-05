@@ -22,6 +22,7 @@ public final class AuthorityPoseTracker {
         long consumedTransportSequence;
         long transportGeneration;
         PoseEngine.Inputs inputs;
+        boolean externalChannelsAvailable;
     }
     private final Map<LivingEntity,State> states=Collections.synchronizedMap(
         new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,State>makeMap());
@@ -30,7 +31,12 @@ public final class AuthorityPoseTracker {
         State state=states.get(entity);
         if(state!=null && tick<state.tick)throw new IllegalArgumentException("Authority tracker clock cannot rewind");
         if(state==null){state=new State();states.put(entity,state);}
-        if(state.tick==tick)return state.inputs;
+        if(state.tick==tick) {
+            boolean ordinary=supportedPose&&state.externalChannelsAvailable;
+            if(state.inputs.ordinary()!=ordinary)state.inputs=new PoseEngine.Inputs(state.inputs.walkPhase(),state.inputs.walkAmount(),
+                state.inputs.age(),state.inputs.headYaw(),state.inputs.headPitch(),ordinary,state.inputs.channels());
+            return state.inputs;
+        }
         Vec3 position=entity.position();
         var gravity=AnatomyMovement.gravity(entity);
         long transportGeneration=TransportLedger.generation(entity);
@@ -78,6 +84,7 @@ public final class AuthorityPoseTracker {
 
         Identifier entityType=BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         boolean externalChannelsAvailable=sampleExternalChannels(entityType,entity,channels);
+        state.externalChannelsAvailable=externalChannelsAvailable;
         // END_LEVEL_TICK observes the completed entity endpoint. All interpolated fields above use
         // partialTicks=1/current state; vanilla EntityRenderer uses tickCount + partialTicks for age.
         float endpointAge=(float)entity.tickCount+1f;
