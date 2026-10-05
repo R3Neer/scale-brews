@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "sprint": "S46",
+  "role": "ADVERSARY",
+  "base_commit": "cbdb28cb5453b7b0ab8b576ceb0e835275476e7f",
+  "verdict": "PASS scoped PREPARATION",
+  "production_changes_by_adversary": [],
+  "frozen_sources_sha256": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/CollisionBindingIdentity.java": "e5b12f7aa045f6bea4dca765304de8d35b46899e7083c1d8c72176c48bd8d2f5",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/PreparedBindingIndex.java": "50a0b7bf12107e377e0853a4dc12599716c42f1d90a3f58ca6c346bccab19088",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java": "09b17ec9c84152f81896e1ce42ea7414f6ddfb8b92bc569fa2a293a9e29dfaf9"
+  },
+  "public_test": "src/gametest/java/io/github/r3neer/scalebrews/collision/internal/S46AdversarialPreparedVariantTests.java",
+  "public_test_sha256": "da34c2ce53356072799387ff8777aac54cfec700cce0ee863cafc85587e1fb76",
+  "command": "./gradlew -I tools/s46_adversarial.init.gradle -PscalebrewsBuildDir=../s46-adversary-build --project-cache-dir ../s46-adversary-cache runGameTest --console=plain",
+  "java": "Microsoft JDK25.0.3; set JAVA_HOME to local JDK25; reusable init contains no machine-specific JDK path",
+  "logs": [
+    {
+      "file": "s46-adversary-first.log",
+      "classification": "PASS_DEVELOPMENT",
+      "result": "5/5; 1m17s",
+      "sha256": "036fa6cf5c8eb1c5542348a5dc0e154ce76004f26ec2fb4757d89f98eeec210d"
+    },
+    {
+      "file": "s46-adversary-expanded.log",
+      "classification": "INFRA_RED",
+      "result": "Fixture assumed one bind per selection; existing validation and executable preparation each bind. No production change.",
+      "sha256": "27233bb409240b5b7f9f13c90525989f382571a62d88e98c4c1d98a1f2a714ae"
+    },
+    {
+      "file": "s46-adversary-expanded-second.log",
+      "classification": "PASS_DEVELOPMENT",
+      "result": "6/6; 30s; 300000 lookups additionalBinds=0 evaluations=0 rootSamples=0",
+      "sha256": "5b81b97789d18245fc3aa9ff68b9fb24e29148bc23e797fda206c7bc3b8d35d0"
+    },
+    {
+      "file": "s46-adversary-public.log",
+      "classification": "INFRA_RED",
+      "result": "Counter baseline placed before legitimate wire reconstruction. Window moved after reconstruction; zero repeated lookup work assertion unchanged.",
+      "sha256": "efa8d37a3934a43b4321a0f382578a4be626944f3a6d93a4ef585d088c8f55db"
+    },
+    {
+      "file": "s46-adversary-public-final.log",
+      "classification": "PASS_DEVELOPMENT",
+      "result": "6/6; 48s; multipart reconstruction",
+      "sha256": "65a2da6780e67a1b8f1b3859b96c805e3210fb40a893438e7ff215c7b7a78faf"
+    },
+    {
+      "file": "s46-adversary-public-complete.log",
+      "classification": "PASS_FINAL",
+      "result": "6/6; 1m20s; 300000 lookups additionalBinds=0 evaluations=0 rootSamples=0; 4096/4097 boundary",
+      "sha256": "650c4ecb068979259439a2271844ebc6e4105070deb6d3bb3be5d9d7a843f617"
+    },
+    {
+      "file": "s46-adversary-mutant-identity.log",
+      "classification": "EXPECTED_RED",
+      "result": "Semantic field identity sensitivity; 1m10s",
+      "sha256": "c6e4457f870fafada108fd9bedc6d6006980cf1f18105c3143e484bce517593d"
+    },
+    {
+      "file": "s46-adversary-mutant-fallback.log",
+      "classification": "EXPECTED_RED",
+      "result": "Ambiguity cannot default; 1m5s",
+      "sha256": "c20d3cc2555aa56e4678dc40bdedcf3a39f5219c08b4395286535e68422e2937"
+    },
+    {
+      "file": "s46-adversary-mutant-catalog-only.log",
+      "classification": "EXPECTED_RED_WITH_INFRA",
+      "result": "Catalog-only text cannot bypass validation, plus independent counter-window fixture failure",
+      "sha256": "8b897d9207b9e1e991900fb96a25da05ad514e6020adb18d885fd7ef49e40dc4"
+    },
+    {
+      "file": "s46-adversary-mutant-catalog-only-final.log",
+      "classification": "EXPECTED_RED",
+      "result": "Catalog-only text cannot bypass validation; sole failing oracle; 54s",
+      "sha256": "4f8d233ff92c6a9d282fb85af26adb084ae1ced8d57c0cfb489419f954443394"
+    },
+    {
+      "file": "s46-build-final.log",
+      "classification": "IMPLEMENTER_LOG_VERIFIED",
+      "result": "475/475; BUILD SUCCESSFUL1m7s; before adversarial promotion",
+      "sha256": "cf445fff55bb68d1b35a516f463ae8bb9c31d38b2df3e2089ae72a8dd2cd684e"
+    },
+    {
+      "file": "s46-client-final.log",
+      "classification": "IMPLEMENTER_LOG_VERIFIED",
+      "result": "Default32; BUILD SUCCESSFUL4m15s",
+      "sha256": "20f3e3c7599b5780aefc80094c64c583c6142f9fb1ce0fbf1ade4b23202543cf"
+    }
+  ],
+  "mutations": [
+    {
+      "name": "identity-omit-channels",
+      "owner": "CollisionBindingIdentity",
+      "find": "var text = normalized(encoded).toString();",
+      "replace": "encoded.getAsJsonObject().getAsJsonObject(\"pose\").remove(\"channels\");\n        var text = normalized(encoded).toString();",
+      "expected": "Semantic field identity sensitivity"
+    },
+    {
+      "name": "fallback",
+      "owner": "PreparedBindingIndex",
+      "find": "return catalog.resolve(entity, variant).map(selections::get);",
+      "replace": "return catalog.resolve(entity, variant).map(selections::get).or(() -> catalog.resolve(entity, Map.of()).map(selections::get));",
+      "expected": "Ambiguity cannot default"
+    },
+    {
+      "name": "skip-catalog-only-validation",
+      "owner": "PreparedBindingIndex",
+      "find": "canonicalIds.put(selection, CollisionBindingIdentity.of(selection));",
+      "replace": "if (prepared.stream().anyMatch(binding -> binding.selection().equals(selection))) canonicalIds.put(selection, CollisionBindingIdentity.of(selection));",
+      "expected": "Catalog-only text cannot bypass validation"
+    }
+  ],
+  "mutation_recipe": "Copy specified frozen owner outside repository, apply exact replacement once, substitute OWNER/MUTATION in init template. Run Gradle -I generated.init.gradle with unique build/cache/run. Do not edit production; public test assertions unchanged. Temporary shadow sources used for recorded runs were removed after durable recipes and hashes.",
+  "mutation_init_template": "apply from: file('tools/s46_adversarial.init.gradle')\nallprojects { afterEvaluate {\n loom.runs.configureEach { runDir=file('../s46-shadow-MUTATION-run').absolutePath }\n tasks.named('compileJava') {\n  def original=file('src/main/java/io/github/r3neer/scalebrews/collision/internal/OWNER.java').absolutePath\n  setSource(source.files.findAll {it.absolutePath!=original}+file('../s46-shadow-MUTATION/OWNER.java'))\n }\n} }",
+  "cost_review": {
+    "classification": "PREPARATION plus immutable lookup",
+    "preparation": "Canonical encode/hash once per row; existing pose validation+binding duplicated per preparation was present before S46. Server and wire reconstruction are separate preparation passes.",
+    "lookup": "300000 calls with128 parameters of1024 characters; additional binds0, evaluations0, root samples0. Existing selector O(B_type * selector keys), owned IdentityHashMap lookups independent of nested binding data; exact identity hash lookup expected O(1).",
+    "bounds": "4096 prepared entries accepted,4097 rejected (index component, not4096 physical actors). Caller collection/map mutations do not change accepted state.",
+    "retention": "Revision-owned immutable tables; no static caches of bindings/worlds; old objects retain only while their snapshot is retained.",
+    "timing": "elapsedNs158759000 in final run is diagnostic only; parallel host load produced a server scheduling warning. No benchmark/p95/p99/GC acceptance inferred."
+  },
+  "visual": "No transform/renderer/runtime selection changed. Preparation identity/transaction assertions cover this scope; no new spatial snapshot required. Full client regression is separately reported, not pixel equivalence.",
+  "foundations": "CollisionBindingIdentity and PreparedBindingIndex TRUSTED only for tested version1 canonical-content normalization, exact selection, complete prepared index, ownership, bounds, atomic acceptance and reconstruction. Existing canonical selector/geometry/pose/kernel foundations retain their prior scope.",
+  "remaining": "Live selectors and transitions, generation/replay integration, original model/variant agreement, G6 task2-6 and G7-G9 remain open. No FULL evidence generated.",
+  "final_receipt_review": {
+    "source_files_verified": 362,
+    "source_hash_mismatches": [],
+    "artifact": {
+      "sha256": "a0651b897583e75097489cda112032c80cdde87e389930566d4cf06ea64aff65",
+      "entries": 734,
+      "bytes": 1181602,
+      "new_owner_classes": [
+        "io/github/r3neer/scalebrews/collision/internal/CollisionBindingIdentity.class",
+        "io/github/r3neer/scalebrews/collision/internal/PreparedBindingIndex.class"
+      ],
+      "test_leaks": []
+    },
+    "no_production_changes_after_acceptance": true
+  }
+}

@@ -443,6 +443,19 @@ VALIDATION. Sólo se añaden dos owners de preparación; ninguna fuente producti
 previa cambia. Cierre con commit local propio Sprint:S45; G6 tareas2–6 y G7–G9
 siguen abiertos y las necesidades humanas permanecen al final de la épica.
 
+**S46 cerrado adversarialmente:** la revisión aceptada conserva todos sus
+bindings ejecutables en un índice inmutable, seleccionados por el único resolver
+canónico, con identidad completa de contenido versionada y reconstrucción desde
+el bundle. Default sigue como proyección de compatibilidad; ausencia/ambigüedad
+no toma material del default.475/475 servidor, default client32, lane independiente
+6/6 y reproducción6/6, tres mutantes detectados y ocho gates justifican sólo la
+frontera PREPARATION/lookup.362 hashes y JAR real están fijados; el arranque
+anómalamente largo de la última integración queda descrito en S46/VALIDATION,
+sin inferir rendimiento del total. Cierre con commit local propio Sprint:S46.
+Tarea2 sigue abierta: falta la selección del estado vivo y su lifecycle/replay,
+antes de certificar engines/variantes/familias. G6 tareas2–6 y G7–G9 continúan;
+los asuntos humanos siguen al final de la épica.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

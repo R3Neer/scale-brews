@@ -114,7 +114,8 @@
       "io.github.r3neer.scalebrews.test.TinyMountFamilyTests",
       "io.github.r3neer.scalebrews.test.GravityFrameTests",
       "io.github.r3neer.scalebrews.test.TinyMountGravityTests",
-      "io.github.r3neer.scalebrews.test.S44RuntimeRetirementTests"
+      "io.github.r3neer.scalebrews.test.S44RuntimeRetirementTests",
+      "io.github.r3neer.scalebrews.collision.internal.S46ImplementerPreparedVariantTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",

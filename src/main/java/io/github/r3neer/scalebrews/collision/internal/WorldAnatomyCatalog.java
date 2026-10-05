@@ -45,22 +45,45 @@ public final class WorldAnatomyCatalog {
         }
     }
 
-    /** Full canonical catalog plus revision-local pose programs and default executable bindings. */
+    /** Full canonical catalog, all prepared variants and a default-only compatibility projection. */
     public record Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
                            Map<String, CitadelPoseProgram> citadelPosePrograms,
-                           CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
+                           CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings, PreparedBindingIndex prepared) {
+        /** Source-compatible constructor for pre-S46 callers; supplied defaults alone are prepared. */
+        public Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
+                        Map<String, CitadelPoseProgram> citadelPosePrograms,
+                        CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
+            this(revision, models, posePrograms, citadelPosePrograms, catalog, bindings,
+                new PreparedBindingIndex(catalog, bindings.values()));
+        }
         /** Source-compatible constructor for pre-S20 callers. */
         public Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
                         CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
             this(revision, models, posePrograms, Map.of(), catalog, bindings);
         }
         public Snapshot {
-            if (revision < 0 || catalog == null) throw new IllegalArgumentException("Invalid anatomical catalog snapshot");
+            if (revision < 0 || catalog == null || prepared == null || !prepared.owns(catalog))
+                throw new IllegalArgumentException("Invalid anatomical catalog snapshot");
             models = Map.copyOf(models);
             posePrograms = Map.copyOf(posePrograms);
             citadelPosePrograms = Map.copyOf(citadelPosePrograms);
             bindings = Map.copyOf(bindings);
+            var defaults = new HashMap<Identifier, Binding>();
+            for (var entity : catalog.snapshot().keySet())
+                prepared.resolve(entity, Map.of()).ifPresent(binding -> defaults.put(entity, binding));
+            if (defaults.size() != bindings.size()) throw new IllegalArgumentException("Invalid default executable projection");
+            for (var entry : defaults.entrySet())
+                if (bindings.get(entry.getKey()) != entry.getValue())
+                    throw new IllegalArgumentException("Default projection must use its owned prepared binding");
         }
+
+        public Optional<Binding> resolve(Identifier entity, Map<String, String> variant) {
+            return prepared.resolve(entity, variant);
+        }
+        public Optional<Binding> resolveIdentity(Identifier entity, Identifier identity) {
+            return prepared.resolveIdentity(entity, identity);
+        }
+        public Optional<Identifier> bindingIdentity(Binding binding) { return prepared.identity(binding); }
     }
 
     private record Accepted(Snapshot snapshot, AnatomyCatalogTransfer.PreparedBundle bundle) {}
@@ -250,7 +273,8 @@ public final class WorldAnatomyCatalog {
 
         var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), validatedPrograms, validatedCitadelPrograms,
             canonical.bindings());
-        var next = new Snapshot(revision, validated.models(), validatedPrograms, validatedCitadelPrograms, canonical, executable);
+        var index = new PreparedBindingIndex(canonical, preparedBindings.values());
+        var next = new Snapshot(revision, validated.models(), validatedPrograms, validatedCitadelPrograms, canonical, executable, index);
         current = new Accepted(next, bundle);
         return next;
     }

@@ -3237,3 +3237,60 @@ existing production files are unchanged and two preparation owners are added.
 Default manifest32 was restored after opt-in census. G6 task1 closes in S45's
 own local closure commit (Sprint:S45), verified before the next sprint; task2
 and complete physical coverage, G7-G9 and owner acceptance remain open.
+
+## S46 - all prepared variants and complete binding identity (closed)
+
+IMPLEMENTER final-source build passes **475/475** server GameTests, clean exit
+**1m7s**, log ../s46-build-final.log. Default client **32** entrypoints passes
+with clean exit **4m15s**, ../s46-client-final.log. Initial development runs also
+passed475/475 (2m24s) and client32 (4m54s), before the final owned-instance
+projection/version consolidation review. These do not assert live variant state,
+new original-model pose correctness or ordinary Minecraft FULL coverage.
+
+ADVERSARY's reusable public preparation lane passes **6/6 including sentinel**,
+**1m20s**, ../s46-adversary-public-complete.log. Five independent oracles exercise
+canonical selection/absence/ambiguity, small and multipart transfer, complete
+field/filter identity, Unicode validation of executable and catalog-only rows,
+immutable/foreign object ownership, compatibility projection, exact transaction
+retention and the4096/4097 executable-index boundary. Three isolated mutations
+(omitted channels, ambiguity/default fallback, skipped catalog-only validation)
+produce expected semantic RED. Two counter setup/window errors were INFRA_RED,
+corrected without changing product or weakening the zero-repeated-work oracle.
+Commands, source/log hashes, classifications and mutation recipes are durable
+in docs/evidence/S46/adversarial-verification.json. Eight ownership/protocol
+gates pass with exact outputs in adversarial-ownership-gates.json; presence gates
+retain their explicit presence-only limits.
+
+IMPLEMENTER independently reproduces the unchanged public recipe **6/6**,
+clean exit **1m4s**, ../s46-impl-public-verification.log. Both final loops report
+300000 lookups with additionalBinds=0, evaluations=0 and rootSamples=0 using128
+parameters of1024 characters. Timing is diagnostic, not a p95/p99/GC or4096-actor
+acceptance. The new owners run only in preparation or immutable lookup; no new
+hot tick/query/render/pose/contact-packet path invokes census, codec, hash or
+compilation. Catalog acceptance/reload remains an explicit preparation boundary.
+No transform/renderer path changed, so this frontier requires no new spatial
+snapshot; the full default client regression is reported separately.
+
+Following public test/runner promotion and explicit default resource processing
+(PASS2s), a normal integrated build again passes475/475 and exits cleanly:
+../s46-build-integrated-final.log. Actual GameTests took **23.96s**. Gradle's
+total **1h31m41s** includes an unexplained 9:51:39-11:19:08 original startup gap,
+before recipes/test execution. This uncontrolled host/startup timing is not a
+candidate throughput measurement; earlier final-source/independent runs retain
+their exact logged timings. No change or failure is hidden by the long run.
+
+Final receipt contains362 raw production/resource hashes, only one modified
+existing source (WorldAnatomyCatalog), two added preparation owners and no
+removals. The real734-entry/1181602-byte JAR hash is
+a0651b897583e75097489cda112032c80cdde87e389930566d4cf06ea64aff65; both new classes
+are present with no test leakage/retired physics. Both normal processed manifests
+match source104 server/32 client entrypoints. Exact receipts/log hashes are in
+implementation-verification.json and default-manifest.json. ADVERSARY verifies
+all362 hashes and artifact independently; both complete final reviews produce
+zero changes. Closure has its own local Sprint:S46 commit before advancing.
+
+TRUSTED scope is version1 complete canonical-content identity, immutable prepared
+index, canonical selection, ownership/bounds, acceptance/reconstruction. Default
+runtime selection, wire protocol and engine/solver/render behavior stay at their
+prior certified scope. Live selectors, variant transitions, generation/replay,
+model agreement, G6 tasks2-6 and G7-G9 remain open; human needs stay at epic end.

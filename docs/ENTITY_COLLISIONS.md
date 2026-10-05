@@ -101,6 +101,24 @@ Los datos seleccionan comportamiento registrado, no contienen un lenguaje proced
 
 El catálogo candidato se valida completo antes de hacerse visible. Una revisión aceptada es inmutable. El servidor prepara un bundle una vez por revisión; los clientes verifican identidad e integridad antes de sustituir atómicamente su snapshot.
 
+`WorldAnatomyCatalog.Snapshot` conserva todos los bindings ejecutables de la
+revisión en `PreparedBindingIndex`. La selección por mapa de variant delega al
+único selector `CollisionBindingCatalog`: una fila seleccionada sin ejecución
+preparada devuelve ausencia aunque exista un default ejecutable. `bindings()`
+sigue siendo una proyección de compatibilidad sólo para el selector vacío;
+no expresa el conjunto completo de variants.
+
+Cada binding preparado tiene una identidad de contenido completa, versionada y
+separada por dominio, derivada del codec canónico con orden determinista. Incluye
+variant, engines/modelo, parámetros, channels, filtros, root, policy y estados
+excluidos. Su construcción y validación de texto ocurren sólo en preparación;
+las consultas recuperan objetos ya preparados sin repetir hash/codec/compilación.
+El receptor reconstruye el índice desde los mismos bindings y recursos del
+bundle, sin una segunda tabla autoritativa enviada por separado. Esta identidad
+no certifica los bytes del modelo ni sustituye epoch/revisión/provenance o las
+generaciones de binding/tracking. La disponibilidad del índice no implica que
+el runtime haya seleccionado una variant del estado vivo de la entidad.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

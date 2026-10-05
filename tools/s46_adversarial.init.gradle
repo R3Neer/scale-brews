@@ -1,0 +1,10 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ loom.runs.configureEach { runDir=providers.gradleProperty('s46AdversarialRunDir').getOrElse(file('../s46-adversary-public-run').absolutePath) }
+ tasks.named('processGametestResources') { outputs.upToDateWhen { false }; doLast {
+  def manifest=new File(destinationDir,'fabric.mod.json');def meta=new JsonSlurper().parse(manifest)
+  meta.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S46AdversarialPreparedVariantTests']
+  manifest.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+ } }
+} }
