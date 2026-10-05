@@ -1,0 +1,79 @@
+{
+  "normalization": "javap CP indices and padding only, all instruction programs compared; access flags inspected separately by proof",
+  "comparisons": [
+    {
+      "resource": "/net/minecraft/client/renderer/entity/ZombieNautilusRenderer.class",
+      "mergedSha256": "0d6e2404f26855c21d26f27194caf43e5312adcd0dd1cc008c88817153feb2e6",
+      "runtimeSha256": "fd7a5992d6ecb65b9a00147de1b3194ba1816199145a7001d7c34322441e5b1b",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 14,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/client/renderer/entity/state/NautilusRenderState.class",
+      "mergedSha256": "607bf06f725817fe983af2fa3de1b60bc28a516647470908341c6c12cbdc0862",
+      "runtimeSha256": "f735039eefb6de399070d75e0138d2fb43b91a970819ac82b34d4535611f4402",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 1,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/EquipmentSlot.class",
+      "mergedSha256": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+      "runtimeSha256": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 19,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/LivingEntity.class",
+      "mergedSha256": "eae909d66232bfa9cdadc374653f84a72cfbb547401db60a404c8088e65df6d8",
+      "runtimeSha256": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+      "wholeInstructionProgramsEqual": false,
+      "programs": 398,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/Mob.class",
+      "mergedSha256": "60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b381",
+      "runtimeSha256": "60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b381",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 161,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/animal/nautilus/ZombieNautilus.class",
+      "mergedSha256": "23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f",
+      "runtimeSha256": "23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 28,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType.class",
+      "mergedSha256": "20c111d67c467d88367183f613d4ef721474113237e048e20f44af1178b0e270",
+      "runtimeSha256": "20c111d67c467d88367183f613d4ef721474113237e048e20f44af1178b0e270",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 6,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.class",
+      "mergedSha256": "7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e2659",
+      "runtimeSha256": "7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e2659",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 11,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    },
+    {
+      "resource": "/net/minecraft/world/item/ItemStack.class",
+      "mergedSha256": "5a89b6794705ebf363d2b03529dbc96d656a1ca94a424d19765a75edc697fd89",
+      "runtimeSha256": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198",
+      "wholeInstructionProgramsEqual": true,
+      "programs": 143,
+      "wholeInstructionProgramsEqualAfterEncodingNormalization": true
+    }
+  ],
+  "additionalNormalization": "ldc/ldc_w equivalent width and branch/switch byte offsets converted to instruction ordinal; every instruction and target preserved",
+  "scope": "Existing LivingEntity/ItemStack/EquipmentSlot resources reused from S51 approval; new exact proofs cover only declared S53 programs, not whole-class trust"
+}

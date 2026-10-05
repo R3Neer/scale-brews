@@ -1,0 +1,20 @@
+Compiled from "NautilusRenderState.java"
+public class net.minecraft.client.renderer.entity.state.NautilusRenderState extends net.minecraft.client.renderer.entity.state.LivingEntityRenderState {
+  public net.minecraft.world.item.ItemStack saddle;
+
+  public net.minecraft.world.item.ItemStack bodyArmorItem;
+
+  public net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant variant;
+
+  public net.minecraft.client.renderer.entity.state.NautilusRenderState();
+    Code:
+         0: aload_0
+         1: invokespecial #15                 // Method net/minecraft/client/renderer/entity/state/LivingEntityRenderState."<init>":()V
+         4: aload_0
+         5: getstatic     #20                 // Field net/minecraft/world/item/ItemStack.EMPTY:Lnet/minecraft/world/item/ItemStack;
+         8: putfield      #22                 // Field saddle:Lnet/minecraft/world/item/ItemStack;
+        11: aload_0
+        12: getstatic     #20                 // Field net/minecraft/world/item/ItemStack.EMPTY:Lnet/minecraft/world/item/ItemStack;
+        15: putfield      #24                 // Field bodyArmorItem:Lnet/minecraft/world/item/ItemStack;
+        18: return
+}

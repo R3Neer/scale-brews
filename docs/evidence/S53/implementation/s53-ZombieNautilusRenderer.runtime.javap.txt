@@ -1,0 +1,219 @@
+Compiled from "ZombieNautilusRenderer.java"
+public class net.minecraft.client.renderer.entity.ZombieNautilusRenderer extends net.minecraft.client.renderer.entity.MobRenderer<net.minecraft.world.entity.animal.nautilus.ZombieNautilus, net.minecraft.client.renderer.entity.state.NautilusRenderState, net.minecraft.client.model.animal.nautilus.NautilusModel> {
+  private final java.util.Map<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType, net.minecraft.client.model.animal.nautilus.NautilusModel> models;
+
+  public net.minecraft.client.renderer.entity.ZombieNautilusRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider$Context);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: new           #1                  // class net/minecraft/client/model/animal/nautilus/NautilusModel
+         5: dup
+         6: aload_1
+         7: getstatic     #3                  // Field net/minecraft/client/model/geom/ModelLayers.ZOMBIE_NAUTILUS:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        10: invokevirtual #9                  // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        13: invokespecial #15                 // Method net/minecraft/client/model/animal/nautilus/NautilusModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        16: ldc           #19                 // float 0.7f
+        18: invokespecial #20                 // Method net/minecraft/client/renderer/entity/MobRenderer."<init>":(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;Lnet/minecraft/client/model/EntityModel;F)V
+        21: aload_0
+        22: new           #25                 // class net/minecraft/client/renderer/entity/layers/SimpleEquipmentLayer
+        25: dup
+        26: aload_0
+        27: aload_1
+        28: invokevirtual #27                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.getEquipmentRenderer:()Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;
+        31: getstatic     #31                 // Field net/minecraft/client/resources/model/EquipmentClientInfo$LayerType.NAUTILUS_BODY:Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;
+        34: invokedynamic #37,  0             // InvokeDynamic #0:apply:()Ljava/util/function/Function;
+        39: new           #41                 // class net/minecraft/client/model/animal/nautilus/NautilusArmorModel
+        42: dup
+        43: aload_1
+        44: getstatic     #43                 // Field net/minecraft/client/model/geom/ModelLayers.NAUTILUS_ARMOR:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        47: invokevirtual #9                  // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        50: invokespecial #46                 // Method net/minecraft/client/model/animal/nautilus/NautilusArmorModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        53: aconst_null
+        54: invokespecial #47                 // Method net/minecraft/client/renderer/entity/layers/SimpleEquipmentLayer."<init>":(Lnet/minecraft/client/renderer/entity/RenderLayerParent;Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Ljava/util/function/Function;Lnet/minecraft/client/model/EntityModel;Lnet/minecraft/client/model/EntityModel;)V
+        57: invokevirtual #50                 // Method addLayer:(Lnet/minecraft/client/renderer/entity/layers/RenderLayer;)Z
+        60: pop
+        61: aload_0
+        62: new           #25                 // class net/minecraft/client/renderer/entity/layers/SimpleEquipmentLayer
+        65: dup
+        66: aload_0
+        67: aload_1
+        68: invokevirtual #27                 // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.getEquipmentRenderer:()Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;
+        71: getstatic     #56                 // Field net/minecraft/client/resources/model/EquipmentClientInfo$LayerType.NAUTILUS_SADDLE:Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;
+        74: invokedynamic #59,  0             // InvokeDynamic #1:apply:()Ljava/util/function/Function;
+        79: new           #60                 // class net/minecraft/client/model/animal/nautilus/NautilusSaddleModel
+        82: dup
+        83: aload_1
+        84: getstatic     #62                 // Field net/minecraft/client/model/geom/ModelLayers.NAUTILUS_SADDLE:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        87: invokevirtual #9                  // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        90: invokespecial #64                 // Method net/minecraft/client/model/animal/nautilus/NautilusSaddleModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        93: aconst_null
+        94: invokespecial #47                 // Method net/minecraft/client/renderer/entity/layers/SimpleEquipmentLayer."<init>":(Lnet/minecraft/client/renderer/entity/RenderLayerParent;Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Ljava/util/function/Function;Lnet/minecraft/client/model/EntityModel;Lnet/minecraft/client/model/EntityModel;)V
+        97: invokevirtual #50                 // Method addLayer:(Lnet/minecraft/client/renderer/entity/layers/RenderLayer;)Z
+       100: pop
+       101: aload_0
+       102: aload_1
+       103: invokestatic  #65                 // Method bakeModels:(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Ljava/util/Map;
+       106: putfield      #69                 // Field models:Ljava/util/Map;
+       109: return
+
+  private static java.util.Map<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType, net.minecraft.client.model.animal.nautilus.NautilusModel> bakeModels(net.minecraft.client.renderer.entity.EntityRendererProvider$Context);
+    Code:
+         0: getstatic     #73                 // Field net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType.NORMAL:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+         3: new           #1                  // class net/minecraft/client/model/animal/nautilus/NautilusModel
+         6: dup
+         7: aload_0
+         8: getstatic     #3                  // Field net/minecraft/client/model/geom/ModelLayers.ZOMBIE_NAUTILUS:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        11: invokevirtual #9                  // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        14: invokespecial #15                 // Method net/minecraft/client/model/animal/nautilus/NautilusModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        17: getstatic     #79                 // Field net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType.WARM:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        20: new           #82                 // class net/minecraft/client/model/monster/nautilus/ZombieNautilusCoralModel
+        23: dup
+        24: aload_0
+        25: getstatic     #84                 // Field net/minecraft/client/model/geom/ModelLayers.ZOMBIE_NAUTILUS_CORAL:Lnet/minecraft/client/model/geom/ModelLayerLocation;
+        28: invokevirtual #9                  // Method net/minecraft/client/renderer/entity/EntityRendererProvider$Context.bakeLayer:(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;
+        31: invokespecial #87                 // Method net/minecraft/client/model/monster/nautilus/ZombieNautilusCoralModel."<init>":(Lnet/minecraft/client/model/geom/ModelPart;)V
+        34: invokestatic  #88                 // InterfaceMethod java/util/Map.of:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/Map;
+        37: invokestatic  #94                 // Method com/google/common/collect/Maps.newEnumMap:(Ljava/util/Map;)Ljava/util/EnumMap;
+        40: areturn
+
+  public void submit(net.minecraft.client.renderer.entity.state.NautilusRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_1
+         1: getfield      #100                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.variant:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant;
+         4: ifnonnull     8
+         7: return
+         8: aload_0
+         9: aload_0
+        10: getfield      #69                 // Field models:Ljava/util/Map;
+        13: aload_1
+        14: getfield      #100                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.variant:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant;
+        17: invokevirtual #106                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.modelAndTexture:()Lnet/minecraft/world/entity/variant/ModelAndTexture;
+        20: invokevirtual #112                // Method net/minecraft/world/entity/variant/ModelAndTexture.model:()Ljava/lang/Object;
+        23: invokeinterface #118,  2          // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+        28: checkcast     #122                // class net/minecraft/client/model/EntityModel
+        31: putfield      #124                // Field model:Lnet/minecraft/client/model/EntityModel;
+        34: aload_0
+        35: aload_1
+        36: aload_2
+        37: aload_3
+        38: aload         4
+        40: invokespecial #127                // Method net/minecraft/client/renderer/entity/MobRenderer.submit:(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        43: return
+
+  public net.minecraft.resources.Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.NautilusRenderState);
+    Code:
+         0: aload_1
+         1: getfield      #100                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.variant:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant;
+         4: ifnonnull     13
+         7: invokestatic  #131                // Method net/minecraft/client/renderer/texture/MissingTextureAtlasSprite.getLocation:()Lnet/minecraft/resources/Identifier;
+        10: goto          26
+        13: aload_1
+        14: getfield      #100                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.variant:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant;
+        17: invokevirtual #106                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.modelAndTexture:()Lnet/minecraft/world/entity/variant/ModelAndTexture;
+        20: invokevirtual #137                // Method net/minecraft/world/entity/variant/ModelAndTexture.asset:()Lnet/minecraft/core/ClientAsset$ResourceTexture;
+        23: invokevirtual #141                // Method net/minecraft/core/ClientAsset$ResourceTexture.texturePath:()Lnet/minecraft/resources/Identifier;
+        26: areturn
+
+  public net.minecraft.client.renderer.entity.state.NautilusRenderState createRenderState();
+    Code:
+         0: new           #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         3: dup
+         4: invokespecial #146                // Method net/minecraft/client/renderer/entity/state/NautilusRenderState."<init>":()V
+         7: areturn
+
+  public void extractRenderState(net.minecraft.world.entity.animal.nautilus.ZombieNautilus, net.minecraft.client.renderer.entity.state.NautilusRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: fload_3
+         4: invokespecial #149                // Method net/minecraft/client/renderer/entity/MobRenderer.extractRenderState:(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V
+         7: aload_2
+         8: aload_1
+         9: getstatic     #153                // Field net/minecraft/world/entity/EquipmentSlot.SADDLE:Lnet/minecraft/world/entity/EquipmentSlot;
+        12: invokevirtual #159                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilus.getItemBySlot:(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;
+        15: invokevirtual #165                // Method net/minecraft/world/item/ItemStack.copy:()Lnet/minecraft/world/item/ItemStack;
+        18: putfield      #171                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.saddle:Lnet/minecraft/world/item/ItemStack;
+        21: aload_2
+        22: aload_1
+        23: invokevirtual #175                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilus.getBodyArmorItem:()Lnet/minecraft/world/item/ItemStack;
+        26: invokevirtual #165                // Method net/minecraft/world/item/ItemStack.copy:()Lnet/minecraft/world/item/ItemStack;
+        29: putfield      #178                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.bodyArmorItem:Lnet/minecraft/world/item/ItemStack;
+        32: aload_2
+        33: aload_1
+        34: invokevirtual #181                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilus.getVariant:()Lnet/minecraft/core/Holder;
+        37: invokeinterface #185,  1          // InterfaceMethod net/minecraft/core/Holder.value:()Ljava/lang/Object;
+        42: checkcast     #107                // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant
+        45: putfield      #100                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.variant:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant;
+        48: return
+
+  public void extractRenderState(net.minecraft.world.entity.LivingEntity, net.minecraft.client.renderer.entity.state.LivingEntityRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #160                // class net/minecraft/world/entity/animal/nautilus/ZombieNautilus
+         5: aload_2
+         6: checkcast     #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         9: fload_3
+        10: invokevirtual #190                // Method extractRenderState:(Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;F)V
+        13: return
+
+  public net.minecraft.resources.Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.LivingEntityRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         5: invokevirtual #193                // Method getTextureLocation:(Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;)Lnet/minecraft/resources/Identifier;
+         8: areturn
+
+  public void submit(net.minecraft.client.renderer.entity.state.LivingEntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         5: aload_2
+         6: aload_3
+         7: aload         4
+         9: invokevirtual #197                // Method submit:(Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        12: return
+
+  public void extractRenderState(net.minecraft.world.entity.Entity, net.minecraft.client.renderer.entity.state.EntityRenderState, float);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #160                // class net/minecraft/world/entity/animal/nautilus/ZombieNautilus
+         5: aload_2
+         6: checkcast     #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         9: fload_3
+        10: invokevirtual #190                // Method extractRenderState:(Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;F)V
+        13: return
+
+  public net.minecraft.client.renderer.entity.state.EntityRenderState createRenderState();
+    Code:
+         0: aload_0
+         1: invokevirtual #200                // Method createRenderState:()Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;
+         4: areturn
+
+  public void submit(net.minecraft.client.renderer.entity.state.EntityRenderState, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.SubmitNodeCollector, net.minecraft.client.renderer.state.level.CameraRenderState);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #101                // class net/minecraft/client/renderer/entity/state/NautilusRenderState
+         5: aload_2
+         6: aload_3
+         7: aload         4
+         9: invokevirtual #197                // Method submit:(Lnet/minecraft/client/renderer/entity/state/NautilusRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V
+        12: return
+
+  private static net.minecraft.world.item.ItemStack lambda$new$1(net.minecraft.client.renderer.entity.state.NautilusRenderState);
+    Code:
+         0: aload_0
+         1: getfield      #171                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.saddle:Lnet/minecraft/world/item/ItemStack;
+         4: areturn
+
+  private static net.minecraft.world.item.ItemStack lambda$new$0(net.minecraft.client.renderer.entity.state.NautilusRenderState);
+    Code:
+         0: aload_0
+         1: getfield      #178                // Field net/minecraft/client/renderer/entity/state/NautilusRenderState.bodyArmorItem:Lnet/minecraft/world/item/ItemStack;
+         4: areturn
+}

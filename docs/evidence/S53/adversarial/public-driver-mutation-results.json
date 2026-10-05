@@ -1,0 +1,15 @@
+{
+  "fixtureSha256": "553e54c027ab5a62e6d18bff60807e91226f7afbf060a754a4cded5c7fa75b45",
+  "baseline": null,
+  "results": [
+    {
+      "name": "null-target",
+      "owner": "OriginalEnumSelectorProof",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-driver\\null-target.log",
+      "sourceSha256": "566d6f818bf4b08f0eaa4528875c573437a818d8566d349fff8b88450442cbf7",
+      "shadowSha256": "6cc917b4bf84cae1a6e5c27f1fb44b775f888d187fbdc13dfc12a22d9283773e"
+    }
+  ]
+}

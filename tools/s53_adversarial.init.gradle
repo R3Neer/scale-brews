@@ -1,0 +1,21 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ def shadow=providers.gradleProperty('s53AdversarialShadow').getOrNull()
+ if(shadow!=null){
+  def name=providers.gradleProperty('s53AdversarialShadowOwner').get()
+  def original=file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/'+name+'.java').canonicalFile
+  sourceSets.client.java.srcDir(file(shadow))
+  sourceSets.client.java.exclude {element->element.file.canonicalFile==original}
+ }
+ loom.runs.configureEach {
+  runDir=providers.gradleProperty('s53AdversarialRunDir').getOrElse(file('../s53-adversary-public-run').absolutePath)
+  vmArg '-Dscalebrews.s53Reference='+file('docs/evidence/S51/original-selection-recipes.json').absolutePath
+ }
+ tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl'}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast{
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S53AdversarialEnumProof','io.github.r3neer.scalebrews.client.collision.preparation.S51AdversarialNativeProof']
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+} }

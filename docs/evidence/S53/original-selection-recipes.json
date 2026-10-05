@@ -1,0 +1,57 @@
+[
+  {
+    "tool": "original-enum-selector-v1",
+    "rendererClass": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer",
+    "exactActorClass": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+    "stateClass": "net.minecraft.client.renderer.entity.state.NautilusRenderState",
+    "sourceKey": "component.minecraft.zombie_5fnautilus_2fvariant.model",
+    "componentId": "minecraft:zombie_nautilus/variant",
+    "variantGetter": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus#getVariant()Lnet/minecraft/core/Holder;",
+    "modelField": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models",
+    "originalResources": {
+      "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+      "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+      "/net/minecraft/client/renderer/entity/ZombieNautilusRenderer.class": "fd7a5992d6ecb65b9a00147de1b3194ba1816199145a7001d7c34322441e5b1b",
+      "/net/minecraft/client/renderer/entity/state/NautilusRenderState.class": "f735039eefb6de399070d75e0138d2fb43b91a970819ac82b34d4535611f4402",
+      "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+      "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+      "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+      "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+      "/net/minecraft/world/entity/Mob.class": "60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b381",
+      "/net/minecraft/world/entity/animal/nautilus/ZombieNautilus.class": "23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f",
+      "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType.class": "20c111d67c467d88367183f613d4ef721474113237e048e20f44af1178b0e270",
+      "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.class": "7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e2659",
+      "/net/minecraft/world/entity/variant/ModelAndTexture.class": "a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc4832",
+      "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+    },
+    "rows": [
+      {
+        "sourceKey": "component.minecraft.zombie_5fnautilus_2fvariant.model",
+        "modelValue": "normal",
+        "slot": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models[normal]",
+        "modelClass": "net.minecraft.client.model.animal.nautilus.NautilusModel",
+        "initialStructure": {
+          "digest": "2662844803168270603d5aa507f7f0b33db7ec975406cd08bbfbb99c32e67b80",
+          "parts": 7,
+          "cubes": 8,
+          "solidPieces": 6
+        }
+      },
+      {
+        "sourceKey": "component.minecraft.zombie_5fnautilus_2fvariant.model",
+        "modelValue": "warm",
+        "slot": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models[warm]",
+        "modelClass": "net.minecraft.client.model.monster.nautilus.ZombieNautilusCoralModel",
+        "initialStructure": {
+          "digest": "59eb4e1b1da91874f6413df749ad3c824ef98b5e67665e2cfd0335d49a91e0a7",
+          "parts": 19,
+          "cubes": 16,
+          "solidPieces": 6
+        }
+      }
+    ],
+    "uniqueModels": 2,
+    "canonicalText": "original-enum-selector-v1|original-resources-only|59:net.minecraft.client.renderer.entity.ZombieNautilusRenderer57:net.minecraft.world.entity.animal.nautilus.ZombieNautilus62:net.minecraft.client.renderer.entity.state.NautilusRenderState53:component.minecraft.zombie_5fnautilus_2fvariant.model33:minecraft:zombie_nautilus/variant97:net.minecraft.world.entity.animal.nautilus.ZombieNautilus#getVariant()Lnet/minecraft/core/Holder;66:net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models58:/net/minecraft/client/renderer/entity/EntityRenderer.class64:a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad164:/net/minecraft/client/renderer/entity/LivingEntityRenderer.class64:d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c966:/net/minecraft/client/renderer/entity/ZombieNautilusRenderer.class64:fd7a5992d6ecb65b9a00147de1b3194ba1816199145a7001d7c34322441e5b1b69:/net/minecraft/client/renderer/entity/state/NautilusRenderState.class64:f735039eefb6de399070d75e0138d2fb43b91a970819ac82b34d4535611f440250:/net/minecraft/core/component/DataComponents.class64:e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba9440:/net/minecraft/world/entity/Entity.class64:4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea47:/net/minecraft/world/entity/EquipmentSlot.class64:b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c46:/net/minecraft/world/entity/LivingEntity.class64:109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d6637:/net/minecraft/world/entity/Mob.class64:60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b38164:/net/minecraft/world/entity/animal/nautilus/ZombieNautilus.class64:23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f81:/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType.class64:20c111d67c467d88367183f613d4ef721474113237e048e20f44af1178b0e27071:/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.class64:7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e265957:/net/minecraft/world/entity/variant/ModelAndTexture.class64:a3a9be7dd6a78a3de2bb33fe5a64de3293e5b8e5bc2f5e97d90c71da38fc483241:/net/minecraft/world/item/ItemStack.class64:7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a1986:normal74:net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models[normal]56:net.minecraft.client.model.animal.nautilus.NautilusModel64:2662844803168270603d5aa507f7f0b33db7ec975406cd08bbfbb99c32e67b801:71:81:64:warm72:net.minecraft.client.renderer.entity.ZombieNautilusRenderer#models[warm]68:net.minecraft.client.model.monster.nautilus.ZombieNautilusCoralModel64:59eb4e1b1da91874f6413df749ad3c824ef98b5e67665e2cfd0335d49a91e0a72:192:161:6",
+    "digest": "2cd7ea63291da8ac63a7abd166c0abb8be3419bf455cfe86a3dd8787e334133c"
+  }
+]

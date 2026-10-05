@@ -1,0 +1,40 @@
+{
+  "removedPrivateOneOffs": [
+    {
+      "path": "native.init.gradle",
+      "sha256": "b3949c8470ea10767d59c00541fb6216f559f28f3c8e6a0045a38f705836dd15"
+    },
+    {
+      "path": "mutations.ps1",
+      "sha256": "9dc31f08df3f838c65b80671e0935b71a684b178aa181d9b89c26ff6dd4024a9"
+    },
+    {
+      "path": "src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\S53IndependentEnumProof.java",
+      "sha256": "797703ce300b60fcd3605417c4af3ade7bfa1a6321bb1e5689563d7bc645a249"
+    },
+    {
+      "path": "shadows\\body-slot\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalEnumSelectorProof.java",
+      "sha256": "3e85a4b542fa1cc042f35026da4fdb76313348bb5cf2cf2d81079e9839d05627"
+    },
+    {
+      "path": "shadows\\family\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\EnumAgeModelPreparation.java",
+      "sha256": "ac77f20032299f8eca61613d5e6736b92a761b446d96b0fa5525e41a9b32b321"
+    },
+    {
+      "path": "shadows\\map-collapse\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\EnumModelPreparation.java",
+      "sha256": "6eaf373e87cc596f8969cc837fee45af58a52ed6f99e334bc8d490382d01f2a5"
+    },
+    {
+      "path": "shadows\\null-target\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalEnumSelectorProof.java",
+      "sha256": "6cc917b4bf84cae1a6e5c27f1fb44b775f888d187fbdc13dfc12a22d9283773e"
+    },
+    {
+      "path": "shadows\\origin\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalEnumSelectorProof.java",
+      "sha256": "33a83e87912e857e2a1c1b497e4af0b8c4a4bed27cf51f74594b21e2e8af780f"
+    }
+  ],
+  "count": 8,
+  "recursiveDeletion": false,
+  "preserved": "logs/cache/builds/evidence/model/prior-oracle/mutation-results",
+  "replacement": "S53AdversarialEnumProof, s53_adversarial.init.gradle, s53_adversarial_mutations.ps1"
+}

@@ -1,0 +1,236 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S53",
+  "status": "SCOPED_PASS",
+  "productionFilesVerified": 372,
+  "unchangedExistingOwners": 369,
+  "changedExistingOwner": "EnumAgeModelPreparation (shared proof delegation only)",
+  "newOwners": [
+    "OriginalEnumSelectorProof",
+    "EnumModelPreparation"
+  ],
+  "candidateHashes": {
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/EnumAgeModelPreparation.java": "3a3f79c6c498d7862faa8ee06e1e4aad4d2d48c2fc44ebb42d7d7b525065dcdd",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/EnumModelPreparation.java": "8da8a4fda7252242c2e9bb432a419f80024bca52bbfdddc74fc44a41e3e98e46",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalEnumSelectorProof.java": "566d6f818bf4b08f0eaa4528875c573437a818d8566d349fff8b88450442cbf7"
+  },
+  "jar": {
+    "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-impl-build\\libs\\scalebrews-0.1.0-beta.9.jar",
+    "sha256": "0f7a9edeb42d8c69daf873db4a303e49c892d6b78cca9468e75c2454db3d1bcb",
+    "bytes": 1264774,
+    "entries": 764,
+    "testLeak": false
+  },
+  "publicFiles": [
+    {
+      "path": "src/gametest/java/io/github/r3neer/scalebrews/client/collision/preparation/S53AdversarialEnumProof.java",
+      "sha256": "553e54c027ab5a62e6d18bff60807e91226f7afbf060a754a4cded5c7fa75b45",
+      "bytes": 10548
+    },
+    {
+      "path": "tools/s53_adversarial.init.gradle",
+      "sha256": "1334a36cf5651110447e8130d9d8a5c4482e7709a4901869420b5c31df49c767",
+      "bytes": 1302
+    },
+    {
+      "path": "tools/s53_adversarial_mutations.ps1",
+      "sha256": "cdb0b2de30520d416f504eb835f94b36bfbbec79b951c8160f401ddf1ad883c2",
+      "bytes": 3784
+    }
+  ],
+  "native": {
+    "selections": 2,
+    "programFaults": 2,
+    "sourceAndStateAndDeferredIdentity": true,
+    "nullGuardNoHistoricalReplay": true,
+    "negative": "missing renderer/partial/null model/foreign enum/family mismatch/off-thread/foreign CodeSource",
+    "sharedIdentityCache": true,
+    "currentAndInitialPreserved": true,
+    "immutableDeterministic": true
+  },
+  "regression": {
+    "publicS51": "14 native combinations /12 rejections PASS",
+    "previousS51Recipes": "3 equal complete JSON objects including14 rows; canonicalText/digests exact",
+    "OriginalModelProgramsAndS52": "unchanged verified; no unrelated replay",
+    "Tiny": "not repeated"
+  },
+  "baseline": "public PASS2m3s clean exit; final private PASS63s",
+  "sensitivity": {
+    "count": 5,
+    "results": [
+      {
+        "name": "body-slot",
+        "owner": "OriginalEnumSelectorProof",
+        "exit": 1,
+        "killed": true,
+        "shadowSha256": "3e85a4b542fa1cc042f35026da4fdb76313348bb5cf2cf2d81079e9839d05627",
+        "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-body-slot.log"
+      },
+      {
+        "name": "null-target",
+        "owner": "OriginalEnumSelectorProof",
+        "exit": 1,
+        "killed": true,
+        "shadowSha256": "6cc917b4bf84cae1a6e5c27f1fb44b775f888d187fbdc13dfc12a22d9283773e",
+        "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-null-target.log"
+      },
+      {
+        "name": "origin",
+        "owner": "OriginalEnumSelectorProof",
+        "exit": 1,
+        "killed": true,
+        "shadowSha256": "33a83e87912e857e2a1c1b497e4af0b8c4a4bed27cf51f74594b21e2e8af780f",
+        "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-origin.log"
+      },
+      {
+        "name": "map-collapse",
+        "owner": "EnumModelPreparation",
+        "exit": 1,
+        "killed": true,
+        "shadowSha256": "6eaf373e87cc596f8969cc837fee45af58a52ed6f99e334bc8d490382d01f2a5",
+        "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-map-collapse.log"
+      },
+      {
+        "name": "family",
+        "owner": "EnumAgeModelPreparation",
+        "exit": 1,
+        "killed": true,
+        "shadowSha256": "ac77f20032299f8eca61613d5e6736b92a761b446d96b0fa5525e41a9b32b321",
+        "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-family.log"
+      }
+    ],
+    "noCompilerErrorsCounted": true
+  },
+  "failures": [
+    {
+      "classification": "ADVERSARY_FIXTURE",
+      "log": "adversarial/s53-adversary-native-first.log",
+      "reason": "Altered branch target had no bound classfile label: branch_target_missing before desired guard",
+      "repair": "Only synthetic operand points to declared method-start label; exact null_guard_target assertion preserved, second and final baseline pass",
+      "productionChanged": false
+    }
+  ],
+  "cost": {
+    "classification": "PREPARATION/OFFLINE, no hot callers",
+    "variables": "resources/classes/methods/instructions; enum/domain rows; unique models/parts/cubes; bounded variant source registry",
+    "caps": "S51 64 classes,1MiB/class,8MiB total,1024methods/class,512instructions/method; enum/rows/models256; source registry1024; S45 structure caps unchanged",
+    "caches": "pass-local class and model identity; output immutable hashes/fingerprints, no live references",
+    "foundationRecertification": "Shared selector/input/bridge/origin proofs recertified only ENUM_AGE and ENUM_ONLY; public S51 and exact previous recipes plus semantic mutants",
+    "benchmark": "No NFR014 TPS or full G9 claim"
+  },
+  "visual": {
+    "scope": "Two original initial cuboid projections, fixed initial structure, inspect preserves animated state; no GPU/pose/root/layers/material claim",
+    "inspected": true,
+    "svgSha256": "6b42cbf28e14c81cd2b392d720620bd0a14f2866ad979050472152a78f1d490c",
+    "replaySvgAndRecipeByteIdentical": true
+  },
+  "scope": {
+    "trusted": "OriginalEnumSelectorProof/EnumModelPreparation exact original actor component/extraction/state/enum/model slot and initial recipe only",
+    "entityTypeAssociation": "UNPROVEN",
+    "ageAxis": "none introduced in ENUM_ONLY; S52 extraction remains UNPROVEN",
+    "poseRootLayersPhysical": "UNPROVEN",
+    "fullOrG6Closure": false
+  },
+  "reviewPasses": 2,
+  "productionEditsByAdversary": 0,
+  "evidence": [
+    {
+      "path": "adversarial/executed-private-oracle.java.txt",
+      "bytes": 10548,
+      "sha256": "797703ce300b60fcd3605417c4af3ade7bfa1a6321bb1e5689563d7bc645a249"
+    },
+    {
+      "path": "adversarial/first-private-oracle.java.txt",
+      "bytes": 9207,
+      "sha256": "0d0967fd8a5519e6aa238a5205eddbb180c7534d05e20880cc1fded535b43db7"
+    },
+    {
+      "path": "adversarial/native-single-model.png",
+      "bytes": 2955,
+      "sha256": "dd0007eb005945789a6f83ac633a913c18dbcca004453882d1b698bd962292df"
+    },
+    {
+      "path": "adversarial/native-single-model.svg",
+      "bytes": 3648,
+      "sha256": "6b42cbf28e14c81cd2b392d720620bd0a14f2866ad979050472152a78f1d490c"
+    },
+    {
+      "path": "adversarial/private-mutation-results.json",
+      "bytes": 1594,
+      "sha256": "0475160a8d6f8ec9c6f911450b262837074963db3ae6ece79f1d8ae1304aeda7"
+    },
+    {
+      "path": "adversarial/public-driver-mutation-results.json",
+      "bytes": 565,
+      "sha256": "29f4930d32c67e65356f80f00cbe94a2c8bdb63797129afcd928d06ccd17091c"
+    },
+    {
+      "path": "adversarial/public-driver-null-target.log",
+      "bytes": 206529,
+      "sha256": "1aebbd01a4be6bae36eaec7209e7574ef7da3a52ec36a04493397e59a6760cff"
+    },
+    {
+      "path": "adversarial/recipe.json",
+      "bytes": 6328,
+      "sha256": "4f7a3563ca617ca949ce97e38bd9cb4518594b3342749a4f5ca66144440b0973"
+    },
+    {
+      "path": "adversarial/s53-adversary-mutant-body-slot.log",
+      "bytes": 206426,
+      "sha256": "3fda2680dcae4ff8a540cc4831a97d3ce587cce5ca37e0e1756d94a54971b88d"
+    },
+    {
+      "path": "adversarial/s53-adversary-mutant-family.log",
+      "bytes": 29079,
+      "sha256": "85546bacca2449516b13a4ed4d161e3d5085a533ee3ac2dbc329bc944232374a"
+    },
+    {
+      "path": "adversarial/s53-adversary-mutant-map-collapse.log",
+      "bytes": 28453,
+      "sha256": "dd0bfae74157d2b14046d157453d5656713314be4b8819e102d1fb745908c440"
+    },
+    {
+      "path": "adversarial/s53-adversary-mutant-null-target.log",
+      "bytes": 27845,
+      "sha256": "e19cdb1464472e031bb85737d217748c64dbebe1fc9ea67e0d2d2c1cf486d752"
+    },
+    {
+      "path": "adversarial/s53-adversary-mutant-origin.log",
+      "bytes": 27135,
+      "sha256": "80b2d69b5af7b8ee2f38ad93033767560a6eb90a770171223f60be6dd1dc13ab"
+    },
+    {
+      "path": "adversarial/s53-adversary-native-final.log",
+      "bytes": 34826,
+      "sha256": "177e94d6bcbc5eb10c7617896f97df73888a16454525d1847f5d75c60038cc6b"
+    },
+    {
+      "path": "adversarial/s53-adversary-native-first.log",
+      "bytes": 211249,
+      "sha256": "c6c31a1f552205401744c7ed1dc9fa10fe167a43eed781c5de15382e5366c90e"
+    },
+    {
+      "path": "adversarial/s53-adversary-native-second.log",
+      "bytes": 35126,
+      "sha256": "eb379f05126613fd5c03de8ecea8f89e27722e0dde362ae4319f59846bb0bb0c"
+    },
+    {
+      "path": "adversarial/s53-adversary-public.log",
+      "bytes": 33444,
+      "sha256": "f8c84e195b679c38c6b7ef1f4fcb8f74b6bcf523f9ce448f030edf965e0cc471"
+    },
+    {
+      "path": "adversarial/s53-impl-public-replay.log",
+      "bytes": 211419,
+      "sha256": "8ad7edc5b7bc3a855efcb835b9714cb4d6ee155561b784dd1c4ed9384fb60493"
+    }
+  ],
+  "publicDriver": {
+    "selected": "null-target",
+    "aggregatedExit": 0,
+    "nativeExit": 1,
+    "semanticAssertion": "program fault admitted 1",
+    "duration": "68s",
+    "allFivePrivateMutants": true
+  }
+}

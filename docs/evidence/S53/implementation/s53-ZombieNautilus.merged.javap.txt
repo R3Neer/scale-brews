@@ -1,0 +1,309 @@
+Compiled from "ZombieNautilus.java"
+public class net.minecraft.world.entity.animal.nautilus.ZombieNautilus extends net.minecraft.world.entity.animal.nautilus.AbstractNautilus {
+  private static final net.minecraft.world.entity.ai.Brain$Provider<net.minecraft.world.entity.animal.nautilus.ZombieNautilus> BRAIN_PROVIDER;
+
+  private static final net.minecraft.network.syncher.EntityDataAccessor<net.minecraft.core.Holder<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant>> DATA_VARIANT_ID;
+
+  public net.minecraft.world.entity.animal.nautilus.ZombieNautilus(net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.animal.nautilus.ZombieNautilus>, net.minecraft.world.level.Level);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: invokespecial #1                  // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus."<init>":(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V
+         6: return
+
+  public static net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder createAttributes();
+    Code:
+         0: invokestatic  #7                  // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.createAttributes:()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;
+         3: getstatic     #11                 // Field net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEED:Lnet/minecraft/core/Holder;
+         6: ldc2_w        #17                 // double 1.100000023841858d
+         9: invokevirtual #19                 // Method net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder.add:(Lnet/minecraft/core/Holder;D)Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;
+        12: areturn
+
+  public net.minecraft.world.entity.animal.nautilus.ZombieNautilus getBreedOffspring(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.AgeableMob);
+    Code:
+         0: aconst_null
+         1: areturn
+
+  protected net.minecraft.world.entity.EquipmentSlot sunProtectionSlot();
+    Code:
+         0: getstatic     #25                 // Field net/minecraft/world/entity/EquipmentSlot.BODY:Lnet/minecraft/world/entity/EquipmentSlot;
+         3: areturn
+
+  protected net.minecraft.world.entity.ai.Brain<net.minecraft.world.entity.animal.nautilus.ZombieNautilus> makeBrain(net.minecraft.world.entity.ai.Brain$Packed);
+    Code:
+         0: getstatic     #31                 // Field BRAIN_PROVIDER:Lnet/minecraft/world/entity/ai/Brain$Provider;
+         3: aload_0
+         4: aload_1
+         5: invokevirtual #37                 // Method net/minecraft/world/entity/ai/Brain$Provider.makeBrain:(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/ai/Brain$Packed;)Lnet/minecraft/world/entity/ai/Brain;
+         8: areturn
+
+  public net.minecraft.world.entity.ai.Brain<net.minecraft.world.entity.animal.nautilus.ZombieNautilus> getBrain();
+    Code:
+         0: aload_0
+         1: invokespecial #43                 // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.getBrain:()Lnet/minecraft/world/entity/ai/Brain;
+         4: areturn
+
+  protected void customServerAiStep(net.minecraft.server.level.ServerLevel);
+    Code:
+         0: invokestatic  #47                 // Method net/minecraft/util/profiling/Profiler.get:()Lnet/minecraft/util/profiling/ProfilerFiller;
+         3: astore_2
+         4: aload_2
+         5: ldc           #53                 // String zombieNautilusBrain
+         7: invokeinterface #55,  2           // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+        12: aload_0
+        13: invokevirtual #61                 // Method getBrain:()Lnet/minecraft/world/entity/ai/Brain;
+        16: aload_1
+        17: aload_0
+        18: invokevirtual #62                 // Method net/minecraft/world/entity/ai/Brain.tick:(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/LivingEntity;)V
+        21: aload_2
+        22: invokeinterface #68,  1           // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+        27: aload_2
+        28: ldc           #72                 // String zombieNautilusActivityUpdate
+        30: invokeinterface #55,  2           // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.push:(Ljava/lang/String;)V
+        35: aload_0
+        36: invokestatic  #74                 // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilusAi.updateActivity:(Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;)V
+        39: aload_2
+        40: invokeinterface #68,  1           // InterfaceMethod net/minecraft/util/profiling/ProfilerFiller.pop:()V
+        45: aload_0
+        46: aload_1
+        47: invokespecial #80                 // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.customServerAiStep:(Lnet/minecraft/server/level/ServerLevel;)V
+        50: return
+
+  protected net.minecraft.sounds.SoundEvent getAmbientSound();
+    Code:
+         0: aload_0
+         1: invokevirtual #84                 // Method isUnderWater:()Z
+         4: ifeq          13
+         7: getstatic     #88                 // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_AMBIENT:Lnet/minecraft/sounds/SoundEvent;
+        10: goto          16
+        13: getstatic     #94                 // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_AMBIENT_ON_LAND:Lnet/minecraft/sounds/SoundEvent;
+        16: areturn
+
+  protected net.minecraft.sounds.SoundEvent getHurtSound(net.minecraft.world.damagesource.DamageSource);
+    Code:
+         0: aload_0
+         1: invokevirtual #84                 // Method isUnderWater:()Z
+         4: ifeq          13
+         7: getstatic     #97                 // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_HURT:Lnet/minecraft/sounds/SoundEvent;
+        10: goto          16
+        13: getstatic     #100                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_HURT_ON_LAND:Lnet/minecraft/sounds/SoundEvent;
+        16: areturn
+
+  protected net.minecraft.sounds.SoundEvent getDeathSound();
+    Code:
+         0: aload_0
+         1: invokevirtual #84                 // Method isUnderWater:()Z
+         4: ifeq          13
+         7: getstatic     #103                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DEATH:Lnet/minecraft/sounds/SoundEvent;
+        10: goto          16
+        13: getstatic     #106                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DEATH_ON_LAND:Lnet/minecraft/sounds/SoundEvent;
+        16: areturn
+
+  protected net.minecraft.sounds.SoundEvent getDashSound();
+    Code:
+         0: aload_0
+         1: invokevirtual #84                 // Method isUnderWater:()Z
+         4: ifeq          13
+         7: getstatic     #109                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DASH:Lnet/minecraft/sounds/SoundEvent;
+        10: goto          16
+        13: getstatic     #112                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DASH_ON_LAND:Lnet/minecraft/sounds/SoundEvent;
+        16: areturn
+
+  protected net.minecraft.sounds.SoundEvent getDashReadySound();
+    Code:
+         0: aload_0
+         1: invokevirtual #84                 // Method isUnderWater:()Z
+         4: ifeq          13
+         7: getstatic     #115                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DASH_READY:Lnet/minecraft/sounds/SoundEvent;
+        10: goto          16
+        13: getstatic     #118                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_DASH_READY_ON_LAND:Lnet/minecraft/sounds/SoundEvent;
+        16: areturn
+
+  protected void playEatingSound();
+    Code:
+         0: aload_0
+         1: getstatic     #121                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_EAT:Lnet/minecraft/sounds/SoundEvent;
+         4: invokevirtual #124                // Method makeSound:(Lnet/minecraft/sounds/SoundEvent;)V
+         7: return
+
+  protected net.minecraft.sounds.SoundEvent getSwimSound();
+    Code:
+         0: getstatic     #128                // Field net/minecraft/sounds/SoundEvents.ZOMBIE_NAUTILUS_SWIM:Lnet/minecraft/sounds/SoundEvent;
+         3: areturn
+
+  protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData$Builder);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #131                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.defineSynchedData:(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V
+         5: aload_1
+         6: getstatic     #135                // Field DATA_VARIANT_ID:Lnet/minecraft/network/syncher/EntityDataAccessor;
+         9: aload_0
+        10: invokevirtual #139                // Method registryAccess:()Lnet/minecraft/core/RegistryAccess;
+        13: getstatic     #143                // Field net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariants.TEMPERATE:Lnet/minecraft/resources/ResourceKey;
+        16: invokestatic  #149                // Method net/minecraft/world/entity/variant/VariantUtils.getDefaultOrAny:(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/core/Holder;
+        19: invokevirtual #155                // Method net/minecraft/network/syncher/SynchedEntityData$Builder.define:(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)Lnet/minecraft/network/syncher/SynchedEntityData$Builder;
+        22: pop
+        23: return
+
+  protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #161                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.readAdditionalSaveData:(Lnet/minecraft/world/level/storage/ValueInput;)V
+         5: aload_1
+         6: getstatic     #165                // Field net/minecraft/core/registries/Registries.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/resources/ResourceKey;
+         9: invokestatic  #170                // Method net/minecraft/world/entity/variant/VariantUtils.readVariant:(Lnet/minecraft/world/level/storage/ValueInput;Lnet/minecraft/resources/ResourceKey;)Ljava/util/Optional;
+        12: aload_0
+        13: invokedynamic #174,  0            // InvokeDynamic #0:accept:(Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;)Ljava/util/function/Consumer;
+        18: invokevirtual #178                // Method java/util/Optional.ifPresent:(Ljava/util/function/Consumer;)V
+        21: return
+
+  protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokespecial #184                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.addAdditionalSaveData:(Lnet/minecraft/world/level/storage/ValueOutput;)V
+         5: aload_1
+         6: aload_0
+         7: invokevirtual #188                // Method getVariant:()Lnet/minecraft/core/Holder;
+        10: invokestatic  #192                // Method net/minecraft/world/entity/variant/VariantUtils.writeVariant:(Lnet/minecraft/world/level/storage/ValueOutput;Lnet/minecraft/core/Holder;)V
+        13: return
+
+  public void setVariant(net.minecraft.core.Holder<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant>);
+    Code:
+         0: aload_0
+         1: getfield      #196                // Field entityData:Lnet/minecraft/network/syncher/SynchedEntityData;
+         4: getstatic     #135                // Field DATA_VARIANT_ID:Lnet/minecraft/network/syncher/EntityDataAccessor;
+         7: aload_1
+         8: invokevirtual #200                // Method net/minecraft/network/syncher/SynchedEntityData.set:(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V
+        11: return
+
+  public net.minecraft.core.Holder<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant> getVariant();
+    Code:
+         0: aload_0
+         1: getfield      #196                // Field entityData:Lnet/minecraft/network/syncher/SynchedEntityData;
+         4: getstatic     #135                // Field DATA_VARIANT_ID:Lnet/minecraft/network/syncher/EntityDataAccessor;
+         7: invokevirtual #206                // Method net/minecraft/network/syncher/SynchedEntityData.get:(Lnet/minecraft/network/syncher/EntityDataAccessor;)Ljava/lang/Object;
+        10: checkcast     #209                // class net/minecraft/core/Holder
+        13: areturn
+
+  public <T> T get(net.minecraft.core.component.DataComponentType<? extends T>);
+    Code:
+         0: aload_1
+         1: getstatic     #211                // Field net/minecraft/core/component/DataComponents.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/core/component/DataComponentType;
+         4: if_acmpne     16
+         7: aload_1
+         8: aload_0
+         9: invokevirtual #188                // Method getVariant:()Lnet/minecraft/core/Holder;
+        12: invokestatic  #216                // Method castComponentValue:(Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)Ljava/lang/Object;
+        15: areturn
+        16: aload_0
+        17: aload_1
+        18: invokespecial #220                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.get:(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;
+        21: areturn
+
+  protected void applyImplicitComponents(net.minecraft.core.component.DataComponentGetter);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: getstatic     #211                // Field net/minecraft/core/component/DataComponents.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/core/component/DataComponentType;
+         5: invokevirtual #223                // Method applyImplicitComponentIfPresent:(Lnet/minecraft/core/component/DataComponentGetter;Lnet/minecraft/core/component/DataComponentType;)Z
+         8: pop
+         9: aload_0
+        10: aload_1
+        11: invokespecial #227                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.applyImplicitComponents:(Lnet/minecraft/core/component/DataComponentGetter;)V
+        14: return
+
+  protected <T> boolean applyImplicitComponent(net.minecraft.core.component.DataComponentType<T>, T);
+    Code:
+         0: aload_1
+         1: getstatic     #211                // Field net/minecraft/core/component/DataComponents.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/core/component/DataComponentType;
+         4: if_acmpne     25
+         7: getstatic     #211                // Field net/minecraft/core/component/DataComponents.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/core/component/DataComponentType;
+        10: aload_2
+        11: invokestatic  #216                // Method castComponentValue:(Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)Ljava/lang/Object;
+        14: checkcast     #209                // class net/minecraft/core/Holder
+        17: astore_3
+        18: aload_0
+        19: aload_3
+        20: invokevirtual #231                // Method setVariant:(Lnet/minecraft/core/Holder;)V
+        23: iconst_1
+        24: ireturn
+        25: aload_0
+        26: aload_1
+        27: aload_2
+        28: invokespecial #235                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.applyImplicitComponent:(Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)Z
+        31: ireturn
+
+  public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(net.minecraft.world.level.ServerLevelAccessor, net.minecraft.world.DifficultyInstance, net.minecraft.world.entity.EntitySpawnReason, net.minecraft.world.entity.SpawnGroupData);
+    Code:
+         0: aload_1
+         1: aload_0
+         2: invokevirtual #239                // Method blockPosition:()Lnet/minecraft/core/BlockPos;
+         5: invokestatic  #243                // Method net/minecraft/world/entity/variant/SpawnContext.create:(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/entity/variant/SpawnContext;
+         8: getstatic     #165                // Field net/minecraft/core/registries/Registries.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/resources/ResourceKey;
+        11: invokestatic  #249                // Method net/minecraft/world/entity/variant/VariantUtils.selectVariantToSpawn:(Lnet/minecraft/world/entity/variant/SpawnContext;Lnet/minecraft/resources/ResourceKey;)Ljava/util/Optional;
+        14: aload_0
+        15: invokedynamic #253,  0            // InvokeDynamic #1:accept:(Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;)Ljava/util/function/Consumer;
+        20: invokevirtual #178                // Method java/util/Optional.ifPresent:(Ljava/util/function/Consumer;)V
+        23: aload_0
+        24: aload_1
+        25: aload_2
+        26: aload_3
+        27: aload         4
+        29: invokespecial #254                // Method net/minecraft/world/entity/animal/nautilus/AbstractNautilus.finalizeSpawn:(Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/EntitySpawnReason;Lnet/minecraft/world/entity/SpawnGroupData;)Lnet/minecraft/world/entity/SpawnGroupData;
+        32: areturn
+
+  public boolean canBeLeashed();
+    Code:
+         0: aload_0
+         1: invokevirtual #258                // Method isAggravated:()Z
+         4: ifne          18
+         7: aload_0
+         8: invokevirtual #261                // Method isMobControlled:()Z
+        11: ifne          18
+        14: iconst_1
+        15: goto          19
+        18: iconst_0
+        19: ireturn
+
+  protected boolean canBeABaby();
+    Code:
+         0: iconst_0
+         1: ireturn
+
+  public net.minecraft.world.entity.AgeableMob getBreedOffspring(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.AgeableMob);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: aload_2
+         3: invokevirtual #264                // Method getBreedOffspring:(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/AgeableMob;)Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilus;
+         6: areturn
+
+  private static java.util.List lambda$static$0(net.minecraft.world.entity.animal.nautilus.ZombieNautilus);
+    Code:
+         0: invokestatic  #268                // Method net/minecraft/world/entity/animal/nautilus/ZombieNautilusAi.getActivities:()Ljava/util/List;
+         3: areturn
+
+  static {};
+    Code:
+         0: getstatic     #272                // Field net/minecraft/world/entity/ai/memory/MemoryModuleType.ANGRY_AT:Lnet/minecraft/world/entity/ai/memory/MemoryModuleType;
+         3: getstatic     #278                // Field net/minecraft/world/entity/ai/memory/MemoryModuleType.ATTACK_TARGET_COOLDOWN:Lnet/minecraft/world/entity/ai/memory/MemoryModuleType;
+         6: invokestatic  #281                // InterfaceMethod java/util/List.of:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;
+         9: getstatic     #287                // Field net/minecraft/world/entity/ai/sensing/SensorType.NEAREST_LIVING_ENTITIES:Lnet/minecraft/world/entity/ai/sensing/SensorType;
+        12: getstatic     #293                // Field net/minecraft/world/entity/ai/sensing/SensorType.NEAREST_ADULT:Lnet/minecraft/world/entity/ai/sensing/SensorType;
+        15: getstatic     #296                // Field net/minecraft/world/entity/ai/sensing/SensorType.NEAREST_PLAYERS:Lnet/minecraft/world/entity/ai/sensing/SensorType;
+        18: getstatic     #299                // Field net/minecraft/world/entity/ai/sensing/SensorType.HURT_BY:Lnet/minecraft/world/entity/ai/sensing/SensorType;
+        21: getstatic     #302                // Field net/minecraft/world/entity/ai/sensing/SensorType.NAUTILUS_TEMPTATIONS:Lnet/minecraft/world/entity/ai/sensing/SensorType;
+        24: invokestatic  #305                // InterfaceMethod java/util/List.of:(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;
+        27: invokedynamic #308,  0            // InvokeDynamic #2:createActivities:()Lnet/minecraft/world/entity/ai/Brain$ActivitySupplier;
+        32: invokestatic  #312                // Method net/minecraft/world/entity/ai/Brain.provider:(Ljava/util/Collection;Ljava/util/Collection;Lnet/minecraft/world/entity/ai/Brain$ActivitySupplier;)Lnet/minecraft/world/entity/ai/Brain$Provider;
+        35: putstatic     #31                 // Field BRAIN_PROVIDER:Lnet/minecraft/world/entity/ai/Brain$Provider;
+        38: ldc           #32                 // class net/minecraft/world/entity/animal/nautilus/ZombieNautilus
+        40: getstatic     #316                // Field net/minecraft/network/syncher/EntityDataSerializers.ZOMBIE_NAUTILUS_VARIANT:Lnet/minecraft/network/syncher/EntityDataSerializer;
+        43: invokestatic  #321                // Method net/minecraft/network/syncher/SynchedEntityData.defineId:(Ljava/lang/Class;Lnet/minecraft/network/syncher/EntityDataSerializer;)Lnet/minecraft/network/syncher/EntityDataAccessor;
+        46: putstatic     #135                // Field DATA_VARIANT_ID:Lnet/minecraft/network/syncher/EntityDataAccessor;
+        49: return
+}

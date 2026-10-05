@@ -1,0 +1,42 @@
+[
+  {
+    "name": "body-slot",
+    "owner": "OriginalEnumSelectorProof",
+    "exit": 1,
+    "killed": true,
+    "shadowSha256": "3e85a4b542fa1cc042f35026da4fdb76313348bb5cf2cf2d81079e9839d05627",
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-body-slot.log"
+  },
+  {
+    "name": "null-target",
+    "owner": "OriginalEnumSelectorProof",
+    "exit": 1,
+    "killed": true,
+    "shadowSha256": "6cc917b4bf84cae1a6e5c27f1fb44b775f888d187fbdc13dfc12a22d9283773e",
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-null-target.log"
+  },
+  {
+    "name": "origin",
+    "owner": "OriginalEnumSelectorProof",
+    "exit": 1,
+    "killed": true,
+    "shadowSha256": "33a83e87912e857e2a1c1b497e4af0b8c4a4bed27cf51f74594b21e2e8af780f",
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-origin.log"
+  },
+  {
+    "name": "map-collapse",
+    "owner": "EnumModelPreparation",
+    "exit": 1,
+    "killed": true,
+    "shadowSha256": "6eaf373e87cc596f8969cc837fee45af58a52ed6f99e334bc8d490382d01f2a5",
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-map-collapse.log"
+  },
+  {
+    "name": "family",
+    "owner": "EnumAgeModelPreparation",
+    "exit": 1,
+    "killed": true,
+    "shadowSha256": "ac77f20032299f8eca61613d5e6736b92a761b446d96b0fa5525e41a9b32b321",
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s53-adversary-mutant-family.log"
+  }
+]

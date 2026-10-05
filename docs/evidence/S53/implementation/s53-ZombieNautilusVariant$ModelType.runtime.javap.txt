@@ -1,0 +1,81 @@
+Compiled from "ZombieNautilusVariant.java"
+public final class net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType extends java.lang.Enum<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType> implements net.minecraft.util.StringRepresentable {
+  public static final net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType NORMAL;
+
+  public static final net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType WARM;
+
+  public static final com.mojang.serialization.Codec<net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType> CODEC;
+
+  private final java.lang.String name;
+
+  private static final net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType[] $VALUES;
+
+  public static net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType[] values();
+    Code:
+         0: getstatic     #10                 // Field $VALUES:[Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+         3: invokevirtual #14                 // Method "[Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;".clone:()Ljava/lang/Object;
+         6: checkcast     #15                 // class "[Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;"
+         9: areturn
+
+  public static net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType valueOf(java.lang.String);
+    Code:
+         0: ldc           #1                  // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType
+         2: aload_0
+         3: invokestatic  #19                 // Method java/lang/Enum.valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+         6: checkcast     #1                  // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType
+         9: areturn
+
+  private net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType(java.lang.String);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: iload_2
+         3: invokespecial #25                 // Method java/lang/Enum."<init>":(Ljava/lang/String;I)V
+         6: aload_0
+         7: aload_3
+         8: putfield      #29                 // Field name:Ljava/lang/String;
+        11: return
+
+  public java.lang.String getSerializedName();
+    Code:
+         0: aload_0
+         1: getfield      #29                 // Field name:Ljava/lang/String;
+         4: areturn
+
+  private static net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant$ModelType[] $values();
+    Code:
+         0: iconst_2
+         1: anewarray     #1                  // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType
+         4: dup
+         5: iconst_0
+         6: getstatic     #3                  // Field NORMAL:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+         9: aastore
+        10: dup
+        11: iconst_1
+        12: getstatic     #7                  // Field WARM:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        15: aastore
+        16: areturn
+
+  static {};
+    Code:
+         0: new           #1                  // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType
+         3: dup
+         4: ldc           #33                 // String NORMAL
+         6: iconst_0
+         7: ldc           #34                 // String normal
+         9: invokespecial #36                 // Method "<init>":(Ljava/lang/String;ILjava/lang/String;)V
+        12: putstatic     #3                  // Field NORMAL:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        15: new           #1                  // class net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType
+        18: dup
+        19: ldc           #39                 // String WARM
+        21: iconst_1
+        22: ldc           #40                 // String warm
+        24: invokespecial #36                 // Method "<init>":(Ljava/lang/String;ILjava/lang/String;)V
+        27: putstatic     #7                  // Field WARM:Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        30: invokestatic  #42                 // Method $values:()[Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        33: putstatic     #10                 // Field $VALUES:[Lnet/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant$ModelType;
+        36: invokedynamic #46,  0             // InvokeDynamic #0:get:()Ljava/util/function/Supplier;
+        41: invokestatic  #50                 // InterfaceMethod net/minecraft/util/StringRepresentable.fromEnum:(Ljava/util/function/Supplier;)Lnet/minecraft/util/StringRepresentable$EnumCodec;
+        44: putstatic     #56                 // Field CODEC:Lcom/mojang/serialization/Codec;
+        47: return
+}

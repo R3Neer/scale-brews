@@ -3639,3 +3639,45 @@ Initial six-slot SVG/PNG inspected by both roles; replay SVG byte-identical.
 adversarial one-offs retired exactly and reusable tooling retained. TRUSTED only
 state predicate->original slot assignment; entity extraction, pose/root/material,
 G6/FULL/G7–G9 and epic-end human acceptance remain open. No Tiny regression repeated.
+
+S53 closed scoped verification (IMPLEMENTER and independent ADVERSARY):
+
+build -x runGameTest compileGametestJava runClientGameTest -I tools/s53_implementer.init.gradle
+-PscalebrewsBuildDir=../s53-impl-build --offline: PASS90s, clean exit0. S53 native
+ZombieNautilus witness has two enum models, four original extract/submit selections
+with independent state age predicate, source/queued identity/fingerprints, missing
+domain, state preservation, determinism/immutable metadata. Shared helper requires
+S51 own14 and public14/12 native regressions in the same client; all PASS.
+Full prior S51 JSON equal after refactor: three recipes14 rows including canonical
+texts, resource/structure digests and metadata. OriginalModelPrograms/S52 and369
+other production owners byte intact; source372 total, one owner refactored/two new.
+
+First client RED69s was IMPLEMENTER_FIXTURE: last state oracle compared pre-submit
+pose after legitimate native animation. Preserve RED, correct reference immediately
+before inspect of animated shared model, repeat affected complete focal battery;
+no production repair. Manifest normal112server/34client restored PASS2s identical
+to source. JAR764 entries/1264774 bytes SHA0f7a9edeb42d8c69daf873db4a303e49c892d6b78cca9468e75c2454db3d1bcb,
+no tests leaked. Fourteen raw resources602179 bytes; nine whole-program comparisons
+merged/runtime retain all instructions/targets after CP/ldc width/branch ordinal
+normalization; prior dependency approvals remain scoped. Receipts/logs/recipes/raw
+programs durable under docs/evidence/S53. Cost PREPARATION pass-local/capped with
+no new hot/initializer callers; no Tiny/server/default-client/S52 repeats. S45
+fingerprints exercised on affected models. G6/FULL/G7-G9 and human epic-end open.
+
+S53 independent public lane PASS123s and IMPLEMENTER replay PASS118s, clean exit0:
+model domain2/native exact deferred objects, null no replay, complete maps/foreign
+keys/alias/current animated state/immutable metadata/origin/thread; two malformed
+programs rejected by exact reasons. Three prior S51 complete recipes identical
+and S51 public14/12 preserved. Five semantic mutants compiled and killed (body
+slot, null target, origin, collapsed models, wrong family). Public driver child
+null-target native68s/exit1, root98s/exit1; both aggregate0 and semantic program
+fault admitted1, compiler/infrastructure failures excluded. Root only repeats
+this driver case, not all sensitivities. Initial two-model SVG/PNG inspected and
+root SVG/recipe.json byte identical. First ADVERSARY_FIXTURE RED122s label target
+missing corrected to original existing operand target; RED/oracle retained,
+baseline49s/final63s green, no production repairs.372 hashes/JAR764 preserved,
+two full final reviews each role zero changes; eight private one-offs exactly
+retired and reusable tools retained. Main fresh b5e62535 integrated. TRUSTED only
+original actor/input->enum->slot initial PREPARATION; EntityType association,
+pose/root/layers/material/FULL/G6 and integrated G9 open. Local Sprint:S53 commit,
+no Tiny/server/default-client/unchanged parser or S52 repeats. Human at epic end.

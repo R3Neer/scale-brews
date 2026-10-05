@@ -199,6 +199,19 @@ age, actor ni binding físico, ni presume cómo llega la edad de la entidad al
 estado. Sólo PREPARATION sin callers hot; TRUSTED scoped tras campaña
 independiente y replay. G6, poses/root/capas/material físico/FULL permanecen abiertos.
 
+S53 `EnumModelPreparation` prepara otra tecnologia original: componente Holder
+con record/model enum hacia Map[enum] con un EntityModel unico. No publica un eje
+de edad. `OriginalEnumSelectorProof` comparte con S51 las pruebas completas de
+record/accessor, getter/componente/extractor, submit y cuatro bridges, pero exige
+familia explicita ENUM_ONLY/ENUM_AGE. La API y recetas S51 se conservan. La captura
+incidental de body armor se permite solo en ENUM_ONLY tras probar getter Mob
+completo y despacho original getItemBySlot sin overrides. Una fila por key con
+slot/fingerprint inicial y resource hashes, metadata inmutable y cache pass-local;
+ningun caller hot ni binding ejecutable. Actor exacto/origen original sigue siendo
+requisito; asociacion EntityType/renderer, pose/root/layers/material/FULL fuera de
+scope. TRUSTED solo en esta PREPARATION tras recertificacion independiente y replay;
+evidencia ejecutada en VALIDATION. G6 sigue abierto.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.
