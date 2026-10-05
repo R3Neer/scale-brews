@@ -122,6 +122,7 @@ tasks.named('processGametestResources') {
 	def s36ClientOnly = providers.gradleProperty('scalebrewsS36ClientOnly').orElse('false')
 	def s41ExperimentalClientOnly = providers.gradleProperty('scalebrewsS41ExperimentalClientOnly').orElse('false')
 	def s43ClientOnly = providers.gradleProperty('scalebrewsS43ClientOnly').orElse('false')
+	def s45CensusOnly = providers.gradleProperty('scalebrewsS45CensusOnly').orElse('false')
 	inputs.property('anatomyOnly', anatomyOnly)
 	inputs.property('preparedAnatomySuite', preparedAnatomySuite)
 	inputs.property('trackerLifecycleSuite', trackerLifecycleSuite)
@@ -132,7 +133,18 @@ tasks.named('processGametestResources') {
 	inputs.property('s36ClientOnly', s36ClientOnly)
 	inputs.property('s41ExperimentalClientOnly', s41ExperimentalClientOnly)
 	inputs.property('s43ClientOnly', s43ClientOnly)
+	inputs.property('s45CensusOnly', s45CensusOnly)
 	doLast {
+		if (s45CensusOnly.get().toBoolean()) {
+			if ([anatomyOnly, readmeCapture, tinyMountVisualProof, s36ClientOnly, s41ExperimentalClientOnly,
+					s43ClientOnly, hostIndependenceProof, predictionBaselineProof, preparedAnatomySuite, trackerLifecycleSuite]
+					.any { it.get().toBoolean() })
+				throw new GradleException('S45 census is mutually exclusive with the other proof selectors.')
+			def censusManifest = new File(destinationDir, 'fabric.mod.json')
+			def censusMetadata = new groovy.json.JsonSlurper().parse(censusManifest)
+			censusMetadata.entrypoints['fabric-client-gametest'] = ['io.github.r3neer.scalebrews.test.S45MinecraftCensusProof']
+			censusManifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(censusMetadata))
+		}
 		if (s43ClientOnly.get().toBoolean()) {
 			def nativePairManifest = new File(destinationDir, 'fabric.mod.json')
 			def nativePairMetadata = new groovy.json.JsonSlurper().parse(nativePairManifest)

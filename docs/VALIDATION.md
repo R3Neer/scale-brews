@@ -3187,3 +3187,53 @@ all modified text decodes as UTF-8 after a documentation-only encoding repair.
 Both full review passes require no further source changes. G5 tasks7-9 close in
 their own `Sprint: S44` local commit; G6-G9 remain open. Human stress cases from the
 retired platform path move from TODO to G9's existing acceptance matrix.
+
+
+## S45 - complete original Minecraft census (closed)
+
+Active role IMPLEMENTER. Explicit client PREPARATION now inventories all93
+Minecraft26.2 LivingEntity types through the canonical discovery/scanner, with
+original renderer/model/record/layer and wide/slim avatar alternatives. Actual
+server factories plus the actual connected player independently give the same93
+types; no factory null except player. Candidate inventory:95renderer alternatives,
+561semantic slots,467identity-cached model inspections,120candidate groups,
+4499parts/3217cubes;4798shared mutable parts preserved before/after. This includes
+current installed Scale layers; cosmetic candidates and9zero-material slots do
+not authorize physics. Executable selectors/poses/root transforms remain gaps.
+
+Executed corrected census PASS1m59s after identity corrections (stable enum names,
+framed map keys, malformed Unicode rejection); identical repeat, changed exact
+input, structure invalidation, empty/cycle/depth/nonfinite checks all PASS.
+Actual GameTest catalog has92UNRESOLVED+1armor_standSAFE_PARTIAL from its existing
+external variant fixture,0FULL; requireResolved correctly rejects the target.
+The target pins actual game/loaded-mod versions, JAR/directory/tool hashes and
+selected resource-pack identity; first preparation354938400ns with parallel
+lanes is preparation evidence, not a physics budget or isolated benchmark.
+
+Final build PASS2m35s with466/466 server GameTests. Default client suite32entries
+PASS5m4s before the last tooling identity corrections; none of those proofs
+invokes the census. The corrected tooling itself subsequently passes the original
+census and final build. Source ownership is unchanged for runtime/solver/network.
+Eight existing ownership/protocol gates PASS; presence-only gates are labelled.
+Evidence: docs/evidence/S45/minecraft-census.json, its canonical preimage,
+implementation-verification.json and ownership-gates.json, with360production
+file hashes and exact executed log hashes. JAR SHA256
+3418a682f7b3c3f19edb0881d63ef35c0a84ca9e66f93c78c5857c2d3580af4a
+(1174236bytes/732entries) has current preparation owners and no tests/retired
+platform classes. Reproduce the focal census with runClientGameTest
+-PscalebrewsS45CensusOnly=true; combine no other proof selector.
+
+Independent final acceptance PASS: four promoted Census/SlotIdentity/Identity/
+Bounds client proofs with clean shutdown57s. Separate original observation523
+models/4798parts and factory population93; exact limits, thread fence, Unicode,
+unchanged semantic-slot oracle and initial identity checks PASS. Prior alias RED
+is an implementation defect repaired by framing; isolated original-loadPose
+ownership mutation gives expected RED2m29. No production fix or weakened oracle
+comes from ADVERSARY. Reusable selector tools/s45_adversarial.init.gradle and
+adversarial-verification.json preserve exact commands/hashes/classification.
+
+Both complete zero-change reviews and all360 frozen productive hashes PASS;
+existing production files are unchanged and two preparation owners are added.
+Default manifest32 was restored after opt-in census. G6 task1 closes in S45's
+own local closure commit (Sprint:S45), verified before the next sprint; task2
+and complete physical coverage, G7-G9 and owner acceptance remain open.

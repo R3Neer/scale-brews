@@ -1,0 +1,115 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S45",
+  "baseline": "858b4ff550e0eda9d41d39dbc23a766634fc9581",
+  "productionOwners": {
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelFamilyCensus.java": "a5ff6c1fa843e5c2d5bc3b97ee5acc43dde7d86905671fc66df726e4639c6511",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/ModelPartStructure.java": "2de374c107be79d58c03aab155ecf515bf19a836dc34e98a37f8fb50fd1de098"
+  },
+  "executed": [
+    {
+      "log": "s45-adversary-census-first.log",
+      "sha256": "5b8bb3c0fd1c726305c502211c0c486f54e02cb52b7738c9716f7be2eca3368b",
+      "result": "INFRA_RED",
+      "scope": "Invalid oracle: getBaseClass is not the concrete entity class"
+    },
+    {
+      "log": "s45-adversary-census-second.log",
+      "sha256": "5b6ae6034fa7f65a582fac7414b726bfc1c363496972094ffddadb7c0b25492c",
+      "result": "PASS",
+      "scope": "Independent factories and original observation before final identity fixes"
+    },
+    {
+      "log": "s45-adversary-slot-first.log",
+      "sha256": "d443b245365c3ecb103d26b0767e23f4cb327c6e9ddbbbf58b93d0df209d924d",
+      "result": "PRODUCTION_RED_INTERMEDIATE",
+      "scope": "Flat/nested alias observed before repair"
+    },
+    {
+      "log": "s45-adversary-final-first.log",
+      "sha256": "d32e21f93afb09864daa68d7fa477c725d69491bd2bfbbf153eb7a96104af995",
+      "result": "PASS",
+      "scope": "Final owners: intact alias oracle plus Enum/Unicode/original census"
+    },
+    {
+      "log": "s45-adversary-mutant-ownership-first.log",
+      "sha256": "e412936bb624a1fae2e407ce75438d9536e6b056fc76a54b00baddec00768b28",
+      "result": "EXPECTED_RED",
+      "scope": "Isolated mutant resets original model pose; unchanged observation rejects"
+    },
+    {
+      "log": "s45-adversary-public-first.log",
+      "sha256": "0a630689f4823bf91f2f247218172021012b3fdce1e8d9371796df3e38660b96",
+      "result": "PASS",
+      "scope": "Promoted identity/census with expanded original layer observation"
+    },
+    {
+      "log": "s45-adversary-public-expanded.log",
+      "sha256": "80be375cdc393bf44c86bc43c50da13c02cf1fd39be9c2443c2f815ddccd7c0d",
+      "result": "INFRA_RED",
+      "scope": "Depth fixture names exceeded existing canonical part-path length before reaching depth boundary"
+    },
+    {
+      "log": "s45-adversary-public-expanded-second.log",
+      "sha256": "12b7bb928588653b993882b61b52160f36d819060af5fb04c9ab0b71862689e9",
+      "result": "PASS",
+      "scope": "All four promoted oracles including bounds; short valid names preserve exact tested depth"
+    }
+  ],
+  "scope": "Explicit original Minecraft preparation census only; not FULL, pose/selector certification or complete G6",
+  "finalObservation": {
+    "factoriesLivingTypes": 93,
+    "factoryNulls": [],
+    "observedModels": 523,
+    "observedParts": 4798,
+    "renderers": 95,
+    "fields": 1986,
+    "containerEntries": 370,
+    "modelSlots": 561,
+    "uniqueStructures": 467,
+    "parts": 4499,
+    "cubes": 3217,
+    "probeTargetDigest": "1a56f5521d88588759ee04f26126bbfa6fce25636b8b9c0cb19f4bf96c50f1b1",
+    "targetIdentityScope": "Fixture metadata identity probe, not generated physical acceptance catalog"
+  },
+  "mutationRecipe": {
+    "sourceOwner": "ModelPartStructure.Copy.copy",
+    "change": "Immediately after var pose = original.getInitialPose(); insert original.loadPose(pose); in an isolated compileClientJava source copy",
+    "expected": "Original model mutated by census",
+    "isolation": "Distinct Gradle build/cache/run dirs; exclude original ModelPartStructure.java only from mutant compileClientJava and add the source copy; unchanged Census oracle",
+    "productionModified": false,
+    "executedMutantSourceSha256": "2cdc019c8fed9b38f4472a65387fb7a9a3bc0395f4088a07cb276fa0166ff755",
+    "reusablePublicCompileOverride": "allprojects { afterEvaluate { tasks.named(\"compileClientJava\") { setSource(source.filter { it.name != \"ModelPartStructure.java\" }); source(file(providers.gradleProperty(\"s45OwnershipMutantSource\").get())) } } }",
+    "reproducePublic": "Use tools/s45_adversarial.init.gradle plus the compile override, pass s45OwnershipMutantSource pointing to the isolated mutated source, and separate scalebrewsBuildDir/project-cache-dir/s45AdversarialRunDir; expect Original model mutated by census, never a green run."
+  },
+  "costAndMemory": {
+    "classification": [
+      "PREPARATION",
+      "OFFLINE_TOOLING"
+    ],
+    "runtimeCallers": 0,
+    "scaling": [
+      "T registry types",
+      "V model slots",
+      "F reflected fields",
+      "A declared animation methods",
+      "P parts",
+      "C cubes",
+      "R revisions/input bytes"
+    ],
+    "lifetime": "Pass-local identity caches; Inventory retains fingerprints/strings/DTOs, not renderer/model/entity/world references",
+    "limitsObserved": [
+      "parts512/513",
+      "container512/513",
+      "entries4096",
+      "slots256",
+      "containerDepthLimit",
+      "structureDepth64/65",
+      "cubes4096/4097",
+      "vertices65536 predecessor/overflow",
+      "clientThreadFence"
+    ],
+    "globalRuntimeBenchmarkClaim": false
+  },
+  "reproduce": "./gradlew -I tools/s45_adversarial.init.gradle -PscalebrewsBuildDir=../s45-adversary-build --project-cache-dir ../s45-adversary-cache runClientGameTest --console=plain"
+}

@@ -114,6 +114,16 @@ Familias previstas:
 
 La extracción que necesita clases cliente ocurre en tooling/preparación. El runtime de servidor no recorre renderers ni reflecta modelos por query.
 
+El tooling cliente `ModelFamilyCensus`, invocado explícitamente, consume el
+censo y clasificador canónicos `CollisionCoverageDiscovery/Scanner`. Inventaría
+slots de modelos en renderers, layers y contenedores estructurales acotados,
+incluidos los dispatch de avatar, y agrupa candidatos por tecnología/clase/familia
+de animación original. `ModelPartStructure` identifica la estructura inicial en
+una copia independiente sin resetear el modelo compartido. Los slots, grupos y
+fingerprints no prueban selectors ejecutables, pose ni root transform; tampoco
+conceden FULL ni publican un collider. Sus fallos/límites quedan visibles en cada
+fila y ninguna ruta normal de física, tick, red o render invoca este censo.
+
 ### 4.4 PoseEngine y channels
 
 `PoseEngine` convierte inputs autoritativos en transforms locales. La unidad reusable es el motor de animación, no el mob.

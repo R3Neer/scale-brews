@@ -423,12 +423,25 @@ al final de la épica.
 
 **Requisitos:** FR-016, FR-024..032, FR-038..040, FR-089..092; NFR-019..024, NFR-028..032.
 
-1. [ ] scanner sobre todos los `LivingEntity` Minecraft 26.2;
+1. [x] scanner sobre todos los `LivingEntity` Minecraft 26.2;
 2. [ ] agrupar por engines/variant, no lista manual;
 3. [ ] completar familias necesarias;
 4. [ ] mantener excepciones técnicas explícitas y tests negativos;
 5. [ ] `UNRESOLVED=0` y ordinarios no excluidos FULL;
 6. [ ] catálogo reproducible con hashes/versions.
+
+**S45 cerrado adversarialmente:** tarea1 completada por el censo real de93 tipos,
+contrastado mediante factories reales y player conectado, sin lista de especies.
+Tooling explícito de preparación inventaría561slots/467modelos por identidad y
+120grupos candidatos, conservando4798parts compartidas. Censo/manifiesto/digest
+separan candidatos de selectors/poses/root transforms verificados; tarea2 sigue
+abierta. El entorno GameTest real conserva92UNRESOLVED+1variant fixture
+SAFE_PARTIAL+0FULL y rechaza requireResolved, sin proclamar catálogo general.
+Cuatro oráculos adversariales reutilizables, alias corregido/ownership mutant,
+build466/466 y default client32 están verdes con sus límites exactos en S45 y
+VALIDATION. Sólo se añaden dos owners de preparación; ninguna fuente productiva
+previa cambia. Cierre con commit local propio Sprint:S45; G6 tareas2–6 y G7–G9
+siguen abiertos y las necesidades humanas permanecen al final de la épica.
 
 ### G7 — migración de Clinging Reoriented
 

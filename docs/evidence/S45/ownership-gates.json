@@ -1,0 +1,50 @@
+[
+  {
+    "tool": "tools/s22_coverage_hotpath_gate.py",
+    "sha256": "ade6f371be9aa12d3ee14cedb30bca1cfcd1c2cc4a7148918a7833ede14ef41d",
+    "exitCode": 0,
+    "output": "S22 coverage hot-path gate passed: no production caller references coverage discovery/scanner.\n"
+  },
+  {
+    "tool": "tools/s23_spi_only_gate.py",
+    "sha256": "9b32c006efc95d4b827519344fb354696ee192d6039278a445bb04ad821cdd13",
+    "exitCode": 0,
+    "output": "S23 SPI-only gate passed: no DisplayRig/display-composite-specific production knowledge found.\n"
+  },
+  {
+    "tool": "tools/s24_ownership_gate.py",
+    "sha256": "f684bbf97e913d69a4c73caa4ac93439ca408379b76106d4f096717b14067f75",
+    "exitCode": 0,
+    "output": "S24_OWNERSHIP_GATE PASS root and endpoint state have single extracted owners\n"
+  },
+  {
+    "tool": "tools/s25_reference_authority_gate.py",
+    "sha256": "14fbbd2d9ee72012cb27924c13d0a857a3c1a838abc808278302f370169de5e8",
+    "exitCode": 0,
+    "output": "S25_REFERENCE_AUTHORITY_GATE PASS\n - retired legacy authority is absent; one canonical native-packet emitter is ownership-fenced\n - registered collision C2S payload schemas are metadata-only:\n    AnatomyMoveReferencePayload\n    AnatomyMoveReferenceV2Payload\n"
+  },
+  {
+    "tool": "tools/s25_reference_presence_gate.py",
+    "sha256": "69e36d2e5b3982ef04c8b963267f6390902839752d408ff9d6e86d39930117de",
+    "exitCode": 0,
+    "output": "S25_REFERENCE_PRESENCE CANDIDATE\n - src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyNetworking.java\nPresence only: adversarial behavior/authority gates are still required before G4.1 can close.\n"
+  },
+  {
+    "tool": "tools/s25_reference_protocol_gate.py",
+    "sha256": "4d39a588e56cba5d2963f7214d61840c2a9514a409070489514bb59ae908b54b",
+    "exitCode": 0,
+    "output": "S25_REFERENCE_PROTOCOL PASS\n - anatomy_move_reference_v1 remains support+frame identity\n - anatomy_move_reference_v2 remains vehicle+server receiptSequence\n - anatomy_transport_receipt_v1 retains its server-issued token schema\n - semantic/schema changes require an explicitly versioned wire id\n"
+  },
+  {
+    "tool": "tools/s26_prediction_authority_gate.py",
+    "sha256": "4bb3ac1b01d03bd3b9930a6b4b217cfac18121d1bca7810b8e0605b65600b301",
+    "exitCode": 0,
+    "output": "S26_PREDICTION_AUTHORITY PASS\n - core client simulation is local-authority gated\n - ordinary client carry loop is local-authority gated\n - outgoing prediction reference is local/control gated\n"
+  },
+  {
+    "tool": "tools/s29_certified_interval_presence_gate.py",
+    "sha256": "24da3471f00fd442c5aea611d0acea14e51d5c0cd8154f0b21bc43d41c6a1a46",
+    "exitCode": 0,
+    "output": "S29_CERTIFIED_INTERVAL PRESENT\n - product has a CERTIFIED_INTERVAL presentation path\n - candidate interval wire surfaces: AnatomyMaterialIntervalPayload.java, AnatomyObserverCarryPayload.java\nNOTE: presence is not acceptance; behavioral/lifecycle/mutation gates are still required\n"
+  }
+]
