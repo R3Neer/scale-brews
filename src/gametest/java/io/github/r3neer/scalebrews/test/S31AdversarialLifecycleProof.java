@@ -67,8 +67,8 @@ public final class S31AdversarialLifecycleProof implements FabricClientGameTest 
                 checkpoint=client->{var captured=observation.get();if(captured==null || finished.get())return;
                     var body=client.player;var support=(Cow)client.level.getEntity(id.get());
                     if(body.tickCount!=captured.cursor().bodyTick() || CausalBodyResidual.rendererOffset(body,.5f).lengthSqr()<1e-8)throw new AssertionError("Lifecycle positive baseline fixture expired");
-                    var camera=client.gameRenderer.mainCamera();io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
-                    var cameraBefore=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                    var camera=client.gameRenderer.mainCamera();io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
+                    var cameraBefore=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                     if(cameraBefore.lengthSqr()<1e-8)throw new AssertionError("Lifecycle camera positive control missing");
                     var physical=body.position();var bounds=body.getBoundingBox();var velocity=body.getDeltaMovement();
                     switch(barrier) {
@@ -81,9 +81,9 @@ public final class S31AdversarialLifecycleProof implements FabricClientGameTest 
                         case "supportGravity" -> AnatomyMovement.gravity(support,new io.github.r3neer.scalebrews.collision.api.GravityFrame(net.minecraft.core.Direction.EAST));
                         default -> throw new AssertionError("Unknown barrier");
                     }
-                    var drawAfter=CausalBodyResidual.rendererOffset(body,.5f);var cameraAfter=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                    var drawAfter=CausalBodyResidual.rendererOffset(body,.5f);var cameraAfter=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                     System.out.println("S31 ADVERSARY lifecycle="+barrier+" priorCamera="+cameraBefore+" draw="+drawAfter+" camera="+cameraAfter);
-                    if(drawAfter.lengthSqr()!=0 || cameraAfter.lengthSqr()!=0 || io.github.r3neer.scalebrews.client.platform.PlatformCamera.appliedOffset().lengthSqr()!=0)throw new AssertionError("Lifecycle barrier retained visual material: "+barrier);
+                    if(drawAfter.lengthSqr()!=0 || cameraAfter.lengthSqr()!=0 || io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.appliedOffset().lengthSqr()!=0)throw new AssertionError("Lifecycle barrier retained visual material: "+barrier);
                     if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Visual lifecycle barrier changed body physical state: "+barrier);
                     io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearOverrideForTests(body);io.github.r3neer.scalebrews.integration.gravity.GravityFrames.clearOverrideForTests(support);
                     finished.set(true);checkpoint=null;};

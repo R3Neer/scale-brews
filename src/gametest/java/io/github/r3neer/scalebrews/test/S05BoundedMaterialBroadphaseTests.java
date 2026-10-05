@@ -196,12 +196,12 @@ public final class S05BoundedMaterialBroadphaseTests {
         GeometryProvider small = entity -> java.util.Optional.of(new GeometryProvider.Snapshot(2, Map.of("body",
             ConvexBox.of(new AABB(-.5, -.5, -.5, .5, .5, .5), new Matrix4f()).move(entity.position()))));
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support, huge);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, huge);
         try {
             AnatomyMovement.spaceClear(body, body.getBoundingBox()); // materializes the index and rejects the huge entry
             h.assertTrue(!AnatomyMovement.replacesPair(body, support),
                 "A support rejected by the entry budget must remain locally quarantined");
-            AnatomyMovement.register(support, small);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, small);
             h.assertTrue(AnatomyMovement.replacesPair(body, support),
                 "Explicit rebind with bounded material must clear the local quarantine");
         } finally {

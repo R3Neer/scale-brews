@@ -84,7 +84,6 @@ tasks.withType(JavaCompile).configureEach {
 tasks.withType(JavaExec).configureEach {
 	if (providers.gradleProperty('scalebrewsAnatomyCatalog').isPresent())
 		systemProperty 'scalebrews.anatomyCatalog', file(providers.gradleProperty('scalebrewsAnatomyCatalog').get()).absolutePath
-	systemProperty 'scalebrews.platformSoak', providers.gradleProperty('scalebrewsPlatformSoak').orElse('false').get()
 	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS33Only').isPresent())
 		systemProperty 'scalebrews.s33Only', providers.gradleProperty('scalebrewsS33Only').get()
 	if (name == 'runGameTest' && providers.gradleProperty('scalebrewsS33Skip').isPresent())

@@ -12,7 +12,6 @@ public class ScaleBrewsClient implements ClientModInitializer {
         io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.initialize();
         io.github.r3neer.scalebrews.client.render.TinyMountVisualProfile.initialize();
         io.github.r3neer.scalebrews.client.render.FirstPersonMountCompat.initialize();
-        io.github.r3neer.scalebrews.client.platform.PlatformClient.initialize();
         WolfPounceFeedback.initialize();
         MenuScreens.register(TinyMountInventory.MENU, TinyMountScreen::new);
         io.github.r3neer.scalebrews.mount.TinyMounts.clientInput = player ->

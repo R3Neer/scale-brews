@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.mixin;
 
-import io.github.r3neer.scalebrews.platform.*;
+import io.github.r3neer.scalebrews.platform.Platforms;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class PlatformBoatMixin {
     @Inject(method="canVehicleCollide",at=@At("HEAD"),cancellable=true)
     private static void scalebrews$pair(Entity boat, Entity other, CallbackInfoReturnable<Boolean> cir) {
-        if (PlatformPhysics.suppressPair(boat,other)) cir.setReturnValue(false);
+        if (MovingBodyContext.suppressPair(boat,other)) cir.setReturnValue(false);
     }
     @Inject(method="getGroundFriction",at=@At("RETURN"),cancellable=true)
     private void scalebrews$friction(CallbackInfoReturnable<Float> cir) {

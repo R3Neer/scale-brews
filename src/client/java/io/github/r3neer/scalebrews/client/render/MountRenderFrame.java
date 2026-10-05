@@ -67,7 +67,7 @@ public final class MountRenderFrame {
             // FirstPerson's sitting offset is expressed in unscaled world blocks.
             float scale = state instanceof net.minecraft.client.renderer.entity.state.LivingEntityRenderState living
                     ? living.scale : 1;
-            var displacement = io.github.r3neer.scalebrews.client.platform.PlatformCamera.appliedOffset()
+            var displacement = io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.appliedOffset()
                     .add(firstPerson.scale(scale - 1));
             Matrix4f current = new Matrix4f(poses.last().pose());
             return new Matrix4f(current).invert().translate((float)displacement.x, (float)displacement.y,

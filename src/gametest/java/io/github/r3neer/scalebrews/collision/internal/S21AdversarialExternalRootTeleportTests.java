@@ -47,7 +47,7 @@ public final class S21AdversarialExternalRootTeleportTests {
             provider.pose(support, inputs);
             long tick = level.getGameTime();
             provider.tick(support, tick);
-            AnatomyMovement.register(support, provider,
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider,
                 new GeometryProvider.GeometryIdentityDescriptor(UUID.randomUUID(), 41, MODEL, POSE, ROOT, 1));
 
             var before = AnatomyMovement.queryFrame(support).orElseThrow();

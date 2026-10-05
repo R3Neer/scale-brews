@@ -5,7 +5,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.BodyPath;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -121,7 +121,7 @@ final class AnchoredTransportPlanner {
 
             int obstacles=0;
             // Anatomical supports without an event in this batch remain physical obstacles.
-            // Query the existing bounded material broadphase, not vanilla AABBs: PlatformPhysics
+            // Query the existing bounded material broadphase, not vanilla AABBs: MovingBodyContext
             // deliberately suppresses those AABBs for replacement pairs, and anatomical pieces
             // may also extend outside them. Supports already represented by an event are excluded
             // here because their certified interval was checked above.
@@ -145,9 +145,9 @@ final class AnchoredTransportPlanner {
             // Ordinary entity collisions must be checked along the same certified body path as blocks.
             // Anatomical replacement pairs were handled above because their vanilla AABBs are suppressed.
             List<VoxelShape> entityShapes;
-            Entity previous=PlatformPhysics.enter(body);
+            Entity previous=MovingBodyContext.enter(body);
             try {entityShapes=List.copyOf(level.getEntityCollisions(body,envelope));}
-            finally {PlatformPhysics.exit(previous);}
+            finally {MovingBodyContext.exit(previous);}
             for(var shape:entityShapes)for(var box:shape.toAabbs()) {
                 if(++obstacles>MAX_STATIC_OBSTACLES)return Result.exhausted(evaluations);
                 var checked=checkStaticObstacle(path,captured,box,evaluations);evaluations=checked.evaluations();
@@ -155,8 +155,8 @@ final class AnchoredTransportPlanner {
                 if(checked.status()==ObstacleStatus.RELEASE)return Result.release(evaluations);
             }
 
-            previous=PlatformPhysics.enter(body);Vec3 allowed;
-            try {allowed=clip.apply(captured,displacement);} finally {PlatformPhysics.exit(previous);}
+            previous=MovingBodyContext.enter(body);Vec3 allowed;
+            try {allowed=clip.apply(captured,displacement);} finally {MovingBodyContext.exit(previous);}
             if(allowed.distanceToSqr(displacement)>OVERLAP_EPS)return Result.release(evaluations);
             return new Result(Status.COMPLETE,displacement,evaluations,
                 new Evidence(own.id(),support,surface,handle.after().root(),handle.materialSerial(),handle.before().endpoint().frameSerial(),

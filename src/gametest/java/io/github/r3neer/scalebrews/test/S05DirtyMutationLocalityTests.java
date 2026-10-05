@@ -40,7 +40,7 @@ public final class S05DirtyMutationLocalityTests {
                 support.setPos(origin.add(1000+i*8,0,0));
                 level.addFreshEntity(support);
                 supports.add(support);
-                AnatomyMovement.register(support,initial);
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,initial);
             }
 
             AABB local=body.getBoundingBox();
@@ -49,7 +49,7 @@ public final class S05DirtyMutationLocalityTests {
 
             // Every rebind is an explicit supported mutation hook. An implementation may pay
             // maintenance here; reset afterwards so this test constrains only the next local query.
-            for(var support:supports)AnatomyMovement.register(support,rebound);
+            for(var support:supports)io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,rebound);
             farSamples.set(0);
 
             h.assertTrue(AnatomyMovement.spaceClear(body,local),

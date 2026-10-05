@@ -73,10 +73,10 @@ public final class S31AdversarialNearPlaneClipProof implements FabricClientGameT
                 System.out.println("S31 ADVERSARY exact duplicate carry before="+positive+" after="+duplicate);
                 if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Consumer wrote physical state");
                 if(duplicate.distanceToSqr(positive)>1e-10)throw new AssertionError("Exact duplicate carry erased the nonzero draw sample");
-                io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+                io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
                 var camera=c.gameRenderer.mainCamera();
                 if(camera.entity()!=body)throw new AssertionError("Camera fixture not observing the local body");
-                var cameraBefore=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                var cameraBefore=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                 if(cameraBefore.lengthSqr()<1e-8)throw new AssertionError("Vacuous camera: nonzero draw correction did not reach actual camera");
                 // Deterministic collider 1cm ahead of the actual camera; 2cm safety margin forbids this ray.
                 var cameraPosition=camera.position();
@@ -94,12 +94,12 @@ public final class S31AdversarialNearPlaneClipProof implements FabricClientGameT
                     if(center.getType()!=net.minecraft.world.phys.HitResult.Type.MISS)throw new AssertionError("Center ray fixture was blocked; near-plane test vacuous");
                     boolean cornerBlocked=corners.stream().anyMatch(v->c.level.clip(new net.minecraft.world.level.ClipContext(from.add(v),from.add(v).add(cameraBefore),net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,body)).getType()!=net.minecraft.world.phys.HitResult.Type.MISS);
                     if(!cornerBlocked)throw new AssertionError("Near-plane obstacle fixture missing");
-                    io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
-                    var clipped=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                    io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
+                    var clipped=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                     System.out.println("S31 ADVERSARY deterministic camera clip open="+cameraBefore+" wall="+clipped);
                     double allowed=Math.max(0,2-from.x-leading-.02);
                     if(clipped.x>allowed+1e-8 || clipped.x>=cameraBefore.x-1e-8)throw new AssertionError("Camera center missed but near-plane residual crossed collider safety margin");
-                    if(!io.github.r3neer.scalebrews.client.platform.PlatformCamera.appliedOffset().equals(clipped))throw new AssertionError("appliedOffset omitted final clipping");
+                    if(!io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.appliedOffset().equals(clipped))throw new AssertionError("appliedOffset omitted final clipping");
                     if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Camera clipping wrote physical state");
                 } finally {c.level.setBlock(wall,priorBlock,3);setCameraPosition(camera,cameraPosition);}
                 CausalBodyResidual.reset();TransportLedger.invalidate(body,true);

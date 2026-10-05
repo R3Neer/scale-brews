@@ -2,7 +2,7 @@ package io.github.r3neer.scalebrews.test;
 
 import static io.github.r3neer.scalebrews.test.TestPlayers.connectedCreative;
 
-import io.github.r3neer.scalebrews.platform.PlatformConnection;
+import io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines;
 import io.github.r3neer.scalebrews.test.mixin.TestVehicleMoveListenerAccess;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,7 +17,7 @@ public final class S28BaselineOwnershipTests {
     public void confirmedTransportAdvancesPlayerAndVehicleBaselinesExactlyOnce(GameTestHelper h) {
         var player=(ServerPlayer)connectedCreative(h);
         var access=(TestVehicleMoveListenerAccess)player.connection;
-        var bridge=(PlatformConnection)player.connection;
+        var bridge=(NativeMovementBaselines)player.connection;
 
         Vec3 playerFirst=playerFirst(access),playerLast=playerLast(access);
         Vec3 playerDelta=new Vec3(.125,.25,-.5);

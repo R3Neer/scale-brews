@@ -71,7 +71,7 @@ public final class S00ObserverBoundaryTests implements FabricClientGameTest {
                         AnatomyMovement.clear(body);AnatomyMovement.clear(client.player);body.setPos(initialBody);
                         var baseProvider=new Provider(base,3.5);var bodyProvider=new Provider(body,2);
                         var descriptor=new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,scenario+1);
-                        AnatomyMovement.register(base,baseProvider,descriptor,binding);AnatomyMovement.register(body,bodyProvider,descriptor,binding);
+                        io.github.r3neer.scalebrews.test.TestCoreBindings.register(base,baseProvider,descriptor,binding);io.github.r3neer.scalebrews.test.TestCoreBindings.register(body,bodyProvider,descriptor,binding);
                         var surface=new SurfaceContact(base.getUUID(),1,"piece",3,POINT,UP,level.getGameTime());
                         check(Platforms.eligible(body,base),"Observer fixture is ineligible: body="+body.position()+" base="+base.position()+" ratio="+(body.getBbWidth()/base.getBbWidth()));
                         var diagnosticFrame=AnatomyMovement.queryFrame(base).orElseThrow(()->new AssertionError("Observer fixture has no current base frame"));

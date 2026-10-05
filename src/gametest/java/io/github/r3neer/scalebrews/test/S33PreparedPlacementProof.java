@@ -35,7 +35,7 @@ final class S33PreparedPlacementProof {
         support.getAttribute(Attributes.SCALE).setBaseValue(4);support.refreshDimensions();
         Vec3 center=support.position().add(0,2,0);
         var piece=ConvexBox.of(new AABB(-3,-3,-3,3,3,3),new Matrix4f()).move(center);
-        AnatomyMovement.register(support,entity->Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",piece))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,entity->Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",piece))));
         var player=h.makeMockPlayer(GameType.SURVIVAL);
         try {
             h.assertTrue(AnatomyApi.ready(player),"Prepared session must own placement");
@@ -171,7 +171,7 @@ final class S33PreparedPlacementProof {
             } finally {occupyingSheep.discard();}
 
             var narrow=ConvexBox.of(new AABB(-.25,-3,-.25,.25,3,.25),new Matrix4f()).move(center);
-            AnatomyMovement.register(support,entity->Optional.of(new GeometryProvider.Snapshot(2,Map.of("narrow",narrow))));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,entity->Optional.of(new GeometryProvider.Snapshot(2,Map.of("narrow",narrow))));
             player.setPos(topEye.subtract(0,player.getEyeHeight(),0));
             h.assertTrue(player.interactOn(support,InteractionHand.MAIN_HAND,topClick)==InteractionResult.FAIL,
                 "Boat footprint cannot overhang a narrow material face");

@@ -18,7 +18,6 @@ FIXTURE_DIAGNOSTICS = frozenset({
     "vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated",
     "tick() in AnatomyPosePayload has been deprecated",
     "AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated",
-    "PlatformEligibility in io.github.r3neer.scalebrews.platform has been deprecated",
 })
 DIAGNOSTIC = re.compile(r"^(.+\.java):\d+: warning: \[deprecation\] (.+)$")
 

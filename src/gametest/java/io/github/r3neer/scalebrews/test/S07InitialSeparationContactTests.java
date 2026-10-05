@@ -31,7 +31,7 @@ public final class S07InitialSeparationContactTests {
         var finalFloor=ConvexBox.of(new AABB(-1,-1,-1,1,0,1),new Matrix4f()).move(center.add(0,1,0));
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(92,Map.of("back",finalFloor)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         body.setPos(center.x,center.y+.5,center.z);body.setOnGround(false);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
@@ -64,7 +64,7 @@ public final class S07InitialSeparationContactTests {
         var wall=ConvexBox.of(new AABB(-1,-1,-1,0,1,1),new Matrix4f()).move(center);
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(93,Map.of("wall",wall)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         body.setPos(center.x+.03,center.y,center.z);body.setOnGround(false);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
@@ -96,7 +96,7 @@ public final class S07InitialSeparationContactTests {
         var wall=ConvexBox.of(new AABB(0,-1,-1,1,1,1),new Matrix4f()).move(center);
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(94,Map.of("gravity_floor",wall)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         AnatomyMovement.gravity(body,new GravityFrame(Direction.EAST));
         body.setPos(center.x+.03,center.y,center.z);body.setOnGround(false);
         try {

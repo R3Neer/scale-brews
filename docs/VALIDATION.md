@@ -3128,3 +3128,62 @@ reviews require zero additional source changes. S43/G5 task6 closes locally
 through its own `Sprint: S43` commit; legacy retirement, later gates and final
 human acceptance remain open. No publication/install authorization follows.
 
+
+S44 implementation verification (2026-10-05, IMPLEMENTER): G5 tasks7–9 retirement candidate.
+Exact358 production/resource hashes,242 Java sources,370 GameTest source classes
+and the final32 actually processed client entrypoints are recorded in
+`docs/evidence/S44/implementation-verification.json`. Only executed results:
+
+| Run | Scope/result | SHA256 log |
+| --- | --- | --- |
+| `../s44-server-i3-full.log` | 466/466 server; BUILD SUCCESSFUL in 2m 24s, clean exit | `0650e7fb0c7b4746a8cc334bc31b60c6305628f661b910914a0aa322bf29ebf5` |
+| `../s44-prepared-i3-full.log` | 2/2 prepared with all24 original scenarios; BUILD SUCCESSFUL in 1m 57s, clean exit | `3ab7c1a4dc54946d02450f7644e9908fe237b077510e9f13b7f3ee537b93a1d7` |
+| `../s44-client-i2-full.log` | 31 default client entries before final cosmetic hook rename; BUILD SUCCESSFUL in 6m 58s, clean exit | `c16ac1a5856077cf89a17487d3a6f8805b3724469cb372974c41c11d55a7d5d5` |
+| `../s44-client-final.log` | 32 final default client entries including independent scope; BUILD SUCCESSFUL in 3m 34s, clean exit | `5c37265ff2cd99f9793370b838daf42cea65483f6f486d2f2b504c4da21d7b95` |
+| `../s44-build-final.log` | final build and466/466 server; BUILD SUCCESSFUL in 1m 57s, clean exit | `7e7390ccb3e8042105914854c273e15e7046aaa2fa4291c4aab0ee2157be2c8b` |
+| `../s44-experimental-client.log` | actual experimental cart flag/rail/native controls; BUILD SUCCESSFUL in 1m 41s, clean exit | `c63e7866a8aac66454843f63044841e07c2111bbef92088e7c3faab09b8c3390` |
+| `../s44-receipt-reconciliation.log` | dedicated player+boat RTT0/100/200, zero corrections/drops and convergence; BUILD SUCCESSFUL in 2m 39s, clean exit | `fa1b100375fe3c4638231164fc44b44a6929ab0f462625c5e12b613dae21b9bf` |
+| `../s44-firstperson-baseline.log` | immutable S43 HEAD0b7c5bea and actual FirstPerson2.7.2; BUILD SUCCESSFUL in 4m 21s, clean exit | `b57bb282f1b321aac6bc7ba742a6a6d9d812dd8af9e94d80c49a06c524e2c4a8` |
+| `../s44-firstperson-candidate.log` | candidate and same pinned FirstPerson2.7.2; BUILD SUCCESSFUL in 3m 33s, clean exit | `85b013ee91b08877c99e9e0169ec7b0a5551ec131b5784e267f5e0de33241a3a` |
+
+Final development beta.9 JAR SHA256 `9c258b33e5a147360e91a2ce66f2273ee99a7b5ad676931bc77d7c69431b56bd`:
+1,146,458bytes/720 ZIP entries, no retired runtime classes, shipped plane-profile
+files, leaked tests or unresolved mixins. Source inventory has zero executable
+references to the21 retired types and no unresolved configured mixin. An empty
+entity_platform ZIP directory is metadata. No publication/install occurred.
+
+Server483→466 is19 cancelled old-engine assertions plus2 actual native/decoder
+controls. Each removal and retained canonical oracle is classified in the S44
+sprint record. Earlier compile/setup failures (compound-var, deleted state
+references, two eligibility-before-binding preconditions, Happy Ghast ordinary
+versus support classification) were repaired and reexecuted; no physical RED was
+hidden. Final deprecation audits:12 build/4 client test-only adapter diagnostics,
+no production diagnostic/cap. Default diff check passes.
+
+Actual FirstPerson reference/candidate captures:31 each,62 hashes and two sheets
+in `docs/evidence/S44/firstperson-comparison.json` and the adjacent PNGs. IMPLEMENTER
+inspected rider/body/held-item framing, bee player inventory, chicken/wolf
+equipment, mount front/top seating and native horse: no observed regression.
+Scripted views/tick waits match; seed, particles and render partial are not
+frozen. This is bounded actual Minecraft visual comparison, not pixel equality
+or final human QA; ADVERSARY supplies a fixed-partial near-plane semantic snapshot.
+
+Seven ownership/protocol gates pass; S25 authority reads removed files and was
+returned to ADVERSARY as infrastructure RED. S44 remains open until gate
+adaptation/sensitivity, independent final review and both zero-change passes
+close. G6 coverage, G7 real consumer, G8 pack, NFR-014 benchmark and human acceptance
+are not certified here.
+
+S44 final closure (IMPLEMENTER): all eight ownership/protocol gates pass on the
+frozen source. The stale S25 gate is repaired; the independent reusable sensitivity
+campaign records baseline PASS and11 expected REDs in
+`docs/evidence/S44/reference-authority.json`. ADVERSARY independently verifies
+466/466 server, eight physical/lifecycle/locality holdouts,21 presentation entries,
+DISABLED absence/scope, scope/camera mutations and fixed-partial near-plane
+snapshot. Its final zero-change review and TRUSTED scope are in the S44 record.
+Both agents inspected the actual mount/FirstPerson comparison sheets with their
+stated timing limits. Production hashes still match the executed final candidate;
+all modified text decodes as UTF-8 after a documentation-only encoding repair.
+Both full review passes require no further source changes. G5 tasks7-9 close in
+their own `Sprint: S44` local commit; G6-G9 remain open. Human stress cases from the
+retired platform path move from TODO to G9's existing acceptance matrix.

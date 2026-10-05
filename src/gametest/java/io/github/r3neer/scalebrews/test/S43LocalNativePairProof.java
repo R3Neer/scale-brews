@@ -86,7 +86,7 @@ public final class S43LocalNativePairProof implements FabricClientGameTest {
                     var cow=(Cow)client.level.getEntity(cowId.get());
                     require(!Platforms.eligible(client.player,cow),"Measured local pair must be rejected");
                     var result=move(client.player,cow,bounds.get());
-                    require(AnatomyMovement.contact(client.player)==null && Platforms.state(client.player).support==null,
+                    require(AnatomyMovement.contact(client.player)==null && TestRetiredPlatformRuntime.absent(),
                         "Rejected local native move acquired a material/legacy contact");
                     var center=bounds.get().getCenter();
                     require(AnatomyApi.raycast(client.player,center.add(-5,0,0),center.add(5,0,0)).isEmpty()
@@ -115,7 +115,7 @@ public final class S43LocalNativePairProof implements FabricClientGameTest {
                 awaitPosition(context,above);
                 context.runOnClient(client->{
                     client.player.setDeltaMovement(Vec3.ZERO);client.player.move(MoverType.SELF,new Vec3(0,-1.2,0));
-                    require(AnatomyMovement.supported(client.player) && Platforms.state(client.player).support==null,
+                    require(AnatomyMovement.supported(client.player) && TestRetiredPlatformRuntime.absent(),
                         "Actual local Entity.move must acquire canonical-only contact");
                     compare(nativePush,pushes(client.player,(Cow)client.level.getEntity(cowId.get())),"local contact");
                 });
@@ -125,7 +125,7 @@ public final class S43LocalNativePairProof implements FabricClientGameTest {
                     // The native client position update establishes the same landing; this native
                     // downward move certifies the server's own material relation if it is still above.
                     player.setDeltaMovement(Vec3.ZERO);player.move(MoverType.SELF,new Vec3(0,-1.2,0));
-                    require(AnatomyMovement.supported(player) && Platforms.state(player).support==null,
+                    require(AnatomyMovement.supported(player) && TestRetiredPlatformRuntime.absent(),
                         "Connected server actor did not acquire canonical-only contact");
                     compare(nativeServerPush,pushes(player,cow),"server contact");
                 });
@@ -178,7 +178,7 @@ public final class S43LocalNativePairProof implements FabricClientGameTest {
         context.waitFor(client->client.player!=null && client.player.position().distanceToSqr(position)<1e-8,160);
     }
     private static Move move(Entity body,Cow support,AABB bounds) {
-        AnatomyApi.clearContact(body);Platforms.state(body).clear();body.setDeltaMovement(Vec3.ZERO);body.setOnGround(false);
+        AnatomyApi.clearContact(body);body.setDeltaMovement(Vec3.ZERO);body.setOnGround(false);
         var before=body.position();body.move(MoverType.SELF,new Vec3(bounds.getXsize()+body.getBbWidth()+1.2,0,0));
         return new Move(body.position().subtract(before),body.getDeltaMovement(),body.horizontalCollision,
             body.verticalCollision,body.onGround(),body.canCollideWith(support));

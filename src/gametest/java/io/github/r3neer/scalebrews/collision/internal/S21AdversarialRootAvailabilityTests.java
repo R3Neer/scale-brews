@@ -50,7 +50,7 @@ public final class S21AdversarialRootAvailabilityTests {
             provider.pose(support, inputs);
             long tick = support.level().getGameTime();
             provider.tick(support, tick);
-            AnatomyMovement.register(support, provider,
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider,
                 new GeometryProvider.GeometryIdentityDescriptor(UUID.randomUUID(), 11, MODEL, POSE, ROOT, 1));
 
             h.assertTrue(provider.authoritativeFrame(support).isPresent(),

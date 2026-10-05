@@ -54,7 +54,7 @@ public final class G2EligibilityNoWallReadyTests {
             Vec3 wallCenter=support.position().add(-4,0,0);
             var wall=ConvexBox.of(new AABB(-.1,-.1,-1,.1,4,1),new Matrix4f()).move(wallCenter);
             GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("wall",wall)));
-            AnatomyMovement.register(support,provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
 
             h.assertTrue(AnatomyApi.ready(eligible) && AnatomyApi.ready(ineligible) && AnatomyApi.ready(support),
                 "Holdout must traverse READY shared physics rather than legacy fallback");

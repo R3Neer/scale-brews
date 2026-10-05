@@ -59,7 +59,7 @@ public final class S06SupportedMembershipCausalityTests {
             Identifier.parse("test:s06_supported_membership"),Identifier.parse("test:s06_supported_pose"));
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider,descriptor);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor);
         try {
             h.assertTrue(Platforms.eligible(body,support),
                 "Fixture body must be eligible so the test isolates causal membership");

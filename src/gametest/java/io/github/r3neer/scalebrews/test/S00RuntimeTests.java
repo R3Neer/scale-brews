@@ -35,7 +35,7 @@ public final class S00RuntimeTests {
     @GameTest public void changedEndpointCannotReuseMaterialSerial(GameTestHelper h) {
         var support=cow(h);var provider=new Provider(support);AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(support,provider,DESCRIPTOR);check(AnatomyMovement.queryFrame(support).isPresent(),"Initial endpoint unavailable");
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);check(AnatomyMovement.queryFrame(support).isPresent(),"Initial endpoint unavailable");
             provider.update(1,h.getLevel().getGameTime(),support.position().add(1,0,0));
             check(AnatomyMovement.queryFrame(support).isEmpty(),"Changed endpoint reused serial and left stale geometry available");
             provider.update(2,h.getLevel().getGameTime(),support.position().add(1,0,0));
@@ -45,7 +45,7 @@ public final class S00RuntimeTests {
     @GameTest public void changedGeometryCannotReuseUnchangedEndpoint(GameTestHelper h) {
         var support=cow(h);var provider=new Provider(support);AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(support,provider,DESCRIPTOR);var first=AnatomyMovement.queryFrame(support).orElseThrow();
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);var first=AnatomyMovement.queryFrame(support).orElseThrow();
             provider.snapshot=new GeometryProvider.Snapshot(1,Map.of("piece",box(UNIT).move(support.position().add(5,0,0))));
             check(AnatomyMovement.queryFrame(support).isEmpty(),"Conflicting geometry hid behind the same immutable endpoint");
             provider.snapshot=first.snapshot();check(AnatomyMovement.queryFrame(support).isEmpty(),"Replay of quarantined serial restored authority");
@@ -54,7 +54,7 @@ public final class S00RuntimeTests {
     @GameTest public void directProviderCannotRewindAuthorityWithHigherSerial(GameTestHelper h) {
         var support=cow(h);var provider=new Provider(support);AnatomyMovement.activate(h.getLevel());
         try {
-            provider.update(1,10,support.position());AnatomyMovement.register(support,provider,DESCRIPTOR);
+            provider.update(1,10,support.position());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);
             AnatomyMovement.queryFrame(support).orElseThrow();provider.update(2,9,support.position());
             check(AnatomyMovement.queryFrame(support).isEmpty(),"Core accepted stale authority despite its new publication serial");
         }finally{AnatomyMovement.deactivate(h.getLevel());support.discard();}h.succeed();
@@ -62,14 +62,14 @@ public final class S00RuntimeTests {
     @GameTest public void unavailableAndRebindNeverReusePriorGeometry(GameTestHelper h) {
         var support=cow(h);var provider=new Provider(support);AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(support,provider,DESCRIPTOR);var first=AnatomyMovement.queryFrame(support).orElseThrow();
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);var first=AnatomyMovement.queryFrame(support).orElseThrow();
             var old=provider.endpoint;
             provider.endpoint=new GeometryProvider.CausalEndpoint(2,old.authorityTick(),old.jointSampleTick(),old.root(),old.sample(),GeometryProvider.Availability.UNAVAILABLE);
             provider.snapshot=null;check(AnatomyMovement.queryFrame(support).isEmpty(),"Unavailable retained a collider");
             check(AnatomyMovement.publishedFrame(support).orElseThrow().endpoint().availability()==GeometryProvider.Availability.UNAVAILABLE,"Unavailable state was not publishable");
             provider.update(3,h.getLevel().getGameTime(),support.position());check(AnatomyMovement.queryFrame(support).isPresent(),"Available endpoint failed to recover");
             AnatomyMovement.invalidateRoot(support);check(AnatomyMovement.queryFrame(support).isEmpty(),"Teleport barrier left a cached old endpoint");
-            AnatomyMovement.register(support,provider,new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,2));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,2));
             var rebound=AnatomyMovement.queryFrame(support).orElseThrow();
             check(rebound.identity().bindingGeneration()==2 && !rebound.identity().equals(first.identity()),"Rebind reused stale causal identity");
         }finally{AnatomyMovement.deactivate(h.getLevel());support.discard();}h.succeed();
@@ -77,7 +77,7 @@ public final class S00RuntimeTests {
     @GameTest public void providerFailureIsLocalAndDoesNotFreezeItsCollider(GameTestHelper h) {
         var first=cow(h);var second=cow(h);var broken=new Provider(first);var healthy=new Provider(second);AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(first,broken,DESCRIPTOR);AnatomyMovement.register(second,healthy,DESCRIPTOR);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(first,broken,DESCRIPTOR);io.github.r3neer.scalebrews.test.TestCoreBindings.register(second,healthy,DESCRIPTOR);
             AnatomyMovement.queryFrame(first).orElseThrow();broken.broken=true;
             check(AnatomyMovement.queryFrame(first).isEmpty(),"Failed provider remained available");
             check(AnatomyMovement.queryFrame(second).isPresent(),"One provider disabled an unrelated pair");
@@ -91,7 +91,7 @@ public final class S00RuntimeTests {
         check(first!=second && first.equals(second),"Fixture did not reproduce entity equality reuse");
         var body=h.makeMockPlayer(GameType.SURVIVAL);body.getAttribute(Attributes.SCALE).setBaseValue(.1);body.refreshDimensions();AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(first,new Provider(first),DESCRIPTOR);AnatomyMovement.register(second,new Provider(second),DESCRIPTOR);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(first,new Provider(first),DESCRIPTOR);io.github.r3neer.scalebrews.test.TestCoreBindings.register(second,new Provider(second),DESCRIPTOR);
             check(!AnatomyMovement.spaceClear(body,new AABB(2.1,20.1,2.1,2.9,20.9,2.9)),"First same-id collider disappeared");
             check(!AnatomyMovement.spaceClear(body,new AABB(7.1,20.1,2.1,7.9,20.9,2.9)),"Second same-id collider disappeared");
         }finally{AnatomyMovement.deactivate(h.getLevel());first.discard();second.discard();body.discard();}h.succeed();
@@ -99,9 +99,9 @@ public final class S00RuntimeTests {
     @GameTest public void serverRegistrationRejectsWrongThreadBeforeMutation(GameTestHelper h) throws InterruptedException {
         var support=cow(h);var provider=new Provider(support);AnatomyMovement.activate(h.getLevel());
         try {
-            AnatomyMovement.register(support,provider,DESCRIPTOR);long generation=AnatomyMovement.registrationGeneration(support);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);long generation=AnatomyMovement.registrationGeneration(support);
             var outcome=new AtomicReference<Throwable>();
-            var thread=new Thread(()->{try{AnatomyMovement.register(support,provider,DESCRIPTOR);}catch(Throwable failure){outcome.set(failure);}},"S00-unauthorized-world-mutation");
+            var thread=new Thread(()->{try{io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,DESCRIPTOR);}catch(Throwable failure){outcome.set(failure);}},"S00-unauthorized-world-mutation");
             thread.start();thread.join(1000);
             check(!thread.isAlive(),"World-thread guard test did not terminate");
             check(outcome.get() instanceof IllegalStateException && AnatomyMovement.registrationGeneration(support)==generation,"Off-thread caller mutated server binding");

@@ -62,7 +62,7 @@ public class AnatomyQueryFrameTests {
         var provider=endpointProvider(7,e->first,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
         var epoch=UUID.randomUUID();
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,provider,descriptor(epoch,7));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(epoch,7));
         try {
             h.assertTrue(provider.motion(support).isEmpty(),"Fixture explicitly has no certified motion interval");
             var initialFrame=AnatomyMovement.queryFrame(support).orElseThrow();
@@ -77,7 +77,7 @@ public class AnatomyQueryFrameTests {
             h.assertTrue(AnatomyMovement.contact(body)!=null && AnatomyMovement.contact(body).sequence()==retainedSequence
                     && AnatomyMovement.contact(body).support()==support && AnatomyMovement.supported(body),
                 "A tangent move with no repeated hit preserves its final-valid existing material support");
-            AnatomyMovement.register(support,endpointProvider(7,e->second,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty()),descriptor(epoch,7));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,endpointProvider(7,e->second,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty()),descriptor(epoch,7));
             var rebound=AnatomyMovement.queryFrame(support).orElseThrow();
             h.assertTrue(rebound.identity().bindingGeneration()==initialFrame.identity().bindingGeneration()
                     && rebound.identity().localRegistrationGeneration()>initialFrame.identity().localRegistrationGeneration(),
@@ -108,7 +108,7 @@ public class AnatomyQueryFrameTests {
         var floor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(support.position());
         var provider=endpointProvider(13,e->floor,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,provider,descriptor(UUID.randomUUID(),13));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(UUID.randomUUID(),13));
         try {
             body.setPos(support.getX()+.2,floor.bounds().maxY+.5,support.getZ());
             var landing=AnatomyMovement.collide(body,new Vec3(0,-1,0));body.setPos(body.position().add(landing));
@@ -149,7 +149,7 @@ public class AnatomyQueryFrameTests {
                 var provider=endpointProvider(9,e->ConvexBox.of(new AABB(-.5,-.1,-2,.5,.1,2),new Matrix4f()
                     .rotateY((float)Math.toRadians(e.yBodyRot)).scale(e.getScale())).move(e.position()),e->INPUTS,e->availability[0],Optional.of(stale));
                 AnatomyMovement.activate(h.getLevel());
-                AnatomyMovement.register(support,provider,descriptor(epoch,9));
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(epoch,9));
                 support.setPos(support.position().add(4,0,0));support.yBodyRot=90;
                 support.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(1.5);support.refreshDimensions();
                 var fresh=provider.sample(support).orElseThrow().pieces().get("floor");
@@ -179,14 +179,14 @@ public class AnatomyQueryFrameTests {
                 var joint=new float[]{0};
                 var jointProvider=endpointProvider(9,e->ConvexBox.of(new AABB(-.5,-.1,-.5,.5,.1,.5),new Matrix4f()).move(e.position().add(joint[0]*3,0,0)),
                     e->new PoseEngine.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])),e->GeometryProvider.Availability.AVAILABLE,Optional.empty());
-                AnatomyMovement.register(support,jointProvider,descriptor(epoch,9));
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,jointProvider,descriptor(epoch,9));
                 var jointsBefore=AnatomyMovement.queryFrame(support).orElseThrow();joint[0]=1;
                 var jointsAfter=AnatomyMovement.queryFrame(support).orElseThrow();
                 h.assertTrue(jointsAfter.root().equals(jointsBefore.root()) && jointsAfter.endpoint().frameSerial()>jointsBefore.endpoint().frameSerial()
                     && !AnatomyMovement.spaceClear(body,jointsAfter.snapshot().pieces().get("floor").bounds()),
                     "A new joint sample with a fixed root advances full frameSerial and invalidates the spatial frame");
                 var extreme=ConvexBox.of(new AABB(-1e20,-1,-1e20,1e20,1,1e20),new Matrix4f());
-                AnatomyMovement.register(support,endpointProvider(9,e->extreme,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty()),descriptor(epoch,9));
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,endpointProvider(9,e->extreme,e->INPUTS,e->GeometryProvider.Availability.AVAILABLE,Optional.empty()),descriptor(epoch,9));
                 h.assertTrue(!AnatomyMovement.spaceClear(body,new AABB(-1e20,-.5,-1e20,1e20,.5,1e20)),
                     "Finite extreme bounds route through overflow without an overflowing cell walk or AABB collider fallback");
             } finally {AnatomyMovement.deactivate(h.getLevel());if(support!=null)support.discard();if(body!=null)body.discard();}

@@ -16,6 +16,5 @@
 
 - [ ] Two-player/latency acceptance of borrowed-wolf combat and the requested shared-wolf gameplay cases.
 - [ ] Manual modded-renderer/player-model acceptance for the released beta behavior, including giant-player head animation with external model/resource packs.
-- [ ] Broader manual stress of the released platform path until it is replaced: lead-dragged occupied boats, water/rail transitions, falling-block hardening/placement after release, crowded support chains, wall/camera corners and late-joining observers.
 
-When the new entity-collision system reaches its migration gate, equivalent cases move to that plan's acceptance matrix rather than being copied here.
+The replaced platform engine's equivalent stress/acceptance cases now live in the canonical entity-collision plan's G9 owner-acceptance matrix after S44/G5, rather than a duplicate checklist here.

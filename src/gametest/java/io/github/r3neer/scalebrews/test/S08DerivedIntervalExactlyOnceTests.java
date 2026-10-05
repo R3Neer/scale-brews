@@ -29,7 +29,7 @@ public final class S08DerivedIntervalExactlyOnceTests {
         var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,endpointProvider(),new GeometryProvider.GeometryIdentityDescriptor(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,endpointProvider(),new GeometryProvider.GeometryIdentityDescriptor(
             UUID.randomUUID(),REVISION,Identifier.parse("test:s08_derived_once"),Identifier.parse("test:s08_derived_once_pose"),1));
         try {
             MaterialIntervalRuntime.observe(support);

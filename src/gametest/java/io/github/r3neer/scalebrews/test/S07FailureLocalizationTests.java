@@ -57,7 +57,7 @@ public final class S07FailureLocalizationTests {
         var floor=ConvexBox.of(new AABB(-1,-.5,-1,1,0,1),new Matrix4f()).move(safeOrigin);
         var liveSnapshot=new AtomicReference<>(new GeometryProvider.Snapshot(96,Map.of("floor",floor,"trap",trap)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,entity->Optional.of(liveSnapshot.get()));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,entity->Optional.of(liveSnapshot.get()));
         trapped.setPos(center);
         safe.setPos(safeOrigin);
 

@@ -98,8 +98,8 @@ public final class S09SeparationBudgetBoundaryTests {
             "Reserved bystander must be query-local but non-causal for every +X recovery candidate");
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(culprit,ignored->java.util.Optional.of(new GeometryProvider.Snapshot(700+slabCount,slabs)));
-        AnatomyMovement.register(bystander,ignored->java.util.Optional.of(new GeometryProvider.Snapshot(900+slabCount,Map.of("bystander",bystanderPiece))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(culprit,ignored->java.util.Optional.of(new GeometryProvider.Snapshot(700+slabCount,slabs)));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(bystander,ignored->java.util.Optional.of(new GeometryProvider.Snapshot(900+slabCount,Map.of("bystander",bystanderPiece))));
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,culprit)
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,bystander),

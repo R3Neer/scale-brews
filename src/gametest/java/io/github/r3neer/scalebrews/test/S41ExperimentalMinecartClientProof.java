@@ -96,11 +96,11 @@ public final class S41ExperimentalMinecartClientProof implements FabricClientGam
                     io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData.policy(Platforms.policy(level)),
                     binding.policy(),category,binding.entity());
                 if(!Platforms.supported(cart) || cart.isOnRails() || AnatomyMovement.contact(cart)==null
-                        || Platforms.state(cart).support!=null || cow.isPassenger())
+                        || !TestRetiredPlatformRuntime.absent() || cow.isPassenger())
                     throw new AssertionError("Experimental cart did not acquire canonical-only off-rail contact: "
                         +cart.position()+" contact="+AnatomyMovement.contact(cart)
                         +" supported="+Platforms.supported(cart)+" onRails="+cart.isOnRails()
-                        +" legacy="+Platforms.state(cart).support
+                        +" legacy="+(!TestRetiredPlatformRuntime.absent())
                         +" gap="+piece.separation(cart.getBoundingBox()).gap()
                         +" normal="+piece.separation(cart.getBoundingBox()).normal()
                         +" eligible="+Platforms.eligible(cart,cow)
@@ -365,7 +365,7 @@ public final class S41ExperimentalMinecartClientProof implements FabricClientGam
             if(Platforms.eligible(cart,cow))
                 throw new AssertionError("Narrow prepared cow wrongly accepts experimental cart");
             cart.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            if(AnatomyMovement.contact(cart)!=null || Platforms.state(cart).support!=null || cow.isPassenger())
+            if(AnatomyMovement.contact(cart)!=null || !TestRetiredPlatformRuntime.absent() || cow.isPassenger())
                 throw new AssertionError("Ineligible experimental cart acquired a material owner");
             cart.setPos(cow.getX()+.4,cow.getY(),cow.getZ());
             cart.setDeltaMovement(Vec3.ZERO);cow.setDeltaMovement(Vec3.ZERO);
@@ -409,7 +409,7 @@ public final class S41ExperimentalMinecartClientProof implements FabricClientGam
             if(!level.addFreshEntity(rider) || !rider.startRiding(cart,true,true))
                 throw new AssertionError("Blocked control rider did not prevent support pickup");
             cart.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            if(!Platforms.supported(cart) || Platforms.state(cart).support!=null)
+            if(!Platforms.supported(cart) || !TestRetiredPlatformRuntime.absent())
                 throw new AssertionError("Blocked control did not acquire canonical contact");
             int wallX=(int)Math.ceil(cart.getBoundingBox().maxX+.05);
             int wallY=(int)Math.floor(cart.getBoundingBox().minY);
@@ -463,7 +463,7 @@ public final class S41ExperimentalMinecartClientProof implements FabricClientGam
             if(Platforms.eligible(cart,cow))
                 throw new AssertionError("Disabled-policy cow wrongly accepts experimental cart");
             cart.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            if(AnatomyMovement.contact(cart)!=null || Platforms.state(cart).support!=null)
+            if(AnatomyMovement.contact(cart)!=null || !TestRetiredPlatformRuntime.absent())
                 throw new AssertionError("Disabled-policy cart acquired material owner");
             cart.setPos(cow.getX()+.4,cow.getY(),cow.getZ());
             cart.setDeltaMovement(Vec3.ZERO);cow.setDeltaMovement(Vec3.ZERO);

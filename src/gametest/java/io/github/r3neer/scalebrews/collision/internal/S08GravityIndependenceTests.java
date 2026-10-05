@@ -48,7 +48,7 @@ public final class S08GravityIndependenceTests {
         long revision=208;
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("wall",wallBefore))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("wall",wallBefore))));
         AnatomyMovement.gravity(body,bodyGravity);
         try {
             var separation=wallBefore.separation(captured);

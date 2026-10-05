@@ -32,7 +32,7 @@ public final class S09LiveOwnMoveTests {
         var floor=ConvexBox.of(new AABB(-2,-.2,-2,2,0,2),new Matrix4f()).move(support.position().add(0,1,0));
         GeometryProvider provider=ignored->Optional.of(new GeometryProvider.Snapshot(109,Map.of("floor",floor)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             body.setPos(support.getX()-.6,floor.bounds().maxY+.5,support.getZ());
             Vec3 landing=AnatomyMovement.collide(body,new Vec3(0,-1,0));
@@ -97,8 +97,8 @@ public final class S09LiveOwnMoveTests {
         GeometryProvider floorProvider=ignored->Optional.of(new GeometryProvider.Snapshot(112,Map.of("floor",floor)));
         GeometryProvider wallProvider=ignored->Optional.of(new GeometryProvider.Snapshot(113,Map.of("wall",wall)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(floorSupport,floorProvider);
-        AnatomyMovement.register(wallSupport,wallProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(wallSupport,wallProvider);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,floorSupport)
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,wallSupport),
@@ -171,7 +171,7 @@ public final class S09LiveOwnMoveTests {
         var frame=new GravityFrame(down);
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         AnatomyMovement.gravity(body,frame);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
@@ -258,11 +258,11 @@ public final class S09LiveOwnMoveTests {
         GeometryProvider wallProvider=ignored->Optional.of(new GeometryProvider.Snapshot(111,Map.of("wall",wall)));
         AnatomyMovement.activate(level);
         if(floorFirst) {
-            AnatomyMovement.register(floorSupport,floorProvider);
-            AnatomyMovement.register(wallSupport,wallProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(wallSupport,wallProvider);
         } else {
-            AnatomyMovement.register(wallSupport,wallProvider);
-            AnatomyMovement.register(floorSupport,floorProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(wallSupport,wallProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
         }
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,floorSupport)

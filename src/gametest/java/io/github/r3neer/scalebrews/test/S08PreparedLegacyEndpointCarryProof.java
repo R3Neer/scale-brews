@@ -29,7 +29,7 @@ public final class S08PreparedLegacyEndpointCarryProof {
         GeometryProvider provider = entity -> java.util.Optional.of(new GeometryProvider.Snapshot(1, java.util.Map.of(
             "body", ConvexBox.of(new AABB(-2, 0, -2, 2, 2, 2),
                 new Matrix4f().rotateY((float) Math.toRadians(entity.yBodyRot))).move(entity.position()))));
-        AnatomyMovement.register(support, provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider);
 
         var boat = h.spawn(net.minecraft.world.entity.EntityTypes.OAK_BOAT, 2, 23, 2);
         var rider = h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -39,7 +39,7 @@ public final class S08PreparedLegacyEndpointCarryProof {
             boat.move(net.minecraft.world.entity.MoverType.SELF, new Vec3(0, -2, 0));
             h.assertTrue(AnatomyMovement.contact(boat) != null,
                 "Occupied boat lands on convex geometry through Entity.move");
-            h.assertTrue(io.github.r3neer.scalebrews.platform.PlatformPhysics.touching(boat),
+            h.assertTrue(io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.supported(boat),
                 "Network grounding query sees anatomical contact without legacy surface state");
 
             var surface = AnatomyMovement.surface(boat);

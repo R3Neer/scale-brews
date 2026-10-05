@@ -23,7 +23,7 @@ public final class S08PassiveTransportStateTests {
         long revision=311,tick=level.getGameTime();
         var material=ConvexBox.of(new AABB(-.5,-.1,-.5,.5,0,.5),new Matrix4f()).move(support.position().add(0,1,0));
         int face=3;Vec3 normal=material.faceNormal(face),local=material.facePoint(face,body.getBoundingBox().getCenter());
-        AnatomyMovement.activate(level);AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,java.util.Map.of("floor",material))));
+        AnatomyMovement.activate(level);io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,java.util.Map.of("floor",material))));
         try {
             var contact=new SurfaceContact(support.getUUID(),revision,"floor",face,local,normal,tick);
             h.assertTrue(AnatomyMovement.confirm(body,support,contact),"Fixture must retain support contact");

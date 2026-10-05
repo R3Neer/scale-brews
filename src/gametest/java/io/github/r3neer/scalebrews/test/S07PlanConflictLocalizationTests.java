@@ -14,7 +14,7 @@ import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -90,7 +90,7 @@ public final class S07PlanConflictLocalizationTests {
         var pieces=Map.of("left",leftMotion,"right",rightMotion);
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->Optional.of(new GeometryProvider.Snapshot(98,
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->Optional.of(new GeometryProvider.Snapshot(98,
             Map.of("left",leftWall,"right",rightWall,"safe",safeFloor))));
         AnatomyMovement.gravity(leftBody,new GravityFrame(Direction.WEST));
         AnatomyMovement.gravity(rightBody,new GravityFrame(Direction.EAST));
@@ -160,11 +160,11 @@ public final class S07PlanConflictLocalizationTests {
 
     private static TemporalResponse.Result resolveIndividually(ServerLevel level,Entity body,AABB captured,
             Map<String,ConservativeSweep.Motion> pieces) {
-        Entity previous=PlatformPhysics.enter(body);
+        Entity previous=MovingBodyContext.enter(body);
         try {
             return TemporalResponse.resolve(captured,Vec3.ZERO,pieces,32,256,
                 (box,delta)->Entity.collideBoundingBox(body,delta,box,level,level.getEntityCollisions(body,box.expandTowards(delta))));
-        } finally {PlatformPhysics.exit(previous);}
+        } finally {MovingBodyContext.exit(previous);}
     }
 
     private static boolean confirm(GameTestHelper h,Entity body,LivingEntity support,ConvexBox piece,String id,long revision) {

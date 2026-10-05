@@ -65,8 +65,8 @@ public final class S07ContactProvenanceTests {
         AnatomyMovement.activate(level);
         // Runtime contact certification uses the same material piece id carried by the
         // interval handle.  Keep provider/current snapshot and handle provenance aligned.
-        AnatomyMovement.register(hitSupport,e->Optional.of(new GeometryProvider.Snapshot(73,Map.of("body",hitAfter))));
-        AnatomyMovement.register(nearSupport,e->Optional.of(new GeometryProvider.Snapshot(74,Map.of("body",nearAfter))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(hitSupport,e->Optional.of(new GeometryProvider.Snapshot(73,Map.of("body",hitAfter))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(nearSupport,e->Optional.of(new GeometryProvider.Snapshot(74,Map.of("body",nearAfter))));
         try {
             h.assertTrue(Platforms.eligible(body,hitSupport) && Platforms.eligible(body,nearSupport),
                 "Both supports must be eligible so event order, not policy, is the only ambiguity");

@@ -4,7 +4,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.physics.AnatomySeparation;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -374,25 +374,25 @@ public final class MaterialPhysicsRuntime {
             if(pieces.isEmpty())return new Plan(body,Vec3.ZERO,0,Set.of());
             var evidence=new TreeSet<String>();
             var clip=clip(body);TemporalResponse.Result response;
-            Entity previous=PlatformPhysics.enter(body);
+            Entity previous=MovingBodyContext.enter(body);
             try {response=TemporalResponse.resolve(captured,Vec3.ZERO,pieces,RESPONSE_EVENTS,QUERY_BUDGET,clip);}
             catch(RuntimeException rejected){return null;}
-            finally {PlatformPhysics.exit(previous);}
+            finally {MovingBodyContext.exit(previous);}
             int evaluations=response.evaluations();
             if(response.status()==TemporalResponse.Status.ITERATION_LIMIT)return null;
             if(response.status()==TemporalResponse.Status.INITIAL_OVERLAP) {
                 for(var entry:pieces.entrySet())if(entry.getValue().at().apply(0).overlaps(captured))evidence.add(entry.getKey());
                 var start=pieces.values().stream().map(m->m.at().apply(0)).toList();
                 AnatomySeparation.Result separation;
-                previous=PlatformPhysics.enter(body);
+                previous=MovingBodyContext.enter(body);
                 try {separation=AnatomySeparation.resolve(captured,start,MAX_SEPARATION,SEPARATION_BUDGET,clip);}
                 catch(RuntimeException rejected){return null;}
-                finally {PlatformPhysics.exit(previous);}
+                finally {MovingBodyContext.exit(previous);}
                 evaluations+=separation.candidates();if(!separation.separated())return null;
-                previous=PlatformPhysics.enter(body);
+                previous=MovingBodyContext.enter(body);
                 try {response=TemporalResponse.resolve(captured.move(separation.displacement()),Vec3.ZERO,pieces,RESPONSE_EVENTS,QUERY_BUDGET,clip);}
                 catch(RuntimeException rejected){return null;}
-                finally {PlatformPhysics.exit(previous);}
+                finally {MovingBodyContext.exit(previous);}
                 evaluations+=response.evaluations();if(response.status()!=TemporalResponse.Status.COMPLETE)return null;
                 addContacts(evidence,response);
                 return new Plan(body,separation.displacement().add(response.displacement()),evaluations,evidence);

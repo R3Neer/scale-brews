@@ -75,9 +75,9 @@ public final class S31AdversarialTickIncorporationProof implements FabricClientG
             context.runOnClient(client->{var body=client.player;var camera=client.gameRenderer.mainCamera();
                 if(body.tickCount<=actual.cursor().bodyTick())throw new AssertionError("Native tick did not incorporate the prior baseline");
                 var position=body.position();var bounds=body.getBoundingBox();var velocity=body.getDeltaMovement();
-                var after=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                var after=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                 System.out.println("S31 ADVERSARY native next-tick incorporation renderer="+CausalBodyResidual.rendererOffset(body,.5f)+" camera="+after);
-                if(after.lengthSqr()!=0 || CausalBodyResidual.rendererOffset(body,.5f).lengthSqr()!=0 || io.github.r3neer.scalebrews.client.platform.PlatformCamera.appliedOffset().lengthSqr()!=0)throw new AssertionError("Native next-tick incorporation retained prior visual carry");
+                if(after.lengthSqr()!=0 || CausalBodyResidual.rendererOffset(body,.5f).lengthSqr()!=0 || io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.appliedOffset().lengthSqr()!=0)throw new AssertionError("Native next-tick incorporation retained prior visual carry");
                 if(!body.position().equals(position) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Incorporation query wrote physical state");
             });
 
@@ -88,8 +88,8 @@ public final class S31AdversarialTickIncorporationProof implements FabricClientG
         var camera=client.gameRenderer.mainCamera();
         var target=CausalBodyResidual.cameraOffset(body,.5f);var renderer=CausalBodyResidual.rendererOffset(body,.5f);
         if(target.distanceToSqr(renderer)>1e-12)throw new AssertionError("Camera-first read changed renderer material");
-        io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
-        var positive=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+        io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
+        var positive=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
         if(positive.lengthSqr()<1e-8)throw new AssertionError("Native next-tick camera positive control missing");
         if(CausalBodyResidual.rendererOffset(body,.5f).distanceToSqr(renderer)>1e-12 || CausalBodyResidual.cameraOffset(body,.5f).distanceToSqr(target)>1e-12)throw new AssertionError("Actual camera consumer changed relation material");
         return renderer;

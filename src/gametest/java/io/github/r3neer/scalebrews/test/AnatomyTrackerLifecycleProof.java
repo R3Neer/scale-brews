@@ -37,7 +37,7 @@ public final class AnatomyTrackerLifecycleProof {
             body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
             GeometryProvider provider=e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("back",
                 ConvexBox.of(new AABB(-2,0,-2,2,1,2),new Matrix4f()).move(e.position()))));
-            AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,provider);
+            AnatomyMovement.activate(h.getLevel());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
             var tracker=new AuthorityPoseTracker();
             var box=provider.sample(support).orElseThrow().pieces().get("back");
             body.setPos(box.bounds().getCenter().x,box.bounds().maxY,box.bounds().getCenter().z);

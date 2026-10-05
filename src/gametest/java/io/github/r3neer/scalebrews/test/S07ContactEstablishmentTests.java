@@ -48,7 +48,7 @@ public final class S07ContactEstablishmentTests {
         var afterBox=beforeBox.move(lift);
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(70,Map.of("body",afterBox)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         body.setPos(base.x,beforeBox.bounds().maxY+.25,base.z);
         try {
             h.assertTrue(Platforms.eligible(body,support),"Fixture body must be eligible for the support");
@@ -97,7 +97,7 @@ public final class S07ContactEstablishmentTests {
         var beforeBox=afterBox.move(lift.scale(-1));
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(72,Map.of("body",afterBox)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             h.assertTrue(Platforms.eligible(body,support),"Fixture body must be eligible for the support");
             double alignedGap=afterBox.separation(body.getBoundingBox()).gap();
@@ -146,7 +146,7 @@ public final class S07ContactEstablishmentTests {
         var beforeBox=afterBox.move(lift.scale(-1));
         GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(71,Map.of("body",afterBox)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             h.assertTrue(Platforms.eligible(body,support),"Fixture body must be eligible for the support");
             double gap=afterBox.separation(body.getBoundingBox()).gap();

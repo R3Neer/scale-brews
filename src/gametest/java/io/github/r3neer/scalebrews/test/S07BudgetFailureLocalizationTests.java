@@ -63,7 +63,7 @@ public final class S07BudgetFailureLocalizationTests {
             safeOrigin.x+1,safeOrigin.y,safeOrigin.z+1),new Matrix4f());
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->Optional.of(new GeometryProvider.Snapshot(97,
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->Optional.of(new GeometryProvider.Snapshot(97,
             Map.of("budget",budgetPiece,"safe",safePiece))));
         try {
             h.assertTrue(Platforms.eligible(uncertain,support) && Platforms.eligible(safe,support),

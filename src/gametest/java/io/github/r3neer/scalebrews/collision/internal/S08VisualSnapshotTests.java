@@ -8,7 +8,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.testutil.AdversarialSnapshotWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +85,7 @@ public final class S08VisualSnapshotTests {
             long revision = entityObstacle ? 812 : 811;
 
             AnatomyMovement.activate(level);
-            AnatomyMovement.register(support, ignored -> java.util.Optional.of(new GeometryProvider.Snapshot(revision, Map.of("floor", floorBefore))));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, ignored -> java.util.Optional.of(new GeometryProvider.Snapshot(revision, Map.of("floor", floorBefore))));
             try {
                 var separation = floorBefore.separation(captured);
                 int face = floorBefore.closestFace(separation.normal());
@@ -167,11 +167,11 @@ public final class S08VisualSnapshotTests {
     }
 
     private static Vec3 clip(net.minecraft.server.level.ServerLevel level, Entity body, AABB box, Vec3 requested) {
-        Entity entered = PlatformPhysics.enter(body);
+        Entity entered = MovingBodyContext.enter(body);
         try {
             return Entity.collideBoundingBox(body, requested, box, level, level.getEntityCollisions(body, box.expandTowards(requested)));
         } finally {
-            PlatformPhysics.exit(entered);
+            MovingBodyContext.exit(entered);
         }
     }
 

@@ -47,7 +47,7 @@ public final class S08JointAnchorTransportTests {
         long revision=309,tick=level.getGameTime();
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
         try {
             var separation=before.separation(captured);
             Vec3 normal=before.faceNormal(face);

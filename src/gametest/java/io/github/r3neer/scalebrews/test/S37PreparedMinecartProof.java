@@ -62,7 +62,7 @@ final class S37PreparedMinecartProof {
             h.assertTrue(contact!=null && contact.support()==support
                     && contact.revision()==frame.snapshot().revision()
                     && !cart.isOnRails() && Platforms.supported(cart)
-                    && Platforms.state(cart).support==null,
+                    && TestRetiredPlatformRuntime.absent(),
                 "Real off-rail cart acquires canonical-only material contact: "+variant+" contact="+contact);
             cart.tick();
             h.assertTrue(!cart.isOnRails() && Platforms.supported(cart)
@@ -224,7 +224,7 @@ final class S37PreparedMinecartProof {
             h.assertTrue(AnatomyApi.ready(cart) && !Platforms.eligible(cart,support),
                 "Narrow prepared support rejects minecart by effective width ratio");
             cart.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            h.assertTrue(AnatomyMovement.contact(cart)==null && Platforms.state(cart).support==null,
+            h.assertTrue(AnatomyMovement.contact(cart)==null && TestRetiredPlatformRuntime.absent(),
                 "Ratio-rejected minecart has no canonical or legacy material owner");
             cart.setPos(support.getX()+.4,support.getY(),support.getZ());
             cart.setDeltaMovement(Vec3.ZERO);

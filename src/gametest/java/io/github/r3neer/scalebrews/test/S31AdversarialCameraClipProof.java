@@ -73,10 +73,10 @@ public final class S31AdversarialCameraClipProof implements FabricClientGameTest
                 System.out.println("S31 ADVERSARY exact duplicate carry before="+positive+" after="+duplicate);
                 if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Consumer wrote physical state");
                 if(duplicate.distanceToSqr(positive)>1e-10)throw new AssertionError("Exact duplicate carry erased the nonzero draw sample");
-                io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+                io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
                 var camera=c.gameRenderer.mainCamera();
                 if(camera.entity()!=body)throw new AssertionError("Camera fixture not observing the local body");
-                var cameraBefore=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                var cameraBefore=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                 if(cameraBefore.lengthSqr()<1e-8)throw new AssertionError("Vacuous camera: nonzero draw correction did not reach actual camera");
                 // Deterministic collider 1cm ahead of the actual camera; 2cm safety margin forbids this ray.
                 var cameraPosition=camera.position();
@@ -85,11 +85,11 @@ public final class S31AdversarialCameraClipProof implements FabricClientGameTest
                 try {
                     setCameraPosition(camera,new Vec3(1.99,10.5,2.5));
                     c.level.setBlock(wall,net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(),3);
-                    io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
-                    var clipped=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                    io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
+                    var clipped=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                     System.out.println("S31 ADVERSARY deterministic camera clip open="+cameraBefore+" wall="+clipped);
                     if(clipped.lengthSqr()>1e-12)throw new AssertionError("Camera residual crossed collider safety margin");
-                    if(!io.github.r3neer.scalebrews.client.platform.PlatformCamera.appliedOffset().equals(clipped))throw new AssertionError("appliedOffset omitted final clipping");
+                    if(!io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.appliedOffset().equals(clipped))throw new AssertionError("appliedOffset omitted final clipping");
                     if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Camera clipping wrote physical state");
                 } finally {c.level.setBlock(wall,priorBlock,3);setCameraPosition(camera,cameraPosition);}
                 CausalBodyResidual.reset();TransportLedger.invalidate(body,true);

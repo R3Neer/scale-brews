@@ -175,6 +175,16 @@ public final class AnatomyMovement {
         AnatomyEndpointLedger.clear(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
         refreshSpatialEntry(support);
     }
+    /** Explicit non-causal core registration; policy authority never derives from an AABB or legacy surface. */
+    public static synchronized void registerCore(LivingEntity support,GeometryProvider provider,CollisionBinding binding){
+        if(support==null || provider==null || binding==null
+                || !binding.entity().equals(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(support.getType())))
+            throw new IllegalArgumentException("Missing or mismatched explicit core binding");
+        requireServerThread(support.level());
+        AnatomyBindingState.rebind(support,provider,null,binding);
+        AnatomyEndpointLedger.clear(support);RootFrameLedger.clear(support);clearSupportContacts(support);removeSpatialEntry(support);
+        refreshSpatialEntry(support);
+    }
     /** Runtime causal registration; model and pose provider are catalog identifiers, never model source text. */
     public static synchronized void register(LivingEntity support,GeometryProvider provider,GeometryProvider.GeometryIdentityDescriptor descriptor){
         register(support,provider,descriptor,null);
@@ -885,10 +895,10 @@ public final class AnatomyMovement {
         if(applied.lengthSqr()<=1e-20)return true;
         positionPassengers(body);
         if(body instanceof net.minecraft.server.level.ServerPlayer player)
-            ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,applied);
+            ((io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines)player.connection).scalebrews$transportBaseline(body,applied);
         for(var passenger:body.getIndirectPassengers())
             if(passenger instanceof net.minecraft.server.level.ServerPlayer player)
-                ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,applied);
+                ((io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines)player.connection).scalebrews$transportBaseline(body,applied);
         var before=TransportLedger.current(body);long tick=body.level().getGameTime();
         var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
             before!=null && before.tick()==tick?before.displacement().add(applied):applied,applied);
@@ -922,11 +932,11 @@ public final class AnatomyMovement {
             Vec3 now=piece.point(anchor.local()),delta=now.subtract(anchor.previous());
             if(delta.lengthSqr()>16){clear(body);return;}
             if(delta.lengthSqr()>1e-16) {
-                Entity previous=io.github.r3neer.scalebrews.platform.PlatformPhysics.enter(body);
+                Entity previous=io.github.r3neer.scalebrews.collision.integration.MovingBodyContext.enter(body);
                 Vec3 allowed;
                 try {
                     allowed=Entity.collideBoundingBox(body,delta,body.getBoundingBox(),body.level(),body.level().getEntityCollisions(body,body.getBoundingBox().expandTowards(delta)));
-                } finally {io.github.r3neer.scalebrews.platform.PlatformPhysics.exit(previous);}
+                } finally {io.github.r3neer.scalebrews.collision.integration.MovingBodyContext.exit(previous);}
                 // Server anchored transport releases the contact when an obstacle clips the
                 // certified path. A locally clipped partial move would otherwise reach the
                 // native movement packet as voluntary distance without a server receipt.
@@ -934,10 +944,10 @@ public final class AnatomyMovement {
                 body.setPos(body.position().add(allowed));
                 positionPassengers(body);
                 if(body instanceof net.minecraft.server.level.ServerPlayer player)
-                    ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,allowed);
+                    ((io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines)player.connection).scalebrews$transportBaseline(body,allowed);
                 for(var passenger:body.getIndirectPassengers())
                     if(passenger instanceof net.minecraft.server.level.ServerPlayer player)
-                        ((io.github.r3neer.scalebrews.platform.PlatformConnection)player.connection).scalebrews$transportBaseline(body,allowed);
+                        ((io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines)player.connection).scalebrews$transportBaseline(body,allowed);
                 var before=TransportLedger.current(body);long tick=body.level().getGameTime();
                 var transport=new SupportTransport(tick,before==null?1:before.sequence()+1,root.sequence(),
                     before!=null && before.tick()==tick?before.displacement().add(allowed):allowed,allowed);

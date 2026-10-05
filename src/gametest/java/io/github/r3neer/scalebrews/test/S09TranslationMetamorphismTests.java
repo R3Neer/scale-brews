@@ -123,11 +123,11 @@ public final class S09TranslationMetamorphismTests {
         GeometryProvider wallProvider=ignored->Optional.of(new GeometryProvider.Snapshot(wallRevision,Map.of("wall",wall)));
         AnatomyMovement.activate(level);
         if(floorFirst) {
-            AnatomyMovement.register(floorSupport,floorProvider);
-            AnatomyMovement.register(wallSupport,wallProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(wallSupport,wallProvider);
         } else {
-            AnatomyMovement.register(wallSupport,wallProvider);
-            AnatomyMovement.register(floorSupport,floorProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(wallSupport,wallProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
         }
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,floorSupport)

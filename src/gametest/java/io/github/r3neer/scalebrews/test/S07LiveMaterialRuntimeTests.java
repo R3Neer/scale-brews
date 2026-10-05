@@ -38,7 +38,7 @@ public final class S07LiveMaterialRuntimeTests {
         support.setNoGravity(true);
         var provider = endpointProvider(70);
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support, provider, new GeometryProvider.GeometryIdentityDescriptor(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider, new GeometryProvider.GeometryIdentityDescriptor(
             UUID.randomUUID(), 70, Identifier.parse("test:s07_model"), Identifier.parse("test:s07_pose"), 1));
         try {
             MaterialIntervalRuntime.observe(support);

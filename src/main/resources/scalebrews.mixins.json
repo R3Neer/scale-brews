@@ -23,7 +23,6 @@
 		"PlatformFallingBlockMixin",
 		"PlatformItemMixin",
 		"PlatformLivingFrictionMixin",
-		"PlatformServerPlayerMixin",
 		"TinyMountTemptGoalMixin",
 		"TinyMountGoalsMixin",
 		"ScaleCreeperExplosionMixin",

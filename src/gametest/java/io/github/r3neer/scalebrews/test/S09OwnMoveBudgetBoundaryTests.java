@@ -55,7 +55,7 @@ public final class S09OwnMoveBudgetBoundaryTests {
 
         final Map<String,ConvexBox> snapshotPieces=geometry;
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,ignored->Optional.of(new GeometryProvider.Snapshot(509,snapshotPieces)));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,ignored->Optional.of(new GeometryProvider.Snapshot(509,snapshotPieces)));
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,support),
                 "A11 support must be a real live candidate");

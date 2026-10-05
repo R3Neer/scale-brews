@@ -53,7 +53,7 @@ public final class G2VanillaPushReadyTests {
             body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
             var floor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(support.position());
             GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("floor",floor)));
-            AnatomyMovement.register(support,provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
 
             h.assertTrue(AnatomyApi.ready(body) && AnatomyApi.ready(support),
                 "Holdout must traverse the production READY guard used by PlatformEntityMixin.push");
@@ -106,9 +106,8 @@ public final class G2VanillaPushReadyTests {
             body.discard();support.discard();AnatomyRuntime.stop(server);
         }
 
-        // Transition holdout: a legitimate legacy support relation must not keep suppressing vanilla push
-        // during the same-tick handoff to READY anatomy ownership. Waiting for Platforms.tick would hide
-        // a stale-state ownership bug rather than certify the transition boundary.
+        // DISABLED -> READY handoff keeps native push; the removed legacy owner
+        // cannot acquire an automatic surface before the accepted catalog.
         var transitionSupport=h.spawn(EntityTypes.GHAST,4,20,4);
         var transitionBody=h.makeMockPlayer(GameType.SURVIVAL);
         try {
@@ -136,37 +135,31 @@ public final class G2VanillaPushReadyTests {
 
             transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
             transitionBody.setPos(transitionSupport.position().add(.2,5,0));
+            var disabledBefore=transitionBody.position();
             transitionBody.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-2,0));
-            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.state(transitionBody).support==transitionSupport,
-                "Transition holdout must acquire stale state through the production legacy movement path");
-
-            // Boundary control: before shared ownership begins, the exact same production-acquired
-            // PlatformState relation is still owned by the legacy route and must suppress pair push.
+            h.assertTrue(transitionBody.position().distanceToSqr(disabledBefore.add(0,-2,0))<1e-16
+                    && AnatomyMovement.contact(transitionBody)==null,
+                "DISABLED handoff must retain native movement without an automatic surface");
+            transitionBody.setPos(transitionSupport.getX()+.2,transitionSupport.getY()+.6,transitionSupport.getZ());
             transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
             transitionSupport.push(transitionBody);
-            Vec3 legacySupportCallerBody=transitionBody.getDeltaMovement();
-            Vec3 legacySupportCallerSupport=transitionSupport.getDeltaMovement();
-
+            h.assertTrue(transitionBody.getDeltaMovement().equals(transitionVanillaSupportCallerBody)
+                    && transitionSupport.getDeltaMovement().equals(transitionVanillaSupportCallerSupport),
+                "DISABLED support caller keeps its measurable native push");
             transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);
             transitionBody.push(transitionSupport);
-            Vec3 legacyBodyCallerBody=transitionBody.getDeltaMovement();
-            Vec3 legacyBodyCallerSupport=transitionSupport.getDeltaMovement();
-
-            h.assertTrue(legacySupportCallerBody.equals(Vec3.ZERO)
-                    && legacySupportCallerSupport.equals(Vec3.ZERO)
-                    && legacyBodyCallerBody.equals(Vec3.ZERO)
-                    && legacyBodyCallerSupport.equals(Vec3.ZERO),
-                "Legacy support must retain its own push suppression until shared anatomy ownership actually begins");
-
+            h.assertTrue(transitionBody.getDeltaMovement().equals(transitionVanillaBodyCallerBody)
+                    && transitionSupport.getDeltaMovement().equals(transitionVanillaBodyCallerSupport),
+                "DISABLED body caller keeps its measurable native push");
             AnatomyRuntime.startPrepared(server,Map.of(MODEL.toString(),catalogModel()),Map.of("ghast",profile("minecraft:ghast")));
             var transitionFloor=ConvexBox.of(new AABB(-1,-.1,-1,1,.1,1),new Matrix4f()).move(transitionSupport.position());
             GeometryProvider transitionProvider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("floor",transitionFloor)));
-            AnatomyMovement.register(transitionSupport,transitionProvider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(transitionSupport,transitionProvider);
 
             h.assertTrue(AnatomyApi.ready(transitionBody) && AnatomyApi.ready(transitionSupport),
                 "Transition holdout must enter READY anatomy ownership before the legacy participant cleanup tick");
-            h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.state(transitionBody).support==transitionSupport,
-                "Transition holdout requires the naturally acquired legacy support relation to survive until handoff is exercised");
+            h.assertTrue(AnatomyMovement.contact(transitionBody)==null,
+                "READY handoff did not invent a contact before real material movement" );
 
             transitionBody.setPos(transitionSupport.getX()+.2,transitionFloor.bounds().maxY+.5,transitionSupport.getZ());
             transitionBody.setDeltaMovement(Vec3.ZERO);transitionSupport.setDeltaMovement(Vec3.ZERO);

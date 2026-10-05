@@ -62,7 +62,7 @@ final class S38PreparedFallingBlockProof {
             var contact=AnatomyMovement.contact(block);
             h.assertTrue(contact!=null && contact.support()==support
                     && contact.revision()==frame.snapshot().revision()
-                    && Platforms.supported(block) && Platforms.state(block).support==null,
+                    && Platforms.supported(block) && TestRetiredPlatformRuntime.absent(),
                 "Falling block acquires canonical-only material contact: "+state);
             for(int tick=0;tick<8;tick++)block.tick();
             h.assertTrue(!block.isRemoved() && block.getBlockState().equals(state)
@@ -280,7 +280,7 @@ final class S38PreparedFallingBlockProof {
                 bounds.getCenter().z),Blocks.SAND.defaultBlockState());
             sand.setPos(bounds.getCenter().x,bounds.maxY+.8,bounds.getCenter().z);
             sand.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            h.assertTrue(Platforms.supported(sand) && Platforms.state(sand).support==null,
+            h.assertTrue(Platforms.supported(sand) && TestRetiredPlatformRuntime.absent(),
                 "Real sand ROOT fixture acquires canonical-only contact");
             var surface=AnatomyMovement.surface(sand);
             var beforePiece=AnatomyMovement.queryFrame(support).orElseThrow().snapshot().pieces().get(surface.piece());
@@ -381,7 +381,7 @@ final class S38PreparedFallingBlockProof {
             h.assertTrue(AnatomyApi.ready(sand) && !Platforms.eligible(sand,support),
                 "Narrow prepared support rejects real sand by effective width ratio");
             sand.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            h.assertTrue(AnatomyMovement.contact(sand)==null && Platforms.state(sand).support==null,
+            h.assertTrue(AnatomyMovement.contact(sand)==null && TestRetiredPlatformRuntime.absent(),
                 "Ratio-rejected sand retains its native path without a material owner");
             var before=sand.position();
             support.move(MoverType.SELF,new Vec3(.2,0,0));

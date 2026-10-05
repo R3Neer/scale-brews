@@ -51,7 +51,7 @@ final class S43PreparedNativePairProof {
                 var movement=moveAcross(body,support,bounds);
                 body.setPos(support.getX()+.25,bounds.maxY,support.getZ());
                 var supportCaller=push(body,support,true);var bodyCaller=push(body,support,false);
-                h.assertTrue(Platforms.state(body).support==null,"Native reference cannot acquire an automatic legacy plane");
+                h.assertTrue(TestRetiredPlatformRuntime.absent(),"Native reference cannot acquire an automatic legacy plane");
                 samples.put(kind,new Sample(bounds,movement,supportCaller,bodyCaller));
             } finally {body.discard();support.discard();}
         }
@@ -86,7 +86,7 @@ final class S43PreparedNativePairProof {
                         if(!eligible) {
                             h.assertTrue(equal(actual,nativeSample.movement()),"Rejected pair must match native move/flags/velocity: "
                                 +kind+" boundary="+boundary+" native="+nativeSample.movement()+" actual="+actual);
-                            h.assertTrue(AnatomyMovement.contact(body)==null && Platforms.state(body).support==null,
+                            h.assertTrue(AnatomyMovement.contact(body)==null && TestRetiredPlatformRuntime.absent(),
                                 "Rejected pair cannot acquire either contact owner");
                             var center=nativeSample.bounds().getCenter();
                             h.assertTrue(AnatomyApi.spaceClear(body,body.getBoundingBox().move(center.subtract(body.position())))
@@ -155,7 +155,7 @@ final class S43PreparedNativePairProof {
 
     private static Vec3 request(Entity body,AABB bounds){return new Vec3(bounds.getXsize()+body.getBbWidth()+1.2,0,0);}
     private static Movement moveAcross(Entity body,Cow support,AABB bounds) {
-        AnatomyApi.clearContact(body);Platforms.state(body).clear();
+        AnatomyApi.clearContact(body);
         body.setPos(bounds.minX-body.getBbWidth()/2-.6,bounds.getCenter().y,support.getZ());
         body.setDeltaMovement(Vec3.ZERO);body.setOnGround(false);
         var before=body.position();body.move(MoverType.SELF,request(body,bounds));
@@ -189,7 +189,7 @@ final class S43PreparedNativePairProof {
         body.setPos(support.getX()+.25,bounds.maxY+.8,support.getZ());
         body.move(MoverType.SELF,new Vec3(0,-1.2,0));
         h.assertTrue(AnatomyMovement.supported(body) && AnatomyMovement.contact(body).support()==support
-            && Platforms.state(body).support==null,"S43 actual original-model landing must acquire only material ownership");
+            && TestRetiredPlatformRuntime.absent(),"S43 actual original-model landing must acquire only material ownership");
     }
 
     private static void scaleAndStateRelease(GameTestHelper h) {

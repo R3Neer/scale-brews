@@ -50,7 +50,7 @@ public final class S21AdversarialRootCausalityTests {
             var expectedBox = expected.pieces().get("probe");
             h.assertTrue(expectedBox != null, "Transverse-root reference sample must contain the probe piece");
 
-            AnatomyMovement.register(support, provider,
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider,
                 new GeometryProvider.GeometryIdentityDescriptor(
                     UUID.randomUUID(), 1, MODEL, POSE, ROOT, 1));
             var published = AnatomyMovement.queryFrame(support).orElseThrow();

@@ -4,7 +4,7 @@ import io.github.r3neer.scalebrews.collision.runtime.RootFrame;
 import io.github.r3neer.scalebrews.collision.api.*;
 import io.github.r3neer.scalebrews.collision.internal.*;
 import io.github.r3neer.scalebrews.collision.physics.SupportTransport;
-import io.github.r3neer.scalebrews.platform.PlatformConnection;
+import io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,7 +42,7 @@ public final class S00ClientBoundaryTests implements FabricClientGameTest {
                 AnatomyTransportReceipts.invalidate(body);
                 // Recorder fixture obeys its post-apply contract: move and baseline
                 // the real server body first. This is NOT a proof of the carry solver.
-                var old=body.position();body.setPos(old.add(DELTA));((PlatformConnection)body.connection).scalebrews$transportBaseline(body,DELTA);
+                var old=body.position();body.setPos(old.add(DELTA));((NativeMovementBaselines)body.connection).scalebrews$transportBaseline(body,DELTA);
                 record(body,support,1,DELTA);var saved=AnatomyTransportReceipts.history(body,body.getUUID());
                 check(saved.size()==1 && saved.getFirst().bodyBefore().distanceToSqr(old)<1e-16,"Fixture did not record the actual applied delta");before.set(saved);
             });

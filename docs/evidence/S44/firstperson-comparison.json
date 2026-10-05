@@ -1,0 +1,416 @@
+{
+  "baselineHead": "0b7c5bea1d2ad4a171019fafb0ac285046f7f7e4",
+  "compat": "firstperson 2.7.2 / Minecraft 26.2",
+  "kind": "actual Minecraft captures; same scripted inputs and views; render partial/frame timing not frozen; no pixel-equivalence claim",
+  "sources": [
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0004_scale-brews-bee-first-person-45.png",
+      "sha256": "18eab8cbe2fa9b899171ac4257b8c4c24bf604df3c99f7800b914bb639da4b94",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0004_scale-brews-bee-first-person-45.png",
+      "sha256": "1820368d382bf372314efddd7cb8f5cdd1f4baa1415876772c44804852e9c999",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0005_scale-brews-bee-first-person-80.png",
+      "sha256": "e6bf0dd9c00a5bedc4075dd60ef77f586173855eeaeda74fdc713ce67442fcd0",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0005_scale-brews-bee-first-person-80.png",
+      "sha256": "175138584938e065245707ecf98dc74b3eb166e80e65cb2965307b2b8f56a4cc",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0006_scale-brews-bee-first-person-forward-down.png",
+      "sha256": "1039006c87ffd2aa184a804d968147c615d7c3f55b81fe8af6bdc8d4c74abaa6",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0006_scale-brews-bee-first-person-forward-down.png",
+      "sha256": "0e76197b3e8a28981e29ce7bbbd4ba0489a52d9ee524d4e10a9de27d2569fc78",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0014_scale-brews-chicken-first-person-45.png",
+      "sha256": "1a8b6b8956fda63aef71c622a5469eaf2df25367ad9957e6e79dd81ef10b8aa0",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0014_scale-brews-chicken-first-person-45.png",
+      "sha256": "d96fe6534dd4a4224b5a6cac6fd19090c11d9f8107428f44bc414d461b6ed4fd",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0015_scale-brews-chicken-first-person-80.png",
+      "sha256": "f7fbf150af66b975779847e014aa3c409cda88d75b0eccc1170ed5efb0910856",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0015_scale-brews-chicken-first-person-80.png",
+      "sha256": "839cd381b13cf223615f9e9b503221a58245d7625c10b7c8492684b68250ba06",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0016_scale-brews-chicken-first-person-forward-down.png",
+      "sha256": "bc2759db0e26e7023da9211d923c13407f3fb43ecd3b2fec54f97895b0b8f514",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0016_scale-brews-chicken-first-person-forward-down.png",
+      "sha256": "cd81ece5389ea4e4c0bb03f90feaea3589caa2a6561063ad21a0d74aaf798f19",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0024_scale-brews-wolf-first-person-45.png",
+      "sha256": "1cd186a3da2efde23f411bf75642e906da51db00929e9fb900780cf5d1e1553f",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0024_scale-brews-wolf-first-person-45.png",
+      "sha256": "3c45b0331d13134bfcdffa2558956506eb9119842649a65fe377ca43bc4769d7",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0025_scale-brews-wolf-first-person-80.png",
+      "sha256": "77bf99129281886d74abc67f1d2dd53da7e2baceb7a7f1648b77a35c46e2867a",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0025_scale-brews-wolf-first-person-80.png",
+      "sha256": "28b83c8dd3c3a375d80b6cb07576e8a0c82653860e904249e72d39151528aba6",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0026_scale-brews-wolf-first-person-forward-down.png",
+      "sha256": "c23dcab6fc6b5177533004729084edcc48dbea418a3f6bcf9fb03ed0e7db9d68",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0026_scale-brews-wolf-first-person-forward-down.png",
+      "sha256": "2b3a0ad1dc661117600c63cb4c5724a58f721f6002c30cb30aeaf2dcc5f0654d",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0000_scale-brews-bee-player-inventory.png",
+      "sha256": "f1d3b15672cff7c9c0aab96c6325846e30702f5688349c9a824ab93d2f4784ea",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0000_scale-brews-bee-player-inventory.png",
+      "sha256": "c0cbbe7d6e9c70e2f079c7369730bec066ccab3a122698e7bbb8b025541a23aa",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0002_scale-brews-bee-mounted-front.png",
+      "sha256": "228480057f6887879049157a9e2e42467047c766ca3fc3a3799b506b78c0c32f",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0002_scale-brews-bee-mounted-front.png",
+      "sha256": "a385ee1afe43719d9faa40aafbaf9cef2f59028533131a8cde5f831d2a42d12e",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0003_scale-brews-bee-mounted-top.png",
+      "sha256": "450aaa9f4213ca386d6b30026c0b34e040ed14b514d2a2f7418299381f948037",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0003_scale-brews-bee-mounted-top.png",
+      "sha256": "2ccf7d648a89daa30a25023c60fea29563949dfc0af0dd3aefdb4262908a2261",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0010_scale-brews-chicken-equipment-menu.png",
+      "sha256": "53d3701ef852ab50dcd69b90ed0155a827c3d9bf15316277198042f7aef87f90",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0010_scale-brews-chicken-equipment-menu.png",
+      "sha256": "63b8181d9921bec7c64be6ad0df4e1a7098f4d560c156f1093147cfd98c26a3a",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0012_scale-brews-chicken-mounted-front.png",
+      "sha256": "82f7bc35537e566c86ef194b70d211b437c06357691ebc90c33688ca068495f1",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0012_scale-brews-chicken-mounted-front.png",
+      "sha256": "a6805e6e3bd74ab04aefd00ce59470bc1d8030a0d2dab2ee2669e12f2aef7030",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0013_scale-brews-chicken-mounted-top.png",
+      "sha256": "af144be44ef38abd9937dff1da547e2407d335dd8fba9039812dbcf05b53a038",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0013_scale-brews-chicken-mounted-top.png",
+      "sha256": "9fb0e6586ab755502e3cbeb15adf65bb8f5f02acf2cb68331bfa63b9894cc46e",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0020_scale-brews-wolf-equipment-menu.png",
+      "sha256": "a00f1e75c817b4b4c2fdf2b8e6291206b98b9306cb86aa54c9712a46082186a4",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0020_scale-brews-wolf-equipment-menu.png",
+      "sha256": "a6aa12043cc393de4273e0be55ef586027a0d79c8f90ceebdca994c2eac3fc47",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0022_scale-brews-wolf-mounted-front.png",
+      "sha256": "cb836df16630e135d133f605c2d47ec4e59e4e151d46cd34d7690b5dd9360af1",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0022_scale-brews-wolf-mounted-front.png",
+      "sha256": "a5151403076f64c85356435f08d2837a10d299d98d4693da686da476f39a4065",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0023_scale-brews-wolf-mounted-top.png",
+      "sha256": "00f55b9f506a4f6a7b7ab0ef32b5ae3bb50cd60dd2460821ab71fcec4e8b767e",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0023_scale-brews-wolf-mounted-top.png",
+      "sha256": "a507b998a4cefd5edd10217d5bfe4cec8545776b9323b622e3e68bb6d44b2c8a",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-baseline-client-run\\screenshots\\0030_scale-brews-horse-animated-rider.png",
+      "sha256": "202addab35613d4106136cd3c81c37391454f7bb7e22d137648af87b7ff5c209",
+      "size": [
+        854,
+        480
+      ]
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s44-firstperson-candidate-screenshots\\0030_scale-brews-horse-animated-rider.png",
+      "sha256": "44e6e0cd5cd1f1e5343fddd0be8b4d5c7f9b92a13774be97dbf7d14f663fd823",
+      "size": [
+        854,
+        480
+      ]
+    }
+  ],
+  "captureRecipe": {
+    "fixture": "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance",
+    "fixtureSha256": "cb38af42d280cb8a446fce27e28e5a3e769a624e260d1fe3871bb0387d06a1a1",
+    "world": "Fabric ClientGameTest default worldBuilder; stone at y=-61; survival; Shrinking II; fixture coordinates/commands",
+    "staticMounts": "bee (-3,-60,2), chicken (0,-60,2), wolf (3,-60,2), NoAI for angle sequence",
+    "views": {
+      "rear": [
+        180,
+        15,
+        4
+      ],
+      "front": "same aim, third-person front, four ticks",
+      "top": [
+        180,
+        75,
+        4
+      ],
+      "firstPerson45": [
+        180,
+        45,
+        6
+      ],
+      "firstPerson80": [
+        180,
+        80,
+        6
+      ],
+      "forwardDown": [
+        0,
+        80,
+        10
+      ]
+    },
+    "motion": "keyUp held for first capture at3 ticks and second at8; NoAI released/restored by fixture",
+    "limits": "Fixed script, angles and tick waits. World seed, particles, render partial and exact wall-clock not frozen; sheets support visual regression inspection only. Independent camera-near-plane JSON supplies fixed-partial semantic snapshot."
+  },
+  "allCaptureHashes": {
+    "S43": {
+      "0000_scale-brews-bee-player-inventory.png": "f1d3b15672cff7c9c0aab96c6325846e30702f5688349c9a824ab93d2f4784ea",
+      "0001_scale-brews-bee-mounted-rear.png": "c3045bda706228d72d32d5fcf60a71c6f17535a78c1fee2327f62a339aae9609",
+      "0002_scale-brews-bee-mounted-front.png": "228480057f6887879049157a9e2e42467047c766ca3fc3a3799b506b78c0c32f",
+      "0003_scale-brews-bee-mounted-top.png": "450aaa9f4213ca386d6b30026c0b34e040ed14b514d2a2f7418299381f948037",
+      "0004_scale-brews-bee-first-person-45.png": "18eab8cbe2fa9b899171ac4257b8c4c24bf604df3c99f7800b914bb639da4b94",
+      "0005_scale-brews-bee-first-person-80.png": "e6bf0dd9c00a5bedc4075dd60ef77f586173855eeaeda74fdc713ce67442fcd0",
+      "0006_scale-brews-bee-first-person-forward-down.png": "1039006c87ffd2aa184a804d968147c615d7c3f55b81fe8af6bdc8d4c74abaa6",
+      "0007_scale-brews-bee-motion-a.png": "b9dd68ff3678a71df2b65a737f570034a0fb0857ed5afc5544f47ad10be5ee97",
+      "0008_scale-brews-bee-motion-b.png": "8028daa8f65c4986d11d9af448e487c469311052e5fb554ec0a1313dea38caa3",
+      "0009_scale-brews-bee-unmounted-side.png": "2bd35d5135180e49cc8c5f7ed63cbcbbc1f89b3f9ed8bf99d3374e9d9a6e003b",
+      "0010_scale-brews-chicken-equipment-menu.png": "53d3701ef852ab50dcd69b90ed0155a827c3d9bf15316277198042f7aef87f90",
+      "0011_scale-brews-chicken-mounted-rear.png": "72416438f4473abbcecc3feb25d46041ff6dfca9b23981bc173115e0115b5257",
+      "0012_scale-brews-chicken-mounted-front.png": "82f7bc35537e566c86ef194b70d211b437c06357691ebc90c33688ca068495f1",
+      "0013_scale-brews-chicken-mounted-top.png": "af144be44ef38abd9937dff1da547e2407d335dd8fba9039812dbcf05b53a038",
+      "0014_scale-brews-chicken-first-person-45.png": "1a8b6b8956fda63aef71c622a5469eaf2df25367ad9957e6e79dd81ef10b8aa0",
+      "0015_scale-brews-chicken-first-person-80.png": "f7fbf150af66b975779847e014aa3c409cda88d75b0eccc1170ed5efb0910856",
+      "0016_scale-brews-chicken-first-person-forward-down.png": "bc2759db0e26e7023da9211d923c13407f3fb43ecd3b2fec54f97895b0b8f514",
+      "0017_scale-brews-chicken-motion-a.png": "cc7251e6bab77a8d4d8d3c25954b651e07f963648dede8f12a8c1c0022c30b29",
+      "0018_scale-brews-chicken-motion-b.png": "e4d2702dacfa2f64ad38f37e4a601fbd31040f612a01a56e33f8d37aa9bd020c",
+      "0019_scale-brews-chicken-unmounted-side.png": "99aa23ae7bf85877808a3552509c76ae373e60f2a28c059bad9cc1e40796e260",
+      "0020_scale-brews-wolf-equipment-menu.png": "a00f1e75c817b4b4c2fdf2b8e6291206b98b9306cb86aa54c9712a46082186a4",
+      "0021_scale-brews-wolf-mounted-rear.png": "865bb7c792f38ecc173340c83da8b0110c4d7c1f98c3f57edbe86adc10340b5f",
+      "0022_scale-brews-wolf-mounted-front.png": "cb836df16630e135d133f605c2d47ec4e59e4e151d46cd34d7690b5dd9360af1",
+      "0023_scale-brews-wolf-mounted-top.png": "00f55b9f506a4f6a7b7ab0ef32b5ae3bb50cd60dd2460821ab71fcec4e8b767e",
+      "0024_scale-brews-wolf-first-person-45.png": "1cd186a3da2efde23f411bf75642e906da51db00929e9fb900780cf5d1e1553f",
+      "0025_scale-brews-wolf-first-person-80.png": "77bf99129281886d74abc67f1d2dd53da7e2baceb7a7f1648b77a35c46e2867a",
+      "0026_scale-brews-wolf-first-person-forward-down.png": "c23dcab6fc6b5177533004729084edcc48dbea418a3f6bcf9fb03ed0e7db9d68",
+      "0027_scale-brews-wolf-motion-a.png": "f400553bcb48ac84da6d609e7f465ac1da5f95552c700ed136a4d7af3af7379c",
+      "0028_scale-brews-wolf-motion-b.png": "d07b8308bda690f4814f6865ba0c8185a082d11c69d33142a5d1c05617dffe2e",
+      "0029_scale-brews-wolf-unmounted-side.png": "a43c390101ba054bf2953436fb249ed1f16775fc3795ece1e419e5e46087836d",
+      "0030_scale-brews-horse-animated-rider.png": "202addab35613d4106136cd3c81c37391454f7bb7e22d137648af87b7ff5c209"
+    },
+    "S44": {
+      "0000_scale-brews-bee-player-inventory.png": "c0cbbe7d6e9c70e2f079c7369730bec066ccab3a122698e7bbb8b025541a23aa",
+      "0001_scale-brews-bee-mounted-rear.png": "d0405b78340432debe65f33b9662a3a11de01ebf3c69ec44ea33b153430da0b2",
+      "0002_scale-brews-bee-mounted-front.png": "a385ee1afe43719d9faa40aafbaf9cef2f59028533131a8cde5f831d2a42d12e",
+      "0003_scale-brews-bee-mounted-top.png": "2ccf7d648a89daa30a25023c60fea29563949dfc0af0dd3aefdb4262908a2261",
+      "0004_scale-brews-bee-first-person-45.png": "1820368d382bf372314efddd7cb8f5cdd1f4baa1415876772c44804852e9c999",
+      "0005_scale-brews-bee-first-person-80.png": "175138584938e065245707ecf98dc74b3eb166e80e65cb2965307b2b8f56a4cc",
+      "0006_scale-brews-bee-first-person-forward-down.png": "0e76197b3e8a28981e29ce7bbbd4ba0489a52d9ee524d4e10a9de27d2569fc78",
+      "0007_scale-brews-bee-motion-a.png": "ce2f1a45c68d814e8c65b7a0fbc74d1d7ae4a5092f3ee0ca0c6de3b95ef20089",
+      "0008_scale-brews-bee-motion-b.png": "597e270c088cb8def3d8ec17db8659eafaeee106639c812823368d627f3f72c3",
+      "0009_scale-brews-bee-unmounted-side.png": "740eb7d966cebd907386f9427685ace82884f7252e4fdcb36e43fe49cfb951b0",
+      "0010_scale-brews-chicken-equipment-menu.png": "63b8181d9921bec7c64be6ad0df4e1a7098f4d560c156f1093147cfd98c26a3a",
+      "0011_scale-brews-chicken-mounted-rear.png": "0f04c0a7e3de9c9c717e69c46557febe51774447511bb36ebc813b850e4324ea",
+      "0012_scale-brews-chicken-mounted-front.png": "a6805e6e3bd74ab04aefd00ce59470bc1d8030a0d2dab2ee2669e12f2aef7030",
+      "0013_scale-brews-chicken-mounted-top.png": "9fb0e6586ab755502e3cbeb15adf65bb8f5f02acf2cb68331bfa63b9894cc46e",
+      "0014_scale-brews-chicken-first-person-45.png": "d96fe6534dd4a4224b5a6cac6fd19090c11d9f8107428f44bc414d461b6ed4fd",
+      "0015_scale-brews-chicken-first-person-80.png": "839cd381b13cf223615f9e9b503221a58245d7625c10b7c8492684b68250ba06",
+      "0016_scale-brews-chicken-first-person-forward-down.png": "cd81ece5389ea4e4c0bb03f90feaea3589caa2a6561063ad21a0d74aaf798f19",
+      "0017_scale-brews-chicken-motion-a.png": "7baf716cf55cdb0bab45ed8c4bd60e85dd6e2faf59b6f8043c4c3c69bb6a71c8",
+      "0018_scale-brews-chicken-motion-b.png": "02ebc0ae4ea043ccfd2167ef24110fb7758ea8d6a86651e6ed62900926ac90c3",
+      "0019_scale-brews-chicken-unmounted-side.png": "8c8a618d233c6c44a17c8dc190f8bb63f92a838113cc1cd0b057e05307af7fa5",
+      "0020_scale-brews-wolf-equipment-menu.png": "a6aa12043cc393de4273e0be55ef586027a0d79c8f90ceebdca994c2eac3fc47",
+      "0021_scale-brews-wolf-mounted-rear.png": "9e434fbb45c3d8bf74c0b2e96dece8028a31c958f8b60d2e243a912e7440dec8",
+      "0022_scale-brews-wolf-mounted-front.png": "a5151403076f64c85356435f08d2837a10d299d98d4693da686da476f39a4065",
+      "0023_scale-brews-wolf-mounted-top.png": "a507b998a4cefd5edd10217d5bfe4cec8545776b9323b622e3e68bb6d44b2c8a",
+      "0024_scale-brews-wolf-first-person-45.png": "3c45b0331d13134bfcdffa2558956506eb9119842649a65fe377ca43bc4769d7",
+      "0025_scale-brews-wolf-first-person-80.png": "28b83c8dd3c3a375d80b6cb07576e8a0c82653860e904249e72d39151528aba6",
+      "0026_scale-brews-wolf-first-person-forward-down.png": "2b3a0ad1dc661117600c63cb4c5724a58f721f6002c30cb30aeaf2dcc5f0654d",
+      "0027_scale-brews-wolf-motion-a.png": "43056ac9f56208a910a9a8edad8692bc6b921d0b89db3ba4f7327ce8ea72e1db",
+      "0028_scale-brews-wolf-motion-b.png": "84224a4b56ae31fe83f30ff14a70a4e6e921c9d33945377bbf6def5400f1bce7",
+      "0029_scale-brews-wolf-unmounted-side.png": "e841ecdddb2d227ccaf6405ba2e7068f8c96463ae27f15d9c8123e17eb8c6034",
+      "0030_scale-brews-horse-animated-rider.png": "44e6e0cd5cd1f1e5343fddd0be8b4d5c7f9b92a13774be97dbf7d14f663fd823"
+    }
+  },
+  "inspection": "IMPLEMENTER inspected both sheets: FirstPerson rider/body/held item framing, bee player inventory, chicken/wolf equipment, front/top mount seating and native horse preserved. Particle/timing differences are visible; no pixel equality asserted."
+}

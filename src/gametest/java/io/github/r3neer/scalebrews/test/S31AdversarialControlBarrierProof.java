@@ -83,16 +83,16 @@ public final class S31AdversarialControlBarrierProof implements FabricClientGame
         if(CausalBodyResidual.rendererOffset(c.player,.5f).lengthSqr()!=0)throw new AssertionError("Passenger avatar received a second vehicle correction");
         if(CausalBodyResidual.cameraOffset(c.player,.5f).distanceToSqr(value)>1e-12)throw new AssertionError("Vehicle owner correction did not reach rider camera");
         if(value.lengthSqr()<1e-8)throw new AssertionError("Control handoff positive sample missing");
-        io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+        io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
         var camera=c.gameRenderer.mainCamera();
-        var cameraBefore=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+        var cameraBefore=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
         if(cameraBefore.lengthSqr()<1e-8)throw new AssertionError("Control handoff camera positive sample missing");
         c.player.stopRiding();
         if(c.player.getRootVehicle()!=c.player || vehicle.getControllingPassenger()==c.player)throw new AssertionError("Real control handoff did not occur");
         var retired=CausalBodyResidual.rendererOffset(vehicle,.5f);
         System.out.println("S31 ADVERSARY controlled-owner handoff prior="+value+" retired="+retired+" localAuthority="+vehicle.isLocalInstanceAuthoritative());
         if(retired.lengthSqr()!=0)throw new AssertionError("Retired controlled vehicle retained prior draw correction after dismount");
-        var cameraAfter=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+        var cameraAfter=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
         if(cameraAfter.lengthSqr()!=0)throw new AssertionError("Camera retained old vehicle smoothing after control handoff");
         return value;
     }

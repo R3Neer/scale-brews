@@ -1,0 +1,65 @@
+{
+  "gateSha256": "14fbbd2d9ee72012cb27924c13d0a857a3c1a838abc808278302f370169de5e8",
+  "results": [
+    {
+      "case": "baseline",
+      "exit": 0,
+      "output": "S25_REFERENCE_AUTHORITY_GATE PASS\n - retired legacy authority is absent; one canonical native-packet emitter is ownership-fenced\n - registered collision C2S payload schemas are metadata-only:\n    AnatomyMoveReferencePayload\n    AnatomyMoveReferenceV2Payload\n"
+    },
+    {
+      "case": "ownership",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - canonical emitter lost shared-physics ownership fence\n"
+    },
+    {
+      "case": "thread",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - canonical emitter lost current local-player/client-thread fence\n"
+    },
+    {
+      "case": "positional",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - canonical emitter lost native positional player/vehicle selection\n"
+    },
+    {
+      "case": "field",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - src\\main\\java\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyMoveReferenceV2Payload.java: serverbound payload AnatomyMoveReferenceV2Payload exposes forbidden authority field localPoint\n"
+    },
+    {
+      "case": "physical-type",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - src\\main\\java\\io\\github\\r3neer\\scalebrews\\collision\\internal\\AnatomyMoveReferenceV2Payload.java: serverbound payload AnatomyMoveReferenceV2Payload embeds forbidden physical authority type ConvexBox\n"
+    },
+    {
+      "case": "receiver",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - collision C2S receiver AnatomyMoveReferenceV2Payload lacks matching serverbound payload registration\n"
+    },
+    {
+      "case": "mixin",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - client mixins require exactly one canonical emitter and no legacy emitter\n"
+    },
+    {
+      "case": "legacy",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - src\\main\\java\\io\\github\\r3neer\\scalebrews\\platform\\PlatformMovePayload.java: retired legacy movement-reference authority PlatformMovePayload remains\n"
+    },
+    {
+      "case": "second-emitter",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - movement references require exactly one canonical emitter; found [WindowsPath('src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyOutgoingMoveMixin.java'), WindowsPath('src/client/java/io/github/r3neer/scalebrews/client/mixin/ExtraEmitter.java')]\n"
+    },
+    {
+      "case": "unqualified-emitter",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - movement references require exactly one canonical emitter; found [WindowsPath('src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyOutgoingMoveMixin.java'), WindowsPath('src/client/java/io/github/r3neer/scalebrews/client/mixin/ExtraEmitter.java')]\n"
+    },
+    {
+      "case": "missing-emitter",
+      "exit": 1,
+      "output": "S25_REFERENCE_AUTHORITY_GATE FAIL\n - movement references require exactly one canonical emitter; found []\n - missing canonical movement-reference emitter src\\client\\java\\io\\github\\r3neer\\scalebrews\\client\\mixin\\AnatomyOutgoingMoveMixin.java\n"
+    }
+  ]
+}

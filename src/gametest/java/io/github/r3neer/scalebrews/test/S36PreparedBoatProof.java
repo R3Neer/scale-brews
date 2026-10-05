@@ -58,7 +58,7 @@ final class S36PreparedBoatProof {
             var contact=AnatomyMovement.contact(boat);var surface=AnatomyMovement.surface(boat);
             h.assertTrue(contact!=null && contact.support()==support && surface!=null
                     && contact.revision()==frame.snapshot().revision() && contact.piece().equals(surface.piece())
-                    && Platforms.supported(boat) && Platforms.state(boat).support==null,
+                    && Platforms.supported(boat) && TestRetiredPlatformRuntime.absent(),
                 "Real hull move acquires canonical contact without legacy owner: "+variant+" contact="+contact);
             double expectedFriction=Platforms.friction(boat,.6);
             h.assertTrue(Math.abs(boat.getGroundFriction()-expectedFriction)<1e-5,
@@ -120,7 +120,7 @@ final class S36PreparedBoatProof {
             h.assertTrue(AnatomyApi.ready(boat) && !Platforms.eligible(boat,support),
                 "Narrow prepared support rejects an oversize hull before material response");
             boat.move(MoverType.SELF,new Vec3(0,-1.5,0));
-            h.assertTrue(AnatomyMovement.contact(boat)==null && Platforms.state(boat).support==null
+            h.assertTrue(AnatomyMovement.contact(boat)==null && TestRetiredPlatformRuntime.absent()
                     && !Platforms.supported(boat),
                 "Rejected width ratio retains vanilla movement without a canonical or legacy material owner");
             boat.setPos(support.getX()+.4,support.getY(),support.getZ());

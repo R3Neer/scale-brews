@@ -20,10 +20,10 @@ La auditoría iterativa del árbol legacy + anatómico produjo estas decisiones 
 - `MaterialEventDispatcher`, `BodyPath`, `ConservativeSweep`, `TemporalResponse`, `HierarchyMotion`, receipts, histories y trackers se conservan porque representan capacidades requeridas por G2-G4.
 - `RootEventDispatcher` y `AnatomyStreamLifecycle` se eliminaron como scaffolding sin consumidor real.
 - La fórmula/guard específicos de Alex's Mobs Continued 2.1.9 para grizzly dejaron de ser producción; `GrizzlyPose` existe sólo como fixture H1 de GameTest.
-- El motor `platform` legacy no se borra aún: sigue siendo la única implementación de varias semánticas que deben preservarse durante migración. Se elimina en G5.
+- El motor `platform` legacy se conservó durante migración hasta verificar sus equivalentes; S44/G5 retiró su física, estado, networking y sampling visual. Sobreviven el decoder de datos justificado y las semánticas actuales delegadas al único owner canónico.
 - La API pública vive en `collision.api`; modelos cliente en `client.collision.preparation`; recepción/cache en `client.collision.network`.
 - Los tipos puros ya están separados en `collision.geometry`, `collision.pose` y `collision.physics`. La orquestación acoplada permanece en `collision.internal` hasta que G2/G3 definan fronteras reales.
-- No queda el paquete `platform.anatomy`; el `platform` superviviente pertenece exclusivamente al motor legacy pendiente de G5.
+- No queda el paquete `platform.anatomy`; los nombres `platform` supervivientes identifican datos/policy, placement canónico y hooks actuales de categorías/lifecycle, sin un motor físico alternativo.
 
 ## 3. Gates
 
@@ -268,9 +268,9 @@ integrado NFR-014 y la QA humana/pack permanecen en G9.
 4. [x] portar raycast/placement con permisos/inventario/footprint (S33/G5.1);
 5. [x] demostrar no regresión de fall/exhaustion/stats/Growth landing (S39/G5.6);
 6. [x] preservar la ruta física/interacción Minecraft/`main` para parejas que no califican como moving platform según FR-053/FR-093; una pareja elegible puede sustituir bloqueo por anatomía, pero conserva el `push` vanilla exactamente una vez (S43);
-7. [ ] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes;
-8. [ ] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo;
-9. [ ] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción.
+7. [x] eliminar `PlatformPhysics`, `PlatformGeometry`, `PlatformState`, networking/camera/visual carry legacy, `automatic_top` y recursos/runtime sólo cuando sus equivalentes estén verdes (S44);
+8. [x] conservar únicamente decoder legacy surface si FR-023 sigue justificándolo (S44: plano unilateral advertido, sin binding anatómico ejecutable);
+9. [x] comprobar que ningún mixin/helper bifurca entre dos motores físicos ni crea un segundo owner de interacción (S44).
 
 **S35/G5.2 cerrado localmente para items (FR-007/066):** un `ItemEntity`
 ordinario usa contacto y transporte material canónicos en el servidor preparado
@@ -405,6 +405,20 @@ Ambas revisiones finales requieren cero cambios. Evidencia y límites en
 El cierre tiene commit local propio `Sprint: S43`; G5 tareas7–9 y G6–G9 siguen
 abiertas. Las necesidades humanas continúan al final de la épica en G9.
 
+**S44/G5 cerrado localmente (FR-022/023; NFR-035):** retirados los21 tipos
+legacy y18 perfiles de plano enviados. El contexto nativo, baseline player/vehicle
+y offset de cámara/render tienen owners canónicos únicos; se preservan las
+semánticas de `main`, incluido FirstPerson2.7.2. DISABLED sigue nativo y ausencia
+de geometría produce cero collider. Build/servidor466, cliente32, catálogo
+original24 escenarios, vagoneta experimental real y player/boat dedicado con
+RTT0/100/200 pasan; adversario independiente recertifica físico/lifecycle/localidad,
+cámara y scope, con mutaciones sensibles y revisión final cero cambios. Ocho
+gates de ownership/protocolo pasan; S25 actualizado rechaza11 mutaciones.
+Evidencia y límites de capturas en `docs/VALIDATION.md` y
+`docs/sprints/S44-g5-legacy-runtime-retirement.md`. El cierre tiene commit local
+propio `Sprint: S44`. G6–G9 siguen abiertos; las intervenciones humanas permanecen
+al final de la épica.
+
 ### G6 — cobertura completa de Minecraft general
 
 **Requisitos:** FR-016, FR-024..032, FR-038..040, FR-089..092; NFR-019..024, NFR-028..032.
@@ -453,7 +467,7 @@ abiertas. Las necesidades humanas continúan al final de la épica en G9.
 
 **Intervenciones del propietario aplazadas hasta cerrar la épica completa (no al cerrar un sprint):**
 
-- [ ] QA humana de la versión candidata exacta en el entorno de aceptación: superficies animadas, cámara, cadenas de soportes, vehículos y pack, incluidos los objetivos visuales Fresh Animations/EMF de G8 y la continuidad visual del observador remoto con latencia en G4. Los agentes preparan builds, casos reproducibles, capturas y resultados automáticos antes de solicitar el veredicto. Se añadirán aquí únicamente necesidades humanas reales que aparezcan durante la épica; ninguna detiene por sí sola el trabajo independiente anterior.
+- [ ] QA humana de la versión candidata exacta en el entorno de aceptación: superficies animadas, cámara, cadenas de soportes, vehículos y pack, incluidos los objetivos visuales Fresh Animations/EMF de G8 y la continuidad visual del observador remoto con latencia en G4. Incluye los casos de aceptación trasladados del motor retirado en G5: barcos ocupados arrastrados con leads, transiciones agua/raíles, hardening/placement de falling blocks tras release, cadenas concurridas, esquinas de cámara/pared y observadores que llegan tarde. Los agentes preparan builds, casos reproducibles, capturas y resultados automáticos antes de solicitar el veredicto. Se añadirán aquí únicamente necesidades humanas reales que aparezcan durante la épica; ninguna detiene por sí sola el trabajo independiente anterior.
 
 ## 4. Dependencias
 

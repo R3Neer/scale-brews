@@ -113,12 +113,12 @@
       "io.github.r3neer.scalebrews.test.TinyMountMenuTests",
       "io.github.r3neer.scalebrews.test.TinyMountFamilyTests",
       "io.github.r3neer.scalebrews.test.GravityFrameTests",
-      "io.github.r3neer.scalebrews.test.TinyMountGravityTests"
+      "io.github.r3neer.scalebrews.test.TinyMountGravityTests",
+      "io.github.r3neer.scalebrews.test.S44RuntimeRetirementTests"
     ],
     "fabric-client-gametest": [
       "io.github.r3neer.scalebrews.test.AnatomyExportProof",
       "io.github.r3neer.scalebrews.test.WolfClientProof",
-      "io.github.r3neer.scalebrews.test.PlatformClientProof",
       "io.github.r3neer.scalebrews.test.S36LocalBoatControlProof",
       "io.github.r3neer.scalebrews.test.S43LocalNativePairProof",
       "io.github.r3neer.scalebrews.collision.internal.S43ContactIndexClientProof",
@@ -147,7 +147,8 @@
       "io.github.r3neer.scalebrews.test.S29AdversarialCrossSupportProof",
       "io.github.r3neer.scalebrews.test.TinyMountClientAcceptance",
       "io.github.r3neer.scalebrews.test.S42AdversarialRetiredDisconnectProof",
-      "io.github.r3neer.scalebrews.test.S42AdversarialCurrentDisconnectProof"
+      "io.github.r3neer.scalebrews.test.S42AdversarialCurrentDisconnectProof",
+      "io.github.r3neer.scalebrews.test.S44AdversarialScopeProof"
     ]
   }
 }

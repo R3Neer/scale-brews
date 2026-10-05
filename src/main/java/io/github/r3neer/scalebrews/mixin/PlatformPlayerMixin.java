@@ -1,6 +1,8 @@
 package io.github.r3neer.scalebrews.mixin;
 
-import io.github.r3neer.scalebrews.platform.*;
+import io.github.r3neer.scalebrews.platform.PlatformPlacement;
+import io.github.r3neer.scalebrews.platform.Platforms;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -19,7 +21,7 @@ public abstract class PlatformPlayerMixin {
     @Inject(method="maybeBackOffFromEdge",at=@At("HEAD"),cancellable=true)
     private void scalebrews$edge(Vec3 delta, MoverType type, CallbackInfoReturnable<Vec3> cir) {
         Player self=(Player)(Object)this;
-        if (PlatformPhysics.touching(self) && (type==MoverType.SELF || type==MoverType.PLAYER))
-            cir.setReturnValue(PlatformPhysics.edge(self,delta));
+        if (Platforms.supported(self) && (type==MoverType.SELF || type==MoverType.PLAYER))
+            cir.setReturnValue(AnatomyMovement.edge(self,delta));
     }
 }

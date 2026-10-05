@@ -81,7 +81,7 @@ public final class S05LiveBroadphaseLocalityTests {
         AnatomyMovement.activate(level);
         try {
             addFarSupports(level,body.position(),supports,farProvider);
-            AnatomyMovement.register(localSupport,localA);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(localSupport,localA);
             AABB localQuery=body.getBoundingBox();
             h.assertTrue(AnatomyMovement.spaceClear(body,localQuery),
                 "Initial local query must materialize the world index before the rebind");
@@ -89,7 +89,7 @@ public final class S05LiveBroadphaseLocalityTests {
             // Rebind is an explicit supported mutation hook. It may do maintenance itself.
             // Reset after the hook: this test constrains the next physical query, not the
             // implementation strategy or cost chosen inside the mutation callback.
-            AnatomyMovement.register(localSupport,localB);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(localSupport,localB);
             farSamples.set(0);
 
             h.assertTrue(AnatomyMovement.spaceClear(body,localQuery),
@@ -133,7 +133,7 @@ public final class S05LiveBroadphaseLocalityTests {
         AnatomyMovement.activate(level);
         try {
             addFarSupports(level,body.position(),supports,farProvider);
-            AnatomyMovement.register(localSupport,localProvider,descriptor);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(localSupport,localProvider,descriptor);
             // Canonical provider cadence may do world-wide maintenance outside the measured query.
             AnatomyMovement.tick(level);
             var beforeBox=localProvider.sample(localSupport).orElseThrow().pieces().get("body").bounds();
@@ -214,7 +214,7 @@ public final class S05LiveBroadphaseLocalityTests {
             support.setPos(origin.add(1000+i*8,0,0));
             level.addFreshEntity(support);
             supports.add(support);
-            AnatomyMovement.register(support,provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         }
     }
 }

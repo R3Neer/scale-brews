@@ -117,7 +117,7 @@ public final class TinyMountVisualTests {
         Vector3f correctedOrigin = new Matrix4f(rotated.last().pose()).mul(correction).getTranslation(new Vector3f());
         if (correctedOrigin.distance(new Vector3f(1, 1.2F, 3)) > 1E-4F)
             throw new AssertionError("Rotated rider stack moved to " + correctedOrigin + " instead of the world-space seat");
-        io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+        io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
         ((RiderPoseState)rider).scalebrews$firstPersonOffset(new net.minecraft.world.phys.Vec3(.2,0,0));
         rider.scale=.5F;
         var firstPersonCorrection=MountRenderFrame.riderTransform((RiderPoseState)rider,rider,rotated);

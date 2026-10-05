@@ -119,13 +119,13 @@ public final class S12ContactStateOwnershipTests {
         var snapshot = new GeometryProvider.Snapshot(1, Map.of("body", box(body.getBoundingBox())));
         GeometryProvider provider = ignored -> Optional.of(snapshot);
         try {
-            AnatomyMovement.register(support, provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider);
             long firstGeneration = AnatomyMovement.registrationGeneration(support);
             AnatomyContactState.suspend(body, support, firstGeneration);
             h.assertTrue(AnatomyMovement.suspended(body, support),
                 "A current-generation suspension must remain while the certified shape still overlaps the body");
 
-            AnatomyMovement.register(support, provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider);
             long reboundGeneration = AnatomyMovement.registrationGeneration(support);
             h.assertTrue(reboundGeneration > firstGeneration,
                 "The fixture requires a real provider rebind with a newer local generation");
@@ -160,7 +160,7 @@ public final class S12ContactStateOwnershipTests {
         Entity transitionedBody = body(h, otherLevel);
         var oldSupport = support(h, 18);
         try {
-            AnatomyMovement.register(targetSupport,
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(targetSupport,
                 ignored -> Optional.of(new GeometryProvider.Snapshot(1, Map.of("body", unitBox()))));
             long registration = AnatomyMovement.registrationGeneration(targetSupport);
 

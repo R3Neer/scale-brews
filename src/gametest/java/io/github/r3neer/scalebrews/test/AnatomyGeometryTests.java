@@ -21,7 +21,7 @@ public class AnatomyGeometryTests {
         body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);
         body.refreshDimensions();
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,entity->java.util.Optional.of(new GeometryProvider.Snapshot(7,
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,entity->java.util.Optional.of(new GeometryProvider.Snapshot(7,
             java.util.Map.of("body",ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(entity.position())))));
         try {
             body.setPos(support.getX()+.5,support.getY()+1,support.getZ()+.5);
@@ -76,7 +76,7 @@ public class AnatomyGeometryTests {
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         var provider=new ModelGeometryProvider(model,new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
         provider.pose(support,new PoseEngine.Inputs(0,0,0,0,0,true));
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             var back=provider.sample(support).orElseThrow().pieces().get("root/body/cube_0").bounds();
             player.setPos(back.getCenter().x,back.maxY+.2,back.getCenter().z);
@@ -118,7 +118,7 @@ public class AnatomyGeometryTests {
                 "A reusable geometry provider keeps same-network-ID entities in distinct pose caches");
             for(int i=0;i<2;i++) {
                 final int index=i;
-                AnatomyMovement.register(i==0?first:second,new GeometryProvider(){
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(i==0?first:second,new GeometryProvider(){
                     public java.util.Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity e){return java.util.Optional.empty();}
                     public void tick(net.minecraft.world.entity.LivingEntity e,long tick){ticks[index]++;}
                 });
@@ -342,12 +342,12 @@ public class AnatomyGeometryTests {
         player.setPos(support.position());var enclosing=ConvexBox.of(new AABB(-.35,-.35,-.35,.35,.35,.35),new Matrix4f()).move(support.position());
         // Actual block wall denies every bounded separation candidate; no global noCollision.
         for(int x=0;x<=4;x++)for(int y=18;y<=22;y++)for(int z=0;z<=4;z++)h.setBlock(new net.minecraft.core.BlockPos(x,y,z),net.minecraft.world.level.block.Blocks.STONE);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",enclosing))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",enclosing))));
         try {
             var position=player.position();var blocked=AnatomyMovement.collide(player,new Vec3(.01,0,0));player.setPos(player.position().add(blocked));
             h.assertTrue(AnatomyMovement.suspended(player,support) && !AnatomyMovement.suspended(player,other),"Only unresolvable pair is suspended");
             h.assertTrue(player.position().distanceTo(position)<.1,"Recovery did not teleport out of enclosing anatomy");
-            AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(2,java.util.Map.of("body",enclosing.move(new Vec3(30,0,0))))));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(2,java.util.Map.of("body",enclosing.move(new Vec3(30,0,0))))));
             h.assertTrue(!AnatomyMovement.suspended(player,support),"Pair re-enables after actual overlap ends");
         }finally{support.discard();other.discard();player.discard();}
     }
@@ -365,7 +365,7 @@ public class AnatomyGeometryTests {
         var center=support.position();var floor=ConvexBox.of(new AABB(-1,-1,-1,1,0,1),new Matrix4f()).move(center);
         var motion=new ConservativeSweep.Motion(t->floor.move(new Vec3(0,t,0)),0,new Vec3(0,1,0));
         player.setPos(center.x,center.y+.5,center.z);player.setOnGround(false);
-        AnatomyMovement.register(support,new GeometryProvider(){
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,new GeometryProvider(){
             public java.util.Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity e){return java.util.Optional.of(new Snapshot(1,java.util.Map.of("back",motion.at().apply(1))));}
             public java.util.Optional<MotionSnapshot> motion(net.minecraft.world.entity.LivingEntity e){long to=e.level().getGameTime();return java.util.Optional.of(new MotionSnapshot(1,to-1,to,e.position(),e.position(),java.util.Map.of("back",motion)));}
         });
@@ -399,7 +399,7 @@ public class AnatomyGeometryTests {
         var center=support.position().add(0,.6,0);player.setPos(center.x,center.y-player.getBbHeight()/2,center.z+.8);
         var motion=new ConservativeSweep.Motion(t->ConvexBox.of(new AABB(-1,-.1,-.1,1,.1,.1),new Matrix4f().rotateY((float)(Math.PI*t))).move(center),3.3);
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,new GeometryProvider(){
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,new GeometryProvider(){
             public java.util.Optional<Snapshot> sample(net.minecraft.world.entity.LivingEntity e){return java.util.Optional.of(new Snapshot(1,java.util.Map.of("limb",motion.at().apply(1))));}
             public java.util.Optional<MotionSnapshot> motion(net.minecraft.world.entity.LivingEntity e){long to=e.level().getGameTime();return java.util.Optional.of(new MotionSnapshot(1,to-1,to,e.position(),e.position(),java.util.Map.of("limb",motion)));}
         });
@@ -606,7 +606,7 @@ public class AnatomyGeometryTests {
         var head=provider.sample(giant).orElseThrow().pieces().get("root/head/cube_0");
         var boat=h.spawn(net.minecraft.world.entity.EntityTypes.OAK_BOAT,2,27,2);
         var rider=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);rider.startRiding(boat,true,true);
-        AnatomyMovement.register(giant,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(giant,provider);
         try {
             var center=head.bounds().getCenter();boat.setPos(center.x,head.bounds().maxY+1,center.z);
             boat.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-2,0));
@@ -655,7 +655,7 @@ public class AnatomyGeometryTests {
         provider.pose(support,new PoseEngine.Inputs(0,0,0,0,0,true));
         var player=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.1);player.refreshDimensions();
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             var pieces=provider.sample(support).orElseThrow().pieces();
             var torso=pieces.entrySet().stream().filter(e->e.getKey().contains("/body/")).findFirst().orElseThrow().getValue();
@@ -697,7 +697,7 @@ public class AnatomyGeometryTests {
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         GeometryProvider provider=e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",
             ConvexBox.of(new AABB(-1,0,-1,1,1,1),new Matrix4f()).move(e.position()))));
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             for(boolean changeSupport:new boolean[]{true,false}) {
                 AnatomyMovement.gravity(support,GravityFrame.VANILLA);AnatomyMovement.gravity(player,GravityFrame.VANILLA);
@@ -726,7 +726,7 @@ public class AnatomyGeometryTests {
         support.setNoAi(true);support.setNoGravity(true);
         GeometryProvider provider=e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",
             ConvexBox.of(new AABB(-2,0,-2,2,2,2),new Matrix4f().rotateY((float)Math.toRadians(e.yBodyRot))).move(e.position()))));
-        AnatomyMovement.register(support,provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         var boat=h.spawn(net.minecraft.world.entity.EntityTypes.OAK_BOAT,2,23,2);
         var rider=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         rider.startRiding(boat,true,true);
@@ -734,7 +734,7 @@ public class AnatomyGeometryTests {
             boat.setPos(support.position().add(.7,3,.4));
             boat.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-2,0));
             h.assertTrue(AnatomyMovement.contact(boat)!=null,"Occupied boat lands on convex geometry through Entity.move");
-            h.assertTrue(io.github.r3neer.scalebrews.platform.PlatformPhysics.touching(boat),"Network grounding query sees anatomical contact without legacy surface state");
+            h.assertTrue(io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.supported(boat),"Network grounding query sees anatomical contact without legacy surface state");
             boat.positionRider(rider);var riderBefore=rider.position();
             var before=boat.position();var oldBox=provider.sample(support).orElseThrow().pieces().get("body");
             Vec3 local=oldBox.coordinates(before);
@@ -766,7 +766,7 @@ public class AnatomyGeometryTests {
         var player=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);
         player.refreshDimensions();
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",box))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",box))));
         try {
             for(var outward:net.minecraft.core.Direction.values()) {
                 var n=new Vec3(outward.getStepX(),outward.getStepY(),outward.getStepZ());
@@ -789,7 +789,7 @@ public class AnatomyGeometryTests {
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         var center=support.position();
         var box=ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(center);
-        AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",box))));
+        AnatomyMovement.activate(h.getLevel());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",box))));
         try {
             for(var down:net.minecraft.core.Direction.values()) {
                 var frame=new GravityFrame(down);var outward=frame.up();
@@ -828,7 +828,7 @@ public class AnatomyGeometryTests {
         // Deliberately farther than the old support-AABB search margin: a tail/arm-like
         // material piece must still enter the broadphase from its own convex bounds.
         var piece=ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(support.position().add(9,0,0));
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("extended_piece",piece))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("extended_piece",piece))));
         try {
             AnatomyMovement.gravity(player,new GravityFrame(net.minecraft.core.Direction.WEST));
             player.setPos(support.position().add(13,0,0));player.setOnGround(false);
@@ -844,7 +844,7 @@ public class AnatomyGeometryTests {
         var player=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         var floor=ConvexBox.of(new AABB(-2,-.1,-2,2,.1,2),new Matrix4f().rotateZ((float)Math.toRadians(30))).move(support.position());
-        AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("slope",floor))));
+        AnatomyMovement.activate(h.getLevel());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("slope",floor))));
         try {
             AnatomyMovement.gravity(player,GravityFrame.VANILLA);player.setPos(support.position().add(0,2,0));
             var allowed=AnatomyMovement.collide(player,new Vec3(0,-3,0));player.setPos(player.position().add(allowed));AnatomyMovement.afterMove(player);
@@ -861,7 +861,7 @@ public class AnatomyGeometryTests {
         player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);player.refreshDimensions();
         GeometryProvider provider=e->java.util.Optional.of(new GeometryProvider.Snapshot(1,java.util.Map.of("body",
             ConvexBox.of(new AABB(-.5,-.5,-.5,.5,.5,.5),new Matrix4f()).move(e.position()))));
-        AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,provider);
+        AnatomyMovement.activate(h.getLevel());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
         try {
             // First lookup materializes this tick's index at the old root origin.
             h.assertTrue(!AnatomyMovement.spaceClear(player,new AABB(support.position().subtract(.01,.01,.01),support.position().add(.01,.01,.01))),"Initial provider enters broadphase");
@@ -1074,7 +1074,7 @@ public class AnatomyGeometryTests {
         var body=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         body.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.SCALE).setBaseValue(.2);body.refreshDimensions();
         var box=ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(support.position());
-        AnatomyMovement.activate(h.getLevel());AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(7,java.util.Map.of("body",box))));
+        AnatomyMovement.activate(h.getLevel());io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(7,java.util.Map.of("body",box))));
         try {
             var surface=new SurfaceContact(support.getUUID(),7,"body",3,new Vec3(.5,1,.5),new Vec3(0,1,0),h.getLevel().getGameTime());
             body.setPos(support.position().add(10,0,0));

@@ -14,7 +14,7 @@ import io.github.r3neer.scalebrews.collision.internal.MaterialIntervalRuntime;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.physics.TemporalResponse;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -78,8 +78,8 @@ public final class S07RejectedBatchContactValidityTests {
         var allPieces=Map.of("a/left",leftMotion,"a/right",rightMotion,"b/floor",floorMotion);
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(supportA,e->Optional.of(new GeometryProvider.Snapshot(111,Map.of("left",leftWall,"right",rightWall))));
-        AnatomyMovement.register(supportB,e->Optional.of(new GeometryProvider.Snapshot(112,Map.of("floor",floorBefore))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(supportA,e->Optional.of(new GeometryProvider.Snapshot(111,Map.of("left",leftWall,"right",rightWall))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(supportB,e->Optional.of(new GeometryProvider.Snapshot(112,Map.of("floor",floorBefore))));
         AnatomyMovement.gravity(left,GravityFrame.VANILLA);
         AnatomyMovement.gravity(right,new GravityFrame(Direction.EAST));
         try {
@@ -143,11 +143,11 @@ public final class S07RejectedBatchContactValidityTests {
 
     private static TemporalResponse.Result resolveIndividually(ServerLevel level,Entity body,AABB captured,
             Map<String,ConservativeSweep.Motion> pieces) {
-        Entity previous=PlatformPhysics.enter(body);
+        Entity previous=MovingBodyContext.enter(body);
         try {
             return TemporalResponse.resolve(captured,Vec3.ZERO,pieces,32,256,
                 (box,delta)->Entity.collideBoundingBox(body,delta,box,level,level.getEntityCollisions(body,box.expandTowards(delta))));
-        } finally {PlatformPhysics.exit(previous);}
+        } finally {MovingBodyContext.exit(previous);}
     }
 
     private static Object prepared(LivingEntity support,long revision,String id,long materialSerial,

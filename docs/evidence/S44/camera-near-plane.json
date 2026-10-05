@@ -1,0 +1,59 @@
+{
+  "partial": 0.5,
+  "wallMinX": 2,
+  "safety": 0.02,
+  "from": [
+    1.9295084179040856,
+    10.5,
+    2.5
+  ],
+  "corners": [
+    [
+      0.06228929613435557,
+      0.035010377218373155,
+      0.05000000074505806
+    ],
+    [
+      -0.06228929613435557,
+      0.035010377218373155,
+      0.05000000074505806
+    ],
+    [
+      0.06228929613435557,
+      -0.035010377218373155,
+      0.05000000074505806
+    ],
+    [
+      -0.06228929613435557,
+      -0.035010377218373155,
+      0.05000000074505806
+    ]
+  ],
+  "open": [
+    0.039346934028736694,
+    0.0,
+    0.0
+  ],
+  "clipped": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "physical": [
+    2.2,
+    1.854893299348356,
+    -2.0
+  ],
+  "reference": {
+    "allowedAdditionalX": 0,
+    "leadingGap": 0.00820228596155887,
+    "meaning": "five native rays with 0.02 safety, not a stored/contact fallback"
+  },
+  "capture": {
+    "logSha256": "bff57fbacf68c2f6205c8e1f17ee13628212d725fc76120391ff755e6730e7b5",
+    "view": "world XY fixed window; camera near-plane inputs from actual runtime",
+    "partial": 0.5,
+    "snapshotKind": "geometry projection, not Minecraft screenshot",
+    "physicalState": "observed and unchanged by assertions; not a world-seed comparison"
+  }
+}

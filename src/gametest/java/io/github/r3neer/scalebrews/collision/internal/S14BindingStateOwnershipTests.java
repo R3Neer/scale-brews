@@ -77,7 +77,7 @@ public final class S14BindingStateOwnershipTests {
             // Make the spatial index current before registration. The legacy-first implementation then
             // samples once as descriptorless membership and once again for the causal published frame.
             AnatomySpatialIndex.rebuild(level,level.getGameTime(),List.of());
-            AnatomyMovement.register(support,provider,descriptor(17,1));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(17,1));
             h.assertTrue(samples.get()==1,
                 "Causal rebind must install provider+descriptor atomically and sample once, not transiently as a legacy binding; samples="+samples.get());
             h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),"Atomic causal rebind must publish a usable current frame");
@@ -96,11 +96,11 @@ public final class S14BindingStateOwnershipTests {
         var provider=fixtureProvider(3);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,provider);long first=AnatomyMovement.registrationGeneration(support);
-            AnatomyMovement.register(support,provider);long second=AnatomyMovement.registrationGeneration(support);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);long first=AnatomyMovement.registrationGeneration(support);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);long second=AnatomyMovement.registrationGeneration(support);
             h.assertTrue(second==first+1,"Every rebind must advance local registration exactly once: "+first+" -> "+second);
             AnatomyMovement.deactivate(level);AnatomyMovement.activate(level);
-            AnatomyMovement.register(support,provider);long third=AnatomyMovement.registrationGeneration(support);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);long third=AnatomyMovement.registrationGeneration(support);
             h.assertTrue(third==second+1,
                 "Level deactivate must clear the active binding without rewinding the same entity instance's generation: "+second+" -> "+third);
         } finally {
@@ -117,10 +117,10 @@ public final class S14BindingStateOwnershipTests {
         support.setNoAi(true);support.setNoGravity(true);support.setPos(8,20,8);level.addFreshEntity(support);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,causalProvider(21,new AtomicInteger(),true),descriptor(21,1));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,causalProvider(21,new AtomicInteger(),true),descriptor(21,1));
             long rejected=AnatomyMovement.registrationGeneration(support);
             h.assertTrue(AnatomyMovement.queryFrame(support).isEmpty(),"Rejected first capture must quarantine that exact registration");
-            AnatomyMovement.register(support,causalProvider(21,new AtomicInteger(),false),descriptor(21,1));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,causalProvider(21,new AtomicInteger(),false),descriptor(21,1));
             long rebound=AnatomyMovement.registrationGeneration(support);
             h.assertTrue(rebound==rejected+1 && AnatomyMovement.queryFrame(support).isPresent(),
                 "A new registration must clear the previous generation's quarantine without rewinding identity: "+rejected+" -> "+rebound);
@@ -143,7 +143,7 @@ public final class S14BindingStateOwnershipTests {
             @Override public Optional<GeometryProvider.Snapshot> sample(LivingEntity entity) {return Optional.of(snapshot(entity,31));}
             @Override public Optional<GeometryProvider.CausalEndpoint> causalEndpoint(LivingEntity entity) {
                 if(triggered.compareAndSet(false,true)) {
-                    AnatomyMovement.register(entity,replacement,replacementDescriptor);
+                    io.github.r3neer.scalebrews.test.TestCoreBindings.register(entity,replacement,replacementDescriptor);
                     nestedBlocked.set(AnatomyMovement.queryFrame(entity).isEmpty());
                 }
                 return Optional.of(endpoint(entity,1));
@@ -151,7 +151,7 @@ public final class S14BindingStateOwnershipTests {
         };
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,first,descriptor(31,1));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,first,descriptor(31,1));
             h.assertTrue(nestedBlocked.get(),"A rebind inside provider capture must not open a nested capture while the outer guard is owned");
             h.assertTrue(AnatomyMovement.queryFrame(support).isPresent(),
                 "The replacement binding must become capturable after the outer capture releases its guard");

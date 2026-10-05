@@ -8,7 +8,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,7 +51,7 @@ public final class S08ObstacleOverflowTests {
         var placed=new ArrayList<BlockPos>();
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
         try {
             Vec3 normal=before.faceNormal(face);
             h.assertTrue(GravityFrame.VANILLA.supports(normal),"Fixture top face must support vanilla gravity");
@@ -130,8 +130,8 @@ public final class S08ObstacleOverflowTests {
         var externalSnapshot=new AtomicReference<>(new GeometryProvider.Snapshot(415,pieces(1,externalBox)));
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
-        AnatomyMovement.register(external,e->java.util.Optional.of(externalSnapshot.get()));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",before))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(external,e->java.util.Optional.of(externalSnapshot.get()));
         try {
             Vec3 normal=before.faceNormal(face);Vec3 local=before.facePoint(face,captured.getCenter());
             h.assertTrue(AnatomyMovement.confirm(body,support,
@@ -211,11 +211,11 @@ public final class S08ObstacleOverflowTests {
     }
 
     private static int countEntityAabbs(net.minecraft.server.level.ServerLevel level,net.minecraft.world.entity.Entity body,AABB envelope) {
-        net.minecraft.world.entity.Entity previous=PlatformPhysics.enter(body);
+        net.minecraft.world.entity.Entity previous=MovingBodyContext.enter(body);
         try {
             int count=0;
             for(var shape:level.getEntityCollisions(body,envelope))count+=shape.toAabbs().size();
             return count;
-        } finally {PlatformPhysics.exit(previous);}
+        } finally {MovingBodyContext.exit(previous);}
     }
 }

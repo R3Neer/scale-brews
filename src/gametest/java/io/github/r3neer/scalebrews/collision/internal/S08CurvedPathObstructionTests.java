@@ -8,7 +8,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +58,7 @@ public final class S08CurvedPathObstructionTests {
         long revision=209;
 
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
         try {
             var floorSeparation=floorBefore.separation(captured);
             int face=floorBefore.closestFace(floorSeparation.normal());
@@ -75,11 +75,11 @@ public final class S08CurvedPathObstructionTests {
             h.assertTrue(!blockBox.intersects(captured),"Fixture must not begin overlapping the block");
 
             Vec3 endpoint=new Vec3(-4,0,0);
-            Entity previous=PlatformPhysics.enter(body);Vec3 chordAllowed;
+            Entity previous=MovingBodyContext.enter(body);Vec3 chordAllowed;
             try {
                 chordAllowed=Entity.collideBoundingBox(body,endpoint,captured,level,
                     level.getEntityCollisions(body,captured.expandTowards(endpoint)));
-            } finally {PlatformPhysics.exit(previous);}
+            } finally {MovingBodyContext.exit(previous);}
             h.assertTrue(chordAllowed.distanceToSqr(endpoint)<1e-10,
                 "Control requires the straight endpoint chord to remain vanilla-clear: "+chordAllowed);
 
@@ -136,7 +136,7 @@ public final class S08CurvedPathObstructionTests {
             long revision=210;
 
             AnatomyMovement.activate(level);
-            AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
             try {
                 var floorSeparation=floorBefore.separation(captured);
                 int face=floorBefore.closestFace(floorSeparation.normal());
@@ -209,10 +209,10 @@ public final class S08CurvedPathObstructionTests {
     }
 
     private static Vec3 clip(net.minecraft.server.level.ServerLevel level,Entity body,AABB box,Vec3 requested) {
-        Entity entered=PlatformPhysics.enter(body);
+        Entity entered=MovingBodyContext.enter(body);
         try {
             return Entity.collideBoundingBox(body,requested,box,level,level.getEntityCollisions(body,box.expandTowards(requested)));
-        } finally {PlatformPhysics.exit(entered);}
+        } finally {MovingBodyContext.exit(entered);}
     }
 
     private static ConvexBox rotateY(ConvexBox box,Vec3 pivot,double radians) {

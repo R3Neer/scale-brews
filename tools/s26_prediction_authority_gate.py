@@ -5,15 +5,17 @@ import sys
 
 movement=Path("src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyMovement.java")
 client=Path("src/client/java/io/github/r3neer/scalebrews/client/collision/network/AnatomyClientNetworking.java")
-bridge=Path("src/main/java/io/github/r3neer/scalebrews/platform/PlatformPhysics.java")
+bridge=Path("src/main/java/io/github/r3neer/scalebrews/collision/integration/MovingBodyContext.java")
+hooks=Path("src/main/java/io/github/r3neer/scalebrews/mixin/PlatformEntityMixin.java")
 
-for path in (movement,client,bridge):
+for path in (movement,client,bridge,hooks):
     if not path.is_file():
         raise SystemExit(f"S26_PREDICTION_AUTHORITY FAIL missing {path}")
 
 m=movement.read_text()
 c=client.read_text()
 b=bridge.read_text()
+h=hooks.read_text()
 errors=[]
 
 if not re.search(r"public static boolean simulates\(Entity body\)\s*\{\s*return !body\.level\(\)\.isClientSide\(\) \|\| body\.isLocalInstanceAuthoritative\(\);\s*\}",m):
@@ -25,12 +27,19 @@ if not re.search(r"public static boolean predictsBody\(Entity body\)\s*\{\s*retu
 if "if(!predictsBody(body))return;" not in m:
     errors.append("AnatomyMovement.carry no longer fences full prediction through predictsBody")
 
-if "AnatomyMovement.simulates(" in b:
-    errors.append("PlatformPhysics shared-anatomy bridge still admits local replicas without unique-root prediction ownership")
-if b.count("AnatomyMovement.predictsBody(")<4:
-    errors.append("PlatformPhysics does not route all anatomy suppress/collide/afterMove/carry decisions through predictsBody")
+if "AnatomyMovement.simulates(" in b or "AnatomyMovement.simulates(" in h:
+    errors.append("native movement integration admits local replicas without unique-root prediction ownership")
+if not re.search(r"return MOVING\.get\(\) == body && AnatomyApi\.ready\(body\) && AnatomyMovement\.predictsBody\(body\)\s*&& AnatomyMovement\.replacesPair\(body, other\);",b):
+    errors.append("MovingBodyContext pair suppression lost exact scope/READY/unique-root ownership")
+# The removed bridge's four decisions now have two canonical owners. Check each
+# live decision, rather than weakening the obligation to a total token count.
+for decision in ("carry","afterMove"):
+    if not re.search(r"if\(AnatomyApi\.ready\(self\) && AnatomyMovement\.predictsBody\(self\)\)AnatomyMovement\."+decision+r"\(self\);",h):
+        errors.append(f"Entity.move {decision} hook lost READY/unique-root authority fence")
+if not re.search(r"if\(AnatomyApi\.ready\(self\) && AnatomyMovement\.predictsBody\(self\)\)\s*cir\.setReturnValue\(AnatomyMovement\.collide\(self,cir\.getReturnValue\(\)\)\);",h):
+    errors.append("Entity.collide hook lost READY/unique-root authority fence")
 
-loop_pattern=r"for\(var entity:poseLevel\.entitiesForRendering\(\)\)\s*\n\s*if\(entity\.isLocalInstanceAuthoritative\(\) && AnatomyMovement\.contact\(entity\)!=null\)AnatomyMovement\.carry\(entity\);"
+loop_pattern=r"for\(var entity:poseLevel\.entitiesForRendering\(\)\)\s*\n\s*if\((?:entity!=predictionBody && )?entity\.isLocalInstanceAuthoritative\(\)\s*&& AnatomyMovement\.contact\(entity\)!=null\)AnatomyMovement\.carry\(entity\);"
 if not re.search(loop_pattern,c):
     errors.append("client END_CLIENT_TICK carry loop no longer requires local instance authority")
 

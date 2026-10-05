@@ -8,7 +8,7 @@ import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
 import io.github.r3neer.scalebrews.collision.internal.ModelGeometryProvider;
 import io.github.r3neer.scalebrews.collision.pose.PlayerWalkingPose;
 import io.github.r3neer.scalebrews.platform.PlatformDefinition;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -71,7 +71,7 @@ public final class S08AdversarialBoatPairSuppressionTests {
             var boat = h.spawn(EntityTypes.OAK_BOAT, 2, 27, 2);
             var rider = h.makeMockPlayer(GameType.SURVIVAL);
             rider.startRiding(boat, true, true);
-            AnatomyMovement.register(giant, provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(giant, provider);
 
             try {
                 var center = head.bounds().getCenter();
@@ -83,7 +83,7 @@ public final class S08AdversarialBoatPairSuppressionTests {
                 h.assertTrue(AnatomyMovement.replacesPair(boat, giant),
                     "Available exported head geometry must own the boat/player replacement pair");
 
-                Entity previous = PlatformPhysics.enter(boat);
+                Entity previous = MovingBodyContext.enter(boat);
                 boolean vanillaStillSeesSupport;
                 boolean movingSide;
                 boolean supportSide;
@@ -93,7 +93,7 @@ public final class S08AdversarialBoatPairSuppressionTests {
                     vanillaStillSeesSupport = !h.getLevel().getEntityCollisions(
                         boat, boat.getBoundingBox().expandTowards(drop)).isEmpty();
                 } finally {
-                    PlatformPhysics.exit(previous);
+                    MovingBodyContext.exit(previous);
                 }
 
                 h.assertFalse(vanillaStillSeesSupport,

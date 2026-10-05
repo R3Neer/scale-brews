@@ -164,7 +164,7 @@ public final class S13SpatialIndexOwnershipTests {
         AnatomyMovement.activate(level);
         try {
             AnatomySpatialIndex.deactivate(level);
-            AnatomyMovement.register(support,provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
             samples.set(0);
             h.assertTrue(AnatomyMovement.spaceClear(body,body.getBoundingBox()),
                 "Unrelated local query must remain clear while rebuilding a far legacy support");

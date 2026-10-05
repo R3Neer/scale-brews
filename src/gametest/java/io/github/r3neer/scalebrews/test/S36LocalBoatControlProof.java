@@ -57,7 +57,7 @@ public final class S36LocalBoatControlProof implements FabricClientGameTest {
                 boat.setYRot(-90);
                 level.addFreshEntity(boat);boatId.set(boat.getId());
                 boat.move(MoverType.SELF,new Vec3(0,-.1,0));
-                if(!Platforms.supported(boat) || Platforms.state(boat).support!=null)
+                if(!Platforms.supported(boat) || !TestRetiredPlatformRuntime.absent())
                     throw new AssertionError("Boat did not acquire canonical-only material contact");
                 var player=server.getPlayerList().getPlayers().getFirst();
                 player.teleportTo(boat.getX(),boat.getY(),boat.getZ());
@@ -158,7 +158,7 @@ public final class S36LocalBoatControlProof implements FabricClientGameTest {
                         +" box="+boat.getBoundingBox()+" hCollision="+boat.horizontalCollision
                         +" fluid="+boat.isInWater()+" status="+nativeStatus((AbstractBoat)boat)
                         +" contact="+AnatomyMovement.contact(boat)
-                        +" supported="+Platforms.supported(boat)+" legacy="+Platforms.state(boat).support
+                        +" supported="+Platforms.supported(boat)+" legacy="+(!TestRetiredPlatformRuntime.absent())
                         +" mode="+io.github.r3neer.scalebrews.collision.api.AnatomyApi.mode(boat)
                         +" block="+client.level.getBlockState(BlockPos.containing(boat.position()))
                         +" below="+client.level.getBlockState(BlockPos.containing(boat.getX(),boat.getY()-1,boat.getZ()));

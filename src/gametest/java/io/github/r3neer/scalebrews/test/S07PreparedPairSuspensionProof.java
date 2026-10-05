@@ -27,7 +27,7 @@ public final class S07PreparedPairSuspensionProof {
         // more than five blocks of translation on every escape axis, so failure is
         // geometric and independent of GameTest block coordinates or clip ordering.
         var enclosing=ConvexBox.of(new AABB(-5,-5,-5,5,5,5),new Matrix4f()).move(support.position());
-        AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",enclosing))));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(1,Map.of("body",enclosing))));
         try {
             var before=player.position();
             Vec3 blocked=AnatomyMovement.collide(player,new Vec3(.01,0,0));
@@ -37,7 +37,7 @@ public final class S07PreparedPairSuspensionProof {
             h.assertTrue(player.position().distanceTo(before)<.1,
                 "Prepared recovery must not teleport the body beyond the bounded separation policy");
 
-            AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(2,
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(2,
                 Map.of("body",enclosing.move(new Vec3(30,0,0))))));
             h.assertTrue(!AnatomyMovement.suspended(player,support),
                 "Prepared pair suspension must reacquire automatically after the actual overlap ends");

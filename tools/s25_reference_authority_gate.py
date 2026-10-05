@@ -6,28 +6,44 @@ import sys
 root=Path("src/main/java/io/github/r3neer/scalebrews")
 collision=root/"collision"
 client_collision=Path("src/client/java/io/github/r3neer/scalebrews/client/collision")
-platform_networking=root/"platform"/"PlatformNetworking.java"
-platform_reference=root/"platform"/"PlatformMovementReference.java"
-platform_outgoing=Path("src/client/java/io/github/r3neer/scalebrews/client/mixin/PlatformOutgoingMoveMixin.java")
+outgoing=Path("src/client/java/io/github/r3neer/scalebrews/client/mixin/AnatomyOutgoingMoveMixin.java")
+mixins=Path("src/client/resources/scalebrews.client.mixins.json")
 
 errors=[]
 
-# G4 anatomy must not borrow the legacy PlatformMovePayload/reference authority.
-for source_root in (collision,client_collision):
+# S44 retires the old authority instead of retaining a dormant legacy receiver.
+legacy_names=("PlatformNetworking", "PlatformMovementReference", "PlatformOutgoingMoveMixin", "PlatformMovePayload")
+production_roots=(root, Path("src/client/java/io/github/r3neer/scalebrews"))
+callers=[]
+for source_root in production_roots:
     for path in source_root.rglob("*.java"):
         text=path.read_text()
-        if "PlatformMovePayload" in text or "PlatformMovementReference" in text:
-            errors.append(f"{path}: collision/anatomy code references legacy movement-reference authority")
-
-pn=platform_networking.read_text()
-pr=platform_reference.read_text()
-po=platform_outgoing.read_text()
-if "AnatomyApi.ownsSharedPhysics(body))return;" not in pn:
-    errors.append("PlatformNetworking no longer fails closed before accepting legacy PlatformMovePayload under anatomy ownership")
-if "AnatomyApi.ownsSharedPhysics(body)" not in pr or "pendingReference=null" not in pr:
-    errors.append("PlatformMovementReference no longer clears/ignores legacy references under anatomy ownership")
-if "AnatomyApi.ownsSharedPhysics(body)) return;" not in po:
-    errors.append("PlatformOutgoingMoveMixin no longer suppresses legacy PlatformMovePayload under anatomy ownership")
+        for name in legacy_names:
+            if path.stem==name or re.search(rf"\b{re.escape(name)}\b",text):
+                errors.append(f"{path}: retired legacy movement-reference authority {name} remains")
+        # Qualified and same-owner calls are audited; the method declaration is not a call.
+        call_text=re.sub(r"public\s+static\s+void\s+sendMovementReference\s*\(", "", text)
+        callers.extend(path for _ in re.finditer(r"\bsendMovementReference\s*\(",call_text))
+if callers != [outgoing]:
+    errors.append(f"movement references require exactly one canonical emitter; found {callers}")
+if not outgoing.is_file():
+    errors.append(f"missing canonical movement-reference emitter {outgoing}")
+else:
+    po=outgoing.read_text()
+    if not re.search(r"if\(client\.player==null \|\| !client\.isSameThread\(\)\) return;",po):
+        errors.append("canonical emitter lost current local-player/client-thread fence")
+    if not re.search(r"ServerboundMovePlayerPacket p && p\.hasPosition\(\)",po) or "body=client.player.getRootVehicle();" not in po:
+        errors.append("canonical emitter lost native positional player/vehicle selection")
+    if not re.search(r"if\([^\n]*AnatomyApi\.ownsSharedPhysics\(body\)\)\s*[^;]*AnatomyClientNetworking\.sendMovementReference\(body\);",po):
+        errors.append("canonical emitter lost shared-physics ownership fence")
+try:
+    import json
+    config=json.loads(mixins.read_text())
+    configured=config.get("client",[])+config.get("mixins",[])
+    if configured.count("AnatomyOutgoingMoveMixin") != 1 or any(name in configured for name in legacy_names):
+        errors.append("client mixins require exactly one canonical emitter and no legacy emitter")
+except (OSError,ValueError) as error:
+    errors.append(f"cannot audit canonical emitter mixin configuration: {error}")
 
 # A G4 reference names server-issued state. It may carry scalar/identifier metadata, but never
 # upload geometry, pose channels, contact DTOs, matrices or material-frame authority.
@@ -110,7 +126,7 @@ if errors:
     sys.exit(1)
 
 print("S25_REFERENCE_AUTHORITY_GATE PASS")
-print(" - legacy PlatformMovePayload remains excluded from anatomy ownership")
+print(" - retired legacy authority is absent; one canonical native-packet emitter is ownership-fenced")
 if registered_serverbound:
     print(" - registered collision C2S payload schemas are metadata-only:")
     for type_name in sorted(registered_serverbound):

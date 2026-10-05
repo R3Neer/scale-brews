@@ -73,16 +73,16 @@ public final class S31AdversarialCameraBaselineBarrierProof implements FabricCli
                 System.out.println("S31 ADVERSARY exact duplicate carry before="+positive+" after="+duplicate);
                 if(!body.position().equals(physical) || !body.getBoundingBox().equals(bounds) || !body.getDeltaMovement().equals(velocity))throw new AssertionError("Consumer wrote physical state");
                 if(duplicate.distanceToSqr(positive)>1e-10)throw new AssertionError("Exact duplicate carry erased the nonzero draw sample");
-                io.github.r3neer.scalebrews.client.platform.PlatformCamera.reset();
+                io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.reset();
                 var camera=c.gameRenderer.mainCamera();
                 if(camera.entity()!=body)throw new AssertionError("Camera fixture not observing the local body");
-                var cameraBefore=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                var cameraBefore=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                 if(cameraBefore.lengthSqr()<1e-8)throw new AssertionError("Vacuous camera: nonzero draw correction did not reach actual camera");
                 // Same-tick old-position replacement is an unexpected interpolation-baseline barrier.
                 body.setOldPosAndRot();
                 if(body.tickCount!=cursor.bodyTick() || body.oldPosition().equals(cursor.bodyOldPosition()))throw new AssertionError("Unexpected baseline barrier fixture missing");
                 if(CausalBodyResidual.rendererOffset(body,.5f).lengthSqr()!=0)throw new AssertionError("Renderer did not retire incorporated carry");
-                var cameraAfter=io.github.r3neer.scalebrews.client.platform.PlatformCamera.offset(camera,.5f);
+                var cameraAfter=io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset.offset(camera,.5f);
                 System.out.println("S31 ADVERSARY unexpected baseline camera before="+cameraBefore+" after="+cameraAfter);
                 if(cameraAfter.lengthSqr()>1e-12)throw new AssertionError("Camera retained smoothing across an unexpected same-tick interpolation baseline barrier");
                 CausalBodyResidual.reset();TransportLedger.invalidate(body,true);

@@ -73,9 +73,9 @@ public class AnatomyAnimatedSqueezingTests {
         h.setBlock(7, 20, 2, Blocks.STONE);
 
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(trappedSupport, trappedProvider);
-        AnatomyMovement.register(controlSupport, controlProvider);
-        AnatomyMovement.register(floorSupport, support -> Optional.of(new GeometryProvider.Snapshot(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(trappedSupport, trappedProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(controlSupport, controlProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport, support -> Optional.of(new GeometryProvider.Snapshot(
             REVISION, Map.of("floor", floor))));
         try {
             h.assertTrue(trappedProvider.motion.linearTranslation().equals(Vec3.ZERO)
@@ -200,7 +200,7 @@ public class AnatomyAnimatedSqueezingTests {
         var initialMaxX = support.getX() + JOINT_FLOOR.maxX;
         var provider = new AnimatedProvider(jointFloorMotion(support, initialMaxX, initialMaxX));
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support, provider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support, provider);
         try {
             var floor = provider.motion.at().apply(1);
             body.setPos(support.getX(), floor.bounds().maxY + .4, support.getZ());

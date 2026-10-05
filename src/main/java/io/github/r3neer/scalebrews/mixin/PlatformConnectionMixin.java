@@ -1,6 +1,10 @@
 package io.github.r3neer.scalebrews.mixin;
 
-import io.github.r3neer.scalebrews.platform.*;
+import io.github.r3neer.scalebrews.platform.Platforms;
+import io.github.r3neer.scalebrews.collision.api.AnatomyApi;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
+import io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference;
+import io.github.r3neer.scalebrews.collision.integration.NativeMovementBaselines;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -15,7 +19,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 @Mixin(ServerGamePacketListenerImpl.class)
-public abstract class PlatformConnectionMixin implements PlatformConnection {
+public abstract class PlatformConnectionMixin implements NativeMovementBaselines {
     @Shadow public ServerPlayer player;
     @Shadow private Entity lastVehicle;
     @Shadow private double firstGoodX,firstGoodY,firstGoodZ,lastGoodX,lastGoodY,lastGoodZ;
@@ -23,12 +27,11 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
     @WrapMethod(method="handleMovePlayer")
     private void scalebrews$beforePlayerPacket(ServerboundMovePlayerPacket packet,Operation<Void> original) {
         if(player.level().getServer().isSameThread()) {
-            PlatformPhysics.carry(player);
+            if(AnatomyApi.ready(player) && AnatomyMovement.predictsBody(player))AnatomyMovement.carry(player);
             if(packet.hasPosition()) {
                 Vec3 raw=new Vec3(packet.getX(player.getX()),packet.getY(player.getY()),packet.getZ(player.getZ()));
-                Vec3 position=io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(player)
-                    ?io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference.resolve(player,player,raw)
-                    :PlatformMovementReference.resolve(player,raw);
+                Vec3 position=AnatomyApi.ownsSharedPhysics(player)
+                    ?AnatomyMovementReference.resolve(player,player,raw):raw;
                 if(!position.equals(raw)) packet=new ServerboundMovePlayerPacket.PosRot(position,
                     packet.getYRot(player.getYRot()),packet.getXRot(player.getXRot()),packet.isOnGround(),packet.horizontalCollision());
             }
@@ -39,12 +42,11 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
     private void scalebrews$beforeVehiclePacket(ServerboundMoveVehiclePacket packet,Operation<Void> original) {
         if(player.level().getServer().isSameThread()) {
             Entity body=player.getRootVehicle();
-            PlatformPhysics.carry(body);
-            Vec3 target=io.github.r3neer.scalebrews.collision.api.AnatomyApi.ownsSharedPhysics(body)
-                ?io.github.r3neer.scalebrews.collision.internal.AnatomyMovementReference.resolve(player,body,packet.position())
-                :PlatformMovementReference.resolve(body,packet.position());
-            if(io.github.r3neer.scalebrews.collision.api.AnatomyApi.ready(body))
-                target=io.github.r3neer.scalebrews.collision.internal.AnatomyMovement.acceptedBoatPacketPosition(body,target);
+            if(AnatomyApi.ready(body) && AnatomyMovement.predictsBody(body))AnatomyMovement.carry(body);
+            Vec3 target=AnatomyApi.ownsSharedPhysics(body)
+                ?AnatomyMovementReference.resolve(player,body,packet.position()):packet.position();
+            if(AnatomyApi.ready(body))
+                target=AnatomyMovement.acceptedBoatPacketPosition(body,target);
             if(!target.equals(packet.position())) packet=new ServerboundMoveVehiclePacket(target,packet.yRot(),packet.xRot(),packet.onGround());
         }
         original.call(packet);
@@ -61,6 +63,6 @@ public abstract class PlatformConnectionMixin implements PlatformConnection {
     }
     @Inject(method="noBlocksAround",at=@At("HEAD"),cancellable=true)
     private void scalebrews$realSupport(Entity e,CallbackInfoReturnable<Boolean> cir) {
-        if(Platforms.supported(e) && PlatformPhysics.touching(e)) cir.setReturnValue(false);
+        if(Platforms.supported(e)) cir.setReturnValue(false);
     }
 }

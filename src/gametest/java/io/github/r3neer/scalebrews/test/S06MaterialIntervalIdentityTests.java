@@ -117,7 +117,7 @@ public final class S06MaterialIntervalIdentityTests {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         var provider=endpointProvider(5,e->INPUTS);
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,provider,descriptor(5));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(5));
         try {
             MaterialIntervalRuntime.observe(support);
             h.assertTrue(MaterialIntervalRuntime.poll(h.getLevel()).isEmpty(),"Initial observation only seeds the fence");
@@ -143,7 +143,7 @@ public final class S06MaterialIntervalIdentityTests {
         var joint=new float[]{0};
         var provider=endpointProvider(6,e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])));
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,provider,descriptor(6));
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor(6));
         try {
             MaterialIntervalRuntime.observe(support);
             joint[0]=1;

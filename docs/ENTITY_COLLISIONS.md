@@ -281,11 +281,21 @@ Una configuración visual arbitraria no registrada no redefine la física del se
 
 ## 8. Migración desde Living Platforms
 
-El motor antiguo usa `PlatformDefinition.Surface`, `PlatformGeometry`, `PlatformState`, `PlatformPhysics`, networking y corrección visual propios. Ese diseño no sobrevive como segundo motor al cierre de migración.
+El motor antiguo usaba `PlatformDefinition.Surface`, `PlatformGeometry`, `PlatformState`, `PlatformPhysics`, networking y corrección visual propios. Ese diseño no sobrevive como segundo motor al cierre de migración.
 
 Pueden sobrevivir, trasladados a la capa correcta: policy de categorías/ratio/fricción, placement semantics, comportamiento especial de boats/items/falling blocks, tests de regresión y un decoder que traduzca una superficie legacy a plano unilateral explícito.
 
 No sobreviven `automatic_top`, la captura por altura/minY, un carry paralelo ni networking/reconciliation paralelos.
+
+La integración nativa usa `MovingBodyContext` para la identidad scoped del cuerpo
+que consulta colisiones; no almacena geometría ni contactos. `NativeMovementBaselines`
+actualiza únicamente las coordenadas player/vehicle que Minecraft ya posee tras
+transport aplicado. Cámara y renderer componen sólo residual causal y presentación
+Tiny Mount de `main`, mediante `BodyCameraOffset`/`BodyRenderOffset`, sin sampling
+de modelos como fuente física. Los nombres `Platform*` retenidos para datos/policy,
+placement, categorías y lifecycle delegan al owner canónico. El decoder de planos
+legacy conserva datos unilaterales explícitos con warning; no crea binding
+ejecutable, collider, placement ni carry cuando falta anatomía preparada.
 
 ## 9. Organización de paquetes
 

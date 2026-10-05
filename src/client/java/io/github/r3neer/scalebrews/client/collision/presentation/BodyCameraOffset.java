@@ -1,20 +1,19 @@
-package io.github.r3neer.scalebrews.client.platform;
+package io.github.r3neer.scalebrews.client.collision.presentation;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
-import io.github.r3neer.scalebrews.client.collision.presentation.CausalBodyResidual;
-import java.util.concurrent.TimeUnit;
 
-public final class PlatformCamera {
+/** Final clipped draw offset shared by the camera and mainline mount-frame compensation. */
+public final class BodyCameraOffset {
     private static Entity previous;
     private static Object world;
     private static long nanos;
     private static Vec3 smoothed=Vec3.ZERO, lastPhysical=Vec3.ZERO;
     private static Vec3 applied=Vec3.ZERO;
     public static Vec3 appliedOffset() { return applied; }
-    private PlatformCamera() {}
+    private BodyCameraOffset() {}
     public static void reset() { previous=null;world=null;nanos=0;smoothed=Vec3.ZERO;lastPhysical=Vec3.ZERO;applied=Vec3.ZERO; }
     public static Vec3 offset(Camera camera,float partial) {
         Entity e=camera.entity();
@@ -26,7 +25,7 @@ public final class PlatformCamera {
         if(previous!=e || world!=e.level() || e.position().distanceToSqr(lastPhysical)>16) smoothed=Vec3.ZERO;
         double dt=nanos==0?0.05:Math.clamp((now-nanos)/1e9,0,.1);
         previous=e; world=e.level(); nanos=now; lastPhysical=e.position();
-        Vec3 desired=PlatformVisuals.offset(e,partial).add(CausalBodyResidual.cameraOffset(e,partial))
+        Vec3 desired=CausalBodyResidual.cameraOffset(e,partial)
             .add(io.github.r3neer.scalebrews.client.render.TinyMountCamera.offset(camera,partial));
         double max=Math.min(.25,.5*e.getBbHeight());
         if(desired.length()>max) desired=desired.normalize().scale(max);

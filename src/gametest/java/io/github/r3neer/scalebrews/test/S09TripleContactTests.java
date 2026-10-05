@@ -48,9 +48,9 @@ public final class S09TripleContactTests {
         AnatomyMovement.activate(level);
         // Deliberately non-geometric registration order. A4 is about the manifold, not the order
         // humans happened to write three register calls in this file.
-        AnatomyMovement.register(zSupport,zProvider);
-        AnatomyMovement.register(floorSupport,floorProvider);
-        AnatomyMovement.register(xSupport,xProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(zSupport,zProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport,floorProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(xSupport,xProvider);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body,floorSupport)
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body,xSupport)

@@ -66,9 +66,11 @@ public final class S07MaterialBoundaryTests {
         var first=h.makeMockPlayer(GameType.SURVIVAL);first.getAttribute(Attributes.SCALE).setBaseValue(.2);first.refreshDimensions();
         first.setPos(support.position().add(0,1,0));h.getLevel().addFreshEntity(first);
         try {
-            h.assertTrue(Platforms.eligible(first,support),"Fixture body must be eligible for bounded candidate capture");
             var box=ConvexBox.of(new AABB(-1,-1,-1,1,1,1),new Matrix4f()).move(support.position().add(0,1,0));
             var fixture=fixture(support,box,box,Map.of("body",new ConservativeSweep.Motion(t->box,0)),box.bounds().inflate(2));
+            var rawSnapshot=fixture.handle().before().snapshot();
+            TestCoreBindings.register(support,entity->Optional.of(rawSnapshot));
+            h.assertTrue(Platforms.eligible(first,support),"Fixture body must be eligible for bounded candidate capture");
             var exact=capture(h.getLevel(),fixture,1);
             h.assertTrue(!exact.overflow() && exact.bodies().size()==1,"Exactly N local candidates must be accepted");
             var second=h.makeMockPlayer(GameType.SURVIVAL);second.getAttribute(Attributes.SCALE).setBaseValue(.2);second.refreshDimensions();
@@ -121,7 +123,7 @@ public final class S07MaterialBoundaryTests {
     @GameTest public void pendingIntervalStagingSaturatesExplicitly(GameTestHelper h) {
         var support=h.spawn(EntityTypes.COW,2,20,2);support.setNoAi(true);support.setNoGravity(true);
         AnatomyMovement.activate(h.getLevel());
-        AnatomyMovement.register(support,endpointProvider(91),new GeometryProvider.GeometryIdentityDescriptor(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,endpointProvider(91),new GeometryProvider.GeometryIdentityDescriptor(
             UUID.randomUUID(),91,Identifier.parse("test:s07_model"),Identifier.parse("test:s07_pose"),1));
         try {
             MaterialIntervalRuntime.observe(support);MaterialIntervalRuntime.poll(h.getLevel());

@@ -6,7 +6,7 @@ import io.github.r3neer.scalebrews.collision.api.SurfaceContact;
 import io.github.r3neer.scalebrews.collision.geometry.ConvexBox;
 import io.github.r3neer.scalebrews.collision.physics.ConservativeSweep;
 import io.github.r3neer.scalebrews.collision.pose.PoseProvider;
-import io.github.r3neer.scalebrews.platform.PlatformPhysics;
+import io.github.r3neer.scalebrews.collision.integration.MovingBodyContext;
 import io.github.r3neer.scalebrews.platform.Platforms;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +73,7 @@ public final class S08PreparedStaticAnatomicalObstacleProof {
                 var floorBefore=floorLocal.move(new Vec3(captured.getCenter().x-.5,captured.minY-.20,captured.getCenter().z-.5));
                 var floorAfter=floorBefore.move(delta);
                 long revision=260;
-                AnatomyMovement.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
+                io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,e->java.util.Optional.of(new GeometryProvider.Snapshot(revision,Map.of("floor",floorBefore))));
 
                 var separation=floorBefore.separation(captured);
                 int face=floorBefore.closestFace(separation.normal());
@@ -100,10 +100,10 @@ public final class S08PreparedStaticAnatomicalObstacleProof {
                     support.position(),support.position().add(delta),Map.of("floor",motion));
 
                 // Control: under the production replacement scope, vanilla entity collisions omit B.
-                Entity old=PlatformPhysics.enter(body);
+                Entity old=MovingBodyContext.enter(body);
                 boolean vanillaSeesB;
                 try {vanillaSeesB=!level.getEntityCollisions(body,captured.inflate(delta.length()+1)).isEmpty();}
-                finally {PlatformPhysics.exit(old);}
+                finally {MovingBodyContext.exit(old);}
                 h.assertTrue(!vanillaSeesB,
                     "Control requires B's vanilla collision to be suppressed because anatomy owns this pair");
 
@@ -142,9 +142,9 @@ public final class S08PreparedStaticAnatomicalObstacleProof {
     }
 
     private static Vec3 clip(net.minecraft.server.level.ServerLevel level,Entity body,AABB box,Vec3 requested) {
-        Entity old=PlatformPhysics.enter(body);
+        Entity old=MovingBodyContext.enter(body);
         try {return Entity.collideBoundingBox(body,requested,box,level,level.getEntityCollisions(body,box.expandTowards(requested)));}
-        finally {PlatformPhysics.exit(old);}
+        finally {MovingBodyContext.exit(old);}
     }
 
     private static AABB union(AABB a,AABB b) {

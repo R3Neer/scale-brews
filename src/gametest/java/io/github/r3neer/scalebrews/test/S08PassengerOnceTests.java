@@ -41,9 +41,10 @@ public final class S08PassengerOnceTests {
         var bystander=h.makeMockPlayer(GameType.SURVIVAL);bystander.getAttribute(Attributes.SCALE).setBaseValue(.2);bystander.refreshDimensions();
         bystander.setPos(support.position().add(.4,1,0));level.addFreshEntity(bystander);
         try {
+            var interval=interval(support);
+            TestCoreBindings.register(support,entity->java.util.Optional.of(interval.handle().before().snapshot()));
             h.assertTrue(Platforms.eligible(rider,support) && Platforms.eligible(bystander,support),
                 "Fixture requires both tiny bodies to be independently eligible before vanilla passenger filtering");
-            var interval=interval(support);
             var event=new MaterialEventDispatcher.Event<Entity>(new MaterialEventDispatcher.EventId(1,0),support,
                 MaterialEventDispatcher.Source.ROOT_MUTATION,interval,Set.of(support.getUUID()));
             var beforeRide=capture(level,event,16);

@@ -27,7 +27,7 @@ public final class S08RejectedDerivedIntervalNoDebtTests {
     public void consumedRejectedDerivedSerialCannotReappearAfterTheBlockerDisappears(GameTestHelper h) {
         var level=h.getLevel();var support=h.spawn(EntityTypes.COW,2,20,2);
         support.setNoAi(true);support.setNoGravity(true);AnatomyMovement.activate(level);
-        AnatomyMovement.register(support,provider(),new GeometryProvider.GeometryIdentityDescriptor(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider(),new GeometryProvider.GeometryIdentityDescriptor(
             UUID.randomUUID(),REVISION,Identifier.parse("test:s08_no_debt"),Identifier.parse("test:s08_no_debt_pose"),1));
         try {
             MaterialIntervalRuntime.observe(support);

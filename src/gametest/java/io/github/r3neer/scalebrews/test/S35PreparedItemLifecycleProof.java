@@ -48,7 +48,7 @@ final class S35PreparedItemLifecycleProof {
                     && contact.revision()==frame.snapshot().revision() && contact.piece().equals(surface.piece())
                     && surface.normal().y>.9 && Platforms.supported(item),
                 "Real ItemEntity.move acquires an identified upward material contact: contact="+contact+" surface="+surface);
-            h.assertTrue(Platforms.state(item).support==null,"Canonical item contact never enters PlatformState");
+            h.assertTrue(TestRetiredPlatformRuntime.absent(),"Canonical item contact never enters PlatformState");
             int age=item.getAge();
             item.tick();control.tick();
             h.assertTrue(item.getAge()==age+1 && item.getAge()==control.getAge()
@@ -121,7 +121,7 @@ final class S35PreparedItemLifecycleProof {
 
             support.discard();
             h.assertTrue(AnatomyMovement.contact(item)==null && !Platforms.supported(item)
-                    && Platforms.state(item).support==null,
+                    && TestRetiredPlatformRuntime.absent(),
                 "Retiring the canonical support releases the item without a legacy owner");
             double releasedY=item.getY();
             item.setDeltaMovement(Vec3.ZERO);

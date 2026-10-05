@@ -68,7 +68,7 @@ public final class S08DerivedRebindTests {
     }
 
     private static void register(net.minecraft.world.entity.LivingEntity support,long revision,long binding,String suffix) {
-        AnatomyMovement.register(support,endpointProvider(revision),new GeometryProvider.GeometryIdentityDescriptor(
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,endpointProvider(revision),new GeometryProvider.GeometryIdentityDescriptor(
             UUID.randomUUID(),revision,Identifier.parse("test:s08_rebind_"+suffix),Identifier.parse("test:s08_rebind_pose_"+suffix),binding));
     }
 

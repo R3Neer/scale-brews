@@ -52,9 +52,9 @@ public final class S09VisualSnapshotTests {
         GeometryProvider xProvider = ignored -> Optional.of(new GeometryProvider.Snapshot(922, Map.of("x_wall", xWall)));
         GeometryProvider zProvider = ignored -> Optional.of(new GeometryProvider.Snapshot(923, Map.of("z_wall", zWall)));
         AnatomyMovement.activate(level);
-        AnatomyMovement.register(zSupport, zProvider);
-        AnatomyMovement.register(floorSupport, floorProvider);
-        AnatomyMovement.register(xSupport, xProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(zSupport, zProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(floorSupport, floorProvider);
+        io.github.r3neer.scalebrews.test.TestCoreBindings.register(xSupport, xProvider);
         try {
             h.assertTrue(io.github.r3neer.scalebrews.platform.Platforms.eligible(body, floorSupport)
                     && io.github.r3neer.scalebrews.platform.Platforms.eligible(body, xSupport)

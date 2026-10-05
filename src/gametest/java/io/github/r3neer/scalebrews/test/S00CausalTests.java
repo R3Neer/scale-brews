@@ -134,10 +134,10 @@ public final class S00CausalTests {
             var provider=new ModelGeometryProvider(model(),(m,i)->Optional.of(Map.of()),AnatomyFilter.DEFAULT,1);
             provider.pose(support,INPUTS);provider.tick(support,h.getLevel().getGameTime());
             var descriptor=new GeometryProvider.GeometryIdentityDescriptor(EPOCH,1,MODEL,STATIC,1);
-            AnatomyMovement.register(support,provider,descriptor);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,descriptor);
             long generation=AnatomyMovement.registrationGeneration(support);
             var prior=AnatomyMovement.queryFrame(support).orElseThrow();
-            rejects(()->AnatomyMovement.register(support,provider,null));
+            rejects(()->io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider,null));
             check(AnatomyMovement.registrationGeneration(support)==generation,"Rejected binding advanced registration generation");
             check(AnatomyMovement.queryFrame(support).orElseThrow().identity().equals(prior.identity()),"Rejected registration destroyed prior valid descriptor");
         } finally {AnatomyMovement.deactivate(h.getLevel());support.discard();}

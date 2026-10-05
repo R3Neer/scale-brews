@@ -39,6 +39,8 @@ The active rules file is `data/scalebrews/scalebrews/rules/default.json`. The re
 
 The current beta still has the upper-surface **Living Platforms** engine. This section is its sole configuration reference while the replacement collision system is built. The legacy registry and its `surfaces`/`automatic_surfaces` schema are frozen for compatibility; they are **not** the target schema for all-direction entity collisions. The replacement runtime must not use `automatic_top` or an entity AABB as fallback anatomy.
 
+On the development branch, S44 retires that physical engine. Category, width-ratio and friction policy still decode into the canonical collision owner; `automatic_surfaces` has no runtime meaning. An explicit legacy surface may decode with a warning as one-sided data, but it supplies no executable anatomy binding, collider, placement or carry. Prepared canonical geometry is required. These development changes do not describe the already released beta.
+
 Override `data/scalebrews/scalebrews/platform_policy/default.json`:
 
 ```json
@@ -93,7 +95,7 @@ Legacy physical coordinates are blocks at adult scale 1 relative to the feet: +Y
 
 The current legacy engine supports players, compatible mobs, boats/rafts, off-rail minecarts, items and falling blocks as bodies. Passengers remain attached to their root vehicle, projectiles are excluded and mobs are not taught to pathfind over supports. Babies, sleeping/swimming/fall-flying supports, sitting camels, sitting/lying cats, multipart dragon physics and Happy Ghast's native platform are not replaced. These are descriptions of the released beta only; the future contract and acceptance gates live in the collision requirements/plan.
 
-The copyable files `platform-policy.example.json` and `platform-profile.example.json` are legacy examples for this section. They will be removed when the legacy engine is removed or superseded by an explicit migration tool.
+The copyable `platform-policy.example.json` retains only shared policy fields. `platform-profile.example.json` is an input example for the warned data decoder described above; copying it into the development branch does not enable a physical surface. Released-beta behavior in this section remains historical until a replacement version is published.
 
 ## Mount definitions
 

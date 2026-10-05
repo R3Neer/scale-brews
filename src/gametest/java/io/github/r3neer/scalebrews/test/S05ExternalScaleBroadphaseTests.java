@@ -35,7 +35,7 @@ public final class S05ExternalScaleBroadphaseTests {
         var fixture=fixture(support,"external_scale",41);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,fixture.provider(),fixture.descriptor());
             AnatomyMovement.tick(level);
             var before=sample(fixture,support,0,1);
             h.assertTrue(!AnatomyMovement.spaceClear(body,before),
@@ -71,7 +71,7 @@ public final class S05ExternalScaleBroadphaseTests {
         var fixture=fixture(support,"external_shrink",43);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,fixture.provider(),fixture.descriptor());
             AnatomyMovement.tick(level);
             var before=sample(fixture,support,0,2);
             h.assertTrue(!AnatomyMovement.spaceClear(body,before),
@@ -105,7 +105,7 @@ public final class S05ExternalScaleBroadphaseTests {
         var fixture=fixture(support,"same_tick_yaw",44);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,fixture.provider(),fixture.descriptor());
             AnatomyMovement.tick(level);
             var before=sample(fixture,support,0,1);
             h.assertTrue(!AnatomyMovement.spaceClear(body,before),
@@ -140,7 +140,7 @@ public final class S05ExternalScaleBroadphaseTests {
         var fixture=fixture(support,"published_yaw",42);
         AnatomyMovement.activate(level);
         try {
-            AnatomyMovement.register(support,fixture.provider(),fixture.descriptor());
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,fixture.provider(),fixture.descriptor());
             AnatomyMovement.tick(level);
             var before=sample(fixture,support,0,1);
             h.assertTrue(!AnatomyMovement.spaceClear(body,before),

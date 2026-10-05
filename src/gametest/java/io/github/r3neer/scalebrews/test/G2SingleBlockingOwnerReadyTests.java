@@ -62,7 +62,7 @@ public final class G2SingleBlockingOwnerReadyTests {
             var wall=ConvexBox.of(new AABB(0,0,-1,.2,wallHeight,1),new Matrix4f())
                 .move(new Vec3(wallMinX,supportBox.minY-1,support.getZ()));
             GeometryProvider provider=entity->Optional.of(new GeometryProvider.Snapshot(0,Map.of("wall",wall)));
-            AnatomyMovement.register(support,provider);
+            io.github.r3neer.scalebrews.test.TestCoreBindings.register(support,provider);
 
             h.assertTrue(AnatomyApi.ready(body) && AnatomyApi.ready(support),
                 "Holdout must traverse the READY shared-physics route used by Entity.move");

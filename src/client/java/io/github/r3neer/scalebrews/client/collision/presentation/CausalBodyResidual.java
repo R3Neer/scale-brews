@@ -3,7 +3,7 @@ package io.github.r3neer.scalebrews.client.collision.presentation;
 import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking;
 import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.PresentationFrame;
 import io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.PresentationIdentity;
-import io.github.r3neer.scalebrews.client.platform.PlatformCamera;
+import io.github.r3neer.scalebrews.client.collision.presentation.BodyCameraOffset;
 import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyContactPayload;
 import io.github.r3neer.scalebrews.collision.internal.AnatomyMovement;
@@ -45,7 +45,7 @@ public final class CausalBodyResidual {
     /** Hard barriers also retire the camera's retained smoothing, including short teleports. */
     public static void reset() {
         if(relation!=null)relation=null;
-        PlatformCamera.reset();
+        BodyCameraOffset.reset();
     }
     public static void retireSupport(UUID support) {
         if(relation!=null && relation.key.support().equals(support))reset();
