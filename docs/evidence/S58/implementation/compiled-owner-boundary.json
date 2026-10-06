@@ -1,0 +1,13 @@
+{
+  "oldJarSha256": "da50a340e5bc72fb9ef82252edb1c22bfed63b9cb99335f2956ed5bb0b957aa7",
+  "newJarSha256": "e242f1eee66788df3ceb40b20d9c55554980f5f867f33956e3a132650684435b",
+  "entriesSame": 789,
+  "classes": 592,
+  "byteUnchanged": 589,
+  "changed": [
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$1.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Compiler.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation.class"
+  ],
+  "allChangesOwnedBy": "OriginalLinearPosePreparation"
+}

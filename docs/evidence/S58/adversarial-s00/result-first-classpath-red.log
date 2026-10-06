@@ -1,0 +1,10 @@
+Exception in thread "main" java.lang.NoClassDefFoundError: net/minecraft/client/model/geom/ModelPart
+	at java.base/java.lang.Class.getDeclaredMethods0(Native Method)
+	at java.base/java.lang.Class.privateGetDeclaredMethods(Class.java:3010)
+	at java.base/java.lang.Class.getDeclaredMethod(Class.java:2420)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S58FoundationProof.helper(S58FoundationProof.java:7)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S58FoundationProof.main(S58FoundationProof.java:15)
+Caused by: java.lang.ClassNotFoundException: net.minecraft.client.model.geom.ModelPart
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:580)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:490)
+	... 5 more

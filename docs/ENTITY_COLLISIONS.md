@@ -269,6 +269,17 @@ real,140 matrices originales, rollback/ownership y ocho kills semanticos.
 No crea autoridad
 de actor/renderer/root/material, bindings de especies ni familias FULL.
 
+S58 cerrado scoped amplia `OriginalLinearPosePreparation` a DUP categoria1 para
+actualizaciones compuestas: el simbolo duplicado conserva identidad y nodo,
+sin recalcular receptor/INITIAL/INPUT. Categoria2, underflow y overflow no se
+admiten; stack32 y programa completo siguen obligatorios. Tool provenance
+`original-linear-pose-v2`, DTO format1 y protocol7. Solo PREPARATION, no engine
+hot nuevo, branches, actor input source, capas/root/material/bindings ni FULL.
+La ampliacion es TRUSTED scoped tras campana independiente y replay publico:
+140 matrices/120 cubos de originales con aliases,36 asserts y seis kills
+semanticos, veto cliente y snapshots locales corregidos. Bound/evaluate common
+conservan sus bytes; no certifica inputs del actor ni una familia FULL.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

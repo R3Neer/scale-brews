@@ -1,0 +1,16 @@
+{
+  "fixtureSha256": "f00d3c1e4267f3be39153a124dbace5e20677f2a9fb622af0738130af0840483",
+  "baseline": null,
+  "instrumentedBaseline": null,
+  "results": [
+    {
+      "name": "suppress-dup",
+      "owner": "OriginalLinearPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s58-adversarial-native-mutation-valid\\suppress-dup.log",
+      "sourceSha256": "ed19dc6345cc1362c61ef0bc3a59b2a9945b3900de199a11aa722e6600fbea27",
+      "shadowSha256": "229fe4dfc87134252c8ce6d41744b421f984fa242b275678f4a8be7c3e863594"
+    }
+  ]
+}

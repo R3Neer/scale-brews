@@ -1,0 +1,13 @@
+{
+  "jar": {
+    "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s58-impl-build\\libs\\scalebrews-0.1.0-beta.9.jar",
+    "sha256": "e242f1eee66788df3ceb40b20d9c55554980f5f867f33956e3a132650684435b",
+    "bytes": 1322060,
+    "entries": 789,
+    "compiledGameTestClassesCompared": 590,
+    "testLeaks": 0
+  },
+  "actualGameTestClassesCompared": 591,
+  "leaks": [],
+  "verifiedProductionHashes": 377
+}

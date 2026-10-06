@@ -1,0 +1,25 @@
+
+
+[Incubating] Problems report is available at: file:///C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/scale-brews/build/reports/problems/problems-report.html
+FAILURE: Build failed with an exception.
+
+* Where:
+Initialization script 'C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s58_adversarial.init.gradle' line: 3
+
+* What went wrong:
+Could not compile initialization script 'C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s58_adversarial.init.gradle'.
+> startup failed:
+  initialization script 'C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s58_adversarial.init.gradle': 3: Unexpected input: '{' @ line 3, column 13.
+     allprojects {afterEvaluate {
+                 ^
+  
+  1 error
+
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 918ms

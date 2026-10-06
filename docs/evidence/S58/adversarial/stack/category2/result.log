@@ -1,0 +1,3 @@
+Exception in thread "main" java.lang.AssertionError: S58 ADV admitted DUP category2
+	at io.github.r3neer.scalebrews.client.collision.preparation.S58StackProof.reject(S58StackProof.java:5)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S58StackProof.main(S58StackProof.java:26)

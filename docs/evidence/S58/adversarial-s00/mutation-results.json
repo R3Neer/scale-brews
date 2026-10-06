@@ -1,0 +1,16 @@
+[
+  {
+    "name": "stack-cap",
+    "semanticKill": true,
+    "exit": 1,
+    "sourceSha256": "9af287cc57bd670c2fbdbfbafcdcb9ae18a7091fe0382826c54dcc02874f3571",
+    "shadowSha256": "2329763c9993eb74d35f47f60a5b0b59ada63e5c49cac6ea0733e6016cfc5d5b"
+  },
+  {
+    "name": "whole-program",
+    "semanticKill": true,
+    "exit": 1,
+    "sourceSha256": "68b54c14d4a441f93842a4b891f3905105d7f32dac25d1d28994f5684c540f8d",
+    "shadowSha256": "0b6673d55304e8cc0cfb2a8bc90818781512a6dfcf7ea8e86f8284d9f2c82e1d"
+  }
+]

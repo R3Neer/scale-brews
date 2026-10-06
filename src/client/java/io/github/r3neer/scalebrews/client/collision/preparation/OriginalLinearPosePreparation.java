@@ -31,7 +31,7 @@ import net.minecraft.util.Mth;
 
 /** Explicit PREPARATION compiler of complete original branch-free numeric animation programs. */
 public final class OriginalLinearPosePreparation {
-    public static final String TOOL_VERSION = "original-linear-pose-v1";
+    public static final String TOOL_VERSION = "original-linear-pose-v2";
     private static final int MAX_CALLS = 16, MAX_LOCALS = 32, MAX_STACK = 32;
     private static final List<String> FIELDS = List.of("x", "y", "z", "xRot", "yRot", "zRot", "xScale", "yScale", "zScale");
     private OriginalLinearPosePreparation() {}
@@ -206,6 +206,7 @@ public final class OriginalLinearPosePreparation {
                     push(stack, new Number(node(new Node(operation, value.node(), -1, 0, null, null, -1)), false));
                 } else {
                     switch (instruction.opcode()) {
+                        case DUP -> duplicateCategoryOne(stack);
                         case FADD, FSUB, FMUL, FDIV -> {
                             var right = numeric(pop(stack), false); var left = numeric(pop(stack), false);
                             Op operation = switch (instruction.opcode()) {
@@ -272,6 +273,13 @@ public final class OriginalLinearPosePreparation {
         }
         static void push(List<Object> stack, Object value) {
             if (stack.size() >= MAX_STACK) throw absent("stack_limit"); stack.add(value);
+        }
+        static void duplicateCategoryOne(List<Object> stack) {
+            if (stack.isEmpty()) throw absent("stack_underflow");
+            var value = stack.getLast();
+            if (!(value instanceof Ref) && (!(value instanceof Number number) || number.promoted()))
+                throw absent("dup_category");
+            push(stack, value);
         }
         static Object pop(List<Object> stack) {
             if (stack.isEmpty()) throw absent("stack_underflow"); return stack.removeLast();

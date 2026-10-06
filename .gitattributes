@@ -62,3 +62,9 @@
 /docs/evidence/S57/adversarial-s00/**/*.java -text -whitespace
 
 /docs/evidence/S57/adversarial/**/*.java -text -whitespace
+
+# Exact S58 scoped original-program foundation evidence.
+/docs/evidence/S58/** -text whitespace=cr-at-eol
+/docs/evidence/S58/**/*.log -text -whitespace
+/docs/evidence/S58/adversarial-s00/**/*.java -text -whitespace
+/docs/evidence/S58/adversarial/**/*.java -text -whitespace

@@ -1,0 +1,6 @@
+baseline PASS
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s58_adversarial_stack.py", line 20, in <module>
+    anchor,repl=edits[name];s=source.read_text(encoding="utf-8");assert s.count(anchor)==1,name;d=o/name;d.mkdir(exist_ok=True);shadow=d/source.name;shadow.write_text(s.replace(anchor,repl),encoding="utf-8");code,text=run(name,shadow);kill=code!=0 and "AssertionError: S58 ADV" in text;results.append(dict(name=name,killed=kill,exit=code,sourceSha256=hashlib.sha256(source.read_bytes()).hexdigest(),shadowSha256=hashlib.sha256(shadow.read_bytes()).hexdigest()));print(name,kill,flush=True)
+                                                                        ^^^^^^^^^^^^^^^^^^
+AssertionError: category2

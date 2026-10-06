@@ -3920,3 +3920,56 @@ claim espacial/root/material; matrices completas y DTO wire exacto certifican
 esta frontera. Dos reviews finales cero cambios, main b5e62535 refrescado
 ancestro; cuatro one-offs retirados precisamente, tooling reusable conservado.
 Cierre con commit local Sprint:S57. G6 completo y G7-G9 siguen abiertos.
+
+## S58 - programa original de actualizaciones compuestas, cerrado scoped (2026-10-06)
+
+S00 pertinente independiente antes de produccion:24 asserts sobre helpers reales,
+2/2 kills de stack/consumo,24 clases de fundacion S56/S57 byte iguales y377 fuentes
+intactas. IMPLEMENTER verifica12 artefactos raw y receipt SHA
+8117fe7a64d93814060de82ef2f53e6bcf367d74e23630f5e6efc0ae89e64c25.
+Primer classpath incompleto ADVERSARY_INVOCATION corregido sin cambiar oracle.
+
+Unico owner PREPARATION OriginalLinearPosePreparation: DUP categoria1 exacto,
+stack32 antes de crecer, categoria2/underflow/overflow ausentes, tool provenance
+v2; DTOformat1/protocol7, common/hot/catalog sin cambiar. Build -x runGameTest y
+compileGametestJava PASS58s,399 warnings historicos/sin errores. Cliente propio
+PASS80s limpio: dos modelos originales,12muestras/84matrices/72cubos; regresion
+S56 pertinente84/102. Nueva captura en engine common PASS4.5s/84matrices mediante
+driver generico S57; su prefijo no convierte esa ejecucion en una suite S57 extra.
+Manifest normal propio restaurado PASS2s,113server/34client igual al fuente.
+
+Campana independiente PASS1m53s limpia: dos modelos originales/body-fur, dos
+modalidades de alias,20muestras/140matrices/120cubos; S56 pertinente140/170.
+JVM simbolica36 asserts, cinco kills semanticos y un kill nativo suppress-dup,
+todos AssertionError tras compilacion valida. Consumer comun140 con veto cliente.
+IMPLEMENTER verifica44 artefactos raw, nueve fuentes publicas,377 hashes y receipt
+SHA2153f9b713d24dd604293c848c0623d76e20680b65d1d49f36fcdb9ad6bfd952.
+Reproduce lane publica PASS3m23s limpia/140+120 y S56 140+170, engine common
+PASS8s/140, consumer publico para snapshot PASS4.6s/140; no mutantes verdes repetidos.
+DTO/muestras/matrices capturados semanticamente iguales al receipt independiente.
+Manifest normal del replay restaurado PASS1s,113server/34client igual al fuente.
+
+Fallos preservados/clasificados: ADVERSARY_FIXTURE de corners absolutos a Y208.38
+por un ULP float, incluido intento intermedio de matriz bit igual. Matrices3e-6
+sin relajar; tras el floor anterior, vertices limitados por diferencia matricial
+real propagada al radio local mas un ULP float por eje. Sin reparacion productiva.
+Dos anchors de mutacion y init Groovy invalidos ADVERSARY_TOOLING antes de tests,
+no kills; corregidos. ADVERSARY_SNAPSHOT de viewport recortado conservado;
+correccion offline PASS1.4s, PNG inspeccionado, cuatro filas de piezas recentered
+con centros N/C explicitos. Es evidencia de forma local/centros, no GPU/root/layers.
+Docstring publico S56 residual corregido a S58 sin ejecutar otra bateria.
+IMPLEMENTER_TOOLING en lector de receipt (valor hash string vs metadata), reparado;
+solo se repite comparacion de hashes, sin prueba de producto ni cambio de oracle.
+
+377 fuentes actuales/376 anteriores byte intactas;789 entradas JAR/1.322.060bytes,
+SHAe242f1eee66788df3ceb40b20d9c55554980f5f867f33956e3a132650684435b.
+591 clases GameTest contrastadas sin leak. S57/S58 mismos789 nombres;589/592
+clases productivas byte iguales, tres del unico owner compiler modificado.
+DUP O(1) en preparacion, sin nuevo nodo ni cambio de costo hot; tiempos totales
+sin claim de CPU/TPS ni zero allocation. Dos reviews finales completas propias e
+independientes cero cambios. Main vigente b5e62535 ancestro; one-off S00 eliminado
+por ADVERSARY tras comprobar copia durable, caches/builds/worlds conservados.
+Recibos/index/HEAD raw exactos y commit local Sprint:S58 antes de siguiente sprint.
+No Tiny ni server/catalog/protocol/fullclient ajenos repetidos. Baseline93Living/
+92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL intacta; actor/root/flags/material/bindings
+siguen pendientes, G6 general/G7-G9 abiertos y QA humana al final de epica.

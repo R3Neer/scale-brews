@@ -577,6 +577,18 @@ ajeno ni sensibilidad verde repetida. No actor input source/root/flags/material/
 selectors originales/FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+
 0FULL permanece. G6 tareas2-6/G7-G9 y QA humana al final de epica siguen abiertos.
 
+**S58 cerrado adversarialmente scoped:** programa original lineal ampliado a
+DUP categoria1 para actualizaciones compuestas, conservando identidad/nodo,
+ausencia categoria2/underflow/overflow, stack32 y provenance v2. Dos modelos
+originales con aliases:140 matrices/120 cubos, regresion pertinente S56 140/170,
+36 asserts y seis kills semanticos; consumer140 con veto cliente y snapshot
+local por pieza con centros N/C. Replay publico verde,377 hashes/376 anteriores
+intactos;589/592 clases productivas byte iguales, tres del unico owner cambiado.
+Recibos raw y dos reviews finales cero cambios; commit local Sprint:S58 antes
+del siguiente sprint. Sin Tiny ni suites ajenas repetidas. No actor/root/flags/
+material/bindings/FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL
+no cambia. G6 tareas2-6/G7-G9 y QA humana al final de epica siguen abiertos.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

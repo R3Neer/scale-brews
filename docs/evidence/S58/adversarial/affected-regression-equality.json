@@ -1,0 +1,46 @@
+[
+  {
+    "row": 0,
+    "nodesWritesGeometrySchemaSamplesEqual": true,
+    "geometryCompared": [
+      "parts",
+      "pieces",
+      "modelTransform"
+    ],
+    "oldVersion": "original-linear-pose-v1",
+    "newVersion": "original-linear-pose-v2"
+  },
+  {
+    "row": 1,
+    "nodesWritesGeometrySchemaSamplesEqual": true,
+    "geometryCompared": [
+      "parts",
+      "pieces",
+      "modelTransform"
+    ],
+    "oldVersion": "original-linear-pose-v1",
+    "newVersion": "original-linear-pose-v2"
+  },
+  {
+    "row": 2,
+    "nodesWritesGeometrySchemaSamplesEqual": true,
+    "geometryCompared": [
+      "parts",
+      "pieces",
+      "modelTransform"
+    ],
+    "oldVersion": "original-linear-pose-v1",
+    "newVersion": "original-linear-pose-v2"
+  },
+  {
+    "row": 3,
+    "nodesWritesGeometrySchemaSamplesEqual": true,
+    "geometryCompared": [
+      "parts",
+      "pieces",
+      "modelTransform"
+    ],
+    "oldVersion": "original-linear-pose-v1",
+    "newVersion": "original-linear-pose-v2"
+  }
+]
