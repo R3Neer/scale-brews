@@ -280,6 +280,17 @@ La ampliacion es TRUSTED scoped tras campana independiente y replay publico:
 semanticos, veto cliente y snapshots locales corregidos. Bound/evaluate common
 conservan sus bytes; no certifica inputs del actor ni una familia FULL.
 
+S59 cerrado scoped: OriginalFinitePosePreparation especializa decisiones
+originales Z forward en tablas completas de NumericPoseProgram existentes.
+PREPARATION bounded5booleans/32filas/63discovery y1048576 instrucciones totales;
+work se carga antes de verificar/admitir siguiente metodo. Una geometria/resource
+pool compartida y programs equivalentes internados; typed branches y coverage de
+todas las instrucciones. API lineal v2 y common conservan fronteras estrictas.
+TRUSTED solo este scope tras campana independiente:280matrices/80cubos,15asserts,
+seis kills nuevos, common clientVeto y snapshots de bases para planos no materiales.
+RED1 de admission order reparado con oracle intacto. No evaluator hot nuevo ni
+fuente actor/root/flags/layers/material/selector fisico/bindings/familiaFULL.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

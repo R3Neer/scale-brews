@@ -68,3 +68,10 @@
 /docs/evidence/S58/**/*.log -text -whitespace
 /docs/evidence/S58/adversarial-s00/**/*.java -text -whitespace
 /docs/evidence/S58/adversarial/**/*.java -text -whitespace
+
+# Exact S59 preimplementation foundation evidence.
+/docs/evidence/S59/** -text whitespace=cr-at-eol
+/docs/evidence/S59/**/*.log -text -whitespace
+/docs/evidence/S59/adversarial-s00/**/*.java -text -whitespace
+/docs/evidence/S59/adversarial/**/*.java -text -whitespace
+/docs/evidence/S59/adversarial-red1/**/*.java -text -whitespace

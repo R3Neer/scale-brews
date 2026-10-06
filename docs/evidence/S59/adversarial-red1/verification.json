@@ -1,0 +1,21 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S59",
+  "status": "RED1_PRODUCTION_PREPARATION_BUDGET",
+  "owner": "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation.java",
+  "sourceSha256": "101b5b281cae6ecbcf2856fd4c75da757422a2716d675ae7c7840e5f6d7e36e9",
+  "scope": "Global finite-pass work limit must be checked before admitting next method/instruction inventory",
+  "observed": {
+    "work": 1048576,
+    "templatesAfterReject": 1,
+    "coverageAfterReject": 1,
+    "jvmExit": 1,
+    "compileExit": 0
+  },
+  "fixture": "Seeds the actual internal pass at its exhausted work boundary, no Minecraft runtime or physical outcome claimed",
+  "artifacts": {
+    "docs/evidence/S59/adversarial-red1/budget-compile.log": "e5e6cd5bd679b6081bca8ac967d430d43c7fb65281f0c5a5190c866398b1c3b4",
+    "docs/evidence/S59/adversarial-red1/budget-result.log": "d2f3b38dd7f0ab201bbcfe531984088f6109c904e6482a0f6997db57ff805e21",
+    "docs/evidence/S59/adversarial-red1/S59BudgetBoundaryProof.java": "c23e60af0c1e7ac411eee5b2fbefe643d78cabd52a157af543a3316617b1296f"
+  }
+}

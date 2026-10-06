@@ -1,0 +1,3 @@
+S59_BUDGET_BOUNDARY work=1048576 templatesAfterReject=1 coverageAfterReject=1
+Exception in thread "main" java.lang.AssertionError: S59 ADV work cap checked after admitting next method and verifying its instructions
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59BudgetBoundaryProof.main(S59BudgetBoundaryProof.java:13)

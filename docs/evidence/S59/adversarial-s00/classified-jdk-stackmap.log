@@ -1,0 +1,26 @@
+Exception in thread "main" java.lang.IllegalArgumentException: Detected branch target out of bytecode range at bytecode offset 0 of method x(boolean)
+  - max stack: 65535
+    max locals: 65535
+    attributes: []
+    //stack map frame @0: {locals: [int], stack: []}
+    0: {opcode: GOTO, target: 4}
+    3: {opcode: RETURN}
+
+	at java.base/jdk.internal.classfile.impl.StackMapGenerator.generatorError(StackMapGenerator.java:850)
+	at java.base/jdk.internal.classfile.impl.StackMapGenerator.detectFrames(StackMapGenerator.java:907)
+	at java.base/jdk.internal.classfile.impl.StackMapGenerator.generate(StackMapGenerator.java:301)
+	at java.base/jdk.internal.classfile.impl.StackMapGenerator.<init>(StackMapGenerator.java:246)
+	at java.base/jdk.internal.classfile.impl.StackMapGenerator.of(StackMapGenerator.java:157)
+	at java.base/jdk.internal.classfile.impl.DirectCodeBuilder$4.generateStackMaps(DirectCodeBuilder.java:341)
+	at java.base/jdk.internal.classfile.impl.DirectCodeBuilder$4.tryGenerateStackMaps(DirectCodeBuilder.java:349)
+	at java.base/jdk.internal.classfile.impl.DirectCodeBuilder$4.writeBody(DirectCodeBuilder.java:384)
+	at java.base/jdk.internal.classfile.impl.UnboundAttribute$AdHocAttribute.writeTo(UnboundAttribute.java:1099)
+	at java.base/jdk.internal.classfile.impl.Util.writeAttribute(Util.java:230)
+	at java.base/jdk.internal.classfile.impl.AttributeHolder.writeTo(AttributeHolder.java:71)
+	at java.base/jdk.internal.classfile.impl.DirectMethodBuilder.writeTo(DirectMethodBuilder.java:146)
+	at java.base/jdk.internal.classfile.impl.Util.writeList(Util.java:247)
+	at java.base/jdk.internal.classfile.impl.DirectClassBuilder.build(DirectClassBuilder.java:198)
+	at java.base/jdk.internal.classfile.impl.ClassFileImpl.build(ClassFileImpl.java:145)
+	at java.base/java.lang.classfile.ClassFile.build(ClassFile.java:558)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.method(S59CodeFoundationProof.java:9)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.main(S59CodeFoundationProof.java:15)

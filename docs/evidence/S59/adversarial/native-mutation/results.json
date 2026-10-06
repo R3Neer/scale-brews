@@ -1,0 +1,16 @@
+{
+  "fixtureSha256": "d739cf730257cbc233a70f61efeec11a7ea7ec6f949c977376cb8b071e5b498e",
+  "baseline": null,
+  "instrumentedBaseline": null,
+  "results": [
+    {
+      "name": "branch-direction",
+      "owner": "OriginalLinearPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s59-adversarial-native-mutations\\branch-direction.log",
+      "sourceSha256": "cff8687d34bdff246637e3bbd81b66719d4933d919e63f1e77503a36acddc305",
+      "shadowSha256": "2eaedd89b7fb15e11ecb96186f902f19a16e7bbe97d93b98cf423124519da38e"
+    }
+  ]
+}

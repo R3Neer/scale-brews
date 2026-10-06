@@ -589,6 +589,18 @@ del siguiente sprint. Sin Tiny ni suites ajenas repetidas. No actor/root/flags/
 material/bindings/FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL
 no cambia. G6 tareas2-6/G7-G9 y QA humana al final de epica siguen abiertos.
 
+**S59 cerrado adversarialmente scoped:** decisiones Z originales finitas en
+PREPARATION como tablas completas de NumericPoseProgram existentes. Shared
+resources/geometria, interning, typed branches/cursors y whole-program coverage
+con trabajo bounded. RED1 admission order reparado y oracle intacto; native
+280matrices/80cubos,15asserts/seis kills, common280 clientVeto y snapshots locales.
+Regresion S58 exclusiva del seam afectado; sin Tiny ni suites ajenas. Dos reviews
+finales propias e independientes cero cambios, recibos raw y commit propio
+Sprint:S59 antes de avanzar. Baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+
+0FULL intacta; fuente actor/root/flags/layers/material/bindings sin completar.
+G6 tareas2-6/G7-G9 abiertos y necesidades humanas al final de epica. Plan y
+resultados detallados en docs/sprints/S59-g6-original-finite-pose.md.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

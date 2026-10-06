@@ -1,0 +1,8 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\docs\evidence\S59\adversarial-red1\S59BudgetBoundaryProof.java:8: warning: Unsafe is internal proprietary API and may be removed in a future release
+  var uf=sun.misc.Unsafe.class.getDeclaredField("theUnsafe");uf.setAccessible(true);var unsafe=(sun.misc.Unsafe)uf.get(null);
+                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\docs\evidence\S59\adversarial-red1\S59BudgetBoundaryProof.java:8: warning: Unsafe is internal proprietary API and may be removed in a future release
+  var uf=sun.misc.Unsafe.class.getDeclaredField("theUnsafe");uf.setAccessible(true);var unsafe=(sun.misc.Unsafe)uf.get(null);
+                                                                                                        ^
+2 warnings

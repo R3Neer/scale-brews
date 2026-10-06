@@ -1,0 +1,36 @@
+{
+  "previousClasses": 592,
+  "byteUnchanged": 581,
+  "changed": [
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$1.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Compiler.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Input.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Number.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Prepared.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Ref.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Result.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$Target.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalModelPrograms$Code.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalResetPosePreparation.class"
+  ],
+  "new": [
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation$BooleanInput.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation$Prepared.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation$Result.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation$Row.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$BooleanNeeded.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$BooleanValue.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$FinitePass$MethodKey.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation$FinitePass.class"
+  ],
+  "removed": [],
+  "jar": {
+    "sha256": "916bd5709138e56261fec1df2c4b00e039c372100dcf86f9d49fee818f7e0311",
+    "bytes": 1340951,
+    "entries": 798,
+    "compiledGameTestClassesCompared": 595,
+    "gameTestLeaks": []
+  }
+}

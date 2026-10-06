@@ -1,0 +1,17 @@
+{
+  "jarSha256": "916bd5709138e56261fec1df2c4b00e039c372100dcf86f9d49fee818f7e0311",
+  "bytes": 1340951,
+  "entries": 798,
+  "ownCompiledProductionClasses": 601,
+  "allOwnClassesEqualJar": true,
+  "gameTestClassesCompared": 596,
+  "testLeaks": [],
+  "productionHashesVerified": 378,
+  "unchangedPreviousFiles": 374,
+  "changedOwners": [
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalFinitePosePreparation.java",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalLinearPosePreparation.java",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalModelPrograms.java",
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalResetPosePreparation.java"
+  ]
+}

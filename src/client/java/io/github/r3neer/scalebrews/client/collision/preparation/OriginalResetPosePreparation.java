@@ -65,8 +65,18 @@ public final class OriginalResetPosePreparation {
         return prepare(model, false);
     }
 
+    /** One finite PREPARATION pass shares the original resource cache and its global caps. */
+    static Recipe baseResetCertificate(EntityModel<?> model, OriginalModelPrograms programs) {
+        if (!Minecraft.getInstance().isSameThread()) throw new IllegalStateException("reset preparation requires client thread");
+        return prepare(model, false, programs);
+    }
+
     private static Recipe prepare(EntityModel<?> model, boolean requireResetOnly) {
         var programs = new OriginalModelPrograms(model.getClass().getClassLoader());
+        return prepare(model, requireResetOnly, programs);
+    }
+
+    private static Recipe prepare(EntityModel<?> model, boolean requireResetOnly, OriginalModelPrograms programs) {
         Class<?> owner = model.getClass();
         int hierarchy = 0;
         for (Class<?> current = owner; ; current = current.getSuperclass()) {

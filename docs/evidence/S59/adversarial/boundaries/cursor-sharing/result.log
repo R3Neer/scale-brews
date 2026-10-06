@@ -1,0 +1,3 @@
+Exception in thread "main" java.lang.AssertionError: S59 ADV independent cursors shared immutable inventory
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59FiniteBoundaryProof.check(S59FiniteBoundaryProof.java:8)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59FiniteBoundaryProof.main(S59FiniteBoundaryProof.java:16)

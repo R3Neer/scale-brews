@@ -1,0 +1,1273 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :compileClientJava
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:63: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (!AgeableMobRenderer.class.isAssignableFrom(owner)) throw OriginalModelPrograms.absent("other_selector_family");
+             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:71: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+            if (current == AgeableMobRenderer.class) break;
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:73: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        programs.pinned(AgeableMobRenderer.class,
+                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:79: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (programs.resolveMethod(owner, "submit", LIVING_SUBMIT).getDeclaringClass() != AgeableMobRenderer.class
+                                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:80: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+            || programs.resolveMethod(owner, "submit", ENTITY_SUBMIT).getDeclaringClass() != AgeableMobRenderer.class
+                                                                                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:118: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var code = new OriginalModelPrograms.Code(programs.declared(AgeableMobRenderer.class, "submit", LIVING_SUBMIT));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:132: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        Field assignment = programs.resolveField(AgeableMobRenderer.class, code.field(Opcode.PUTFIELD));
+                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:143: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        Field field = programs.resolveField(AgeableMobRenderer.class, instruction);
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:144: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (field.getDeclaringClass() != AgeableMobRenderer.class || !field.getName().equals(name)
+                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:151: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var code = new OriginalModelPrograms.Code(programs.declared(AgeableMobRenderer.class, "<init>", CONSTRUCTOR));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:164: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var method = programs.anyDeclared(AgeableMobRenderer.class, "submit", ENTITY_SUBMIT);
+                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:180: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var expected = AgeableMobRenderer.class.getProtectionDomain().getCodeSource();
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:181: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (actual == null || expected == null || candidate.getClassLoader() != AgeableMobRenderer.class.getClassLoader()
+                                                                                ^
+13 warnings
+
+> Task :processClientResources
+> Task :processIncludeJars
+> Task :jar
+> Task :sourcesJar
+> Task :assemble
+> Task :clientClasses
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :build
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:17: warning: Unsafe is internal proprietary API and may be removed in a future release
+  var field=sun.misc.Unsafe.class.getDeclaredField("theUnsafe");field.setAccessible(true);var unsafe=(sun.misc.Unsafe)field.get(null);var forged=(EntityRenderer<?,?>)unsafe.allocateInstance(ForeignRabbit.class);
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:17: warning: Unsafe is internal proprietary API and may be removed in a future release
+
+> Task :compileGametestJava
+  var field=sun.misc.Unsafe.class.getDeclaredField("theUnsafe");field.setAccessible(true);var unsafe=(sun.misc.Unsafe)field.get(null);var forged=(EntityRenderer<?,?>)unsafe.allocateInstance(ForeignRabbit.class);
+                                                                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:18: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+  for(String name:List.of("adultModel","babyModel")){var slot=AgeableMobRenderer.class.getDeclaredField(name);slot.setAccessible(true);slot.set(forged,slot.get(original));}return forged;
+                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:24: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   var programs=new OriginalModelPrograms(AgeableMobRenderer.class.getClassLoader());var original=programs.model(AgeableMobRenderer.class);Object slots=selector.invoke(null,programs);final int f=fault;
+                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:24: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   var programs=new OriginalModelPrograms(AgeableMobRenderer.class.getClassLoader());var original=programs.model(AgeableMobRenderer.class);Object slots=selector.invoke(null,programs);final int f=fault;
+                                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:34: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   byte[] changed=classfile.transformClass(original,change); if(f==1){try(var stream=AgeableMobRenderer.class.getResourceAsStream("/net/minecraft/client/renderer/entity/AgeableMobRenderer.class")){changed=stream.readAllBytes();}catch(java.io.IOException io){throw new AssertionError(io);}int patched=0;for(int i=0;i<changed.length-5;i++)if((changed[i]&255)==167&&changed[i+1]==0&&changed[i+2]==7&&(changed[i+3]&255)==42&&(changed[i+4]&255)==180){changed[i+2]=3;patched++;}check(patched==1,"fixture exact native goto byte witness");}((Map<Class<?>,java.lang.classfile.ClassModel>)cache.get(programs)).put(AgeableMobRenderer.class,classfile.parse(changed));
+                                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:34: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   byte[] changed=classfile.transformClass(original,change); if(f==1){try(var stream=AgeableMobRenderer.class.getResourceAsStream("/net/minecraft/client/renderer/entity/AgeableMobRenderer.class")){changed=stream.readAllBytes();}catch(java.io.IOException io){throw new AssertionError(io);}int patched=0;for(int i=0;i<changed.length-5;i++)if((changed[i]&255)==167&&changed[i+1]==0&&changed[i+2]==7&&(changed[i+3]&255)==42&&(changed[i+4]&255)==180){changed[i+2]=3;patched++;}check(patched==1,"fixture exact native goto byte witness");}((Map<Class<?>,java.lang.classfile.ClassModel>)cache.get(programs)).put(AgeableMobRenderer.class,classfile.parse(changed));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:45: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   var adult=AgeableMobRenderer.class.getDeclaredField("adultModel");var baby=AgeableMobRenderer.class.getDeclaredField("babyModel");adult.setAccessible(true);baby.setAccessible(true);
+             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\client\collision\preparation\S52AdversarialStateProof.java:45: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+   var adult=AgeableMobRenderer.class.getDeclaredField("adultModel");var baby=AgeableMobRenderer.class.getDeclaredField("babyModel");adult.setAccessible(true);baby.setAccessible(true);
+                                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08CurvedPathObstructionTests.java:30: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08CurvedPathObstructionTests.java:30: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08CurvedPathObstructionTests.java:30: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08CurvedPathObstructionTests.java:30: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08GravityIndependenceTests.java:27: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08GravityIndependenceTests.java:27: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08GravityIndependenceTests.java:27: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08GravityIndependenceTests.java:27: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08JointAnchorTransportTests.java:65: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var input0=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",0f));
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08JointAnchorTransportTests.java:65: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var input0=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",0f));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08JointAnchorTransportTests.java:66: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var input1=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",1f));
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08JointAnchorTransportTests.java:66: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var input1=new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",1f));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08ObstacleOverflowTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08ObstacleOverflowTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08ObstacleOverflowTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08ObstacleOverflowTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08PreparedStaticAnatomicalObstacleProof.java:30: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08PreparedStaticAnatomicalObstacleProof.java:30: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08PreparedStaticAnatomicalObstacleProof.java:30: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08PreparedStaticAnatomicalObstacleProof.java:30: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08VisualSnapshotTests.java:32: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0, 0, 0, 0, 0, true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08VisualSnapshotTests.java:32: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0, 0, 0, 0, 0, true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08VisualSnapshotTests.java:32: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0, 0, 0, 0, 0, true);
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S08VisualSnapshotTests.java:32: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0, 0, 0, 0, 0, true);
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S14BindingStateOwnershipTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S14BindingStateOwnershipTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S14BindingStateOwnershipTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S14BindingStateOwnershipTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialFrameOrderTests.java:20: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,100,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialFrameOrderTests.java:20: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,100,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialFrameOrderTests.java:51: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            long bindingGeneration,long trackingGeneration,PoseProvider.Inputs inputs) {
+                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialFrameOrderTests.java:51: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            long bindingGeneration,long trackingGeneration,PoseProvider.Inputs inputs) {
+                                                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:23: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs = new PoseProvider.Inputs(0, 0, 10, 0, 0, true, Map.of());
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:23: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs = new PoseProvider.Inputs(0, 0, 10, 0, 0, true, Map.of());
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:58: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs = new PoseProvider.Inputs(0, 0, 10, 0, 0, true, Map.of());
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:58: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs = new PoseProvider.Inputs(0, 0, 10, 0, 0, true, Map.of());
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:82: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                                             long bindingGeneration, long trackingGeneration, PoseProvider.Inputs inputs) {
+                                                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24AdversarialHistoryRestartTests.java:82: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                                             long bindingGeneration, long trackingGeneration, PoseProvider.Inputs inputs) {
+                                                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:17: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:17: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:44: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:44: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:66: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:66: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:96: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:96: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:114: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:114: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:131: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:131: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:151: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:151: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:170: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());var fence=new TrackingReplayFence();
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:170: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());var fence=new TrackingReplayFence();
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:191: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                                             long serial,long tick,long bindingGeneration,long trackingGeneration,PoseProvider.Inputs inputs) {
+                                                                                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S24LifecycleGenerationTests.java:191: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                                             long serial,long tick,long bindingGeneration,long trackingGeneration,PoseProvider.Inputs inputs) {
+                                                                                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:20: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            new PoseProvider.Inputs(0,0,11,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN), old);
+                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:20: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            new PoseProvider.Inputs(0,0,11,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN), old);
+                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:112: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(0,0,10,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN);
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:112: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(0,0,10,0,0,true,Map.of()),Vec3.ZERO,0,1,Direction.DOWN);
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:117: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(0,0,tick,0,0,true,Map.of()),Vec3.ZERO,0,1,gravity);
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\collision\internal\S29ImplementerEndpointRetentionTests.java:117: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(0,0,tick,0,0,true,Map.of()),Vec3.ZERO,0,1,gravity);
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:46: warning: [deprecation] alex(String,String,Object,Set<String>) in GeometryExtractor has been deprecated
+                var result=GeometryExtractor.alex("alexsmobs:grizzly_bear","2.1.9",bear,Set.of("hat","microphone"));
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:60: warning: [deprecation] alex(String,String,Object,Set<String>) in GeometryExtractor has been deprecated
+                    var geometry=GeometryExtractor.alex("alexsmobs:grizzly_bear","2.1.9",model,Set.of("hat","microphone"));
+                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:65: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                        var inputs=new PoseProvider.Inputs(tick*.37f,(tick%20)/20f,tick,tick%80-40,tick%50-25,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:65: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                        var inputs=new PoseProvider.Inputs(tick*.37f,(tick%20)/20f,tick,tick%80-40,tick%50-25,true);
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:68: warning: [deprecation] alex(String,String,Object,Set<String>) in GeometryExtractor has been deprecated
+                        var expected=GeometryExtractor.alex("alexsmobs:grizzly_bear","2.1.9",model,Set.of("hat","microphone"));
+                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:95: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var sentPose=new PoseProvider.Inputs(.75f,.5f,12,179,10,true);
+                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:95: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var sentPose=new PoseProvider.Inputs(.75f,.5f,12,179,10,true);
+                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:128: warning: [deprecation] PlayerWalkingPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                var evaluator=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),AnatomyFilter.DEFAULT,packet.revision());
+                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:129: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var frame=history.sample(packet.tick());
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:133: warning: [deprecation] PlayerWalkingPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                geometry.evaluate(root,new PlayerWalkingPose().evaluate(geometry,sentPose).orElseThrow(),AnatomyFilter.DEFAULT)
+                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:136: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var shared=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(client.player,packet.tick()).orElseThrow();
+                                                                                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:140: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                var nextInputs=new PoseProvider.Inputs(2,.8f,13,-170,-20,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:140: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                var nextInputs=new PoseProvider.Inputs(2,.8f,13,-170,-20,true);
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:142: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                    packet.tick()+1,nextInputs,packet.origin().add(.1,.05,0),packet.yaw()+10,packet.scale()*1.05f,packet.gravity()), packet);
+                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:144: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var segment=interpolation.segment(packet.tick()+.5);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:147: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var sampled=evaluator.sampleInterpolated(client.player,interpolation,packet.tick()+.5).orElseThrow();
+                                                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:150: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                for(int query=0;query<100;query++)evaluator.sampleInterpolated(client.player,interpolation,packet.tick()+.5);
+                                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:220: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                if(entity==null || io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,history.current().tick()).isEmpty())
+                                                                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:222: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var shape=io.github.r3neer.scalebrews.client.collision.network.AnatomyClientNetworking.geometry(entity,history.current().tick()).orElseThrow();
+                                                                                                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:238: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                var evaluator=new ModelGeometryProvider(models.get("minecraft:cow"),new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
+                                                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:239: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:239: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:332: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("chicken "+tick,chickenRoot,chicken,chickenState,new VanillaFamilyPose(VanillaFamilyPose.Family.CHICKEN),
+                                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:332: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("chicken "+tick,chickenRoot,chicken,chickenState,new VanillaFamilyPose(VanillaFamilyPose.Family.CHICKEN),
+                                                                                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:333: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("flap",chickenState.flap,"flap_speed",chickenState.flapSpeed)),Set.of());
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:333: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("flap",chickenState.flap,"flap_speed",chickenState.flapSpeed)),Set.of());
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:337: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("llama "+tick,llamaRoot,llama,llamaState,new QuadrupedPose(),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of("right_chest","left_chest"));
+                                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:337: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("llama "+tick,llamaRoot,llama,llamaState,new QuadrupedPose(),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of("right_chest","left_chest"));
+                                                                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:337: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            checkPose("llama "+tick,llamaRoot,llama,llamaState,new QuadrupedPose(),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of("right_chest","left_chest"));
+                                                                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:341: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("villager "+tick,villagerRoot,villager,villagerState,new VanillaFamilyPose(VanillaFamilyPose.Family.VILLAGER),
+                                                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:341: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("villager "+tick,villagerRoot,villager,villagerState,new VanillaFamilyPose(VanillaFamilyPose.Family.VILLAGER),
+                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:342: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("unhappy",villagerState.isUnhappy?1f:0f)),Set.of("hat","hat_rim"));
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:342: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("unhappy",villagerState.isUnhappy?1f:0f)),Set.of("hat","hat_rim"));
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:347: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("iron_golem "+tick,golemRoot,golem,golemState,new VanillaFamilyPose(VanillaFamilyPose.Family.IRON_GOLEM),
+                                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:347: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("iron_golem "+tick,golemRoot,golem,golemState,new VanillaFamilyPose(VanillaFamilyPose.Family.IRON_GOLEM),
+                                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:348: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("attack",golemState.attackTicksRemaining,"flower",(float)golemState.offerFlowerTick)),Set.of());
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:348: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("attack",golemState.attackTicksRemaining,"flower",(float)golemState.offerFlowerTick)),Set.of());
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:352: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("ghast "+tick,ghastRoot,ghast,ghastState,new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of());
+                                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:352: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("ghast "+tick,ghastRoot,ghast,ghastState,new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of());
+                                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:352: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("ghast "+tick,ghastRoot,ghast,ghastState,new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of());
+                                                                                                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:352: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            checkPose("ghast "+tick,ghastRoot,ghast,ghastState,new VanillaFamilyPose(VanillaFamilyPose.Family.GHAST),new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true),Set.of());
+                                                                                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:357: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("feline "+tick,felineRoot,feline,felineState,new VanillaFamilyPose(VanillaFamilyPose.Family.FELINE),
+                                                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:357: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("feline "+tick,felineRoot,feline,felineState,new VanillaFamilyPose(VanillaFamilyPose.Family.FELINE),
+                                                                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:358: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:358: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:366: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("equine "+tick,horseRoot,horse,horseState,new VanillaFamilyPose(VanillaFamilyPose.Family.EQUINE),
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:366: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("equine "+tick,horseRoot,horse,horseState,new VanillaFamilyPose(VanillaFamilyPose.Family.EQUINE),
+                                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:367: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:367: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of(
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:375: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("bee "+tick,beeRoot,bee,beeState,new VanillaFamilyPose(VanillaFamilyPose.Family.BEE),
+                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:375: warning: [deprecation] VanillaFamilyPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            checkPose("bee "+tick,beeRoot,bee,beeState,new VanillaFamilyPose(VanillaFamilyPose.Family.BEE),
+                                                                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:376: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("on_ground",beeState.isOnGround?1f:0f,"angry",beeState.isAngry?1f:0f,"roll",beeState.rollAmount)),Set.of("stinger"));
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:376: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                new PoseProvider.Inputs(walk,speed,age,yaw,pitch,true,Map.of("on_ground",beeState.isOnGround?1f:0f,"angry",beeState.isAngry?1f:0f,"roll",beeState.rollAmount)),Set.of("stinger"));
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:384: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static void checkPose(String label,ModelPart root,net.minecraft.client.model.EntityModel model,Object state,PoseProvider provider,PoseProvider.Inputs inputs,Set<String> excluded) {
+                                                                                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:384: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static void checkPose(String label,ModelPart root,net.minecraft.client.model.EntityModel model,Object state,PoseProvider provider,PoseProvider.Inputs inputs,Set<String> excluded) {
+                                                                                                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:384: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static void checkPose(String label,ModelPart root,net.minecraft.client.model.EntityModel model,Object state,PoseProvider provider,PoseProvider.Inputs inputs,Set<String> excluded) {
+                                                                                                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:397: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=GeometryExtractor.vanilla(source,"26.2",root,excluded);
+                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:400: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            GeometryExtractor.vanilla(geometry.source(),"26.2",root,excluded).evaluate(new Matrix4f(),Map.of(),AnatomyFilter.DEFAULT),label);
+                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:411: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var inputs=new PoseProvider.Inputs(state.walkAnimationPos,state.walkAnimationSpeed,tick,state.yRot,state.xRot,true);
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:411: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var inputs=new PoseProvider.Inputs(state.walkAnimationPos,state.walkAnimationSpeed,tick,state.yRot,state.xRot,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:412: warning: [deprecation] PlayerWalkingPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            compare(geometry.evaluate(new Matrix4f(),new PlayerWalkingPose().evaluate(geometry,inputs).orElseThrow(),new AnatomyFilter(0,0,0)),
+                                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:413: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                GeometryExtractor.vanilla(source,"26.2",root,Set.of()).evaluate(new Matrix4f(),Map.of(),new AnatomyFilter(0,0,0)),source+" tick "+tick);
+                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:418: warning: [deprecation] alex(String,String,Object,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=GeometryExtractor.alex("alexsmobs:grizzly_bear","2.1.9",model,Set.of());
+                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:443: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var inputs=new PoseProvider.Inputs(state.walkAnimationPos,state.walkAnimationSpeed,tick,state.yRot,state.xRot,true);
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:443: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var inputs=new PoseProvider.Inputs(state.walkAnimationPos,state.walkAnimationSpeed,tick,state.yRot,state.xRot,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:444: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var pose=new QuadrupedPose().evaluate(geometry,inputs).orElseThrow();
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyExportProof.java:446: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var actual=GeometryExtractor.vanilla("minecraft:cow","26.2",model.root(),Set.of()).evaluate(new Matrix4f(),Map.of(),new AnatomyFilter(0,0,0));
+                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:77: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var provider=new ModelGeometryProvider(model,new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
+                                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:604: warning: [deprecation] PlayerWalkingPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var provider=new ModelGeometryProvider(geometry,new PlayerWalkingPose(),filter,1);
+                                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:654: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var provider=new ModelGeometryProvider(geometry,new QuadrupedPose(),AnatomyFilter.DEFAULT,1);
+                                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:1010: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                java.util.function.BiFunction<ModelGeometry,PoseEngine.Inputs,java.util.Optional<java.util.Map<String,Matrix4f>>> poseProvider=switch(model.source()) {case "minecraft:cow"->(g,i)->new QuadrupedPoseEngine().evaluate(g,i,java.util.Map.of());case "alexsmobs:grizzly_bear"->(g,i)->new GrizzlyPose().evaluate(g,new PoseProvider.Inputs(i.walkPhase(),i.walkAmount(),i.age(),i.headYaw(),i.headPitch(),i.ordinary(),i.channels()));default->(g,i)->new PlayerWalkingPoseEngine().evaluate(g,i,java.util.Map.of());};
+                                                                                                                                                                                                                                                                                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:1010: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                java.util.function.BiFunction<ModelGeometry,PoseEngine.Inputs,java.util.Optional<java.util.Map<String,Matrix4f>>> poseProvider=switch(model.source()) {case "minecraft:cow"->(g,i)->new QuadrupedPoseEngine().evaluate(g,i,java.util.Map.of());case "alexsmobs:grizzly_bear"->(g,i)->new GrizzlyPose().evaluate(g,new PoseProvider.Inputs(i.walkPhase(),i.walkAmount(),i.age(),i.headYaw(),i.headPitch(),i.ordinary(),i.channels()));default->(g,i)->new PlayerWalkingPoseEngine().evaluate(g,i,java.util.Map.of());};
+                                                                                                                                                                                                                                                                                                                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:1034: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
+                                                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyGeometryTests.java:1034: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                    h.assertTrue(!model.evaluate(new Matrix4f(),new GrizzlyPose().evaluate(model,new PoseProvider.Inputs(tick*.37f,.5f,tick,10,5,true)).orElseThrow(),AnatomyFilter.DEFAULT).isEmpty(),"Grizzly server pose without Alex client classes");
+                                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:48: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:105: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                if(packet.tick()<oldest.serverTick() || packet.tick()>newest.serverTick())throw new AssertionError(
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:105: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                if(packet.tick()<oldest.serverTick() || packet.tick()>newest.serverTick())throw new AssertionError(
+                                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:106: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                    "Client pose tick "+packet.tick()+" exceeds bounded authority window "
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:109: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                    && sample.serverTick()==packet.tick()).findFirst().orElseThrow();
+                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:112: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                var segment=history.segment(packet.tick());
+                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:114: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                    "Client history current endpoint differs from packet "+packet.tick());
+                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:117: warning: [deprecation] tick() in AnatomyPosePayload has been deprecated
+                    .map(frame->frame.serverTick()+":"+frame.inputs()).toList()+" packet="+packet.tick()+":"+packet.inputs()
+                                                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:161: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        ModelGeometry baseline=GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of());
+                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyLivePoseAcceptanceTests.java:165: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var original=GeometryExtractor.vanilla("minecraft:cow","26.2",model.root(),Set.of())
+                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyMaterialEventDispatcherTests.java:31: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyMaterialEventDispatcherTests.java:31: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:90: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var before=new PoseProvider.Inputs(1,.2f,10,5,2,true,Map.of("flap",2f,"roll",.2f,"crouching",0f,"unknown_mode",3f));
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:90: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var before=new PoseProvider.Inputs(1,.2f,10,5,2,true,Map.of("flap",2f,"roll",.2f,"crouching",0f,"unknown_mode",3f));
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:91: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var after=new PoseProvider.Inputs(3,.8f,11,15,4,true,Map.of("flap",6f,"roll",.8f,"crouching",1f,"unknown_mode",7f));
+                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:91: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var after=new PoseProvider.Inputs(3,.8f,11,15,4,true,Map.of("flap",6f,"roll",.8f,"crouching",1f,"unknown_mode",7f));
+                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:113: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var firstInputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:113: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var firstInputs=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:114: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var nextInputs=new PoseProvider.Inputs(1,.5f,11,20,0,true,Map.of("flap",.25f));
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:114: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var nextInputs=new PoseProvider.Inputs(1,.5f,11,20,0,true,Map.of("flap",.25f));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:132: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var valid=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:132: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var valid=new PoseProvider.Inputs(0,0,10,0,0,true,Map.of());
+                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:133: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var unknown=new PoseProvider.Inputs(0,0,11,0,0,false,Map.of());
+                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:133: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var unknown=new PoseProvider.Inputs(0,0,11,0,0,false,Map.of());
+                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:154: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        var old=new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,tick,8,support,"body",3,new Vec3(0,1,0),normal);
+                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:157: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        var restarted=new AnatomyContactPayload(epoch,1,dimension,7,body,restartedGeneration,1,tick+2,8,support,"body",3,new Vec3(0,1,0),normal);
+                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:158: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        var delayed=new AnatomyContactPayload(epoch,1,dimension,7,body,1,3,tick+3,8,support,"body",3,new Vec3(0,1,0),normal);
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:177: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+            var heartbeat=new AnatomyContactPayload(epoch,1,dimension,7,body,1,elapsed/AnatomyRuntime.CONTACT_HEARTBEAT_TICKS+1,first+elapsed,
+                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:182: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        h.assertTrue(!inbox.accept(dimension,new AnatomyContactPayload(epoch,1,dimension,7,body,1,1,first,8,support,"body",3,new Vec3(0,1,0),normal)),
+                                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:192: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(3,.4f,7,18,4,true,Map.of("flap",.5f));
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyNetworkingTests.java:192: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(3,.4f,7,18,4,true,Map.of("flap",.5f));
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\AnatomyPresentationFrameTests.java:37: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\GrizzlyPose.java:13: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+public final class GrizzlyPose implements PoseProvider {
+                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\GrizzlyPose.java:14: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    public Optional<Map<String,Matrix4f>> evaluate(ModelGeometry geometry,Inputs in) {
+                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00Fixtures.java:28: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00Fixtures.java:28: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:29: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        return new AnatomyContactPayload(EPOCH,1,DIM,2,UUID.fromString("00000000-0000-0000-0000-000000000300"),generation,sequence,tick,1,SUPPORT,"piece",3,POINT,UP);
+               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:105: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        rejects(()->new AnatomyContactPayload(EPOCH,1,DIM,2,good.body(),1,2,1,1,SUPPORT,"piece",3,new Vec3(.5,.9,.5),UP));
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:106: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        rejects(()->new AnatomyContactPayload(EPOCH,1,DIM,2,good.body(),1,2,1,1,SUPPORT,"piece",3,POINT,UP.scale(1.001)));
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00CausalTests.java:107: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+        rejects(()->new AnatomyContactPayload(EPOCH,1,DIM,2,good.body(),1,2,1,1,SUPPORT,"x".repeat(257),3,POINT,UP));h.succeed();
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00LifecycleTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00LifecycleTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ModelTests.java:20: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static PoseProvider.Inputs inputs(int tick){return new PoseProvider.Inputs(0,0,tick,0,0,true);}
+                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ModelTests.java:20: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static PoseProvider.Inputs inputs(int tick){return new PoseProvider.Inputs(0,0,tick,0,0,true);}
+                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ModelTests.java:20: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static PoseProvider.Inputs inputs(int tick){return new PoseProvider.Inputs(0,0,tick,0,0,true);}
+                                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ModelTests.java:20: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static PoseProvider.Inputs inputs(int tick){return new PoseProvider.Inputs(0,0,tick,0,0,true);}
+                                                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ObserverBoundaryTests.java:43: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00ObserverBoundaryTests.java:43: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00RuntimeTests.java:26: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S00RuntimeTests.java:26: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:176: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:176: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:188: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private record Fixture(ModelGeometryProvider provider,PoseProvider.Inputs inputs,
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:188: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private record Fixture(ModelGeometryProvider provider,PoseProvider.Inputs inputs,
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:188: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private record Fixture(ModelGeometryProvider provider,PoseProvider.Inputs inputs,
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05ExternalScaleBroadphaseTests.java:188: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private record Fixture(ModelGeometryProvider provider,PoseProvider.Inputs inputs,
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05LiveBroadphaseLocalityTests.java:129: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        localProvider.pose(localSupport,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S05LiveBroadphaseLocalityTests.java:129: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        localProvider.pose(localSupport,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:29: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:29: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:29: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:29: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:144: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var provider=endpointProvider(6,e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])));
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:144: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var provider=endpointProvider(6,e->new PoseProvider.Inputs(0,0,0,0,0,true,Map.of("joint",joint[0])));
+                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:272: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static GeometryProvider endpointProvider(long revision,Function<net.minecraft.world.entity.LivingEntity,PoseProvider.Inputs> inputs) {
+                                                                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:272: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static GeometryProvider endpointProvider(long revision,Function<net.minecraft.world.entity.LivingEntity,PoseProvider.Inputs> inputs) {
+                                                                                                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:275: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06MaterialIntervalIdentityTests.java:275: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06SupportedMembershipCausalityTests.java:42: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S06SupportedMembershipCausalityTests.java:42: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07BudgetFailureLocalizationTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07BudgetFailureLocalizationTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07BudgetFailureLocalizationTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07BudgetFailureLocalizationTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactEstablishmentTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactEstablishmentTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactEstablishmentTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactEstablishmentTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactProvenanceTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactProvenanceTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactProvenanceTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07ContactProvenanceTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07FailureLocalizationTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07FailureLocalizationTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07FailureLocalizationTests.java:38: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07FailureLocalizationTests.java:38: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07LiveMaterialRuntimeTests.java:31: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07LiveMaterialRuntimeTests.java:31: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07LiveMaterialRuntimeTests.java:31: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07LiveMaterialRuntimeTests.java:31: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS = new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MaterialBoundaryTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MaterialBoundaryTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MaterialBoundaryTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MaterialBoundaryTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MultiSupportConflictLocalizationTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MultiSupportConflictLocalizationTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MultiSupportConflictLocalizationTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07MultiSupportConflictLocalizationTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07PlanConflictLocalizationTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07PlanConflictLocalizationTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07PlanConflictLocalizationTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07PlanConflictLocalizationTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07RejectedBatchContactValidityTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07RejectedBatchContactValidityTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07RejectedBatchContactValidityTests.java:41: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S07RejectedBatchContactValidityTests.java:41: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08AdversarialBoatPairSuppressionTests.java:66: warning: [deprecation] PlayerWalkingPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            var provider = new ModelGeometryProvider(geometry, new PlayerWalkingPose(), AnatomyFilter.DEFAULT, 1);
+                                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedChainCausalityTests.java:121: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedChainCausalityTests.java:121: warning: [deprecation] Inputs in PoseProvider has been deprecated
+        var inputs=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:65: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedIntervalExactlyOnceTests.java:65: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:23: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:23: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:23: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:23: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:78: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08DerivedRebindTests.java:78: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            private PoseProvider.Inputs previousInputs;
+                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08PassengerOnceTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08PassengerOnceTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08PassengerOnceTests.java:33: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08PassengerOnceTests.java:33: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:24: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:24: warning: [deprecation] Inputs in PoseProvider has been deprecated
+    private static final PoseProvider.Inputs INPUTS=new PoseProvider.Inputs(0,0,0,0,0,true);
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:62: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+            private RootFrame previous;private PoseProvider.Inputs previousInputs;private long serial;
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S08RejectedDerivedIntervalNoDebtTests.java:62: warning: [deprecation] Inputs in PoseProvider has been deprecated
+            private RootFrame previous;private PoseProvider.Inputs previousInputs;private long serial;
+                                                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S17ModelPartGeometryEngineClientTests.java:54: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var expectedCow = GeometryExtractor.vanilla(COW.toString(), "26.2", CowModel.createBodyLayer().bakeRoot(), Set.of()).withModelTransform(transform);
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S17ModelPartGeometryEngineClientTests.java:55: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var expectedChicken = GeometryExtractor.vanilla(CHICKEN.toString(), "26.2", AdultChickenModel.createBodyLayer().bakeRoot(), Set.of()).withModelTransform(transform);
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18AnimationDefinitionSemanticClientTests.java:42: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18AnimationDefinitionSemanticClientTests.java:114: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18AnimationDefinitionSemanticClientTests.java:188: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                    var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18ApplyWalkClockQuantizationClientTests.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18ApplyWalkClockQuantizationClientTests.java:56: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18ApplyWalkSemanticClientTests.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18ApplyWalkSemanticClientTests.java:67: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18BeeProceduralSemanticClientTests.java:30: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18BeeProceduralSemanticClientTests.java:50: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var expectedGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18CatmullBoundarySemanticClientTests.java:44: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18CatmullBoundarySemanticClientTests.java:58: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18CatmullRightBoundarySemanticClientTests.java:44: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18CatmullRightBoundarySemanticClientTests.java:59: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18DuplicateTargetAccumulationOrderClientTests.java:41: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18DuplicateTargetAccumulationOrderClientTests.java:46: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var expected = partMatrix(GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of()), BODY);
+                                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EquineProceduralSemanticClientTests.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EquineProceduralSemanticClientTests.java:48: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var expected = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of()).transforms(Map.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EulerRepresentativeSemanticClientTests.java:55: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var canonicalRest = GeometryExtractor.vanilla(SOURCE, VERSION, cowRoot(X, Y, Z), Set.of());
+                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EulerRepresentativeSemanticClientTests.java:56: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var alternateRest = GeometryExtractor.vanilla(SOURCE, VERSION, cowRoot(ALT_X, ALT_Y, ALT_Z), Set.of());
+                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EulerRepresentativeSemanticClientTests.java:64: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var canonicalNative = part(GeometryExtractor.vanilla(SOURCE, VERSION, canonicalNativeRoot, Set.of()), BODY);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18EulerRepresentativeSemanticClientTests.java:65: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var alternateNative = part(GeometryExtractor.vanilla(SOURCE, VERSION, alternateNativeRoot, Set.of()), BODY);
+                                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18FirstKeyframeBoundarySemanticClientTests.java:40: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18FirstKeyframeBoundarySemanticClientTests.java:54: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18FirstKeyframeExactSemanticClientTests.java:40: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18FirstKeyframeExactSemanticClientTests.java:53: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18NegativeLoopSemanticClientTests.java:35: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18NegativeLoopSemanticClientTests.java:49: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18NonUnitRestScaleSemanticClientTests.java:43: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18NonUnitRestScaleSemanticClientTests.java:49: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                                  ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedRestScaleSemanticClientTests.java:44: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var rest = GeometryExtractor.vanilla(SOURCE, VERSION, restRoot, Set.of());
+                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedRestScaleSemanticClientTests.java:51: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var nativeMatrix = part(GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of()), BODY);
+                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedScaleRepresentativeSemanticClientTests.java:40: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var aRest = GeometryExtractor.vanilla(SOURCE, VERSION,
+                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedScaleRepresentativeSemanticClientTests.java:44: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var bRest = GeometryExtractor.vanilla(SOURCE, VERSION,
+                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedScaleRepresentativeSemanticClientTests.java:53: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var aNative = part(GeometryExtractor.vanilla(SOURCE, VERSION, aNativeRoot, Set.of()));
+                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SignedScaleRepresentativeSemanticClientTests.java:54: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var bNative = part(GeometryExtractor.vanilla(SOURCE, VERSION, bNativeRoot, Set.of()));
+                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SingleKeyframeSemanticClientTests.java:36: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+            var baseline = GeometryExtractor.vanilla(SOURCE, VERSION, baselineRoot, Set.of());
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18SingleKeyframeSemanticClientTests.java:50: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var nativeGeometry = GeometryExtractor.vanilla(SOURCE, VERSION, nativeRoot, Set.of());
+                                              ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18VanillaProceduralSemanticClientTests.java:200: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry = GeometryExtractor.vanilla(source, "26.2", root, excluded);
+                                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S18VanillaProceduralSemanticClientTests.java:206: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var actual = GeometryExtractor.vanilla(source, "26.2", root, excluded)
+                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24AdversarialReconnectBootstrapDiagnostics.java:33: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24AdversarialReconnectLifecycleProof.java:34: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactDimensionReplayClientProof.java:40: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactDimensionReplayClientProof.java:71: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                var evaluator=new ModelGeometryProvider(geometry,new QuadrupedPose(),AnatomyFilter.DEFAULT,AnatomyNetworking.revision(server));
+                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactDimensionReplayClientProof.java:72: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactDimensionReplayClientProof.java:72: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactDimensionReplayClientProof.java:87: warning: [deprecation] AnatomyContactPayload(UUID,long,Identifier,int,UUID,long,long,long,int,UUID,String,int,Vec3,Vec3) in AnatomyContactPayload has been deprecated
+                oldContact.set(new AnatomyContactPayload(
+                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactSupportRebindReplayClientProof.java:43: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactSupportRebindReplayClientProof.java:75: warning: [deprecation] QuadrupedPose in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                var evaluator=new ModelGeometryProvider(geometry,new QuadrupedPose(),AnatomyFilter.DEFAULT,AnatomyNetworking.revision(server));
+                                                                     ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactSupportRebindReplayClientProof.java:76: warning: [deprecation] PoseProvider in io.github.r3neer.scalebrews.collision.pose has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ContactSupportRebindReplayClientProof.java:76: warning: [deprecation] Inputs in PoseProvider has been deprecated
+                evaluator.pose(cow,new PoseProvider.Inputs(0,0,0,0,0,true));
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24DimensionLifecycleClientProof.java:31: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24DimensionReplayClientProof.java:36: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24LateTrackingOrderClientProof.java:40: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24ReconnectLifecycleClientProof.java:31: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S24UnavailableRecoveryClientProof.java:31: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S27LateObserverPresentationClientProof.java:41: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialCatalogDimensionProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var original=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialCatalogRollbackProof.java:29: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialCertificateIdentityProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialContactDimensionProof.java:26: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialContactLifecycleProof.java:24: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialContactLiveReconnectProof.java:23: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialCrossSupportProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialDedicatedReconnectProof.java:23: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialDerivedPresentationProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialLifecycleOrderingProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialLiveEndpointProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialPresentationBatchProof.java:23: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialUnavailableReplayProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29AdversarialWireBoundsProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29ImplementerAcceptedCatalogClientProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29ImplementerJointPresentationProof.java:22: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S29ImplementerRejectedCatalogClientProof.java:26: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),java.util.Set.of()));
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialModelCompatibilityPlanProof.java:34: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                var accepted = GeometryExtractor.vanilla("minecraft:cow", "26.2", catalogRoot, Set.of());
+                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialModelCompatibilityPlanProof.java:35: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                var visible = GeometryExtractor.vanilla("minecraft:cow", "26.2", rendererRoot, Set.of());
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialModelCompatibilityProof.java:34: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                var accepted = GeometryExtractor.vanilla("minecraft:cow", "26.2", catalogRoot, Set.of());
+                                                ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialModelCompatibilityProof.java:35: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+                var visible = GeometryExtractor.vanilla("minecraft:cow", "26.2", rendererRoot, Set.of());
+                                               ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialRendererDrawProof.java:59: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30AdversarialTrackingAliasProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of())
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S30CausalRendererSubmitTests.java:46: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialCameraBaselineBarrierProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialCameraClipProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialControlBarrierProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialControlBurstProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialControlledVehicleProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialControlRoundTripProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialDualRoleIncorporationProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialDualRoleIncorporationProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var pigGeometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:pig","26.2",net.minecraft.client.model.animal.pig.PigModel.createBodyLayer(new net.minecraft.client.model.geom.builders.CubeDeformation(0)).bakeRoot(),Set.of()).withModelTransform(new org.joml.Matrix4f().scaling(-1,-1,1).translate(0,-1.501f,0)));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialDualRolePigProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialDualRolePigProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var pigGeometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:pig","26.2",net.minecraft.client.model.animal.pig.PigModel.createBodyLayer(new net.minecraft.client.model.geom.builders.CubeDeformation(0)).bakeRoot(),Set.of()).withModelTransform(new org.joml.Matrix4f().scaling(-1,-1,1).translate(0,-1.501f,0)));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialDuplicateCarryProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialEndpointBurstProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialGravityRoundTripProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialHeartbeatOrderProof.java:28: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialLifecycleProof.java:30: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialLocalContactJointProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialLocalContactRootProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialNearPlaneClipProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialResidualWorkProof.java:26: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialSameBaselineCarryProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialTickIncorporationProof.java:27: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31AdversarialVoluntaryOnCarryProof.java:29: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S31ImplementerResidualClientProof.java:36: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla(
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialCertificateRecoveryProof.java:51: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialCodecAxisProof.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialDeferredRemoteBarrierProof.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()).withModelTransform(new org.joml.Matrix4f().scaling(-1,-1,1).translate(0,-1.501f,0)));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialGravityBarrierProof.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialNativeBaselineProof.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialNativeBaselineRoundTripProof.java:38: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S32AdversarialPhysicalCarryProof.java:43: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(c->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S36LocalBoatControlProof.java:32: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+        var geometry=context.computeOnClient(client->GeometryExtractor.vanilla("minecraft:cow","26.2",
+                                                                      ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S42AdversarialCurrentDisconnectProof.java:15: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+  var model=c.computeOnClient(mc->io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor.vanilla("minecraft:cow","26.2",net.minecraft.client.model.animal.cow.CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S42AdversarialRetiredDisconnectProof.java:20: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+  var model=c.computeOnClient(mc->io.github.r3neer.scalebrews.client.collision.preparation.GeometryExtractor.vanilla("minecraft:cow","26.2",net.minecraft.client.model.animal.cow.CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                                                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S43AdversarialRetirementLocalityProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+  var model=c.computeOnClient(mc->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S43AdversarialSupportRetirementProof.java:25: warning: [deprecation] vanilla(String,String,ModelPart,Set<String>) in GeometryExtractor has been deprecated
+  var model=c.computeOnClient(mc->GeometryExtractor.vanilla("minecraft:cow","26.2",CowModel.createBodyLayer().bakeRoot(),Set.of()));
+                                                   ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S52AgeStateSelectionProof.java:45: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+                        var adult = AgeableMobRenderer.class.getDeclaredField("adultModel"); adult.setAccessible(true);
+                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\gametest\java\io\github\r3neer\scalebrews\test\S52AgeStateSelectionProof.java:46: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+                        var baby = AgeableMobRenderer.class.getDeclaredField("babyModel"); baby.setAccessible(true);
+                                   ^
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+399 warnings
+
+> Task :s59CommonClasspath
+
+[Incubating] Problems report is available at: file:///C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/s59-impl-build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 40s
+9 actionable tasks: 9 executed

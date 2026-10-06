@@ -1,0 +1,3 @@
+Exception in thread "main" java.lang.AssertionError: S59 S00 forward conditional maps label to instruction4
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.check(S59CodeFoundationProof.java:7)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.main(S59CodeFoundationProof.java:12)

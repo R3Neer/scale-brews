@@ -1,0 +1,4 @@
+Exception in thread "main" java.lang.IllegalArgumentException: original_selector:branch_target_missing
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalModelPrograms.absent(OriginalModelPrograms.java:122)
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalModelPrograms$Code.branch(OriginalModelPrograms.java:181)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.main(S59CodeFoundationProof.java:12)

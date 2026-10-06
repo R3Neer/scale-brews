@@ -1,0 +1,7 @@
+S59_FINITE_BOUNDARIES_PASS checks=15 budget/targets/type/coverage/cursors caps5/32
+
+work-charge True
+backward-target True
+cursor-sharing True
+coverage True
+boolean-type True

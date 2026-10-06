@@ -1,0 +1,4 @@
+Exception in thread "main" java.lang.IllegalArgumentException: original_selector:program_opcode
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalModelPrograms.absent(OriginalModelPrograms.java:122)
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalModelPrograms$Code.op(OriginalModelPrograms.java:147)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59CodeFoundationProof.main(S59CodeFoundationProof.java:18)

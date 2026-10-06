@@ -1,0 +1,10 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+Starting a Gradle Daemon, 5 busy Daemons could not be reused, use --status for details
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :processGametestResources
+
+BUILD SUCCESSFUL in 5s
+1 actionable task: 1 executed

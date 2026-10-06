@@ -1,0 +1,2 @@
+Exception in thread "main" java.lang.AssertionError: S59 ADV numeric threshold fabricated boolean
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59FiniteBoundaryProof.main(S59FiniteBoundaryProof.java:22)

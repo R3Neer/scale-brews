@@ -1,0 +1,6228 @@
+[
+  {
+    "tool": "original-finite-pose-v1",
+    "modelClass": "net.minecraft.client.model.animal.turtle.BabyTurtleModel",
+    "booleanInputs": [
+      {
+        "channel": "boolean.0",
+        "owner": "net.minecraft.client.renderer.entity.state.TurtleRenderState",
+        "name": "isLayingEgg",
+        "descriptor": "Z"
+      },
+      {
+        "channel": "boolean.1",
+        "owner": "net.minecraft.client.renderer.entity.state.TurtleRenderState",
+        "name": "isOnLand",
+        "descriptor": "Z"
+      }
+    ],
+    "rows": [
+      {
+        "predicate": {
+          "boolean.0": false,
+          "boolean.1": false
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/9e82f489c07a6a175f7d8b38fafdbdef4412b46b18a8fed15d7f6128e3ea8298",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.5,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 41,
+                "right": 42,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 45
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 46
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 5,
+                "node": 47
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 5,
+                "node": 45
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "9e82f489c07a6a175f7d8b38fafdbdef4412b46b18a8fed15d7f6128e3ea8298"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": true,
+          "boolean.1": false
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/9e82f489c07a6a175f7d8b38fafdbdef4412b46b18a8fed15d7f6128e3ea8298",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.5,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 41,
+                "right": 42,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 45
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 46
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 5,
+                "node": 47
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 5,
+                "node": 45
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "9e82f489c07a6a175f7d8b38fafdbdef4412b46b18a8fed15d7f6128e3ea8298"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": false,
+          "boolean.1": true
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/275120c09078b0c73299413dbdd5f9b2c3c74b11b64ed5e4eb65bb4324129a63",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 5.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 41,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 42,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 41,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 45,
+                "right": 46,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 47,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 48,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 43,
+                "right": 50,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 51,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 52,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 44,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 54,
+                "right": 55,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 56,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 58,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 59,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 13
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 21
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 4,
+                "node": 49
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 4,
+                "node": 53
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 4,
+                "node": 57
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 4,
+                "node": 60
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "275120c09078b0c73299413dbdd5f9b2c3c74b11b64ed5e4eb65bb4324129a63"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": true,
+          "boolean.1": true
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/a3b80ffe5fa86f4ed07292b8ef81c096a0858499a59ac932e4239d529c2eb110",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 4.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 2.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 5.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 41,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 42,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 41,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 45,
+                "right": 46,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 47,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 48,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 43,
+                "right": 50,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 51,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 52,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 44,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 54,
+                "right": 55,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 56,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 58,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 59,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 13
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 21
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 4,
+                "node": 49
+              },
+              {
+                "part": "root/left_front_leg",
+                "field": 4,
+                "node": 53
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 4,
+                "node": 57
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 4,
+                "node": 60
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "a3b80ffe5fa86f4ed07292b8ef81c096a0858499a59ac932e4239d529c2eb110"
+        }
+      }
+    ],
+    "originalResources": {
+      "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+      "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+      "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+      "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+      "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+      "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+      "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+      "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+      "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+    },
+    "digest": "55373552e66af7e6ba9fd5e1a19449ccf87aae41224636da4170cd2ceb2db7b9",
+    "verifiedInstructions": 1737
+  },
+  {
+    "tool": "original-finite-pose-v1",
+    "modelClass": "net.minecraft.client.model.animal.turtle.BabyTurtleModel",
+    "booleanInputs": [
+      {
+        "channel": "boolean.0",
+        "owner": "net.minecraft.client.renderer.entity.state.TurtleRenderState",
+        "name": "isLayingEgg",
+        "descriptor": "Z"
+      },
+      {
+        "channel": "boolean.1",
+        "owner": "net.minecraft.client.renderer.entity.state.TurtleRenderState",
+        "name": "isOnLand",
+        "descriptor": "Z"
+      }
+    ],
+    "rows": [
+      {
+        "predicate": {
+          "boolean.0": false,
+          "boolean.1": false
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/3e5cfe96da7e38eeb7ba746a83bb159f42b0853be98974c087f5686328b9cca7",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.5,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 41,
+                "right": 42,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 45
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 46
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 5,
+                "node": 47
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 5,
+                "node": 45
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "3e5cfe96da7e38eeb7ba746a83bb159f42b0853be98974c087f5686328b9cca7"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": true,
+          "boolean.1": false
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/3e5cfe96da7e38eeb7ba746a83bb159f42b0853be98974c087f5686328b9cca7",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.5,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 41,
+                "right": 42,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 45,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 45
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 46
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 5,
+                "node": 47
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 5,
+                "node": 45
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "3e5cfe96da7e38eeb7ba746a83bb159f42b0853be98974c087f5686328b9cca7"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": false,
+          "boolean.1": true
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/e2d9b4a167784085f89c3794ebe4d8c3169fb5e75e73ee8bca5d3201bdb320f0",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 5.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 41,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 42,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 41,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 45,
+                "right": 46,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 47,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 48,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 43,
+                "right": 50,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 51,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 52,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 44,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 54,
+                "right": 55,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 56,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 58,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 59,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 21
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 4,
+                "node": 49
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 4,
+                "node": 57
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 4,
+                "node": 60
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "e2d9b4a167784085f89c3794ebe4d8c3169fb5e75e73ee8bca5d3201bdb320f0"
+        }
+      },
+      {
+        "predicate": {
+          "boolean.0": true,
+          "boolean.1": true
+        },
+        "numeric": {
+          "program": {
+            "format": 1,
+            "source": "original_finite/3dcb2f77eaf423cdc1a19f4bcaeef780e6931c7bd49b4177058ea4c4833f1baf",
+            "version": "original-finite-pose-v1",
+            "geometry": {
+              "format": 2,
+              "source": "original_reset/a045057d259c31c393a3fd1bd3b5577ad1cbe5a8456db5271d9bc552fdf241d5",
+              "version": "original-finite-pose-v1",
+              "parts": [
+                {
+                  "id": "root",
+                  "transform": [
+                    -1.0499703,
+                    -0.0037484095,
+                    -0.0069614486,
+                    -0.0,
+                    -0.0034203667,
+                    0.94998384,
+                    0.0043603885,
+                    0.0,
+                    -0.007936144,
+                    -0.0055363476,
+                    1.1999611,
+                    0.0,
+                    0.0031875,
+                    -0.0022312498,
+                    6.375E-4,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.051,
+                    "y": -0.035699997,
+                    "z": 0.0102,
+                    "xRot": 0.00459,
+                    "yRot": -0.0066299997,
+                    "zRot": 0.00357,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/body",
+                  "parent": "root",
+                  "transform": [
+                    -1.0498807,
+                    -0.007496276,
+                    -0.013922591,
+                    -0.0,
+                    -0.006898288,
+                    0.94993484,
+                    0.008720109,
+                    0.0,
+                    -0.015831806,
+                    -0.011129166,
+                    1.1998439,
+                    0.0,
+                    0.006375,
+                    -0.0044624996,
+                    0.001275,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.102,
+                    "y": -0.071399994,
+                    "z": 0.0204,
+                    "xRot": 0.00918,
+                    "yRot": -0.013259999,
+                    "zRot": 0.00714,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/head",
+                  "parent": "root",
+                  "transform": [
+                    -1.049732,
+                    -0.011243058,
+                    -0.020883119,
+                    -0.0,
+                    -0.010433489,
+                    0.94985247,
+                    0.013078497,
+                    0.0,
+                    -0.023685832,
+                    -0.01677811,
+                    1.1996487,
+                    0.0,
+                    0.0095625,
+                    -0.0066937497,
+                    0.0019125,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.153,
+                    "y": -0.107099995,
+                    "z": 0.0306,
+                    "xRot": 0.01377,
+                    "yRot": -0.01989,
+                    "zRot": 0.01071,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0495236,
+                    -0.014988216,
+                    -0.027842734,
+                    -0.0,
+                    -0.014025685,
+                    0.9497363,
+                    0.017434886,
+                    0.0,
+                    -0.031497072,
+                    -0.022482818,
+                    1.1993757,
+                    0.0,
+                    0.01275,
+                    -0.008924999,
+                    0.00255,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.204,
+                    "y": -0.14279999,
+                    "z": 0.0408,
+                    "xRot": 0.01836,
+                    "yRot": -0.026519999,
+                    "zRot": 0.01428,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/left_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0492558,
+                    -0.018731205,
+                    -0.034801126,
+                    -0.0,
+                    -0.017674576,
+                    0.94958556,
+                    0.02178861,
+                    0.0,
+                    -0.039264385,
+                    -0.028242916,
+                    1.1990249,
+                    0.0,
+                    0.0159375,
+                    -0.01115625,
+                    0.0031875,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.255,
+                    "y": -0.1785,
+                    "z": 0.051,
+                    "xRot": 0.022950001,
+                    "yRot": -0.03315,
+                    "zRot": 0.01785,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_front_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0489286,
+                    -0.02247149,
+                    -0.041757982,
+                    -0.0,
+                    -0.021379849,
+                    0.94939965,
+                    0.026138999,
+                    0.0,
+                    -0.04698663,
+                    -0.034058016,
+                    1.198596,
+                    0.0,
+                    0.019125,
+                    -0.013387499,
+                    0.003825,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.306,
+                    "y": -0.21419999,
+                    "z": 0.0612,
+                    "xRot": 0.02754,
+                    "yRot": -0.03978,
+                    "zRot": 0.02142,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                },
+                {
+                  "id": "root/right_hind_leg",
+                  "parent": "root",
+                  "transform": [
+                    -1.0485418,
+                    -0.026208518,
+                    -0.048713002,
+                    -0.0,
+                    -0.025141178,
+                    0.9491778,
+                    0.030485388,
+                    0.0,
+                    -0.05466265,
+                    -0.039927714,
+                    1.1980891,
+                    0.0,
+                    0.0223125,
+                    -0.01561875,
+                    0.0044625,
+                    1.0
+                  ],
+                  "sourcePose": {
+                    "x": 0.357,
+                    "y": -0.2499,
+                    "z": 0.0714,
+                    "xRot": 0.03213,
+                    "yRot": -0.046409998,
+                    "zRot": 0.02499,
+                    "xScale": -1.05,
+                    "yScale": 0.95,
+                    "zScale": 1.2
+                  }
+                }
+              ],
+              "pieces": [
+                {
+                  "id": "root/body/cube_0",
+                  "part": "root/body",
+                  "min": [
+                    -0.125,
+                    -0.0625,
+                    -0.125
+                  ],
+                  "max": [
+                    0.125,
+                    0.0625,
+                    0.125
+                  ]
+                },
+                {
+                  "id": "root/head/cube_0",
+                  "part": "root/head",
+                  "min": [
+                    -0.09375,
+                    -0.125,
+                    -0.1875
+                  ],
+                  "max": [
+                    0.09375,
+                    0.0625,
+                    0.0
+                  ]
+                }
+              ],
+              "modelTransform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "nodes": [
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.0",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 0,
+                "right": 1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.1",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.017453292,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 3,
+                "right": 4,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 8,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 9,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 10,
+                "right": 11,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 12,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 14,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 15,
+                "right": 16,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 17,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 18,
+                "right": 19,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 20,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 22,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.1415927,
+                "field": -1
+              },
+              {
+                "op": "ADD",
+                "left": 23,
+                "right": 24,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 25,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 26,
+                "right": 27,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 28,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.6662,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 6,
+                "right": 30,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 31,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 1.4,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 32,
+                "right": 33,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 34,
+                "right": 7,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.2",
+                "field": -1
+              },
+              {
+                "op": "INPUT",
+                "left": -1,
+                "right": -1,
+                "constant": 0.0,
+                "input": "input.3",
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 4.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 2.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 5.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 36,
+                "right": 40,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 38,
+                "right": 41,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 42,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "COS",
+                "left": 41,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 43,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 45,
+                "right": 46,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 47,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 48,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 8.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 43,
+                "right": 50,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 51,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 52,
+                "right": 39,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "NEGATE",
+                "left": 44,
+                "right": -1,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 54,
+                "right": 55,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 56,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "CONSTANT",
+                "left": -1,
+                "right": -1,
+                "constant": 3.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 44,
+                "right": 58,
+                "constant": 0.0,
+                "field": -1
+              },
+              {
+                "op": "MULTIPLY",
+                "left": 59,
+                "right": 37,
+                "constant": 0.0,
+                "field": -1
+              }
+            ],
+            "writes": [
+              {
+                "part": "root/head",
+                "field": 3,
+                "node": 2
+              },
+              {
+                "part": "root/head",
+                "field": 4,
+                "node": 5
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 3,
+                "node": 35
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 3,
+                "node": 21
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 3,
+                "node": 29
+              },
+              {
+                "part": "root/right_front_leg",
+                "field": 4,
+                "node": 49
+              },
+              {
+                "part": "root/right_hind_leg",
+                "field": 4,
+                "node": 57
+              },
+              {
+                "part": "root/left_hind_leg",
+                "field": 4,
+                "node": 60
+              }
+            ]
+          },
+          "inputs": [
+            {
+              "channel": "input.0",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "xRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.1",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "yRot",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.2",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationPos",
+              "descriptor": "F"
+            },
+            {
+              "channel": "input.3",
+              "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+              "name": "walkAnimationSpeed",
+              "descriptor": "F"
+            }
+          ],
+          "originalResources": {
+            "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+            "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+            "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+            "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+            "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+            "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+            "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+            "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+            "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+            "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+          },
+          "digest": "3dcb2f77eaf423cdc1a19f4bcaeef780e6931c7bd49b4177058ea4c4833f1baf"
+        }
+      }
+    ],
+    "originalResources": {
+      "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+      "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+      "/net/minecraft/client/model/QuadrupedModel.class": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+      "/net/minecraft/client/model/animal/turtle/BabyTurtleModel.class": "373b01f6f01c7e9c95d2824e3c3ac9e239632d621c6c5346210d725fac3f922d",
+      "/net/minecraft/client/model/animal/turtle/TurtleModel.class": "b23f2235766230ba317a78521fb85ab33cddbca3af656e01c2f63b260f1111ab",
+      "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+      "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+      "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+      "/net/minecraft/client/renderer/entity/state/TurtleRenderState.class": "ef02c1f90dd8d4737b1eab5e96283c5c9d759cc66116fc6dd21e69b76ef5e7c1",
+      "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef"
+    },
+    "digest": "0bfa930531a8d1acc579b5d492ea2c5e208423ad7051ee63db22cfa5d30c3d39",
+    "verifiedInstructions": 1737
+  }
+]

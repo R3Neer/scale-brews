@@ -1,0 +1,11 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects {afterEvaluate {
+ def shadow=providers.gradleProperty('s59Shadow').getOrNull()
+ if(shadow!=null){def owners=['OriginalLinearPosePreparation','OriginalFinitePosePreparation','OriginalModelPrograms'].findAll {o->new File(file(shadow),'io/github/r3neer/scalebrews/client/collision/preparation/'+o+'.java').exists()}.collect {o->file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/'+o+'.java').canonicalFile};sourceSets.client.java.exclude {e->owners.contains(e.file.canonicalFile)};sourceSets.client.java.srcDir(file(shadow))}
+ loom.runs.configureEach {runDir=file(providers.gradleProperty('s59RunDir').getOrElse('../s59-public-run')).absolutePath}
+ tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl'}}
+ tasks.register('s59CommonClasspath') {doLast {def o=file(providers.gradleProperty('s59ClasspathFile').getOrElse('../s59-common-classpath.txt'));o.parentFile.mkdirs();o.text=sourceSets.main.runtimeClasspath.asPath}}
+ tasks.register('s59StackClasspath') {doLast {def o=file(providers.gradleProperty('s59StackClasspathFile').getOrElse('../s59-stack-classpath.txt'));o.parentFile.mkdirs();o.text=sourceSets.client.runtimeClasspath.asPath}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f);def entries=['io.github.r3neer.scalebrews.client.collision.preparation.S59AdversarialFiniteProof'];if(!providers.gradleProperty('s59Only').getOrElse('false').toBoolean())entries.add('io.github.r3neer.scalebrews.client.collision.preparation.S58AdversarialCompoundProof');m.entrypoints['fabric-client-gametest']=entries;f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))}}
+}}

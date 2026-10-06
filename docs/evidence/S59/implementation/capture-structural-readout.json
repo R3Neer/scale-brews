@@ -1,0 +1,22 @@
+{
+  "source": "Existing native/common capture only; no additional product test",
+  "maximumMatrixComponentDelta": 3.0000000017516015e-07,
+  "passes": [
+    {
+      "booleanCount": 2,
+      "rows": 4,
+      "uniquePrograms": 3,
+      "verifiedInstructions": 1737,
+      "originalResources": 10,
+      "maxNodes": 61
+    },
+    {
+      "booleanCount": 2,
+      "rows": 4,
+      "uniquePrograms": 3,
+      "verifiedInstructions": 1737,
+      "originalResources": 10,
+      "maxNodes": 61
+    }
+  ]
+}

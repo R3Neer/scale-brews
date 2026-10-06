@@ -123,10 +123,11 @@ final class OriginalModelPrograms {
 
     static final class Code {
         final List<Instruction> instructions;
-        private final Map<java.lang.classfile.Label, Integer> labels = new HashMap<>();
+        private final Map<java.lang.classfile.Label, Integer> labels;
         int next;
 
         Code(MethodModel method) {
+            labels = new HashMap<>();
             var code = method.code().orElseThrow(() -> absent("code_missing"));
             if (!code.exceptionHandlers().isEmpty()) throw absent("exception_handlers");
             var list = new ArrayList<Instruction>();
@@ -138,6 +139,20 @@ final class OriginalModelPrograms {
                 }
             }
             instructions = List.copyOf(list);
+        }
+
+        private Code(Code original) {
+            instructions = original.instructions;
+            labels = original.labels;
+        }
+
+        /** Independent cursor over one pass-local immutable instruction/label inventory. */
+        Code fork() { return new Code(this); }
+
+        int target(BranchInstruction branch) {
+            var target = labels.get(branch.target());
+            if (target == null) throw absent("branch_target_missing");
+            return target;
         }
 
         Instruction take() {

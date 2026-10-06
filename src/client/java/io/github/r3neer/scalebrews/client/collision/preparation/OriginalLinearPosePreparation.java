@@ -8,6 +8,7 @@ import io.github.r3neer.scalebrews.collision.pose.NumericPoseProgram.Write;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.TypeKind;
 import java.lang.classfile.instruction.ConstantInstruction;
+import java.lang.classfile.instruction.BranchInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.classfile.instruction.InvokeInstruction;
 import java.lang.classfile.instruction.LoadInstruction;
@@ -17,6 +18,7 @@ import java.lang.reflect.AccessFlag;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,13 +62,90 @@ public final class OriginalLinearPosePreparation {
 
     private record Ref(String part, boolean state) {}
     private record Number(int node, boolean promoted) {}
+    private record BooleanValue(boolean value) {}
     private record Target(String part, int field) {}
     private static final Ref THIS = new Ref(null, false), STATE = new Ref(null, true);
+
+    /** Only the finite preparer handles this discovery signal; it is never a default value. */
+    static final class BooleanNeeded extends RuntimeException {
+        final Field field;
+        BooleanNeeded(Field field) { this.field = field; }
+    }
+
+    /** PREPARATION-only pass, discarded before returning neutral immutable recipes. */
+    static final class FinitePass {
+        static final int MAX_WORK = 1_048_576;
+        private record MethodKey(Class<?> owner, String descriptor) {}
+        final EntityModel<?> model;
+        final OriginalModelPrograms resources;
+        final IdentityHashMap<ModelPart, String> parts = new IdentityHashMap<>();
+        final OriginalResetPosePreparation.Recipe reset;
+        final ModelPartStructure.Snapshot snapshot;
+        private final Map<MethodKey, OriginalModelPrograms.Code> codes = new LinkedHashMap<>();
+        private final Map<MethodKey, BitSet> coverage = new LinkedHashMap<>();
+        int work;
+
+        FinitePass(EntityModel<?> model) {
+            this.model = model;
+            resources = new OriginalModelPrograms(model.getClass().getClassLoader());
+            reset = OriginalResetPosePreparation.baseResetCertificate(model, resources);
+            collectParts(parts, model.root(), "root", 0);
+            snapshot = ModelPartStructure.snapshot(model.root(), "original_reset/" + reset.digest(),
+                OriginalFinitePosePreparation.TOOL_VERSION);
+            OriginalResetGeometryPreparation.verify(reset, snapshot.geometry());
+            if (!snapshot.fingerprint().equals(reset.initialStructure())) throw absent("structure_changed");
+        }
+
+        Prepared attempt(Map<Field, Boolean> values) { return new Compiler(this, values).compile(); }
+
+        OriginalModelPrograms.Code code(Class<?> owner, String descriptor) {
+            if (work >= MAX_WORK) throw absent("finite_work_limit");
+            var key = new MethodKey(owner, descriptor);
+            var template = codes.get(key);
+            boolean fresh = template == null;
+            if (fresh) {
+                template = new OriginalModelPrograms.Code(resources.anyDeclared(owner, "setupAnim", descriptor));
+            }
+            int count = template.instructions.size();
+            if (count > MAX_WORK - work) throw absent("finite_work_limit");
+            work += count;
+            if (fresh) {
+                for (int i = 0; i < template.instructions.size(); i++) {
+                    if (template.instructions.get(i) instanceof BranchInstruction branch) {
+                        if (branch.opcode() != Opcode.IFEQ && branch.opcode() != Opcode.IFNE && branch.opcode() != Opcode.GOTO)
+                            throw absent("finite_branch_opcode");
+                        int target = template.target(branch);
+                        if (target <= i || target >= template.instructions.size()) throw absent("finite_branch_target");
+                    }
+                }
+                codes.put(key, template); coverage.put(key, new BitSet(template.instructions.size()));
+            }
+            return template.fork();
+        }
+
+        BitSet visits(Class<?> owner, String descriptor) { return coverage.get(new MethodKey(owner, descriptor)); }
+
+        void finish() {
+            codes.forEach((key, code) -> {
+                if (coverage.get(key).nextClearBit(0) < code.instructions.size()) throw absent("finite_uncovered_program");
+            });
+            if (!ModelPartStructure.inspect(model.root()).equals(reset.initialStructure())) throw absent("structure_changed");
+        }
+    }
+
+    private static void collectParts(IdentityHashMap<ModelPart, String> parts, ModelPart part, String path, int depth) {
+        if (part == null || depth > ModelPartStructure.MAX_DEPTH || parts.size() >= ModelPartStructure.MAX_PARTS
+            || parts.put(part, path) != null) throw absent("part_identity");
+        var children = ((ModelPartAccess)(Object)part).scalebrews$children();
+        for (var entry : new TreeMap<>(children).entrySet()) collectParts(parts, entry.getValue(), path + "/" + entry.getKey(), depth + 1);
+    }
 
     private static final class Compiler {
         final EntityModel<?> model;
         final OriginalModelPrograms resources;
-        final IdentityHashMap<ModelPart, String> parts = new IdentityHashMap<>();
+        final IdentityHashMap<ModelPart, String> parts;
+        final FinitePass finite;
+        final Map<Field, Boolean> booleans;
         final List<Node> nodes = new ArrayList<>();
         final LinkedHashMap<Target, Integer> writes = new LinkedHashMap<>();
         final LinkedHashMap<Field, Input> inputs = new LinkedHashMap<>();
@@ -76,15 +155,23 @@ public final class OriginalLinearPosePreparation {
         Compiler(EntityModel<?> model) {
             this.model = model;
             resources = new OriginalModelPrograms(model.getClass().getClassLoader());
+            parts = new IdentityHashMap<>(); finite = null; booleans = Map.of();
+        }
+
+        Compiler(FinitePass pass, Map<Field, Boolean> values) {
+            model = pass.model; resources = pass.resources; parts = pass.parts;
+            finite = pass; booleans = Map.copyOf(values);
         }
 
         Prepared compile() {
-            var reset = OriginalResetPosePreparation.baseResetCertificate(model);
-            collect(model.root(), "root", 0);
+            var reset = finite == null ? OriginalResetPosePreparation.baseResetCertificate(model) : finite.reset;
+            if (finite == null) collectParts(parts, model.root(), "root", 0);
             var entry = resources.resolveMethod(model.getClass(), "setupAnim", "(Ljava/lang/Object;)V");
             bridge(entry.getDeclaringClass(), "(Ljava/lang/Object;)V");
             if (writes.isEmpty()) throw absent("no_numeric_writes");
-            var snapshot = ModelPartStructure.snapshot(model.root(), "original_reset/" + reset.digest(), TOOL_VERSION);
+            String version = finite == null ? TOOL_VERSION : OriginalFinitePosePreparation.TOOL_VERSION;
+            var snapshot = finite == null
+                ? ModelPartStructure.snapshot(model.root(), "original_reset/" + reset.digest(), version) : finite.snapshot;
             if (!snapshot.fingerprint().equals(reset.initialStructure())) throw absent("structure_changed");
             OriginalResetGeometryPreparation.verify(reset, snapshot.geometry());
             var allResources = new TreeMap<>(reset.originalResources());
@@ -95,7 +182,7 @@ public final class OriginalLinearPosePreparation {
             var schema = List.copyOf(inputs.values());
             var output = new ArrayList<Write>();
             writes.forEach((target, node) -> output.add(new Write(target.part(), target.field(), node)));
-            var text = new StringBuilder(TOOL_VERSION).append('|');
+            var text = new StringBuilder(version).append('|');
             ModelPartStructure.frame(text, reset.digest());
             allResources.forEach((path, digest) -> { ModelPartStructure.frame(text, path); ModelPartStructure.frame(text, digest); });
             for (var input : schema) for (String value : List.of(input.channel(), input.owner(), input.name(), input.descriptor()))
@@ -109,16 +196,10 @@ public final class OriginalLinearPosePreparation {
                 ModelPartStructure.frame(text, write.part()); text.append(write.field()).append('|').append(write.node()).append('|');
             }
             String digest = ModelPartStructure.hash(text.toString());
-            var program = new NumericPoseProgram(NumericPoseProgram.FORMAT, "original_linear/" + digest,
-                TOOL_VERSION, snapshot.geometry(), nodes, output);
+            var program = new NumericPoseProgram(NumericPoseProgram.FORMAT,
+                (finite == null ? "original_linear/" : "original_finite/") + digest,
+                version, snapshot.geometry(), nodes, output);
             return new Prepared(program, schema, allResources, digest);
-        }
-
-        void collect(ModelPart part, String path, int depth) {
-            if (part == null || depth > ModelPartStructure.MAX_DEPTH || parts.size() >= ModelPartStructure.MAX_PARTS
-                || parts.put(part, path) != null) throw absent("part_identity");
-            var children = ((ModelPartAccess)(Object)part).scalebrews$children();
-            for (var entry : new TreeMap<>(children).entrySet()) collect(entry.getValue(), path + "/" + entry.getKey(), depth + 1);
         }
 
         void original(Class<?> owner) {
@@ -134,7 +215,7 @@ public final class OriginalLinearPosePreparation {
                 if (descriptor.equals("(Ljava/lang/Object;)V")) throw absent("reset_only_or_untyped");
                 body(owner, descriptor); return;
             }
-            var code = new OriginalModelPrograms.Code(method);
+            var code = finite == null ? new OriginalModelPrograms.Code(method) : finite.code(owner, descriptor);
             code.load(0); code.load(1);
             // The effective Object bridge must narrow the original state, not execute unrelated work.
             var cast = code.take();
@@ -151,6 +232,7 @@ public final class OriginalLinearPosePreparation {
                 || !invoke.type().stringValue().equals("(" + narrowed.descriptorString() + ")V")
                 || !resources.type(invoke.owner().asInternalName()).isAssignableFrom(model.getClass())) throw absent("bridge_dispatch");
             code.op(Opcode.RETURN); code.end();
+            if (finite != null) finite.visits(owner, descriptor).set(0, code.instructions.size());
             var actual = resources.resolveMethod(model.getClass(), "setupAnim", invoke.type().stringValue());
             bridge(actual.getDeclaringClass(), invoke.type().stringValue());
         }
@@ -160,13 +242,16 @@ public final class OriginalLinearPosePreparation {
             var signature = MethodType.fromMethodDescriptorString(descriptor, owner.getClassLoader());
             if (signature.returnType() != void.class || signature.parameterCount() != 1
                 || stateClass == null || !signature.parameterType(0).isAssignableFrom(stateClass)) throw absent("body_signature");
-            var code = new OriginalModelPrograms.Code(resources.declared(owner, "setupAnim", descriptor));
+            var method = resources.declared(owner, "setupAnim", descriptor);
+            var code = finite == null ? new OriginalModelPrograms.Code(method) : finite.code(owner, descriptor);
+            var visits = finite == null ? null : finite.visits(owner, descriptor);
             code.load(0); code.load(1);
             if (!(code.take() instanceof InvokeInstruction invoke) || invoke.opcode() != Opcode.INVOKESPECIAL
                 || !invoke.name().stringValue().equals("setupAnim")) throw absent("base_reset_prefix");
             Class<?> superOwner = resources.type(invoke.owner().asInternalName());
             if (superOwner == owner || !superOwner.isAssignableFrom(owner) || !Model.class.isAssignableFrom(superOwner))
                 throw absent("super_owner");
+            if (visits != null) visits.set(0, code.next);
             // JVM ACC_SUPER lookup starts at the current declaring class's direct superclass.
             var actual = resources.resolveMethod(owner.getSuperclass(), "setupAnim", invoke.type().stringValue());
             if (actual.getDeclaringClass() != Model.class) {
@@ -177,16 +262,30 @@ public final class OriginalLinearPosePreparation {
             var stack = new ArrayList<Object>();
             Object[] locals = new Object[MAX_LOCALS]; locals[0] = THIS; locals[1] = STATE;
             while (code.next < code.instructions.size()) {
+                int instructionIndex = code.next;
                 var instruction = code.take();
-                if (instruction instanceof LoadInstruction load) {
+                if (visits != null) visits.set(instructionIndex, code.next);
+                if (instruction instanceof BranchInstruction branch) {
+                    if (finite == null) throw absent("instruction:" + instruction.opcode());
+                    int target = code.target(branch);
+                    if (branch.opcode() == Opcode.GOTO) code.next = target;
+                    else {
+                        var value = booleanValue(pop(stack));
+                        if ((branch.opcode() == Opcode.IFEQ && !value.value())
+                            || (branch.opcode() == Opcode.IFNE && value.value())) code.next = target;
+                    }
+                } else if (instruction instanceof LoadInstruction load) {
                     if (load.slot() >= MAX_LOCALS || locals[load.slot()] == null) throw absent("local");
                     Object value = locals[load.slot()];
                     if (load.typeKind() == TypeKind.FLOAT) numeric(value, false);
+                    else if (load.typeKind() == TypeKind.INT && finite != null) booleanValue(value);
                     else if (load.typeKind() != TypeKind.REFERENCE || !(value instanceof Ref)) throw absent("local_type");
                     push(stack, value);
                 } else if (instruction instanceof StoreInstruction store) {
-                    if (store.slot() < 2 || store.slot() >= MAX_LOCALS || store.typeKind() != TypeKind.FLOAT) throw absent("store");
-                    locals[store.slot()] = numeric(pop(stack), false);
+                    if (store.slot() < 2 || store.slot() >= MAX_LOCALS) throw absent("store");
+                    if (store.typeKind() == TypeKind.FLOAT) locals[store.slot()] = numeric(pop(stack), false);
+                    else if (store.typeKind() == TypeKind.INT && finite != null) locals[store.slot()] = booleanValue(pop(stack));
+                    else throw absent("store");
                 } else if (instruction instanceof ConstantInstruction constant) {
                     if (constant.typeKind() != TypeKind.FLOAT || !(constant.constantValue() instanceof Float value)) throw absent("constant");
                     push(stack, new Number(node(new Node(Op.CONSTANT, -1, -1, value, null, null, -1)), false));
@@ -206,7 +305,11 @@ public final class OriginalLinearPosePreparation {
                     push(stack, new Number(node(new Node(operation, value.node(), -1, 0, null, null, -1)), false));
                 } else {
                     switch (instruction.opcode()) {
-                        case DUP -> duplicateCategoryOne(stack);
+                        case DUP -> {
+                            if (finite != null && !stack.isEmpty() && stack.getLast() instanceof BooleanValue)
+                                push(stack, stack.getLast());
+                            else duplicateCategoryOne(stack);
+                        }
                         case FADD, FSUB, FMUL, FDIV -> {
                             var right = numeric(pop(stack), false); var left = numeric(pop(stack), false);
                             Op operation = switch (instruction.opcode()) {
@@ -221,7 +324,10 @@ public final class OriginalLinearPosePreparation {
                         case F2D -> {
                             var value = numeric(pop(stack), false); push(stack, new Number(value.node(), true));
                         }
-                        case RETURN -> { if (!stack.isEmpty()) throw absent("return_stack"); code.end(); return; }
+                        case RETURN -> {
+                            if (!stack.isEmpty()) throw absent("return_stack");
+                            if (finite == null) code.end(); return;
+                        }
                         default -> throw absent("instruction:" + instruction.opcode());
                     }
                 }
@@ -245,6 +351,11 @@ public final class OriginalLinearPosePreparation {
             } else if (receiver == STATE) {
                 Field field = resources.resolveField(stateClass, instruction);
                 OriginalEnumSelectorProof.originalOrigin(field.getDeclaringClass(), LivingEntityRenderState.class);
+                if (finite != null && field.getType() == boolean.class && !Modifier.isStatic(field.getModifiers())) {
+                    Boolean value = booleans.get(field);
+                    if (value == null) throw new BooleanNeeded(field);
+                    push(stack, new BooleanValue(value)); return;
+                }
                 if (field.getType() != float.class || Modifier.isStatic(field.getModifiers())) throw absent("state_field");
                 Input input = inputs.get(field);
                 if (input == null) {
@@ -286,6 +397,9 @@ public final class OriginalLinearPosePreparation {
         }
         static Number numeric(Object value, boolean promoted) {
             if (!(value instanceof Number number) || number.promoted() != promoted) throw absent("numeric_type"); return number;
+        }
+        static BooleanValue booleanValue(Object value) {
+            if (!(value instanceof BooleanValue bool)) throw absent("boolean_type"); return bool;
         }
         static Ref part(Object value) {
             if (!(value instanceof Ref ref) || ref.state() || ref.part() == null) throw absent("part_receiver"); return ref;

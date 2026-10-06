@@ -1,0 +1,6 @@
+Exception in thread "main" java.lang.AssertionError: S59 ADV rejection bypassed finite_uncovered_program
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59FiniteBoundaryProof.reject(S59FiniteBoundaryProof.java:12)
+	at io.github.r3neer.scalebrews.client.collision.preparation.S59FiniteBoundaryProof.main(S59FiniteBoundaryProof.java:20)
+Caused by: java.lang.NullPointerException: Cannot invoke "net.minecraft.client.model.EntityModel.root()" because "this.model" is null
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalLinearPosePreparation$FinitePass.finish(OriginalLinearPosePreparation.java:132)
+	... 2 more
