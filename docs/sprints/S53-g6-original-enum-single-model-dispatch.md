@@ -10,7 +10,7 @@ contexto clean-room y holdouts, no repara producción. Comunicación operacional
 ## 1. Scope y S00
 
 G6 tarea2, misma frontera de procedencia completa S51: componente autoritativo
-Holder<Record<ModelAndTexture<Enum>>> â†’ extractor original â†’ field de estado â†’
+Holder<Record<ModelAndTexture<Enum>>> → extractor original → field de estado →
 dispatch completo → Map[enum] → EntityModel único → slot real LivingEntityRenderer.
 Sin eje de edad inventado. FR-004/016/024/026/033/038; NFR-007–010/015–018/024–027.
 No binding ejecutable, pose/root/collider, FULL, física/red/mount/pasajeros/asientos.
@@ -51,10 +51,10 @@ Javap de investigación fuera de repo: ../s53-enum-single-selector.javap.txt y
   usan caps existentes y registran bytes/resource hashes reales; no execute bytecode.
 - [x] I3 Añadir API client-only EnumModelPreparation.inspect(renderer) PREPARATION,
   receta inmutable sin edad/estado inventado, una fila por enum/source/slot exacto
-  y fingerprint inicial. Dominio completo â‰¤256, filas/modelosâ‰¤256, cache identity
+  y fingerprint inicial. Dominio completo ≤256, filas/modelos≤256, cache identity
   pass-local, límites S45; ausencias totales y diagnósticos≤256, no shared mutation
   ni reset/no referencias renderer/model/world retenidas.
-- [x] I4 Desarrollo nativo recorre componenteâ†’extractâ†’submit original y verifica
+- [x] I4 Desarrollo nativo recorre componente→extract→submit original y verifica
   identidad del modelo diferido para todo dominio enum, fingerprints, fuente,
   determinismo/inmutabilidad/shared state, ausencia/familia ajena/incompleto.
   Compilar artifact/GameTests y ejecutar cliente focal S53 y regresión S51 propia
@@ -67,7 +67,7 @@ Javap de investigación fuera de repo: ../s53-enum-single-selector.javap.txt y
 ## 4. Revisión IMPLEMENTER y presupuestos
 
 PREPARATION explícita sin caller hot/initializer. Caps parser64classes/1024methods,
-512instructions,1MiB/class/8MiB total intactos;2 familias separadas, ENUM_ONLYâ‰¤256
+512instructions,1MiB/class/8MiB total intactos;2 familias separadas, ENUM_ONLY≤256
 rows/models, ENUM_AGE límites S51 intactos. Complejidad por recursos/programas y
 estructuras de modelos únicos, cache pass-local, sin worlds/locks/caches globales.
 Primera revisión deriva cada tramo de original bytecode/resolución/descriptores/

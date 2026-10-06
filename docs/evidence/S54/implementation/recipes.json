@@ -1,0 +1,147 @@
+[
+  {
+    "tool": "original-local-reset-program-v1",
+    "operation": "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS",
+    "modelClass": "net.minecraft.client.model.monster.slime.SlimeModel",
+    "setupAnimOwner": "net.minecraft.client.model.Model",
+    "originalResources": {
+      "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+      "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+      "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+      "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+      "/net/minecraft/client/model/monster/slime/SlimeModel.class": "875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35a"
+    },
+    "initialStructure": {
+      "digest": "f9e2203579718ab6bb52e62bcc995c6f83a7d47a6e47d01271d8a5491c1aceb9",
+      "parts": 5,
+      "cubes": 4,
+      "solidPieces": 4
+    },
+    "parts": [
+      {
+        "path": "$",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      },
+      {
+        "path": "$/4:cube",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      },
+      {
+        "path": "$/8:left_eye",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      },
+      {
+        "path": "$/5:mouth",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      },
+      {
+        "path": "$/9:right_eye",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      }
+    ],
+    "canonicalText": "original-local-reset-program-v1|36:MODEL_LOCAL_RESET_INITIAL_TRANSFORMS51:net.minecraft.client.model.monster.slime.SlimeModel32:net.minecraft.client.model.Model64:f9e2203579718ab6bb52e62bcc995c6f83a7d47a6e47d01271d8a5491c1aceb95|4|4|45:/net/minecraft/client/model/EntityModel.class64:201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a5840139:/net/minecraft/client/model/Model.class64:625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a48:/net/minecraft/client/model/geom/ModelPart.class64:0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e47:/net/minecraft/client/model/geom/PartPose.class64:74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca6758:/net/minecraft/client/model/monster/slime/SlimeModel.class64:875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35aparts:5|1:$7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p08:$/4:cube7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p012:$/8:left_eye7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p09:$/5:mouth7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p013:$/9:right_eye7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p0",
+    "digest": "2f6303e692f1ba3e1e54d0c85064bb2d4223878ab71c6181c2c97cef4304349d"
+  },
+  {
+    "tool": "original-local-reset-program-v1",
+    "operation": "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS",
+    "modelClass": "net.minecraft.client.model.monster.slime.SmallSulfurCubeModel",
+    "setupAnimOwner": "net.minecraft.client.model.Model",
+    "originalResources": {
+      "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+      "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+      "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+      "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+      "/net/minecraft/client/model/monster/slime/SmallSulfurCubeModel.class": "96381d63bbb8b56fbae4b8d00f1b0d16b98d8527ad71e4e25e95fedab2f57d00",
+      "/net/minecraft/client/model/monster/slime/SulfurCubeModel.class": "5e9cba7a61711dca4bbb102edb3276a3c5cbb0c80c01e8a61f972b4a92dadd9c"
+    },
+    "initialStructure": {
+      "digest": "86172998fb339f10b906630c8de0b6f16bba4cf37065cf4b381b69868d094018",
+      "parts": 2,
+      "cubes": 1,
+      "solidPieces": 1
+    },
+    "parts": [
+      {
+        "path": "$",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      },
+      {
+        "path": "$/4:cube",
+        "initial": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "xRot": 0.0,
+          "yRot": 0.0,
+          "zRot": 0.0,
+          "xScale": 1.0,
+          "yScale": 1.0,
+          "zScale": 1.0
+        }
+      }
+    ],
+    "canonicalText": "original-local-reset-program-v1|36:MODEL_LOCAL_RESET_INITIAL_TRANSFORMS61:net.minecraft.client.model.monster.slime.SmallSulfurCubeModel32:net.minecraft.client.model.Model64:86172998fb339f10b906630c8de0b6f16bba4cf37065cf4b381b69868d0940182|1|1|45:/net/minecraft/client/model/EntityModel.class64:201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a5840139:/net/minecraft/client/model/Model.class64:625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a48:/net/minecraft/client/model/geom/ModelPart.class64:0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e47:/net/minecraft/client/model/geom/PartPose.class64:74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca6768:/net/minecraft/client/model/monster/slime/SmallSulfurCubeModel.class64:96381d63bbb8b56fbae4b8d00f1b0d16b98d8527ad71e4e25e95fedab2f57d0063:/net/minecraft/client/model/monster/slime/SulfurCubeModel.class64:5e9cba7a61711dca4bbb102edb3276a3c5cbb0c80c01e8a61f972b4a92dadd9cparts:2|1:$7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p08:$/4:cube7:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x0.0p07:0x1.0p07:0x1.0p07:0x1.0p0",
+    "digest": "ca3508b334860bdfb66e1f1544d28d3795a57d0e32dc2bfe804341528f8d1ed5"
+  }
+]

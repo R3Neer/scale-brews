@@ -531,6 +531,15 @@ null-target verificado; snapshot inicial y dos reviews finales cero cambios.
 Solo PREPARATION, sin edad inventada ni bindings ejecutables; commit local propio
 Sprint:S53. G6 tareas2-6/G7-G9 y necesidades humanas al final de epica siguen abiertas.
 
+**S54 cerrado adversarialmente scoped:** programa original de reset local de
+nueve transforms iniciales, despacho/loop/loadPose/getters completos y cache/arbol
+iguales por identidad. Metadata PREPARATION inmutable;372 owners intactos y uno
+nuevo. Own focal111s/public replay172s limpios; independiente43s/public159s, seis
+mutantes semanticos detectados y driver agregado0 verificado con loop-target.
+Snapshot initial=after/before distinto y dos reviews finales cero cambios, cleanup
+exacto y commit propio Sprint:S54. Sin autoridad de flags/root renderer/engine/
+binding/material/FULL; no Tiny ajeno. G6 tareas2-6/G7-G9 y QA humana final abiertos.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

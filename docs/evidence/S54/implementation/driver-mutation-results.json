@@ -1,0 +1,15 @@
+{
+  "fixtureSha256": "851c73da3c3234a3c963ca5eae00a974165949380172e0a3db61aa973014f7a9",
+  "baseline": null,
+  "results": [
+    {
+      "name": "loop-target",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-impl-mutation-replay\\loop-target.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "325e53268238ef10253e321129a56e09121f1a0a827827413bee865c9df94b18"
+    }
+  ]
+}

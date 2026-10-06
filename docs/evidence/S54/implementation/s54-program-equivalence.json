@@ -1,0 +1,301 @@
+{
+  "normalization": "CP indexes, padding, ldc width and branch byte offsets to instruction ordinals",
+  "rows": [
+    {
+      "owner": "net.minecraft.client.model.Model",
+      "method": "public net.minecraft.client.model.Model(net.minecraft.client.model.geom.ModelPart, java.util.function.Function<net.minecraft.resources.Identifier, net.minecraft.client.renderer.rendertype.RenderType>);",
+      "instructions": [
+        "aload_0",
+        "invokespecial #CP // Method java/lang/Object.\"<init>\":()V",
+        "aload_0",
+        "aload_1",
+        "putfield #CP // Field root:Lnet/minecraft/client/model/geom/ModelPart;",
+        "aload_0",
+        "aload_2",
+        "putfield #CP // Field renderType:Ljava/util/function/Function;",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/ModelPart.getAllParts:()Ljava/util/List;",
+        "putfield #CP // Field allParts:Ljava/util/List;",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.Model",
+      "method": "public final net.minecraft.client.model.geom.ModelPart root();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field root:Lnet/minecraft/client/model/geom/ModelPart;",
+        "areturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.Model",
+      "method": "public final java.util.List<net.minecraft.client.model.geom.ModelPart> allParts();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field allParts:Ljava/util/List;",
+        "areturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.Model",
+      "method": "public void setupAnim(S);",
+      "instructions": [
+        "aload_0",
+        "invokevirtual #CP // Method resetPose:()V",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.Model",
+      "method": "public final void resetPose();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field allParts:Ljava/util/List;",
+        "invokeinterface #CP, 1 // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;",
+        "astore_1",
+        "aload_1",
+        "invokeinterface #CP, 1 // InterfaceMethod java/util/Iterator.hasNext:()Z",
+        "ifeq @14",
+        "aload_1",
+        "invokeinterface #CP, 1 // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;",
+        "checkcast #CP // class net/minecraft/client/model/geom/ModelPart",
+        "astore_2",
+        "aload_2",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/ModelPart.resetPose:()V",
+        "goto @4",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.ModelPart",
+      "method": "public net.minecraft.client.model.geom.PartPose getInitialPose();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field initialPose:Lnet/minecraft/client/model/geom/PartPose;",
+        "areturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.ModelPart",
+      "method": "public void resetPose();",
+      "instructions": [
+        "aload_0",
+        "aload_0",
+        "getfield #CP // Field initialPose:Lnet/minecraft/client/model/geom/PartPose;",
+        "invokevirtual #CP // Method loadPose:(Lnet/minecraft/client/model/geom/PartPose;)V",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.ModelPart",
+      "method": "public void loadPose(net.minecraft.client.model.geom.PartPose);",
+      "instructions": [
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.x:()F",
+        "putfield #CP // Field x:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.y:()F",
+        "putfield #CP // Field y:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.z:()F",
+        "putfield #CP // Field z:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.xRot:()F",
+        "putfield #CP // Field xRot:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.yRot:()F",
+        "putfield #CP // Field yRot:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.zRot:()F",
+        "putfield #CP // Field zRot:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.xScale:()F",
+        "putfield #CP // Field xScale:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.yScale:()F",
+        "putfield #CP // Field yScale:F",
+        "aload_0",
+        "aload_1",
+        "invokevirtual #CP // Method net/minecraft/client/model/geom/PartPose.zScale:()F",
+        "putfield #CP // Field zScale:F",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.ModelPart",
+      "method": "public java.util.List<net.minecraft.client.model.geom.ModelPart> getAllParts();",
+      "instructions": [
+        "new #CP // class java/util/ArrayList",
+        "dup",
+        "invokespecial #CP // Method java/util/ArrayList.\"<init>\":()V",
+        "astore_1",
+        "aload_1",
+        "aload_0",
+        "invokeinterface #CP, 2 // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z",
+        "pop",
+        "aload_0",
+        "aload_1",
+        "invokedynamic #CP, 0 // InvokeDynamic #CP:accept:(Ljava/util/List;)Ljava/util/function/BiConsumer;",
+        "invokevirtual #CP // Method addAllChildren:(Ljava/util/function/BiConsumer;)V",
+        "aload_1",
+        "invokestatic #CP // InterfaceMethod java/util/List.copyOf:(Ljava/util/Collection;)Ljava/util/List;",
+        "areturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public net.minecraft.client.model.geom.PartPose(float, float, float, float, float, float, float, float, float);",
+      "instructions": [
+        "aload_0",
+        "invokespecial #CP // Method java/lang/Record.\"<init>\":()V",
+        "aload_0",
+        "fload_1",
+        "putfield #CP // Field x:F",
+        "aload_0",
+        "fload_2",
+        "putfield #CP // Field y:F",
+        "aload_0",
+        "fload_3",
+        "putfield #CP // Field z:F",
+        "aload_0",
+        "fload 4",
+        "putfield #CP // Field xRot:F",
+        "aload_0",
+        "fload 5",
+        "putfield #CP // Field yRot:F",
+        "aload_0",
+        "fload 6",
+        "putfield #CP // Field zRot:F",
+        "aload_0",
+        "fload 7",
+        "putfield #CP // Field xScale:F",
+        "aload_0",
+        "fload 8",
+        "putfield #CP // Field yScale:F",
+        "aload_0",
+        "fload 9",
+        "putfield #CP // Field zScale:F",
+        "return"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float x();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field x:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float y();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field y:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float z();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field z:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float xRot();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field xRot:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float yRot();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field yRot:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float zRot();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field zRot:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float xScale();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field xScale:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float yScale();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field yScale:F",
+        "freturn"
+      ],
+      "equivalent": true
+    },
+    {
+      "owner": "net.minecraft.client.model.geom.PartPose",
+      "method": "public float zScale();",
+      "instructions": [
+        "aload_0",
+        "getfield #CP // Field zScale:F",
+        "freturn",
+        "fconst_0",
+        "fconst_0",
+        "fconst_0",
+        "fconst_0",
+        "fconst_0",
+        "fconst_0",
+        "invokestatic #CP // Method offsetAndRotation:(FFFFFF)Lnet/minecraft/client/model/geom/PartPose;",
+        "putstatic #CP // Field ZERO:Lnet/minecraft/client/model/geom/PartPose;",
+        "return"
+      ],
+      "equivalent": true
+    }
+  ]
+}

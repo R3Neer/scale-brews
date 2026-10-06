@@ -37,3 +37,10 @@
 /docs/evidence/S53/adversarial/*.javap.txt -text -whitespace
 /docs/evidence/S53/adversarial/*.log -text -whitespace
 
+# Exact S54 original numeric reset evidence bytes.
+/docs/evidence/S54/** -text whitespace=cr-at-eol
+/docs/evidence/S54/implementation/*.javap.txt -text -whitespace
+/docs/evidence/S54/implementation/*.log -text -whitespace
+/docs/evidence/S54/adversarial/*.javap.txt -text -whitespace
+/docs/evidence/S54/adversarial/*.log -text -whitespace
+

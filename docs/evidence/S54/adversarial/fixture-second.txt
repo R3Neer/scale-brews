@@ -1,0 +1,74 @@
+package io.github.r3neer.scalebrews.client.collision.preparation;
+import java.lang.reflect.*;
+import java.util.*;
+import java.nio.file.*;
+import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.model.*;
+import net.minecraft.client.model.geom.*;
+import net.minecraft.client.renderer.entity.*;
+import net.minecraft.world.entity.*;
+import io.github.r3neer.scalebrews.client.mixin.ModelPartAccess;
+public final class S54IndependentResetProof implements FabricClientGameTest {
+ static final List<String> FIELDS=List.of("x","y","z","xRot","yRot","zRot","xScale","yScale","zScale");
+ static void check(boolean v,String m){if(!v)throw new AssertionError("S54 ADV "+m);}
+ static ModelPart empty(){return new ModelPart(new ArrayList<>(),new LinkedHashMap<>());}
+ static Map<String,ModelPart> parts(ModelPart p){var out=new TreeMap<String,ModelPart>();walk(p,"$",out);return out;}
+ static void walk(ModelPart p,String path,Map<String,ModelPart> out){out.put(path,p);var children=((ModelPartAccess)(Object)p).scalebrews$children();for(String key:new TreeSet<>(children.keySet()))walk(children.get(key),path+"/"+key.length()+":"+key,out);}
+ static float[] floats(Object t) throws ReflectiveOperationException {var values=new float[9];for(int i=0;i<9;i++)values[i]=(float)t.getClass().getMethod(FIELDS.get(i)).invoke(t);return values;}
+ static ModelPart currentCopy(ModelPart root){var a=(ModelPartAccess)(Object)root;var children=new LinkedHashMap<String,ModelPart>();a.scalebrews$children().forEach((k,v)->children.put(k,currentCopy(v)));var copy=new ModelPart(a.scalebrews$cubes(),children);copy.setInitialPose(root.storePose());return copy;}
+ static void rejected(EntityModel model,String reason){var r=OriginalResetPosePreparation.inspect(model);check(!r.admitted(),"malformed metadata admitted "+reason);check(r.absence().contains(reason),"incorrect rejection "+reason+" "+r.absence());}
+ static void programFaults() throws ReflectiveOperationException,java.io.IOException {
+  var verifier=OriginalResetPosePreparation.class.getDeclaredMethod("verifyPrograms",OriginalModelPrograms.class);verifier.setAccessible(true);var classes=OriginalModelPrograms.class.getDeclaredField("classes");classes.setAccessible(true);
+  for(int f=0;f<2;f++){
+   var owner=f==0?Model.class:ModelPart.class;byte[] bytes;try(var input=owner.getResourceAsStream("/"+owner.getName().replace('.','/')+".class")){bytes=input.readAllBytes();}int changed=0;
+   if(f==0){for(int i=0;i<bytes.length-3;i++)if((bytes[i]&255)==167&&(bytes[i+1]&255)==255&&(bytes[i+2]&255)==233&&(bytes[i+3]&255)==177){bytes[i+1]=0;bytes[i+2]=3;changed++;}}
+   else{
+    var originalPrograms=new OriginalModelPrograms(Model.class.getClassLoader());var code=new OriginalModelPrograms.Code(originalPrograms.declared(ModelPart.class,"loadPose","(Lnet/minecraft/client/model/geom/PartPose;)V"));int from=-1,to=-1,method=-1;
+    for(int k=0;k<code.instructions.size();k++)if(code.instructions.get(k) instanceof java.lang.classfile.instruction.FieldInstruction field&&field.opcode()==java.lang.classfile.Opcode.PUTFIELD){if(field.name().stringValue().equals("xRot")){from=field.field().index();method=((java.lang.classfile.instruction.InvokeInstruction)code.instructions.get(k-1)).method().index();}if(field.name().stringValue().equals("yRot"))to=field.field().index();}
+    check(from>0&&to>0&&method>0,"native store references absent");
+    for(int i=0;i<bytes.length-8;i++)if(bytes[i]==42&&bytes[i+1]==43&&(bytes[i+2]&255)==182&&(bytes[i+3]&255)==(method>>8)&&(bytes[i+4]&255)==(method&255)&&(bytes[i+5]&255)==181&&(bytes[i+6]&255)==(from>>8)&&(bytes[i+7]&255)==(from&255)){bytes[i+6]=(byte)(to>>8);bytes[i+7]=(byte)to;changed++;}
+   }
+   check(changed==1,"native program operand witness "+f+"/"+changed);var p=new OriginalModelPrograms(Model.class.getClassLoader());((Map<Class<?>,java.lang.classfile.ClassModel>)classes.get(p)).put(owner,java.lang.classfile.ClassFile.of().parse(bytes));
+   try{verifier.invoke(null,p);throw new AssertionError("S54 ADV program fault admitted "+f);}catch(InvocationTargetException e){check(e.getCause() instanceof IllegalArgumentException&&e.getCause().getMessage().contains(f==0?"reset_loop_target":"reset_field"),"program fault boundary "+f+" "+e.getCause());System.out.println("S54_PROGRAM_FAULT "+f+" "+e.getCause().getMessage());}
+  }
+ }
+ @SuppressWarnings({"rawtypes","unchecked"})public void runTest(ClientGameTestContext c){
+  try{OriginalResetPosePreparation.inspect(null);throw new AssertionError("off-thread admitted");}catch(IllegalStateException expected){}
+  var world=c.worldBuilder().create();try{c.runOnClient(mc->{try{
+   programFaults();var slime=EntityTypes.SLIME.create(mc.level,EntitySpawnReason.COMMAND);EntityModel model=((LivingEntityRenderer)mc.getEntityRenderDispatcher().getRenderer(slime)).getModel();var baseline=OriginalResetPosePreparation.inspect(model);check(baseline.admitted(),"original reset rejected "+baseline.absence());check(baseline.recipe().equals(OriginalResetPosePreparation.inspect(model).recipe()),"nondeterministic recipe");
+   var root=model.root();var originalParts=parts(root);var initial=new IdentityHashMap<ModelPart,PartPose>();var current=new IdentityHashMap<ModelPart,PartPose>();var flags=new IdentityHashMap<ModelPart,boolean[]>();int index=0;
+   for(var part:originalParts.values()){initial.put(part,part.getInitialPose());current.put(part,part.storePose());flags.put(part,new boolean[]{part.visible,part.skipDraw});float n=++index*.13f;part.setInitialPose(new PartPose(n,n+.2f,n+.3f,n*.1f,n*.2f,n*.3f,1+n*.1f,1+n*.2f,1+n*.3f));}
+   var expected=OriginalResetPosePreparation.inspect(model);check(expected.admitted(),"finite original pose rejected "+expected.absence());check(!expected.recipe().digest().equals(baseline.recipe().digest()),"initial pose change did not affect identity");int resets=0;
+   var sheet=new StringBuilder("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1400\" height=\"280\"><rect width=\"1400\" height=\"280\" fill=\"white\"/>");sheet.append(S51AdversarialNativeProof.snapshot(root,"recipe initial",0));
+   try{
+    for(Object state:new Object[]{null,new Object(),new net.minecraft.client.renderer.entity.state.SlimeRenderState()}){
+     for(var part:originalParts.values()){int f=0;for(String name:FIELDS)ModelPart.class.getField(name).setFloat(part,(f<6?.42f:1.1f)+f++*.02f);part.visible=false;part.skipDraw=true;}
+     String before=S51AdversarialNativeProof.state(root);check(expected.recipe().equals(OriginalResetPosePreparation.inspect(model).recipe()),"animated pose polluted recipe");check(before.equals(S51AdversarialNativeProof.state(root)),"inspect mutated shared state");if(resets==0)sheet.append(S51AdversarialNativeProof.snapshot(currentCopy(root),"before native reset",1));
+     ((Model)model).setupAnim(state);
+     for(var row:expected.recipe().parts()){var actual=originalParts.get(row.path());check(actual!=null,"structural path lost original node");check(Arrays.equals(floats(actual.storePose()),floats(row.initial())),"native numeric reset differs "+row.path());check(!actual.visible&&actual.skipDraw,"numeric reset claimed flags");}
+     if(resets==0){String a=S51AdversarialNativeProof.snapshot(currentCopy(root),"",0),b=S51AdversarialNativeProof.snapshot(root,"",0);check(a.equals(b),"native/recipe initial geometry differ");sheet.append(S51AdversarialNativeProof.snapshot(currentCopy(root),"after native reset",2));}resets++;
+    }
+    try{expected.recipe().parts().clear();throw new AssertionError("mutable rows");}catch(UnsupportedOperationException e){}try{expected.recipe().originalResources().clear();throw new AssertionError("mutable resources");}catch(UnsupportedOperationException e){}
+   }finally{for(var part:originalParts.values()){part.setInitialPose(initial.get(part));part.loadPose(current.get(part));part.visible=flags.get(part)[0];part.skipDraw=flags.get(part)[1];}}
+   check(baseline.recipe().equals(OriginalResetPosePreparation.inspect(model).recipe()),"restored original differs");
+   var cache=Model.class.getDeclaredField("allParts");cache.setAccessible(true);List<ModelPart> saved=(List<ModelPart>)cache.get(model);int invalidCaches=0;
+   try{
+    var duplicate=new ArrayList<>(saved);duplicate.set(duplicate.size()-1,saved.getFirst());cache.set(model,duplicate);rejected(model,"cached_membership");invalidCaches++;
+    var foreign=new ArrayList<>(saved);foreign.set(foreign.size()-1,empty());cache.set(model,foreign);rejected(model,"cached_membership");invalidCaches++;
+    var missing=new ArrayList<>(saved);missing.removeLast();cache.set(model,missing);rejected(model,"cached_membership");invalidCaches++;
+    var nulls=new ArrayList<>(saved);nulls.set(nulls.size()-1,null);cache.set(model,nulls);rejected(model,"cached_membership");invalidCaches++;
+    var reversed=new ArrayList<>(saved);Collections.reverse(reversed);cache.set(model,reversed);check(baseline.recipe().equals(OriginalResetPosePreparation.inspect(model).recipe()),"commuting reset cache order affected identity");
+   }finally{cache.set(model,saved);}
+   var childField=ModelPart.class.getDeclaredField("children");childField.setAccessible(true);Map<String,ModelPart> children=(Map)childField.get(root);
+   try{
+    var names=new LinkedHashMap<String,ModelPart>();var branch=empty();((ModelPartAccess)(Object)branch).scalebrews$children().put("b",empty());names.put("a",branch);names.put("a/b",empty());childField.set(root,names);cache.set(model,root.getAllParts());var paths=OriginalResetPosePreparation.inspect(model);check(paths.admitted(),"delimiter structure rejected "+paths.absence());check(paths.recipe().parts().stream().map(OriginalResetPosePreparation.Part::path).distinct().count()==paths.recipe().parts().size(),"framed structural paths alias");
+    names.put("new",empty());rejected(model,"cached_membership");names.remove("new");
+    var maximum=new LinkedHashMap<String,ModelPart>();for(int i=0;i<511;i++)maximum.put("part"+i,empty());childField.set(root,maximum);cache.set(model,root.getAllParts());check(OriginalResetPosePreparation.inspect(model).admitted(),"exact512 parts rejected");maximum.put("overflow",empty());cache.set(model,root.getAllParts());rejected(model,"part_limit");
+   }finally{childField.set(root,children);cache.set(model,saved);}
+   var pose=root.getInitialPose();try{for(int i=0;i<9;i++){var v=floats(pose);v[i]=Float.NaN;root.setInitialPose(new PartPose(v[0],v[1],v[2],v[3],v[4],v[5],v[6],v[7],v[8]));rejected(model,"non_finite");}}finally{root.setInitialPose(pose);}
+   check(baseline.recipe().equals(OriginalResetPosePreparation.inspect(model).recipe()),"failed prep poisoned state");var magma=EntityTypes.MAGMA_CUBE.create(mc.level,EntitySpawnReason.COMMAND);EntityModel animated=((LivingEntityRenderer)mc.getEntityRenderDispatcher().getRenderer(magma)).getModel();rejected(animated,"animation_override");check(!OriginalResetPosePreparation.inspect(null).admitted(),"null model admitted");
+   sheet.append("</svg>");var out=Path.of("s54-adversarial-snapshots");Files.createDirectories(out);Files.writeString(out.resolve("reset-sequence.svg"),sheet);Files.writeString(out.resolve("recipe.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(expected.recipe()));System.out.println("S54_INDEPENDENT_RESET_PASS parts="+originalParts.size()+" resets="+resets+" invalidCaches="+invalidCaches+" finiteChecks=9 limit512=PASS");
+  }catch(ReflectiveOperationException|java.io.IOException e){throw new AssertionError(e);}});}finally{world.close();}
+ }
+}

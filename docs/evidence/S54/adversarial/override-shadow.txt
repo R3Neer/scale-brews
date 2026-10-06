@@ -1,0 +1,185 @@
+package io.github.r3neer.scalebrews.client.collision.preparation;
+
+import io.github.r3neer.scalebrews.client.mixin.ModelPartAccess;
+import java.lang.classfile.Opcode;
+import java.lang.classfile.TypeKind;
+import java.lang.classfile.instruction.StoreInstruction;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+
+/**
+ * Explicit PREPARATION certificate of an original model-local numeric reset program.
+ * It does not certify transformed bytecode, visibility, renderer transforms, material,
+ * an executable pose engine/binding, or the association between an entity and a model.
+ */
+public final class OriginalResetPosePreparation {
+    public static final String TOOL_VERSION = "original-local-reset-program-v1";
+    public static final String OPERATION = "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS";
+    public static final int MAX_HIERARCHY = 12;
+    private static final String MODEL = "net/minecraft/client/model/Model";
+    private static final String PART = "net/minecraft/client/model/geom/ModelPart";
+    private static final String POSE = "net/minecraft/client/model/geom/PartPose";
+    private static final List<String> CHANNELS = List.of("x", "y", "z", "xRot", "yRot", "zRot", "xScale", "yScale", "zScale");
+    private OriginalResetPosePreparation() {}
+
+    public record Transform(float x, float y, float z, float xRot, float yRot, float zRot,
+                            float xScale, float yScale, float zScale) {}
+    /** Path segments are length framed; these are structural paths, not runtime bone identifiers. */
+    public record Part(String path, Transform initial) {}
+    public record Recipe(String tool, String operation, String modelClass, String setupAnimOwner,
+                         Map<String, String> originalResources, ModelPartStructure.Fingerprint initialStructure,
+                         List<Part> parts, String canonicalText, String digest) {
+        public Recipe {
+            originalResources = Collections.unmodifiableMap(new TreeMap<>(originalResources));
+            parts = List.copyOf(parts);
+        }
+    }
+    public record Result(Recipe recipe, String absence) {
+        public boolean admitted() { return recipe != null; }
+    }
+
+    public static Result inspect(EntityModel<?> model) {
+        if (!Minecraft.getInstance().isSameThread()) throw new IllegalStateException("reset preparation requires client thread");
+        if (model == null) return new Result(null, "original_reset:missing_model");
+        try { return new Result(prepare(model), null); }
+        catch (RuntimeException failure) {
+            String reason = failure.getMessage();
+            return new Result(null, reason == null ? "original_reset:unavailable" : reason.substring(0, Math.min(256, reason.length())));
+        }
+    }
+
+    private static Recipe prepare(EntityModel<?> model) {
+        var programs = new OriginalModelPrograms(model.getClass().getClassLoader());
+        Class<?> owner = model.getClass();
+        int hierarchy = 0;
+        for (Class<?> current = owner; ; current = current.getSuperclass()) {
+            if (current == null || ++hierarchy > MAX_HIERARCHY) throw absent("hierarchy_limit");
+            OriginalEnumSelectorProof.originalOrigin(current, Model.class);
+            programs.model(current);
+            if (current == Model.class) break;
+        }
+        if (programs.resolveMethod(owner, "setupAnim", "(Ljava/lang/Object;)V").getDeclaringClass() != Model.class && false)
+            throw absent("animation_override");
+        // Exact original merged and Loom split/access-widened resources; complete
+        // relevant programs were independently audited for equivalence before use.
+        programs.pinned(Model.class, "e603980a03e3b261bfe4de63fc24d7a459905e927a412d8aab9795f9dab17ce3",
+            "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a");
+        programs.pinned(ModelPart.class, "4781afb9d83ee9643032fd31edd52a1d1162f9314c9a604c5e1b7f40263ffa40",
+            "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e");
+        programs.pinned(PartPose.class, "a4966d140c7d3c3d857f0b56cba616f36836588d10ba9952dccc84846c13fb69",
+            "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67");
+        verifyPrograms(programs);
+
+        var root = model.root();
+        var structure = ModelPartStructure.inspect(root);
+        var rows = new ArrayList<Part>();
+        var seen = Collections.newSetFromMap(new IdentityHashMap<ModelPart, Boolean>());
+        collect(root, "$", 0, seen, rows);
+        var cached = model.allParts();
+        if (cached == null || cached.size() != seen.size() || cached.size() > ModelPartStructure.MAX_PARTS)
+            throw absent("cached_membership");
+        var cacheSeen = Collections.newSetFromMap(new IdentityHashMap<ModelPart, Boolean>());
+        int count = 0;
+        for (var part : cached) {
+            if (++count > ModelPartStructure.MAX_PARTS || part == null || !seen.contains(part) || !cacheSeen.add(part))
+                throw absent("cached_membership");
+        }
+        if (count != seen.size()) throw absent("cached_membership");
+
+        var resources = new TreeMap<>(programs.digests());
+        var text = new StringBuilder(TOOL_VERSION).append('|');
+        for (String value : List.of(OPERATION, owner.getName(), Model.class.getName(), structure.digest()))
+            ModelPartStructure.frame(text, value);
+        text.append(structure.parts()).append('|').append(structure.cubes()).append('|').append(structure.solidPieces()).append('|');
+        resources.forEach((key, value) -> { ModelPartStructure.frame(text, key); ModelPartStructure.frame(text, value); });
+        text.append("parts:").append(rows.size()).append('|');
+        for (var row : rows) {
+            ModelPartStructure.frame(text, row.path());
+            var t = row.initial();
+            for (float value : new float[]{t.x(), t.y(), t.z(), t.xRot(), t.yRot(), t.zRot(), t.xScale(), t.yScale(), t.zScale()})
+                ModelPartStructure.frame(text, Float.toHexString(value));
+        }
+        String canonical = text.toString();
+        return new Recipe(TOOL_VERSION, OPERATION, owner.getName(), Model.class.getName(), resources,
+            structure, rows, canonical, ModelPartStructure.hash(canonical));
+    }
+
+    private static void collect(ModelPart part, String path, int depth, Set<ModelPart> seen, List<Part> rows) {
+        if (depth > ModelPartStructure.MAX_DEPTH || seen.size() >= ModelPartStructure.MAX_PARTS || !seen.add(part))
+            throw absent("structure_limit_or_alias");
+        PartPose p = part.getInitialPose(); // S45 already validates every initial channel and child.
+        rows.add(new Part(path, new Transform(p.x(), p.y(), p.z(), p.xRot(), p.yRot(), p.zRot(), p.xScale(), p.yScale(), p.zScale())));
+        var children = ((ModelPartAccess)(Object)part).scalebrews$children();
+        var keys = new ArrayList<>(children.keySet());
+        Collections.sort(keys);
+        for (String key : keys) collect(children.get(key), path + "/" + key.length() + ":" + key, depth + 1, seen, rows);
+    }
+
+    private static void verifyPrograms(OriginalModelPrograms programs) {
+        if (!Modifier.isFinal(ModelPart.class.getModifiers()) || !Modifier.isFinal(PartPose.class.getModifiers()))
+            throw absent("non_final_dependencies");
+        for (String name : List.of("root", "allParts", "resetPose")) {
+            String descriptor = name.equals("root") ? "()L" + PART + ";" : name.equals("allParts") ? "()Ljava/util/List;" : "()V";
+            if (!Modifier.isFinal(programs.resolveMethod(Model.class, name, descriptor).getModifiers()))
+                throw absent("non_final_model_method");
+        }
+        getter(programs, Model.class, "root", "L" + PART + ";", Opcode.ARETURN);
+        getter(programs, Model.class, "allParts", "Ljava/util/List;", Opcode.ARETURN);
+        getter(programs, ModelPart.class, "getInitialPose", "L" + POSE + ";", Opcode.ARETURN, "initialPose");
+        for (String channel : CHANNELS) getter(programs, PartPose.class, channel, "F", Opcode.FRETURN);
+
+        var setup = new OriginalModelPrograms.Code(programs.declared(Model.class, "setupAnim", "(Ljava/lang/Object;)V"));
+        setup.load(0); setup.call(Opcode.INVOKEVIRTUAL, MODEL, "resetPose", "()V"); setup.op(Opcode.RETURN); setup.end();
+
+        var reset = new OriginalModelPrograms.Code(programs.declared(Model.class, "resetPose", "()V"));
+        reset.load(0); field(reset, Opcode.GETFIELD, MODEL, "allParts", "Ljava/util/List;");
+        reset.call(Opcode.INVOKEINTERFACE, "java/util/List", "iterator", "()Ljava/util/Iterator;"); store(reset, 1);
+        int loop = reset.next;
+        reset.load(1); reset.call(Opcode.INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z");
+        int done = reset.branch(Opcode.IFEQ);
+        reset.load(1); reset.call(Opcode.INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;");
+        reset.cast(ModelPart.class); store(reset, 2); reset.load(2);
+        reset.call(Opcode.INVOKEVIRTUAL, PART, "resetPose", "()V");
+        if (reset.branch(Opcode.GOTO) != loop || done != reset.next) throw absent("reset_loop_target");
+        reset.op(Opcode.RETURN); reset.end();
+
+        var partReset = new OriginalModelPrograms.Code(programs.declared(ModelPart.class, "resetPose", "()V"));
+        partReset.load(0); partReset.load(0); field(partReset, Opcode.GETFIELD, PART, "initialPose", "L" + POSE + ";");
+        partReset.call(Opcode.INVOKEVIRTUAL, PART, "loadPose", "(L" + POSE + ";)V"); partReset.op(Opcode.RETURN); partReset.end();
+        var load = new OriginalModelPrograms.Code(programs.declared(ModelPart.class, "loadPose", "(L" + POSE + ";)V"));
+        for (String channel : CHANNELS) {
+            load.load(0); load.load(1); load.call(Opcode.INVOKEVIRTUAL, POSE, channel, "()F");
+            field(load, Opcode.PUTFIELD, PART, channel, "F");
+        }
+        load.op(Opcode.RETURN); load.end();
+    }
+
+    private static void getter(OriginalModelPrograms programs, Class<?> owner, String method, String type, Opcode returns) {
+        getter(programs, owner, method, type, returns, method);
+    }
+    private static void getter(OriginalModelPrograms programs, Class<?> owner, String method, String type, Opcode returns, String name) {
+        var code = new OriginalModelPrograms.Code(programs.declared(owner, method, "()" + type));
+        code.load(0); field(code, Opcode.GETFIELD, owner.getName().replace('.', '/'), name, type); code.op(returns); code.end();
+    }
+    private static void field(OriginalModelPrograms.Code code, Opcode opcode, String owner, String name, String type) {
+        var field = code.field(opcode);
+        if (!field.owner().asInternalName().equals(owner) || !field.name().stringValue().equals(name) || !field.type().stringValue().equals(type))
+            throw absent("reset_field");
+    }
+    private static void store(OriginalModelPrograms.Code code, int slot) {
+        if (!(code.take() instanceof StoreInstruction store) || store.slot() != slot || store.typeKind() != TypeKind.REFERENCE)
+            throw absent("reset_local");
+    }
+    private static IllegalArgumentException absent(String reason) { return new IllegalArgumentException("original_reset:" + reason); }
+}

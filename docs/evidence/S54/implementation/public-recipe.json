@@ -1,0 +1,93 @@
+{
+  "tool": "original-local-reset-program-v1",
+  "operation": "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS",
+  "modelClass": "net.minecraft.client.model.monster.slime.SlimeModel",
+  "setupAnimOwner": "net.minecraft.client.model.Model",
+  "originalResources": {
+    "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+    "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+    "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+    "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+    "/net/minecraft/client/model/monster/slime/SlimeModel.class": "875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35a"
+  },
+  "initialStructure": {
+    "digest": "a1d8e41cf991119f732518853ca1ba876e51b463fb1e98fd5f7b1b89b0242d8f",
+    "parts": 5,
+    "cubes": 4,
+    "solidPieces": 4
+  },
+  "parts": [
+    {
+      "path": "$",
+      "initial": {
+        "x": 0.13,
+        "y": 0.32999998,
+        "z": 0.43,
+        "xRot": 0.012999999,
+        "yRot": 0.025999999,
+        "zRot": 0.039,
+        "xScale": 1.013,
+        "yScale": 1.026,
+        "zScale": 1.039
+      }
+    },
+    {
+      "path": "$/4:cube",
+      "initial": {
+        "x": 0.26,
+        "y": 0.45999998,
+        "z": 0.56,
+        "xRot": 0.025999999,
+        "yRot": 0.051999997,
+        "zRot": 0.078,
+        "xScale": 1.026,
+        "yScale": 1.052,
+        "zScale": 1.078
+      }
+    },
+    {
+      "path": "$/8:left_eye",
+      "initial": {
+        "x": 0.52,
+        "y": 0.71999997,
+        "z": 0.82,
+        "xRot": 0.051999997,
+        "yRot": 0.103999995,
+        "zRot": 0.156,
+        "xScale": 1.052,
+        "yScale": 1.104,
+        "zScale": 1.156
+      }
+    },
+    {
+      "path": "$/5:mouth",
+      "initial": {
+        "x": 0.39,
+        "y": 0.59,
+        "z": 0.69,
+        "xRot": 0.039,
+        "yRot": 0.078,
+        "zRot": 0.117,
+        "xScale": 1.039,
+        "yScale": 1.078,
+        "zScale": 1.117
+      }
+    },
+    {
+      "path": "$/9:right_eye",
+      "initial": {
+        "x": 0.65,
+        "y": 0.84999996,
+        "z": 0.95,
+        "xRot": 0.065,
+        "yRot": 0.13,
+        "zRot": 0.19500001,
+        "xScale": 1.065,
+        "yScale": 1.13,
+        "zScale": 1.195
+      }
+    }
+  ],
+  "canonicalText": "original-local-reset-program-v1|36:MODEL_LOCAL_RESET_INITIAL_TRANSFORMS51:net.minecraft.client.model.monster.slime.SlimeModel32:net.minecraft.client.model.Model64:a1d8e41cf991119f732518853ca1ba876e51b463fb1e98fd5f7b1b89b0242d8f5|4|4|45:/net/minecraft/client/model/EntityModel.class64:201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a5840139:/net/minecraft/client/model/Model.class64:625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a48:/net/minecraft/client/model/geom/ModelPart.class64:0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e47:/net/minecraft/client/model/geom/PartPose.class64:74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca6758:/net/minecraft/client/model/monster/slime/SlimeModel.class64:875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35aparts:5|1:$12:0x1.0a3d7p-313:0x1.51eb84p-213:0x1.b851ecp-213:0x1.a9fbe6p-713:0x1.a9fbe6p-613:0x1.3f7ceep-512:0x1.0353f8p011:0x1.06a7fp012:0x1.09fbe8p08:$/4:cube12:0x1.0a3d7p-213:0x1.d70a3cp-213:0x1.1eb852p-113:0x1.a9fbe6p-613:0x1.a9fbe6p-513:0x1.3f7ceep-411:0x1.06a7fp011:0x1.0d4fep012:0x1.13f7cep012:$/8:left_eye12:0x1.0a3d7p-113:0x1.70a3d6p-113:0x1.a3d70ap-113:0x1.a9fbe6p-513:0x1.a9fbe6p-413:0x1.3f7ceep-311:0x1.0d4fep012:0x1.1a9fbep012:0x1.27ef9ep09:$/5:mouth13:0x1.8f5c28p-213:0x1.2e147ap-113:0x1.6147aep-113:0x1.3f7ceep-513:0x1.3f7ceep-413:0x1.df3b64p-412:0x1.09fbe8p012:0x1.13f7cep012:0x1.1df3b6p013:$/9:right_eye13:0x1.4cccccp-113:0x1.b33332p-113:0x1.e66666p-112:0x1.0a3d7p-412:0x1.0a3d7p-313:0x1.8f5c2ap-312:0x1.10a3d8p012:0x1.2147aep012:0x1.31eb86p0",
+  "digest": "e02dc101118cce4c1e08ca799f1a1cdda03912f738a605df7491e8b166dc2e3a"
+}

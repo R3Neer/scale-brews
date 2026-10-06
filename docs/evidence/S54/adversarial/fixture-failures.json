@@ -1,0 +1,17 @@
+[
+  {
+    "log": "native-first.log",
+    "classification": "ADVERSARY_FIXTURE",
+    "reason": "global CP name rewrite changed getter and store; wrong expected boundary. Store-only operand rewrite fixes harness."
+  },
+  {
+    "log": "native-second.log",
+    "classification": "ADVERSARY_FIXTURE",
+    "reason": "storePose captures six channels and unit scale; oracle now reads all nine fields directly."
+  },
+  {
+    "log": "native-third.log",
+    "classification": "ADVERSARY_FIXTURE",
+    "reason": "S45 extractor rejects ambiguous slash paths before S54 collect. Retained fail-closed oracle and direct helper framing sensitivity, plus nonambiguous accepted structure."
+  }
+]

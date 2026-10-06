@@ -1,0 +1,26 @@
+{
+  "loop-target": [
+    "if (reset.branch(Opcode.GOTO) != loop || done != reset.next)",
+    "if ((reset.branch(Opcode.GOTO) != loop || done != reset.next) && false)"
+  ],
+  "field-identity": [
+    "if (!field.owner().asInternalName().equals(owner) || !field.name().stringValue().equals(name) || !field.type().stringValue().equals(type))",
+    "if (false)"
+  ],
+  "cache-membership": [
+    " || !seen.contains(part) || !cacheSeen.add(part)",
+    " || false"
+  ],
+  "override": [
+    "if (programs.resolveMethod(owner, \"setupAnim\", \"(Ljava/lang/Object;)V\").getDeclaringClass() != Model.class)",
+    "if (programs.resolveMethod(owner, \"setupAnim\", \"(Ljava/lang/Object;)V\").getDeclaringClass() != Model.class && false)"
+  ],
+  "transform-swap": [
+    "new Transform(p.x(), p.y(), p.z(),",
+    "new Transform(p.y(), p.x(), p.z(),"
+  ],
+  "path-frame": [
+    "path + \"/\" + key.length() + \":\" + key",
+    "path + \"/\" + ((key.length()==1 || key.contains(\"/\")) ? key : key.length()+\":\"+key)"
+  ]
+}

@@ -1,0 +1,11 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ def shadow=providers.gradleProperty('s54Shadow').getOrNull()
+ if(shadow!=null){def original=file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalResetPosePreparation.java').canonicalFile;sourceSets.client.java.srcDir(file(shadow));sourceSets.client.java.exclude {e->e.file.canonicalFile==original}}
+ loom.runs.configureEach {runDir=file(providers.gradleProperty('s54RunDir').getOrElse('../s54-public-run')).absolutePath}
+ tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl'}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast{
+ def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f);m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S54AdversarialResetProof'];f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+} }

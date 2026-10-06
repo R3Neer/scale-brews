@@ -1,0 +1,6 @@
+loop-target killed=True exit=1
+field-identity killed=True exit=1
+cache-membership killed=True exit=1
+override killed=True exit=1
+transform-swap killed=True exit=1
+path-frame killed=True exit=1

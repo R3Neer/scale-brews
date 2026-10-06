@@ -212,6 +212,19 @@ requisito; asociacion EntityType/renderer, pose/root/layers/material/FULL fuera 
 scope. TRUSTED solo en esta PREPARATION tras recertificacion independiente y replay;
 evidencia ejecutada en VALIDATION. G6 sigue abierto.
 
+S54 `OriginalResetPosePreparation` certifica un programa local original que
+restaura nueve transforms iniciales: setupAnim(Object) efectivo de Model,
+resetPose final y loop exacto sobre allParts, ModelPart final/loadPose y getters
+de PartPose. Comprueba que el cache y el arbol observado tienen las mismas
+identidades; emite paths estructurales framed y transforms iniciales inmutables,
+fingerprint y recursos originales exactos. Solo PREPARATION, sin ejecutar reset
+sobre el modelo compartido ni retenerlo. La receta no certifica visible/skipDraw,
+transformacion del renderer, layers/material, animacion externa, binding, engine
+ejecutable ni pose fisica completa. La autoridad numerica queda limitada a los
+programas originales auditados; no se presume equivalencia del bytecode
+transformado. TRUSTED solo en este scope tras campana independiente y replay,
+sensibilidad y revisiones finales. Estado global y ejecuciones en PLAN/VALIDATION.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

@@ -1,0 +1,60 @@
+{
+  "fixtureSha256": "851c73da3c3234a3c963ca5eae00a974165949380172e0a3db61aa973014f7a9",
+  "baseline": null,
+  "results": [
+    {
+      "name": "loop-target",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\loop-target.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "325e53268238ef10253e321129a56e09121f1a0a827827413bee865c9df94b18"
+    },
+    {
+      "name": "field-identity",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\field-identity.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "1a833589c6f626ae9c87d95df365eac455614c590611479a360eb7fde236def8"
+    },
+    {
+      "name": "cache-membership",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\cache-membership.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "5465b895bbbdc98f29e3f1538087900dc976bfb040212767dcb821946b249e83"
+    },
+    {
+      "name": "override",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\override.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "cb217d114607887d0e7cf3dbd079295de7c51e65e33d642ae7fe4fcebd119a73"
+    },
+    {
+      "name": "transform-swap",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\transform-swap.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "ae1d3cda78cc49be227b324e9d2b3df460956fdf776fa3a1580b3c5906003b97"
+    },
+    {
+      "name": "path-frame",
+      "owner": "OriginalResetPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversarial-mutations\\path-frame.log",
+      "sourceSha256": "a62a64fa53ce51e111ea08c21de9db2cebb4198809c5c0e7c81fd056ec0a321a",
+      "shadowSha256": "759b9c49cc934ef3d3411a9f3cdb3eaa7abebeb58884755fa0fe24eccd990a1c"
+    }
+  ]
+}

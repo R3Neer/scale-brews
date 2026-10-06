@@ -1,0 +1,37 @@
+{
+  "/net/minecraft/client/model/EntityModel.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 2020,
+    "sha256": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401"
+  },
+  "/net/minecraft/client/model/Model.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 3453,
+    "sha256": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a"
+  },
+  "/net/minecraft/client/model/geom/ModelPart.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 13771,
+    "sha256": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e"
+  },
+  "/net/minecraft/client/model/geom/PartPose.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 3782,
+    "sha256": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67"
+  },
+  "/net/minecraft/client/model/monster/slime/SlimeModel.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 2496,
+    "sha256": "875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35a"
+  },
+  "/net/minecraft/client/model/monster/slime/SmallSulfurCubeModel.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 2225,
+    "sha256": "96381d63bbb8b56fbae4b8d00f1b0d16b98d8527ad71e4e25e95fedab2f57d00"
+  },
+  "/net/minecraft/client/model/monster/slime/SulfurCubeModel.class": {
+    "jar": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\scale-brews\\.gradle\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "bytes": 3098,
+    "sha256": "5e9cba7a61711dca4bbb102edb3276a3c5cbb0c80c01e8a61f972b4a92dadd9c"
+  }
+}

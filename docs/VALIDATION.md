@@ -3681,3 +3681,65 @@ retired and reusable tools retained. Main fresh b5e62535 integrated. TRUSTED onl
 original actor/input->enum->slot initial PREPARATION; EntityType association,
 pose/root/layers/material/FULL/G6 and integrated G9 open. Local Sprint:S53 commit,
 no Tiny/server/default-client/unchanged parser or S52 repeats. Human at epic end.
+
+S54 own scoped development verification (IMPLEMENTER), independent acceptance pending:
+
+build -x runGameTest compileGametestJava runClientGameTest -I tools/s54_implementer.init.gradle
+-PscalebrewsBuildDir=../s54-impl-build --offline: PASS111s clean exit0. Two native
+model witnesses/six original setupAnim resets of nine numeric fields; null and
+perturbed input states, immutable deterministic recipes, current/initial/flags
+preserved by inspect, stale cached identity tree and animated override rejected.
+ModelPartStructure S45 fingerprints exercised for affected initial structures;
+372 prior owners/parser/selectors intact. No Tiny Mounts/server/default-client/
+S51-S53 suites repeated. Complete CI/G9 integration remains required.
+
+Ordinary manifest112server/34client restored processGametestResources PASS1s,
+source/processed entrypoints equal. JAR769 entries/1277585 bytes SHA
+5a4901c5914f3eb98e08d8a14db10f866e932b28c9d2a9bcb8a76758afce2521,
+zero exact test class/companion leaks. Seven original resource hashes verified;
+19 complete merged/runtime programs equivalent after CP/ldc/branch ordinal
+normalization. PREPARATION only, no callers hot/live references; bounded S51
+parser/H12/S45 parts512/depth64/cubes4096/vertices65536. Two own reviews zero
+production changes; receipt/logs/recipes/programs durable in docs/evidence/S54.
+IMPLEMENTER_TOOLING collector initial basename-only scan confused fake test
+GravityFrames with production class in another package; fixed qualified-name
+oracle, no true leak or source/test change, no native retest. Four S53 mojibake
+lines repaired doc-only. No visibility/renderer/material/engine/binding/FULL
+claim; G6/G7-G9 and human at epic-end open.
+
+S54 public independent lane replayed by IMPLEMENTER: compileGametestJava
+runClientGameTest -I tools/s54_adversarial.init.gradle
+-PscalebrewsBuildDir=../s54-impl-public-build --project-cache-dir ../s54-impl-public-cache
+-Ps54RunDir=absolute../s54-impl-public-run --offline PASS172s exit0 clean.
+Three states/resets with nine numeric channels, four invalid cached lists,
+nine NaN, part boundary512/513, two exact malformed-program reasons. Public
+SVG SHA715e311a5570b0faffb7e87c4a1941633f2835a578e57576d5dc2f3a356f08cb
+and recipe SHA0e5b61eb2339d925a90827b85ba827a6ef0f20db41a473700413f49ee1a6137c
+byte equal to independent default public run. Own raster PNG inspected: initial
+and after native reset equal, before different; projection only, no GPU or
+visibility/material claim. Oracle851c73da unchanged and production373 frozen.
+Wait on shared Loom cache lock preserved cache/processes; no infrastructure
+mutation. Independent full sensitivity/receipt still pending, no closure claim.
+
+S54 independent scoped acceptance closed: native43s/public159s exit0 clean,
+3 resets/9 channels,4 cached rejection classes,9 NaN,512/513, two exact synthetic
+program faults never executed as altered native bytecode. Six compiled mutants
+killed semantically: loop-target/field-identity/cache-membership/override/
+transform-swap/path-frame. Initial fixture failures retained/classified
+ADVERSARY_FIXTURE, no production repair; corrected public PS aggregate exit0 after
+native negative result, prior invocation failure retained. Root replay only
+loop-target -SkipBaseline aggregate0/native1 with exact AssertionError
+S54 ADV program fault admitted0. Sourcea62a64fa/oracle851c73da/shadow325e5326 hashes
+match independent; Gradle reported total8h50m19s includes long pre-world interval,
+not runtime performance evidence. No repeats of full sensitivity or Tiny.
+
+Independent receipt0225d5e3 verified with40 exact artifacts/373source hashes,
+372 prior owners intact and JAR769/1277585B/5a4901c5 unchanged. SVG/recipe byte equal
+between independent/root public runs; initial/after projection identical, before
+different. Both roles two final reviews zero production changes,12 one-offs
+removed exactly/non-recursively, reusable test tools retained;51 evidence files
+under docs/evidence/S54. Main fresh b5e62535 integrated. TRUSTED only original
+nine local numeric transform reset and exact cache/structure, no new transformed/
+flags/renderer-root/layers/material/actor association/executable engine/binding/
+FULL authority. G6/G7-G9 and human epic-end acceptance remain open. Local Sprint:S54
+closure commit, no push/release/install.

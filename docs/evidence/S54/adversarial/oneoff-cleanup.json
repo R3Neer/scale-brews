@@ -1,0 +1,66 @@
+{
+  "recursiveDelete": false,
+  "files": [
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\cache-membership\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "ca3e0023d36fa7de2035fd86d21dd3d90e97e80cd8fe8dc2882f7ab4019e331f",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\field-identity\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "e09304390d0b0ca289a4dcea115705d98195909d2530938df05a6e1d4bd8b88b",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\loop-target\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "303eaeb8f9c163e110da2df94017ed5b87e18820bfaa5df8a7c58a3896035631",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\override\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "732e42105812467edcdbb634cddd097bd6a313583ce48a5795d3ed70fe72cfe6",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\path-frame\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "e0611a4adbded5c34f3937ef3daf681e293b85b16174822abc0375f48759a78b",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutants\\transform-swap\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\OriginalResetPosePreparation.java",
+      "sha256": "302c6f56e623e64b9c86e18e3cdcce1e8a002fbe6ff97f91dedeaf1e1fe693db",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\mutations.json",
+      "sha256": "f52123d00e134de47029b3298c6265f7799078baeab9c3ab44e62b1a5613958d",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\native.init.gradle",
+      "sha256": "a19aee0895660957d11b26838ca7aa3c142f4123ec08195ca5d3ece303dabec6",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\oracle-first.txt",
+      "sha256": "87fa20a3024d1a9e668554356c6af8c245373640e8e47babce95308d8b56ea83",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\oracle-second.txt",
+      "sha256": "7e2ccedafce83aace047c651fbfea948d2977f18897fd4be6d3e0139bf1b9ec8",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\oracle-third.txt",
+      "sha256": "7352c8aa4a9d1288381e45624279c0b4fa52e525080da8d415f5dc10e02ddda0",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    },
+    {
+      "path": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s54-adversary-private\\src\\io\\github\\r3neer\\scalebrews\\client\\collision\\preparation\\S54IndependentResetProof.java",
+      "sha256": "5ad7994824549480d101d623dd9476699a18e9aa697cdb7ffb36dc1442db3d64",
+      "classification": "one-off replaced by public fixture/init/driver; durable logs/evidence preserved"
+    }
+  ],
+  "preserved": "all logs, snapshots, public tooling, evidence, caches, builds, run directories, independent pre-plan models"
+}

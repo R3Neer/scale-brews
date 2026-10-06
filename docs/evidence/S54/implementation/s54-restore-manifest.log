@@ -1,0 +1,9 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :processGametestResources
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed

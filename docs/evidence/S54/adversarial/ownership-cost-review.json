@@ -1,0 +1,24 @@
+{
+  "owner": "OriginalResetPosePreparation",
+  "hotCallers": 0,
+  "retainedLiveReferences": 0,
+  "hierarchy": 12,
+  "parts": 512,
+  "depth": 64,
+  "cubes": 4096,
+  "vertices": 65536,
+  "classBytes": 1048576,
+  "totalClassBytes": 8388608,
+  "instructionsPerMethod": 512,
+  "classes": 64,
+  "methodsPerClass": 1024,
+  "work": "Explicit PREPARATION: original resources/parser pass-local; initial fingerprint/copy/extraction then sorted row traversal and bounded identity-cache scan. O(P log P + geometry + resources), no global world scan/cache/lock.",
+  "measurements": "Native exact512 admitted,513 rejected; no TPS/steady-runtime benchmark claimed.",
+  "boundaries": [
+    "ModelPart local root numeric transform included",
+    "renderer/world root excluded",
+    "current visibility/skipDraw preserved but not certified",
+    "transformed programs excluded",
+    "no executable engine/binding/FULL/G6 closure"
+  ]
+}

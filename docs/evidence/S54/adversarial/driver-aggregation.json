@@ -1,0 +1,7 @@
+{
+  "executedDriverSha256": "922a9cedbfc0294f82fae096ecbbcf7144155a92cdb106ad65e1296a445bb52a",
+  "nativeResults": "6/6 semantic kills",
+  "originalWrapperExit": 1,
+  "classification": "ADVERSARY_INVOCATION: wrapper explicitly exited LASTEXITCODE from final negative native mutant. Report complete and all semantic kills valid. Public driver now explicitly exits aggregate zero after no survivors; only exit plumbing changed.",
+  "publicDriverSha256": "84318a33835be0dfbecfcedaa8c173d1c58d853b2a025c20e07ab532e4c2a2ea"
+}
