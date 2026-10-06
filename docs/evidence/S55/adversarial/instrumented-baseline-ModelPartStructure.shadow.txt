@@ -1,0 +1,135 @@
+package io.github.r3neer.scalebrews.client.collision.preparation;
+
+import io.github.r3neer.scalebrews.client.mixin.ModelPartAccess;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.CharBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HexFormat;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import net.minecraft.client.model.geom.ModelPart;
+import org.joml.Matrix4f;
+
+/** Explicit preparation inventory, never material geometry or a runtime model evaluator. */
+public final class ModelPartStructure {
+    public static final int MAX_PARTS = 512, MAX_CUBES = 4096, MAX_DEPTH = 64, MAX_VERTICES = 65_536;
+
+    private ModelPartStructure() {}
+
+    public record Fingerprint(String digest, int parts, int cubes, int solidPieces) {}
+
+    /** Inspects initial structure on a separate tree without resetting the shared renderer model. */
+    public static Fingerprint inspect(ModelPart root) {
+        return snapshot(root, "structure_inventory", "1").fingerprint();
+    }
+
+    /** Same independent copy supplies identity and numeric local geometry, never a physical binding. */
+    record Snapshot(Fingerprint fingerprint, ModelGeometry geometry) {}
+
+    static Snapshot snapshot(ModelPart root, String source, String version) {
+        if (root == null) throw new IllegalArgumentException("structure:missing_root");
+        var copy = new Copy();
+        var independent = copy.copy(root, 0);
+        // Identity means model-local coordinates, not a certified renderer/world transform.
+        // All copied structural cubes are included; current visibility has no authority here.
+        var geometry = ModelPartGeometryExtractor.extract(source, version, independent, Set.of())
+            .withModelTransform(new Matrix4f());
+        var fingerprint = new Fingerprint(hash(copy.text.toString()), copy.parts, copy.cubes, geometry.pieces().size());
+        if(Boolean.getBoolean("scalebrews.s55InjectDrift") && source.startsWith("original_reset/")) fingerprint = new Fingerprint("fault",fingerprint.parts(),fingerprint.cubes(),fingerprint.solidPieces()); return new Snapshot(fingerprint, geometry);
+    }
+
+    static String hash(String text) {
+        try {
+            var encoded = StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT).encode(CharBuffer.wrap(text));
+            var digest = MessageDigest.getInstance("SHA-256");
+            digest.update(encoded);
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (CharacterCodingException invalid) {
+            throw new IllegalArgumentException("identity:malformed_unicode", invalid);
+        } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+    }
+
+    static void frame(StringBuilder text, String value) {
+        text.append(value.length()).append(':').append(value);
+    }
+
+    private static final class Copy {
+        private final Set<ModelPart> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        private final StringBuilder text = new StringBuilder("modelpart-initial-structure-v1|");
+        private int parts, cubes, vertices;
+
+        private ModelPart copy(ModelPart original, int depth) {
+            if (depth > MAX_DEPTH) throw new IllegalArgumentException("structure:depth_limit");
+            if (++parts > MAX_PARTS) throw new IllegalArgumentException("structure:part_limit");
+            if (!seen.add(original)) throw new IllegalArgumentException("structure:cycle_or_shared_child");
+            var access = (ModelPartAccess)(Object)original;
+            var sourceCubes = access.scalebrews$cubes();
+            var sourceChildren = access.scalebrews$children();
+            if (sourceCubes == null || sourceChildren == null || sourceChildren.size() > MAX_PARTS)
+                throw new IllegalArgumentException("structure:invalid_or_oversized_children");
+            if (sourceCubes.size() > MAX_CUBES - cubes) throw new IllegalArgumentException("structure:cube_limit");
+            var pose = original.getInitialPose();
+            if (pose == null) throw new IllegalArgumentException("structure:missing_initial_pose");
+            text.append("part|");
+            numbers(pose.x(), pose.y(), pose.z(), pose.xRot(), pose.yRot(), pose.zRot(),
+                pose.xScale(), pose.yScale(), pose.zScale());
+            text.append("cubes:").append(sourceCubes.size()).append('|');
+            var copiedCubes = new ArrayList<ModelPart.Cube>(sourceCubes.size());
+            for (var cube : sourceCubes) {
+                if (cube == null || cube.polygons == null || cube.polygons.length > 64)
+                    throw new IllegalArgumentException("structure:invalid_polygons");
+                cubes++;
+                numbers(cube.minX, cube.minY, cube.minZ, cube.maxX, cube.maxY, cube.maxZ);
+                text.append("polygons:").append(cube.polygons.length).append('|');
+                for (var polygon : cube.polygons) {
+                    if (polygon == null || polygon.vertices() == null || polygon.vertices().length > 128)
+                        throw new IllegalArgumentException("structure:invalid_vertices");
+                    var points = polygon.vertices();
+                    if (points.length > MAX_VERTICES - vertices) throw new IllegalArgumentException("structure:vertex_limit");
+                    vertices += points.length;
+                    text.append("vertices:").append(points.length).append('|');
+                    for (var point : points) {
+                        if (point == null) throw new IllegalArgumentException("structure:null_vertex");
+                        numbers(point.worldX(), point.worldY(), point.worldZ());
+                    }
+                }
+                // Cube data is read only; the independently owned lists/tree/pose are what extraction traverses.
+                copiedCubes.add(cube);
+            }
+            var keys = new ArrayList<>(sourceChildren.keySet());
+            for (var key : keys) if (key == null || key.isEmpty() || key.length() > 128)
+                throw new IllegalArgumentException("structure:invalid_child_name");
+            Collections.sort(keys);
+            text.append("children:").append(keys.size()).append('|');
+            var children = new LinkedHashMap<String, ModelPart>();
+            for (var key : keys) {
+                frame(text, key);
+                var child = sourceChildren.get(key);
+                if (child == null) throw new IllegalArgumentException("structure:null_child");
+                children.put(key, copy(child, depth + 1));
+            }
+            var result = new ModelPart(copiedCubes, children);
+            result.setInitialPose(pose);
+            result.loadPose(pose);
+            // Inventory all structural cubes. Shared current visibility/skipDraw are deliberately untouched.
+            result.visible = true;
+            result.skipDraw = false;
+            return result;
+        }
+
+        private void numbers(float... values) {
+            for (float value : values) {
+                if (!Float.isFinite(value)) throw new IllegalArgumentException("structure:non_finite");
+                frame(text, Float.toHexString(value));
+            }
+        }
+    }
+}

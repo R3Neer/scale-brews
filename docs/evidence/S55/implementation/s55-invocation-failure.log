@@ -1,0 +1,40 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* Where:
+Build file 'C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\build.gradle' line: 15
+
+* What went wrong:
+A problem occurred evaluating root project 'scalebrews'.
+> Cannot convert '' to File.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* Where:
+Initialization script 'C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s55_implementer.init.gradle' line: 5
+
+* What went wrong:
+A problem occurred configuring root project 'scalebrews'.
+> Task with name 'runClientGameTest' not found in root project 'scalebrews'.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 2s

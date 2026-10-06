@@ -225,6 +225,20 @@ programas originales auditados; no se presume equivalencia del bytecode
 transformado. TRUSTED solo en este scope tras campana independiente y replay,
 sensibilidad y revisiones finales. Estado global y ejecuciones en PLAN/VALIDATION.
 
+`OriginalResetGeometryPreparation` conecta la receta S54 con una copia inicial
+del mismo arbol exportada como ModelGeometry. Usa el snapshot package-private
+de ModelPartStructure, no un segundo algoritmo de copia; exige fingerprint
+exacto y bijeccion framed-path/part ID con parents y nueve SourcePose iniciales.
+El DTO format2 declara identidad como coordenadas locales. Solo el DTO cruza
+al consumidor common; no retiene modelos/parts/cubos/world ni consulta flags
+actuales para eliminar cubos estructurales. scalebrews:static puede evaluar
+este rest para ordinary/parametros vacios con O(1);
+la composicion O(P) permanece en ModelGeometry. Dos copias/extractions bounded
+en PREPARATION (S54 y export), sin caller hot nuevo. No certifica renderer/world
+root, visibilidad, material, selector de actor, bytecode transformado ni FULL.
+La extension queda TRUSTED solo en este scope tras la aceptacion independiente
+S55, replay/sensibilidad/recibos y revisiones completas sin cambios.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

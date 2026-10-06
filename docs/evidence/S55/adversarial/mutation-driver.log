@@ -1,0 +1,8 @@
+current-pose killed=True exit=1
+renderer-root killed=True exit=1
+initial-channel killed=True exit=1
+parent-identity killed=True exit=1
+current-flags killed=True exit=1
+shared-state killed=True exit=1
+cube-bounds killed=True exit=1
+fingerprint killed=True exit=1

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "ordinary",
+    "exit": 1,
+    "semanticKill": true,
+    "shadowSha256": "8c78066fa1f818f4c1b7d81ff5abb38da3368e888ce318b14ec40e4897329268"
+  },
+  {
+    "name": "parameters",
+    "exit": 1,
+    "semanticKill": true,
+    "shadowSha256": "13dc9022189dac3bf074bf052381ce33fd2c6397e5e6e69e9fc9eb162cecb19d"
+  },
+  {
+    "name": "rest-output",
+    "exit": 1,
+    "semanticKill": true,
+    "shadowSha256": "d2d2dd45e783a7c458d828961304f121c49ad3d9175fcb43eba45e017b3fbb55"
+  }
+]

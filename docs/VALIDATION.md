@@ -3743,3 +3743,63 @@ nine local numeric transform reset and exact cache/structure, no new transformed
 flags/renderer-root/layers/material/actor association/executable engine/binding/
 FULL authority. G6/G7-G9 and human epic-end acceptance remain open. Local Sprint:S54
 closure commit, no push/release/install.
+
+S55 development verification, IMPLEMENTER (2026-10-06), acceptance pending:
+build -x runGameTest compileGametestJava runClientGameTest
+-I tools/s55_implementer.init.gradle '-PscalebrewsBuildDir=../s55-impl-build'
+--offline PASS134s exit0/clean shutdown. Two original models,14 hierarchy matrices
+and10 cube vertex comparisons, signed non-unit initial scale/rotations, initial
+vs current/flags independence, exact fingerprint, source identity change/restore,
+ModelGeometry round-trip, ordinary static binding and incompatible/unknown/null
+negative cases. 372 prior production owners byte unchanged; one S45 owner extended
+and one new preparation bridge. No Tiny/full server/default client/S51-S54 repeats.
+Ordinary manifest112server/34client restored PASS4s and entrypoints equal.
+JAR774 entries/1285867B SHA bf110a72ff62f134fc85966b3d3127337f43e65c89443f2ff13bac5ae7d6537d,
+zero test class leaks. Source/receipt/logs/exports in docs/evidence/S55.
+Initial failed command classified IMPLEMENTER_INVOCATION: unquoted PowerShell
+-PscalebrewsBuildDir became empty before compile. Quoted argument, no source fix.
+
+Independent preimplementation S00 static PASS in client-vetoed common JVM,
+actual common bind/evaluate/rest/registry owner and three compiled semantic kills;
+17 artifacts exact verified. 100k measured evaluations allocated1600000B (16B/eval
+Optional wrapper), evaluate O(1), no zero-allocation/TPS claim. Common production
+unchanged; no new native dedicated/server suite asserted. Export performs two
+bounded copies/extractions in explicit PREPARATION; static binding/evaluate uses
+detached DTO, no client traversal/reflection/hash hot. New snapshot/export campaign
+still pending; scope numeric/structural only, no renderer/visibility/material/
+actor-selector/physical binding/FULL. G6/G7-G9 and epic-end human acceptance open.
+
+S55 public focal replay IMPLEMENTER: compileGametestJava runClientGameTest
+-I tools/s55_adversarial.init.gradle '-PscalebrewsBuildDir=../s55-impl-public-build'
+--project-cache-dir '../s55-impl-public-cache'
+'-Ps55RunDir=C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/s55-impl-public-run'
+--offline PASS140s exit0/clean integrated/client shutdown.21 native hierarchy
+matrices/15 native cubes/8 metadata faults, current9 purity, detachment512/513/cache.
+Independent native107s and public baseline96s PASS; common isolated consumer also
+PASS with client classes vetoed. Root/public geometry JSON SHA bdad7d99d022fefdd10734e74c2a7d10b0afa3cea77c152220eea4909daf3ee5
+and SVG f67df776c3b65b223a7a9ec96ba4c4b47a22a19bc29792f0bc56235a4676d432
+byte equal independent run. Own sharp PNG900x600/9113B inspected, envelope projection
+only: each original/reset-rest row coincides. Native per-part/cube semantics remain
+the complete oracle, no GPU/visibility/material claim. Normal112/34 public manifest
+restored2s; common10 classes byte identical S54->S55, GameTest exact qualified-name
+leaks0. Production374 still frozen, no native repeats or Tiny. Sensitivity pending.
+
+S55 scoped acceptance closed: independent expanded native59s, baseline96s and
+instrumented baseline58s clean PASS;8/8 compiled semantic kills (current-pose,
+renderer-root,initial-channel,parent-identity,current-flags,shared-state,
+cube-bounds,fingerprint). Fingerprint drift54s killed by exact assertion with
+compiler PASS; driver aggregate0, negative native exits1 expected. Root checked
+eight logs/source hashes, no repeat of passed sensitivity without new changes.
+Common final client-veto JVM PASS after ADVER_TOOLING housekeeping fix: absolute
+args/cwd=output; only that JVM repeated. Empty generated repo log archived/removed
+exactly; five private one-offs removed, reusable public tools/evidence kept.
+
+Independent receipt SHA a5a8b0248654bb96ff007763b48a6d1fd5ed5abdd249a93df33d3a21938bec6b
+and50 artifacts verified,374 source hashes equal own receipt;372 prior owners
+byte intact. JAR774/1285867B unchanged,579 qualified GameTest classes/no leaks.
+Both roles final complete reviews zero production changes; fresh main b5e62535
+integrated. TRUSTED only explicit original initial local numeric/structural export
+and scoped static evaluation, no actor/renderer-root/visibility/material/binding/
+transformed-program/FULL authority.93Living baseline92UNRESOLVED+1fixtureSAFE_PARTIAL+
+0FULL unchanged, G6 tasks2-6/G7-G9/epic-end human needs open. Local Sprint:S55 commit;
+no push/release/install, no Tiny/fullserver/defaultclient/unchanged selector repeats.

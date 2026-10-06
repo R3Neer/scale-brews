@@ -1,0 +1,1 @@
+allprojects { afterEvaluate { tasks.register('s55S00Classpath') { doLast { def out=file('../s55-adversary-s00/classpath.txt');out.text=sourceSets.main.runtimeClasspath.asPath } } } }

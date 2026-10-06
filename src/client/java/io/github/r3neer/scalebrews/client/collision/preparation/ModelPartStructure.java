@@ -1,6 +1,7 @@
 package io.github.r3neer.scalebrews.client.collision.preparation;
 
 import io.github.r3neer.scalebrews.client.mixin.ModelPartAccess;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
@@ -14,6 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import net.minecraft.client.model.geom.ModelPart;
+import org.joml.Matrix4f;
 
 /** Explicit preparation inventory, never material geometry or a runtime model evaluator. */
 public final class ModelPartStructure {
@@ -25,13 +27,22 @@ public final class ModelPartStructure {
 
     /** Inspects initial structure on a separate tree without resetting the shared renderer model. */
     public static Fingerprint inspect(ModelPart root) {
+        return snapshot(root, "structure_inventory", "1").fingerprint();
+    }
+
+    /** Same independent copy supplies identity and numeric local geometry, never a physical binding. */
+    record Snapshot(Fingerprint fingerprint, ModelGeometry geometry) {}
+
+    static Snapshot snapshot(ModelPart root, String source, String version) {
         if (root == null) throw new IllegalArgumentException("structure:missing_root");
         var copy = new Copy();
         var independent = copy.copy(root, 0);
-        // Reuse the canonical extractor only to validate/count initial structural material pieces.
-        // Its renderer transform and visibility are not asserted as a physical binding here.
-        var geometry = ModelPartGeometryExtractor.extract("structure_inventory", "1", independent, Set.of());
-        return new Fingerprint(hash(copy.text.toString()), copy.parts, copy.cubes, geometry.pieces().size());
+        // Identity means model-local coordinates, not a certified renderer/world transform.
+        // All copied structural cubes are included; current visibility has no authority here.
+        var geometry = ModelPartGeometryExtractor.extract(source, version, independent, Set.of())
+            .withModelTransform(new Matrix4f());
+        var fingerprint = new Fingerprint(hash(copy.text.toString()), copy.parts, copy.cubes, geometry.pieces().size());
+        return new Snapshot(fingerprint, geometry);
     }
 
     static String hash(String text) {

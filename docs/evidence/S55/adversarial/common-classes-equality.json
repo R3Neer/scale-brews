@@ -1,0 +1,17 @@
+{
+  "equalByteClasses": [
+    "io/github/r3neer/scalebrews/collision/api/CollisionEngines.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine$Bound.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine$Inputs.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine$Resources.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine.class",
+    "io/github/r3neer/scalebrews/collision/geometry/ModelGeometry$Part.class",
+    "io/github/r3neer/scalebrews/collision/geometry/ModelGeometry$Piece.class",
+    "io/github/r3neer/scalebrews/collision/geometry/ModelGeometry$SourcePose.class",
+    "io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.class",
+    "io/github/r3neer/scalebrews/collision/pose/BuiltInPoseEngines.class"
+  ],
+  "count": 10,
+  "oldJar": "S54 accepted implementation artifact",
+  "newJar": "S55 frozen implementation artifact"
+}

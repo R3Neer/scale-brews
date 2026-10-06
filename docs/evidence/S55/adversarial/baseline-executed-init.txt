@@ -1,0 +1,9 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects {afterEvaluate {
+def shadow=providers.gradleProperty('s55Shadow').getOrNull()
+if(shadow!=null){def originals=['ModelPartStructure','OriginalResetGeometryPreparation'].findAll {owner->new File(file(shadow),'io/github/r3neer/scalebrews/client/collision/preparation/'+owner+'.java').exists()}.collect {owner->file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/'+owner+'.java').canonicalFile};sourceSets.client.java.exclude {e->originals.contains(e.file.canonicalFile)};sourceSets.client.java.srcDir(file(shadow))}
+loom.runs.configureEach {runDir=file(providers.gradleProperty('s55RunDir').getOrElse('../s55-public-run')).absolutePath}
+tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl';if(providers.gradleProperty('s55Instrumented').getOrElse('false')=='true')jvmArgs '-Dscalebrews.s55Instrumented=true'}}
+tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast{def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f);m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S55AdversarialGeometryProof'];f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))}}
+}}

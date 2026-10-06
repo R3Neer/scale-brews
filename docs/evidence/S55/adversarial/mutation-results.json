@@ -1,0 +1,89 @@
+{
+  "fixtureSha256": "71c2074588730cf0245bf9e9b74cc62b6afc050ca6a88ca33d501494d1a1bc64",
+  "baseline": {
+    "exit": 0,
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\baseline.log",
+    "assertion": false,
+    "pass": true
+  },
+  "instrumentedBaseline": {
+    "exit": 0,
+    "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\instrumented-baseline.log",
+    "assertion": false,
+    "pass": true
+  },
+  "results": [
+    {
+      "name": "current-pose",
+      "owner": "ModelPartStructure",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\current-pose.log",
+      "sourceSha256": "1c885c5ce3ffe0de05ac9c441d7b50a4b294b3c2fafde8435608907567e905fc",
+      "shadowSha256": "30a5d1872beaf8cff5770bce85414283d33139cc1b0eae8b8264ccba3d48af27"
+    },
+    {
+      "name": "renderer-root",
+      "owner": "ModelPartStructure",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\renderer-root.log",
+      "sourceSha256": "1c885c5ce3ffe0de05ac9c441d7b50a4b294b3c2fafde8435608907567e905fc",
+      "shadowSha256": "b7a17c576974117fc1ca8f9411bf99697ff53074dafa425da09f3fffec389118"
+    },
+    {
+      "name": "initial-channel",
+      "owner": "OriginalResetGeometryPreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\initial-channel.log",
+      "sourceSha256": "0c208ce95393b8e19708247bda69b8d7e62f5b33e9c914b2d7dd4107bd8965ec",
+      "shadowSha256": "f434dcea88d5ad5eebec4767305af389bbec187dc15ac74763c1cf3900bd30c5"
+    },
+    {
+      "name": "parent-identity",
+      "owner": "OriginalResetGeometryPreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\parent-identity.log",
+      "sourceSha256": "0c208ce95393b8e19708247bda69b8d7e62f5b33e9c914b2d7dd4107bd8965ec",
+      "shadowSha256": "c7b6d9e4be1082d68eb1711c3b79a81dd5c09163bb8c2b67b48e64f4012a0e64"
+    },
+    {
+      "name": "current-flags",
+      "owner": "ModelPartStructure",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\current-flags.log",
+      "sourceSha256": "1c885c5ce3ffe0de05ac9c441d7b50a4b294b3c2fafde8435608907567e905fc",
+      "shadowSha256": "022a93403c9605efcec7e3383e2108a1a16bc5ff0d0bb210aef18723597bc270"
+    },
+    {
+      "name": "shared-state",
+      "owner": "OriginalResetGeometryPreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\shared-state.log",
+      "sourceSha256": "0c208ce95393b8e19708247bda69b8d7e62f5b33e9c914b2d7dd4107bd8965ec",
+      "shadowSha256": "e61897b7d3df19f39d75bfa8ae00aae7a4cc893a6ef82241cf6573e569c2790c"
+    },
+    {
+      "name": "cube-bounds",
+      "owner": "ModelPartStructure",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\cube-bounds.log",
+      "sourceSha256": "1c885c5ce3ffe0de05ac9c441d7b50a4b294b3c2fafde8435608907567e905fc",
+      "shadowSha256": "21bfec9676a7600f4f09224a6031a75013a6c2b1e1c2b8e64f5be39cb41504ec"
+    },
+    {
+      "name": "fingerprint",
+      "owner": "OriginalResetGeometryPreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s55-adversary-mutations\\fingerprint.log",
+      "sourceSha256": "0c208ce95393b8e19708247bda69b8d7e62f5b33e9c914b2d7dd4107bd8965ec",
+      "shadowSha256": "84ba9a469bcad36836212a2eac2c47efc4c8b3a189ab50eba857619d7700c74e"
+    }
+  ]
+}

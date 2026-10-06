@@ -1,0 +1,49 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S55",
+  "phase": "PREIMPLEMENTATION_S00",
+  "classification": "TRUSTED_SCOPED",
+  "foundation": "scalebrews:static registered built-in and default PoseEngine.bind/evaluate for explicit empty parameters and ordinary inputs",
+  "productionChanges": 0,
+  "base": "4e32a4caa4bb0bc01f08282df4da792d7cad9143",
+  "priorProductionHashesVerified": 373,
+  "actualCompiledOwnerEqualsAcceptedJar": true,
+  "sources": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/BuiltInPoseEngines.java": "5eadced61c7e549768f2244065bf3828cbc28bf8cda32c9b076c0140479a1827",
+    "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/PoseEngine.java": "49531f0774a0188bab78f589e159a5902bbb5f5faec056a72a80ee9f281f8bd8",
+    "src/main/java/io/github/r3neer/scalebrews/collision/api/CollisionEngines.java": "43606e3ebb8d60197c1d1269a51736061a2597efc9d2db53f1d37a4535e8e9ab",
+    "src/main/java/io/github/r3neer/scalebrews/collision/geometry/ModelGeometry.java": "2e8737e4628c006b45a9e2d578015b174e6e578aab7011a694e75ff93a31ddaf"
+  },
+  "controls": "init idempotency/exact owner, preclaimed owner rejection, ordinary positive, incompatible and unknown parameters negative, immutable empty rest, required-channel/schema/null failures, mutable bind metadata copied, parameters cannot revive, signed-scale hierarchical rest matrices",
+  "clientClassloading": "fresh URLClassLoader with platform parent rejects net.minecraft.client and Scale client packages; actual common binding and rest matrix evaluation passed",
+  "sensitivity": "3/3 compiled semantic kills (ordinary,parameters,nonempty rest). No compiler/startup failure counted.",
+  "cost": {
+    "warmupEvaluations": 100000,
+    "measuredEvaluations": 100000,
+    "allocatedBytes": 1600000,
+    "bytesPerEvaluation": 16,
+    "cause": "Optional.of rest wrapper; immutable empty map shared",
+    "complexity": "evaluate O(1); bind defensive metadata copy PREPARATION; composition O(P) existing",
+    "noClaims": "no zero-allocation, TPS, heap-soak or integrated G9 assertion"
+  },
+  "notTrusted": "original actor input extraction, full/visible pose, renderer/global root, material, export snapshot/new owner, transformed programs, physical binding/FULL",
+  "artifacts": {
+    "docs/evidence/S55/adversarial-s00/baseline.log": "9ff9472b0db57008341b44767ca37c400ba32fce7ecdeb9641b5e6115ece30f8",
+    "docs/evidence/S55/adversarial-s00/classpath.init.gradle": "3bde01eaeefb5b0d09107362045941c8a522c3ce7f5c6989b261cf3c4b0fe6e0",
+    "docs/evidence/S55/adversarial-s00/classpath.log": "faa47ded80c82d4e3c075d221dc826f76a56b06110b059ee1dfcb371845ab2b3",
+    "docs/evidence/S55/adversarial-s00/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S55/adversarial-s00/preclaim.log": "4d04aa7045291c3ebf37f96bbd5d917d55f7c64dad967feace7b421cf81fb95c",
+    "docs/evidence/S55/adversarial-s00/s00-mutations.json": "a232b662fadae9626b180cf2fa7377fb752326d74c1a745460e2bbcc880339de",
+    "docs/evidence/S55/adversarial-s00/S55S00Body.java": "768ae9adcc5c9d55f7672156231bcc5a821491b862b2ab00c7af312a8c1bce33",
+    "docs/evidence/S55/adversarial-s00/S55S00Bootstrap.java": "2d91cfeb5806561daa0b00499470e706b5b1020b51a6af67c023524139a0023f",
+    "docs/evidence/S55/adversarial-s00/ordinary/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S55/adversarial-s00/ordinary/result.log": "433c1e09e45460f2b2506e49f7f974f962a55882c5902bbef49c4e1676a9918d",
+    "docs/evidence/S55/adversarial-s00/ordinary/shadow.txt": "8c78066fa1f818f4c1b7d81ff5abb38da3368e888ce318b14ec40e4897329268",
+    "docs/evidence/S55/adversarial-s00/parameters/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S55/adversarial-s00/parameters/result.log": "df97f34ef1aa23b0bc725a4a2de233fd7b395d9b4219d39e7bce1e4c558fafba",
+    "docs/evidence/S55/adversarial-s00/parameters/shadow.txt": "13dc9022189dac3bf074bf052381ce33fd2c6397e5e6e69e9fc9eb162cecb19d",
+    "docs/evidence/S55/adversarial-s00/rest-output/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S55/adversarial-s00/rest-output/result.log": "1b5865f9838cdf099e310c8c8c33288bae187c85c44358510fea3bf5316b6c4c",
+    "docs/evidence/S55/adversarial-s00/rest-output/shadow.txt": "d2d2dd45e783a7c458d828961304f121c49ad3d9175fcb43eba45e017b3fbb55"
+  }
+}

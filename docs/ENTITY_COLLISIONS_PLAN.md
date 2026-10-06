@@ -540,6 +540,19 @@ Snapshot initial=after/before distinto y dos reviews finales cero cambios, clean
 exacto y commit propio Sprint:S54. Sin autoridad de flags/root renderer/engine/
 binding/material/FULL; no Tiny ajeno. G6 tareas2-6/G7-G9 y QA humana final abiertos.
 
+**S55 cerrado adversarialmente scoped:** receta reset original -> snapshot de
+geometria inicial local server-safe, un solo algoritmo de copia S45, fingerprint
+exacto y bijeccion part/parent/SourcePose9. Common static S00 client-veto PASS y
+3/3 kills; cliente propio134s/public140s y nativo independiente107s/ampliado59s/
+baseline96s limpios.8/8 mutantes semanticos detectados, consumidor JVM common PASS,
+JSON/SVG byte iguales y projectionenvelope inspeccionada.374 hashes/372 previos
+intactos, dos reviews sin cambios productivos, cleanup exacto y commit Sprint:S55.
+Dos snapshots y doble validacion DTO por copia PREPARATION bounded, sin nuevo
+caller hot/TPS claim. Sin Tiny ajeno ni repeticiones de sensibilidad ya verde.
+No autoridad de renderer/root/visibilidad/material/actor selector/physical binding/
+FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL no cambia.
+G6 tareas2-6/G7-G9 y necesidades humanas al final de epica siguen abiertas.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

@@ -1,0 +1,504 @@
+[
+  {
+    "program": {
+      "tool": "original-local-reset-program-v1",
+      "operation": "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS",
+      "modelClass": "net.minecraft.client.model.monster.slime.SlimeModel",
+      "setupAnimOwner": "net.minecraft.client.model.Model",
+      "originalResources": {
+        "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+        "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+        "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+        "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+        "/net/minecraft/client/model/monster/slime/SlimeModel.class": "875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35a"
+      },
+      "initialStructure": {
+        "digest": "f54b812df6dc459a79f3a5dfccda292372457c56b8a3a3fb3161c5bf223bd61e",
+        "parts": 5,
+        "cubes": 4,
+        "solidPieces": 4
+      },
+      "parts": [
+        {
+          "path": "$",
+          "initial": {
+            "x": 0.12,
+            "y": 0.084,
+            "z": -0.036000002,
+            "xRot": 0.0132,
+            "yRot": -0.0084,
+            "zRot": 0.006,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "path": "$/4:cube",
+          "initial": {
+            "x": 0.24,
+            "y": 0.168,
+            "z": -0.072000004,
+            "xRot": 0.0264,
+            "yRot": -0.0168,
+            "zRot": 0.012,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "path": "$/8:left_eye",
+          "initial": {
+            "x": 0.35999998,
+            "y": 0.25199997,
+            "z": -0.108,
+            "xRot": 0.0396,
+            "yRot": -0.025199998,
+            "zRot": 0.018,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "path": "$/5:mouth",
+          "initial": {
+            "x": 0.48,
+            "y": 0.336,
+            "z": -0.14400001,
+            "xRot": 0.0528,
+            "yRot": -0.0336,
+            "zRot": 0.024,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "path": "$/9:right_eye",
+          "initial": {
+            "x": 0.59999996,
+            "y": 0.41999996,
+            "z": -0.17999999,
+            "xRot": 0.06599999,
+            "yRot": -0.042,
+            "zRot": 0.03,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        }
+      ],
+      "canonicalText": "original-local-reset-program-v1|36:MODEL_LOCAL_RESET_INITIAL_TRANSFORMS51:net.minecraft.client.model.monster.slime.SlimeModel32:net.minecraft.client.model.Model64:f54b812df6dc459a79f3a5dfccda292372457c56b8a3a3fb3161c5bf223bd61e5|4|4|45:/net/minecraft/client/model/EntityModel.class64:201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a5840139:/net/minecraft/client/model/Model.class64:625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a48:/net/minecraft/client/model/geom/ModelPart.class64:0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e47:/net/minecraft/client/model/geom/PartPose.class64:74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca6758:/net/minecraft/client/model/monster/slime/SlimeModel.class64:875d2fb6a22a64733f8cd639a3304c668d997f85a9b94ba31780773f69a9d35aparts:5|1:$13:0x1.eb851ep-413:0x1.581062p-414:-0x1.26e97ap-512:0x1.b089ap-714:-0x1.13404ep-713:0x1.89374cp-813:0x1.b33334p-18:0x1.8p-112:0x1.333334p08:$/4:cube13:0x1.eb851ep-313:0x1.581062p-314:-0x1.26e97ap-412:0x1.b089ap-614:-0x1.13404ep-613:0x1.89374cp-713:-0x1.19999ap08:0x1.8p-112:0x1.333334p012:$/8:left_eye13:0x1.70a3d6p-213:0x1.020c48p-214:-0x1.ba5e36p-413:0x1.446738p-514:-0x1.9ce074p-613:0x1.26e978p-613:0x1.b33334p-18:0x1.8p-112:0x1.333334p09:$/5:mouth13:0x1.eb851ep-213:0x1.581062p-214:-0x1.26e97ap-312:0x1.b089ap-514:-0x1.13404ep-513:0x1.89374cp-613:-0x1.19999ap08:0x1.8p-112:0x1.333334p013:$/9:right_eye13:0x1.333332p-113:0x1.ae1478p-214:-0x1.70a3d6p-313:0x1.0e5602p-414:-0x1.581062p-513:0x1.eb851ep-613:0x1.b33334p-18:0x1.8p-112:0x1.333334p0",
+      "digest": "3dc1541bcc55f21acd38569d9e1ad3da41db9191535bf1dbcfac1d2200509d93"
+    },
+    "geometry": {
+      "format": 2,
+      "source": "original_reset/3dc1541bcc55f21acd38569d9e1ad3da41db9191535bf1dbcfac1d2200509d93",
+      "version": "original-initial-reset-geometry-v1",
+      "parts": [
+        {
+          "id": "root",
+          "transform": [
+            0.84995466,
+            0.0050997892,
+            0.007139915,
+            0.0,
+            -0.004582736,
+            0.74992055,
+            0.009899363,
+            0.0,
+            -0.009983784,
+            -0.015899729,
+            1.1998531,
+            0.0,
+            0.0075,
+            0.00525,
+            -0.0022500001,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.12,
+            "y": 0.084,
+            "z": -0.036000002,
+            "xRot": 0.0132,
+            "yRot": -0.0084,
+            "zRot": 0.006,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "id": "root/cube",
+          "parent": "root",
+          "transform": [
+            -1.0997655,
+            -0.013197821,
+            -0.018479131,
+            -0.0,
+            -0.009329209,
+            0.74968064,
+            0.019794906,
+            0.0,
+            -0.019770471,
+            -0.03191586,
+            1.1994126,
+            0.0,
+            0.015,
+            0.0105,
+            -0.0045000003,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.24,
+            "y": 0.168,
+            "z": -0.072000004,
+            "xRot": 0.0264,
+            "yRot": -0.0168,
+            "zRot": 0.012,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "id": "root/left_eye",
+          "parent": "root",
+          "transform": [
+            0.8495924,
+            0.015294316,
+            0.02141773,
+            0.0,
+            -0.014236732,
+            0.7492771,
+            0.029682806,
+            0.0,
+            -0.029353106,
+            -0.048043687,
+            1.1986785,
+            0.0,
+            0.022499999,
+            0.015749998,
+            -0.00675,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.35999998,
+            "y": 0.25199997,
+            "z": -0.108,
+            "xRot": 0.0396,
+            "yRot": -0.025199998,
+            "zRot": 0.018,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "id": "root/mouth",
+          "parent": "root",
+          "transform": [
+            -1.0990624,
+            -0.026382565,
+            -0.03695305,
+            -0.0,
+            -0.019302499,
+            0.7487072,
+            0.03955926,
+            0.0,
+            -0.038724855,
+            -0.06427838,
+            1.1976513,
+            0.0,
+            0.03,
+            0.021,
+            -0.009000001,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.48,
+            "y": 0.336,
+            "z": -0.14400001,
+            "xRot": 0.0528,
+            "yRot": -0.0336,
+            "zRot": 0.024,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "id": "root/right_eye",
+          "parent": "root",
+          "transform": [
+            0.8488683,
+            0.025473692,
+            0.035689503,
+            0.0,
+            -0.02452359,
+            0.747968,
+            0.049420446,
+            0.0,
+            -0.047878943,
+            -0.08061493,
+            1.1963314,
+            0.0,
+            0.037499998,
+            0.026249997,
+            -0.0112499995,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.59999996,
+            "y": 0.41999996,
+            "z": -0.17999999,
+            "xRot": 0.06599999,
+            "yRot": -0.042,
+            "zRot": 0.03,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        }
+      ],
+      "pieces": [
+        {
+          "id": "root/cube/cube_0",
+          "part": "root/cube",
+          "min": [
+            -0.1875,
+            1.0625,
+            -0.1875
+          ],
+          "max": [
+            0.1875,
+            1.4375,
+            0.1875
+          ]
+        },
+        {
+          "id": "root/left_eye/cube_0",
+          "part": "root/left_eye",
+          "min": [
+            0.078125,
+            1.125,
+            -0.21875
+          ],
+          "max": [
+            0.203125,
+            1.25,
+            -0.09375
+          ]
+        },
+        {
+          "id": "root/mouth/cube_0",
+          "part": "root/mouth",
+          "min": [
+            0.0,
+            1.3125,
+            -0.21875
+          ],
+          "max": [
+            0.0625,
+            1.375,
+            -0.15625
+          ]
+        },
+        {
+          "id": "root/right_eye/cube_0",
+          "part": "root/right_eye",
+          "min": [
+            -0.203125,
+            1.125,
+            -0.21875
+          ],
+          "max": [
+            -0.078125,
+            1.25,
+            -0.09375
+          ]
+        }
+      ],
+      "modelTransform": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  },
+  {
+    "program": {
+      "tool": "original-local-reset-program-v1",
+      "operation": "MODEL_LOCAL_RESET_INITIAL_TRANSFORMS",
+      "modelClass": "net.minecraft.client.model.monster.slime.SmallSulfurCubeModel",
+      "setupAnimOwner": "net.minecraft.client.model.Model",
+      "originalResources": {
+        "/net/minecraft/client/model/EntityModel.class": "201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a58401",
+        "/net/minecraft/client/model/Model.class": "625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a",
+        "/net/minecraft/client/model/geom/ModelPart.class": "0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e",
+        "/net/minecraft/client/model/geom/PartPose.class": "74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca67",
+        "/net/minecraft/client/model/monster/slime/SmallSulfurCubeModel.class": "96381d63bbb8b56fbae4b8d00f1b0d16b98d8527ad71e4e25e95fedab2f57d00",
+        "/net/minecraft/client/model/monster/slime/SulfurCubeModel.class": "5e9cba7a61711dca4bbb102edb3276a3c5cbb0c80c01e8a61f972b4a92dadd9c"
+      },
+      "initialStructure": {
+        "digest": "9f9b250f1f2a33ab381db2ef4ebc0af95edae7dbda84ab8176de889c129567c6",
+        "parts": 2,
+        "cubes": 1,
+        "solidPieces": 1
+      },
+      "parts": [
+        {
+          "path": "$",
+          "initial": {
+            "x": 0.12,
+            "y": 0.084,
+            "z": -0.036000002,
+            "xRot": 0.0132,
+            "yRot": -0.0084,
+            "zRot": 0.006,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "path": "$/4:cube",
+          "initial": {
+            "x": 0.24,
+            "y": 0.168,
+            "z": -0.072000004,
+            "xRot": 0.0264,
+            "yRot": -0.0168,
+            "zRot": 0.012,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        }
+      ],
+      "canonicalText": "original-local-reset-program-v1|36:MODEL_LOCAL_RESET_INITIAL_TRANSFORMS61:net.minecraft.client.model.monster.slime.SmallSulfurCubeModel32:net.minecraft.client.model.Model64:9f9b250f1f2a33ab381db2ef4ebc0af95edae7dbda84ab8176de889c129567c62|1|1|45:/net/minecraft/client/model/EntityModel.class64:201bf4c36eac0e75a2f47f3864769cd5224e24f59c9f29e6d517b8dd82a5840139:/net/minecraft/client/model/Model.class64:625c776f33812a4941dcc295f5e7244b630e9ee27d5e886486da1ebd2543c09a48:/net/minecraft/client/model/geom/ModelPart.class64:0dfdcef8c10e54389a3c9c2e4c7f59190aafbabbac084c14863baa4c775fd11e47:/net/minecraft/client/model/geom/PartPose.class64:74d54c047fbee0fa39d190b58751ce215837f8dc491d42404d1582f79643ca6768:/net/minecraft/client/model/monster/slime/SmallSulfurCubeModel.class64:96381d63bbb8b56fbae4b8d00f1b0d16b98d8527ad71e4e25e95fedab2f57d0063:/net/minecraft/client/model/monster/slime/SulfurCubeModel.class64:5e9cba7a61711dca4bbb102edb3276a3c5cbb0c80c01e8a61f972b4a92dadd9cparts:2|1:$13:0x1.eb851ep-413:0x1.581062p-414:-0x1.26e97ap-512:0x1.b089ap-714:-0x1.13404ep-713:0x1.89374cp-813:0x1.b33334p-18:0x1.8p-112:0x1.333334p08:$/4:cube13:0x1.eb851ep-313:0x1.581062p-314:-0x1.26e97ap-412:0x1.b089ap-614:-0x1.13404ep-613:0x1.89374cp-713:-0x1.19999ap08:0x1.8p-112:0x1.333334p0",
+      "digest": "af9ad37d59b9908fce685f361d914f96a63263a9be72246cb15cb8d8ef3bba28"
+    },
+    "geometry": {
+      "format": 2,
+      "source": "original_reset/af9ad37d59b9908fce685f361d914f96a63263a9be72246cb15cb8d8ef3bba28",
+      "version": "original-initial-reset-geometry-v1",
+      "parts": [
+        {
+          "id": "root",
+          "transform": [
+            0.84995466,
+            0.0050997892,
+            0.007139915,
+            0.0,
+            -0.004582736,
+            0.74992055,
+            0.009899363,
+            0.0,
+            -0.009983784,
+            -0.015899729,
+            1.1998531,
+            0.0,
+            0.0075,
+            0.00525,
+            -0.0022500001,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.12,
+            "y": 0.084,
+            "z": -0.036000002,
+            "xRot": 0.0132,
+            "yRot": -0.0084,
+            "zRot": 0.006,
+            "xScale": 0.85,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        },
+        {
+          "id": "root/cube",
+          "parent": "root",
+          "transform": [
+            -1.0997655,
+            -0.013197821,
+            -0.018479131,
+            -0.0,
+            -0.009329209,
+            0.74968064,
+            0.019794906,
+            0.0,
+            -0.019770471,
+            -0.03191586,
+            1.1994126,
+            0.0,
+            0.015,
+            0.0105,
+            -0.0045000003,
+            1.0
+          ],
+          "sourcePose": {
+            "x": 0.24,
+            "y": 0.168,
+            "z": -0.072000004,
+            "xRot": 0.0264,
+            "yRot": -0.0168,
+            "zRot": 0.012,
+            "xScale": -1.1,
+            "yScale": 0.75,
+            "zScale": 1.2
+          }
+        }
+      ],
+      "pieces": [
+        {
+          "id": "root/cube/cube_0",
+          "part": "root/cube",
+          "min": [
+            -0.3125,
+            -0.3125,
+            -0.3125
+          ],
+          "max": [
+            0.3125,
+            0.3125,
+            0.3125
+          ]
+        }
+      ],
+      "modelTransform": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  }
+]

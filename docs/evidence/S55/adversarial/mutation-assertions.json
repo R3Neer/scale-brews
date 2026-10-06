@@ -1,0 +1,34 @@
+[
+  {
+    "name": "current-pose",
+    "assertion": "java.lang.AssertionError: S55 ADV original export rejected original_reset_geometry:initial_part_mismatch"
+  },
+  {
+    "name": "renderer-root",
+    "assertion": "java.lang.AssertionError: S55 ADV local DTO retained renderer transform"
+  },
+  {
+    "name": "initial-channel",
+    "assertion": "java.lang.AssertionError: S55 ADV metadata fault admitted initial_part_mismatch"
+  },
+  {
+    "name": "parent-identity",
+    "assertion": "java.lang.AssertionError: S55 ADV metadata fault admitted initial_part_mismatch"
+  },
+  {
+    "name": "current-flags",
+    "assertion": "java.lang.AssertionError: S55 ADV structural cube missing/filtered root/cube/cube_0"
+  },
+  {
+    "name": "shared-state",
+    "assertion": "java.lang.AssertionError: S55 ADV preparation changed current9/initial/flags/tree"
+  },
+  {
+    "name": "cube-bounds",
+    "assertion": "java.lang.AssertionError: S55 ADV native inflated bounds differ root/cube/cube_0"
+  },
+  {
+    "name": "fingerprint",
+    "assertion": "java.lang.AssertionError: S55 ADV structure drift admitted"
+  }
+]

@@ -44,3 +44,8 @@
 /docs/evidence/S54/adversarial/*.javap.txt -text -whitespace
 /docs/evidence/S54/adversarial/*.log -text -whitespace
 
+# Exact S55 initial reset export and common-engine audit evidence bytes.
+/docs/evidence/S55/** -text whitespace=cr-at-eol
+/docs/evidence/S55/**/*.log -text -whitespace
+/docs/evidence/S55/**/*.javap.txt -text -whitespace
+
