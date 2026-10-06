@@ -1,0 +1,6 @@
+arithmetic True
+finite-before-lut True
+exact-bind True
+initial-field True
+ordinary True
+negative-zero True

@@ -1,0 +1,25 @@
+{
+  "fixtureSha256": "21b032a6bcabbdab0d85cf1b5f9c5e14def8670b58a272342566c614c34f4790",
+  "baseline": null,
+  "instrumentedBaseline": null,
+  "results": [
+    {
+      "name": "read-after-write",
+      "owner": "OriginalLinearPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s56-adversary-native-mutations\\read-after-write.log",
+      "sourceSha256": "9af287cc57bd670c2fbdbfbafcdcb9ae18a7091fe0382826c54dcc02874f3571",
+      "shadowSha256": "429887d9f8312fba69bbf257f4ab4c2a04da690f5f09f5242f2534999c1f6419"
+    },
+    {
+      "name": "complete-program",
+      "owner": "OriginalLinearPosePreparation",
+      "killed": true,
+      "exit": 1,
+      "log": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s56-adversary-native-mutations\\complete-program.log",
+      "sourceSha256": "9af287cc57bd670c2fbdbfbafcdcb9ae18a7091fe0382826c54dcc02874f3571",
+      "shadowSha256": "976236508f287fa1eebf218fed865a7ca7df287f85a3d6dc874dbbef19407b2f"
+    }
+  ]
+}

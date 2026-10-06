@@ -1,0 +1,15 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+    tasks.register('s56CommonClasspath') { doLast {
+        def output=new File(providers.gradleProperty('s56ClasspathFile').get()); output.parentFile.mkdirs()
+        output.text=sourceSets.main.runtimeClasspath.asPath
+    } }
+    loom.runs.configureEach { runDir=providers.gradleProperty('s56RunDir').getOrElse(file('../s56-impl-run').absolutePath) }
+    tasks.named('runClientGameTest') { doFirst { args '--graphicsBackend','opengl' } }
+    tasks.named('processGametestResources') { outputs.upToDateWhen { false }; doLast {
+        def manifest=new File(destinationDir,'fabric.mod.json'); def meta=new JsonSlurper().parse(manifest)
+        meta.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S56OriginalLinearPoseProof']
+        manifest.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+    } }
+} }

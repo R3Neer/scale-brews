@@ -1,0 +1,26 @@
+{
+  "resources": [
+    {
+      "resource": "net/minecraft/util/Mth.class",
+      "mergedSHA256": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+      "runtimeSHA256": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+      "byteEqual": true
+    },
+    {
+      "resource": "net/minecraft/util/Util.class",
+      "mergedSHA256": "2d353d89981bd9ee54b8c75853959aed7d8534759e6386e459499f5128a549af",
+      "runtimeSHA256": "2d353d89981bd9ee54b8c75853959aed7d8534759e6386e459499f5128a549af",
+      "byteEqual": true
+    }
+  ],
+  "completePrograms": [
+    "public static float sin(double);",
+    "public static float cos(double);",
+    "private static void lambda$static$0(float[]);",
+    "static {};",
+    "public static <T> T make(T, java.util.function.Consumer<? super T>);"
+  ],
+  "equalMergedRuntime": true,
+  "normalization": "CP index only, comments/descriptors/opcodes/branch targets/constants retained",
+  "scope": "sin/cos and SIN initialization dependency only, not whole-class authority"
+}

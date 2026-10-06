@@ -1,0 +1,53 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S56",
+  "phase": "PREIMPLEMENTATION_S00",
+  "status": "TRUSTED_SCOPED_DEPENDENCIES",
+  "base": "3d3f34fb",
+  "productionChanges": 0,
+  "priorProductionHashesVerified": 374,
+  "existingResetSource9Scope": "S54 exact base reset plus S55 initial DTO certificates reused only within their scope; current sources match accepted374. Future override compiler/base seam remains UNPROVEN until candidate recertification.",
+  "newDependency": "Minecraft26.2 Mth sin/cos(D)F and SIN initialization, Java float/F2D arithmetic semantics; no whole-class model authority",
+  "originalRuntimePrograms": "5 complete programs equivalent with CP-index-only normalization; Mth/Util class resources also byte equal. Full SIN initialization observed against65536 independent entries.",
+  "nativeCommonJVM": "Fresh URLClassLoader platform parent vetoes Minecraft/Scale client packages; actual Mth lookup and existing SourcePose9 matrices PASS without client/world boot.",
+  "controls": {
+    "lutEntries": 65536,
+    "finiteSeededQueries": 99645,
+    "specials": "signed zero, subnormal, max float and negatives; Java double-to-long saturation/truncation and mask retained",
+    "floatWitness": "(16777216f+1f)-16777216f=0f while premature double arithmetic yields1f; FNEG signed zero; finite operands may overflow/divide to nonfinite; native Mth can turn NaN into finite LUT result. Invalid-node fail-closed must occur before trig can rehabilitate it.",
+    "source9": "common SourcePose retains nonunit signed scales and finite nonsingular hierarchy matrix, current prior certificates unchanged"
+  },
+  "sensitivity": "3/3 semantic kills from compiled Mth class shadows: cos phase shift, sin index mask, LUT generation divisor; no production edits or compiler/startup failures counted.",
+  "cost": {
+    "warmupPairs": 100000,
+    "measuredPairs": 100000,
+    "allocatedBytes": 0,
+    "scope": "direct common Mth lookup pairs only; O(1) indexing on vanilla65536-float table, not new program evaluator/pose-map/matrix allocations",
+    "notMeasured": "No new IR evaluator allocation/TPS or runtime integration claim"
+  },
+  "unproven": "New NumericPoseProgram DAG validation/evaluation, compiler bridge/super/field-identity relation, modified reset seam, original actor inputs/renderer/material/FULL; candidate campaign follows convergence.",
+  "invocationFailure": "First javap used pre26.2 net.minecraft.Util instead of actual net.minecraft.util.Util; corrected owner from actual Mth clinit; not product RED.",
+  "artifacts": {
+    "docs/evidence/S56/adversarial-s00/baseline.log": "b45bc642a79f28cea10cabdf563a2234c6c0c9d0b46c48fe57efc0913991b1de",
+    "docs/evidence/S56/adversarial-s00/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S56/adversarial-s00/cos-phase/mutation.log": "7a221a5ba7b8d60c4b24d3343e82113c4d8d3af4b096f345605da3cab6c9388e",
+    "docs/evidence/S56/adversarial-s00/cos-phase/result.log": "08c14c24ea38ea55daec72ac3e57c1b7ecd7363badbebb77a05905ce0e7c768c",
+    "docs/evidence/S56/adversarial-s00/cos-phase/shadow-class.sha256": "49989a827e2f3b60558342fc60512e29d66aa7298663af1f68705086fe8eeaf4",
+    "docs/evidence/S56/adversarial-s00/lut-source/mutation.log": "1aa3f4bd00518be3f0f94a1698881907816e9f34e7b83ae812ad6f33da2fffa5",
+    "docs/evidence/S56/adversarial-s00/lut-source/result.log": "8e04e0b4a28812f298cf1d42acbceadb7fc762d8bc48953b3fc78fd32a261522",
+    "docs/evidence/S56/adversarial-s00/lut-source/shadow-class.sha256": "d3a91603cb4281d6a6523a20b51d90b33473aaf826ff21bcd18c0e151e50b883",
+    "docs/evidence/S56/adversarial-s00/mth-merged.javap.txt": "25cef067603e5aca9c1b5966cc7df95789fd8e35a98f5741456a8e7e1fcda272",
+    "docs/evidence/S56/adversarial-s00/mth-runtime.javap.txt": "25cef067603e5aca9c1b5966cc7df95789fd8e35a98f5741456a8e7e1fcda272",
+    "docs/evidence/S56/adversarial-s00/mutation-results.json": "ccdff2a8df40099a56e8e92afa3abd6465a989142522e91f141656a00fb21cb9",
+    "docs/evidence/S56/adversarial-s00/mutator-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/evidence/S56/adversarial-s00/program-equivalence.json": "a21ff29de50504c0f8fbf61c24f1c15a407c46fb5fc15f0234d9e1b744ae8b9a",
+    "docs/evidence/S56/adversarial-s00/S56MthMutator.java": "8c91b565aaeed98cd381daa2c88f989910769242a148977efa06cb2539ee08cd",
+    "docs/evidence/S56/adversarial-s00/S56S00Body.java": "d86a833d5ad5a14656280ddd2110b298171ccaa6a16677abf477c891ed33c78c",
+    "docs/evidence/S56/adversarial-s00/S56S00Bootstrap.java": "f0da400da6dedc84f37c8080e09004ac2a51c88ef44b6ba191113216e25eb835",
+    "docs/evidence/S56/adversarial-s00/sin-mask/mutation.log": "6316c4f044425186d266c8f44f3d34189093fe30d5d4cae9670f2e4b7c78f900",
+    "docs/evidence/S56/adversarial-s00/sin-mask/result.log": "4871972b64936c11559d1c6a37914088a49d81048fa18f53906ab124dd1e7318",
+    "docs/evidence/S56/adversarial-s00/sin-mask/shadow-class.sha256": "94254399835747b0c336bdad2fa138308f755bfd8e04045db9a5923b3f23c2c8",
+    "docs/evidence/S56/adversarial-s00/util-merged.javap.txt": "94ede90b94b7e6138c3064b21e17b6a19c5b235a8935b07b4944b58c6a779ab4",
+    "docs/evidence/S56/adversarial-s00/util-runtime.javap.txt": "94ede90b94b7e6138c3064b21e17b6a19c5b235a8935b07b4944b58c6a779ab4"
+  }
+}

@@ -3803,3 +3803,63 @@ and scoped static evaluation, no actor/renderer-root/visibility/material/binding
 transformed-program/FULL authority.93Living baseline92UNRESOLVED+1fixtureSAFE_PARTIAL+
 0FULL unchanged, G6 tasks2-6/G7-G9/epic-end human needs open. Local Sprint:S55 commit;
 no push/release/install, no Tiny/fullserver/defaultclient/unchanged selector repeats.
+
+
+## S56 - candidata de programa original de pose lineal (2026-10-06)
+
+Rol IMPLEMENTER. Campana independiente pendiente; no cierre global ni FULL.
+S00 previo independiente TRUSTED scoped: resources Mth/Util originales/runtime
+byte iguales, cinco programas completos, LUT65536 y99645 queries seeded en JVM
+client-veto;3/3 mutantes semanticamente detectados. Dependencia warmed100k pares
+sin/cos0bytes, no claim del nuevo evaluador.21 artefactos/374 fuentes previas
+verificados, recibo adversarial-s00-verification.json d2d6ea292278934f0324dd6067d852bd884c644f85e5670860af17fb9b15f1e2.
+
+Compilacion production PASS26s. Comando propio PowerShell con JDK25:
+`./gradlew.bat build -x runGameTest compileGametestJava runClientGameTest -I tools/s56_implementer.init.gradle '-PscalebrewsBuildDir=../s56-impl-build' --offline`.
+Primer run llego al cliente y fallo137s por canonical framing opcional null;
+clasificado IMPLEMENTATION, presence tags corregidos sin modificar requisito,
+oracle ni tolerancia. Log rojo preservado. Mismo replay focal PASS75s/exit0/cierre
+limpio: Cow/Pig originales12estados,84 matrices y102 cubos, vertices en ambas
+direcciones. Initial/current/flags distintos y source9 signed/Euler, pureza,
+determinismo, DTO roundtrip, binding exacto y negatives missing/null/incompatible.
+Vieja API reset acepta base y rechaza override; export S55 base conserva admision.
+Programas36 nodos/6 writes/4 inputs en cada modelo, sin formulas/colliders por especie.
+
+Replay comun: tarea s56CommonClasspath con propiedad s56ClasspathFile absoluta,
+despues `python tools/s56_common_replay.py ../s56-impl-common-classpath.txt ../s56-impl-run/s56-implementation/programs.json ../s56-impl-common`.
+JVM nueva que veta Minecraft/Scale client PASS2modelos/12samples/84matrices frente
+a captura nativa. No afirmar sesion dedicada Minecraft. Manifest ordinary112/34
+restaurado mediante processGametestResources sin init PASS2s; entrypoints fuente/
+procesado iguales, sin ejecutar esas suites. No Tiny/fullserver/defaultclient ni
+baterias de sensibilidad anteriores repetidas.
+
+376 hashes de produccion;372 owners anteriores byte intactos, solo reset/verify
+seams modificados y dos owners nuevos. JAR787entradas/1315309B SHA
+4baf70c6485174600955b96b29c94ccd506d967d5c1938abe93c50aebfb04eac;
+583 nombres qualified GameTest comparados con JAR sin leak. Recibo propio
+implementation-verification.json y10 artefactos durables bajo docs/evidence/S56.
+Dos pases recursos8MiB cada uno, dos snapshots/extractions con doble validacion
+DTO por copia; bind preparacion O(parts+nodes+writes+geometry equality). Evaluacion
+explicita O(nodes+written parts), scratch/map/matrices por llamada, sin reflection/
+parser/hash/client models/scratch mutable global ni caller hot nuevo. No zeroalloc/
+TPS claim. Scope local numerico, no autoridad actor/root/flags/material/catologo/
+FULL; G6 tareas2-6/G7-G9 y QA humana final de epica pendientes.
+
+
+S56 aceptado scoped tras campana independiente: Cow/Pig20 muestras/140 matrices/
+170 cubos, aliases no vacuos, APIs reset/export estrictas, JVM client-veto,
+IEEE/intermediates/caps512-64/8.000 concurrentes y8/8 kills semanticos (agregado0).
+Recibo adversarial SHA39fad4b65e0d4dd5fb6ba78660c0d6df6301ce9c404fb8d9900cfec7a836eb28:
+44 artefactos y376 hashes verificados. IMPLEMENTER reproduce lane publica
+PASS2m35s, mismo oracle; common PASS6.8s contra140 matrices capturadas. Medida
+minima warm/measure100k asigna54.393.384 bytes en replay raiz y54.825.600 en
+independiente; no cero alloc/TPS/cota general. SVG byte igual, JSON parseado igual
+con orden de claves del fixture diferente; primer probe bytewise clasificado
+IMPLEMENTER_INVOCATION, sin cambio productivo. PNG inspeccionado solo como
+envolventes locales. Manifest ordinario restaurado PASS4s,112server/34client,
+igual al fuente sin correr suites. No Tiny ni sensibilidad ya verde repetida.
+Ultimas dos reviews completas cero cambios productivos, main b5e62535 refrescado
+ancestro y372 owners anteriores intactos. Scope TRUSTED compiler/DAG/reset seam;
+actor/root/flags/material/catalog binding/FULL y G6 completo siguen abiertos.
+Cierre con commit local Sprint:S56; tooling reusable conservado, cuatro one-offs
+adversariales retirados precisamente; caches/worlds/logs preservados.

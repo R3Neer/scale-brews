@@ -1,0 +1,44 @@
+[
+  {
+    "name": "arithmetic",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "2c8a8a2ea72ddd2c1eff8f59306193deb431451c3d12a7546215112a4884ef4d"
+  },
+  {
+    "name": "finite-before-lut",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "fcad23dabdcaf35433a92124b45b3ce84ec23f1b6163151580814ba7ff6a88d1"
+  },
+  {
+    "name": "exact-bind",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "1734f86909a3bf5271322feba23dad1269047041773a3c15067d48841cfde1bb"
+  },
+  {
+    "name": "initial-field",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "a0252ececd60c953301a359b6d8e46894b394701ec01b97a104adb6abec8ff2b"
+  },
+  {
+    "name": "ordinary",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "d9a60cd37510a6b679d63445d7a8b7bc4d495136a7d7cd0d013dd49f73a9edd8"
+  },
+  {
+    "name": "negative-zero",
+    "killed": true,
+    "exit": 1,
+    "sourceSha256": "5985b5005f2f78dbf10fbd4bbdd517167288bce99c78472d7931d435f3a3fd55",
+    "shadowSha256": "e75f77925317cb7c6e573b665a55baf7fb61d2db5654143f5bac8e8dfa6f427e"
+  }
+]

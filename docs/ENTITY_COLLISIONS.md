@@ -239,6 +239,20 @@ root, visibilidad, material, selector de actor, bytecode transformado ni FULL.
 La extension queda TRUSTED solo en este scope tras la aceptacion independiente
 S55, replay/sensibilidad/recibos y revisiones completas sin cambios.
 
+S56 `OriginalLinearPosePreparation` compila programas originales
+setupAnim completos de flujo lineal: bridge efectivo, super/reset y operaciones
+float/campos por identidad hacia un DAG numerico common. `NumericPoseProgram`
+conserva nueve campos iniciales y orden/read-after-write, rounding float y F2D
+para Mth.sin/cos originales; el binding explicito exige geometria exacta y la
+evaluacion produce ausencia total ante missing/nonfinite/degenerate/incompatible.
+El schema owner/name/F describe inputs de estado explicitos, no una fuente de
+autoridad desde actor. Reflection/parser/hash solo PREPARATION bounded; no nuevo
+caller normal, registro de engine, recurso de catalogo ni binding fisico. Este
+compiler/evaluador y el seam reset para overrides quedan TRUSTED solo en este
+scope tras campana independiente, replay publico y ocho kills semanticos S56.
+Renderer/world root, flags/material, selectors,
+bytecode transformado, FULL y G6 general permanecen abiertos.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "cos-phase",
+    "exit": 1,
+    "killed": true
+  },
+  {
+    "name": "sin-mask",
+    "exit": 1,
+    "killed": true
+  },
+  {
+    "name": "lut-source",
+    "exit": 1,
+    "killed": true
+  }
+]

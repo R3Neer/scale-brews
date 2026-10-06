@@ -49,3 +49,9 @@
 /docs/evidence/S55/**/*.log -text -whitespace
 /docs/evidence/S55/**/*.javap.txt -text -whitespace
 
+
+# Exact S56 original straight-line numeric dependency evidence bytes.
+/docs/evidence/S56/** -text whitespace=cr-at-eol
+/docs/evidence/S56/**/*.log -text -whitespace
+/docs/evidence/S56/**/*.javap.txt -text -whitespace
+/docs/evidence/S56/**/NumericPoseProgram.java -text -whitespace

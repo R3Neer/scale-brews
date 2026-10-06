@@ -1,0 +1,2 @@
+read-after-write killed=True exit=1
+complete-program killed=True exit=1

@@ -1,0 +1,10 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects {afterEvaluate {
+def shadow=providers.gradleProperty('s56Shadow').getOrNull()
+if(shadow!=null){def originals=['OriginalLinearPosePreparation','OriginalResetPosePreparation','OriginalResetGeometryPreparation'].findAll {owner->new File(file(shadow),'io/github/r3neer/scalebrews/client/collision/preparation/'+owner+'.java').exists()}.collect {owner->file('src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/'+owner+'.java').canonicalFile};sourceSets.client.java.exclude {e->originals.contains(e.file.canonicalFile)};sourceSets.client.java.srcDir(file(shadow))}
+loom.runs.configureEach {runDir=file(providers.gradleProperty('s56RunDir').getOrElse('../s56-public-run')).absolutePath}
+tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl'}}
+tasks.register('s56CommonClasspath') {doLast {def output=file(providers.gradleProperty('s56ClasspathFile').getOrElse('../s56-common-classpath.txt'));output.parentFile.mkdirs();output.text=sourceSets.main.runtimeClasspath.asPath}}
+tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f);m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S56AdversarialLinearProof'];f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))}}
+}}

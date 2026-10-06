@@ -52,14 +52,20 @@ public final class OriginalResetPosePreparation {
     public static Result inspect(EntityModel<?> model) {
         if (!Minecraft.getInstance().isSameThread()) throw new IllegalStateException("reset preparation requires client thread");
         if (model == null) return new Result(null, "original_reset:missing_model");
-        try { return new Result(prepare(model), null); }
+        try { return new Result(prepare(model, true), null); }
         catch (RuntimeException failure) {
             String reason = failure.getMessage();
             return new Result(null, reason == null ? "original_reset:unavailable" : reason.substring(0, Math.min(256, reason.length())));
         }
     }
 
-    private static Recipe prepare(EntityModel<?> model) {
+    /** Only certifies the base reset; the caller must separately prove every animation override. */
+    static Recipe baseResetCertificate(EntityModel<?> model) {
+        if (!Minecraft.getInstance().isSameThread()) throw new IllegalStateException("reset preparation requires client thread");
+        return prepare(model, false);
+    }
+
+    private static Recipe prepare(EntityModel<?> model, boolean requireResetOnly) {
         var programs = new OriginalModelPrograms(model.getClass().getClassLoader());
         Class<?> owner = model.getClass();
         int hierarchy = 0;
@@ -69,7 +75,7 @@ public final class OriginalResetPosePreparation {
             programs.model(current);
             if (current == Model.class) break;
         }
-        if (programs.resolveMethod(owner, "setupAnim", "(Ljava/lang/Object;)V").getDeclaringClass() != Model.class)
+        if (requireResetOnly && programs.resolveMethod(owner, "setupAnim", "(Ljava/lang/Object;)V").getDeclaringClass() != Model.class)
             throw absent("animation_override");
         // Exact original merged and Loom split/access-widened resources; complete
         // relevant programs were independently audited for equivalence before use.

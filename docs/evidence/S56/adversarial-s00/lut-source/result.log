@@ -1,0 +1,9 @@
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:119)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at S56S00Bootstrap.main(S56S00Bootstrap.java:2)
+Caused by: java.lang.AssertionError: S56 S00 LUT entry 1
+	at S56S00Body.check(S56S00Body.java:3)
+	at S56S00Body.main(S56S00Body.java:6)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	... 2 more

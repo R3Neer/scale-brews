@@ -553,6 +553,18 @@ No autoridad de renderer/root/visibilidad/material/actor selector/physical bindi
 FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL no cambia.
 G6 tareas2-6/G7-G9 y necesidades humanas al final de epica siguen abiertas.
 
+**S56 cerrado adversarialmente scoped:** compilador generico de setupAnim original
+lineal completo (bridge/super/reset) hacia DAG numerico common float/F2D, con
+campos por identidad, read-after-write y bind a geometria inicial exacta. Oracle
+propio84 matrices/102 cubos; independiente y replay publico140 matrices/170 cubos,
+veto cliente, aliases no vacuos, ocho kills semanticos y8.000 evaluaciones concurrentes.
+Allocations del evaluator medidas en caso minimo, sin claim cero alloc/TPS.
+376 hashes/372 owners previos intactos, receipts raw verificados, snapshots locales
+y dos reviews finales cero cambios; commit local Sprint:S56. No Tiny ajeno ni
+sensibilidad verde repetida. No autoridad de actor/root/flags/material, engine
+registrado/catalog resource/binding fisico/FULL; baseline93Living/92UNRESOLVED+
+1fixtureSAFE_PARTIAL+0FULL permanece. G6 tareas2-6/G7-G9 continúan abiertas.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

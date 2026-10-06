@@ -40,7 +40,7 @@ public final class OriginalResetGeometryPreparation {
 
     private record Expected(String parent, ModelGeometry.SourcePose initial) {}
 
-    private static void verify(OriginalResetPosePreparation.Recipe recipe, ModelGeometry geometry) {
+    static void verify(OriginalResetPosePreparation.Recipe recipe, ModelGeometry geometry) {
         Map<String, Expected> expected = new HashMap<>();
         for (var row : recipe.parts()) {
             String path = row.path();
