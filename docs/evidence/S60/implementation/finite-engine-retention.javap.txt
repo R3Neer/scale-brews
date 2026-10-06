@@ -1,0 +1,10 @@
+Compiled from "FinitePoseEngine.java"
+public final class io.github.r3neer.scalebrews.collision.pose.FinitePoseEngine implements io.github.r3neer.scalebrews.collision.api.spi.PoseEngine {
+  public io.github.r3neer.scalebrews.collision.pose.FinitePoseEngine();
+  public java.util.Optional<java.util.Map<java.lang.String, org.joml.Matrix4f>> evaluate(io.github.r3neer.scalebrews.collision.geometry.ModelGeometry, io.github.r3neer.scalebrews.collision.api.spi.PoseEngine$Inputs, java.util.Map<java.lang.String, java.lang.String>);
+  public java.util.Optional<io.github.r3neer.scalebrews.collision.api.spi.PoseEngine$Bound> bind(io.github.r3neer.scalebrews.collision.geometry.ModelGeometry, java.util.Map<java.lang.String, java.lang.String>, java.util.Set<java.lang.String>, io.github.r3neer.scalebrews.collision.api.spi.PoseEngine$Resources);
+  private static java.util.Optional lambda$bind$3(java.lang.String[], io.github.r3neer.scalebrews.collision.api.spi.PoseEngine$Bound[], io.github.r3neer.scalebrews.collision.api.spi.PoseEngine$Inputs);
+  private static boolean lambda$bind$2(io.github.r3neer.scalebrews.collision.pose.FinitePoseProgram, io.github.r3neer.scalebrews.collision.pose.NumericPoseProgram$Node);
+  private static java.lang.String[] lambda$bind$1(int);
+  private static boolean lambda$bind$0(java.lang.String);
+}

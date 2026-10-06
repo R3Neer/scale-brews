@@ -1,0 +1,9 @@
+[
+  {
+    "name": "inactive-eager",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "99757e3056c884e09aeae5bca964a841a6edaf44b1d837d00244c692de99ff8f",
+    "shadowSha256": "eeb8f6b0e23bd7f42859ecc20d1b97529d289b910854ba4c5135e14ee878c77e"
+  }
+]

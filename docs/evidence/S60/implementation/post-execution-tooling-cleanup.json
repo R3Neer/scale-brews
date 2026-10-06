@@ -1,0 +1,12 @@
+{
+  "tools/s60_adversarial_common.py": {
+    "executedSha256": "a5f0ea1927a3319df79ea57bffd394a969a7c1c44f7ec5fdab6f40c6a8acffb2",
+    "finalSha256": "6825debb816eeeb08ba86a3c2d742d38363739dea28e66776f3a7f9bcbbe9a3a",
+    "verified": "identical executable Python AST except module docstring, or identical Java text after universal newline normalization"
+  },
+  "tools/s60_adversarial_catalog.py": {
+    "executedSha256": "7f888f955895866beb1f1c661e199f470056b10195ea52ea78b99d95f2ee4865",
+    "finalSha256": "249b2d2a20ba09ac3f04ef09a4720f954b291f9ad2ed7f6e1898bdb934dfdf94",
+    "verified": "identical executable Python AST except module docstring, or identical Java text after universal newline normalization"
+  }
+}

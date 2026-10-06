@@ -1,0 +1,37 @@
+[
+  {
+    "name": "signed-zero",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "99757e3056c884e09aeae5bca964a841a6edaf44b1d837d00244c692de99ff8f",
+    "shadowSha256": "aacb62e024e678f9228be9091d5eb1d9ab8b327b49e41623c801d68138439013"
+  },
+  {
+    "name": "mask-order",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "99757e3056c884e09aeae5bca964a841a6edaf44b1d837d00244c692de99ff8f",
+    "shadowSha256": "9a8158a47c507c185d253272a7b2bc4b84565fb8ee9cf07c32edae82b4315dd3"
+  },
+  {
+    "name": "resource-capture",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "99757e3056c884e09aeae5bca964a841a6edaf44b1d837d00244c692de99ff8f",
+    "shadowSha256": "1b94f420c676d846b46d009a249120337f40592c23e4e68d7a870bcf06ed5148"
+  },
+  {
+    "name": "field-alias",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "d981e9273daa09b1838a6c2989d64b838a9e9d0603c301646bdd843ab4d1b731",
+    "shadowSha256": "92568f597cf6e2e064258c2ad47e7db095cfb4e291868f73ad12b293c02767ac"
+  },
+  {
+    "name": "union-budget",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "d981e9273daa09b1838a6c2989d64b838a9e9d0603c301646bdd843ab4d1b731",
+    "shadowSha256": "e79c9a862b7acb3d9b49a2e5a60cec1029af18025523d581ec8a4200e9d04608"
+  }
+]

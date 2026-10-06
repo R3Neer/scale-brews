@@ -28,6 +28,11 @@ public final class NumericPoseEngine implements PoseEngine {
             var id = Identifier.parse(parameters.get("program"));
             program = NumericPoseProgram.validatedCopy(resources.numericProgram(id).orElse(null));
         } catch (RuntimeException invalid) { return Optional.empty(); }
+        return bindPrepared(program, geometry, requiredChannels);
+    }
+
+    /** Shared cold binding of an already constructor-validated numeric recipe; no second evaluator. */
+    static Optional<Bound> bindPrepared(NumericPoseProgram program, ModelGeometry geometry, Set<String> requiredChannels) {
         var used = program.nodes().stream().filter(n -> n.op() == NumericPoseProgram.Op.INPUT)
             .map(NumericPoseProgram.Node::input).collect(Collectors.toSet());
         if (!requiredChannels.containsAll(used)) return Optional.empty();

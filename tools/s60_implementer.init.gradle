@@ -1,0 +1,16 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+    tasks.register('s60CommonClasspath') { doLast {
+        def output=file(providers.gradleProperty('s60ClasspathFile').getOrElse('../s60-impl-classpath.txt'))
+        output.parentFile.mkdirs(); output.text=sourceSets.main.runtimeClasspath.asPath
+    } }
+    loom.runs.configureEach { runDir=file(providers.gradleProperty('s60RunDir').getOrElse('../s60-impl-run')).absolutePath }
+    tasks.named('runClientGameTest') { doFirst { args '--graphicsBackend','opengl' } }
+    tasks.named('processGametestResources') { outputs.upToDateWhen {false}; doLast {
+        def manifest=new File(destinationDir,'fabric.mod.json');def meta=new JsonSlurper().parse(manifest)
+        meta.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S60FiniteCatalogTests','io.github.r3neer.scalebrews.collision.internal.S57NumericCatalogTests','io.github.r3neer.scalebrews.test.S04G1IntegrationTests']
+        meta.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.test.S60OriginalFiniteResourceProof','io.github.r3neer.scalebrews.test.S59OriginalFinitePoseProof']
+        manifest.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+    } }
+} }

@@ -1,0 +1,19 @@
+{
+  "files": 381,
+  "java": 265,
+  "unchangedPrevious": 372,
+  "changed": [
+    "src/main/java/io/github/r3neer/scalebrews/collision/api/AnatomyApi.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/api/spi/PoseEngine.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/BuiltInPoseEngines.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/NumericPoseEngine.java"
+  ],
+  "added": [
+    "src/client/java/io/github/r3neer/scalebrews/client/collision/preparation/OriginalFiniteResourcePreparation.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/FinitePoseEngine.java",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/FinitePoseProgram.java"
+  ],
+  "removed": []
+}

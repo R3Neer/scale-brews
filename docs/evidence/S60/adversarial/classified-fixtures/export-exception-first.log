@@ -1,0 +1,13 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.joml.MemUtil$MemUtilUnsafe (file:/C:/Users/Usuario/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.8/fc0a71dad90a2cf41d82a76156a0e700af8e4f8d/joml-1.10.8.jar)
+WARNING: Please consider reporting this to the maintainers of class org.joml.MemUtil$MemUtilUnsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+Exception in thread "main" net.minecraft.IdentifierException: Non [a-z0-9_.-] character in namespace of identifier: Bad namespace:original_finite/f34c85a0648197d445ac22072b000516dea7172d87bd6ec9bfbd547708e5230f
+	at net.minecraft.resources.Identifier.assertValidNamespace(Identifier.java:267)
+	at net.minecraft.resources.Identifier.createUntrusted(Identifier.java:42)
+	at net.minecraft.resources.Identifier.fromNamespaceAndPath(Identifier.java:46)
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalFiniteResourcePreparation.id(OriginalFiniteResourcePreparation.java:122)
+	at io.github.r3neer.scalebrews.client.collision.preparation.OriginalFiniteResourcePreparation.export(OriginalFiniteResourcePreparation.java:99)
+	at S60ExportBoundary.lambda$main$2(S60ExportBoundary.java:6)
+	at S60ExportBoundary.bad(S60ExportBoundary.java:3)
+	at S60ExportBoundary.main(S60ExportBoundary.java:6)

@@ -75,3 +75,8 @@
 /docs/evidence/S59/adversarial-s00/**/*.java -text -whitespace
 /docs/evidence/S59/adversarial/**/*.java -text -whitespace
 /docs/evidence/S59/adversarial-red1/**/*.java -text -whitespace
+
+# Exact S60 scoped finite resource catalog evidence bytes.
+/docs/evidence/S60/** -text whitespace=cr-at-eol
+/docs/evidence/S60/**/*.log -text -whitespace
+/docs/evidence/S60/**/*.java -text -whitespace

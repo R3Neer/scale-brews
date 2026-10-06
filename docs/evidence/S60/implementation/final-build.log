@@ -1,0 +1,70 @@
+Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+> Configure project :
+Fabric Loom: 1.17.20
+
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :compileClientJava
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:63: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (!AgeableMobRenderer.class.isAssignableFrom(owner)) throw OriginalModelPrograms.absent("other_selector_family");
+             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:71: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+            if (current == AgeableMobRenderer.class) break;
+                           ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:73: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        programs.pinned(AgeableMobRenderer.class,
+                        ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:79: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (programs.resolveMethod(owner, "submit", LIVING_SUBMIT).getDeclaringClass() != AgeableMobRenderer.class
+                                                                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:80: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+            || programs.resolveMethod(owner, "submit", ENTITY_SUBMIT).getDeclaringClass() != AgeableMobRenderer.class
+                                                                                             ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:118: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var code = new OriginalModelPrograms.Code(programs.declared(AgeableMobRenderer.class, "submit", LIVING_SUBMIT));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:132: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        Field assignment = programs.resolveField(AgeableMobRenderer.class, code.field(Opcode.PUTFIELD));
+                                                 ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:143: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        Field field = programs.resolveField(AgeableMobRenderer.class, instruction);
+                                            ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:144: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (field.getDeclaringClass() != AgeableMobRenderer.class || !field.getName().equals(name)
+                                         ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:151: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var code = new OriginalModelPrograms.Code(programs.declared(AgeableMobRenderer.class, "<init>", CONSTRUCTOR));
+                                                                    ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:164: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var method = programs.anyDeclared(AgeableMobRenderer.class, "submit", ENTITY_SUBMIT);
+                                          ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:180: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        var expected = AgeableMobRenderer.class.getProtectionDomain().getCodeSource();
+                       ^
+C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\src\client\java\io\github\r3neer\scalebrews\client\collision\preparation\OriginalAgeStateModelPreparation.java:181: warning: [deprecation] AgeableMobRenderer in net.minecraft.client.renderer.entity has been deprecated
+        if (actual == null || expected == null || candidate.getClassLoader() != AgeableMobRenderer.class.getClassLoader()
+                                                                                ^
+13 warnings
+
+> Task :processClientResources
+> Task :processIncludeJars
+> Task :jar
+> Task :sourcesJar
+> Task :assemble
+> Task :clientClasses
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :build
+> Task :processGametestResources
+
+[Incubating] Problems report is available at: file:///C:/Users/Usuario/Documents/Codex/2026-10-02/vas-x20/work/s60-impl-build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 16s
+8 actionable tasks: 8 executed

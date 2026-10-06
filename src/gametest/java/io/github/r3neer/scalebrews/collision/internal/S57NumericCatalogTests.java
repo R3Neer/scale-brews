@@ -139,14 +139,14 @@ public final class S57NumericCatalogTests {
     @GameTest
     public void wireVersionAndMandatoryNumericMapFailClosed(GameTestHelper h) throws Exception {
         long required=AnatomyApi.mask(AnatomyApi.Capability.NUMERIC_POSE_PROGRAMS);
-        check(AnatomyApi.PROTOCOL_VERSION==7 && AnatomyApi.compatible(7,required) && !AnatomyApi.compatible(6,0)
-            && !AnatomyApi.compatible(7,1L<<60),"wire/capability negotiation changed");
+        check(AnatomyApi.PROTOCOL_VERSION==8 && AnatomyApi.compatible(8,required) && !AnatomyApi.compatible(7,0)
+            && !AnatomyApi.compatible(6,0) && !AnatomyApi.compatible(8,1L<<60),"wire/capability negotiation changed");
         var json=JsonParser.parseString(new String(AnatomyCatalogTransfer.serializedBundle(Map.of(),List.of()),java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
         check(json.get("numeric_pose_programs").isJsonObject(),"new map not present");json.remove("numeric_pose_programs");
         byte[] bytes=json.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         String hash=HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
         var receiver=new AnatomyCatalogTransfer();var before=receiver.snapshot();
-        bad(()->receiver.accept(new AnatomyCatalogPayload(UUID.randomUUID(),7,required,1,0,1,bytes.length,hash,bytes)));
+        bad(()->receiver.accept(new AnatomyCatalogPayload(UUID.randomUUID(),8,required,1,0,1,bytes.length,hash,bytes)));
         check(receiver.snapshot()==before && receiver.revision()==-1,"invalid schema swapped accepted snapshot");
         receiver.rejectPending();check(!receiver.announced(),"failed initial candidate retained authority");h.succeed();
     }

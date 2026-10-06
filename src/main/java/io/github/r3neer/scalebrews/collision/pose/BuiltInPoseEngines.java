@@ -29,6 +29,7 @@ public final class BuiltInPoseEngines {
         result.put(id("mojang_keyframes"), new MojangKeyframePoseEngine());
         result.put(id("citadel_program"), new CitadelPoseEngine());
         result.put(id("numeric_program"), new NumericPoseEngine());
+        result.put(id("finite_numeric_program"), new FinitePoseEngine());
         return Map.copyOf(result);
     }
 

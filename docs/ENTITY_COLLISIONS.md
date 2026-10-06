@@ -291,6 +291,17 @@ seis kills nuevos, common clientVeto y snapshots de bases para planos no materia
 RED1 de admission order reparado con oracle intacto. No evaluator hot nuevo ni
 fuente actor/root/flags/layers/material/selector fisico/bindings/familiaFULL.
 
+S60 cerrado adversarialmente scoped: FinitePoseProgram common
+referencia filas numeric revision-local y FinitePoseEngine reservado selecciona
+por channels booleanos explicitos +0/1 exactos. Bind valida toda la familia y
+solo retiene nombres/Bounds numericos, sin lookup de recursos en evaluacion.
+OriginalFiniteResourcePreparation unifica owner/name/F y remapea INPUT labels;
+no modifica operaciones originales. Catalogo/bundle atomicos protocol8 con
+finite_pose_programs obligatorio y capability FINITE_POSE_PROGRAMS; schema1
+conservado y peers7 rechazados. TRUSTED solo esta seleccion explicita tras
+280matrices originales/common, codec/rollback y seis kills semanticos;
+actor input source/continuidad/root/flags/material/bindings/FULL abiertos.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

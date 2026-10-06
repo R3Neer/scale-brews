@@ -1,0 +1,19 @@
+{
+  "families": 3,
+  "assignments": 9,
+  "sample": 3,
+  "projection": [
+    0.35,
+    0.15
+  ],
+  "pillowVersion": "11.3.0",
+  "nativeSha256": "4cd696753b9587b8d5da5ea567c5a3f6edff14084fbbaa398d09c8a9fce88e1e",
+  "commonSha256": "414cd9f8bb50076f2444668ba17d83d50590701162237b2d26fb46140896223b",
+  "shapePanels": [
+    "native",
+    "common",
+    "overlay"
+  ],
+  "bases": "native solid/common dashed",
+  "scope": "recentered local shapes + original projected centers; bases include zero-thickness joints; no GPU/world-root/material-inclusion authority"
+}

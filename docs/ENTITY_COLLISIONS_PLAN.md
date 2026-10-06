@@ -601,6 +601,18 @@ Sprint:S59 antes de avanzar. Baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+
 G6 tareas2-6/G7-G9 abiertos y necesidades humanas al final de epica. Plan y
 resultados detallados en docs/sprints/S59-g6-original-finite-pose.md.
 
+**S60 cerrado adversarialmente scoped:** tablas originales finitas exportadas
+como referencias numeric revision-local; selector exacto common y bundle
+protocol8/schema1. Own19/19server+9assignments/252matrices/104cubos; adversarial
+280matrices/80cubos, common201362asserts, codec/catalog140matrices/272asserts,
+metadata9 y seis kills semanticos. Replay publico common/catalog y snapshots
+locales verificados;381productivos/372anteriores byte intactos,607clases/JAR exactos.
+Dos reviews finales cero cambios, receipts raw y commit propio Sprint:S60 antes
+de siguiente sprint. Sin Tiny/fullsuite/sensibilidad verde anterior repetida.
+TRUSTED solo seleccion explicit-input/resource revision-local/export, sin actor/
+continuidad/root/flags/layers/material/bindings/FULL. Baseline93Living/92UNRESOLVED+
+1fixtureSAFE_PARTIAL+0FULL intacta; G6 tareas2-6/G7-G9 y QA humana final abiertos.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

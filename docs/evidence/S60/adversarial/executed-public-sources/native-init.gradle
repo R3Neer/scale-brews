@@ -1,0 +1,8 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects {afterEvaluate {
+ loom.runs.configureEach {runDir=file(providers.gradleProperty('s60RunDir').getOrElse('../s60-adversarial-run')).absolutePath}
+ tasks.named('runClientGameTest') {doFirst {args '--graphicsBackend','opengl'}}
+ tasks.register('s60CommonClasspath') {doLast {def o=file(providers.gradleProperty('s60ClasspathFile').getOrElse('../s60-adversarial-classpath.txt'));o.parentFile.mkdirs();o.text=sourceSets.main.runtimeClasspath.asPath}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f);m.entrypoints['fabric-client-gametest']=['io.github.r3neer.scalebrews.client.collision.preparation.S60AdversarialFiniteCatalogProof'];f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))}}
+}}

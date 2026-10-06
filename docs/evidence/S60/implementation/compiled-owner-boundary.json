@@ -1,0 +1,43 @@
+{
+  "previousClasses": 601,
+  "byteUnchanged": 581,
+  "changed": [
+    "io/github/r3neer/scalebrews/collision/api/AnatomyApi$1.class",
+    "io/github/r3neer/scalebrews/collision/api/AnatomyApi$Capability.class",
+    "io/github/r3neer/scalebrews/collision/api/AnatomyApi$RayHit.class",
+    "io/github/r3neer/scalebrews/collision/api/AnatomyApi.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine$Inputs.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine$Resources.class",
+    "io/github/r3neer/scalebrews/collision/api/spi/PoseEngine.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$1.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$2.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$3.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$4.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$PreparedBundle.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer.class",
+    "io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog$1.class",
+    "io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog$Accepted.class",
+    "io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog$Binding.class",
+    "io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog$Snapshot.class",
+    "io/github/r3neer/scalebrews/collision/internal/WorldAnatomyCatalog.class",
+    "io/github/r3neer/scalebrews/collision/pose/BuiltInPoseEngines.class",
+    "io/github/r3neer/scalebrews/collision/pose/NumericPoseEngine.class"
+  ],
+  "new": [
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFiniteResourcePreparation$Prepared.class",
+    "io/github/r3neer/scalebrews/client/collision/preparation/OriginalFiniteResourcePreparation.class",
+    "io/github/r3neer/scalebrews/collision/internal/AnatomyCatalogTransfer$5.class",
+    "io/github/r3neer/scalebrews/collision/pose/FinitePoseEngine.class",
+    "io/github/r3neer/scalebrews/collision/pose/FinitePoseProgram$Row.class",
+    "io/github/r3neer/scalebrews/collision/pose/FinitePoseProgram.class"
+  ],
+  "removed": [],
+  "jar": {
+    "sha256": "bf0eb5e710b9a912235fe30dcec0fa79a17eb4e5fa182c6f6bd61662e983c8d8",
+    "bytes": 1359037,
+    "entries": 804,
+    "ownCompiledClassesByteExact": 607,
+    "compiledGameTestClassesCompared": 603,
+    "gameTestLeaks": []
+  }
+}

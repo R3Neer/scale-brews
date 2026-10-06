@@ -1,0 +1,5 @@
+{
+  "tools/s60_adversarial_catalog.py": "7f888f955895866beb1f1c661e199f470056b10195ea52ea78b99d95f2ee4865",
+  "tools/s60-adversarial-common/S60CatalogConsumer.java": "0ae4616939bf89c890bc902cb6ddd01ac26ac5defc0f616b68e386cfe165d29e",
+  "tools/s60-adversarial-common/S60CatalogBootstrap.java": "93b5fd071281fc169fc0abbf805273fd25a0aa1808bf6bb33e542940d1cba9ee"
+}

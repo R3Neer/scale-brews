@@ -148,21 +148,22 @@ public final class S18PoseEngineAuthorityTests {
     }
 
     @GameTest
-    public void protocolV7CarriesPoseProgramsInsideTheAtomicBundle(GameTestHelper h) {
-        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 7,
-            "Adding numeric programs extends the atomic program bundle incompatibly and must own protocol v7");
-        h.assertTrue(!AnatomyApi.compatible(5, 0), "A v7 endpoint must not advertise protocol-v5 compatibility");
+    public void protocolV8CarriesPoseProgramsInsideTheAtomicBundle(GameTestHelper h) {
+        h.assertTrue(AnatomyApi.PROTOCOL_VERSION == 8,
+            "Adding finite program tables extends the atomic program bundle incompatibly and must own protocol v8");
+        h.assertTrue(!AnatomyApi.compatible(5, 0), "A v8 endpoint must not advertise protocol-v5 compatibility");
 
-        h.assertTrue(!AnatomyApi.compatible(6, 0), "A v7 endpoint must reject protocol-v6 peers");
+        h.assertTrue(!AnatomyApi.compatible(6, 0), "A v8 endpoint must reject protocol-v6 peers");
+        h.assertTrue(!AnatomyApi.compatible(7, 0), "A v8 endpoint must reject protocol-v7 peers");
         var packets = new WorldAnatomyCatalog().preparedPackets(UUID.randomUUID());
         var complete = new ByteArrayOutputStream();
         for (var packet : packets) complete.writeBytes(packet.fragment());
         var json = JsonParser.parseString(complete.toString(StandardCharsets.UTF_8)).getAsJsonObject();
-        h.assertTrue(json.has("numeric_pose_programs"), "Protocol-v7 must carry its numeric resource family atomically");
+        h.assertTrue(json.has("numeric_pose_programs"), "Protocol-v8 must carry its numeric resource family atomically");
         h.assertTrue(json.has("pose_programs"),
-            "Protocol-v7 authoritative bundle must carry pose_programs atomically with models and bindings");
+            "Protocol-v8 authoritative bundle must carry pose_programs atomically with models and bindings");
         h.assertTrue(json.has("models") && json.has("bindings"),
-            "Protocol-v7 pose-program extension must preserve the canonical model/binding bundle");
+            "Protocol-v8 pose-program extension must preserve the canonical model/binding bundle");
         h.succeed();
     }
 

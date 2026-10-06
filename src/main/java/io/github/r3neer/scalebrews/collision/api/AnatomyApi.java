@@ -17,8 +17,8 @@ import net.minecraft.world.phys.Vec3;
 public final class AnatomyApi {
     private AnatomyApi() {}
 
-    /** v7 adds revision-local neutral numeric programs to the authoritative catalog bundle. */
-    public static final int PROTOCOL_VERSION = 7;
+    /** v8 adds complete finite predicate tables referencing revision-owned numeric programs. */
+    public static final int PROTOCOL_VERSION = 8;
     /** Canonical collision binding/policy data schema understood by this API generation. */
     public static final int DATA_SCHEMA_VERSION = 1;
 
@@ -35,13 +35,15 @@ public final class AnatomyApi {
         /** Exact prepared local source-pose fields needed for lossless reusable pose semantics. */
         SOURCE_POSE,
         /** Validated numeric DAG resources bound to one exact accepted catalog revision. */
-        NUMERIC_POSE_PROGRAMS
+        NUMERIC_POSE_PROGRAMS,
+        /** Complete typed finite predicate tables, atomically owned by the accepted revision. */
+        FINITE_POSE_PROGRAMS
     }
 
     private static final long CAPABILITIES = mask(Capability.CONTACTS, Capability.CLEARANCE, Capability.RAYCAST,
         Capability.GRAVITY_FRAME, Capability.ROOT_TRANSPORT, Capability.SERVER_AUTHORITY,
         Capability.ENGINE_REGISTRY, Capability.VERSIONED_BINDINGS, Capability.BODY_ADAPTERS,
-        Capability.SOURCE_POSE, Capability.NUMERIC_POSE_PROGRAMS);
+        Capability.SOURCE_POSE, Capability.NUMERIC_POSE_PROGRAMS, Capability.FINITE_POSE_PROGRAMS);
     private static final AnatomyBackend BACKEND = loadBackend();
 
     private static AnatomyBackend loadBackend() {

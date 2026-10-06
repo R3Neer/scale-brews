@@ -4042,3 +4042,58 @@ one-offs sustituidos retirados, caches/builds/worlds conservados. Commit local
 Sprint:S59 con INDEX/HEAD bytes exactos antes de siguiente sprint. Sin Tiny ni
 suites ajenas, sin benchmark TPS/zero allocation ni actor/root/flags/FULL claim.
 G6general/G7-G9 continúan abiertos y QA humana al final de epica.
+
+### S60 candidata IMPLEMENTER - campana independiente pendiente
+
+Fundamentos scoped reusados tras S00 previo:112raw verificados por hash, sin rerun
+historico. Nueva tabla/engine/export/catalog transfer protocol8 siguen UNPROVEN
+hasta campana. Build44s, testCompile3s y buildfinal16s PASS. Servidor focal PASS31s,
+19/19 tests (S60FiniteCatalogTests/S57NumericCatalogTests/S04G1IntegrationTests):
+400 evaluaciones,3 lookups bind/0 hot; all-row/schema/model admission, caps,
+revision isolation, rollback, canonical bundle y negotiation protocol8/schema1.
+
+Cliente focal PASS26s: BabyTurtle normal+alias real y Cow;9assignments,
+252 matrices originales/104cubos de material. Seam S59 PASS140matrices/72cubos;
+DTO/captura semanticamente exactos al S59 cerrado. Common fresh JVM PASS,
+252matrices/maxDelta3.8743e-7, veto clases cliente y0 hotlookups. No actor source,
+world root, flags/layers/material inclusion, physical selector/species/FULL claim.
+
+Manifest ordinario113server/34client restaurado, sin ejecutarlo;381 productivos
+(265Java/116recursos),372previos byte intactos. JAR bf0eb5e710b9a912235fe30dcec0fa79a17eb4e5fa182c6f6bd61662e983c8d8,
+804entries/1359037bytes;607 compiled prod classes exactos,603GameTests sin leak.
+Dos reviews propias completas cero cambios pendientes; main b5e62535 vigente.
+Receipt docs/evidence/S60/implementation-verification.json SHA256
+3d1d5183cf558e52ff0c55a7dd3a546dc23a9e2c8e4a914e4b4547d2ec1949cc.
+Pruebas seleccionadas por fronteras modificadas, sin Tiny Mounts/fullserver/
+fullclient ni repeticion de sensibilidades anteriores verdes. G6general/G7-G9
+siguen abiertos; necesidades humanas al final de epica.
+
+### S60 cierre adversarial scoped
+
+ADVERSARY PASS: BabyTurtle original4assignments/2aliases/40samples,280matrices/
+80cubos, limpio1m34s. Common fresh clientVeto201362asserts/280matrices,200k evals,
+32masks, exact +0/1, inactive arithmetic absent only when selected, detachedBound,
+0resourceAfterBind. Catalog/codec real PASS140matrices/272asserts,6malformed
+rollback, exact binding IDs/cache100, map4096/4097 y reader4097 con0aperturas.
+Metadata-only export PASS9: fields distintos de input.0 y union64/65. Seis shadow
+mutants killed: signed-zero/mask-order/resource-capture/field-alias/union-budget/
+inactive-eager; sin rerun de sensibilidades antiguas verdes. Un ADVERSARY_FIXTURE
+IdentifierException/catch corrigio solo el fixture; candidate ya rechazaba el ID.
+
+Root replay publico common280/201362 y catalog140/272 PASS; snapshots publicos
+8filas y propios9assignments sample3 generados/vistos. Formas/bases y centros N/C
+coinciden; propios PNG reproducibles byte exactos. No GPU/world root/material
+inclusion claim; juntas de espesor0 solo orientation bases. Drivers publicos
+limpiaron docstrings/line endings; AST ejecutable/texto Java iguales, sources
+anteriores guardados, sin rerun verde por esos cambios. Manifiesto ordinario113/
+34 restaurado sin fullsuite. Produccion381(265Java/116resources),372previos byte
+iguales;607compiled classes/JAR bf0eb5e7 exactos,603GameTests sin leak.
+
+Receipts: adversarial d80c6cc1ded897038112825f10ecc92e8b4070d8db5cb92c21d9834f269d7894,
+60raw/13publicSources; root final 78b7c9904e8cce9a4884283b85aa3f118c5d25eb0434273757e2886c504c60ab,47raw.
+Initial root candidate3d1d5183 archivada intacta. Dos reviews completas finales
+cero cambios productivos pendientes. S60 requiere commit local Sprint:S60,
+INDEX/HEAD raw bytes exactos y arbol limpio antes de avanzar. Ningun Tiny Mounts,
+fullserver/fullclient ni suites ajenas repetidas. G6general/G7-G9 abiertos;
+actor input source/continuidad/root/flags/layers/material/FULL sin certificar y
+necesidades humanas al final de epica.
