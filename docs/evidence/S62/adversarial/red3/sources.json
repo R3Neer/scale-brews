@@ -1,0 +1,5 @@
+{
+  "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+  "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "455c873cb708bd7a5a9ed73b2068e38f75eb6bf000faf90a26186da620c0ac35",
+  "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "36c8334a60a9530637f14c8cce0fd7191815cfe8f59088203c8af38e1f4beb91"
+}

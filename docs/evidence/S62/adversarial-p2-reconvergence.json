@@ -1,0 +1,28 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S62",
+  "stage": "P2_PLAN_RECONVERGENCE",
+  "status": "CONVERGED_GUARD_CANDIDATE_UNPROVEN",
+  "previousS00ReceiptSha256": "72ce49281c2670bd604b41926e38a69f7a67549077cecafb845aa9f0d9ed51a9",
+  "planAtReviewSha256": "09278f59fc4b419629c8dba454a4b0cd478f057d271f65745ef47da674289e89",
+  "candidateBeforeGuardHashes": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "a2a4eb0d866dc797358f26ac73ce91777dc493e19128057e7e41c4728f3caf50",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "167d74645b6b502f7edfac4ae7658f9ee0c5a420bde238b07f5c07adf278d7fe",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee"
+  },
+  "reviews": 2,
+  "pendingPlanDefects": 0,
+  "GradleExecuted": false,
+  "productionChangedByAdversary": false,
+  "requirements": [
+    "NFR-015",
+    "FR-077",
+    "NFR-004"
+  ],
+  "limits": [
+    "Accepts explicit server-thread admission and reentrancy confinement contract only",
+    "Guard not implemented or executed in this review",
+    "Source clock/frame/tracker candidate acceptance remains pending independent campaign",
+    "No private cases revealed"
+  ]
+}

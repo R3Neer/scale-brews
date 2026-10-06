@@ -1,0 +1,53 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S62",
+  "status": "RED_PRODUCTION_FAILURE_RETIREMENT",
+  "requirements": [
+    "NFR-004",
+    "NFR-015"
+  ],
+  "positiveControls": [
+    "ordinary baseline before failure",
+    "public current/locomotion absent during getter callback",
+    "RuntimeException retires both public values and same-tick recovery succeeds",
+    "clock advance reentrancy rejected",
+    "RED1/RED2 fixed oracles pass",
+    "1440 original-method evolution cases still pass"
+  ],
+  "fault": "getXRot throws injected AssertionError after clock advance, before tracker commit",
+  "actual": "current retains preceding tick inputs after Error propagates",
+  "expected": "Retire public frame/inputs on delegated failure without swallowing original Error",
+  "compile": "PASS",
+  "reportedSeconds": 25,
+  "runtimeExit": 1,
+  "requiredTests": 7,
+  "failedRequiredTests": 1,
+  "artifacts": {
+    "docs/evidence/S62/adversarial/red3/AuthorityPoseTracker.java": {
+      "sha256": "36c8334a60a9530637f14c8cce0fd7191815cfe8f59088203c8af38e1f4beb91",
+      "bytes": 7766
+    },
+    "docs/evidence/S62/adversarial/red3/executed-oracle.java.txt": {
+      "sha256": "99a136520fcaa478cf36c883289c5af30a49edb687feed2c0d375cd1422106c8",
+      "bytes": 3082
+    },
+    "docs/evidence/S62/adversarial/red3/LivingLocomotionClock.java": {
+      "sha256": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+      "bytes": 6164
+    },
+    "docs/evidence/S62/adversarial/red3/LivingPoseInputSource.java": {
+      "sha256": "455c873cb708bd7a5a9ed73b2068e38f75eb6bf000faf90a26186da620c0ac35",
+      "bytes": 8972
+    },
+    "docs/evidence/S62/adversarial/red3/publication-first.log": {
+      "sha256": "281870f0802e5e2816cc19d43959f9316dc8dd5836a92c0ecb4dfec985e356f9",
+      "bytes": 70515
+    },
+    "docs/evidence/S62/adversarial/red3/sources.json": {
+      "sha256": "3247376bfaa9f86fb9df62e8538e19510f89f1304a425eca2071a2f555a8858d",
+      "bytes": 482
+    }
+  },
+  "oracleSha256": "99a136520fcaa478cf36c883289c5af30a49edb687feed2c0d375cd1422106c8",
+  "productionChangesByAdversary": 0
+}

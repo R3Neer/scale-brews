@@ -1,0 +1,25 @@
+{
+  "role": "IMPLEMENTER",
+  "sprint": "S62",
+  "pass": 1,
+  "scope": "entire production candidate against converged authority/lifecycle/float/source contract; packaging and independent campaign still pending",
+  "productionSources": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "041b2ea7f05309923115648dd4ca90a098d9fb8899032de6899991399273d980",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "455c873cb708bd7a5a9ed73b2068e38f75eb6bf000faf90a26186da620c0ac35",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19"
+  },
+  "checks": [
+    "single private WalkAnimationState in existing weak-key actor State; no new global clock map",
+    "private Frame constructor, exact actor/Level/tick/current/generation fences and server-thread admission",
+    "same normal tick identity, discontinuity rebase, own tangential delta excluding applied transport, native ScaleGait arithmetic",
+    "Source staged all-or-absent validates before and after all getters; original supplied path unchanged",
+    "tracker staged commit, sampling invisibility/reentrance and propagated RuntimeException/Error retirement; rejected rewind pre-mutation",
+    "381 previous production owners byte intact; finite source vocabulary, catalog/wire/main gameplay boundaries unchanged"
+  ],
+  "productionChangesRequired": 0,
+  "openVerification": [
+    "adversarial final campaign/mutations",
+    "final ordinary-manifest restoration and package byte proof",
+    "final canonical docs consistency review and INDEX/HEAD raw commit verification"
+  ]
+}

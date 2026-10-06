@@ -1,0 +1,27 @@
+{
+  "scope": "New S62 clock mutants only; no repeated historical sensitivity",
+  "results": [
+    {
+      "name": "omit-gait",
+      "candidateSha256": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+      "mutantSourceSha256": "f7b10bf932079475e43586dde6ad45ada6e07a90bf72941646244242ab42affe",
+      "compileExit": 0,
+      "killed": true,
+      "runtimeExit": 1,
+      "seconds": 23.436999999918044,
+      "witness": "S62 ADV native phase",
+      "compiledOutputRestored": true
+    },
+    {
+      "name": "double-tick",
+      "candidateSha256": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+      "mutantSourceSha256": "d7e0f28422cab11da4aef0216e7e52baf816718b350e126a1e71168e0b8a3e46",
+      "compileExit": 0,
+      "killed": true,
+      "runtimeExit": 1,
+      "seconds": 25.483999999938533,
+      "witness": "S62 ADV same tick advanced",
+      "compiledOutputRestored": true
+    }
+  ]
+}

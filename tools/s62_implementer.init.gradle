@@ -1,0 +1,26 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+    tasks.register('s62CommonClasspath') { doLast {
+        file('../s62-impl-classpath.txt').text=sourceSets.main.runtimeClasspath.asPath
+    } }
+    loom.runs.configureEach { runDir=file('../s62-impl-run').absolutePath }
+    tasks.named('processGametestResources') { outputs.upToDateWhen {false}; doLast {
+        def manifest=new File(destinationDir,'fabric.mod.json');def meta=new JsonSlurper().parse(manifest)
+        meta.entrypoints['fabric-gametest']=[
+            'io.github.r3neer.scalebrews.collision.pose.S62LocomotionClockTests',
+            'io.github.r3neer.scalebrews.collision.pose.S61LivingInputTests',
+            'io.github.r3neer.scalebrews.collision.runtime.TransportLedgerTests',
+            'io.github.r3neer.scalebrews.collision.internal.S48AdversarialLiveLifecycleTests',
+            'io.github.r3neer.scalebrews.collision.internal.S20AdversarialPoseChannelAtomicityTests',
+            'io.github.r3neer.scalebrews.test.S00ModelTests',
+            'io.github.r3neer.scalebrews.test.ScaleGaitTests']
+        meta.entrypoints['fabric-client-gametest']=[]
+        // Runtime.stop lifecycle fixtures deactivate every Level; TTL tests require their own process.
+        if(providers.gradleProperty('s62LedgerOnly').isPresent())
+            meta.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.runtime.TransportLedgerTests']
+        else meta.entrypoints['fabric-gametest'].remove('io.github.r3neer.scalebrews.collision.runtime.TransportLedgerTests')
+        manifest.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+        copy { from 'docs/evidence/S61/implementation/native-capture/evidence.json'; into '../s62-impl-run/s61-implementation' }
+    } }
+} }

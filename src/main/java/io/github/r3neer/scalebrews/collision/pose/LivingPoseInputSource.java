@@ -81,9 +81,24 @@ public final class LivingPoseInputSource {
 
         /** No retained entity/clock/renderer or partial publication on a required-input failure. */
         public Optional<Map<String, Float>> sample(LivingEntity entity) {
+            return project(entity, null);
+        }
+
+        /** Explicit server clock path. Invalid/retired authority never falls back to presentation walk. */
+        public Optional<Map<String, Float>> sample(LivingEntity entity, LivingLocomotionClock.Frame frame, long authorityTick) {
             if (entity == null || entity.getClass() != actor) return Optional.empty();
             try {
-                var scratch = new Scratch(entity);
+                if (frame == null || !frame.validFor(entity, authorityTick)) return Optional.empty();
+                var staged = project(entity, frame);
+                if (staged.isEmpty() || !frame.validFor(entity, authorityTick)) return Optional.empty();
+                return staged;
+            } catch (RuntimeException failure) { return Optional.empty(); }
+        }
+
+        private Optional<Map<String, Float>> project(LivingEntity entity, LivingLocomotionClock.Frame frame) {
+            if (entity == null || entity.getClass() != actor) return Optional.empty();
+            try {
+                var scratch = new Scratch(entity, frame);
                 var staged = new LinkedHashMap<String, Float>(names.length);
                 for (int i = 0; i < names.length; i++) {
                     float value = scratch.value(sources[i]);
@@ -101,11 +116,12 @@ public final class LivingPoseInputSource {
     private static final class Scratch {
         private static final int SOURCE_COUNT = Source.values().length;
         private final LivingEntity entity;
+        private final LivingLocomotionClock.Frame frame;
         private final float[] values = new float[SOURCE_COUNT];
         private int computed;
         private boolean walkingKnown, walking, headKnown;
         private float head;
-        Scratch(LivingEntity entity) { this.entity = entity; }
+        Scratch(LivingEntity entity, LivingLocomotionClock.Frame frame) { this.entity = entity; this.frame = frame; }
         private float flag(boolean value) { return value ? 1f : 0f; }
         private boolean walking() {
             if (!walkingKnown) { walking = !entity.isPassenger() && entity.isAlive(); walkingKnown = true; }
@@ -120,8 +136,8 @@ public final class LivingPoseInputSource {
             if ((computed & bit) != 0) return values[index];
             float result = switch (source) {
                 case AGE_IN_TICKS -> (float) entity.tickCount + 1f;
-                case WALK_POSITION -> walking() ? entity.walkAnimation.position(1f) : 0f;
-                case WALK_SPEED -> walking() ? entity.walkAnimation.speed(1f) : 0f;
+                case WALK_POSITION -> walking() ? (frame == null ? entity.walkAnimation.position(1f) : frame.position()) : 0f;
+                case WALK_SPEED -> walking() ? (frame == null ? entity.walkAnimation.speed(1f) : frame.speed()) : 0f;
                 case X_ROT -> {
                     float pitch = entity.getXRot(1f);
                     yield value(Source.IS_UPSIDE_DOWN) == 1f ? pitch * -1f : pitch;

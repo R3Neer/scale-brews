@@ -316,6 +316,24 @@ TRUSTED solo proyeccion/read-only original partial1 tras36muestras nativas/
 504bits/168matrices, common clientVeto/alias counters y7kills semanticos.
 No certifica root, inclusion, continuidad, transformed bytecode ni FULL.
 
+S62 cierra scoped el owner privado LivingLocomotionClock del State existente
+por actor. Usa WalkAnimationState common original con ScaleGait vigente y delta
+propio tangencial, restando transporte aplicado; entity.walkAnimation permanece
+intacto. Frame privado revocable por actor/Level/tick/generation/current owner,
+con confinement de servidor; lecturas no evolucionan. Source explicita valida
+admision y commit despues de todos los getters; tracker prepara inputs staged,
+valida al commit y oculta estado publico durante sampling/reentrancia. Fallos
+RuntimeException/Error del tracker retiran inputs/frame antes de propagarse.
+TRUSTED solo ley base Living y esta proyeccion explicita tras diferencial nativo
+Cow/Pig adulto/baby, escalas/gravedades/barriers y dos sensibilidades nuevas.
+El caller trusted suministra authority tick: no prueba scheduling universal,
+overrides ajenos ni omnidirectionalAirMover. No registro automatico, nuevas
+familias FULL, root/material o integracion G6 completa. El overload supplied S61
+sigue read-only y no certifica evolucion server-side de entity.walkAnimation.
+HOT_TICK O(1)+historia ledger<=64; sample O(C<=64) con allocations S61. Ledger
+mantiene monitor static global: commit tracker agrega una generation query y
+Source dos por muestra valida, nunca por canal. Sin nuevo monitor ni claim TPS.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

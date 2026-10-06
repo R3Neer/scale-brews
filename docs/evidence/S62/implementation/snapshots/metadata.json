@@ -1,0 +1,20 @@
+{
+  "role": "IMPLEMENTER",
+  "sprint": "S62",
+  "captureSha256": "b93ff39cc3614d122d24eb0f318e624067db0032c10ce2b01b146d1c4a0fa824",
+  "dimensions": [
+    2000,
+    1550
+  ],
+  "steps": [
+    0,
+    31
+  ],
+  "sharedPhaseMaximum": 154.08509600000002,
+  "sharedSpeedMaximum": 1,
+  "groups": 20,
+  "samples": 640,
+  "projection": "scalar temporal curves; fixed axes for all reference/candidate panels",
+  "limits": "Not geometry/render/root/material/TPS proof",
+  "pngSha256": "e89f59fc3aced4af4cc88c7dcdc21fbd86062b68fe075633983374d20fcd8c20"
+}

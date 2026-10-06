@@ -626,6 +626,21 @@ de evolucion del clock, integracion/runtime/root/inclusion/continuidad/FULL.
 necesidades humanas al final de epica. Commit local propio Sprint:S61 y raw
 INDEX/HEAD exactos antes de avanzar. Sin Tiny/fullsuite ni sensibilidades antiguas.
 
+**S62 cerrado adversarialmente scoped:** reloj privado de autoridad Living
+compartido por tracker/source, ley common original con ScaleGait y delta propio
+sin transporte aplicado. Propio30/30 server, ledger aislado10/10,640muestras/
+3840bits/16000reads y52cold bindings client-veto; independiente7required,
+1440muestras/2880bits/36000samples repetidas y dos kills nuevos. RED1/RED2/RED3
+reparados sin modificar oracles; publication gates/getter-failure retirement y
+reentrancia verificados. Build/JAR/manifest ordinario restaurado PASS;
+619clases empaquetadas exactas,381owners anteriores y609clases previas intactas.
+TRUSTED solo evolucion base/private frame y proyeccion explicita; no wiring,
+overrides externos, root/material, scheduling universal ni nueva familiaFULL.
+Baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL permanece; G6 tareas2-6/
+G7-G9 abiertos. Commit local propio Sprint:S62 y raw INDEX/HEAD antes de avanzar.
+Por instruccion vigente del propietario la ejecucion se detiene al cerrar S62,
+sin iniciar siguiente sprint. Detalle/evidencia en el sprint y VALIDATION.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

@@ -4160,3 +4160,95 @@ historica ajena repetida. Recibo independiente7de774cd fijado; recibo propio
 b006ae72 al review preservado como verification-reviewed-candidate.json.
 Cierre requiere commit local propio Sprint:S61, INDEX/HEAD raw y arbol limpio
 antes de siguiente sprint. G6general/G7-G9 siguen abiertos y QA humana al final.
+
+
+### S62 IMPLEMENTER - candidata de reloj autoritativo (campana independiente pendiente)
+
+Base local c8689372; main fetch b5e62535 actual/ancestro. S00 scoped verifica
+383 owners y168raw S61, con recibos propios/independientes bajo docs/evidence/S62.
+Plan convergido y P1 locking/P2 confinement documentados antes de cambios respectivos.
+No se considera esta candidata cierre adversarial ni FULL.
+
+JDK25 ms-25.0.3, JAVA_TOOL_OPTIONS=-Djava.net.preferIPv4Stack=true, Gradle offline,
+output ../s62-impl-build, run ../s62-impl-run, init tools/s62_implementer.init.gradle.
+Comandos ejecutados:
+
+- build -x runGameTest compileGametestJava s62CommonClasspath: PASS40s antes de P2;
+  no se afirma artefacto final despues de guards.
+- runGameTest, primera lane mixta: FAIL26s,36/38. S62 native640muestras/
+  3840raw-bit scalars/16000repeated checks, lifecycle y tracker PASS. Dos TTL
+  ledger pierden entradas despues de AnatomyRuntime.stop(server) de S48, que
+  desactiva todos los Levels. Clasificacion TOOL/ISOLATION F1; sources/capture/logs
+  originales preservados attempt1; no asserts historicos ni ledger modificados.
+- runGameTest despues de P2, lane sin ledger TTL: PASS20s,29/29. Tres tests nuevos
+  S62, reader S61, lifecycle S48/rebind, transaccion adapter S20, provider S00 y
+  ScaleGait. Native640/3840bits/16000reads y S61 supplied32/544bits/640reads PASS.
+- runGameTest -Ps62LedgerOnly=true, proceso separado: PASS15s,10/10 (9ledger+
+  Minecraft always_pass). Confirma la interferencia de teardown en la lane mixta.
+- tools/s62_implementer_common.py ../s62-impl-classpath.txt ../s62-impl-common:
+  PASS52cold bindings/client class veto/absence/private Frame/weak owner fields;
+  originalActorExecution=false, no fuente de autoridad runtime inferida del cold.
+- tools/s62_implementer_snapshots.py sobre native/evidence.json: temporal20paneles
+  referencia native transformada/candidata,640samples, fixed ticks0..31 y axes
+  phase154.085096/speed1. PNG generado/visto con curvas coincidentes; no GPU,
+  geometria/root/inclusion/material/TPS claim. Metadata/sha bajo implementation/snapshots.
+
+Native oracle ejecuta Living.calculateEntityAnimation(false) REAL transformado con
+ScaleGait sobre Cow/Pig adultos/babies,5escalas,32pasos. El control recibe delta
+propio, sin transporte; no se copia formula esperada ni se presume igualdad con
+cliente que incluye carry. Reloj de presentacion del actor queda NaN sin lectura/
+reescritura por nueva autoridad. Tangente lateral se compara tambien con helper
+native3D explicito. No certifica override ajeno ni todas las familias.
+
+Recibo candidato implementation/verification.json y raw byte-preserved. Coste:
+ledger tiene monitor static global; nueva admision hace una lectura generation
+por muestra, no canal. Clock/queries no introducen scans/parser/reflection y
+ownership debil no retiene actor/Level; no presupuesto20TPS sin G9. Sin Tiny
+ajeno/fullsuite ni repeticiones de antiguos mutants verdes. Empaquetado final,
+campana independiente, reviews y commit S62 pendientes. G6 cobertura y G7-G9 abiertos.
+
+
+S62 reparaciones de candidata ejecutadas (IMPLEMENTER): RED1 frame retirado
+por getter se rechaza al commit de Source, mapa completo ausente;29/29 PASS21s.
+RED2 adapter retira generation: tracker staged valida al commit, ordinary=false;
+guard State.sampling oculta provisional/previo y rechaza reentrancia;30/30 PASS29s.
+RED3 getter AssertionError propagado dejaba inputs previos visibles: limpiar
+estado publico para RuntimeException y Error antes de propagacion;30/30 PASS38s.
+Oracles adversariales permanecen intactos; sus resultados independientes pertenecen
+a los recibos del ADVERSARY. Common final52coldbindings PASS con veto cliente,
+sin ejecucion de actor real. Logs/captura postRED3 preservados en implementation.
+Ledger inmutable desde su10/10 PASS15s; ninguna Tiny/full suite adicional.
+Coste final corrige candidata inicial: dos generation monitor global por sample
+valido de Source (admision/commit) y una nueva en tracker despues de getters;
+no por canal. Guard sampling no agrega monitor. Artifact/campana/cierre pendientes.
+
+
+S62 packaging final IMPLEMENTER ejecutado: processGametestResources --rerun-tasks
+sin init focal PASS2s; build -x runGameTest compileGametestJava --offline con
+scalebrewsBuildDir=../s62-impl-build PASS6s. Manifest ordinario113server/34client
+byte-equivalente en entrypoints al fuente. JAR7c1fd5a0c242851db0e287871e7c9b4d09c65ab90a0cf7d6f3ab80561e5a4d40,
+1385341bytes/816entries;619clases main/client iguales a compiled outputs,
+620clases GameTest comparadas sin leaks. 384productivos/381anteriores byte intactos;
+609clases ajenas comparadas contra JAR S61 intactas. Recibo final-package.json
+fija lista de owners/hash y stats. No full CI/Tiny suite repetida ni instalacion.
+
+
+### S62 cierre adversarial scoped
+
+Baseline independiente final7required (6S62+harness) PASS21s/exit0/salida limpia.
+Cow/Pig adulto/baby x5scales x6gravity x12steps1440samples/2880bits y36000relecturas;
+referencia original transformada, entity.walkAnimation intacto. Transporte manual
+aplicado al ledger: no contacto/paquete real ni sincronizacion server/client.
+RED1/RED2/RED3 reparados con oracles intactos. Solo dos mutantes NUEVOS clock,
+omit-gait/double-tick: compile0/runtime1 con witnesses semanticos, killed2/2,
+outputs shadow restaurados exactamente. Ninguna sensibilidad verde anterior repetida.
+Snapshot4grupos/48filas phase/speed maxDelta0 generado/visto por adversario y
+revisado por implementador; PNG61020dba y SVG7fb19196, sin claim GPU/root/material.
+Dos pasadas finales por rol cero cambios productivos. Recibos
+[adversarial](evidence/S62/adversarial-verification.json) y
+[propio](evidence/S62/implementation/verification.json) fijan scope/fuentes/raw.
+384owners/381anteriores y8publicSources/36raw independientes verificados contra bytes;
+raw propio verificado. G6 tareas2-6/G7-G9/cobertura93Living/92UNRESOLVED+
+1fixtureSAFE_PARTIAL/0FULL no cambian. QA humana permanece para final de epica.
+Cierre por commit local propio Sprint:S62, verificar raw INDEX/HEAD y arbol limpio.
+Instruccion vigente del propietario: PARAR al cerrar S62; no siguiente sprint.

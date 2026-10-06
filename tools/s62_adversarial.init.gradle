@@ -1,0 +1,24 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+    loom.runs.configureEach { runDir=file(providers.gradleProperty('s62RunDir').getOrElse('../s62-adversarial-run')).absolutePath }
+    tasks.named('processGametestResources') { outputs.upToDateWhen {false}; doLast {
+        def target=new File(destinationDir,'fabric.mod.json')
+        def meta=new JsonSlurper().parse(target)
+        def selected=providers.gradleProperty('s62Classes')
+        meta.entrypoints['fabric-gametest']=selected.isPresent() ? selected.get().split(',').collect{it.trim()} : ['io.github.r3neer.scalebrews.collision.pose.S62AdversarialFrameAdmissionTests','io.github.r3neer.scalebrews.collision.pose.S62AdversarialClockEvolutionTests','io.github.r3neer.scalebrews.collision.pose.S62AdversarialTrackerCommitTests','io.github.r3neer.scalebrews.collision.pose.S62AdversarialPublicationTests']
+        target.text=JsonOutput.prettyPrint(JsonOutput.toJson(meta))
+    } }
+    tasks.register('s62CommonClasspath') { doLast {
+        def output=file(providers.gradleProperty('s62ClasspathFile').getOrElse('../s62-adversarial-classpath.txt'))
+        output.parentFile.mkdirs();output.text=sourceSets.main.runtimeClasspath.asPath
+    } }
+    tasks.named('runGameTest') { doFirst {
+        def shadow=providers.gradleProperty('s62ShadowClasses')
+        if(shadow.isPresent()) {
+            def destination=sourceSets.main.output.classesDirs.singleFile
+            assert destination.toPath().toAbsolutePath().normalize().startsWith(layout.buildDirectory.get().asFile.toPath().toAbsolutePath().normalize())
+            copy {from file(shadow.get());into destination;include '**/*.class'}
+        }
+    } }
+} }

@@ -1,0 +1,123 @@
+Compiled from "WalkAnimationState.java"
+public class net.minecraft.world.entity.WalkAnimationState {
+  private float speedOld;
+
+  private float speed;
+
+  private float position;
+
+  private float positionScale;
+
+  public net.minecraft.world.entity.WalkAnimationState();
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: fconst_1
+         6: putfield      #7                  // Field positionScale:F
+         9: return
+
+  public void setSpeed(float);
+    Code:
+         0: aload_0
+         1: fload_1
+         2: putfield      #13                 // Field speed:F
+         5: return
+
+  public void update(float, float, float);
+    Code:
+         0: aload_0
+         1: aload_0
+         2: getfield      #13                 // Field speed:F
+         5: putfield      #16                 // Field speedOld:F
+         8: aload_0
+         9: dup
+        10: getfield      #13                 // Field speed:F
+        13: fload_1
+        14: aload_0
+        15: getfield      #13                 // Field speed:F
+        18: fsub
+        19: fload_2
+        20: fmul
+        21: fadd
+        22: putfield      #13                 // Field speed:F
+        25: aload_0
+        26: dup
+        27: getfield      #19                 // Field position:F
+        30: aload_0
+        31: getfield      #13                 // Field speed:F
+        34: fadd
+        35: putfield      #19                 // Field position:F
+        38: aload_0
+        39: fload_3
+        40: putfield      #7                  // Field positionScale:F
+        43: return
+
+  public void stop();
+    Code:
+         0: aload_0
+         1: fconst_0
+         2: putfield      #16                 // Field speedOld:F
+         5: aload_0
+         6: fconst_0
+         7: putfield      #13                 // Field speed:F
+        10: aload_0
+        11: fconst_0
+        12: putfield      #19                 // Field position:F
+        15: return
+
+  public float speed();
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field speed:F
+         4: freturn
+
+  public float speed(float);
+    Code:
+         0: fload_1
+         1: aload_0
+         2: getfield      #16                 // Field speedOld:F
+         5: aload_0
+         6: getfield      #13                 // Field speed:F
+         9: invokestatic  #22                 // Method net/minecraft/util/Mth.lerp:(FFF)F
+        12: fconst_1
+        13: invokestatic  #28                 // Method java/lang/Math.min:(FF)F
+        16: freturn
+
+  public float position();
+    Code:
+         0: aload_0
+         1: getfield      #19                 // Field position:F
+         4: aload_0
+         5: getfield      #7                  // Field positionScale:F
+         8: fmul
+         9: freturn
+
+  public float position(float);
+    Code:
+         0: aload_0
+         1: getfield      #19                 // Field position:F
+         4: aload_0
+         5: getfield      #13                 // Field speed:F
+         8: fconst_1
+         9: fload_1
+        10: fsub
+        11: fmul
+        12: fsub
+        13: aload_0
+        14: getfield      #7                  // Field positionScale:F
+        17: fmul
+        18: freturn
+
+  public boolean isMoving();
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field speed:F
+         4: ldc           #34                 // float 1.0E-5f
+         6: fcmpl
+         7: ifle          14
+        10: iconst_1
+        11: goto          15
+        14: iconst_0
+        15: ireturn
+}

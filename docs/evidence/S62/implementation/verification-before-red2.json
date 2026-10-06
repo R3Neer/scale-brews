@@ -1,0 +1,144 @@
+{
+  "role": "IMPLEMENTER",
+  "sprint": "S62",
+  "status": "RED1_REPAIRED_OWN_AFFECTED_BATTERY_PASS_INDEPENDENT_RECHECK_PENDING",
+  "baseline": "c8689372d04250f8dd3454e1e2ca14a98e224285",
+  "productionSources": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "455c873cb708bd7a5a9ed73b2068e38f75eb6bf000faf90a26186da620c0ac35",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19"
+  },
+  "publicSources": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "455c873cb708bd7a5a9ed73b2068e38f75eb6bf000faf90a26186da620c0ac35",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+    "src/gametest/java/io/github/r3neer/scalebrews/collision/pose/S62LocomotionClockTests.java": "45012c31376c09a996cd952bc5e70ce7fd436efcb572f9eac17f49fa4dafc9c8",
+    "tools/s62_implementer.init.gradle": "aa4c5973b3d3cec6dd264f54d83ed265f9124e6b5357cd5c30991803bb0e717d",
+    "tools/s62_implementer_common.py": "d9865b392392a3043fb6583418658db25d23c96309b5819386eb93419bca2d49",
+    "tools/s62_implementer_snapshots.py": "2d2d8a898bffd799a7fd8c6776b22e5cfbc911ba9d7defbbe0e84548a5b68543",
+    "tools/s62-implementer-common/S62Bootstrap.java": "dd0e98b08eed929fa37ee828b6b442c1776d068933f8e8c04f8f1d562d444e8f",
+    "tools/s62-implementer-common/S62Common.java": "83ab63890987bdaedf31b9ef84be8a04138217e19a071c516cbd715ceb0ebf53"
+  },
+  "unchangedPreviousOwners": 381,
+  "checks": {
+    "initialBuild": "PASS40s before P2; not final artifact proof",
+    "nativeServer": "640samples/3840raw-bit scalars/16000same-tick and read checks, transformed native Living.calculateEntityAnimation helper",
+    "focalServer": "29/29 PASS20s after P2; includes3new S62, S61 reader, S48 lifecycle, S20 adapter, S00 provider, ScaleGait",
+    "ledgerIsolated": "10/10 PASS15s includes9ledger+Minecraft always_pass",
+    "freshCommon": "52cold bindings with client class veto; ownership/absence only; originalActorExecution=false",
+    "snapshot": "20panels phase/speed fixed axes; native/candidate temporal overlay generated and viewed",
+    "postRed1AffectedServer": "29/29 PASS21s; native640/3840bits/16000reads and supplied32/544bits/640reads"
+  },
+  "failures": [
+    {
+      "id": "P1",
+      "class": "PLAN/COST",
+      "reason": "ledger monitor is static global, not local locking",
+      "fix": "document one global generation access per frame source, bounded historical since; no TPS claim"
+    },
+    {
+      "id": "P2",
+      "class": "PLAN_REFINEMENT",
+      "reason": "authority thread and reentrance were implicit preconditions",
+      "fix": "converged independent refinement, explicit guards before mutation/frame read"
+    },
+    {
+      "id": "F1",
+      "class": "TOOL_ISOLATION",
+      "result": "mixed first lane36/38; two ledger TTL assertions failed after S48 stop(server) erased all level state",
+      "fix": "run unchanged TTL ledger tests in separate process; both affected lanes repeated after P2 and pass"
+    },
+    {
+      "id": "RED1",
+      "class": "IMPLEMENTATION_FR082_NFR015",
+      "reason": "generation invalidated inside a getter was not checked at commit, published a retired frame map",
+      "fix": "frame gate before and after projection; entire map absent if retired; oracle intact; independent retest pending"
+    }
+  ],
+  "cost": "one private WalkAnimationState/participant actor; one Frame/tick; no actor/Level strong fields; clock O(1)+ledger<=64, generation/since existing global monitor; source O(C<=64)+map/scratch/boxing+two additional global generation monitor accesses/valid sample (admission/commit), never per channel; getters original data dependent; no TPS/zero-allocation claim",
+  "limits": [
+    "base Living walk law only, no foreign override or omnidirectional coverage",
+    "gravity-tangential own delta intentionally differs from raw client world displacement including passive transport",
+    "no automatic bindings/adapters/pose source registration/catalog/wire/root/material/FULL/global gate closure",
+    "native actor execution occurs only dedicated Minecraft lane, not fresh common cold JVM",
+    "final artifact build and independent campaign/reviews pending"
+  ],
+  "artifacts": {
+    "docs/evidence/S62/implementation/attempt1/AuthorityPoseTracker.java": {
+      "sha256": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+      "bytes": 6433
+    },
+    "docs/evidence/S62/implementation/attempt1/LivingLocomotionClock.java": {
+      "sha256": "a2a4eb0d866dc797358f26ac73ce91777dc493e19128057e7e41c4728f3caf50",
+      "bytes": 5448
+    },
+    "docs/evidence/S62/implementation/attempt1/LivingPoseInputSource.java": {
+      "sha256": "167d74645b6b502f7edfac4ae7658f9ee0c5a420bde238b07f5c07adf278d7fe",
+      "bytes": 8830
+    },
+    "docs/evidence/S62/implementation/attempt1/native-evidence.json": {
+      "sha256": "9de449c324d6b12c85fab3d28da27221a80a9f9be2380b3205f1a4936a6b2c35",
+      "bytes": 408067
+    },
+    "docs/evidence/S62/implementation/attempt1/s62-impl-build.log": {
+      "sha256": "42c531ad324a37e0596ac5d6e46cfcecd8f70ba773719378c1d89c912d7a2d92",
+      "bytes": 178981
+    },
+    "docs/evidence/S62/implementation/attempt1/s62-impl-server.log": {
+      "sha256": "19efc2b57362014b6c98dcdde6cba95c11bc8dc95c2f85d84acd8704334e6921",
+      "bytes": 13046
+    },
+    "docs/evidence/S62/implementation/attempt1/s62_implementer.init.gradle": {
+      "sha256": "2201dc6acead7bcea09752be3aee9fb174b5e5b2e3736a9a02a50634e688dee7",
+      "bytes": 1381
+    },
+    "docs/evidence/S62/implementation/attempt1/S62LocomotionClockTests.java": {
+      "sha256": "6b282f8b054a0d99a419bc1cb36dad336be0bdd75ab1c10d1ee231657d781444",
+      "bytes": 12234
+    },
+    "docs/evidence/S62/implementation/common/cold.log": {
+      "sha256": "5812bb07cb6df71cee10ab56ac66376176acd55d3a1396a62ce6d766d96de463",
+      "bytes": 96
+    },
+    "docs/evidence/S62/implementation/common/compile.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/evidence/S62/implementation/native/evidence-post-red1.json": {
+      "sha256": "594ce7931304d4e59db6a215bbd00dc739a5a4548f1c79e8b06d8f9276232d53",
+      "bytes": 408067
+    },
+    "docs/evidence/S62/implementation/native/evidence.json": {
+      "sha256": "b93ff39cc3614d122d24eb0f318e624067db0032c10ce2b01b146d1c4a0fa824",
+      "bytes": 408067
+    },
+    "docs/evidence/S62/implementation/s00-reuse-audit.json": {
+      "sha256": "35194822c4a2e7360491d8095dc81a0d06bd0149980dd1faab58b3b8aedd93da",
+      "bytes": 61760
+    },
+    "docs/evidence/S62/implementation/s62-impl-ledger.log": {
+      "sha256": "9c042acb914d1f11bd3c861957bc5216a0a39b7789595de9cb90d831b4ffaa56",
+      "bytes": 8940
+    },
+    "docs/evidence/S62/implementation/s62-impl-post-red1.log": {
+      "sha256": "e9fda94d7919c8c03f62573a0fe5cd89bbbfbcdb89855a4b3ec2afd12a005b92",
+      "bytes": 9663
+    },
+    "docs/evidence/S62/implementation/s62-impl-server-final.log": {
+      "sha256": "b210760488a500060b3e76d6b8e5ad3833fe348420d7ce82c0f1e5a5d624e96f",
+      "bytes": 68119
+    },
+    "docs/evidence/S62/implementation/snapshots/clock-evolution.png": {
+      "sha256": "e89f59fc3aced4af4cc88c7dcdc21fbd86062b68fe075633983374d20fcd8c20",
+      "bytes": 84940
+    },
+    "docs/evidence/S62/implementation/snapshots/metadata.json": {
+      "sha256": "f017343398659e5c4600f6a5f64ac351652b3c1f9f8b20e7d64b4ecc2d04fbef",
+      "bytes": 564
+    },
+    "docs/evidence/S62/implementation/verification-before-red1.json": {
+      "sha256": "fc48a5eb1bab1dd240147cb3ec711205236e9ce4afc141d2697994a3513a3daf",
+      "bytes": 7279
+    }
+  }
+}

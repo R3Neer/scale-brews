@@ -1,0 +1,69 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S62",
+  "status": "RED_PRODUCTION_FRAME_ADMISSION",
+  "candidateHashes": {
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingLocomotionClock.java": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+    "src/main/java/io/github/r3neer/scalebrews/collision/pose/LivingPoseInputSource.java": "167d74645b6b502f7edfac4ae7658f9ee0c5a420bde238b07f5c07adf278d7fe",
+    "src/main/java/io/github/r3neer/scalebrews/collision/internal/AuthorityPoseTracker.java": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee"
+  },
+  "oracleSha256": "17b54660fdc89060be2c05e6f4d37c1567c53c055d096254e84db64b4b8816f8",
+  "initSha256": "f6668c88fbe210e9738401353ae064fccfa3b408134439dbef71741c6b875354",
+  "positiveControl": "Frame valid/sample present before callback",
+  "negativeObservation": "Ledger generation retired during source getter; frame invalid after sample; nonempty sample still returned",
+  "actual": "Optional[{age=1.0, name=0.0}]",
+  "expected": "Optional.empty",
+  "tests": 1,
+  "compile": "PASS",
+  "runtimeExit": 1,
+  "reportedSeconds": 31,
+  "scope": "Explicit manual source on exact callback actor class, not original renderer proof",
+  "requirements": [
+    "NFR-015",
+    "FR-082",
+    "NFR-004"
+  ],
+  "artifacts": {
+    "docs/evidence/S62/adversarial/red1/attempt-first.log": {
+      "sha256": "e3624c54bcc62fad3b44fc7b02d6875218c9ac0d536ea311bc267a553bcf73b7",
+      "bytes": 663
+    },
+    "docs/evidence/S62/adversarial/red1/attempt-second.log": {
+      "sha256": "eed2a9467ddfa00f11b88fe47f8dd059c743bed839709af29a3f45d58107b5e3",
+      "bytes": 354624
+    },
+    "docs/evidence/S62/adversarial/red1/attempt-third.log": {
+      "sha256": "adf0f5618f5d57e26a7eebc864e884eba5df927afa7090a42d4e81c1981dc2fd",
+      "bytes": 185887
+    },
+    "docs/evidence/S62/adversarial/red1/AuthorityPoseTracker.java.txt": {
+      "sha256": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+      "bytes": 6433
+    },
+    "docs/evidence/S62/adversarial/red1/compile-failed-oracle.java.txt": {
+      "sha256": "98ab779afe5c109b6d7c2a8e8c9681e7bdf51e51334a9be4b4e969a3c8e3b64c",
+      "bytes": 2299
+    },
+    "docs/evidence/S62/adversarial/red1/executed-oracle.java.txt": {
+      "sha256": "17b54660fdc89060be2c05e6f4d37c1567c53c055d096254e84db64b4b8816f8",
+      "bytes": 2301
+    },
+    "docs/evidence/S62/adversarial/red1/LivingLocomotionClock.java.txt": {
+      "sha256": "dd96e9e4c475f20ec7cc2936ff15ca472a0de52f509c4cb76618563dc2bedf19",
+      "bytes": 6164
+    },
+    "docs/evidence/S62/adversarial/red1/LivingPoseInputSource.java.txt": {
+      "sha256": "167d74645b6b502f7edfac4ae7658f9ee0c5a420bde238b07f5c07adf278d7fe",
+      "bytes": 8830
+    }
+  },
+  "earlierAttempts": [
+    {
+      "first": "TOOL_INVOCATION sandbox .gradle lock denied, before oracle"
+    },
+    {
+      "second": "ADVERSARY_FIXTURE old EntityType.COW symbol; changed only to26.2 EntityTypes.COW"
+    }
+  ],
+  "productionChangesByAdversary": 0
+}

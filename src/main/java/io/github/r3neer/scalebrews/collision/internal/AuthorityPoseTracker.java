@@ -1,58 +1,53 @@
 package io.github.r3neer.scalebrews.collision.internal;
 
 import io.github.r3neer.scalebrews.collision.api.CollisionAdapters;
-import io.github.r3neer.scalebrews.collision.api.GravityFrame;
 import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
-import io.github.r3neer.scalebrews.collision.runtime.TransportLedger;
+import io.github.r3neer.scalebrews.collision.pose.LivingLocomotionClock;
 
 import java.util.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.phys.Vec3;
 
 /** Server tick clock for ordinary locomotion; querying/rendering cannot advance it. */
 public final class AuthorityPoseTracker {
     private static final class State {
-        final WalkAnimationState walk=new WalkAnimationState();
-        Vec3 previous;
-        GravityFrame gravity;
-        long tick=Long.MIN_VALUE;
-        long consumedTransportSequence;
-        long transportGeneration;
+        final LivingLocomotionClock clock=new LivingLocomotionClock();
+        LivingLocomotionClock.Frame frame;
         PoseEngine.Inputs inputs;
         boolean externalChannelsAvailable;
+        boolean sampling;
     }
     private final Map<LivingEntity,State> states=Collections.synchronizedMap(
         new com.google.common.collect.MapMaker().weakKeys().<LivingEntity,State>makeMap());
     public PoseEngine.Inputs tick(LivingEntity entity,long tick,boolean supportedPose) {
-        if(entity==null || tick<0)throw new IllegalArgumentException("Invalid authority tracker tick");
+        if(entity==null || tick<0 || entity.isRemoved() || entity.level().isClientSide()
+                || entity.level().getServer()==null || !entity.level().getServer().isSameThread())
+            throw new IllegalArgumentException("Invalid server authority tracker tick");
         State state=states.get(entity);
-        if(state!=null && tick<state.tick)throw new IllegalArgumentException("Authority tracker clock cannot rewind");
-        if(state==null){state=new State();states.put(entity,state);}
-        if(state.tick==tick) {
-            boolean ordinary=supportedPose&&state.externalChannelsAvailable;
+        if(state!=null && state.frame!=null && tick<state.frame.tick())
+            throw new IllegalArgumentException("Authority tracker clock cannot rewind");
+        boolean fresh=state==null;
+        if(fresh)state=new State();
+        if(state.sampling)throw new IllegalStateException("Authority tracker cannot sample reentrantly");
+        state.sampling=true;
+        if(fresh)states.put(entity,state);
+        try { return sample(entity,tick,supportedPose,state); }
+        catch(RuntimeException | Error failure) {
+            state.inputs=null;state.frame=null;
+            if(fresh)states.remove(entity);
+            throw failure;
+        } finally {state.sampling=false;}
+    }
+    private PoseEngine.Inputs sample(LivingEntity entity,long tick,boolean supportedPose,State state) {
+        var frame=state.clock.advance(entity,tick,AnatomyMovement.gravity(entity));
+        if(state.frame==frame) {
+            boolean ordinary=supportedPose&&state.externalChannelsAvailable&&frame.available();
             if(state.inputs.ordinary()!=ordinary)state.inputs=new PoseEngine.Inputs(state.inputs.walkPhase(),state.inputs.walkAmount(),
                 state.inputs.age(),state.inputs.headYaw(),state.inputs.headPitch(),ordinary,state.inputs.channels());
             return state.inputs;
         }
-        Vec3 position=entity.position();
-        var gravity=AnatomyMovement.gravity(entity);
-        long transportGeneration=TransportLedger.generation(entity);
-        var transport=TransportLedger.since(entity,state.consumedTransportSequence);
-        if(state.previous==null || tick!=state.tick+1 || position.distanceToSqr(state.previous)>16
-                || !gravity.equals(state.gravity) || transportGeneration!=state.transportGeneration
-                || !transport.contiguous())state.walk.stop();
-        else {
-            Vec3 delta=position.subtract(state.previous).subtract(transport.appliedDelta());
-            double distance=gravity.tangent(delta).length();
-            if(entity.isAlive() && !entity.isPassenger())
-                state.walk.update(Math.min((float)distance*4,1),.4f,entity.isBaby()?3f:1f);
-            else state.walk.stop();
-        }
-        state.previous=position;state.tick=tick;state.gravity=gravity;state.transportGeneration=transportGeneration;
-        state.consumedTransportSequence=transport.latestSequence();
         Map<String,Float> channels=new HashMap<>();
         channels.put("crouching",entity.isCrouching()?1f:0f);channels.put("sprinting",entity.isSprinting()?1f:0f);
         if(entity instanceof net.minecraft.world.entity.animal.chicken.Chicken chicken) {
@@ -84,12 +79,17 @@ public final class AuthorityPoseTracker {
 
         Identifier entityType=BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         boolean externalChannelsAvailable=sampleExternalChannels(entityType,entity,channels);
-        state.externalChannelsAvailable=externalChannelsAvailable;
         // END_LEVEL_TICK observes the completed entity endpoint. All interpolated fields above use
         // partialTicks=1/current state; vanilla EntityRenderer uses tickCount + partialTicks for age.
         float endpointAge=(float)entity.tickCount+1f;
-        state.inputs=new PoseEngine.Inputs(state.walk.position(),state.walk.speed(),endpointAge,
-            Mth.wrapDegrees(entity.yHeadRot-entity.yBodyRot),entity.getXRot(),supportedPose&&externalChannelsAvailable,channels);
+        var staged=new PoseEngine.Inputs(frame.position(),frame.speed(),endpointAge,
+            Mth.wrapDegrees(entity.yHeadRot-entity.yBodyRot),entity.getXRot(),supportedPose&&externalChannelsAvailable&&frame.available(),channels);
+        // Adapters and getters can retire authority: commit only after every delegated read.
+        boolean frameValid=frame.validFor(entity,tick);
+        if(!frameValid && staged.ordinary())staged=new PoseEngine.Inputs(staged.walkPhase(),staged.walkAmount(),
+            staged.age(),staged.headYaw(),staged.headPitch(),false,staged.channels());
+        state.externalChannelsAvailable=externalChannelsAvailable&&frameValid;
+        state.frame=frame;state.inputs=staged;
         return state.inputs;
     }
 
@@ -115,5 +115,9 @@ public final class AuthorityPoseTracker {
         }
     }
 
-    public Optional<PoseEngine.Inputs> current(LivingEntity entity){return Optional.ofNullable(states.get(entity)).map(s->s.inputs);}
+    public Optional<PoseEngine.Inputs> current(LivingEntity entity){return Optional.ofNullable(states.get(entity)).filter(s->!s.sampling).map(s->s.inputs);}
+    /** Existing participant clock only; reading never creates/advances state. Validate at consumption. */
+    public Optional<LivingLocomotionClock.Frame> locomotion(LivingEntity entity) {
+        return Optional.ofNullable(states.get(entity)).filter(s->!s.sampling&&s.inputs!=null).flatMap(s->s.clock.current());
+    }
 }

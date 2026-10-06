@@ -1,0 +1,60 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S62",
+  "status": "RED_PRODUCTION_TRACKER_COMMIT",
+  "requirements": [
+    "NFR-015",
+    "FR-082",
+    "NFR-004"
+  ],
+  "oracleSha256": "23c4f9e92a6c003add367805a8f4a6439f41277e5bb60be44e7e4bfeb3098a07",
+  "executedTrackerSourceSha256": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+  "sourceStillMatchesAtCapture": true,
+  "initSha256": "6607223f1de0ae4ca563c508909237b6246b6716b8e220c866bec483be877f38",
+  "positiveControl": "ordinary=true and valid frame before callback invalidation enabled",
+  "negativeObservation": "Valid channel adapter retires ledger generation; captured frame invalid; tracker result ordinary=true",
+  "actual": {
+    "ordinary": true,
+    "amount": 0.2,
+    "phase": 0.2
+  },
+  "expected": "ordinary=false / unavailable authoritative endpoint",
+  "compile": "PASS",
+  "reportedSeconds": 19,
+  "runtimeExit": 1,
+  "requiredTests": 5,
+  "failedRequiredTests": 1,
+  "greenControls": [
+    "RED1 immutable oracle",
+    "1440 original-method evolution samples",
+    "identity/thread/barriers"
+  ],
+  "artifacts": {
+    "docs/evidence/S62/adversarial/red2/AuthorityPoseTracker$State.class": {
+      "sha256": "02fa91091dc5b723fdca5c3193b82906e6b6cafca8811064321a4bcfdc6c30f4",
+      "bytes": 1163
+    },
+    "docs/evidence/S62/adversarial/red2/AuthorityPoseTracker.class": {
+      "sha256": "cc577cf0fc3a2acb7cacf2418a93cd1ead073cd994a96cbef5b6f3d38340c157",
+      "bytes": 11633
+    },
+    "docs/evidence/S62/adversarial/red2/executed-oracle.java.txt": {
+      "sha256": "23c4f9e92a6c003add367805a8f4a6439f41277e5bb60be44e7e4bfeb3098a07",
+      "bytes": 2515
+    },
+    "docs/evidence/S62/adversarial/red2/executed-tracker-source.java.txt": {
+      "sha256": "8dede63f0346176c2f56adffa165b1b67daed4dc75fc4322ada90ab0ee4cbeee",
+      "bytes": 6433
+    },
+    "docs/evidence/S62/adversarial/red2/red1-repaired-evolution.log": {
+      "sha256": "8983d50b1ef2451f54f89e254b1e4f5acd307d3a57a397d7dec4d5c6b688894c",
+      "bytes": 8829
+    },
+    "docs/evidence/S62/adversarial/red2/tracker-first.log": {
+      "sha256": "0de1f41b0255a59b62fb5746e870ae9ccd73bb855951776e563788db789c2b06",
+      "bytes": 12015
+    }
+  },
+  "registryTestIsolation": "Exact prior adapter restored in finally under registry monitor",
+  "productionChangesByAdversary": 0
+}

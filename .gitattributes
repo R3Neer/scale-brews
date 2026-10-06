@@ -86,3 +86,9 @@
 /docs/evidence/S61/**/*.log -text -whitespace
 /docs/evidence/S61/**/*.java -text -whitespace
 /docs/evidence/S61/**/*.javap.txt -text -whitespace
+
+# Exact S62 clock captures, scoped S00 and test campaign bytes.
+/docs/evidence/S62/** -text whitespace=cr-at-eol
+/docs/evidence/S62/**/*.log -text -whitespace
+/docs/evidence/S62/**/*.java -text -whitespace
+/docs/evidence/S62/**/*.javap.txt -text -whitespace
