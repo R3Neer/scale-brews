@@ -1,0 +1,3 @@
+[18:35:00] [main/INFO]: [STDERR]: java.lang.AssertionError: S61 ADV unsupported field admitted
+[18:35:00] [main/INFO]: [STDERR]: 	at S61ColdProof.check(S61ColdProof.java:7)
+[18:35:00] [main/INFO]: [STDERR]: 	at S61ColdProof.main(S61ColdProof.java:24)

@@ -1,0 +1,12 @@
+import java.net.*;import java.nio.file.*;import java.io.*;
+public final class S61Bootstrap {
+ public static void main(String[] args)throws Exception {
+  var urls=new java.util.ArrayList<URL>();urls.add(Path.of(args[1]).toUri().toURL());
+  for(var entry:Files.readString(Path.of(args[0])).split(java.util.regex.Pattern.quote(File.pathSeparator)))urls.add(Path.of(entry).toUri().toURL());
+  try(var loader=new URLClassLoader(urls.toArray(URL[]::new),ClassLoader.getPlatformClassLoader()) {
+   protected Class<?> loadClass(String n,boolean r)throws ClassNotFoundException {
+    if(n.startsWith("net.minecraft.client.")||n.startsWith("io.github.r3neer.scalebrews.client."))throw new ClassNotFoundException("CLIENT_FORBIDDEN "+n);return super.loadClass(n,r);
+   }
+  }){try { loader.loadClass("S61Consumer").getMethod("main",String[].class).invoke(null,(Object)new String[]{args[2],args[3]}); } catch (java.lang.reflect.InvocationTargetException failure) { failure.getCause().printStackTrace(); System.exit(1); }}
+ }
+}

@@ -1,0 +1,5704 @@
+{
+  "model": {
+    "tableId": "s61_proof:original_finite/77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319",
+    "table": {
+      "format": 1,
+      "source": "original_finite_export/77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319",
+      "version": "original-finite-resource-v1",
+      "booleans": [],
+      "rows": [
+        {
+          "mask": 0,
+          "program": "s61_proof:original_finite/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2"
+        }
+      ]
+    },
+    "numericPrograms": {
+      "s61_proof:original_finite/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2": {
+        "format": 1,
+        "source": "original_finite_export/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2",
+        "version": "original-finite-resource-v1",
+        "geometry": {
+          "format": 2,
+          "source": "original_reset/fce5c9250e9a1d541f64759eea148832d2c8177c22477bb65e3ec44216014395",
+          "version": "original-finite-pose-v1",
+          "parts": [
+            {
+              "id": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "sourcePose": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/body",
+              "parent": "root",
+              "transform": [
+                0.99999994,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.99999994,
+                0.0,
+                0.0,
+                -0.99999994,
+                0.0,
+                0.0,
+                0.0,
+                0.3125,
+                0.125,
+                1.0
+              ],
+              "sourcePose": {
+                "x": 0.0,
+                "y": 5.0,
+                "z": 2.0,
+                "xRot": 1.5707964,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/head",
+              "parent": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.25,
+                -0.5,
+                1.0
+              ],
+              "sourcePose": {
+                "x": 0.0,
+                "y": 4.0,
+                "z": -8.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/left_front_leg",
+              "parent": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.25,
+                0.75,
+                -0.3125,
+                1.0
+              ],
+              "sourcePose": {
+                "x": 4.0,
+                "y": 12.0,
+                "z": -5.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/left_hind_leg",
+              "parent": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.25,
+                0.75,
+                0.4375,
+                1.0
+              ],
+              "sourcePose": {
+                "x": 4.0,
+                "y": 12.0,
+                "z": 7.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/right_front_leg",
+              "parent": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                -0.25,
+                0.75,
+                -0.3125,
+                1.0
+              ],
+              "sourcePose": {
+                "x": -4.0,
+                "y": 12.0,
+                "z": -5.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            },
+            {
+              "id": "root/right_hind_leg",
+              "parent": "root",
+              "transform": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                -0.25,
+                0.75,
+                0.4375,
+                1.0
+              ],
+              "sourcePose": {
+                "x": -4.0,
+                "y": 12.0,
+                "z": 7.0,
+                "xRot": 0.0,
+                "yRot": 0.0,
+                "zRot": 0.0,
+                "xScale": 1.0,
+                "yScale": 1.0,
+                "zScale": 1.0
+              }
+            }
+          ],
+          "pieces": [
+            {
+              "id": "root/body/cube_0",
+              "part": "root/body",
+              "min": [
+                -0.375,
+                -0.625,
+                -0.4375
+              ],
+              "max": [
+                0.375,
+                0.5,
+                0.1875
+              ]
+            },
+            {
+              "id": "root/body/cube_1",
+              "part": "root/body",
+              "min": [
+                -0.125,
+                0.125,
+                -0.5
+              ],
+              "max": [
+                0.125,
+                0.5,
+                -0.4375
+              ]
+            },
+            {
+              "id": "root/head/cube_0",
+              "part": "root/head",
+              "min": [
+                -0.25,
+                -0.25,
+                -0.375
+              ],
+              "max": [
+                0.25,
+                0.25,
+                0.0
+              ]
+            },
+            {
+              "id": "root/head/cube_1",
+              "part": "root/head",
+              "min": [
+                -0.1875,
+                0.0625,
+                -0.4375
+              ],
+              "max": [
+                0.1875,
+                0.25,
+                -0.375
+              ]
+            },
+            {
+              "id": "root/head/cube_2",
+              "part": "root/head",
+              "min": [
+                -0.3125,
+                -0.3125,
+                -0.3125
+              ],
+              "max": [
+                -0.25,
+                -0.125,
+                -0.25
+              ]
+            },
+            {
+              "id": "root/head/cube_3",
+              "part": "root/head",
+              "min": [
+                0.25,
+                -0.3125,
+                -0.3125
+              ],
+              "max": [
+                0.3125,
+                -0.125,
+                -0.25
+              ]
+            },
+            {
+              "id": "root/left_front_leg/cube_0",
+              "part": "root/left_front_leg",
+              "min": [
+                -0.125,
+                0.0,
+                -0.125
+              ],
+              "max": [
+                0.125,
+                0.75,
+                0.125
+              ]
+            },
+            {
+              "id": "root/left_hind_leg/cube_0",
+              "part": "root/left_hind_leg",
+              "min": [
+                -0.125,
+                0.0,
+                -0.125
+              ],
+              "max": [
+                0.125,
+                0.75,
+                0.125
+              ]
+            },
+            {
+              "id": "root/right_front_leg/cube_0",
+              "part": "root/right_front_leg",
+              "min": [
+                -0.125,
+                0.0,
+                -0.125
+              ],
+              "max": [
+                0.125,
+                0.75,
+                0.125
+              ]
+            },
+            {
+              "id": "root/right_hind_leg/cube_0",
+              "part": "root/right_hind_leg",
+              "min": [
+                -0.125,
+                0.0,
+                -0.125
+              ],
+              "max": [
+                0.125,
+                0.75,
+                0.125
+              ]
+            }
+          ],
+          "modelTransform": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "nodes": [
+          {
+            "op": "INPUT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.0,
+            "input": "float.2",
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.017453292,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 0,
+            "right": 1,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "INPUT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.0,
+            "input": "float.3",
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.017453292,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 3,
+            "right": 4,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "INPUT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.0,
+            "input": "float.0",
+            "field": -1
+          },
+          {
+            "op": "INPUT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.0,
+            "input": "float.1",
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.6662,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 6,
+            "right": 8,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "COS",
+            "left": 9,
+            "right": -1,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 1.4,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 10,
+            "right": 11,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 12,
+            "right": 7,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.6662,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 6,
+            "right": 14,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 3.1415927,
+            "field": -1
+          },
+          {
+            "op": "ADD",
+            "left": 15,
+            "right": 16,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "COS",
+            "left": 17,
+            "right": -1,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 1.4,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 18,
+            "right": 19,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 20,
+            "right": 7,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.6662,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 6,
+            "right": 22,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 3.1415927,
+            "field": -1
+          },
+          {
+            "op": "ADD",
+            "left": 23,
+            "right": 24,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "COS",
+            "left": 25,
+            "right": -1,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 1.4,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 26,
+            "right": 27,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 28,
+            "right": 7,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 0.6662,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 6,
+            "right": 30,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "COS",
+            "left": 31,
+            "right": -1,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "CONSTANT",
+            "left": -1,
+            "right": -1,
+            "constant": 1.4,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 32,
+            "right": 33,
+            "constant": 0.0,
+            "field": -1
+          },
+          {
+            "op": "MULTIPLY",
+            "left": 34,
+            "right": 7,
+            "constant": 0.0,
+            "field": -1
+          }
+        ],
+        "writes": [
+          {
+            "part": "root/head",
+            "field": 3,
+            "node": 2
+          },
+          {
+            "part": "root/head",
+            "field": 4,
+            "node": 5
+          },
+          {
+            "part": "root/right_hind_leg",
+            "field": 3,
+            "node": 13
+          },
+          {
+            "part": "root/left_hind_leg",
+            "field": 3,
+            "node": 21
+          },
+          {
+            "part": "root/right_front_leg",
+            "field": 3,
+            "node": 29
+          },
+          {
+            "part": "root/left_front_leg",
+            "field": 3,
+            "node": 35
+          }
+        ]
+      }
+    },
+    "booleanInputs": [],
+    "inputs": [
+      {
+        "channel": "float.0",
+        "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+        "name": "walkAnimationPos",
+        "descriptor": "F"
+      },
+      {
+        "channel": "float.1",
+        "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+        "name": "walkAnimationSpeed",
+        "descriptor": "F"
+      },
+      {
+        "channel": "float.2",
+        "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+        "name": "xRot",
+        "descriptor": "F"
+      },
+      {
+        "channel": "float.3",
+        "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+        "name": "yRot",
+        "descriptor": "F"
+      }
+    ],
+    "digest": "77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319"
+  },
+  "recipes": [
+    {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.CowRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.CowRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "field.age",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "float.0",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.1",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.2",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.3",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/CowRenderer.class": "5481d1aa61616c92905130216baeab770a6e6fae3adaa8f0331118b382648891",
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/state/CowRenderState.class": "cb9ce3d89dbb0b4e056b304769e4fbc2761752dfa31a150983ec40d09923c4ed",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/cow/Cow.class": "7ab8f66383e478a289310b8204d774c9a08180ae307ad2d513fc2951ed992011",
+        "/net/minecraft/world/entity/animal/cow/CowVariant.class": "78389c648258244b3f38802c2e8f281696f90aa44b3411bfa8216398dffbe8a9"
+      },
+      "digest": "0ad677a9fbc4b5c925427bc8eab7ef10778a45d9509b97aa290908a463e04c79"
+    },
+    {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.PigRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.PigRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "field.age",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "float.0",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.1",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.2",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.3",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/PigRenderer.class": "f283b4dd31a8aa672c9ed4c303ea2d62f8e3d59e24ee4fce94dcdbdc5525305e",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/client/renderer/entity/state/PigRenderState.class": "7e967e0cfbe5d63e0e349d9fc7284c8cac8be73dcfdf0c6271c07a04538a4e4e",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/pig/Pig.class": "082701bfa8073e6508658d57f9792bb1e47d862007f324be4fb4dfee3066870e",
+        "/net/minecraft/world/entity/animal/pig/PigVariant.class": "8255effa5be81e9710f4d8edb50eb9b4c6db0df6bce3501946862bb5665deb01",
+        "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+      },
+      "digest": "0ea5794d6e54bee689fef3f89611111c73c09e5959193e7441aa10f631dae090"
+    },
+    {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.ChickenRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.ChickenRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "field.age",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "float.0",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.1",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.2",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.3",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/ChickenRenderer.class": "edac461fe32a0bca79a3209204d47cfd18bf8a4af156fc622d42ded52108e3d5",
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/state/ChickenRenderState.class": "eba1938575f7be604e997e884f9e67fa13c877390546c3842c4b3175e8b83de0",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/chicken/Chicken.class": "842ad2586f4813811e6ae02790355ad7dd1a6d8719b99a9f8beb30f2fe40d18d",
+        "/net/minecraft/world/entity/animal/chicken/ChickenVariant.class": "9fd2a5c3ce8b7bf8e4daab8b17f8b7e8ec6adbd3cd5127fdfa00e1b8295b5ac5"
+      },
+      "digest": "bf3cb1ab37946220e4a56f141bb8d8d324d68380d6eb6dc8cc747c9d3fe8e19c"
+    },
+    {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.NautilusRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "field.age",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "field.isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "field.isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "float.0",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.1",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.2",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.3",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/ZombieNautilusRenderer.class": "fd7a5992d6ecb65b9a00147de1b3194ba1816199145a7001d7c34322441e5b1b",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/client/renderer/entity/state/NautilusRenderState.class": "f735039eefb6de399070d75e0138d2fb43b91a970819ac82b34d4535611f4402",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/Mob.class": "60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b381",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/nautilus/ZombieNautilus.class": "23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f",
+        "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.class": "7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e2659",
+        "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+      },
+      "digest": "7b58f6d01c9ae6a7407f5fdedec9a471f8c539a74f432c279ac69d0150b1c047"
+    }
+  ],
+  "samples": [
+    {
+      "type": "minecraft:cow",
+      "index": 0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 98.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.9702956,
+          3.7252903E-9,
+          -0.2419219,
+          0.0,
+          0.11728607,
+          0.87461966,
+          0.4704087,
+          0.0,
+          0.21158966,
+          -0.4848096,
+          0.84863967,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 1,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 99.0,
+        "field.agescale": 0.5,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 1.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 14.104895,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -0.0,
+        "field.yrot": -14.0,
+        "float.0": 14.104895,
+        "float.1": 1.0,
+        "float.2": -0.0,
+        "float.3": -14.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.97029567,
+          0.0,
+          0.2419219,
+          0.0,
+          -0.0,
+          1.0,
+          0.0,
+          0.0,
+          -0.2419219,
+          -0.0,
+          0.97029567,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17051509,
+          -0.985355,
+          0.0,
+          0.0,
+          0.985355,
+          0.17051509,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17051509,
+          0.985355,
+          0.0,
+          0.0,
+          -0.985355,
+          0.17051509,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17051509,
+          0.985355,
+          0.0,
+          0.0,
+          -0.985355,
+          0.17051509,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17051509,
+          -0.985355,
+          0.0,
+          0.0,
+          0.985355,
+          0.17051509,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 2,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 2.1474836E9,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 1.0,
+        "field.yrot": 0.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 1.0,
+        "float.3": 0.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99984765,
+          0.017452406,
+          0.0,
+          0.0,
+          -0.017452406,
+          0.99984765,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 3,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 101.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.9702956,
+          3.7252903E-9,
+          -0.2419219,
+          0.0,
+          0.11728607,
+          0.87461966,
+          0.4704087,
+          0.0,
+          0.21158966,
+          -0.4848096,
+          0.84863967,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 4,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 102.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 85.4,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 53.6,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 53.6
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.59341884,
+          1.4901161E-8,
+          -0.80489373,
+          0.0,
+          0.39022022,
+          0.8746196,
+          0.2876952,
+          0.0,
+          0.7039759,
+          -0.4848096,
+          0.5190158,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 5,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 103.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 89.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 68.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 68.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.37460658,
+          0.0,
+          -0.9271839,
+          0.0,
+          0.44950768,
+          0.8746197,
+          0.1816129,
+          0.0,
+          0.8109333,
+          -0.48480964,
+          0.32763833,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 6,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 104.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 136.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 136.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          -0.7193399,
+          0.0,
+          -0.6946583,
+          0.0,
+          0.33677703,
+          0.8746197,
+          -0.3487429,
+          0.0,
+          0.6075618,
+          -0.48480964,
+          -0.62914884,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:cow",
+      "index": 7,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 105.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 1.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 1.0,
+        "field.isinwater": 1.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -29.0,
+        "field.yrot": -14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": -29.0,
+        "float.3": -14.0
+      },
+      "matrices": {
+        "root": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "root/body": [
+          0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.3125,
+          0.125,
+          1.0
+        ],
+        "root/head": [
+          0.9702956,
+          3.7252903E-9,
+          0.2419219,
+          0.0,
+          0.11728607,
+          0.87461966,
+          -0.4704087,
+          0.0,
+          -0.21158966,
+          0.4848096,
+          0.84863967,
+          0.0,
+          0.0,
+          0.25,
+          -0.5,
+          1.0
+        ],
+        "root/left_front_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/left_hind_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          0.25,
+          0.75,
+          0.4375,
+          1.0
+        ],
+        "root/right_front_leg": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.17002812,
+          0.9854392,
+          0.0,
+          0.0,
+          -0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          -0.3125,
+          1.0
+        ],
+        "root/right_hind_leg": [
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.17002812,
+          -0.9854392,
+          0.0,
+          0.0,
+          0.9854392,
+          0.17002812,
+          0.0,
+          -0.25,
+          0.75,
+          0.4375,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 98.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 1,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 99.0,
+        "field.agescale": 0.5,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 1.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 14.104895,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -0.0,
+        "field.yrot": -14.0,
+        "float.0": 14.104895,
+        "float.1": 1.0,
+        "float.2": -0.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 2,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 2.1474836E9,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 1.0,
+        "field.yrot": 0.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 1.0,
+        "float.3": 0.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 3,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 101.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 4,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 102.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 85.4,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 53.6,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 53.6
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 5,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 103.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 89.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 68.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 68.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 6,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 104.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 136.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 136.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:pig",
+      "index": 7,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 105.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 1.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 1.0,
+        "field.isinwater": 1.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -29.0,
+        "field.yrot": -14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": -29.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 98.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 1,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 99.0,
+        "field.agescale": 0.5,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 1.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 14.104895,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -0.0,
+        "field.yrot": -14.0,
+        "float.0": 14.104895,
+        "float.1": 1.0,
+        "float.2": -0.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 2,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 2.1474836E9,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 1.0,
+        "field.yrot": 0.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 1.0,
+        "float.3": 0.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 3,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 101.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 4,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 102.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 85.4,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 53.6,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 53.6
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 5,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 103.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 89.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 68.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 68.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 6,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 104.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 136.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 136.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:chicken",
+      "index": 7,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.chicken.Chicken",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 105.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 1.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 1.0,
+        "field.isinwater": 1.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -29.0,
+        "field.yrot": -14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": -29.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 98.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 1,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 99.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 14.104895,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -0.0,
+        "field.yrot": -14.0,
+        "float.0": 14.104895,
+        "float.1": 1.0,
+        "float.2": -0.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 2,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 2.1474836E9,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": 1.0,
+        "field.yrot": 0.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": 1.0,
+        "float.3": 0.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 3,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 101.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 14.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 14.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 4,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 102.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 85.4,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 53.6,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 53.6
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 5,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 103.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 89.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 68.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 68.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 6,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 104.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 0.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 0.0,
+        "field.isinwater": 0.0,
+        "field.isupsidedown": 0.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 0.0,
+        "field.walkanimationspeed": 0.0,
+        "field.xrot": 29.0,
+        "field.yrot": 136.0,
+        "float.0": 0.0,
+        "float.1": 0.0,
+        "float.2": 29.0,
+        "float.3": 136.0
+      },
+      "matrices": {}
+    },
+    {
+      "type": "minecraft:zombie_nautilus",
+      "index": 7,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "field.age",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "field.walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "field.walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "field.xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "field.yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "field.bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "field.scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "field.agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "field.isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "field.isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "field.isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "field.isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "field.isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "float.0",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "float.1",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "float.2",
+            "source": "X_ROT"
+          },
+          {
+            "name": "float.3",
+            "source": "Y_ROT"
+          }
+        ]
+      },
+      "expected": {
+        "field.age": 105.0,
+        "field.agescale": 1.0,
+        "field.bodyrot": 363.0,
+        "field.isautospinattack": 1.0,
+        "field.isbaby": 0.0,
+        "field.isfullyfrozen": 1.0,
+        "field.isinwater": 1.0,
+        "field.isupsidedown": 1.0,
+        "field.scale": 1.0,
+        "field.walkanimationpos": 4.7016315,
+        "field.walkanimationspeed": 1.0,
+        "field.xrot": -29.0,
+        "field.yrot": -14.0,
+        "float.0": 4.7016315,
+        "float.1": 1.0,
+        "float.2": -29.0,
+        "float.3": -14.0
+      },
+      "matrices": {}
+    }
+  ]
+}

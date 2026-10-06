@@ -1,0 +1,42 @@
+{
+  "inputSha256": "d28aa7563c29cba64034472b37d275155e1b37080d6e73ca6ff29a54786f3cc5",
+  "rows": [
+    {
+      "actor": "entity.minecraft.cow",
+      "sample": 0
+    },
+    {
+      "actor": "entity.minecraft.cow",
+      "sample": 1
+    },
+    {
+      "actor": "entity.minecraft.cow",
+      "sample": 7
+    },
+    {
+      "actor": "entity.minecraft.cow",
+      "sample": 10
+    },
+    {
+      "actor": "entity.minecraft.pig",
+      "sample": 0
+    },
+    {
+      "actor": "entity.minecraft.pig",
+      "sample": 1
+    },
+    {
+      "actor": "entity.minecraft.pig",
+      "sample": 7
+    },
+    {
+      "actor": "entity.minecraft.pig",
+      "sample": 10
+    }
+  ],
+  "maxMatrixDelta": 1.0000000005838672e-07,
+  "projection": "x*.866-z*.5,y*.83+z*.27+x*.18; shared bounds per N/C row; 30px side margin",
+  "limits": "Model-local envelopes and joint origins only. Not GPU/root/layers/material/clock evolution or FULL.",
+  "svgSha256": "66ec86ec33504ab82105e89cdfe7293cb31ba03aa388f35c4df6c2530520d146",
+  "pngSha256": "0fd04939ff5fafda5b9573b837ba030f62755c5e93fe9fded9abd8a5860f3087"
+}

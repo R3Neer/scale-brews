@@ -1,0 +1,6 @@
+[18:39:59] [main/INFO]: [STDERR]: java.lang.AssertionError: S61 ADV alias getter recomputed / mutable schema
+[18:39:59] [main/INFO]: [STDERR]: 	at S61Consumer.check(S61Consumer.java:11)
+[18:39:59] [main/INFO]: [STDERR]: 	at S61Consumer.main(S61Consumer.java:57)
+[18:39:59] [main/INFO]: [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+[18:39:59] [main/INFO]: [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+[18:39:59] [main/INFO]: [STDERR]: 	at S61Bootstrap.main(S61Bootstrap.java:10)

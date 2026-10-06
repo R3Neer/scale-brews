@@ -1,0 +1,6 @@
+[18:40:53] [main/INFO]: [STDERR]: java.lang.AssertionError: S61 ADV required nonfinite yaw admitted
+[18:40:53] [main/INFO]: [STDERR]: 	at S61Consumer.check(S61Consumer.java:11)
+[18:40:53] [main/INFO]: [STDERR]: 	at S61Consumer.main(S61Consumer.java:54)
+[18:40:53] [main/INFO]: [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+[18:40:53] [main/INFO]: [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+[18:40:53] [main/INFO]: [STDERR]: 	at S61Bootstrap.main(S61Bootstrap.java:10)

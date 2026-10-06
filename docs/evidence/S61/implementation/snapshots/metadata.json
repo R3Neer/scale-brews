@@ -1,0 +1,28 @@
+{
+  "families": 1,
+  "actorCases": 8,
+  "caseIndices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "projection": [
+    0.35,
+    0.15
+  ],
+  "pillowVersion": "11.3.0",
+  "nativeSha256": "3b7a1bc311ba563cc8a5ec401a389378a21feca362a2fcaef930147af7a13314",
+  "commonSha256": "1cd463376dc19c23701ef6bbd542ac6ff151237178f750796e157fa9e32d4bb2",
+  "shapePanels": [
+    "native",
+    "common",
+    "overlay"
+  ],
+  "bases": "native solid/common dashed",
+  "scope": "recentered local shapes + original projected centers; bases include zero-thickness joints; no GPU/world-root/material-inclusion authority"
+}

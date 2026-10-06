@@ -1,0 +1,20 @@
+import java.net.*;
+import java.nio.file.*;
+import java.io.File;
+
+public final class S61InputBootstrap {
+    public static void main(String[] args) throws Exception {
+        var urls = new java.util.ArrayList<URL>(); urls.add(Path.of(args[1]).toUri().toURL());
+        for (var entry : Files.readString(Path.of(args[0])).split(java.util.regex.Pattern.quote(File.pathSeparator)))
+            urls.add(Path.of(entry).toUri().toURL());
+        try (var loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader()) {
+            @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                if (name.startsWith("net.minecraft.client.") || name.startsWith("io.github.r3neer.scalebrews.client."))
+                    throw new ClassNotFoundException("CLIENT_FORBIDDEN " + name);
+                return super.loadClass(name, resolve);
+            }
+        }) {
+            loader.loadClass("S61InputConsumer").getMethod("main", String[].class).invoke(null, (Object) new String[]{args[2]});
+        }
+    }
+}

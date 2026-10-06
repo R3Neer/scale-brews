@@ -1,0 +1,55 @@
+{
+  "role": "ADVERSARY",
+  "sprint": "S61",
+  "status": "SCOPED_S00_AND_PLAN_CONVERGED",
+  "base": "2799687cbcc9b4e4120f0d2bdee85968aa2fcbce",
+  "modelSha256": "6ad9813d37960125919f5ceb097a6a5398665dd2fbeed5742b942b1c6540f3ef",
+  "audit": {
+    "path": "docs/evidence/S61/foundation-reuse-audit.json",
+    "sha256": "967c66f749104cdbbc79924adc5b3f2f42c14ae89834e7cd6bf66f64ea6ec5cf"
+  },
+  "scope": "Prerequisites for explicit read-only partialTicks=1 original Living input preparation only; no runtime integration or server clock authority",
+  "trusted": [
+    {
+      "component": "OriginalEnumSelectorProof / EnumAgeModelPreparation / EnumModelPreparation",
+      "limits": "Existing original typed dispatch, enum selection, extractor delegation and bridges only. Existing proofs do not certify requested base-field no-overwrite or Living base extraction semantics.",
+      "evidence": "S51/S53 receipts, unchanged S53 owners"
+    },
+    {
+      "component": "OriginalModelPrograms",
+      "limits": "Existing bounded resource/code/field inspection and budget fail-closed behavior; new Living/Mth/getter program semantic coverage remains unproven.",
+      "evidence": "S59 repaired owner equals S60 current owner; raw semantic sensitivity retained"
+    },
+    {
+      "component": "S60 original field/schema export and detached common explicit-input evaluation",
+      "limits": "Owner/name/descriptor identity, complete required inputs and common engine execution only. No mapping from actor state is inferred.",
+      "evidence": "S60 final receipt and current 381 source/resource hashes"
+    },
+    {
+      "component": "PoseChannelAdapter / PoseEngine common API",
+      "limits": "Existing SPI types only; S61 installs no adapter and does not reuse tracker clock semantics.",
+      "evidence": "S60 current source hashes and source review"
+    }
+  ],
+  "unproven": [
+    "New LivingPoseInputSource formula/units/float evaluation and exact-actor sampling",
+    "New OriginalLivingInputPreparation proof of base programs, getter provenance and all typed field writes",
+    "Runtime transformed bytecode compatibility",
+    "Authoritative server evolution of entity.walkAnimation and source clock continuity",
+    "Runtime scheduling, authority integration, root/material/inclusion and FULL family coverage"
+  ],
+  "blockingExistingFoundations": [],
+  "reviews": [
+    {
+      "pass": 1,
+      "result": "No plan change required: exact original field identity and whole admitted extractor paths required; absent unsupported source never aliases channels."
+    },
+    {
+      "pass": 2,
+      "result": "No plan change required after extractNameTags guards for both Entity/Living descriptors and fixed vocabulary scratch: requested-field overwrite and virtual state escape coverage remain obligations of the new proof; partial1 extraction, staged absence, bounds and no clock advancement constrain candidate."
+    }
+  ],
+  "executionPolicy": "After candidate: focal original extraction and common source checks only; no Tiny/full suite or already-green historical sensitivity repetition. New source/proof must be certified before any runtime authority reuse.",
+  "newTestsOrHoldoutCases": 0,
+  "productionEdits": 0
+}

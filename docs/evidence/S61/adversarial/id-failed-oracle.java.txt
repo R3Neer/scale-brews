@@ -1,0 +1,158 @@
+package io.github.r3neer.scalebrews.client.collision.preparation;
+
+import com.google.gson.GsonBuilder;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
+import io.github.r3neer.scalebrews.collision.pose.LivingPoseInputSource;
+import io.github.r3neer.scalebrews.collision.pose.NumericPoseEngine;
+import java.lang.reflect.*;
+import java.nio.file.*;
+import java.util.*;
+import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.*;
+import org.joml.Matrix4f;
+
+/** Independent original extractor oracle; no advancement of an authority clock is claimed. */
+public final class S61AdversarialLivingInputProof implements FabricClientGameTest {
+    static void check(boolean value, String why) { if (!value) throw new AssertionError("S61 ADV " + why); }
+    static final String[] FIELDS = {"ageInTicks", "walkAnimationPos", "walkAnimationSpeed", "xRot", "yRot", "bodyRot", "scale", "ageScale", "isBaby", "isInWater", "isUpsideDown", "isFullyFrozen", "isAutoSpinAttack"};
+    static final Set<String> FLAGS = Set.of("isBaby", "isInWater", "isUpsideDown", "isFullyFrozen", "isAutoSpinAttack");
+    static List<OriginalLivingInputPreparation.Input> schema() {
+        var out = new ArrayList<OriginalLivingInputPreparation.Input>();
+        for (String name : FIELDS) out.add(new OriginalLivingInputPreparation.Input(name.toLowerCase(Locale.ROOT), name.equals("ageInTicks") ? EntityRenderState.class.getName() : LivingEntityRenderState.class.getName(), name, FLAGS.contains(name) ? "Z" : "F"));
+        out.add(new OriginalLivingInputPreparation.Input("age.alias", LivingEntityRenderState.class.getName(), "ageInTicks", "F"));
+        return out;
+    }
+    static float reference(Object state, OriginalLivingInputPreparation.Input input) throws ReflectiveOperationException {
+        Field field = Class.forName(input.owner()).getField(input.name());
+        return input.descriptor().equals("Z") ? (field.getBoolean(state) ? 1f : 0f) : field.getFloat(state);
+    }
+    static String actorState(LivingEntity actor) throws ReflectiveOperationException {
+        var out = new StringBuilder();
+        out.append(actor.tickCount).append('/').append(actor.yHeadRotO).append('/').append(actor.yHeadRot).append('/').append(actor.yBodyRotO).append('/').append(actor.yBodyRot);
+        out.append('/').append(actor.getXRot()).append('/').append(actor.getVehicle()).append('/').append(actor.getCustomName()).append('/').append(actor.getHealth()).append('/').append(actor.getTicksFrozen());
+        for (Field field : WalkAnimationState.class.getDeclaredFields()) if (!Modifier.isStatic(field.getModifiers()) && field.getType() == float.class) {
+            field.setAccessible(true); out.append('/').append(field.getName()).append('=').append(Float.floatToRawIntBits(field.getFloat(actor.walkAnimation)));
+        }
+        return out.toString();
+    }
+    static void negativeSchemas(EntityRenderer<?, ?> renderer) {
+        check(!OriginalLivingInputPreparation.inspect(renderer, List.of(new OriginalLivingInputPreparation.Input("unknown", LivingEntityRenderState.class.getName(), "deathTime", "F"))).admitted(), "unsupported field admitted");
+        check(!OriginalLivingInputPreparation.inspect(renderer, List.of(new OriginalLivingInputPreparation.Input("wrong", LivingEntityRenderState.class.getName(), "xRot", "Z"))).admitted(), "wrong descriptor admitted");
+        check(!OriginalLivingInputPreparation.inspect(renderer, List.of(new OriginalLivingInputPreparation.Input("other", TurtleRenderState.class.getName(), "isOnLand", "Z"))).admitted(), "other state owner admitted");
+        var duplicate = new ArrayList<>(schema()); duplicate.add(schema().getFirst());
+        check(!OriginalLivingInputPreparation.inspect(renderer, duplicate).admitted(), "duplicate channel admitted");
+        var max = new ArrayList<OriginalLivingInputPreparation.Input>();
+        for (int i = 0; i < 64; i++) max.add(new OriginalLivingInputPreparation.Input("age." + i, EntityRenderState.class.getName(), "ageInTicks", "F"));
+        check(OriginalLivingInputPreparation.inspect(renderer, max).admitted(), "exact schema cap rejected");
+        max.add(new OriginalLivingInputPreparation.Input("age.64", EntityRenderState.class.getName(), "ageInTicks", "F"));
+        check(!OriginalLivingInputPreparation.inspect(renderer, max).admitted(), "65 channels admitted");
+    }
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void runTest(ClientGameTestContext context) {
+        try { OriginalLivingInputPreparation.inspect(null, schema()); throw new AssertionError("S61 ADV off thread admitted"); }
+        catch (IllegalStateException expected) { }
+        var world = context.worldBuilder().create();
+        try { context.runOnClient(mc -> { try {
+            var families = new ArrayList<Object>(); var extractionCases = new ArrayList<Object>();
+            int scalarChecks = 0, matrices = 0, samples = 0, repeated = 0;
+            var types = List.of(EntityTypes.COW, EntityTypes.PIG, EntityTypes.ZOMBIE_NAUTILUS);
+            for (var type : types) {
+                LivingEntity actor = (LivingEntity) type.create(mc.level, EntitySpawnReason.COMMAND);
+                check(actor != null, "actor factory missing");
+                EntityRenderer renderer = mc.getEntityRenderDispatcher().getRenderer(actor);
+                var recipeResult = OriginalLivingInputPreparation.inspect(renderer, schema());
+                check(recipeResult.admitted(), "original rejected " + type + " " + recipeResult.absence());
+                var recipe = recipeResult.recipe();
+                check(recipe.equals(OriginalLivingInputPreparation.inspect(renderer, schema()).recipe()), "repeat identity differs");
+                check(recipe.inputs().getLast().owner().equals(EntityRenderState.class.getName()), "inherited owner not normalized");
+                var source = LivingPoseInputSource.bind(actor.getClass(), recipe.program());
+                negativeSchemas(renderer);
+                try { recipe.inputs().clear(); throw new AssertionError("S61 ADV mutable input recipe"); } catch (UnsupportedOperationException expected) { }
+                try { recipe.originalResources().clear(); throw new AssertionError("S61 ADV mutable resources"); } catch (UnsupportedOperationException expected) { }
+                var records = new ArrayList<Object>();
+                var vehicle = EntityTypes.COW.create(mc.level, EntitySpawnReason.COMMAND);
+                var boat = EntityTypes.OAK_BOAT.create(mc.level, EntitySpawnReason.COMMAND);
+                check(vehicle != null && boat != null, "vehicle factories");
+                for (int n = 0; n < 12; n++) {
+                    actor.stopRiding(); actor.setHealth(actor.getMaxHealth()); actor.setTicksFrozen(n % 2 == 0 ? 200 : 0);
+                    if (actor instanceof AgeableMob ageable) ageable.setBaby(n % 3 == 1);
+                    actor.setCustomName(n % 4 == 0 ? Component.literal("Dinnerbone") : n % 4 == 1 ? Component.literal("Grumm") : n % 4 == 2 ? Component.literal("grumm") : null);
+                    actor.tickCount = n == 11 ? Integer.MAX_VALUE : 16777213 + n;
+                    actor.yHeadRotO = 720f - n * 75.5f; actor.yHeadRot = -540f + n * 45.125f;
+                    actor.yBodyRotO = -1080f + n * 23.25f; actor.yBodyRot = 900f - n * 59.75f;
+                    actor.setXRot(n % 2 == 0 ? -0f : n * 7.25f - 85f);
+                    actor.walkAnimation.update(.91f, .4f, 3f); actor.walkAnimation.update(-.35f + n * .13f, .57f, .71f);
+                    vehicle.yBodyRotO = 650f - n * 100; vehicle.yBodyRot = -330f + n * 36;
+                    if (n % 4 == 1) check(actor.startRiding(vehicle, true, true), "Living ride setup");
+                    if (n % 4 == 2) check(actor.startRiding(boat, true, true), "nonLiving ride setup");
+                    if (n == 7) actor.setHealth(0);
+                    String before = actorState(actor);
+                    var observation = source.sample(actor).orElseThrow(() -> new AssertionError("S61 ADV valid source absent"));
+                    check(before.equals(actorState(actor)), "source advanced or mutated actor");
+                    EntityRenderState nativeState = renderer.createRenderState(actor, 1f);
+                    var expected = new TreeMap<String, Float>();
+                    for (var input : recipe.inputs()) {
+                        float value = reference(nativeState, input); expected.put(input.channel(), value);
+                        check(Float.floatToRawIntBits(value) == Float.floatToRawIntBits(observation.get(input.channel())), "native scalar differs " + type + "/" + n + "/" + input.name() + " expected=" + value + " actual=" + observation.get(input.channel())); scalarChecks++;
+                    }
+                    for (int k = 0; k < 20; k++) { check(source.sample(actor).orElseThrow().equals(observation), "repeated same state differs"); repeated++; }
+                    check(before.equals(actorState(actor)), "repeat changed clock/state");
+                    try { observation.put("foreign", 1f); throw new AssertionError("S61 ADV mutable sample"); } catch (UnsupportedOperationException expectedFailure) { }
+                    records.add(Map.of("sample", n, "expected", expected, "actual", observation, "actorState", before)); samples++;
+                    // Independently use the selected original model; only admitted numeric recipes are replayed.
+                    var submitted = S53AdversarialEnumProof.submitted(renderer, nativeState);
+                    check(!submitted.isEmpty(), "native model not submitted");
+                    var model = (EntityModel) submitted.getFirst();
+                    String modelBefore = S55AdversarialGeometryProof.state(model.root());
+                    var linear = OriginalLinearPosePreparation.inspect(model);
+                    check(modelBefore.equals(S55AdversarialGeometryProof.state(model.root())), "prepare changed animated model");
+                    if (linear.admitted()) {
+                        var prepared = linear.prepared(); var numericSchema = new ArrayList<OriginalLivingInputPreparation.Input>();
+                        for (var input : prepared.inputs()) numericSchema.add(new OriginalLivingInputPreparation.Input(input.channel(), input.owner(), input.name(), input.descriptor()));
+                        var numericSource = OriginalLivingInputPreparation.inspect(renderer, numericSchema);
+                        check(numericSource.admitted(), "compiled original input not reusable " + numericSource.absence());
+                        var boundSource = LivingPoseInputSource.bind(actor.getClass(), numericSource.recipe().program());
+                        var channels = boundSource.sample(actor).orElseThrow();
+                        // A direct canonical resource lookup avoids relying on an unrelated catalog.
+                        var resources = new PoseEngine.Resources() {
+                            public Optional<io.github.r3neer.scalebrews.collision.pose.PoseProgram> program(net.minecraft.resources.Identifier id) { return Optional.empty(); }
+                            public Optional<io.github.r3neer.scalebrews.collision.pose.NumericPoseProgram> numericProgram(net.minecraft.resources.Identifier id) { return Optional.of(prepared.program()); }
+                        };
+                        var numeric = new NumericPoseEngine().bind(prepared.program().geometry(), Map.of("program", "s61_adversarial:native"), channels.keySet(), resources).orElseThrow();
+                        var pose = numeric.evaluate(new PoseEngine.Inputs(0, 0, 0, 0, 0, true, channels)).orElseThrow();
+                        model.setupAnim(nativeState); var nativeMatrices = S55AdversarialGeometryProof.nativeMatrices(model.root());
+                        var evaluated = prepared.program().geometry().transforms(pose);
+                        for (String id : nativeMatrices.keySet()) { check(nativeMatrices.get(id).equals(evaluated.get(id), 3e-6f), "native matrix differs " + type + "/" + n + "/" + id); matrices++; }
+                        extractionCases.add(Map.of("actor", type.toString(), "sample", n, "recipe", numericSource.recipe(), "program", prepared.program(), "channels", channels, "nativeMatrices", nativeMatrices.entrySet().stream().collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, entry -> ModelGeometry.values(entry.getValue())))));
+                    }
+                }
+                actor.stopRiding(); actor.setHealth(actor.getMaxHealth()); actor.yHeadRotO = Float.NaN;
+                check(source.sample(actor).isEmpty(), "required nonfinite orientation admitted");
+                var ageRecipe = OriginalLivingInputPreparation.inspect(renderer, List.of(new OriginalLivingInputPreparation.Input("age", EntityRenderState.class.getName(), "ageInTicks", "F"))).recipe();
+                check(ageRecipe != null && LivingPoseInputSource.bind(actor.getClass(), ageRecipe.program()).sample(actor).isPresent(), "unrequested poison invalidates age");
+                actor.yHeadRotO = 0; actor.yHeadRot = 0; actor.yBodyRotO = 0; actor.yBodyRot = 0;
+                actor.walkAnimation.setSpeed(Float.NaN);
+                check(source.sample(actor).isEmpty(), "required nonfinite walk admitted");
+                check(actor.startRiding(vehicle, true, true), "poison walk gated setup");
+                check(source.sample(actor).isPresent(), "gated unrequired walk read");
+                check(source.sample(null).isEmpty(), "null actor admitted");
+                check(source.sample((LivingEntity) (type == EntityTypes.COW ? EntityTypes.PIG : EntityTypes.COW).create(mc.level, EntitySpawnReason.COMMAND)).isEmpty(), "wrong exact actor admitted");
+                actor.stopRiding();
+                families.add(Map.of("actor", type.toString(), "recipe", recipe, "samples", records));
+            }
+            check(matrices > 0, "numeric integration absent for every original");
+            var out = Path.of(System.getProperty("scalebrews.s61SnapshotDir", "s61-adversarial-snapshots")); Files.createDirectories(out);
+            var gson = new GsonBuilder().setPrettyPrinting().create();
+            Files.writeString(out.resolve("sources.json"), gson.toJson(families));
+            Files.writeString(out.resolve("pose-cases.json"), gson.toJson(extractionCases));
+            System.out.println("S61_INDEPENDENT_LIVING_SOURCE_PASS actors=3 samples=" + samples + " scalars=" + scalarChecks + " repeats=" + repeated + " matrices=" + matrices + " readOnly=true partial=1");
+        } catch (ReflectiveOperationException | java.io.IOException failure) { throw new AssertionError(failure); } }); }
+        finally { world.close(); }
+    }
+}

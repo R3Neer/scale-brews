@@ -80,3 +80,9 @@
 /docs/evidence/S60/** -text whitespace=cr-at-eol
 /docs/evidence/S60/**/*.log -text -whitespace
 /docs/evidence/S60/**/*.java -text -whitespace
+
+# Exact S61 original input-source, native capture and simulator evidence bytes.
+/docs/evidence/S61/** -text whitespace=cr-at-eol
+/docs/evidence/S61/**/*.log -text -whitespace
+/docs/evidence/S61/**/*.java -text -whitespace
+/docs/evidence/S61/**/*.javap.txt -text -whitespace

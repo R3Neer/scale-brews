@@ -1,0 +1,14 @@
+{
+  "net/minecraft/client/model/animal/cow/CowModel.class": {
+    "sha256": "2bc0ed7732daff146b275f49ad5360bb9cd03ea8853f663c3a458ce5a04ec334",
+    "bytes": 3616,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "scope": "supplemental original artifact capture after native execution; not additional runtime proof"
+  },
+  "net/minecraft/client/model/QuadrupedModel.class": {
+    "sha256": "aa6b4a254e79ebca2bd2b5e334c26cbdf1770abcf8d50fc761b055a421b8fc48",
+    "bytes": 5812,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar",
+    "scope": "supplemental original artifact capture after native execution; not additional runtime proof"
+  }
+}

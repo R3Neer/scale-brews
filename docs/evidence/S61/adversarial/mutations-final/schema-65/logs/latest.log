@@ -1,0 +1,6 @@
+[18:40:32] [main/INFO]: [STDERR]: java.lang.AssertionError: S61 ADV 65 channels admitted
+[18:40:32] [main/INFO]: [STDERR]: 	at S61Consumer.rejected(S61Consumer.java:12)
+[18:40:32] [main/INFO]: [STDERR]: 	at S61Consumer.main(S61Consumer.java:63)
+[18:40:32] [main/INFO]: [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+[18:40:32] [main/INFO]: [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+[18:40:32] [main/INFO]: [STDERR]: 	at S61Bootstrap.main(S61Bootstrap.java:10)

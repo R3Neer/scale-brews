@@ -1,0 +1,56 @@
+[
+  {
+    "name": "alias-memo",
+    "compileExit": 0,
+    "sourceSha256": "61ab3c298c873b4cafbac66834bca65d3613960415d05bf1972a9b491244d4ae",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 15.5
+  },
+  {
+    "name": "eager-source",
+    "compileExit": 0,
+    "sourceSha256": "37a11eb2d88103456ad5cddf92fedf0dccba7e5f6574ee9375c3ea52fe5b77f8",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 8.609000000171363
+  },
+  {
+    "name": "partial-exception",
+    "compileExit": 0,
+    "sourceSha256": "555d85aa6bf62a538574bdb1df3704c308564f331cffcb73d95d89073a6dedc9",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 7.780999999959022
+  },
+  {
+    "name": "schema-65",
+    "compileExit": 0,
+    "sourceSha256": "daf776902a50ea3821faecb21b17ed7a4c0a3cf9cb3e37df4bc097eb595e242a",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 8.077999999979511
+  },
+  {
+    "name": "signed-zero",
+    "compileExit": 0,
+    "sourceSha256": "c6a2abd207fbc34564cc635936215cc121e31e993858cca2a69a727bdb42edae",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 8.312000000150874
+  },
+  {
+    "name": "nonfinite-prefix",
+    "compileExit": 0,
+    "sourceSha256": "8fbe08843c50b7b755c60361c869f5fe76a1a740a5c557918a1bc7d347e3693e",
+    "consumerSha256": "eafbb58e84538a0588e6d69d216d7e4fa8d45789fcf47a1dd6371a70b99ab84a",
+    "killed": true,
+    "runtimeExit": 1,
+    "seconds": 8.062999999849126
+  }
+]

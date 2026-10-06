@@ -613,6 +613,19 @@ TRUSTED solo seleccion explicit-input/resource revision-local/export, sin actor/
 continuidad/root/flags/layers/material/bindings/FULL. Baseline93Living/92UNRESOLVED+
 1fixtureSAFE_PARTIAL+0FULL intacta; G6 tareas2-6/G7-G9 y QA humana final abiertos.
 
+**S61 cerrado adversarialmente scoped:** fuente explicita common de
+13inputs Living originales a partialTicks1, actor exacto/schema64 y proof cold
+del extractor/nameTags/fields/resources de enum/edad o enum/unico. Native propio
+32muestras/544bits/56matrices, server2tests+harness/640relecturas y JVM clientVeto
+verdes. Independiente36muestras/504bits/168matrices y7kills compilados PASS;
+common168/340406 y snapshots8filas vistos. Dos reviews finales por rol cero
+cambios. Build/JAR/manifest restaurado verificados. TRUSTED solo esta proyeccion;
+no certifica autoridad
+de evolucion del clock, integracion/runtime/root/inclusion/continuidad/FULL.
+93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL permanece; tareas2-6/G7-G9 y
+necesidades humanas al final de epica. Commit local propio Sprint:S61 y raw
+INDEX/HEAD exactos antes de avanzar. Sin Tiny/fullsuite ni sensibilidades antiguas.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

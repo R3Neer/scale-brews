@@ -4097,3 +4097,66 @@ INDEX/HEAD raw bytes exactos y arbol limpio antes de avanzar. Ningun Tiny Mounts
 fullserver/fullclient ni suites ajenas repetidas. G6general/G7-G9 abiertos;
 actor input source/continuidad/root/flags/layers/material/FULL sin certificar y
 necesidades humanas al final de epica.
+
+### S61 candidata IMPLEMENTER - pruebas independientes pendientes
+
+S00 previo scoped:381owners previos y136raw S51/S53/S59/S60 verificados por
+hash/longitud, sin repetir baterias historicas verdes. LivingPoseInputSource
+common y OriginalLivingInputPreparation cold nuevos; produccion previa intacta.
+Schema13fuentes/64canales, exactActor, partialTicks1 read-only. No registry,
+tracker, clocks, catalog/wire ni runtime caller alterados.
+
+Build inicial PASS58s, compile GameTests incluido. Native final PASS59s con
+runClientGameTest/init focal: Cow/Pig/Chicken/ZombieNautilus reales,8estados cada
+uno,32muestras/544escalares bit exactos y56matrices originales Cow. Dos intentos
+rojos de fixture conservados: setter ignora NaN, getter parcial1 ignora pitch
+viejo; se corrigio el fault injection del field actual, sin cambios productivos.
+Server runGameTest focal PASS1m5s:3required (2S61+always_pass),544bits/640relecturas
+stable y schema64/65/copia/inmutabilidad/ausencia. No suite server ordinaria.
+
+Nueva JVM con veto net.minecraft.client/scalebrews.client PASS:32cold input binds
+sin ejecutar actores y56matrices replay nuevas con consumer S60 intacto,
+maxDelta1.1920928955078125e-7/0hotlookups. Snapshots2PNGs/8estados generados y
+vistos: envolventes locales/bases/centros N/C coinciden; proyeccion fija. Ningun
+claim GPU/world-root/material ni clock evolution/continuidad/transformed/FULL.
+No Tiny/fullsuite ni repeticion de mutaciones anteriores verdes. Recibo con
+hashes/logs/original resources/fuentes fallidas y captures:
+[implementation verification](evidence/S61/implementation/verification.json).
+Campana independiente/reviews/packaging/cierre pendientes.93Living,
+92UNRESOLVED+1fixtureSAFE_PARTIAL+0FULL; G6general/G7-G9 y QA humana final abiertos.
+
+S61 packaging propio final PASS: build -x runGameTest compileGametestJava29s y
+processGametestResources --rerun-tasks9s sin init focal. Manifiesto ordinary
+113server/34client exacto sin ejecutar full suites.383owners(267Java/116resources),
+381previos intactos. JAR SHA25653d77604d192fcf46227f99a62c633b8108f3f2488aff4da6e88dce914423066,
+1380329bytes/814entries;617compiled production classes exactas(607previas
+byteintactas+10nuevas),613compiledGameTests sin leak. Main b5e62535 actual,
+ancestro sin cambios. Recibo [final-package](evidence/S61/implementation/final-package.json).
+Campana/reviews finales/cierre aun pendientes; no prueba runtime clock/FULL.
+
+### S61 cierre adversarial scoped
+
+Native independiente PASS80s:3originales/36muestras/504escalares bit exactos/
+720relecturas/168matrices Cow-Pig; ZombieNautilus solo extraccion, sin claim de
+compilacion lineal. Common JVM clientVeto PASS168/340406asserts,24cold/0hot y
+100kqueries64aliases->100kgetter reads. Actor contador sintetico solo certifica
+localidad/ausencia; no actor original ni clock. Root replay publico con clases
+finales PASS mismos168/340406/counters; no se repitieron kills verdes.
+
+Cold baseline7asserts y7/7kills semanticos(6lector/1fieldproof), compilados antes
+de su fallo semanticamente verificado. Errores iniciales de invocacion/fixture/
+bootstrap/Windows command/reporting conservados; ninguno cuenta como kill ni
+bug productivo. Snapshot8estados Cow/Pig generado/visto por ambos, comparable,
+sin recorte geometrico; maxdelta1.0000000006e-7. PNG0fd04939 y SVG66ec86ec
+fijados. No GPU/root/layers/material authority ni clocks/continuidad/FULL.
+
+Dos reviews finales completas por rol cero cambios productivos;67raw propios
+al review y100raw independientes verificados,383owners/381previos intactos y
+617classes/JAR53d77604 verificados. La cota O(C) describe proyeccion propia;
+getters/component text mantienen coste original dependiente de datos, una
+conversion de nombre por muestra. No zero allocation/TPS/foreign getter claim.
+Manifest ordinary113/34 restaurado sin fullsuite; ninguna Tiny ni sensibilidad
+historica ajena repetida. Recibo independiente7de774cd fijado; recibo propio
+b006ae72 al review preservado como verification-reviewed-candidate.json.
+Cierre requiere commit local propio Sprint:S61, INDEX/HEAD raw y arbol limpio
+antes de siguiente sprint. G6general/G7-G9 siguen abiertos y QA humana al final.

@@ -1,0 +1,7 @@
+tools\s61-adversarial-common\S61Consumer.java:19: error: isBaby() in Probe cannot override isBaby() in AgeableMob
+  public boolean isBaby(){reads++;if(throwing)throw new IllegalStateException("required");return true;}
+                 ^
+  overridden method is final
+Note: tools\s61-adversarial-common\S61Consumer.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 error

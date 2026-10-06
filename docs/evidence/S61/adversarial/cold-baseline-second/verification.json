@@ -1,0 +1,9 @@
+{
+  "mutant": false,
+  "compileExit": 0,
+  "candidateSha256": "c70f0c831f9ce4d5196b6ac189d6b8a242ca46dc73ca3b498430d84022be142c",
+  "killed": false,
+  "runtimeExit": 1,
+  "seconds": 1.8439999998081475,
+  "passed": false
+}

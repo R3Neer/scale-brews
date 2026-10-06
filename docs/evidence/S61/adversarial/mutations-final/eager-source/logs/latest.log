@@ -1,0 +1,7 @@
+[18:40:11] [main/INFO]: [STDERR]: java.lang.AssertionError: S61 ADV required valid sample absent
+[18:40:11] [main/INFO]: [STDERR]: 	at S61Consumer.lambda$main$4(S61Consumer.java:48)
+[18:40:11] [main/INFO]: [STDERR]: 	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
+[18:40:11] [main/INFO]: [STDERR]: 	at S61Consumer.main(S61Consumer.java:48)
+[18:40:11] [main/INFO]: [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+[18:40:11] [main/INFO]: [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+[18:40:11] [main/INFO]: [STDERR]: 	at S61Bootstrap.main(S61Bootstrap.java:10)

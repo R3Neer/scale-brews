@@ -1,0 +1,32 @@
+{
+  "net/minecraft/client/renderer/entity/EntityRenderer.class": {
+    "sha256": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+    "bytes": 21719,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar"
+  },
+  "net/minecraft/client/renderer/entity/LivingEntityRenderer.class": {
+    "sha256": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+    "bytes": 20993,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-clientOnly-043a8b3edf\\26.2\\minecraft-clientOnly-043a8b3edf-26.2.jar"
+  },
+  "net/minecraft/world/entity/Entity.class": {
+    "sha256": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+    "bytes": 166403,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-common-043a8b3edf\\26.2\\minecraft-common-043a8b3edf-26.2.jar"
+  },
+  "net/minecraft/world/entity/LivingEntity.class": {
+    "sha256": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+    "bytes": 157442,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-common-043a8b3edf\\26.2\\minecraft-common-043a8b3edf-26.2.jar"
+  },
+  "net/minecraft/world/entity/WalkAnimationState.class": {
+    "sha256": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+    "bytes": 1449,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-common-043a8b3edf\\26.2\\minecraft-common-043a8b3edf-26.2.jar"
+  },
+  "net/minecraft/util/Mth.class": {
+    "sha256": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+    "bytes": 24178,
+    "source": "C:\\Users\\Usuario\\Documents\\Codex\\2026-10-02\\vas-x20\\work\\s60-adversarial-cache\\loom-cache\\minecraftMaven\\net\\minecraft\\minecraft-common-043a8b3edf\\26.2\\minecraft-common-043a8b3edf-26.2.jar"
+  }
+}

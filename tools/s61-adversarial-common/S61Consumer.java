@@ -1,0 +1,71 @@
+import com.google.gson.*;
+import io.github.r3neer.scalebrews.collision.pose.*;
+import io.github.r3neer.scalebrews.collision.api.spi.PoseEngine;
+import io.github.r3neer.scalebrews.collision.geometry.*;
+import java.lang.reflect.*;import java.nio.file.*;import java.util.*;
+import net.minecraft.world.entity.*;import net.minecraft.world.entity.animal.cow.Cow;
+import net.minecraft.network.chat.Component;import net.minecraft.world.level.Level;import org.joml.Matrix4f;
+
+public final class S61Consumer {
+ static int assertions;
+ static void check(boolean b,String why){assertions++;if(!b)throw new AssertionError("S61 ADV "+why);}
+ static void rejected(Runnable work,String why){try{work.run();throw new AssertionError("S61 ADV "+why);}catch(IllegalArgumentException expected){assertions++;}}
+ /** Synthetic getter counters exercise only locality/absence, never original extraction authority. */
+ public static final class Probe extends Cow {
+  int reads; boolean throwing; LivingEntity vehicle; Component name;
+  private Probe(){super(null,null);}
+  public boolean isAlive(){reads++;if(throwing)throw new IllegalStateException("unrequested");return true;}
+  public boolean isPassenger(){reads++;if(throwing)throw new IllegalStateException("unrequested");return false;}
+  public net.minecraft.world.entity.Entity getVehicle(){reads++;return vehicle;}
+  public Component getCustomName(){reads++;if(throwing)throw new IllegalStateException("required");return name;}
+  public float getXRot(float p){reads++;return -0f;}
+ }
+ @SuppressWarnings("unchecked") static Probe probe()throws Exception {
+  net.minecraft.SharedConstants.tryDetectVersion(); net.minecraft.server.Bootstrap.bootStrap();
+  Class<?> unsafe=Class.forName("sun.misc.Unsafe");Field f=unsafe.getDeclaredField("theUnsafe");f.setAccessible(true);
+  return (Probe)unsafe.getMethod("allocateInstance",Class.class).invoke(f.get(null),Probe.class);
+ }
+ public static void main(String[] args)throws Exception {
+  var gson=new Gson();var cases=JsonParser.parseString(Files.readString(Path.of(args[0]))).getAsJsonArray();int matrices=0,lookups=0;check(!cases.isEmpty(),"missing original capture");
+  var bounds=new ArrayList<PoseEngine.Bound>();var reports=new ArrayList<JsonObject>();
+  for(var item:cases){var c=item.getAsJsonObject();var recipe=c.getAsJsonObject("recipe");
+   var inputProgram=gson.fromJson(recipe.get("program"),LivingPoseInputSource.Program.class);
+   Class<?> actor=Class.forName(inputProgram.actor(),false,S61Consumer.class.getClassLoader());
+   var source=LivingPoseInputSource.bind((Class<? extends LivingEntity>)actor,inputProgram);
+   for(Field f:source.getClass().getDeclaredFields()){f.setAccessible(true);Object value=f.get(source);check(value==null||value instanceof Class<?>||value instanceof String[]||value instanceof LivingPoseInputSource.Source[],"retained world/model/state/provider");}
+   var program=NumericPoseProgram.validatedCopy(gson.fromJson(c.get("program"),NumericPoseProgram.class));
+   var channels=new TreeMap<String,Float>();c.getAsJsonObject("channels").entrySet().forEach(e->channels.put(e.getKey(),e.getValue().getAsFloat()));
+   int[] calls={0};var resources=new PoseEngine.Resources(){public Optional<PoseProgram> program(net.minecraft.resources.Identifier id){throw new AssertionError("wrong engine");}public Optional<NumericPoseProgram> numericProgram(net.minecraft.resources.Identifier id){calls[0]++;return Optional.of(program);}};
+   var bound=new NumericPoseEngine().bind(program.geometry(),Map.of("program","s61_adversarial:native"),channels.keySet(),resources).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent"));lookups+=calls[0];bounds.add(bound);
+   var input=new PoseEngine.Inputs(0,0,0,0,0,true,channels);var pose=bound.evaluate(input).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent"));var transforms=program.geometry().transforms(pose);
+   for(var e:c.getAsJsonObject("nativeMatrices").entrySet()){float[] v=gson.fromJson(e.getValue(),float[].class);check(transforms.get(e.getKey()).equals(new Matrix4f().set(v),3e-6f),"captured original matrix differs");matrices++;}
+   var report=c.deepCopy();report.add("candidateMatrices",gson.toJsonTree(transforms.entrySet().stream().collect(java.util.stream.Collectors.toMap(Map.Entry::getKey,e->ModelGeometry.values(e.getValue())))));reports.add(report);
+   for(int k=0;k<10000;k++)check(bound.evaluate(input).isPresent(),"repeat numeric absent");check(calls[0]==1,"hot resource lookup");
+  }
+  Probe actor=probe();actor.tickCount=16777217;actor.throwing=true;
+  var age=new LivingPoseInputSource.Program(1,Probe.class.getName(),List.of(new LivingPoseInputSource.Channel("age",LivingPoseInputSource.Source.AGE_IN_TICKS)));
+  var ageBound=LivingPoseInputSource.bind(Probe.class,age);
+  check(ageBound.sample(actor).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent")).get("age")==((float)actor.tickCount+1f),"age scalar arithmetic");check(actor.reads==0,"unrequested getter read");
+  actor.yHeadRotO=Float.NaN;check(ageBound.sample(actor).isPresent(),"unrequested nonfinite orientation evaluated");
+  var required=new LivingPoseInputSource.Program(1,Probe.class.getName(),List.of(new LivingPoseInputSource.Channel("age",LivingPoseInputSource.Source.AGE_IN_TICKS),new LivingPoseInputSource.Channel("baby",LivingPoseInputSource.Source.IS_UPSIDE_DOWN)));
+  check(LivingPoseInputSource.bind(Probe.class,required).sample(actor).isEmpty(),"exception published partial prefix");
+  actor.throwing=false;actor.reads=0;actor.name=Component.literal("Dinnerbone");
+  var yaw=new LivingPoseInputSource.Program(1,Probe.class.getName(),List.of(new LivingPoseInputSource.Channel("yaw",LivingPoseInputSource.Source.Y_ROT)));
+  check(LivingPoseInputSource.bind(Probe.class,yaw).sample(actor).isEmpty(),"required nonfinite yaw admitted");actor.reads=0;
+  var aliases=new ArrayList<LivingPoseInputSource.Channel>();for(int i=0;i<64;i++)aliases.add(new LivingPoseInputSource.Channel("baby."+i,LivingPoseInputSource.Source.IS_UPSIDE_DOWN));
+  var bound=LivingPoseInputSource.bind(Probe.class,new LivingPoseInputSource.Program(1,Probe.class.getName(),aliases));
+  aliases.clear();var sample=bound.sample(actor).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent"));check(sample.size()==64&&actor.reads==1,"alias getter recomputed / mutable schema");
+  for(float f:sample.values())check(Float.floatToRawIntBits(f)==Float.floatToRawIntBits(1f),"flag bit identity");
+  actor.name=null;actor.reads=0;for(float f:bound.sample(actor).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent")).values())check(Float.floatToRawIntBits(f)==0,"false flag is not positive zero");check(actor.reads==1,"false alias getter recomputed");
+  actor.reads=0;long start=System.nanoTime();for(int i=0;i<100000;i++){check(bound.sample(actor).orElseThrow(() -> new AssertionError("S61 ADV required valid sample absent")).size()==64,"bounded sample size drift");}check(actor.reads==100000,"per-source calls not local");
+  long elapsed=System.nanoTime()-start;
+  var tooMany=new ArrayList<LivingPoseInputSource.Channel>();for(int i=0;i<65;i++)tooMany.add(new LivingPoseInputSource.Channel("age."+i,LivingPoseInputSource.Source.AGE_IN_TICKS));
+  rejected(()->new LivingPoseInputSource.Program(1,Probe.class.getName(),tooMany),"65 channels admitted");
+  rejected(()->LivingPoseInputSource.bind(Cow.class,age),"mismatched actor accepted");
+  rejected(()->new LivingPoseInputSource.Channel("UPPER",LivingPoseInputSource.Source.IS_UPSIDE_DOWN),"bad channel accepted");
+  check(ageBound.sample(null).isEmpty(),"null admitted");
+  try{Class.forName("net.minecraft.client.Minecraft");throw new AssertionError("S61 ADV client visible");}catch(ClassNotFoundException expected){assertions++;}
+  Files.writeString(Path.of(args[1]).resolve("pose-comparison.json"),new GsonBuilder().setPrettyPrinting().create().toJson(reports));
+  System.out.println("S61_COMMON_PASS matrices="+matrices+" coldLookups="+lookups+" assertions="+assertions+" sourceCalls100k="+actor.reads+" sourceTimingNanos="+elapsed+" clientVeto=true originalActorExecutionClaim=false counterActorOnly=true");
+ }
+}

@@ -1,0 +1,44 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.joml.MemUtil$MemUtilUnsafe (file:/C:/Users/Usuario/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.8/fc0a71dad90a2cf41d82a76156a0e700af8e4f8d/joml-1.10.8.jar)
+WARNING: Please consider reporting this to the maintainers of class org.joml.MemUtil$MemUtilUnsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:119)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at S61Bootstrap.main(S61Bootstrap.java:10)
+Caused by: java.lang.ExceptionInInitializerError
+	at net.minecraft.util.Util.doFetchChoiceType(Util.java:323)
+	at net.minecraft.util.Util.fetchChoiceType(Util.java:317)
+	at net.minecraft.world.entity.EntityType$Builder.build(EntityType.java:584)
+	at net.minecraft.world.entity.EntityTypes.register(EntityTypes.java:344)
+	at net.minecraft.world.entity.EntityTypes.<clinit>(EntityTypes.java:155)
+	at net.minecraft.world.item.equipment.Equippable.llamaSwag(Equippable.java:79)
+	at net.minecraft.world.item.Items.lambda$static$23(Items.java:535)
+	at net.minecraft.world.item.Items.lambda$registerBlock$0(Items.java:1385)
+	at net.minecraft.world.item.Items.lambda$registerBlock$1(Items.java:1404)
+	at net.minecraft.world.item.Items.registerItem(Items.java:1428)
+	at net.minecraft.world.item.Items.registerBlock(Items.java:1404)
+	at net.minecraft.world.item.Items.registerBlock(Items.java:1400)
+	at net.minecraft.world.item.Items.registerBlock(Items.java:1385)
+	at net.minecraft.world.item.Items.lambda$static$22(Items.java:535)
+	at net.minecraft.world.level.block.ColorCollection.lambda$registerBlockItems$0(ColorCollection.java:85)
+	at net.minecraft.world.level.block.ColorCollection.zipMap(ColorCollection.java:184)
+	at net.minecraft.world.level.block.ColorCollection.registerBlockItems(ColorCollection.java:85)
+	at net.minecraft.world.item.Items.<clinit>(Items.java:535)
+	at net.minecraft.world.level.block.LightBlock.getShape(LightBlock.java:65)
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getShape(BlockBehaviour.java:1073)
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getShape(BlockBehaviour.java:1069)
+	at net.minecraft.world.level.block.state.BlockBehaviour.getCollisionShape(BlockBehaviour.java:334)
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase$Cache.<init>(BlockBehaviour.java:1323)
+	at net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.initCache(BlockBehaviour.java:882)
+	at net.minecraft.world.level.block.Blocks.<clinit>(Blocks.java:1152)
+	at net.minecraft.world.level.block.FireBlock.bootStrap(FireBlock.java:324)
+	at net.minecraft.server.Bootstrap.bootStrap(Bootstrap.java:58)
+	at S61Consumer.probe(S61Consumer.java:24)
+	at S61Consumer.main(S61Consumer.java:44)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	... 2 more
+Caused by: java.lang.IllegalStateException: Game version not set
+	at net.minecraft.SharedConstants.getCurrentVersion(SharedConstants.java:253)
+	at net.minecraft.util.datafix.DataFixers.<clinit>(DataFixers.java:425)
+	... 32 more

@@ -1,0 +1,29 @@
+import io.github.r3neer.scalebrews.client.collision.preparation.OriginalLivingInputPreparation;
+import net.minecraft.client.renderer.entity.*;import net.minecraft.client.renderer.entity.state.*;
+import java.lang.reflect.*;import java.util.*;
+/** Cold resource proof only: no Minecraft world, public thread gate or live extraction is claimed here. */
+public final class S61ColdProof {
+ static int checks;
+ static void check(boolean b,String m){checks++;if(!b)throw new AssertionError("S61 ADV "+m);}
+ static Object allocation(Class<?> type)throws Exception {
+  var u=Class.forName("sun.misc.Unsafe");var f=u.getDeclaredField("theUnsafe");f.setAccessible(true);
+  return u.getMethod("allocateInstance",Class.class).invoke(f.get(null),type);
+ }
+ static OriginalLivingInputPreparation.Recipe prepare(EntityRenderer<?,?> renderer,List<OriginalLivingInputPreparation.Input> inputs)throws Exception {
+  var m=OriginalLivingInputPreparation.class.getDeclaredMethod("prepare",EntityRenderer.class,List.class);m.setAccessible(true);
+  try{return (OriginalLivingInputPreparation.Recipe)m.invoke(null,renderer,inputs);}catch(InvocationTargetException e){if(e.getCause() instanceof IllegalArgumentException)return null;throw e;}
+ }
+ public static void main(String[] args)throws Exception {
+  var renderer=(EntityRenderer<?,?>)allocation(CowRenderer.class);
+  var age=List.of(new OriginalLivingInputPreparation.Input("age",EntityRenderState.class.getName(),"ageInTicks","F"));
+  var first=prepare(renderer,age);check(first!=null,"cold original age absent");
+  check(first.equals(prepare(renderer,age)),"cold repeat identity");
+  var inherited=prepare(renderer,List.of(new OriginalLivingInputPreparation.Input("age",LivingEntityRenderState.class.getName(),"ageInTicks","F")));
+  check(first.equals(inherited),"symbolic owner alias changes canonical recipe");
+  check(prepare(renderer,List.of(new OriginalLivingInputPreparation.Input("unknown",LivingEntityRenderState.class.getName(),"deathTime","F")))==null,"unsupported field admitted");
+  check(prepare(renderer,List.of(new OriginalLivingInputPreparation.Input("wrong",LivingEntityRenderState.class.getName(),"xRot","Z")))==null,"wrong descriptor admitted");
+  check(prepare(renderer,List.of(new OriginalLivingInputPreparation.Input("foreign",TurtleRenderState.class.getName(),"isOnLand","Z")))==null,"other state owner admitted");
+  var a=new ArrayList<OriginalLivingInputPreparation.Input>();a.add(age.getFirst());a.add(age.getFirst());check(prepare(renderer,a)==null,"duplicate channels admitted");
+  System.out.println("S61_COLD_PROOF_PASS checks="+checks+" originalResourceOnly=true liveActorExecution=false publicThreadGateBypassed=true");
+ }
+}

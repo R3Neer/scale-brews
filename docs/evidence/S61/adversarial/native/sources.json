@@ -1,0 +1,1831 @@
+[
+  {
+    "samples": [
+      {
+        "sample": 0,
+        "expected": {
+          "age.alias": 1.6777214E7,
+          "ageinticks": 1.6777214E7,
+          "agescale": 1.0,
+          "bodyrot": -1260.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0
+        },
+        "actual": {
+          "ageinticks": 1.6777214E7,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0,
+          "bodyrot": -1260.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777214E7
+        },
+        "actorState": "16777213/720.0/-540.0/-1080.0/900.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1052401206/speed\u003d-1120924736/position\u003d1050959038/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 1,
+        "expected": {
+          "age.alias": 1.6777215E7,
+          "ageinticks": 1.6777215E7,
+          "agescale": 0.5,
+          "bodyrot": 517.125,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777215E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0,
+          "bodyrot": 517.125,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777215E7
+        },
+        "actorState": "16777214/644.5/-494.875/-1056.75/840.25/-77.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1051535905/speed\u003d1017387120/position\u003d1059972148/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 2,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1019.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25,
+          "bodyrot": -1019.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777215/569.0/-449.75/-1033.5/780.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1052804487/speed\u003d1038226212/position\u003d1066742958/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 3,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1079.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375,
+          "bodyrot": -1079.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777216/493.5/-404.625/-1010.25/720.75/-63.25/null/null/10.0/0/speedOld\u003d1054623611/speed\u003d1045744014/position\u003d1072095167/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 4,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 0.5,
+          "bodyrot": -1139.0,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5,
+          "bodyrot": -1139.0,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777217/418.0/-359.5/-987.0/661.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1056584775/speed\u003d1050489691/position\u003d1076255955/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 5,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": 473.625,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0,
+          "bodyrot": 473.625,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777218/342.5/-314.375/-963.75/601.25/-48.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1057773597/speed\u003d1053835133/position\u003d1080261322/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 6,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -898.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75,
+          "bodyrot": -898.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777219/267.0/-269.25/-940.5/541.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1058777229/speed\u003d1057074624/position\u003d1083533359/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 7,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 0.5,
+          "bodyrot": -958.25,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125,
+          "bodyrot": -958.25,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777220/191.5/-224.125/-917.25/481.75/-34.25/null/null/0.0/0/speedOld\u003d1059782081/speed\u003d1058749902/position\u003d1086205857/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 8,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -1018.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0,
+          "bodyrot": -1018.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777221/116.0/-179.0/-894.0/422.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1060787248/speed\u003d1060425315/position\u003d1089213427/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 9,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 1.0,
+          "bodyrot": -65.875,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0,
+          "bodyrot": -65.875,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777222/40.5/-133.875/-870.75/362.25/-19.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1061792496/speed\u003d1062100763/position\u003d1091537562/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 10,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 0.5,
+          "bodyrot": -777.5,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25,
+          "bodyrot": -777.5,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777223/-35.0/-88.75/-847.5/302.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1062797765/speed\u003d1063776221/position\u003d1093376436/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 11,
+        "expected": {
+          "age.alias": 2.1474836E9,
+          "ageinticks": 2.1474836E9,
+          "agescale": 1.0,
+          "bodyrot": -837.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625
+        },
+        "actual": {
+          "ageinticks": 2.1474836E9,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625,
+          "bodyrot": -837.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 2.1474836E9
+        },
+        "actorState": "2147483647/-110.5/-43.625/-824.25/242.75/-5.25/null/null/10.0/0/speedOld\u003d1063803039/speed\u003d1065402448/position\u003d1095382856/positionScale\u003d1060487823"
+      }
+    ],
+    "recipe": {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.CowRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.CowRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.cow.Cow",
+        "channels": [
+          {
+            "name": "ageinticks",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "age.alias",
+            "source": "AGE_IN_TICKS"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "ageinticks",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "age.alias",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/CowRenderer.class": "5481d1aa61616c92905130216baeab770a6e6fae3adaa8f0331118b382648891",
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/state/CowRenderState.class": "cb9ce3d89dbb0b4e056b304769e4fbc2761752dfa31a150983ec40d09923c4ed",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/cow/Cow.class": "7ab8f66383e478a289310b8204d774c9a08180ae307ad2d513fc2951ed992011",
+        "/net/minecraft/world/entity/animal/cow/CowVariant.class": "78389c648258244b3f38802c2e8f281696f90aa44b3411bfa8216398dffbe8a9"
+      },
+      "digest": "494447fd821c618d4fcfb87599c2ca82f018df0cf87a1a189687de307cb8359f"
+    },
+    "actor": "entity.minecraft.cow"
+  },
+  {
+    "samples": [
+      {
+        "sample": 0,
+        "expected": {
+          "age.alias": 1.6777214E7,
+          "ageinticks": 1.6777214E7,
+          "agescale": 1.0,
+          "bodyrot": -1260.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0
+        },
+        "actual": {
+          "ageinticks": 1.6777214E7,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0,
+          "bodyrot": -1260.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777214E7
+        },
+        "actorState": "16777213/720.0/-540.0/-1080.0/900.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1052401206/speed\u003d-1120924736/position\u003d1050959038/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 1,
+        "expected": {
+          "age.alias": 1.6777215E7,
+          "ageinticks": 1.6777215E7,
+          "agescale": 0.5,
+          "bodyrot": 517.125,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777215E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0,
+          "bodyrot": 517.125,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777215E7
+        },
+        "actorState": "16777214/644.5/-494.875/-1056.75/840.25/-77.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1051535905/speed\u003d1017387120/position\u003d1059972148/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 2,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1019.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25,
+          "bodyrot": -1019.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777215/569.0/-449.75/-1033.5/780.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1052804487/speed\u003d1038226212/position\u003d1066742958/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 3,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1079.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375,
+          "bodyrot": -1079.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777216/493.5/-404.625/-1010.25/720.75/-63.25/null/null/10.0/0/speedOld\u003d1054623611/speed\u003d1045744014/position\u003d1072095167/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 4,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 0.5,
+          "bodyrot": -1139.0,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5,
+          "bodyrot": -1139.0,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777217/418.0/-359.5/-987.0/661.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1056584775/speed\u003d1050489691/position\u003d1076255955/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 5,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": 473.625,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0,
+          "bodyrot": 473.625,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777218/342.5/-314.375/-963.75/601.25/-48.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1057773597/speed\u003d1053835133/position\u003d1080261322/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 6,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -898.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75,
+          "bodyrot": -898.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777219/267.0/-269.25/-940.5/541.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1058777229/speed\u003d1057074624/position\u003d1083533359/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 7,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 0.5,
+          "bodyrot": -958.25,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125,
+          "bodyrot": -958.25,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777220/191.5/-224.125/-917.25/481.75/-34.25/null/null/0.0/0/speedOld\u003d1059782081/speed\u003d1058749902/position\u003d1086205857/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 8,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -1018.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0,
+          "bodyrot": -1018.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777221/116.0/-179.0/-894.0/422.0/-0.0/null/literal{Dinnerbone}/10.0/200/speedOld\u003d1060787248/speed\u003d1060425315/position\u003d1089213427/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 9,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 1.0,
+          "bodyrot": -65.875,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0,
+          "bodyrot": -65.875,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777222/40.5/-133.875/-870.75/362.25/-19.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/10.0/0/speedOld\u003d1061792496/speed\u003d1062100763/position\u003d1091537562/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 10,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 0.5,
+          "bodyrot": -777.5,
+          "isautospinattack": 1.0,
+          "isbaby": 1.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25,
+          "bodyrot": -777.5,
+          "scale": 1.0,
+          "agescale": 0.5,
+          "isbaby": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777223/-35.0/-88.75/-847.5/302.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/10.0/200/speedOld\u003d1062797765/speed\u003d1063776221/position\u003d1093376436/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 11,
+        "expected": {
+          "age.alias": 2.1474836E9,
+          "ageinticks": 2.1474836E9,
+          "agescale": 1.0,
+          "bodyrot": -837.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625
+        },
+        "actual": {
+          "ageinticks": 2.1474836E9,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625,
+          "bodyrot": -837.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 2.1474836E9
+        },
+        "actorState": "2147483647/-110.5/-43.625/-824.25/242.75/-5.25/null/null/10.0/0/speedOld\u003d1063803039/speed\u003d1065402448/position\u003d1095382856/positionScale\u003d1060487823"
+      }
+    ],
+    "recipe": {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.PigRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.PigRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.pig.Pig",
+        "channels": [
+          {
+            "name": "ageinticks",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "age.alias",
+            "source": "AGE_IN_TICKS"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "ageinticks",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "age.alias",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/PigRenderer.class": "f283b4dd31a8aa672c9ed4c303ea2d62f8e3d59e24ee4fce94dcdbdc5525305e",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/client/renderer/entity/state/PigRenderState.class": "7e967e0cfbe5d63e0e349d9fc7284c8cac8be73dcfdf0c6271c07a04538a4e4e",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/pig/Pig.class": "082701bfa8073e6508658d57f9792bb1e47d862007f324be4fb4dfee3066870e",
+        "/net/minecraft/world/entity/animal/pig/PigVariant.class": "8255effa5be81e9710f4d8edb50eb9b4c6db0df6bce3501946862bb5665deb01",
+        "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+      },
+      "digest": "4599fd1db820152b09e6cc6762455a534e80dd91d3bfe4e759473f05a51e33b1"
+    },
+    "actor": "entity.minecraft.pig"
+  },
+  {
+    "samples": [
+      {
+        "sample": 0,
+        "expected": {
+          "age.alias": 1.6777214E7,
+          "ageinticks": 1.6777214E7,
+          "agescale": 1.0,
+          "bodyrot": -1260.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0
+        },
+        "actual": {
+          "ageinticks": 1.6777214E7,
+          "walkanimationpos": 0.22792424,
+          "walkanimationspeed": -0.042979956,
+          "xrot": 0.0,
+          "yrot": -0.0,
+          "bodyrot": -1260.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777214E7
+        },
+        "actorState": "16777213/720.0/-540.0/-1080.0/900.0/-0.0/null/literal{Dinnerbone}/15.0/200/speedOld\u003d1052401206/speed\u003d-1120924736/position\u003d1050959038/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 1,
+        "expected": {
+          "age.alias": 1.6777215E7,
+          "ageinticks": 1.6777215E7,
+          "agescale": 1.0,
+          "bodyrot": 517.125,
+          "isautospinattack": 1.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777215E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 77.75,
+          "yrot": -68.0,
+          "bodyrot": 517.125,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777215E7
+        },
+        "actorState": "16777214/644.5/-494.875/-1056.75/840.25/-77.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/15.0/0/speedOld\u003d1051535905/speed\u003d1017387120/position\u003d1059972148/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 2,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1019.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -150.25,
+          "bodyrot": -1019.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777215/569.0/-449.75/-1033.5/780.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/15.0/200/speedOld\u003d1052804487/speed\u003d1038226212/position\u003d1066742958/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 3,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1079.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.2806293,
+          "walkanimationspeed": 0.20780012,
+          "xrot": -63.25,
+          "yrot": -45.375,
+          "bodyrot": -1079.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777216/493.5/-404.625/-1010.25/720.75/-63.25/null/null/15.0/0/speedOld\u003d1054623611/speed\u003d1045744014/position\u003d1072095167/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 4,
+        "expected": {
+          "age.alias": 1.6777216E7,
+          "ageinticks": 1.6777216E7,
+          "agescale": 1.0,
+          "bodyrot": -1139.0,
+          "isautospinattack": 1.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5
+        },
+        "actual": {
+          "ageinticks": 1.6777216E7,
+          "walkanimationpos": 1.845585,
+          "walkanimationspeed": 0.30703244,
+          "xrot": 0.0,
+          "yrot": -59.5,
+          "bodyrot": -1139.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777216E7
+        },
+        "actorState": "16777217/418.0/-359.5/-987.0/661.0/-0.0/null/literal{Dinnerbone}/15.0/200/speedOld\u003d1056584775/speed\u003d1050489691/position\u003d1076255955/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 5,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": 473.625,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 48.75,
+          "yrot": 68.0,
+          "bodyrot": 473.625,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777218/342.5/-314.375/-963.75/601.25/-48.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/15.0/0/speedOld\u003d1057773597/speed\u003d1053835133/position\u003d1080261322/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 6,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -898.5,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -90.75,
+          "bodyrot": -898.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777219/267.0/-269.25/-940.5/541.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/15.0/200/speedOld\u003d1058777229/speed\u003d1057074624/position\u003d1083533359/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 7,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -958.25,
+          "isautospinattack": 1.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -34.25,
+          "yrot": 14.125,
+          "bodyrot": -958.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777220/191.5/-224.125/-917.25/481.75/-34.25/null/null/0.0/0/speedOld\u003d1059782081/speed\u003d1058749902/position\u003d1086205857/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 8,
+        "expected": {
+          "age.alias": 1.677722E7,
+          "ageinticks": 1.677722E7,
+          "agescale": 1.0,
+          "bodyrot": -1018.0,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0
+        },
+        "actual": {
+          "ageinticks": 1.677722E7,
+          "walkanimationpos": 5.237979,
+          "walkanimationspeed": 0.7062742,
+          "xrot": 0.0,
+          "yrot": -119.0,
+          "bodyrot": -1018.0,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.677722E7
+        },
+        "actorState": "16777221/116.0/-179.0/-894.0/422.0/-0.0/null/literal{Dinnerbone}/15.0/200/speedOld\u003d1060787248/speed\u003d1060425315/position\u003d1089213427/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 9,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 1.0,
+          "bodyrot": -65.875,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": 19.75,
+          "yrot": 68.0,
+          "bodyrot": -65.875,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 1.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777222/40.5/-133.875/-870.75/362.25/-19.75/Cow[\u0027Cow\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{Grumm}/15.0/0/speedOld\u003d1061792496/speed\u003d1062100763/position\u003d1091537562/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 10,
+        "expected": {
+          "age.alias": 1.6777224E7,
+          "ageinticks": 1.6777224E7,
+          "agescale": 1.0,
+          "bodyrot": -777.5,
+          "isautospinattack": 1.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 1.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25
+        },
+        "actual": {
+          "ageinticks": 1.6777224E7,
+          "walkanimationpos": 0.0,
+          "walkanimationspeed": 0.0,
+          "xrot": -0.0,
+          "yrot": -31.25,
+          "bodyrot": -777.5,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 1.0,
+          "isautospinattack": 1.0,
+          "age.alias": 1.6777224E7
+        },
+        "actorState": "16777223/-35.0/-88.75/-847.5/302.5/-0.0/Boat[\u0027Oak Boat\u0027/0, l\u003d\u0027ClientLevel\u0027, x\u003d0.00, y\u003d0.00, z\u003d0.00]/literal{grumm}/15.0/200/speedOld\u003d1062797765/speed\u003d1063776221/position\u003d1093376436/positionScale\u003d1060487823"
+      },
+      {
+        "sample": 11,
+        "expected": {
+          "age.alias": 2.1474836E9,
+          "ageinticks": 2.1474836E9,
+          "agescale": 1.0,
+          "bodyrot": -837.25,
+          "isautospinattack": 0.0,
+          "isbaby": 0.0,
+          "isfullyfrozen": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "scale": 1.0,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625
+        },
+        "actual": {
+          "ageinticks": 2.1474836E9,
+          "walkanimationpos": 8.973332,
+          "walkanimationspeed": 1.0,
+          "xrot": -5.25,
+          "yrot": 73.625,
+          "bodyrot": -837.25,
+          "scale": 1.0,
+          "agescale": 1.0,
+          "isbaby": 0.0,
+          "isinwater": 0.0,
+          "isupsidedown": 0.0,
+          "isfullyfrozen": 0.0,
+          "isautospinattack": 0.0,
+          "age.alias": 2.1474836E9
+        },
+        "actorState": "2147483647/-110.5/-43.625/-824.25/242.75/-5.25/null/null/15.0/0/speedOld\u003d1063803039/speed\u003d1065402448/position\u003d1095382856/positionScale\u003d1060487823"
+      }
+    ],
+    "recipe": {
+      "tool": "original-living-input-v1",
+      "renderer": "net.minecraft.client.renderer.entity.ZombieNautilusRenderer",
+      "state": "net.minecraft.client.renderer.entity.state.NautilusRenderState",
+      "partialTicks": 1.0,
+      "program": {
+        "format": 1,
+        "actor": "net.minecraft.world.entity.animal.nautilus.ZombieNautilus",
+        "channels": [
+          {
+            "name": "ageinticks",
+            "source": "AGE_IN_TICKS"
+          },
+          {
+            "name": "walkanimationpos",
+            "source": "WALK_POSITION"
+          },
+          {
+            "name": "walkanimationspeed",
+            "source": "WALK_SPEED"
+          },
+          {
+            "name": "xrot",
+            "source": "X_ROT"
+          },
+          {
+            "name": "yrot",
+            "source": "Y_ROT"
+          },
+          {
+            "name": "bodyrot",
+            "source": "BODY_ROT"
+          },
+          {
+            "name": "scale",
+            "source": "SCALE"
+          },
+          {
+            "name": "agescale",
+            "source": "AGE_SCALE"
+          },
+          {
+            "name": "isbaby",
+            "source": "IS_BABY"
+          },
+          {
+            "name": "isinwater",
+            "source": "IS_IN_WATER"
+          },
+          {
+            "name": "isupsidedown",
+            "source": "IS_UPSIDE_DOWN"
+          },
+          {
+            "name": "isfullyfrozen",
+            "source": "IS_FULLY_FROZEN"
+          },
+          {
+            "name": "isautospinattack",
+            "source": "IS_AUTO_SPIN_ATTACK"
+          },
+          {
+            "name": "age.alias",
+            "source": "AGE_IN_TICKS"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "channel": "ageinticks",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationpos",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "walkanimationspeed",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "xrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "yrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "bodyrot",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "bodyRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "scale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "scale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "agescale",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "ageScale",
+          "descriptor": "F"
+        },
+        {
+          "channel": "isbaby",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isBaby",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isinwater",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isInWater",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isupsidedown",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isUpsideDown",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isfullyfrozen",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isFullyFrozen",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "isautospinattack",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "isAutoSpinAttack",
+          "descriptor": "Z"
+        },
+        {
+          "channel": "age.alias",
+          "owner": "net.minecraft.client.renderer.entity.state.EntityRenderState",
+          "name": "ageInTicks",
+          "descriptor": "F"
+        }
+      ],
+      "originalResources": {
+        "/net/minecraft/client/renderer/entity/EntityRenderer.class": "a37ef501fb2ffe5386fdfbe7b3c929aca8d4dacda4cb66db17b8843aa3cdaad1",
+        "/net/minecraft/client/renderer/entity/LivingEntityRenderer.class": "d3c5792a8ea3c6ebc74bfdaee0f81cb994755ba86a23e9f3778b9b5f574550c9",
+        "/net/minecraft/client/renderer/entity/ZombieNautilusRenderer.class": "fd7a5992d6ecb65b9a00147de1b3194ba1816199145a7001d7c34322441e5b1b",
+        "/net/minecraft/client/renderer/entity/state/EntityRenderState.class": "c138a2047abcf1410e9fd1eb60f831e61cb5d5d1176175a7fe0ef2458bea21db",
+        "/net/minecraft/client/renderer/entity/state/LivingEntityRenderState.class": "4ffdde1a9b918a0a7fcb3f4951a82789cbf1ab1aef297d9d49917a80de7ffd96",
+        "/net/minecraft/client/renderer/entity/state/NautilusRenderState.class": "f735039eefb6de399070d75e0138d2fb43b91a970819ac82b34d4535611f4402",
+        "/net/minecraft/core/component/DataComponents.class": "e691ba047f2a88cce83dd1ea5a8c93027d6cd97022ff01344b3321238b0eba94",
+        "/net/minecraft/util/Mth.class": "4bf51de7ebd9315a20cad8bbffeba1f5ee0da98ffe0d4181d7f4528ce024aaef",
+        "/net/minecraft/world/entity/AgeableMob.class": "41661e711da4fe1a50efe43d8c80befbe8301390543a6ad1036015d4700b6013",
+        "/net/minecraft/world/entity/Entity.class": "4ec49c0033d61552130e2bc3141e0b5ab337f4fbf3df0bbe71ce9c6dc7f36bea",
+        "/net/minecraft/world/entity/EquipmentSlot.class": "b04be4080da96a7f62e580b64e49b0ed70ed2ed974c7bf4a4d6a634964dc352c",
+        "/net/minecraft/world/entity/LivingEntity.class": "109337b372ccb23cd6b16abb666231f871ac69b6ac7b159c34a407c683b88d66",
+        "/net/minecraft/world/entity/Mob.class": "60ac9d80970a1dc7ed0406261b6100392324dad4c011563718dca8f00a84b381",
+        "/net/minecraft/world/entity/WalkAnimationState.class": "427726d3ddac62043d17e688a1eac23b1dc07b4ddd5894f0b1de52e98e3646ac",
+        "/net/minecraft/world/entity/animal/nautilus/ZombieNautilus.class": "23c8bf6b34b30ad168e549a42ad689f7b8bcb1f44cbcb27ee5a5d1fc81b39d4f",
+        "/net/minecraft/world/entity/animal/nautilus/ZombieNautilusVariant.class": "7475b3bd6c7dc760de63f91276b7955c8c0501a90ee362d42b0be5c0a20e2659",
+        "/net/minecraft/world/item/ItemStack.class": "7f96d63f970807f0631fdce06c98af0a7a0240ca18b9b9236dec02fc7932a198"
+      },
+      "digest": "aae7f84aad36f6dc8da8ae6d63c84ac156b41bce8159f15c445e8311ff28c288"
+    },
+    "actor": "entity.minecraft.zombie_nautilus"
+  }
+]

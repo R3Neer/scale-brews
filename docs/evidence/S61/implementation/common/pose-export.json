@@ -1,0 +1,1936 @@
+[
+  {
+    "exported": {
+      "tableId": "s61_proof:original_finite/77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319",
+      "table": {
+        "format": 1,
+        "source": "original_finite_export/77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319",
+        "version": "original-finite-resource-v1",
+        "booleans": [],
+        "rows": [
+          {
+            "mask": 0,
+            "program": "s61_proof:original_finite/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2"
+          }
+        ]
+      },
+      "numericPrograms": {
+        "s61_proof:original_finite/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2": {
+          "format": 1,
+          "source": "original_finite_export/def5b1d285b9501f73530ec9d76d95a020329f658b0941dcc783c8681c4bbec2",
+          "version": "original-finite-resource-v1",
+          "geometry": {
+            "format": 2,
+            "source": "original_reset/fce5c9250e9a1d541f64759eea148832d2c8177c22477bb65e3ec44216014395",
+            "version": "original-finite-pose-v1",
+            "parts": [
+              {
+                "id": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/body",
+                "parent": "root",
+                "transform": [
+                  0.99999994,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.99999994,
+                  0.0,
+                  0.0,
+                  -0.99999994,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.3125,
+                  0.125,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": 0.0,
+                  "y": 5.0,
+                  "z": 2.0,
+                  "xRot": 1.5707964,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/head",
+                "parent": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.25,
+                  -0.5,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": 0.0,
+                  "y": 4.0,
+                  "z": -8.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/left_front_leg",
+                "parent": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.25,
+                  0.75,
+                  -0.3125,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": 4.0,
+                  "y": 12.0,
+                  "z": -5.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/left_hind_leg",
+                "parent": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.25,
+                  0.75,
+                  0.4375,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": 4.0,
+                  "y": 12.0,
+                  "z": 7.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/right_front_leg",
+                "parent": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  -0.25,
+                  0.75,
+                  -0.3125,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": -4.0,
+                  "y": 12.0,
+                  "z": -5.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              },
+              {
+                "id": "root/right_hind_leg",
+                "parent": "root",
+                "transform": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  -0.25,
+                  0.75,
+                  0.4375,
+                  1.0
+                ],
+                "sourcePose": {
+                  "x": -4.0,
+                  "y": 12.0,
+                  "z": 7.0,
+                  "xRot": 0.0,
+                  "yRot": 0.0,
+                  "zRot": 0.0,
+                  "xScale": 1.0,
+                  "yScale": 1.0,
+                  "zScale": 1.0
+                }
+              }
+            ],
+            "pieces": [
+              {
+                "id": "root/body/cube_0",
+                "part": "root/body",
+                "min": [
+                  -0.375,
+                  -0.625,
+                  -0.4375
+                ],
+                "max": [
+                  0.375,
+                  0.5,
+                  0.1875
+                ]
+              },
+              {
+                "id": "root/body/cube_1",
+                "part": "root/body",
+                "min": [
+                  -0.125,
+                  0.125,
+                  -0.5
+                ],
+                "max": [
+                  0.125,
+                  0.5,
+                  -0.4375
+                ]
+              },
+              {
+                "id": "root/head/cube_0",
+                "part": "root/head",
+                "min": [
+                  -0.25,
+                  -0.25,
+                  -0.375
+                ],
+                "max": [
+                  0.25,
+                  0.25,
+                  0.0
+                ]
+              },
+              {
+                "id": "root/head/cube_1",
+                "part": "root/head",
+                "min": [
+                  -0.1875,
+                  0.0625,
+                  -0.4375
+                ],
+                "max": [
+                  0.1875,
+                  0.25,
+                  -0.375
+                ]
+              },
+              {
+                "id": "root/head/cube_2",
+                "part": "root/head",
+                "min": [
+                  -0.3125,
+                  -0.3125,
+                  -0.3125
+                ],
+                "max": [
+                  -0.25,
+                  -0.125,
+                  -0.25
+                ]
+              },
+              {
+                "id": "root/head/cube_3",
+                "part": "root/head",
+                "min": [
+                  0.25,
+                  -0.3125,
+                  -0.3125
+                ],
+                "max": [
+                  0.3125,
+                  -0.125,
+                  -0.25
+                ]
+              },
+              {
+                "id": "root/left_front_leg/cube_0",
+                "part": "root/left_front_leg",
+                "min": [
+                  -0.125,
+                  0.0,
+                  -0.125
+                ],
+                "max": [
+                  0.125,
+                  0.75,
+                  0.125
+                ]
+              },
+              {
+                "id": "root/left_hind_leg/cube_0",
+                "part": "root/left_hind_leg",
+                "min": [
+                  -0.125,
+                  0.0,
+                  -0.125
+                ],
+                "max": [
+                  0.125,
+                  0.75,
+                  0.125
+                ]
+              },
+              {
+                "id": "root/right_front_leg/cube_0",
+                "part": "root/right_front_leg",
+                "min": [
+                  -0.125,
+                  0.0,
+                  -0.125
+                ],
+                "max": [
+                  0.125,
+                  0.75,
+                  0.125
+                ]
+              },
+              {
+                "id": "root/right_hind_leg/cube_0",
+                "part": "root/right_hind_leg",
+                "min": [
+                  -0.125,
+                  0.0,
+                  -0.125
+                ],
+                "max": [
+                  0.125,
+                  0.75,
+                  0.125
+                ]
+              }
+            ],
+            "modelTransform": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "nodes": [
+            {
+              "op": "INPUT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.0,
+              "input": "float.2",
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.017453292,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 0,
+              "right": 1,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "INPUT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.0,
+              "input": "float.3",
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.017453292,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 3,
+              "right": 4,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "INPUT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.0,
+              "input": "float.0",
+              "field": -1
+            },
+            {
+              "op": "INPUT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.0,
+              "input": "float.1",
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.6662,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 6,
+              "right": 8,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "COS",
+              "left": 9,
+              "right": -1,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 1.4,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 10,
+              "right": 11,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 12,
+              "right": 7,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.6662,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 6,
+              "right": 14,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 3.1415927,
+              "field": -1
+            },
+            {
+              "op": "ADD",
+              "left": 15,
+              "right": 16,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "COS",
+              "left": 17,
+              "right": -1,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 1.4,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 18,
+              "right": 19,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 20,
+              "right": 7,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.6662,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 6,
+              "right": 22,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 3.1415927,
+              "field": -1
+            },
+            {
+              "op": "ADD",
+              "left": 23,
+              "right": 24,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "COS",
+              "left": 25,
+              "right": -1,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 1.4,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 26,
+              "right": 27,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 28,
+              "right": 7,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 0.6662,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 6,
+              "right": 30,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "COS",
+              "left": 31,
+              "right": -1,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "CONSTANT",
+              "left": -1,
+              "right": -1,
+              "constant": 1.4,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 32,
+              "right": 33,
+              "constant": 0.0,
+              "field": -1
+            },
+            {
+              "op": "MULTIPLY",
+              "left": 34,
+              "right": 7,
+              "constant": 0.0,
+              "field": -1
+            }
+          ],
+          "writes": [
+            {
+              "part": "root/head",
+              "field": 3,
+              "node": 2
+            },
+            {
+              "part": "root/head",
+              "field": 4,
+              "node": 5
+            },
+            {
+              "part": "root/right_hind_leg",
+              "field": 3,
+              "node": 13
+            },
+            {
+              "part": "root/left_hind_leg",
+              "field": 3,
+              "node": 21
+            },
+            {
+              "part": "root/right_front_leg",
+              "field": 3,
+              "node": 29
+            },
+            {
+              "part": "root/left_front_leg",
+              "field": 3,
+              "node": 35
+            }
+          ]
+        }
+      },
+      "booleanInputs": [],
+      "inputs": [
+        {
+          "channel": "float.0",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationPos",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.1",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "walkAnimationSpeed",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.2",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "xRot",
+          "descriptor": "F"
+        },
+        {
+          "channel": "float.3",
+          "owner": "net.minecraft.client.renderer.entity.state.LivingEntityRenderState",
+          "name": "yRot",
+          "descriptor": "F"
+        }
+      ],
+      "digest": "77650bebb82009d1a020f7b1dd30c2fc25bafb6accd6451a6eb1d9ddcaba6319"
+    },
+    "alias": 0,
+    "samples": [
+      {
+        "channels": {
+          "field.age": 98.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 4.7016315,
+          "field.walkanimationspeed": 1.0,
+          "field.xrot": 29.0,
+          "field.yrot": 14.0,
+          "float.0": 4.7016315,
+          "float.1": 1.0,
+          "float.2": 29.0,
+          "float.3": 14.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.9702956,
+            3.7252903E-9,
+            -0.2419219,
+            0.0,
+            0.11728607,
+            0.87461966,
+            0.4704087,
+            0.0,
+            0.21158966,
+            -0.4848096,
+            0.84863967,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 99.0,
+          "field.agescale": 0.5,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 1.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 1.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 14.104895,
+          "field.walkanimationspeed": 1.0,
+          "field.xrot": -0.0,
+          "field.yrot": -14.0,
+          "float.0": 14.104895,
+          "float.1": 1.0,
+          "float.2": -0.0,
+          "float.3": -14.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.97029567,
+            0.0,
+            0.2419219,
+            0.0,
+            -0.0,
+            1.0,
+            0.0,
+            0.0,
+            -0.2419219,
+            -0.0,
+            0.97029567,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17051509,
+            -0.985355,
+            0.0,
+            0.0,
+            0.985355,
+            0.17051509,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17051509,
+            0.985355,
+            0.0,
+            0.0,
+            -0.985355,
+            0.17051509,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17051509,
+            0.985355,
+            0.0,
+            0.0,
+            -0.985355,
+            0.17051509,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17051509,
+            -0.985355,
+            0.0,
+            0.0,
+            0.985355,
+            0.17051509,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 2.1474836E9,
+          "field.agescale": 1.0,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 4.7016315,
+          "field.walkanimationspeed": 1.0,
+          "field.xrot": 1.0,
+          "field.yrot": 0.0,
+          "float.0": 4.7016315,
+          "float.1": 1.0,
+          "float.2": 1.0,
+          "float.3": 0.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99984765,
+            0.017452406,
+            0.0,
+            0.0,
+            -0.017452406,
+            0.99984765,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 101.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 0.0,
+          "field.walkanimationspeed": 0.0,
+          "field.xrot": 29.0,
+          "field.yrot": 14.0,
+          "float.0": 0.0,
+          "float.1": 0.0,
+          "float.2": 29.0,
+          "float.3": 14.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.9702956,
+            3.7252903E-9,
+            -0.2419219,
+            0.0,
+            0.11728607,
+            0.87461966,
+            0.4704087,
+            0.0,
+            0.21158966,
+            -0.4848096,
+            0.84863967,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 102.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 85.4,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 0.0,
+          "field.walkanimationspeed": 0.0,
+          "field.xrot": 29.0,
+          "field.yrot": 53.6,
+          "float.0": 0.0,
+          "float.1": 0.0,
+          "float.2": 29.0,
+          "float.3": 53.6
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.59341884,
+            1.4901161E-8,
+            -0.80489373,
+            0.0,
+            0.39022022,
+            0.8746196,
+            0.2876952,
+            0.0,
+            0.7039759,
+            -0.4848096,
+            0.5190158,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 103.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 89.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 0.0,
+          "field.walkanimationspeed": 0.0,
+          "field.xrot": 29.0,
+          "field.yrot": 68.0,
+          "float.0": 0.0,
+          "float.1": 0.0,
+          "float.2": 29.0,
+          "float.3": 68.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.37460658,
+            0.0,
+            -0.9271839,
+            0.0,
+            0.44950768,
+            0.8746197,
+            0.1816129,
+            0.0,
+            0.8109333,
+            -0.48480964,
+            0.32763833,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 104.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 0.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 0.0,
+          "field.isinwater": 0.0,
+          "field.isupsidedown": 0.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 0.0,
+          "field.walkanimationspeed": 0.0,
+          "field.xrot": 29.0,
+          "field.yrot": 136.0,
+          "float.0": 0.0,
+          "float.1": 0.0,
+          "float.2": 29.0,
+          "float.3": 136.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            -0.7193399,
+            0.0,
+            -0.6946583,
+            0.0,
+            0.33677703,
+            0.8746197,
+            -0.3487429,
+            0.0,
+            0.6075618,
+            -0.48480964,
+            -0.62914884,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      },
+      {
+        "channels": {
+          "field.age": 105.0,
+          "field.agescale": 1.0,
+          "field.bodyrot": 363.0,
+          "field.isautospinattack": 1.0,
+          "field.isbaby": 0.0,
+          "field.isfullyfrozen": 1.0,
+          "field.isinwater": 1.0,
+          "field.isupsidedown": 1.0,
+          "field.scale": 1.0,
+          "field.walkanimationpos": 4.7016315,
+          "field.walkanimationspeed": 1.0,
+          "field.xrot": -29.0,
+          "field.yrot": -14.0,
+          "float.0": 4.7016315,
+          "float.1": 1.0,
+          "float.2": -29.0,
+          "float.3": -14.0
+        },
+        "matrices": {
+          "root": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "root/body": [
+            0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.99999994,
+            0.0,
+            0.0,
+            -0.99999994,
+            0.0,
+            0.0,
+            0.0,
+            0.3125,
+            0.125,
+            1.0
+          ],
+          "root/head": [
+            0.9702956,
+            3.7252903E-9,
+            0.2419219,
+            0.0,
+            0.11728607,
+            0.87461966,
+            -0.4704087,
+            0.0,
+            -0.21158966,
+            0.4848096,
+            0.84863967,
+            0.0,
+            0.0,
+            0.25,
+            -0.5,
+            1.0
+          ],
+          "root/left_front_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/left_hind_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            0.25,
+            0.75,
+            0.4375,
+            1.0
+          ],
+          "root/right_front_leg": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.17002812,
+            0.9854392,
+            0.0,
+            0.0,
+            -0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            -0.3125,
+            1.0
+          ],
+          "root/right_hind_leg": [
+            1.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.17002812,
+            -0.9854392,
+            0.0,
+            0.0,
+            0.9854392,
+            0.17002812,
+            0.0,
+            -0.25,
+            0.75,
+            0.4375,
+            1.0
+          ]
+        }
+      }
+    ]
+  }
+]

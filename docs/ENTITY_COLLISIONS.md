@@ -302,6 +302,20 @@ conservado y peers7 rechazados. TRUSTED solo esta seleccion explicita tras
 280matrices originales/common, codec/rollback y seis kills semanticos;
 actor input source/continuidad/root/flags/material/bindings/FULL abiertos.
 
+S61 cerrado adversarialmente scoped: LivingPoseInputSource common
+proyecta13fuentes originales Living a partialTicks1 para actor Class exacto y
+schema64canales. Bind frio revalida datos y conserva solo Class/arrays; sample
+read-only memoiza fuentes/derivados y publica un mapa completo inmutable o
+ninguna muestra. OriginalLivingInputPreparation cold prueba schema por field
+real, extractor/bridges y nameTags virtual originales de tecnologias enum/edad
+y enum/unico, registra resources/getters y genera receta reproducible. No
+registra adapter ni modifica tracker/catalog/wire. El clock supplied es
+entity.walkAnimation: su evolucion server-side sigue UNPROVEN (vanilla actualiza
+calculateEntityAnimation client-side; el producto modifica gait time scale).
+TRUSTED solo proyeccion/read-only original partial1 tras36muestras nativas/
+504bits/168matrices, common clientVeto/alias counters y7kills semanticos.
+No certifica root, inclusion, continuidad, transformed bytecode ni FULL.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

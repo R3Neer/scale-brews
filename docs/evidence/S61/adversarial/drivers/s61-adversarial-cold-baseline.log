@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Documents\Codex\2026-10-02\vas-x20\work\scale-brews\tools\s61_adversarial_cold.py", line 19, in <module>
+    with (a.output/'compile.log').open('w',encoding='utf-8') as log:r=subprocess.run([binary('javac'),'-cp',cp,'-d',str(classes),*[str(x) for x in files]],cwd=a.output,stdout=log,stderr=subprocess.STDOUT)
+                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\Usuario\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 206] El nombre del archivo o la extensi�n es demasiado largo

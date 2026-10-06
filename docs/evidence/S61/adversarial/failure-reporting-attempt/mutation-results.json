@@ -1,0 +1,59 @@
+{
+  "candidateSha256": "d9f9ab99232e8bfebabcb518a7bbdece5e05c718c6b3cb1e6a14fa710eb4431e",
+  "results": [
+    {
+      "name": "alias-memo",
+      "compileExit": 0,
+      "sourceSha256": "61ab3c298c873b4cafbac66834bca65d3613960415d05bf1972a9b491244d4ae",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 40.686999999918044
+    },
+    {
+      "name": "eager-source",
+      "compileExit": 0,
+      "sourceSha256": "37a11eb2d88103456ad5cddf92fedf0dccba7e5f6574ee9375c3ea52fe5b77f8",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 36.82799999997951
+    },
+    {
+      "name": "partial-exception",
+      "compileExit": 0,
+      "sourceSha256": "555d85aa6bf62a538574bdb1df3704c308564f331cffcb73d95d89073a6dedc9",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 19.79700000002049
+    },
+    {
+      "name": "schema-65",
+      "compileExit": 0,
+      "sourceSha256": "daf776902a50ea3821faecb21b17ed7a4c0a3cf9cb3e37df4bc097eb595e242a",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 16.188000000081956
+    },
+    {
+      "name": "signed-zero",
+      "compileExit": 0,
+      "sourceSha256": "c6a2abd207fbc34564cc635936215cc121e31e993858cca2a69a727bdb42edae",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 20.32799999997951
+    },
+    {
+      "name": "nonfinite-prefix",
+      "compileExit": 0,
+      "sourceSha256": "8fbe08843c50b7b755c60361c869f5fe76a1a740a5c557918a1bc7d347e3693e",
+      "consumerSha256": "c3b5aaaa653d76b702fb892a3d7d0d669def9581d869018e931924958170efa4",
+      "killed": false,
+      "runtimeExit": 1,
+      "seconds": 24.515999999828637
+    }
+  ]
+}
