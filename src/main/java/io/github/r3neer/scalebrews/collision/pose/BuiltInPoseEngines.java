@@ -28,6 +28,7 @@ public final class BuiltInPoseEngines {
             inputs.ordinary() && parameters.isEmpty() ? Optional.of(Map.of()) : Optional.empty());
         result.put(id("mojang_keyframes"), new MojangKeyframePoseEngine());
         result.put(id("citadel_program"), new CitadelPoseEngine());
+        result.put(id("numeric_program"), new NumericPoseEngine());
         return Map.copyOf(result);
     }
 

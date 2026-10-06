@@ -55,3 +55,10 @@
 /docs/evidence/S56/**/*.log -text -whitespace
 /docs/evidence/S56/**/*.javap.txt -text -whitespace
 /docs/evidence/S56/**/NumericPoseProgram.java -text -whitespace
+
+# Exact S57 scoped foundation and catalog-program audit evidence bytes.
+/docs/evidence/S57/** -text whitespace=cr-at-eol
+/docs/evidence/S57/**/*.log -text -whitespace
+/docs/evidence/S57/adversarial-s00/**/*.java -text -whitespace
+
+/docs/evidence/S57/adversarial/**/*.java -text -whitespace

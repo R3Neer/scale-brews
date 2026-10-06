@@ -1,0 +1,62 @@
+{
+  "status": "SEMANTIC_PASS_8_OF_8",
+  "results": [
+    {
+      "name": "required-schema",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "6f1d4c471c8591269e8fd6abafce0c9dd30dc5a5e6361db2a17bb93e0c15eb7c",
+      "shadowSha256": "c55e6a9c6fb09c9e74463e23f13c69317d23241cb22f21d03f6a0ab41388e3c5"
+    },
+    {
+      "name": "required-sample",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "6f1d4c471c8591269e8fd6abafce0c9dd30dc5a5e6361db2a17bb93e0c15eb7c",
+      "shadowSha256": "f2d474899801653dacc7253fa686e47432999568e451dc33c4c5a5d2d1b1aa64"
+    },
+    {
+      "name": "hot-resource",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "6f1d4c471c8591269e8fd6abafce0c9dd30dc5a5e6361db2a17bb93e0c15eb7c",
+      "shadowSha256": "ec7310f18702f719e174594cec0b6380e181563681eb01941624d57ba1c68e4f"
+    },
+    {
+      "name": "exact-model",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "bb8a51dd2787c91151de3876dbab573094b4bf42a12e34bee321cdc3111221cf",
+      "shadowSha256": "9d6d4a1c0b8d8d0b64889898d130ddba6295b0ec14e5983f7cb4c9f484b0a320"
+    },
+    {
+      "name": "deep-copy",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "bb8a51dd2787c91151de3876dbab573094b4bf42a12e34bee321cdc3111221cf",
+      "shadowSha256": "1c4f6b863a146f3dd7ec80073e6df065a12354f549e6d8b37b305ddb8fd5276f"
+    },
+    {
+      "name": "packet-cache",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "06b75905ebb000a3edb52d5a8dd9aca84b21e803d3e5e41d7d5c280f64d43db8",
+      "shadowSha256": "ae0d66f00a437239443b409a9def9ca5cdd7b5e18d7a4c7273922ff9288f92fc"
+    },
+    {
+      "name": "canonical-alias",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "9853ee99aa5e3cd8b78a61a7cbcca5782d45029b862005a9c4dbd998b75f3ebd",
+      "shadowSha256": "13d3ef6ade834d920c62d6609949f53217b23aa4b4df9c6746cc4b391d706c7c"
+    },
+    {
+      "name": "protocol",
+      "killed": true,
+      "exit": 1,
+      "sourceSha256": "fa1140def95ba24a27c12bc5385835a7ab641c5c496ee715617c566094ef1de1",
+      "shadowSha256": "c7b610b33a8a89b26d904db531fe1e8c1bf3d92b41ab223653f95e0dccf3b85e"
+    }
+  ],
+  "execution": "7 kills from initial campaign; corrected peer-admission mutant alone reexecuted, aggregate exit0. Initial eight-mutant driver exit1 preserved, protocol constant replacement was invalid due to already-inlined dependency constants, not counted as semantic kill."
+}

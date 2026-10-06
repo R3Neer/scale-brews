@@ -2,6 +2,7 @@ package io.github.r3neer.scalebrews.collision.api.spi;
 
 import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram;
+import io.github.r3neer.scalebrews.collision.pose.NumericPoseProgram;
 import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -49,6 +50,8 @@ public interface PoseEngine {
         Optional<PoseProgram> program(Identifier id);
         /** Additive resource family; default keeps existing external Resources lambdas source-compatible. */
         default Optional<CitadelPoseProgram> citadelProgram(Identifier id) { return Optional.empty(); }
+        /** Additive neutral numeric family; old Resources SAM consumers retain empty default behavior. */
+        default Optional<NumericPoseProgram> numericProgram(Identifier id) { return Optional.empty(); }
         static Resources empty() { return ignored -> Optional.empty(); }
     }
 

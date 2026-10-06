@@ -1,0 +1,16 @@
+[
+  {
+    "name": "atomic-rollback",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "c1d0610469a667366453708de7de6735252de420093bd1c0d4909e00414b78d7",
+    "shadowSha256": "388c07ea6219396f2fe13332aae16278356266d5e78c00b104a50bf91e5dd821"
+  },
+  {
+    "name": "bundle-integrity",
+    "exit": 1,
+    "killed": true,
+    "sourceSha256": "20d3877c5713a211db6e2eafeea0f3bceb62e46d9c542c429c0567ceca4a4ec6",
+    "shadowSha256": "1fb6b8a24d28064e175ea6da86470304aff4156765490f2067b3dd6b4dcf30e6"
+  }
+]

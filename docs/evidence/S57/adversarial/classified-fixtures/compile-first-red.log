@@ -1,0 +1,4 @@
+..\s57-adversary-private\S57AdversarialCatalogProof.java:16: error: 'var' is not allowed in a compound declaration
+var p=tiny(8),q=tiny(-4);var c=new WorldAnatomyCatalog();var first=replace(c,p);var old=first.resolve(ACTOR,Map.of()).orElseThrow().poses();var second=replace(c,q);check(old.evaluate(input(Map.of())).orElseThrow().get("root").m30()==.5f,"old revision changed through new resource");check(second.resolve(ACTOR,Map.of()).orElseThrow().poses().evaluate(input(Map.of())).orElseThrow().get("root").m30()==-.25f,"new revision reused old resource");detachedBound(old);
+^
+1 error

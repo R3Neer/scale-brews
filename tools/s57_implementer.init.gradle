@@ -1,0 +1,11 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+allprojects { afterEvaluate {
+ loom.runs.configureEach {runDir=file(providers.gradleProperty('s57RunDir').getOrElse('../s57-impl-run')).absolutePath}
+ tasks.register('s57CommonClasspath') {doLast {def output=file(providers.gradleProperty('s57ClasspathFile').getOrElse('../s57-impl-classpath.txt'));output.parentFile.mkdirs();output.text=sourceSets.main.runtimeClasspath.asPath}}
+ tasks.named('processGametestResources') {outputs.upToDateWhen {false};doLast {
+  def f=new File(destinationDir,'fabric.mod.json');def m=new JsonSlurper().parse(f)
+  m.entrypoints['fabric-gametest']=['io.github.r3neer.scalebrews.collision.internal.S57NumericCatalogTests','io.github.r3neer.scalebrews.collision.internal.S15PreparedCatalogBundleTests','io.github.r3neer.scalebrews.collision.internal.S18PoseEngineSpiCompatibilityTests','io.github.r3neer.scalebrews.collision.internal.S20AdversarialCanonicalBindingTests','io.github.r3neer.scalebrews.collision.internal.S46ImplementerPreparedVariantTests','io.github.r3neer.scalebrews.test.S04G1IntegrationTests']
+  f.text=JsonOutput.prettyPrint(JsonOutput.toJson(m))
+ }}
+} }

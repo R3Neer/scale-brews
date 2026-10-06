@@ -253,6 +253,22 @@ scope tras campana independiente, replay publico y ocho kills semanticos S56.
 Renderer/world root, flags/material, selectors,
 bytecode transformado, FULL y G6 general permanecen abiertos.
 
+S57 registra `scalebrews:numeric_program` como engine reusable y
+resuelve `PoseEngine.Resources.numericProgram` solo al aceptar/bind una revision.
+El directorio `scalebrews/numeric_pose_programs` y el mapa de bundle
+`numeric_pose_programs` contienen DTO neutrales deep-validados; geometry exacta
+y todos los INPUT declarados son obligatorios. Reload/transfer conservan snapshot
+y prepared bundle anterior ante un candidato invalido. Protocolo7 y capability
+aditiva `NUMERIC_POSE_PROGRAMS` versionan esta extension; datos binding schema1
+y overloads/SAM anteriores conservan su contrato de fuente. Bound retiene nodos,
+indices y fields iniciales, sin geometria/cubos duplicados por binding. Parsing,
+copias/hash/fragments siguen en PREPARATION y packets se reutilizan por revision/
+epoch; evaluate conserva scratch por llamada y no vuelve a buscar resources.
+Extension TRUSTED solo para este scope tras campana independiente S57: codec
+real,140 matrices originales, rollback/ownership y ocho kills semanticos.
+No crea autoridad
+de actor/renderer/root/material, bindings de especies ni familias FULL.
+
 ### 4.3 GeometryEngine
 
 Un `GeometryEngine` conoce una **tecnología de modelo**, no una especie. Produce `ModelGeometry`, formado por parts jerárquicas y pieces convexas identificadas.

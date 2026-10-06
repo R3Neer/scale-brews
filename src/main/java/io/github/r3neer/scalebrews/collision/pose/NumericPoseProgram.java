@@ -77,6 +77,40 @@ public record NumericPoseProgram(int format, String source, String version, Mode
         }
     }
 
+    /** PREPARATION: revalidate every nested constructor, with caps checked before copying lists. */
+    public static NumericPoseProgram validatedCopy(NumericPoseProgram raw) {
+        if (raw == null || raw.nodes() == null || raw.nodes().isEmpty() || raw.nodes().size() > MAX_NODES
+            || raw.writes() == null || raw.writes().isEmpty() || raw.writes().size() > MAX_WRITES)
+            throw new IllegalArgumentException("Missing/oversized numeric program");
+        var g = raw.geometry();
+        if (g == null || g.parts() == null || g.parts().isEmpty() || g.parts().size() > 512
+            || g.pieces() == null || g.pieces().size() > 4096)
+            throw new IllegalArgumentException("Missing/oversized numeric geometry");
+        var parts = g.parts().stream().map(p -> {
+            if (p == null || p.transform() == null || p.transform().size() != 16 || p.sourcePose() == null)
+                throw new IllegalArgumentException("Invalid numeric geometry part");
+            var f = p.sourcePose();
+            var pose = new ModelGeometry.SourcePose(f.x(), f.y(), f.z(), f.xRot(), f.yRot(), f.zRot(),
+                f.xScale(), f.yScale(), f.zScale());
+            return new ModelGeometry.Part(p.id(), p.parent(), p.transform(), pose);
+        }).toList();
+        var pieces = g.pieces().stream().map(p -> {
+            if (p == null || p.min() == null || p.min().size() != 3 || p.max() == null || p.max().size() != 3)
+                throw new IllegalArgumentException("Invalid numeric geometry piece");
+            return new ModelGeometry.Piece(p.id(), p.part(), p.min(), p.max(), p.excluded());
+        }).toList();
+        var geometry = new ModelGeometry(g.format(), g.source(), g.version(), parts, pieces, g.modelTransform());
+        var nodes = raw.nodes().stream().map(n -> {
+            if (n == null) throw new IllegalArgumentException("Missing numeric node");
+            return new Node(n.op(), n.left(), n.right(), n.constant(), n.input(), n.part(), n.field());
+        }).toList();
+        var writes = raw.writes().stream().map(w -> {
+            if (w == null) throw new IllegalArgumentException("Missing numeric write");
+            return new Write(w.part(), w.field(), w.node());
+        }).toList();
+        return new NumericPoseProgram(raw.format(), raw.source(), raw.version(), geometry, nodes, writes);
+    }
+
     /** Exact immutable geometry binding; preparation work is never repeated by the returned evaluator. */
     public Optional<PoseEngine.Bound> bind(ModelGeometry candidate) {
         if (!geometry.equals(candidate)) return Optional.empty();
@@ -95,10 +129,11 @@ public record NumericPoseProgram(int format, String source, String version, Mode
             indexes[write.field()] = write.node();
         }
         // All scratch and result matrices belong to a call; concurrent evaluations do not share mutation.
-        return Optional.of(inputs -> evaluate(inputs, initials, initialNodes, outputs));
+        var programNodes = nodes;
+        return Optional.of(inputs -> evaluate(programNodes, inputs, initials, initialNodes, outputs));
     }
 
-    private Optional<Map<String, Matrix4f>> evaluate(PoseEngine.Inputs inputs, Map<String, float[]> initials,
+    private static Optional<Map<String, Matrix4f>> evaluate(List<Node> nodes, PoseEngine.Inputs inputs, Map<String, float[]> initials,
                                                    float[] initialNodes, Map<String, int[]> outputs) {
         if (inputs == null || !inputs.ordinary()) return Optional.empty();
         float[] values = new float[nodes.size()];

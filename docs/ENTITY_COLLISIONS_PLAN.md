@@ -565,6 +565,18 @@ sensibilidad verde repetida. No autoridad de actor/root/flags/material, engine
 registrado/catalog resource/binding fisico/FULL; baseline93Living/92UNRESOLVED+
 1fixtureSAFE_PARTIAL+0FULL permanece. G6 tareas2-6/G7-G9 continúan abiertas.
 
+**S57 cerrado adversarialmente scoped:** engine numerico reusable registrado,
+recursos revision-local y bundle atomico protocolo7 con deep validation,
+binding exacto, required INPUT y overloads/SAM anteriores preservados. Bateria
+propia36/36; independiente y replay publico16/16 servidor y140 matrices originales
+common con veto cliente,100k evaluaciones sin lookup y ocho kills semanticos.
+Bound no retiene programa/geometria/resources; packet cache preservado.377 hashes,
+370 previos intactos, receipts raw y replay DTO byte exactos; JAR sin clases
+GameTest. Dos reviews finales cero cambios y commit local Sprint:S57. No Tiny
+ajeno ni sensibilidad verde repetida. No actor input source/root/flags/material/
+selectors originales/FULL; baseline93Living/92UNRESOLVED+1fixtureSAFE_PARTIAL+
+0FULL permanece. G6 tareas2-6/G7-G9 y QA humana al final de epica siguen abiertos.
+
 ### G7 — migración de Clinging Reoriented
 
 **Requisitos:** FR-001..004, FR-044..046, FR-072..085, FR-094; NFR-021..024, NFR-030, NFR-033..035.

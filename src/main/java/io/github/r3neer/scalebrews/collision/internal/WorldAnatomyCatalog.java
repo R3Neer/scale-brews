@@ -10,6 +10,7 @@ import io.github.r3neer.scalebrews.collision.geometry.ModelGeometry;
 import io.github.r3neer.scalebrews.collision.migration.LegacyAnatomyCatalogMigration;
 import io.github.r3neer.scalebrews.collision.migration.LegacyCollisionData;
 import io.github.r3neer.scalebrews.collision.pose.CitadelPoseProgram;
+import io.github.r3neer.scalebrews.collision.pose.NumericPoseProgram;
 import io.github.r3neer.scalebrews.collision.pose.PoseProgram;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +49,20 @@ public final class WorldAnatomyCatalog {
     /** Full canonical catalog, all prepared variants and a default-only compatibility projection. */
     public record Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
                            Map<String, CitadelPoseProgram> citadelPosePrograms,
+                           Map<String, NumericPoseProgram> numericPosePrograms,
                            CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings, PreparedBindingIndex prepared) {
+        /** Source-compatible full constructor for pre-S57 callers. */
+        public Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
+                        Map<String, CitadelPoseProgram> citadelPosePrograms,
+                        CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings, PreparedBindingIndex prepared) {
+            this(revision, models, posePrograms, citadelPosePrograms, Map.of(), catalog, bindings, prepared);
+        }
+        public Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
+                        Map<String, CitadelPoseProgram> citadelPosePrograms, Map<String, NumericPoseProgram> numericPosePrograms,
+                        CollisionBindingCatalog catalog, Map<Identifier, Binding> bindings) {
+            this(revision, models, posePrograms, citadelPosePrograms, numericPosePrograms, catalog, bindings,
+                new PreparedBindingIndex(catalog, bindings.values()));
+        }
         /** Source-compatible constructor for pre-S46 callers; supplied defaults alone are prepared. */
         public Snapshot(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> posePrograms,
                         Map<String, CitadelPoseProgram> citadelPosePrograms,
@@ -67,6 +81,7 @@ public final class WorldAnatomyCatalog {
             models = Map.copyOf(models);
             posePrograms = Map.copyOf(posePrograms);
             citadelPosePrograms = Map.copyOf(citadelPosePrograms);
+            numericPosePrograms = Map.copyOf(numericPosePrograms);
             bindings = Map.copyOf(bindings);
             var defaults = new HashMap<Identifier, Binding>();
             for (var entity : catalog.snapshot().keySet())
@@ -112,7 +127,7 @@ public final class WorldAnatomyCatalog {
         var catalog = new CollisionBindingCatalog(List.of());
         var snapshot = new Snapshot(revision, Map.of(), Map.of(), Map.of(), catalog, Map.of());
         return new Accepted(snapshot, AnatomyCatalogTransfer.prepareBundle(snapshot.models(), snapshot.posePrograms(),
-            snapshot.citadelPosePrograms(), catalog.bindings()));
+            snapshot.citadelPosePrograms(), snapshot.numericPosePrograms(), catalog.bindings()));
     }
 
     public Snapshot snapshot() { return current.snapshot(); }
@@ -126,9 +141,10 @@ public final class WorldAnatomyCatalog {
         var models = read(resources, "scalebrews/entity_geometry", AnatomyCodecs.GEOMETRY);
         var programs = readPrograms(resources, "scalebrews/pose_programs");
         var citadelPrograms = readCitadelPrograms(resources, "scalebrews/citadel_pose_programs");
+        var numericPrograms = readNumericPrograms(resources, "scalebrews/numeric_pose_programs");
         List<CollisionBinding> bindings = new ArrayList<>(CollisionBindingCatalog.load(resources).bindings());
         bindings.addAll(LegacyAnatomyCatalogMigration.load(resources));
-        return replace(models, programs, citadelPrograms, bindings);
+        return replace(models, programs, citadelPrograms, numericPrograms, bindings);
     }
 
     private static <T> Map<String, T> read(net.minecraft.server.packs.resources.ResourceManager resources, String directory,
@@ -197,6 +213,28 @@ public final class WorldAnatomyCatalog {
         return result;
     }
 
+    private static Map<String, NumericPoseProgram> readNumericPrograms(net.minecraft.server.packs.resources.ResourceManager resources,
+                                                                       String directory) {
+        var files = resources.listResources(directory, id -> id.getPath().endsWith(".json"));
+        if (files.size() > 4096) throw new IllegalArgumentException("Too many resources under " + directory);
+        Map<String, NumericPoseProgram> result = new TreeMap<>();
+        long total = 0;
+        for (var entry : files.entrySet()) {
+            try (var reader = entry.getValue().openAsReader()) {
+                var text = readBounded(reader, total); total += text.length();
+                var file = entry.getKey(); var path = file.getPath();
+                String id = Identifier.fromNamespaceAndPath(file.getNamespace(),
+                    path.substring(directory.length() + 1, path.length() - 5)).toString();
+                var raw = new Gson().fromJson(text, NumericPoseProgram.class);
+                if (result.put(id, NumericPoseProgram.validatedCopy(raw)) != null)
+                    throw new IllegalArgumentException("Duplicate numeric pose program " + id);
+            } catch (java.io.IOException | RuntimeException invalid) {
+                throw new IllegalArgumentException("Invalid numeric pose-program resource " + entry.getKey(), invalid);
+            }
+        }
+        return result;
+    }
+
     private static String readBounded(java.io.Reader reader, long previous) throws java.io.IOException {
         var text = new StringBuilder();
         char[] buffer = new char[8192];
@@ -226,7 +264,13 @@ public final class WorldAnatomyCatalog {
     public synchronized Snapshot replace(Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
                                          Map<String, CitadelPoseProgram> citadelPrograms,
                                          Collection<CollisionBinding> bindings) {
-        return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, programs, citadelPrograms, bindings);
+        return replace(models, programs, citadelPrograms, Map.of(), bindings);
+    }
+
+    public synchronized Snapshot replace(Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
+                                         Map<String, CitadelPoseProgram> citadelPrograms, Map<String, NumericPoseProgram> numericPrograms,
+                                         Collection<CollisionBinding> bindings) {
+        return replaceValidated(Math.incrementExact(current.snapshot().revision()), models, programs, citadelPrograms, numericPrograms, bindings);
     }
 
     synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Collection<CollisionBinding> bindings) {
@@ -241,21 +285,29 @@ public final class WorldAnatomyCatalog {
     synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
                                              Map<String, CitadelPoseProgram> citadelPrograms,
                                              Collection<CollisionBinding> bindings) {
+        return replaceAtRevision(revision, models, programs, citadelPrograms, Map.of(), bindings);
+    }
+
+    synchronized Snapshot replaceAtRevision(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
+                                             Map<String, CitadelPoseProgram> citadelPrograms, Map<String, NumericPoseProgram> numericPrograms,
+                                             Collection<CollisionBinding> bindings) {
         if (revision < 0) throw new IllegalArgumentException("Negative catalog revision");
-        return replaceValidated(revision, models, programs, citadelPrograms, bindings);
+        return replaceValidated(revision, models, programs, citadelPrograms, numericPrograms, bindings);
     }
 
     private Snapshot replaceValidated(long revision, Map<String, ModelGeometry> models, Map<String, PoseProgram> programs,
-                                      Map<String, CitadelPoseProgram> citadelPrograms,
+                                      Map<String, CitadelPoseProgram> citadelPrograms, Map<String, NumericPoseProgram> numericPrograms,
                                       Collection<CollisionBinding> bindings) {
         Objects.requireNonNull(models, "models");
         Objects.requireNonNull(programs, "programs");
         Objects.requireNonNull(citadelPrograms, "citadelPrograms");
+        Objects.requireNonNull(numericPrograms, "numericPrograms");
         Objects.requireNonNull(bindings, "bindings");
         var canonical = new CollisionBindingCatalog(bindings);
         Map<String, PoseProgram> validatedPrograms = validatePrograms(programs);
         Map<String, CitadelPoseProgram> validatedCitadelPrograms = validateCitadelPrograms(citadelPrograms);
-        var resources = resources(validatedPrograms, validatedCitadelPrograms);
+        Map<String, NumericPoseProgram> validatedNumericPrograms = validateNumericPrograms(numericPrograms);
+        var resources = resources(validatedPrograms, validatedCitadelPrograms, validatedNumericPrograms);
 
         List<String> references = new ArrayList<>();
         for (var candidate : canonical.bindings()) {
@@ -284,10 +336,10 @@ public final class WorldAnatomyCatalog {
             if (prepared != null) executable.put(entity, prepared);
         }
 
-        var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), validatedPrograms, validatedCitadelPrograms,
+        var bundle = AnatomyCatalogTransfer.prepareBundle(validated.models(), validatedPrograms, validatedCitadelPrograms, validatedNumericPrograms,
             canonical.bindings());
         var index = new PreparedBindingIndex(canonical, preparedBindings.values());
-        var next = new Snapshot(revision, validated.models(), validatedPrograms, validatedCitadelPrograms, canonical, executable, index);
+        var next = new Snapshot(revision, validated.models(), validatedPrograms, validatedCitadelPrograms, validatedNumericPrograms, canonical, executable, index);
         current = new Accepted(next, bundle);
         return next;
     }
@@ -320,14 +372,32 @@ public final class WorldAnatomyCatalog {
         return Map.copyOf(result);
     }
 
+    private static Map<String, NumericPoseProgram> validateNumericPrograms(Map<String, NumericPoseProgram> programs) {
+        if (programs.size() > 4096) throw new IllegalArgumentException("Too many numeric pose programs");
+        Map<String, NumericPoseProgram> result = new TreeMap<>();
+        programs.forEach((id, raw) -> {
+            final String canonicalId;
+            try { canonicalId = Identifier.parse(id).toString(); }
+            catch (RuntimeException invalid) { throw new IllegalArgumentException("Invalid numeric pose-program id " + id, invalid); }
+            var program = NumericPoseProgram.validatedCopy(raw);
+            if (result.putIfAbsent(canonicalId, program) != null)
+                throw new IllegalArgumentException("Duplicate canonical numeric pose-program id " + canonicalId);
+        });
+        return Map.copyOf(result);
+    }
+
     private static PoseEngine.Resources resources(Map<String, PoseProgram> programs,
-                                                  Map<String, CitadelPoseProgram> citadelPrograms) {
+                                                  Map<String, CitadelPoseProgram> citadelPrograms,
+                                                  Map<String, NumericPoseProgram> numericPrograms) {
         return new PoseEngine.Resources() {
             @Override public Optional<PoseProgram> program(Identifier id) {
                 return Optional.ofNullable(programs.get(id.toString()));
             }
             @Override public Optional<CitadelPoseProgram> citadelProgram(Identifier id) {
                 return Optional.ofNullable(citadelPrograms.get(id.toString()));
+            }
+            @Override public Optional<NumericPoseProgram> numericProgram(Identifier id) {
+                return Optional.ofNullable(numericPrograms.get(id.toString()));
             }
         };
     }
@@ -336,11 +406,13 @@ public final class WorldAnatomyCatalog {
                                                       PoseEngine.Resources resources) {
         Identifier mojang = Identifier.parse("scalebrews:mojang_keyframes");
         Identifier citadel = Identifier.parse("scalebrews:citadel_program");
+        Identifier numeric = Identifier.parse("scalebrews:numeric_program");
         for (var candidate : bindings) {
             if (compatibilityBridge(candidate)) continue;
             var model = models.get(candidate.geometry().model().toString());
             var engine = CollisionEngines.pose(candidate.pose().engine()).orElse(null);
-            boolean dataBacked = candidate.pose().engine().equals(mojang) || candidate.pose().engine().equals(citadel);
+            boolean dataBacked = candidate.pose().engine().equals(mojang) || candidate.pose().engine().equals(citadel)
+                || candidate.pose().engine().equals(numeric);
             if (engine == null) {
                 if (model != null || dataBacked)
                     throw new IllegalArgumentException("Missing pose engine " + candidate.pose().engine() + " for " + selector(candidate));

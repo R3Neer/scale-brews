@@ -12,6 +12,7 @@
       "io.github.r3neer.scalebrews.test.fixture.ExternalCollisionFixture"
     ],
     "fabric-gametest": [
+      "io.github.r3neer.scalebrews.collision.internal.S57NumericCatalogTests",
       "io.github.r3neer.scalebrews.test.AnatomyGeometryTests",
       "io.github.r3neer.scalebrews.test.AnatomyAnimatedSqueezingTests",
       "io.github.r3neer.scalebrews.test.AnatomyNetworkingTests",

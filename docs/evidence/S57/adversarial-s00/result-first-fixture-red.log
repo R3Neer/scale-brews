@@ -1,0 +1,37 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.joml.MemUtil$MemUtilUnsafe (file:/C:/Users/Usuario/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.8/fc0a71dad90a2cf41d82a76156a0e700af8e4f8d/joml-1.10.8.jar)
+WARNING: Please consider reporting this to the maintainers of class org.joml.MemUtil$MemUtilUnsafe
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:119)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at S57FoundationBootstrap.main(S57FoundationBootstrap.java:2)
+Caused by: java.lang.RuntimeException: Failed to invoke constructor 'io.github.r3neer.scalebrews.collision.geometry.ModelGeometry$SourcePose(float, float, float, float, float, float, float, float, float)' with args [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.finalize(ReflectiveTypeAdapterFactory.java:666)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.finalize(ReflectiveTypeAdapterFactory.java:568)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$Adapter.read(ReflectiveTypeAdapterFactory.java:526)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$2.readIntoArray(ReflectiveTypeAdapterFactory.java:257)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.readField(ReflectiveTypeAdapterFactory.java:639)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.readField(ReflectiveTypeAdapterFactory.java:568)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$Adapter.read(ReflectiveTypeAdapterFactory.java:517)
+	at com.google.gson.internal.bind.TypeAdapterRuntimeTypeWrapper.read(TypeAdapterRuntimeTypeWrapper.java:40)
+	at com.google.gson.internal.bind.CollectionTypeAdapterFactory$Adapter.read(CollectionTypeAdapterFactory.java:84)
+	at com.google.gson.internal.bind.CollectionTypeAdapterFactory$Adapter.read(CollectionTypeAdapterFactory.java:64)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$2.readIntoArray(ReflectiveTypeAdapterFactory.java:257)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.readField(ReflectiveTypeAdapterFactory.java:639)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.readField(ReflectiveTypeAdapterFactory.java:568)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$Adapter.read(ReflectiveTypeAdapterFactory.java:517)
+	at com.google.gson.Gson.fromJson(Gson.java:1080)
+	at com.google.gson.Gson.fromJson(Gson.java:981)
+	at com.google.gson.Gson.fromJson(Gson.java:891)
+	at com.google.gson.Gson.fromJson(Gson.java:828)
+	at S57FoundationProof.main(S57FoundationProof.java:10)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	... 2 more
+Caused by: java.lang.IllegalArgumentException: Degenerate source scale
+	at io.github.r3neer.scalebrews.collision.geometry.ModelGeometry$SourcePose.<init>(ModelGeometry.java:30)
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483)
+	at com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$RecordAdapter.finalize(ReflectiveTypeAdapterFactory.java:645)
+	... 21 more

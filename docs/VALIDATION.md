@@ -3863,3 +3863,60 @@ ancestro y372 owners anteriores intactos. Scope TRUSTED compiler/DAG/reset seam;
 actor/root/flags/material/catalog binding/FULL y G6 completo siguen abiertos.
 Cierre con commit local Sprint:S56; tooling reusable conservado, cuatro one-offs
 adversariales retirados precisamente; caches/worlds/logs preservados.
+
+
+## S57 - programas numericos revision-local, cierre scoped (2026-10-06)
+
+IMPLEMENTER ejecuta S00 previo independiente y verifica raw14 artefactos y376
+hashes anteriores antes de produccion. Recibo SHA81bbab00892551d213efe3bfc5f63a6b2f92c3625e7af827d3b05a1e6234f917.
+NumericPoseEngine common, Resources default numericProgram y mapa revision-local
+WorldAnatomyCatalog/numeric_pose_programs implementados; protocolo7 y capability
+NUMERIC_POSE_PROGRAMS, schema binding1. Deep copy valida caps antes de listas;
+missing/foreign/malformed/schema invalido rechaza el candidato sin swap parcial.
+Registro reusable, sin actor input source ni bindings de especies nuevos/FULL.
+
+Compilacion production PASS52s; build -x runGameTest y GameTest compile PASS56s.
+IMPLEMENTER_INVOCATION: esa primera invocacion nombro runGameTest pero lo excluyo
+con -x, asi que no se cuenta como prueba servidor. Invocacion separada corregida
+runGameTest focal PASS1m23s36/36, shutdown limpio. Nuevo replay de dos programas
+originales capturados S56 atraviesa codec real/dos fragmentos/binding preparado:
+12 muestras/84 matrices; no se vuelve a ejecutar el cliente original. Fixture
+empacado GameTest permite CI ordinario sin rutas locales. Replay JVM client-veto
+PASS4.8s y conserva SAM anterior/resource lookup solo al bind.
+
+Review detecta retencion de todo NumericPoseProgram (incluidos geometry/cubos)
+por Bound. Se cambia ownership de lambda a nodos/indices/initial fields; misma
+matematica/ausencia. Build+compile PASS13s, replay common PASS4.8s y nueva bateria
+focal servidor PASS1m5s36/36, shutdown limpio. No Tiny/fullsuite ajeno ni sensibilidad
+anterior repetida. Manifest ordinario restaurado PASS2s,113server/34client, igual
+al fuente. Dos lecturas completas posteriores cero cambios. Recibo propio fija
+377 hashes/370 previos intactos y JAR789 entries/1.321.873 bytes SHA
+da50a340e5bc72fb9ef82252edb1c22bfed63b9cb99335f2956ed5bb0b957aa7;
+586 clases GameTest compiladas sin leak. Parsing/copia/hash/fragmentacion solo
+PREPARATION; chars16MiB/directorio y UTF8 bundle16MiB total. Bound no retiene
+Resource callback ni geometria/cubos duplicados por binding; scratch/matrices
+por evaluate siguen bounded y no cero alloc/TPS. Campana independiente pendiente;
+G6 general/actor/root/material/FULL/G7-G9 y QA humana final siguen abiertos.
+
+Reproduccion IMPLEMENTER de la primera lane publica independiente: common
+PASS6.6s,4 programas originales/140 matrices y100314 asserts, codec real,
+binding ID exacto, rollback,4096/4097, Bound detached y100k evaluaciones sin
+lookup de recursos; JVM con veto de cliente. Selector server publico limitado
+a las tres fronteras S18 afectadas PASS2m25s,16/16 y shutdown limpio. No Tiny;
+sensibilidad y recibo final ADVERSARY aun pendientes. Manifiesto ordinario
+restaurado de nuevo PASS9s,113server/34client, entrypoints iguales al fuente.
+
+Campana ADVERSARY final PASS16/16 servidor4m15s y cierre limpio,4 programas/140
+matrices/100314 asserts common y8/8 kills semanticos. Siete kills iniciales y
+solo el guard de peer antiguo repetido: el primer reemplazo de constante fue
+ADVERSARY_TOOLING por inline en callers, no kill valido. Dos setup rojos fueron
+ADVERSARY_FIXTURE (var compuesto/engine test-only ausente); logs preservados y
+correccion de fixture, sin reparacion productiva ni tolerancias rebajadas.
+Recibo SHA6c17cdc806eed96de8955a5711099be56ff366e448a51b958ff80ca86a5fa4c0;
+IMPLEMENTER verifica40 artefactos raw,377 hashes y6 fuentes de tooling/test,
+los ocho AssertionError semanticos y replay JSON byte identico. No vuelve a
+ejecutar mutantes ya verdes. Snapshot S56 de envelope local reusado sin nuevo
+claim espacial/root/material; matrices completas y DTO wire exacto certifican
+esta frontera. Dos reviews finales cero cambios, main b5e62535 refrescado
+ancestro; cuatro one-offs retirados precisamente, tooling reusable conservado.
+Cierre con commit local Sprint:S57. G6 completo y G7-G9 siguen abiertos.

@@ -1,0 +1,30 @@
+"""Focal semantic mutations of S57; run public common baseline first."""
+import argparse,os,json,subprocess,hashlib
+from pathlib import Path
+p=argparse.ArgumentParser();p.add_argument('classpath',type=Path);p.add_argument('snapshots',type=Path);p.add_argument('output',type=Path);p.add_argument('--mutants',nargs='*');a=p.parse_args();r=Path(__file__).absolute().parent.parent;o=a.output.absolute();o.mkdir(parents=True,exist_ok=True);cp=a.classpath.absolute().read_text();java=Path(os.environ['JAVA_HOME'])/'bin';results=[]
+base='src/main/java/io/github/r3neer/scalebrews/collision/'
+edits={
+'required-schema':('pose/NumericPoseEngine.java','if (!requiredChannels.containsAll(used)) return Optional.empty();',''),
+'required-sample':('pose/NumericPoseEngine.java','|| !inputs.channels().keySet().containsAll(required)',''),
+'hot-resource':('pose/NumericPoseEngine.java','return Optional.of(inputs -> inputs == null','return Optional.of(inputs -> { resources.numericProgram(Identifier.parse(parameters.get("program"))); return inputs == null'),
+'exact-model':('pose/NumericPoseProgram.java','if (!geometry.equals(candidate)) return Optional.empty();',''),
+'deep-copy':('pose/NumericPoseProgram.java','public static NumericPoseProgram validatedCopy(NumericPoseProgram raw) {','public static NumericPoseProgram validatedCopy(NumericPoseProgram raw) { if(raw!=null) return raw;'),
+'protocol':('api/AnatomyApi.java','return peerVersion == PROTOCOL_VERSION && (CAPABILITIES & requiredCapabilities) == requiredCapabilities;','return (peerVersion == PROTOCOL_VERSION || peerVersion == 6) && (CAPABILITIES & requiredCapabilities) == requiredCapabilities;'),
+'packet-cache':('internal/AnatomyCatalogTransfer.java','if(packets!=null && epoch.equals(packetEpoch) && revision==packetRevision)return packets;',''),
+'canonical-alias':('internal/WorldAnatomyCatalog.java','if (result.putIfAbsent(canonicalId, program) != null)\n                throw new IllegalArgumentException("Duplicate canonical numeric pose-program id " + canonicalId);','result.put(canonicalId, program);')}
+for name,(owner,anchor,replacement) in edits.items():
+ if a.mutants is not None and name not in a.mutants:continue
+ src=r/(base+owner);text=src.read_text();assert text.count(anchor)==1,(name,'anchor')
+ changed=text.replace(anchor,replacement)
+ if name=='hot-resource':changed=changed.replace('? Optional.empty() : evaluator.evaluate(inputs));','? Optional.empty() : evaluator.evaluate(inputs); });')
+ d=o/name;d.mkdir(exist_ok=True);shadow=d/src.name;shadow.write_text(changed,encoding='utf-8');classes=d/'classes';classes.mkdir(exist_ok=True)
+ sources=[shadow,r/'tools/s57-adversarial-common/S57AdversarialCatalogProof.java',r/'tools/s57-adversarial-common/S57CatalogBootstrap.java']
+ with (d/'compile.log').open('w') as log:c=subprocess.run([str(java/'javac.exe'),'-cp',cp,'-d',str(classes),*[str(s) for s in sources]],cwd=d,stdout=log,stderr=subprocess.STDOUT)
+ if c.returncode:raise RuntimeError('compile '+name)
+ classpath=d/'classpath.txt';classpath.write_text(cp)
+ with (d/'result.log').open('w') as log:c=subprocess.run([str(java/'java.exe'),'-cp',str(classes),'S57CatalogBootstrap',str(classpath),str(classes),str(a.snapshots.absolute())],cwd=d,stdout=log,stderr=subprocess.STDOUT)
+ log=(d/'result.log').read_text();kill=c.returncode!=0 and 'AssertionError: S57 ADV' in log
+ results.append(dict(name=name,killed=kill,exit=c.returncode,sourceSha256=hashlib.sha256(src.read_bytes()).hexdigest(),shadowSha256=hashlib.sha256(shadow.read_bytes()).hexdigest()))
+ print(name,kill,flush=True)
+(o/'mutation-results.json').write_text(json.dumps(results,indent=2))
+if not all(x['killed'] for x in results):raise RuntimeError('survivor or infrastructure failure')
